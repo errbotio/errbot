@@ -15,7 +15,10 @@ class BotPlugin(object):
         logging.debug('Init shelf for %s' % classname)
         filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
         logging.debug('Loading %s' % filename)
-        self.__class__._shelf = shelve.DbfilenameShelf(filename)
+        if hasattr(self.__class__, '_shelf'):
+	    self.__class__._shelf.close()
+
+	self.__class__._shelf = shelve.DbfilenameShelf(filename)
         BotPlugin.botbase_class.__bases__ += ( self.__class__,) # I use a class parameter to avoid a circular dependency to errBot
         self.is_activated = True
 

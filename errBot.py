@@ -199,7 +199,9 @@ class ErrBot(JabberBot):
             self.send(mess.getFrom(), "I am updating %s ..." % d , message_type=mess.getType())
             p = subprocess.Popen(['git', 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             feedback = p.stdout.read() + '\n' + '-'*50 + '\n'
-            feedback += p.stderr.read() + '\n' + '-'*50 + '\n'
+            err = p.stderr.read().strip()
+            if err:
+                feedback += err + '\n' + '-'*50 + '\n'
             if p.wait():
                 self.send(mess.getFrom(), "Update of %s failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
             else:

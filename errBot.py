@@ -131,9 +131,9 @@ class ErrBot(JabberBot):
         else:
             # try to humanize the last part of the git url as much as we can
             if args.find('/') > 0:
-	        s = args.split('/')
-	    else:
-	        s = args.split(':')
+                s = args.split('/')
+            else:
+                s = args.split(':')
             last_part = s[-1] if s[-1] else s[-2]
             human_name = last_part[:-4] if last_part.endswith('.git') else last_part
             p = subprocess.Popen(['git', 'clone', args, human_name], cwd = PLUGIN_DIR, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -180,19 +180,38 @@ class ErrBot(JabberBot):
         return 'Current plugins repos : \n' + '\n'.join(['%s\t-> %s'%item for item in repos.iteritems()]  )
 
     @botcmd
-    def upgrade(self, mess, args):
-        """ upgrade the bot """
+    def update(self, mess, args):
+        """ update the bot and/or plugins
+        use : !update all
+        to update everything
+        or : !update core
+        to update only the core
+        or : !update repo_name repo_name ...
+        to update selectively some repos
+        """
         admin_only(mess)
-        p = subprocess.Popen(['git', 'pull'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        feedback = p.stdout.read()
-        error_feedback = p.stderr.read()
+        directories = set()
+        args = args.split(' ')
+        repos = self.shelf.get('repos', {})
+        if 'all' in args or 'core' in args:
+            directories.add(os.path.dirname(__file__))
 
-        if not p.wait():
-            self.quit(-1337)
-            return "Auto upgrade myself done :), gonna restart now... \n" + feedback + "\n\n----- \n\n" + error_feedback
+        if 'all' in args:
+            directories.update([PLUGIN_DIR+os.sep+name for name in repos])
         else:
-            return "Auto upgrade from git failed, somebody probably does something wrong on my place\n " + feedback + "\n\n----- \n\n" + error_feedback
+            directories.update([PLUGIN_DIR+os.sep+name for name in set(args).intersection(set(repos))])
 
+        for d in directories:
+            self.send(mess.getFrom(), "I am updating %s ..." % d , message_type=mess.getType())
+            p = subprocess.Popen(['git', 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            feedback = p.stdout.read() + '\n' + '-'*50 + '\n'
+            feedback += p.stderr.read() + '\n' + '-'*50 + '\n'
+            if p.wait():
+                self.send(mess.getFrom(), "Update of % failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
+            else:
+                self.send(mess.getFrom(), "Update of % succeeded...\n\n%s\n\n" % (d,feedback) , message_type=mess.getType())
+        self.quit(-1337)
+        return "Done, restarting"
 
 
 

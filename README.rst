@@ -113,8 +113,8 @@ Then you can try it : !hello
 **Advanced programming tips**
 
 - You can access a preinitialized shelf per plugin with self.shelf (see http://docs.python.org/library/shelve.html)
-- You can intercept any message by defining the method callback_message
-::
+- You can intercept any message by defining the method callback_message::
+
     def callback_message(self, conn, mess):
         print "message $s arrived !" % mess
 

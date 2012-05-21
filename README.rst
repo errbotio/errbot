@@ -7,7 +7,7 @@ It is written in python and it is based on jabberbot_ and yapsy_ with some minor
 
 **Brief History**
 
-At Mondial Telecom (http://www.mondialtelecom.be), we needed a chat bot over XMPP so it can reach the non techie audience of the company.
+At Mondial Telecom (http://www.mondialtelecom.eu), we needed a chat bot over XMPP so it can reach the non techie audience of the company.
 We started to write so much features that we decided to make a more modular bot framework.
 
 **Features**

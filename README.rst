@@ -44,12 +44,14 @@ Read the inline documentation of the file and edit the values so the bot can con
 
 **Starting the daemon**
 
-For a one shot try, I would recommend to use::
+For a one shot try, I would recommend to use
+::
     ./err.py
 
 so you can inspect the logs for an immediate feedback
 
-Then at deployment time, a nohup utility script can be used::
+Then at deployment time, a nohup utility script can be used
+::
     ./err.sh
 
 **Interact with the Bot**
@@ -60,7 +62,9 @@ Then at deployment time, a nohup utility script can be used::
 - if you want to know more about a command you can do "!help command"
 
 **Install/uninstall a plugin directly from a git repository**
-Try to do::
+
+Try to do
+::
     !install git@github.com:gbin/err-pollbot.git
 
 You should have instantly a new poll service you can use to vote for where to lunch with you collegues :)
@@ -75,7 +79,8 @@ Create those files in the "builtins" directory for a quick try,  I will explain 
 
 First define a class implementing BotPlugin with a method decorated by @botcmd as follow :
 
-helloWorld.py::
+helloWorld.py
+::
     from botplugin import BotPlugin
     from jabberbot import botcmd
 
@@ -87,7 +92,8 @@ helloWorld.py::
 
 Then you need to put some metadescription in a .plug file.
 
-helloWorld.plug::
+helloWorld.plug
+::
     [Core]
     Name = HelloWorld
     Module = helloWorld

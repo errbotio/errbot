@@ -149,7 +149,7 @@ class ErrBot(JabberBot):
 
     @botcmd
     def uninstall(self, mess, args):
-        """ install a plugin repository by name.
+        """ uninstall a plugin repository by name.
         """
         admin_only(mess)
         if not args.strip():
@@ -161,14 +161,8 @@ class ErrBot(JabberBot):
         repos.pop(args)
         self.shelf['repos'] = repos
         self.shelf.sync()
-        self.send(mess.getFrom(), "Deactivating all the plugins..." , message_type=mess.getType())
-        ErrBot.__bases__ = (JabberBot, ) # violently remove all the commands
-        init_plugin_manager() # violently zap the entire plugin system
-        self.update_dynamic_plugins() # update the plugin places
-        self.activate_non_started_plugins() # restart everything
-        self.send(mess.getFrom(), "Restarting the plugins..." , message_type=mess.getType())
-        self.signal_connect_to_all_plugins() # resignal them we are connected
-        return 'Uninstall done'
+        self.quit(-1337)
+        return "Done, restarting"
 
     @botcmd
     def repos(self, mess, args):

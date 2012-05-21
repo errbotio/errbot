@@ -1,5 +1,6 @@
 from itertools import chain
 import logging
+import sys
 from botplugin import BotPlugin
 
 __author__ = 'gbin'
@@ -16,6 +17,10 @@ def init_plugin_manager():
 init_plugin_manager()
 
 def update_plugin_places(list):
+    for entry in list:
+        if entry not in sys.path:
+            sys.path.append(entry) # so the plugins can relatively import their submodules
+
     simplePluginManager.setPluginPlaces(chain(BUILTINS,list))
     simplePluginManager.collectPlugins()
 

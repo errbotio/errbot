@@ -29,7 +29,8 @@ We started to write so much features that we decided to make a more modular bot 
 
 **Installation**
 
-Dependencies (for example with pip but if you can have them from your standard distro it is better)::
+Dependencies (for example with pip but if you can have them from your standard distro it is better)
+::
     pip install Yapsy
     pip install xmpppy
 
@@ -37,7 +38,8 @@ Dependencies (for example with pip but if you can have them from your standard d
 
 Create a user for the bot in your XMPP server admin.
 
-From the installation directory copy::
+From the installation directory copy
+::
     cp config-template.py config.py
 
 Read the inline documentation of the file and edit the values so the bot can connect to your XMPP server
@@ -111,8 +113,8 @@ Then you can try it : !hello
 **Advanced programming tips**
 
 - You can access a preinitialized shelf per plugin with self.shelf (see http://docs.python.org/library/shelve.html)
-- You can intercept any message by defining the method callback_message::
-
+- You can intercept any message by defining the method callback_message
+::
     def callback_message(self, conn, mess):
         print "message $s arrived !" % mess
 

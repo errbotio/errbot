@@ -7,8 +7,8 @@ It is written in python and it is based on jabberbot_ and yapsy_ with some minor
 
 **Brief History**
 
- At Mondial Telecom (http://www.mondialtelecom.be), we needed a chat bot over XMPP so it can reach the non techie audience of the company.
- We started to write so much features that we decided to make a more modular bot framework.
+At Mondial Telecom (http://www.mondialtelecom.be), we needed a chat bot over XMPP so it can reach the non techie audience of the company.
+We started to write so much features that we decided to make a more modular bot framework.
 
 **Features**
 
@@ -29,22 +29,28 @@ It is written in python and it is based on jabberbot_ and yapsy_ with some minor
 
 **Installation**
 
+Dependencies (for example with pip but if you can have them from your standard distro it is better)::
+    pip install Yapsy
+    pip install xmpppy
+
+
+
 Create a user for the bot in your XMPP server admin.
 
 From the installation directory copy::
-cp config-template.py config.py
+    cp config-template.py config.py
 
 Read the inline documentation of the file and edit the values so the bot can connect to your XMPP server
 
 **Starting the daemon**
 
 For a one shot try, I would recommend to use::
-./err.py
+    ./err.py
 
 so you can inspect the logs for an immediate feedback
 
 Then at deployment time, a nohup utility script can be used::
-./err.sh
+    ./err.sh
 
 **Interact with the Bot**
 
@@ -54,8 +60,8 @@ Then at deployment time, a nohup utility script can be used::
 - if you want to know more about a command you can do "!help command"
 
 **Install/uninstall a plugin directly from a git repository**
-Try to do :
-!install git@github.com:gbin/err-pollbot.git
+Try to do::
+    !install git@github.com:gbin/err-pollbot.git
 
 You should have instantly a new poll service you can use to vote for where to lunch with you collegues :)
 
@@ -70,24 +76,24 @@ Create those files in the "builtins" directory for a quick try,  I will explain 
 First define a class implementing BotPlugin with a method decorated by @botcmd as follow :
 
 helloWorld.py::
-from botplugin import BotPlugin
-from jabberbot import botcmd
+    from botplugin import BotPlugin
+    from jabberbot import botcmd
 
-class HelloWorld(BotPlugin):
-    @botcmd
-    def hello(self, mess, args):
-        """ this command says hello """
-        return 'Hello World !'
+    class HelloWorld(BotPlugin):
+        @botcmd
+        def hello(self, mess, args):
+            """ this command says hello """
+            return 'Hello World !'
 
 Then you need to put some metadescription in a .plug file.
 
 helloWorld.plug::
-[Core]
-Name = HelloWorld
-Module = helloWorld
+    [Core]
+    Name = HelloWorld
+    Module = helloWorld
 
-[Documentation]
-Description = let's say hello !
+    [Documentation]
+    Description = let's say hello !
 
 Start/restart the bot with the command !restart if it has been started with the shell script helper.
 
@@ -101,13 +107,13 @@ Then you can try it : !hello
 - You can access a preinitialized shelf per plugin with self.shelf (see http://docs.python.org/library/shelve.html)
 - You can intercept any message by defining the method callback_message::
 
-def callback_message(self, conn, mess):
-    print "message $s arrived !" % mess
+    def callback_message(self, conn, mess):
+        print "message $s arrived !" % mess
 
-- You can asynchronously send a message (nice to notify the users that a long processing is going on) :
+- You can asynchronously send a message (nice to notify the users that a long processing is going on)::
 
-self.send(mess.getFrom(), "/me is computing ... ", message_type=mess.getType())
-[...] # long processing
-return "Done !"
+    self.send(mess.getFrom(), "/me is computing ... ", message_type=mess.getType())
+    [...] # long processing
+    return "Done !"
 
 Feel free to look at the example plugins published for more advance tricks.

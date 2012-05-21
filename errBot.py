@@ -130,7 +130,10 @@ class ErrBot(JabberBot):
             human_name = args.split('/')[-1][:-7]
         else:
             # try to humanize the last part of the git url as much as we can
-            s = args.split('/')
+            if args.find('/') > 0:
+	        s = args.split('/')
+	    else:
+	        s = args.split(':')
             last_part = s[-1] if s[-1] else s[-2]
             human_name = last_part[:-4] if last_part.endswith('.git') else last_part
             p = subprocess.Popen(['git', 'clone', args, human_name], cwd = PLUGIN_DIR, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -171,7 +174,6 @@ class ErrBot(JabberBot):
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
-        admin_only(mess)
         repos = self.shelf.get('repos', {})
         if not len(repos):
             return 'No plugin repo has been installed, use !install to add one.'

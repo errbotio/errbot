@@ -201,9 +201,9 @@ class ErrBot(JabberBot):
             feedback = p.stdout.read() + '\n' + '-'*50 + '\n'
             feedback += p.stderr.read() + '\n' + '-'*50 + '\n'
             if p.wait():
-                self.send(mess.getFrom(), "Update of % failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
+                self.send(mess.getFrom(), "Update of %s failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
             else:
-                self.send(mess.getFrom(), "Update of % succeeded...\n\n%s\n\n" % (d,feedback) , message_type=mess.getType())
+                self.send(mess.getFrom(), "Update of %s succeeded...\n\n%s\n\n" % (d,feedback) , message_type=mess.getType())
         self.quit(-1337)
         return "Done, restarting"
 

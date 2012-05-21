@@ -5,12 +5,14 @@ err is a plugin based XMPP chatbot designed to be easily deployable, extensible 
 It is written in python and it is based on jabberbot_ and yapsy_ with some minor modifications for the first one.
 
 
-**Brief History**
+Brief History
+-------------
 
 At Mondial Telecom (http://www.mondialtelecom.eu), we needed a chat bot over XMPP so it can reach the non techie audience of the company.
 We started to write so much features that we decided to make a more modular bot framework.
 
-**Features**
+Features
+--------
 
 - Tested with hipchat_ and openfire_ but should be compatible with any XMPP/Jabber servers.
 - Can be setup so a restricted list of persons have the administration rights
@@ -27,7 +29,8 @@ We started to write so much features that we decided to make a more modular bot 
 .. _yapsy: http://yapsy.sourceforge.net/
 
 
-**Installation**
+Installation
+------------
 
 Dependencies (for example with pip but if you can have them from your standard distro it is better)
 ::
@@ -56,14 +59,18 @@ Then at deployment time, a nohup utility script can be used
 ::
     ./err.sh
 
-**Interact with the Bot**
+Interact with the Bot
+---------------------
 
 - Invite the bot directly from your chat client.
 - Send "!help" to it without the quotes
 - it should answer by the list of available commands and a short explanation
 - if you want to know more about a command you can do "!help command"
 
-**Install/uninstall a plugin directly from a git repository**
+More documentation is available on the wiki : https://github.com/gbin/err/wiki
+
+Install/uninstall a plugin directly from a git repository
+---------------------------------------------------------
 
 Try to do
 ::
@@ -74,54 +81,10 @@ You should have instantly a new poll service you can use to vote for where to lu
 You can imply uninstall a plugin by its name:
 !uninstall err-pollbot
 
-**Writing a simple plugin**
+Tutorial to write a simple plugin
+---------------------------------
 
-Let say you want to make an helloWorld plugin.
-Create those files in the "builtins" directory for a quick try,  I will explain below how to correctly package and/or distribute your plugin.
+Try it is super simple !
 
-First define a class implementing BotPlugin with a method decorated by @botcmd as follow :
+You can find a tutorial here : https://github.com/gbin/err/wiki/plugin-dev
 
-helloWorld.py
-::
-    from botplugin import BotPlugin
-    from jabberbot import botcmd
-
-    class HelloWorld(BotPlugin):
-        @botcmd
-        def hello(self, mess, args):
-            """ this command says hello """
-            return 'Hello World !'
-
-Then you need to put some metadescription in a .plug file.
-
-helloWorld.plug
-::
-    [Core]
-    Name = HelloWorld
-    Module = helloWorld
-
-    [Documentation]
-    Description = let's say hello !
-
-Start/restart the bot with the command !restart if it has been started with the shell script helper.
-
-That's it !
-You can check if the plugin correctly load with the !status command.
-Then you can check if the hello command is correcly bound with !help.
-Then you can try it : !hello
-
-**Advanced programming tips**
-
-- You can access a preinitialized shelf per plugin with self.shelf (see http://docs.python.org/library/shelve.html)
-- You can intercept any message by defining the method callback_message::
-
-    def callback_message(self, conn, mess):
-        print "message $s arrived !" % mess
-
-- You can asynchronously send a message (nice to notify the users that a long processing is going on)::
-
-    self.send(mess.getFrom(), "/me is computing ... ", message_type=mess.getType())
-    [...] # long processing
-    return "Done !"
-
-Feel free to look at the example plugins published for more advance tricks.

@@ -32,7 +32,8 @@ Features
 Installation
 ------------
 
-*Dependencies*
+**Dependencies**
+
 Python 2.7+ but probably not 3.0
 And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better
 ::
@@ -58,6 +59,8 @@ so you can inspect the logs for an immediate feedback
 Then at deployment time, a nohup utility script can be used
 ::
     ./err.sh
+
+More details on the bot admin can be found on the wiki : https://github.com/gbin/err/wiki/admin
 
 Interact with the Bot
 ---------------------

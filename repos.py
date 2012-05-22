@@ -7,5 +7,6 @@ KNOWN_PUBLIC_REPOS = {
 'err-devops_borat' : ('git://github.com/gbin/err-devops_borat.git','random funny quotes about software development'),
 'err-codebot' : ('git://github.com/gbin/err-codebot.git','can make the bot execute code snippet in C, CPP and Python'),
 'err-weatherbot' : ('git://github.com/gbin/err-weatherbot.git','query the local weather'),
-'err-elizabot' : ('git://github.com/gbin/err-elizabot.git','a classic electronic shrink')
+'err-elizabot' : ('git://github.com/gbin/err-elizabot.git','a classic electronic shrink'),
+'err-calcbot' : ('git://github.com/gbin/err-calcbot.git','a smart calculator, unit converter and math solver'),
 }

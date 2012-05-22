@@ -74,7 +74,7 @@ Install/uninstall a plugin directly from a git repository
 
 Try to do
 ::
-    !install git@github.com:gbin/err-pollbot.git
+    !install git://github.com/gbin/err-pollbot.git
 
 You should have instantly a new poll service you can use to vote for where to lunch with you collegues :)
 

@@ -174,7 +174,7 @@ class ErrBot(JabberBot):
         """ list the current active plugin repositories
         """
         answer = 'Public repos : \n' + '\n'.join(['%s\t-> %s'%(name, desc) for name,(url,desc) in KNOWN_PUBLIC_REPOS.iteritems()])
-        answer += '-'* 10 + '\n\nInstalled repos\n\n'
+        answer += '\n' + '-'* 40 + '\n\nInstalled repos :\n'
         repos = self.shelf.get('repos', {})
         if not len(repos):
             answer += 'No plugin repo has been installed, use !install to add one.'

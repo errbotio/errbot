@@ -39,6 +39,7 @@ And those python modules. The copy-paste for the lazy pip users but if you can h
 ::
     pip install Yapsy
     pip install xmpppy
+    pip install configparser
 
 Create a user for the bot in your XMPP server admin.
 

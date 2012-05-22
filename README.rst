@@ -75,6 +75,7 @@ More documentation is available on the wiki : https://github.com/gbin/err/wiki
 
 Install/uninstall a public known plugin
 ---------------------------------------
+
 Do
 ::
     !repos

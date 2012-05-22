@@ -12,6 +12,7 @@ from config import BOT_DATA_DIR, BOT_ADMINS
 from jabberbot import JabberBot, botcmd
 from plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, init_plugin_manager
 from utils import get_jid_from_message, PLUGINS_SUBDIR
+from repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
@@ -117,13 +118,17 @@ class ErrBot(JabberBot):
 
     @botcmd
     def install(self, mess, args):
-        """ install a plugin repository from the given source.
+        """ install a plugin repository from the given source or a known public repo (see !repos to find those).
+        for example from a known repo : !install err-codebot
         for example a git url : git@github.com:gbin/plugin.git
         or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
         """
         admin_only(mess)
         if not args.strip():
             return "You should have an urls/git repo argument"
+        if args in KNOWN_PUBLIC_REPOS:
+            args = KNOWN_PUBLIC_REPOS[args][0] # replace it by the url
+
         if args.endswith('tar.gz'):
             tar = TarFile(fileobj=urlopen(args))
             tar.extractall(path= PLUGIN_DIR)
@@ -168,10 +173,12 @@ class ErrBot(JabberBot):
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
+        answer = 'Public repos : \n' + '\n'.join(['%s\t-> %s'%(name, desc) for name,url,desc in KNOWN_PUBLIC_REPOS.iteritems()])
+        answer += '-'* 10 + '\n\nInstalled repos\n\n'
         repos = self.shelf.get('repos', {})
         if not len(repos):
             return 'No plugin repo has been installed, use !install to add one.'
-        return 'Current plugins repos : \n' + '\n'.join(['%s\t-> %s'%item for item in repos.iteritems()]  )
+        return '\n'.join(['%s\t-> %s'%item for item in repos.iteritems()]  )
 
     @botcmd
     def update(self, mess, args):

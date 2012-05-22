@@ -9,9 +9,9 @@ logging.getLogger('').setLevel(BOT_LOG_LEVEL)
 
 d = os.path.dirname(BOT_DATA_DIR)
 if not os.path.exists(d):
-    raise Exception('The data directory %s for the bot does not exist')
+    raise Exception('The data directory %s for the bot does not exist' % BOT_DATA_DIR)
 if not os.access(BOT_DATA_DIR, os.W_OK):
-    raise Exception('The data directory %s should be writable for the bot')
+    raise Exception('The data directory %s should be writable for the bot' % BOT_DATA_DIR)
 
 # make the plugins subdir to store the plugin shelves
 d = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR

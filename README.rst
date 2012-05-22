@@ -32,12 +32,12 @@ Features
 Installation
 ------------
 
-Dependencies (for example with pip but if you can have them from your standard distro it is better)
+*Dependencies*
+Python 2.7+ but probably not 3.0
+And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better
 ::
     pip install Yapsy
     pip install xmpppy
-
-
 
 Create a user for the bot in your XMPP server admin.
 
@@ -81,10 +81,12 @@ You should have instantly a new poll service you can use to vote for where to lu
 You can imply uninstall a plugin by its name:
 !uninstall err-pollbot
 
+Note: Please pay attention when you install a plugin, it may require more python external dependencies.
+
 Tutorial to write a simple plugin
 ---------------------------------
 
-Try it is super simple !
+Try it ! It is super simple !
 
 You can find a tutorial here : https://github.com/gbin/err/wiki/plugin-dev
 

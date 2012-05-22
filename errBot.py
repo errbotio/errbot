@@ -177,8 +177,10 @@ class ErrBot(JabberBot):
         answer += '-'* 10 + '\n\nInstalled repos\n\n'
         repos = self.shelf.get('repos', {})
         if not len(repos):
-            return 'No plugin repo has been installed, use !install to add one.'
-        return '\n'.join(['%s\t-> %s'%item for item in repos.iteritems()]  )
+            answer += 'No plugin repo has been installed, use !install to add one.'
+            return answer
+        answer+= '\n'.join(['%s\t-> %s'%item for item in repos.iteritems()]  )
+        return answer
 
     @botcmd
     def update(self, mess, args):

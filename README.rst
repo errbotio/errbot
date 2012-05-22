@@ -76,11 +76,11 @@ More documentation is available on the wiki : https://github.com/gbin/err/wiki
 Install/uninstall a public known plugin
 ---------------------------------------
 
+To get a list of public repo
+
 Do
 ::
     !repos
-
-To get a list of public repo
 
 Then pick one that you fancy for example
 ::

@@ -173,7 +173,7 @@ class ErrBot(JabberBot):
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
-        answer = 'Public repos : \n' + '\n'.join(['%s\t-> %s'%(name, desc) for name,url,desc in KNOWN_PUBLIC_REPOS.iteritems()])
+        answer = 'Public repos : \n' + '\n'.join(['%s\t-> %s'%(name, desc) for name,(url,desc) in KNOWN_PUBLIC_REPOS.iteritems()])
         answer += '-'* 10 + '\n\nInstalled repos\n\n'
         repos = self.shelf.get('repos', {})
         if not len(repos):

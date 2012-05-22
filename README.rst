@@ -73,12 +73,17 @@ Interact with the Bot
 
 More documentation is available on the wiki : https://github.com/gbin/err/wiki
 
-Install/uninstall a plugin directly from a git repository
----------------------------------------------------------
-
-Try to do
+Install/uninstall a public known plugin
+---------------------------------------
+Do
 ::
-    !install git://github.com/gbin/err-pollbot.git
+    !repos
+
+To get a list of public repo
+
+Then pick one that you fancy for example
+::
+    !install err-pollbot
 
 You should have instantly a new poll service you can use to vote for where to lunch with you collegues :)
 

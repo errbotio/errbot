@@ -7,7 +7,6 @@ BOT_LOG_LEVEL = logging.DEBUG
 
 # Base configuration
 BOT_IDENTITY = {
-    'instance_name' : 'dev', # if you want to have se
     'username' : 'err@localhost', # JID of the user you have created for the bot
     'password' : 'err' # password of the bot user
 }

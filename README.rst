@@ -37,9 +37,7 @@ Installation
 Python 2.7+ but probably not 3.0
 And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better
 ::
-    pip install Yapsy
-    pip install xmpppy
-    pip install configparser
+    pip install -r requirements.txt
 
 Create a user for the bot in your XMPP server admin.
 

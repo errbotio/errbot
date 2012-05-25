@@ -1,0 +1,3 @@
+xmpppy
+yapsy
+configparser

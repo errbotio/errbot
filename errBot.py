@@ -53,9 +53,8 @@ class ErrBot(JabberBot):
     def update_dynamic_plugins(self):
         update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.shelf.get('repos', {}).keys()])
 
-    def __init__(self, instance_name, username, password, res=None, debug=False,
+    def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
-        self.instance_name = instance_name # can be use to distinguish rooms for example
         JabberBot.__init__(self, username, password, res, debug, privatedomain, acceptownmsgs, handlers)
         self.update_dynamic_plugins()
 

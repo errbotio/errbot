@@ -8,6 +8,7 @@ KNOWN_PUBLIC_REPOS = {
 'err-stalkerbot' : ('git://github.com/gbin/err-stalkerbot.git','a bot that tell you the last time he saw somebody'),
 'err-codebot' : ('git://github.com/gbin/err-codebot.git','can make the bot execute code snippet in C, CPP and Python'),
 'err-weatherbot' : ('git://github.com/gbin/err-weatherbot.git','query the local weather'),
+'err-time' : ('git://github.com/gbin/err-pollbot.git','gives the current time at a given place'),
 'err-elizabot' : ('git://github.com/gbin/err-elizabot.git','a classic electronic shrink'),
 'err-calcbot' : ('git://github.com/gbin/err-calcbot.git','a smart calculator, unit converter and math solver'),
 }

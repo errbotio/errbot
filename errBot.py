@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+import inspect
 
 import logging
 import os
@@ -32,6 +32,12 @@ from repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
+def get_class_that_defined_method(meth):
+  obj = meth.im_self
+  for cls in inspect.getmro(meth.im_class):
+    if meth.__name__ in cls.__dict__: return cls
+  return None
+
 def admin_only(mess):
     if mess.getType() == 'groupchat':
         raise Exception('You cannot administer the bot from a chatroom, message the bot directly')
@@ -40,6 +46,7 @@ def admin_only(mess):
         raise Exception('You cannot administer the bot from this user %s.' % usr)
 
 class ErrBot(JabberBot):
+    """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. '
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
@@ -198,6 +205,37 @@ class ErrBot(JabberBot):
         max_width = max([len(item[0]) for item in repos.iteritems()])
         answer+= '\n'.join(['%s -> %s' % (item[0].ljust(max_width), item[1]) for item in repos.iteritems()])
         return answer
+
+    @botcmd
+    def help(self, mess, args):
+        """   Returns a help string listing available options.
+
+        Automatically assigned to the "help" command."""
+        if not args:
+            description = 'Available commands:'
+
+            clazz_commands = {}
+            for (name, command) in self.commands.iteritems():
+                clazz = get_class_that_defined_method(command)
+                commands = clazz_commands.get(clazz, [])
+                commands.append((name, command))
+                clazz_commands[clazz] = commands
+
+            usage = ''
+            for clazz in sorted(clazz_commands):
+                usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__doc__ or '')
+                usage += '\n'.join(sorted([
+                '\t!%s: %s' % (name, (command.__doc__ or\
+                                    '(undocumented)').strip().split('\n', 1)[0])
+                for (name, command) in clazz_commands[clazz] if name != 'help' and not command._jabberbot_command_hidden
+                ]))
+            usage += '\n\n'
+        else:
+            super(ErrBot, self).help(mess,args)
+
+        top = self.top_of_help_message()
+        bottom = self.bottom_of_help_message()
+        return ''.join(filter(None, [top, description, usage, bottom]))
 
     @botcmd
     def update(self, mess, args):

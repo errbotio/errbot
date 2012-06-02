@@ -23,9 +23,8 @@ def get_jid_from_message(mess):
     if jid:
         logging.debug('found the jid from the delay tag : %s' % jid)
         return jid
-     
     jid = mess.getTagData('sender')
-    if jid: 
+    if jid:
         logging.debug('found the jid from the sender tag : %s' % jid)
         return jid
     x = mess.getTag('x')
@@ -61,12 +60,21 @@ def drawbar(value, max):
         value_in_chr = int(round((value * BAR_WIDTH / max) ))
     else:
         value_in_chr = 0
-        
     return u'[' + u'█' * value_in_chr + u'▒' * int(round(BAR_WIDTH - value_in_chr)) + u']'
 
 
 # Introspect to know from which plugin a command is implemented
 def get_class_for_method(meth):
-  for cls in inspect.getmro(meth.im_class):
-    if meth.__name__ in cls.__dict__: return cls
-  return None
+    for cls in inspect.getmro(meth.im_class):
+        if meth.__name__ in cls.__dict__: return cls
+    return None
+
+def human_name_for_git_url(url):
+    # try to humanize the last part of the git url as much as we can
+    if url.find('/') > 0:
+        s = url.split('/')
+    else:
+        s = url.split(':')
+    last_part = s[-1] if s[-1] else s[-2]
+    return last_part[:-4] if last_part.endswith('.git') else last_part
+

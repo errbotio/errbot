@@ -27,7 +27,7 @@ from config import BOT_DATA_DIR, BOT_ADMINS
 
 from jabberbot import JabberBot, botcmd
 from plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, init_plugin_manager
-from utils import get_jid_from_message, PLUGINS_SUBDIR
+from utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url
 from repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
@@ -156,13 +156,7 @@ class ErrBot(JabberBot):
             tar.extractall(path= PLUGIN_DIR)
             human_name = args.split('/')[-1][:-7]
         else:
-            # try to humanize the last part of the git url as much as we can
-            if args.find('/') > 0:
-                s = args.split('/')
-            else:
-                s = args.split(':')
-            last_part = s[-1] if s[-1] else s[-2]
-            human_name = last_part[:-4] if last_part.endswith('.git') else last_part
+            human_name = human_name_for_git_url(args)
             p = subprocess.Popen(['git', 'clone', args, human_name], cwd = PLUGIN_DIR, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
             feedback = p.stdout.read()
             error_feedback = p.stderr.read()

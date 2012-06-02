@@ -13,6 +13,7 @@ BOT_IDENTITY = {
 
 BOT_ADMINS = ('gbin@localhost',) # only those JIDs will have access to admin commands
 BOT_DATA_DIR = '/var/lib/r2' # Point this to a writeable directory by the system user running the bot
+BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful to develop a new plugin locally)
 
 # ---- Chatrooms configuration (used by the chatroom plugin)
 TEST_ROOM = 'test@conference.localhost'

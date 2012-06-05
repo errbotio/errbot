@@ -26,7 +26,7 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in CHATROOM_PRESENCE:
                 logging.info('Join room ' + room)
-                #self.join_room(room, CHATROOM_FN)
+                self.join_room(room, CHATROOM_FN)
 
             logging.info('Start keep alive')
             self.keep_alive()

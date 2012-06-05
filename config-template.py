@@ -31,3 +31,5 @@ CHATROOM_RELAY = {'gbin@localhost' : (TEST_ROOM,)}
 # Some XMPP implementations like HipChat are super picky on the fullname you join with for a MUC
 # If you use HipChat, make sure to exactly match the fullname you set for the bot user
 CHATROOM_FN = 'bot'
+
+HIPCHAT_MODE = False

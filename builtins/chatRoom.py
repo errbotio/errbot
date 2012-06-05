@@ -1,15 +1,21 @@
 import logging
+import xmpp
 from botplugin import BotPlugin
 from utils import get_jid_from_message
 from threading import Timer
 __author__ = 'gbin'
-from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY
+from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, HIPCHAT_MODE
 
 class ChatRoom(BotPlugin):
     connected = False
     def keep_alive(self):
         logging.debug('Keep alive sent')
-        self.send('nobody', ' ', message_type='groupchat') # hack from hipchat itself
+        if HIPCHAT_MODE:
+            self.send('nobody', ' ', message_type='groupchat') # hack from hipchat itself
+        else:
+            pres = xmpp.Presence()
+            self.connect().send(pres)
+
         self.t = Timer(60.0, self.keep_alive)
         self.t.setDaemon(True) # so it is not locking on exit
         self.t.start()
@@ -22,7 +28,7 @@ class ChatRoom(BotPlugin):
                 logging.info('Join room ' + room)
                 self.join_room(room, CHATROOM_FN)
 
-            logging.info('Start kepp alive')
+            logging.info('Start keep alive')
             self.keep_alive()
 
     def callback_message(self, conn, mess):

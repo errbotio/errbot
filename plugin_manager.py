@@ -31,7 +31,7 @@ def update_plugin_places(list):
 def activate_all_plugins():
     for pluginInfo in simplePluginManager.getAllPlugins():
         try:
-            if not pluginInfo.is_activated:
+            if hasattr(pluginInfo,'is_activated') and not pluginInfo.is_activated:
                 logging.info('Activate plugin %s' % pluginInfo.name)
                 simplePluginManager.activatePluginByName(pluginInfo.name, "bots")
         except:

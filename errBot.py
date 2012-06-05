@@ -65,6 +65,7 @@ class ErrBot(JabberBot):
         JabberBot.__init__(self, username, password, res, debug, privatedomain, acceptownmsgs, handlers)
 
     def callback_message(self, conn, mess):
+        super(ErrBot, self).callback_message(conn, mess)
         for bot in get_all_active_plugin_objects():
             if hasattr(bot, 'callback_message'):
                 try:

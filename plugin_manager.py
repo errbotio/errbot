@@ -2,6 +2,7 @@ from itertools import chain
 import logging
 import sys
 from botplugin import BotPlugin
+
 from config import BOT_EXTRA_PLUGIN_DIR
 
 __author__ = 'gbin'
@@ -30,8 +31,9 @@ def update_plugin_places(list):
 def activate_all_plugins():
     for pluginInfo in simplePluginManager.getAllPlugins():
         try:
-            logging.info('Activate plugin %s' % pluginInfo.name)
-            simplePluginManager.activatePluginByName(pluginInfo.name, "bots")
+            if not pluginInfo.is_activated:
+                logging.info('Activate plugin %s' % pluginInfo.name)
+                simplePluginManager.activatePluginByName(pluginInfo.name, "bots")
         except:
             logging.exception("Error loading %s" % pluginInfo.name)
 
@@ -39,12 +41,14 @@ def activate_all_plugins():
 def get_all_plugins():
     return simplePluginManager.getAllPlugins()
 
+def get_all_active_plugin_objects():
+    return [plug.plugin_object for plug in simplePluginManager.getAllPlugins() if plug.is_activated]
 
 def get_all_active_plugin_names():
     return map(lambda p:p.name, filter(lambda p:p.is_activated, simplePluginManager.getAllPlugins()))
 
 
-def get_active_plugin_names():
+def get_all_plugin_names():
     return map(lambda p:p.name, simplePluginManager.getAllPlugins())
 
 
@@ -58,7 +62,7 @@ def deactivate_plugin(name):
 def activate_plugin(name):
     if name in get_all_active_plugin_names():
         return "Plugin already in active list"
-    if name not in get_active_plugin_names():
+    if name not in get_all_plugin_names():
         return "I don't know this %s plugin" % name
     simplePluginManager.activatePluginByName(name, "bots")
     return "Plugin %s activated" % name

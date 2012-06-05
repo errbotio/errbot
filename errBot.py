@@ -26,7 +26,7 @@ from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_ADMINS
 
 from jabberbot import JabberBot, botcmd
-from plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, init_plugin_manager
+from plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, init_plugin_manager, get_all_active_plugin_objects
 from utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url
 from repos import KNOWN_PUBLIC_REPOS
 
@@ -49,43 +49,41 @@ class ErrBot(JabberBot):
     """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. '
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
-    shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
+    internal_shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
     def add_repo(self, name, url):
-        repos = self.shelf.get('repos', {})
+        repos = self.internal_shelf.get('repos', {})
         repos[name] = url
-        self.shelf['repos'] = repos
-        self.shelf.sync()
+        self.internal_shelf['repos'] = repos
+        self.internal_shelf.sync()
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.shelf.get('repos', {}).keys()])
+        update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
         JabberBot.__init__(self, username, password, res, debug, privatedomain, acceptownmsgs, handlers)
-        self.update_dynamic_plugins()
 
     def callback_message(self, conn, mess):
-        for cls in ErrBot.__bases__:
-            if hasattr(cls, 'callback_message'):
+        for bot in get_all_active_plugin_objects():
+            if hasattr(bot, 'callback_message'):
                 try:
-                    cls.callback_message(self, conn, mess)
+                    bot.callback_message(conn, mess)
                 except:
                     logging.exception("Probably a type error")
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
         activate_all_plugins()
-        logging.info('Refreshing command list...')
-        self.refresh_command_list()
 
     def signal_connect_to_all_plugins(self):
-        for cls in ErrBot.__bases__:
-            if hasattr(cls, 'callback_connect'):
+        for bot in get_all_active_plugin_objects():
+            if hasattr(bot, 'callback_connect'):
                 try:
-                    cls.callback_connect(self)
+                    bot.callback_connect()
                 except:
-                    logging.exception("callback_connect failed for %s" % cls)
+                    logging.exception("callback_connect failed for %s" % bot)
+
     def connect(self):
         if not self.conn:
             self.conn = JabberBot.connect(self)
@@ -98,7 +96,7 @@ class ErrBot(JabberBot):
     def shutdown(self):
         logging.info('Shutting down... deactivating all the plugins.')
         deactivate_all_plugins()
-        self.shelf.close()
+        self.internal_shelf.close()
         logging.info('Bye.')
 
     @botcmd
@@ -119,7 +117,7 @@ class ErrBot(JabberBot):
         """load a plugin"""
         admin_only(mess)
         result = activate_plugin(args)
-        self.refresh_command_list()
+        #self.refresh_command_list()
         return result
 
     @botcmd
@@ -127,7 +125,7 @@ class ErrBot(JabberBot):
         """unload a plugin"""
         admin_only(mess)
         result = deactivate_plugin(args)
-        self.refresh_command_list()
+        #self.refresh_command_list()
         return result
 
     @botcmd
@@ -135,7 +133,7 @@ class ErrBot(JabberBot):
         """reload a plugin"""
         admin_only(mess)
         result = deactivate_plugin(args) + " / " + activate_plugin(args)
-        self.refresh_command_list()
+        #self.refresh_command_list()
         return result
 
     @botcmd
@@ -175,13 +173,13 @@ class ErrBot(JabberBot):
         admin_only(mess)
         if not args.strip():
             return "You should have a repo name as argument"
-        repos = self.shelf.get('repos', {})
+        repos = self.internal_shelf.get('repos', {})
         if not repos.has_key(args):
             return "This repo is not installed check with !repos the list of installed ones"
         shutil.rmtree(PLUGIN_DIR + os.sep + args)
         repos.pop(args)
-        self.shelf['repos'] = repos
-        self.shelf.sync()
+        self.internal_shelf['repos'] = repos
+        self.internal_shelf.sync()
         self.quit(-1337)
         return "Done, restarting"
 
@@ -192,7 +190,7 @@ class ErrBot(JabberBot):
         max_width = max([len(name) for name,(_,_) in KNOWN_PUBLIC_REPOS.iteritems()])
         answer = 'Public repos : \n' + '\n'.join(['%s  %s'%(name.ljust(max_width), desc) for name,(url,desc) in KNOWN_PUBLIC_REPOS.iteritems()])
         answer += '\n' + '-'* 40 + '\n\nInstalled repos :\n'
-        repos = self.shelf.get('repos', {})
+        repos = self.internal_shelf.get('repos', {})
         if not len(repos):
             answer += 'No plugin repo has been installed, use !install to add one.'
             return answer
@@ -244,7 +242,7 @@ class ErrBot(JabberBot):
         admin_only(mess)
         directories = set()
         args = args.split(' ')
-        repos = self.shelf.get('repos', {})
+        repos = self.internal_shelf.get('repos', {})
         if 'all' in args or 'core' in args:
             directories.add(os.path.dirname(__file__))
 

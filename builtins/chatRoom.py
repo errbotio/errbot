@@ -16,7 +16,7 @@ class ChatRoom(BotPlugin):
             pres = xmpp.Presence()
             self.connect().send(pres)
 
-        self.t = Timer(60.0, self.keep_alive)
+        self.t = Timer(10.0, self.keep_alive)
         self.t.setDaemon(True) # so it is not locking on exit
         self.t.start()
 
@@ -26,7 +26,7 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in CHATROOM_PRESENCE:
                 logging.info('Join room ' + room)
-                self.join_room(room, CHATROOM_FN)
+                #self.join_room(room, CHATROOM_FN)
 
             logging.info('Start keep alive')
             self.keep_alive()

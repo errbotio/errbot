@@ -45,7 +45,7 @@ def get_all_active_plugin_objects():
     return [plug.plugin_object for plug in simplePluginManager.getAllPlugins() if hasattr(plug,'is_activated') and plug.is_activated]
 
 def get_all_active_plugin_names():
-    return map(lambda p:p.name, filter(lambda p:p.is_activated, simplePluginManager.getAllPlugins()))
+    return map(lambda p:p.name, filter(lambda p:hasattr(p,'is_activated') and p.is_activated, simplePluginManager.getAllPlugins()))
 
 
 def get_all_plugin_names():

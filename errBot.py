@@ -50,11 +50,17 @@ class ErrBot(JabberBot):
     MSG_ERROR_OCCURRED = 'Computer says nooo. '
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     internal_shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
-    def add_repo(self, name, url):
-        repos = self.internal_shelf.get('repos', {})
+
+    # Repo management
+    def get_installed_plugin_repos(self):
+        return self.internal_shelf.get('repos', {})
+
+    def add_plugin_repo(self, name, url):
+        repos = self.get_installed_plugin_repos()
         repos[name] = url
         self.internal_shelf['repos'] = repos
         self.internal_shelf.sync()
+
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
@@ -161,7 +167,7 @@ class ErrBot(JabberBot):
             error_feedback = p.stderr.read()
             if p.wait():
                return "Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback)
-        self.add_repo(human_name, args)
+        self.add_plugin_repo(human_name, args)
         self.send(mess.getFrom(), "A new plugin repository named %s has been installed correctly from %s. Refreshing the plugins commands..." % (human_name, args), message_type=mess.getType())
         self.update_dynamic_plugins()
         self.activate_non_started_plugins()
@@ -191,7 +197,7 @@ class ErrBot(JabberBot):
         max_width = max([len(name) for name,(_,_) in KNOWN_PUBLIC_REPOS.iteritems()])
         answer = 'Public repos : \n' + '\n'.join(['%s  %s'%(name.ljust(max_width), desc) for name,(url,desc) in KNOWN_PUBLIC_REPOS.iteritems()])
         answer += '\n' + '-'* 40 + '\n\nInstalled repos :\n'
-        repos = self.internal_shelf.get('repos', {})
+        repos = self.get_installed_plugin_repos()
         if not len(repos):
             answer += 'No plugin repo has been installed, use !install to add one.'
             return answer

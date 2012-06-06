@@ -6,13 +6,17 @@ from config import BOT_DATA_DIR
 from utils import PLUGINS_SUBDIR
 import holder
 
-# this class handle the basic needs of bot plugins like loading, unloading and creating a storage
 class BotPlugin(object):
-
-    def __init__(self):
-        self.is_activated = False
+    """
+     This class handle the basic needs of bot plugins like loading, unloading and creating a storage
+     It is the main contract between the plugins and the bot
+    """
+    is_activated = False
 
     def activate(self):
+        """
+            Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
+        """
         classname = self.__class__.__name__
         logging.debug('Init shelf for %s' % classname)
         filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
@@ -28,6 +32,9 @@ class BotPlugin(object):
 
 
     def deactivate(self):
+        """
+            Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
+        """
         logging.debug('Closing shelf %s' % self.shelf)
         self.shelf.close()
         for name, value in inspect.getmembers(self, inspect.ismethod):
@@ -36,14 +43,45 @@ class BotPlugin(object):
                 del(holder.bot.commands[name])
         self.is_activated = False
 
+    def callback_connect(self):
+        """
+            Override to get a notified when the bot is connected
+        """
+        pass
+
+    def callback_message(self, conn, mess):
+        """
+            Override to get a notified on *ANY* XMPP message.
+            If you are interested only by chatting message you can filter for example mess.getType() in ('groupchat', 'chat')
+        """
+        pass
+
     # Proxyfy some useful tools from the motherbot
+    # this is basically the contract between the plugins and the main bot
+
     def send(self, user, text, in_reply_to=None, message_type='chat'):
+        """
+            Sends asynchronously a message a room or a user.
+             if it is a room message_type needs to by 'groupchat' and user the room.
+        """
         return holder.bot.send(user, text, in_reply_to, message_type)
 
-    def connect(self):
-        return holder.bot.connect()
+    def bare_send(self, xmppy_msg):
+        """
+            A bypass to send directly a crafted xmppy message.
+              Usefull to extend to bot in not forseen ways.
+        """
+        return holder.bot.connect().send(xmppy_msg)
 
     def join_room(self, room, username=None, password=None):
+        """
+            Make the bot join a room
+        """
         return holder.bot.join_room(room, username, password)
 
+    def get_installed_plugin_repos(self):
+        """
+            Get the current installed plugin repos in a dictionary of name / url
+        """
+        return holder.bot.get_installed_plugin_repos()
 

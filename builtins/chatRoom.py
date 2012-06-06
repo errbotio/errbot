@@ -14,7 +14,7 @@ class ChatRoom(BotPlugin):
             self.send('nobody', ' ', message_type='groupchat') # hack from hipchat itself
         else:
             pres = xmpp.Presence()
-            self.connect().send(pres)
+            self.bare_send(pres)
 
         self.t = Timer(10.0, self.keep_alive)
         self.t.setDaemon(True) # so it is not locking on exit

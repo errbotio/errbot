@@ -5,6 +5,9 @@ import logging
 # the verbosity of the log, they are the standard python ones : DEBUG, INFO, ERROR ...
 BOT_LOG_LEVEL = logging.DEBUG
 
+# set the log file, None = console only, be sure the user of the bot can write there
+BOT_LOG_FILE = '/var/log/err/err.log'
+
 # Base configuration
 BOT_IDENTITY = {
     'username' : 'err@localhost', # JID of the user you have created for the bot

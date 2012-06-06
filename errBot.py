@@ -23,11 +23,11 @@ import shutil
 import subprocess
 from tarfile import TarFile
 from urllib2 import urlopen
-from config import BOT_DATA_DIR, BOT_ADMINS
+from config import BOT_DATA_DIR, BOT_ADMINS, BOT_LOG_FILE
 
 from jabberbot import JabberBot, botcmd
 from plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, init_plugin_manager, get_all_active_plugin_objects
-from utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url
+from utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail
 from repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
@@ -272,5 +272,14 @@ class ErrBot(JabberBot):
         self.quit(-1337)
         return "Done, restarting"
 
-
+    @botcmd
+    def taillog(self, mess, args):
+        """ Display a tail of the log
+        use : !log
+        """
+        #admin_only(mess) # uncomment if paranoid.
+        if BOT_LOG_FILE:
+            with open(BOT_LOG_FILE, 'r') as f:
+                return tail(f, 40)
+        return 'No log is configured, please define BOT_LOG_FILE in config.py'
 

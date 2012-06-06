@@ -17,7 +17,7 @@
 import logging
 import os
 
-from config import BOT_IDENTITY,BOT_LOG_LEVEL,BOT_DATA_DIR
+from config import BOT_IDENTITY,BOT_LOG_LEVEL,BOT_DATA_DIR, BOT_LOG_FILE
 from utils import PLUGINS_SUBDIR
 from errBot import ErrBot
 import holder
@@ -25,7 +25,12 @@ holder.bot = ErrBot(**BOT_IDENTITY)
 
 def main():
     logging.basicConfig(format='%(levelname)s:%(message)s')
-    logging.getLogger('').setLevel(BOT_LOG_LEVEL)
+    logger = logging.getLogger('')
+    if BOT_LOG_FILE:
+        hdlr = logging.FileHandler(BOT_LOG_FILE)
+        hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+        logger.addHandler(hdlr)
+    logger.setLevel(BOT_LOG_LEVEL)
 
     d = os.path.dirname(BOT_DATA_DIR)
     if not os.path.exists(d):

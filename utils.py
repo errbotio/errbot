@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import inspect
+
 PLUGINS_SUBDIR = 'plugins'
 
 def get_sender_username(mess):
@@ -15,10 +16,11 @@ def get_sender_username(mess):
         username = ""
     return username
 
+
 def get_jid_from_message(mess):
     if mess.getType() == 'chat':
         return str(mess.getFrom().getStripped())
-    # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
+        # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
     jid = mess.getTagAttr('delay', 'from_jid')
     if jid:
         logging.debug('found the jid from the delay tag : %s' % jid)
@@ -34,11 +36,12 @@ def get_jid_from_message(mess):
     if jid:
         logging.debug('found the jid from the x/sender tag : %s' % jid)
         return jid
+    splitted = str(mess.getFrom()).split('/')
+    jid = splitted[1] if len(splitted) > 1 else splitted[0] # despair
 
-    jid = str(mess.getFrom()).split('/')[1]
-
-    logging.debug('deduced the jid from the chatroom from %s' % jid)
+    logging.debug('deduced the jid from the chatroom to %s' % jid)
     return jid
+
 
 def format_timedelta(timedelta):
     total_seconds = timedelta.seconds + (86400 * timedelta.days)
@@ -57,7 +60,7 @@ BAR_WIDTH = 15.0
 
 def drawbar(value, max):
     if max:
-        value_in_chr = int(round((value * BAR_WIDTH / max) ))
+        value_in_chr = int(round((value * BAR_WIDTH / max)))
     else:
         value_in_chr = 0
     return u'[' + u'█' * value_in_chr + u'▒' * int(round(BAR_WIDTH - value_in_chr)) + u']'
@@ -68,6 +71,7 @@ def get_class_for_method(meth):
     for cls in inspect.getmro(meth.im_class):
         if meth.__name__ in cls.__dict__: return cls
     return None
+
 
 def human_name_for_git_url(url):
     # try to humanize the last part of the git url as much as we can

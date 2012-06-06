@@ -47,7 +47,7 @@ def admin_only(mess):
 
 class ErrBot(JabberBot):
     """ Commands related to the bot administration """
-    MSG_ERROR_OCCURRED = 'Computer says nooo. '
+    MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     internal_shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
 

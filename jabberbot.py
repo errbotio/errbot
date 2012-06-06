@@ -595,7 +595,7 @@ class JabberBot(object):
                     self.log.exception('An error happened while processing '\
                                        'a message ("%s") from %s: %s"' %
                                        (text, jid, traceback.format_exc(e)))
-                    reply = self.MSG_ERROR_OCCURRED + '\n' + traceback.format_exc(e)
+                    reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
                 if reply:
                     self.send_simple_reply(mess, reply)
 

@@ -21,6 +21,9 @@ from config import BOT_IDENTITY,BOT_LOG_LEVEL,BOT_DATA_DIR, BOT_LOG_FILE
 from errbot.utils import PLUGINS_SUBDIR
 from errbot.errBot import ErrBot
 from errbot import holder
+import sys
+sys.path.append(".") # appends the current directory in order to find config.py
+
 holder.bot = ErrBot(**BOT_IDENTITY)
 
 def main():

@@ -230,7 +230,7 @@ class ErrBot(JabberBot):
                 ]))
             usage += '\n\n'
         else:
-            super(ErrBot, self).help(mess,args)
+            return super(ErrBot, self).help(mess,args)
 
         top = self.top_of_help_message()
         bottom = self.bottom_of_help_message()

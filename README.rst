@@ -43,7 +43,7 @@ Create a user for the bot in your XMPP server admin.
 
 From the installation directory copy
 ::
-    cp config-template.py config.py
+    cp errbot/config-template.py config.py
 
 Read the inline documentation of the file and edit the values so the bot can connect to your XMPP server
 
@@ -51,13 +51,13 @@ Read the inline documentation of the file and edit the values so the bot can con
 
 For a one shot try, I would recommend to use
 ::
-    ./err.py
+    ./scripts/err.py
 
 so you can inspect the logs for an immediate feedback
 
 Then at deployment time, a nohup utility script can be used
 ::
-    ./err.sh
+    ./scripts/err.sh
 
 More details on the bot admin can be found on the wiki : https://github.com/gbin/err/wiki/admin
 

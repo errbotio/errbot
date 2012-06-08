@@ -4,3 +4,5 @@
 /.settings
 /config.py
 nohup.out
+build
+

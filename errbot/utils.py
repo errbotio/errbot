@@ -82,5 +82,6 @@ def human_name_for_git_url(url):
     last_part = str(s[-1]) if s[-1] else str(s[-2])
     return last_part[:-4] if last_part.endswith('.git') else last_part
 
+
 def tail( f, window=20 ):
     return ''.join(f.readlines()[-window:])

@@ -3,8 +3,8 @@ import logging
 import os
 import shelve
 from config import BOT_DATA_DIR
-from utils import PLUGINS_SUBDIR
-import holder
+from errbot.utils import PLUGINS_SUBDIR
+from errbot import holder
 
 class BotPlugin(object):
     """

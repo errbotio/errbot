@@ -25,10 +25,10 @@ from tarfile import TarFile
 from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_ADMINS, BOT_LOG_FILE
 
-from jabberbot import JabberBot, botcmd
-from plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, init_plugin_manager, get_all_active_plugin_objects
-from utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail
-from repos import KNOWN_PUBLIC_REPOS
+from errbot.jabberbot import JabberBot, botcmd
+from errbot.plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects
+from errbot.utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail
+from errbot.repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 

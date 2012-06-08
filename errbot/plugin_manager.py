@@ -1,7 +1,7 @@
 from itertools import chain
 import logging
 import sys
-from botplugin import BotPlugin
+from errbot.botplugin import BotPlugin
 
 from config import BOT_EXTRA_PLUGIN_DIR
 

@@ -37,7 +37,7 @@ setup(
     long_description=read('README.rst'),
     license = "GPL",
     keywords = "xmpp jabber chatbot bot plugin",
-    url = "https://github.com/gbin/err/wiki",
+    url = "http://pypi.python.org/pypi/err/",
     classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Topic :: Communications :: Chat",

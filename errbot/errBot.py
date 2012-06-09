@@ -26,7 +26,7 @@ from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_ADMINS, BOT_LOG_FILE
 
 from errbot.jabberbot import JabberBot, botcmd
-from errbot.plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects
+from errbot.plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins
 from errbot.utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
@@ -132,7 +132,6 @@ class ErrBot(JabberBot):
         """unload a plugin"""
         admin_only(mess)
         result = deactivate_plugin(args)
-        #self.refresh_command_list()
         return result
 
     @botcmd
@@ -140,7 +139,6 @@ class ErrBot(JabberBot):
         """reload a plugin"""
         admin_only(mess)
         result = deactivate_plugin(args) + " / " + activate_plugin(args)
-        #self.refresh_command_list()
         return result
 
     @botcmd
@@ -183,12 +181,20 @@ class ErrBot(JabberBot):
         repos = self.internal_shelf.get('repos', {})
         if not repos.has_key(args):
             return "This repo is not installed check with !repos the list of installed ones"
-        shutil.rmtree(PLUGIN_DIR + os.sep + args)
+
+        plugin_path = PLUGIN_DIR + os.sep + args
+        for plugin in get_all_plugins():
+            if plugin.path.startswith(plugin_path) and hasattr(plugin,'is_activated') and plugin.is_activated:
+                self.send(mess.getFrom(), '/me is unloading plugin %s' % plugin.name)
+                deactivate_plugin(plugin.name)
+
+        shutil.rmtree(plugin_path)
         repos.pop(args)
         self.internal_shelf['repos'] = repos
         self.internal_shelf.sync()
-        self.quit(-1337)
-        return "Done, restarting"
+
+        return 'Plugins unloaded and repo %s removed' % args
+
 
     @botcmd
     def repos(self, mess, args):

@@ -35,7 +35,7 @@ def activate_all_plugins():
             if hasattr(pluginInfo,'is_activated') and not pluginInfo.is_activated:
                 logging.info('Activate plugin %s' % pluginInfo.name)
                 simplePluginManager.activatePluginByName(pluginInfo.name, "bots")
-        except:
+        except Exception, e:
             logging.exception("Error loading %s" % pluginInfo.name)
 
 

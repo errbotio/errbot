@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+from datetime import datetime
 import inspect
 
 import logging
@@ -27,7 +28,7 @@ from config import BOT_DATA_DIR, BOT_ADMINS, BOT_LOG_FILE
 
 from errbot.jabberbot import JabberBot, botcmd
 from errbot.plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins
-from errbot.utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail
+from errbot.utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
@@ -111,6 +112,14 @@ class ErrBot(JabberBot):
         """ If I am alive I should be able to respond to this one
         """
         return 'I am alive with those plugins :\n' + '\n'.join(get_all_active_plugin_names())
+
+    startup_time = datetime.now()
+
+    @botcmd
+    def uptime(self, mess, args):
+        """ Return the uptime of the bot
+        """
+        return 'I up for %s %s (since %s)' % (args, format_timedelta(datetime.now() - self.startup_time), datetime.strftime(self.startup_time, '%A, %b %d at %H:%M'))
 
     @botcmd
     def restart(self, mess, args):

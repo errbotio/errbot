@@ -287,7 +287,7 @@ class ErrBot(JabberBot):
                 self.send(mess.getFrom(), "Update of %s succeeded...\n\n%s\n\n" % (d,feedback) , message_type=mess.getType())
                 for plugin in get_all_plugins():
                     if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
-                        self.send(mess.getFrom(), '/me is reloading plugin %s %s/%s' % plugin.name)
+                        self.send(mess.getFrom(), '/me is reloading plugin %s' % plugin.name)
                         deactivate_plugin(plugin.name)
                         activate_plugin(plugin.name)
         if core_to_update:

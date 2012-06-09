@@ -4,5 +4,6 @@
 /.settings
 /config.py
 nohup.out
-build
-
+/build
+/dist
+/err.egg-info

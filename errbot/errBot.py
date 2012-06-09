@@ -265,7 +265,8 @@ class ErrBot(JabberBot):
         directories = set()
         args = args.split(' ')
         repos = self.internal_shelf.get('repos', {})
-        if 'all' in args or 'core' in args:
+        core_to_update = 'all' in args or 'core' in args
+        if core_to_update:
             directories.add(os.path.dirname(__file__))
 
         if 'all' in args:
@@ -284,8 +285,15 @@ class ErrBot(JabberBot):
                 self.send(mess.getFrom(), "Update of %s failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
             else:
                 self.send(mess.getFrom(), "Update of %s succeeded...\n\n%s\n\n" % (d,feedback) , message_type=mess.getType())
-        self.quit(-1337)
-        return "Done, restarting"
+                for plugin in get_all_plugins():
+                    if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
+                        self.send(mess.getFrom(), '/me is reloading plugin %s %s/%s' % plugin.name)
+                        deactivate_plugin(plugin.name)
+                        activate_plugin(plugin.name)
+        if core_to_update:
+            self.quit(-1337)
+            return "You have updated the core, I need to restart."
+        return "Done."
 
     @botcmd
     def taillog(self, mess, args):

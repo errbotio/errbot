@@ -1,6 +1,6 @@
 from itertools import chain
 import logging
-import sys
+import sys, os
 from errbot.botplugin import BotPlugin
 
 from config import BOT_EXTRA_PLUGIN_DIR
@@ -9,7 +9,8 @@ __author__ = 'gbin'
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
-BUILTINS = ["builtins", ]
+BUILTINS = [os.path.dirname(os.path.abspath(__file__))+ os.sep + 'builtins', ]
+
 if BOT_EXTRA_PLUGIN_DIR:
     BUILTINS.append(BOT_EXTRA_PLUGIN_DIR)
 

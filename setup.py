@@ -21,7 +21,7 @@ def read(fname):
 
 setup(
     name = "err",
-    version = "1.0.3",
+    version = "1.0.4",
     packages = find_packages(),
     scripts = ['scripts/err.py', 'scripts/err.sh'],
 

@@ -64,6 +64,9 @@ class BotPlugin(object):
             Sends asynchronously a message a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
+        # small hack to send back to the correct jid in case of chatroom
+        if message_type=='groupchat':
+            user = str(user).split('/')[0] # strip the precise user in the chatroom
         return holder.bot.send(user, text, in_reply_to, message_type)
 
     def bare_send(self, xmppy_msg):

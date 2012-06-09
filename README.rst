@@ -29,8 +29,14 @@ Features
 .. _yapsy: http://yapsy.sourceforge.net/
 
 
-Installation
-------------
+Prerequisites
+-------------
+Create a user for the bot on your private XMPP server or a public server like jabber.org.
+Optionally you can create a MUC (also called conference room or chatroom) in which you can interact with the bot. 
+
+
+Installation from the sources
+-----------------------------
 
 **Dependencies**
 
@@ -59,7 +65,25 @@ Then at deployment time, a nohup utility script can be used
 ::
     ./scripts/err.sh
 
-More details on the bot admin can be found on the wiki : https://github.com/gbin/err/wiki/admin
+Note that config.py needs to be at the root of the working directory of the bot.
+
+More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki/admin
+
+Installation from pypi
+----------------------
+
+Pip will take care of installing err and the basic dependencies for you
+::
+    pip install err
+
+Go to or create a working directory for it then copy there and adapt the configuration template
+::
+    cp /usr/lib64/python2.7/site-packages/errbot/config-template.py config.py
+
+Then you can start and try your bot
+::
+    err.py
+
 
 Interact with the Bot
 ---------------------

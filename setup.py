@@ -21,7 +21,7 @@ def read(fname):
 
 setup(
     name = "err",
-    version = "1.0.2",
+    version = "1.0.3",
     packages = find_packages(),
     scripts = ['scripts/err.py', 'scripts/err.sh'],
 
@@ -37,7 +37,7 @@ setup(
     long_description=read('README.rst'),
     license = "GPL",
     keywords = "xmpp jabber chatbot bot plugin",
-    url = "http://pypi.python.org/pypi/err/",
+    url = "http://github.com/gbin/err/",
     classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Topic :: Communications :: Chat",

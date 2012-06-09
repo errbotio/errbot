@@ -289,7 +289,7 @@ class ErrBot(JabberBot):
                     if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
                         self.send(mess.getFrom(), '/me is reloading plugin %s' % plugin.name)
                         deactivate_plugin(plugin.name)
-                        reload(plugin.path)
+                        reload(__import__(plugin.path.split(os.sep)[-1]))
                         activate_plugin(plugin.name)
         if core_to_update:
             self.quit(-1337)

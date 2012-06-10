@@ -17,15 +17,17 @@
 import logging
 import os
 import sys
-sys.path.append(os.getcwd()) # appends the current directory in order to find config.py
-
-from config import BOT_IDENTITY,BOT_LOG_LEVEL,BOT_DATA_DIR, BOT_LOG_FILE
-from errbot.utils import PLUGINS_SUBDIR
-from errbot.errBot import ErrBot
-from errbot import holder
-holder.bot = ErrBot(**BOT_IDENTITY)
+import argparse
 
 def main():
+    # from here the environment is supposed to be set (daemon / non daemon,
+    # config.py in the python path )
+    from errbot.utils import PLUGINS_SUBDIR
+    from errbot.errBot import ErrBot
+    from errbot import holder
+    from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
+
+    holder.bot = ErrBot(**BOT_IDENTITY)
     logging.basicConfig(format='%(levelname)s:%(message)s')
     logger = logging.getLogger('')
     if BOT_LOG_FILE:
@@ -49,6 +51,51 @@ def main():
     logging.debug('serve from %s' % holder.bot)
     holder.bot.serve_forever()
 
+# Default daemon parameters.
+# File mode creation mask of the daemon.
+UMASK = 0
+
+# Default maximum for the number of available file descriptors.
+MAXFD = 1024
+WORKDIR = '/'
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
+    parser.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
+    parser.add_argument('-c', '--config', default=os.getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
+    args = vars(parser.parse_args()) # create a dictionary of args
+
+    # setup the enrvironment to be able to import the config.py
+    sys.path.append(args['config']) # appends the current directory in order to find config.py
+    if args['daemon']:
+        try:
+            pid = os.fork()
+        except OSError, e:
+            raise Exception, "%s [%d]" % (e.strerror, e.errno)
+        if not pid: # first child
+            os.setsid()
+            try:
+                pid = os.fork()
+            except OSError, e:
+                raise Exception, "%s [%d]" % (e.strerror, e.errno)
+            if not pid: # second child (zombie prevention)
+                os.chdir(WORKDIR)
+                os.umask(UMASK)
+            else:
+                os._exit(0)
+        else:
+            os._exit(0)
+        import resource
+
+        maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+        if maxfd == resource.RLIM_INFINITY:
+            maxfd = MAXFD
+        for fd in range(0, maxfd):
+            try:
+                os.close(fd)
+            except OSError:   # ERROR, fd wasn't open to begin with (ignored)
+                pass
+        os.open(os.devnull, os.O_RDWR)
+        os.dup2(0, 1)
+        os.dup2(0, 2)
     main()

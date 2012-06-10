@@ -1,6 +1,11 @@
 Release history
 ===============
 
+Version 1.1.1
+-------------
+
+Fixed the problem updating the core + restart
+
 Version 1.1.0 (2012-17-06)
 --------------------------
 

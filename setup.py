@@ -25,7 +25,7 @@ setup(
     packages = find_packages(),
     scripts = ['scripts/err.py'],
 
-    install_requires = ['xmpppy', 'yapsy', 'configparser'],
+    install_requires = ['xmpppy', 'yapsy', 'configparser', 'python-daemon'],
 
     package_data = {
         '': ['*.txt', '*.rst', '*.plug'],

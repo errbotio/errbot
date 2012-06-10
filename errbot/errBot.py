@@ -27,7 +27,7 @@ from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_ADMINS, BOT_LOG_FILE
 
 from errbot.jabberbot import JabberBot, botcmd
-from errbot.plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins
+from errbot.plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart
 from errbot.utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
@@ -111,7 +111,7 @@ class ErrBot(JabberBot):
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
         """
-        return 'I am alive with those plugins :\n' + '\n'.join(get_all_active_plugin_names())
+        return 'Yes, I am alive with those plugins :\n' + '\n'.join(get_all_active_plugin_names())
 
     startup_time = datetime.now()
 
@@ -125,7 +125,10 @@ class ErrBot(JabberBot):
     def restart(self, mess, args):
         """ restart the bot """
         admin_only(mess)
-        self.quit(-1337)
+        self.send(mess.getFrom(), "Deactivating all the plugins...")
+        deactivate_all_plugins()
+        self.send(mess.getFrom(), "Restarting")
+        global_restart()
         return "I'm restarting..."
 
     @botcmd
@@ -133,7 +136,6 @@ class ErrBot(JabberBot):
         """load a plugin"""
         admin_only(mess)
         result = activate_plugin(args)
-        #self.refresh_command_list()
         return result
 
     @botcmd
@@ -285,14 +287,19 @@ class ErrBot(JabberBot):
                 self.send(mess.getFrom(), "Update of %s failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
             else:
                 self.send(mess.getFrom(), "Update of %s succeeded...\n\n%s\n\n" % (d,feedback) , message_type=mess.getType())
-                for plugin in get_all_plugins():
-                    if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
-                        self.send(mess.getFrom(), '/me is reloading plugin %s' % plugin.name)
-                        deactivate_plugin(plugin.name)
-                        reload(__import__(plugin.path.split(os.sep)[-1]))
-                        activate_plugin(plugin.name)
+                if not core_to_update:
+                    for plugin in get_all_plugins():
+                        if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
+                            self.send(mess.getFrom(), '/me is reloading plugin %s' % plugin.name)
+                            deactivate_plugin(plugin.name)                     # calm the plugin down
+                            module = __import__(plugin.path.split(os.sep)[-1]) # find back the main module of the plugin
+                            reload(module)                                     # reload it
+                            class_name = type(plugin.plugin_object).__name__   # find the original name of the class
+                            newclass = getattr(module, class_name)             # retreive the corresponding new class
+                            plugin.plugin_object.__class__ = newclass          # BAM, declare the instance of the new type
+                            activate_plugin(plugin.name)                       # wake the plugin up
         if core_to_update:
-            self.quit(-1337)
+            self.restart(None, None)
             return "You have updated the core, I need to restart."
         return "Done."
 

@@ -72,3 +72,6 @@ def deactivate_all_plugins():
     for name in get_all_active_plugin_names():
         simplePluginManager.deactivatePluginByName(name, "bots")
 
+def global_restart():
+    python = sys.executable
+    os.execl(python, python, *sys.argv)

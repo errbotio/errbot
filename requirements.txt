@@ -1,3 +1,4 @@
+daemon
 xmpppy
 yapsy
 configparser

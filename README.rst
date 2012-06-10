@@ -18,7 +18,7 @@ Features
 - Can be setup so a restricted list of persons have the administration rights
 - Dynamic plugin architecture : the bot admin can install/uninstall/enable/disable plugins dynamically just by chatting with the bot.
 - Supports MUCs (chatrooms)
-- Can proxy and route one 2 one messages to MUC so it can enabler simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier).
+- Can proxy and route one 2 one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier).
 - Really easily extensible (see example below)
 - Provides an an automatic persistance store per plugin
 - an !help command that generate dynamically the documentation from the python docstrings of the commands

@@ -59,13 +59,17 @@ For a one shot try, I would recommend to use
 ::
     ./scripts/err.py
 
+Then you can use the -d (or --daemon) parameter to run it in a detached mode.
+::
+    ./script/err.py -d
+
 so you can inspect the logs for an immediate feedback
 
-Then at deployment time, a nohup utility script can be used
-::
-    ./scripts/err.sh
+Note that config.py needs to be at the root of the working directory of the bot by default.
 
-Note that config.py needs to be at the root of the working directory of the bot.
+You can override this behaviour with -c specifying the directory where your config.py is, for example
+::
+    ./script/err.py -c /etc/err
 
 More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki/admin
 

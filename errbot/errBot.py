@@ -299,7 +299,7 @@ class ErrBot(JabberBot):
                             plugin.plugin_object.__class__ = newclass          # BAM, declare the instance of the new type
                             activate_plugin(plugin.name)                       # wake the plugin up
         if core_to_update:
-            self.restart(None, None)
+            self.restart(mess, '')
             return "You have updated the core, I need to restart."
         return "Done."
 

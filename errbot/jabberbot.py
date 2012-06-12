@@ -32,6 +32,8 @@ import os
 import re
 import sys
 import thread
+from xmpp.protocol import NS_CAPS
+
 from utils import get_sender_username
 
 try:
@@ -53,6 +55,9 @@ __author__ = 'Thomas Perl <m@thp.io>'
 __version__ = '0.14'
 __website__ = 'http://thp.io/2007/python-jabberbot/'
 __license__ = 'GNU General Public License version 3 or later'
+
+
+HIPCHAT_PRESENCE_ATTRS = {'node':'http://hipchat.com/client/bot', 'ver':'v1.1.0'}
 
 def botcmd(*args, **kwargs):
     """Decorator for bot command functions"""
@@ -165,8 +170,10 @@ class JabberBot(object):
 
     def _send_status(self):
         """Send status to everyone"""
-        self.conn.send(xmpp.dispatcher.Presence(show=self.__show,
-            status=self.__status))
+        pres = xmpp.dispatcher.Presence(show=self.__show,status=self.__status)
+        pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
+
+        self.conn.send(pres)
 
     def __set_status(self, value):
         """Set status message.
@@ -260,12 +267,13 @@ class JabberBot(object):
         # TODO use xmpppy function getNode
             username = self.__username.split('@')[0]
         my_room_JID = '/'.join((room, username))
-        pres = xmpp.Presence(to=my_room_JID, frm = self.__username + '/bot')
+        pres = xmpp.dispatcher.Presence(to=my_room_JID, frm = self.__username + '/bot')
+        pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
         t = pres.setTag('x', namespace=NS_MUC)
         if password is not None:
             t.setTagData('password', password)
         self.log.info(pres)
-        self.connect().send(pres)
+        self.send_message(pres)
 
     def kick(self, room, nick, reason=None):
         """Kicks user from muc

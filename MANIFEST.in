@@ -1,0 +1,3 @@
+include *.rst
+include errbot/builtins/*.plug
+

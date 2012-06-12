@@ -33,7 +33,7 @@ setup(
 
     author = "Guillaume BINET",
     author_email = "gbin@gootz.net",
-    description = "err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable. It is based on jabberbot_ and yapsy_.",
+    description = "err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable.",
     long_description=''.join([read('README.rst'),'\n\n',read('CHANGES.rst')]),
     license = "GPL",
     keywords = "xmpp jabber chatbot bot plugin",

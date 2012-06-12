@@ -5,6 +5,7 @@ Version 1.1.1
 -------------
 
 Fixed the problem updating the core + restart
+Greatly improved the reporting in case of configuration mistake.
 
 Version 1.1.0 (2012-17-06)
 --------------------------

@@ -1,13 +1,14 @@
 Release history
 ===============
 
-Version 1.1.1
--------------
+Version 1.1.1 (2012-06-12)
+--------------------------
 
 Fixed the problem updating the core + restart
-Greatly improved the reporting in case of configuration mistake.
+Greatly improved the reporting in case of configuration mistakes.
+Patched the presence for a better Hipchat interop.
 
-Version 1.1.0 (2012-17-06)
+Version 1.1.0 (2012-06-10)
 --------------------------
 
 Added the !uptime command
@@ -17,7 +18,7 @@ Simplified the usage of the asynchronous self.send() by stripping the last part 
 Improved the !restart feature so err.py is standalone now (no need to have a err.sh anymore)
 err.py now takes 2 optional parameters : -d to daemonize it and -c to specify the location of the config file
 
-Version 1.0.4 (2012-17-04)
+Version 1.0.4 (2012-06-08)
 --------------------------
 
 First real release, fixups for Pypi compliance.

@@ -56,8 +56,9 @@ __version__ = '0.14'
 __website__ = 'http://thp.io/2007/python-jabberbot/'
 __license__ = 'GNU General Public License version 3 or later'
 
+HIPCHAT_PRESENCE_ATTRS = {'node': 'http://hipchat.com/client/bot', 'ver': 'v1.1.0'}
 
-HIPCHAT_PRESENCE_ATTRS = {'node':'http://hipchat.com/client/bot', 'ver':'v1.1.0'}
+
 
 def botcmd(*args, **kwargs):
     """Decorator for bot command functions"""
@@ -95,6 +96,10 @@ class JabberBot(object):
 
     PING_FREQUENCY = 0 # Set to the number of seconds, e.g. 60.
     PING_TIMEOUT = 2 # Seconds to wait for a response.
+
+    MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
+    MESSAGE_SIZE_ERROR_MESSAGE = '|<- SNIP ! Message too long.'
+
     return_code = 0 # code for the process exit
 
     def __init__(self, username, password, res=None, debug=False,
@@ -170,7 +175,7 @@ class JabberBot(object):
 
     def _send_status(self):
         """Send status to everyone"""
-        pres = xmpp.dispatcher.Presence(show=self.__show,status=self.__status)
+        pres = xmpp.dispatcher.Presence(show=self.__show, status=self.__status)
         pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
 
         self.conn.send(pres)
@@ -267,7 +272,7 @@ class JabberBot(object):
         # TODO use xmpppy function getNode
             username = self.__username.split('@')[0]
         my_room_JID = '/'.join((room, username))
-        pres = xmpp.dispatcher.Presence(to=my_room_JID, frm = self.__username + '/bot')
+        pres = xmpp.dispatcher.Presence(to=my_room_JID, frm=self.__username + '/bot')
         pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
         t = pres.setTag('x', namespace=NS_MUC)
         if password is not None:
@@ -282,9 +287,9 @@ class JabberBot(object):
         item = xmpp.simplexml.Node('item')
         item.setAttr('nick', nick)
         item.setAttr('role', 'none')
-        iq = xmpp.Iq(typ='set',queryNS=NS_MUCADMIN,xmlns=None,to=room,payload=item)
+        iq = xmpp.Iq(typ='set', queryNS=NS_MUCADMIN, xmlns=None, to=room, payload=item)
         if reason is not None:
-            item.setTagData('reason',reason)
+            item.setTagData('reason', reason)
             self.connect().send(iq)
 
     def invite(self, room, jids, reason=None):
@@ -294,10 +299,10 @@ class JabberBot(object):
         mess = xmpp.Message(to=room)
         for jid in jids:
             invite = xmpp.simplexml.Node('invite')
-            invite.setAttr('to',jid)
+            invite.setAttr('to', jid)
             if reason is not None:
-                invite.setTagData('reason',reason)
-            mess.setTag('x',namespace=NS_MUCUSER).addChild(node=invite)
+                invite.setTagData('reason', reason)
+            mess.setTag('x', namespace=NS_MUCUSER).addChild(node=invite)
         self.log.info(mess)
         self.connect().send(mess)
 
@@ -552,7 +557,7 @@ class JabberBot(object):
         if 'urn:xmpp:delay' in props:
             self.log.debug("Message from history, ignore it")
             return
-        # Ignore messages from before we joined
+            # Ignore messages from before we joined
         if xmpp.NS_DELAY in props: return
 
         # Ignore messages from myself
@@ -605,6 +610,8 @@ class JabberBot(object):
                                        (text, jid, traceback.format_exc(e)))
                     reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
                 if reply:
+                    if len(reply) > self.MESSAGE_SIZE_LIMIT:
+                        reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
                     self.send_simple_reply(mess, reply)
 
             # Experimental!

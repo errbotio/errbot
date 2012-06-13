@@ -13,4 +13,5 @@ KNOWN_PUBLIC_REPOS = {
 'err-time' : ('git://github.com/gbin/err-time.git','gives the current time at a given place'),
 'err-elizabot' : ('git://github.com/gbin/err-elizabot.git','a classic electronic shrink'),
 'err-calcbot' : ('git://github.com/gbin/err-calcbot.git','a smart calculator, unit converter and math solver'),
+'err-pypi' : ('git://github.com/gbin/err-pypi.git','some commands to query pypi'),
 }

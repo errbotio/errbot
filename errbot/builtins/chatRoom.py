@@ -9,7 +9,7 @@ from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, HIPCHAT_MODE
 class ChatRoom(BotPlugin):
     connected = False
     def keep_alive(self):
-        logging.debug('Keep alive sent')
+        # logging.debug('Keep alive sent')
         if HIPCHAT_MODE:
             self.send('nobody', ' ', message_type='groupchat') # hack from hipchat itself
         else:

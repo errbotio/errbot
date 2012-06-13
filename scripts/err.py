@@ -19,9 +19,12 @@ from os import path, access, makedirs, sep, getcwd
 from posix import W_OK
 import sys
 import argparse
+from time import sleep
 import daemon
 
 # Sets a minimal logging on the console for the critical config errors
+from errbot.testmode import patch_jabberbot
+
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
@@ -80,10 +83,13 @@ def main():
     logging.debug('serve from %s' % holder.bot)
     holder.bot.serve_forever()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
+    parser.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
+
     args = vars(parser.parse_args()) # create a dictionary of args
     config_path = args['config']
     # setup the environment to be able to import the config.py
@@ -91,8 +97,13 @@ if __name__ == "__main__":
     check_config(config_path) # check if everything is ok before attempting to start
 
     if args['daemon']:
+        if args['test']:
+            raise Exception('You cannot run in test and daemon mode at the same time')
         with daemon.DaemonContext(detach_process=True,working_directory=getcwd()): # put the initial working directory to be sure not to lost it after daemonization
             main()
-    else:
-        main()
+
+    if args['test']:
+        patch_jabberbot()
+
+    main()
     logging.info('Process exiting')

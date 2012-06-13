@@ -19,16 +19,16 @@ BOT_DATA_DIR = '/var/lib/r2' # Point this to a writeable directory by the system
 BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful to develop a new plugin locally)
 
 # ---- Chatrooms configuration (used by the chatroom plugin)
-TEST_ROOM = 'test@conference.localhost'
+_TEST_ROOM = 'test@conference.localhost'
 
 # CHATROOM_ PRESENCE
 # it must be an iterable of names of rooms you want the bot to join at startup
-CHATROOM_PRESENCE = (TEST_ROOM,)
+CHATROOM_PRESENCE = (_TEST_ROOM,)
 
 # CHATROOM_RELAY
 # can be used to relay one to one message from specific users to the bot to MUCs
 # it can be useful when XMPP notifiers like the standard Altassian Jira one doesn't support MUC
-CHATROOM_RELAY = {'gbin@localhost' : (TEST_ROOM,)}
+CHATROOM_RELAY = {'gbin@localhost' : (_TEST_ROOM,)}
 
 # CHATROOM_FN
 # Some XMPP implementations like HipChat are super picky on the fullname you join with for a MUC

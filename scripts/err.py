@@ -38,7 +38,7 @@ def check_config(config_path):
 
     try:
         import config
-        diffs = set(dir(template)) - set(dir(config))
+        diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
         if diffs:
             logging.error('You are missing configs defined from the template :')
             for diff in diffs:
@@ -60,7 +60,6 @@ def main():
     holder.bot = ErrBot(**BOT_IDENTITY)
 
     if BOT_LOG_FILE:
-
         hdlr = logging.FileHandler(BOT_LOG_FILE)
         hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
         logger.addHandler(hdlr)

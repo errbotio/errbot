@@ -1,6 +1,11 @@
 Release history
 ===============
 
+Version 1.1.2 (2012-06-)
+--------------------------
+Don't nag the user for irrelevant settings from the setting-template
+
+
 Version 1.1.1 (2012-06-12)
 --------------------------
 

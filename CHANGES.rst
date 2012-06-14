@@ -1,7 +1,7 @@
 Release history
 ===============
 
-Version 1.2.0 (2012-06-)
+Version 1.2.0 (2012-06-14)
 --------------------------
 Don't nag the user for irrelevant settings from the setting-template
 Added a message size security in the framework to avoid getting banned from servers when a plugin spills too much

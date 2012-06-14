@@ -14,4 +14,5 @@ KNOWN_PUBLIC_REPOS = {
 'err-elizabot' : ('git://github.com/gbin/err-elizabot.git','a classic electronic shrink'),
 'err-calcbot' : ('git://github.com/gbin/err-calcbot.git','a smart calculator, unit converter and math solver'),
 'err-pypi' : ('git://github.com/gbin/err-pypi.git','some commands to query pypi'),
+'err-reviewboard': ('git://github.com/glenbot/err-reviewboard.git', 'Err bot that displays the latest reviews from review board'),
 }

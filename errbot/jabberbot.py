@@ -677,7 +677,7 @@ class JabberBot(object):
                 description = 'Available commands:'
 
             usage = '\n'.join(sorted([
-            '!%s: %s' % (name, (command.__doc__ or\
+            '!%s: %s' % (name, (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\

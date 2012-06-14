@@ -241,13 +241,13 @@ class ErrBot(JabberBot):
             for clazz in sorted(clazz_commands):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__doc__ or '')
                 usage += '\n'.join(sorted([
-                '\t!%s: %s' % (name, (command.__doc__ or\
+                '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
                                     '(undocumented)').strip().split('\n', 1)[0])
                 for (name, command) in clazz_commands[clazz] if name != 'help' and not command._jabberbot_command_hidden
                 ]))
             usage += '\n\n'
         else:
-            return super(ErrBot, self).help(mess,args)
+            return super(ErrBot, self).help(mess,'_'.join(args.strip().split(' ')))
 
         top = self.top_of_help_message()
         bottom = self.bottom_of_help_message()

@@ -1,9 +1,10 @@
-err - the pluggable jabber bot
+Err - the pluggable jabber bot
 ==============================
 
-err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable.
+Err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable.
 It is written in python and it is based on jabberbot_ and yapsy_ with some minor modifications for the first one.
 
+Err has a google_ plus_ page_, feel free to mention it with +err if you need support, have any questions, share some of your creations etc ...
 
 Brief History
 -------------
@@ -27,7 +28,9 @@ Features
 .. _openfire: http://www.igniterealtime.org/projects/openfire/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _yapsy: http://yapsy.sourceforge.net/
-
+.. _google: https://plus.google.com/101905029512356212669/
+.. _plus: https://plus.google.com/101905029512356212669/
+.. _page: https://plus.google.com/101905029512356212669/
 
 Prerequisites
 -------------

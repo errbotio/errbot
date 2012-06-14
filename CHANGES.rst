@@ -1,12 +1,13 @@
 Release history
 ===============
 
-Version 1.1.2 (2012-06-)
+Version 1.2.0 (2012-06-)
 --------------------------
 Don't nag the user for irrelevant settings from the setting-template
 Added a message size security in the framework to avoid getting banned from servers when a plugin spills too much
 Added subcommands supports like the function log_tail will match !log tail [args]
 Added a test mode (-t) to ease plugin development (no need to have XMPP client / server to install and connect to in order to test the bot)
+Added err-reviewboard a new plugin by Glen Zangirolam https://github.com/glenbot to the repos list
 
 Version 1.1.1 (2012-06-12)
 --------------------------

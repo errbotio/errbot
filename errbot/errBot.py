@@ -304,13 +304,17 @@ class ErrBot(JabberBot):
         return "Done."
 
     @botcmd
-    def taillog(self, mess, args):
-        """ Display a tail of the log
-        use : !log
+    def log_tail(self, mess, args):
+        """ Display a tail of the log of n lines or 40 by default
+        use : !log tail 10
         """
         #admin_only(mess) # uncomment if paranoid.
+        n = 40
+        if args.isdigit():
+            n = int(args)
+
         if BOT_LOG_FILE:
             with open(BOT_LOG_FILE, 'r') as f:
-                return tail(f, 40)
+                return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'
 

@@ -398,16 +398,16 @@ class JabberBot(object):
             # FIXME unescape &quot; etc.
             message = xmpp.protocol.Message(body=text_plain)
             # Start creating a xhtml body
-            html = xmpp.Node('html',\
+            html = xmpp.Node('html',
                     {'xmlns': 'http://jabber.org/protocol/xhtml-im'})
             try:
-                html.addChild(node=xmpp.simplexml.XML2Node(\
+                html.addChild(node=xmpp.simplexml.XML2Node(
                     "<body xmlns='http://www.w3.org/1999/xhtml'>" +\
                     text.encode('utf-8') + "</body>"))
                 message.addChild(node=html)
             except Exception, e:
                 # Didn't work, incorrect markup or something.
-                self.log.debug('An error while building a xhtml message. '\
+                self.log.debug('An error while building a xhtml message. '
                                'Fallback to normal messagebody')
                 # Fallback - don't sanitize invalid input. User is responsible!
                 message = None
@@ -578,23 +578,31 @@ class JabberBot(object):
         # FIXME i am not threadsafe
         self.__threads[jid] = mess.getThread()
 
-        if text.startswith('!!'):
-            text = text[2:]
-            private = False
-        elif text.startswith('!'):
-            text = text[1:]
-            private = True
-        else:
+        if not text.startswith('!'):
             return
 
-        if ' ' in text:
-            command, args = text.split(' ', 1)
-        else:
-            command, args = text, ''
-        cmd = command.lower()
-        self.log.info("received command = %s" % cmd)
+        text = text[1:]
+        text_split = text.strip().split(' ')
 
-        if self.commands.has_key(cmd):
+        cmd = None
+        command = None
+        args = ''
+        if len(text_split) > 1:
+            command = (text_split[0] + '_' + text_split[1]).lower()
+            if self.commands.has_key(command):
+                cmd = command
+                args = ' '.join(text_split[2:])
+
+        if not cmd:
+            command = text_split[0].lower()
+            if self.commands.has_key(command):
+                cmd = command
+                if len(text_split) > 1:
+                    args = ' '.join(text_split[1:])
+
+        self.log.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
+
+        if cmd:
             def execute_and_send():
                 try:
                     reply = self.commands[cmd](mess, args)
@@ -621,8 +629,8 @@ class JabberBot(object):
             if type == 'groupchat':
                 default_reply = None
             else:
-                default_reply = self.MSG_UNKNOWN_COMMAND % {'command': cmd}
-            reply = self.unknown_command(mess, cmd, args)
+                default_reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
+            reply = self.unknown_command(mess, command, args)
             if reply is None:
                 reply = default_reply
             if reply:

@@ -22,9 +22,6 @@ import argparse
 from time import sleep
 import daemon
 
-# Sets a minimal logging on the console for the critical config errors
-from errbot.testmode import patch_jabberbot
-
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
@@ -103,6 +100,8 @@ if __name__ == "__main__":
             main()
 
     if args['test']:
+        # Sets a minimal logging on the console for the critical config errors
+        from errbot.testmode import patch_jabberbot
         patch_jabberbot()
 
     main()

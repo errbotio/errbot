@@ -253,7 +253,7 @@ class ErrBot(JabberBot):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
-    @botcmd
+    @botcmd(split_args_with = ' ')
     def update(self, mess, args):
         """ update the bot and/or plugins
         use : !update all
@@ -265,7 +265,6 @@ class ErrBot(JabberBot):
         """
         admin_only(mess)
         directories = set()
-        args = args.split(' ')
         repos = self.internal_shelf.get('repos', {})
         core_to_update = 'all' in args or 'core' in args
         if core_to_update:

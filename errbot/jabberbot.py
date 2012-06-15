@@ -61,13 +61,22 @@ HIPCHAT_PRESENCE_ATTRS = {'node': 'http://hipchat.com/client/bot', 'ver': 'v1.1.
 
 
 def botcmd(*args, **kwargs):
-    """Decorator for bot command functions"""
+    """Decorator for bot command functions
+    extra parameters to customize the command:
+    name : override the command name
+    thread : asynchronize the command
+    split_args_with : prepare the arguments by splitting them by the given character
+    """
 
-    def decorate(func, hidden=False, name=None, thread=False):
+    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None):
         setattr(func, '_jabberbot_command', True)
         setattr(func, '_jabberbot_command_hidden', hidden)
         setattr(func, '_jabberbot_command_name', name or func.__name__)
+
+        setattr(func, '_jabberbot_command_split_args_with', split_args_with)
+
         setattr(func, '_jabberbot_command_thread', thread) # Experimental!
+
         return func
 
     if len(args):
@@ -616,9 +625,12 @@ class JabberBot(object):
                         reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
                     self.send_simple_reply(mess, reply)
 
+            f = self.commands[cmd]
+            if f._jabberbot_command_split_args_with:
+                args = args.split(f._jabberbot_command_split_args_with)
             # Experimental!
             # if command should be executed in a seperate thread do it
-            if self.commands[cmd]._jabberbot_command_thread:
+            if f._jabberbot_command_thread:
                 thread.start_new_thread(execute_and_send, ())
             else:
                 execute_and_send()

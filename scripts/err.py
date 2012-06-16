@@ -20,6 +20,8 @@ from posix import W_OK
 import sys
 import argparse
 import daemon
+from pwd import getpwnam
+from grp import getgrnam
 from errbot.utils import PidFile
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
@@ -33,11 +35,12 @@ def check_config(config_path):
 
     if not path.exists(config_fullpath):
         logging.error('I cannot find the file config.py in the directory %s \n(You can change this directory with the -c parameter see --help)' % config_path)
-        logging.info('You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (path.dirname(template.__file__) + sep + 'config-template.py',  config_path + sep))
+        logging.info('You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (path.dirname(template.__file__) + sep + 'config-template.py', config_path + sep))
         exit(-1)
 
     try:
         import config
+
         diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
         if diffs:
             logging.error('You are missing configs defined from the template :')
@@ -48,6 +51,7 @@ def check_config(config_path):
         logging.exception('I could not import your config from %s, please check the error below...' % config_fullpath)
         exit(-1)
     logging.info('Config check passed...')
+
 
 def main():
     # from here the environment is supposed to be set (daemon / non daemon,
@@ -83,10 +87,13 @@ def main():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
-    parser.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     parser.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
-    parser.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
+    option_group = parser.add_argument_group('arguments to run it as a Daemon')
+    option_group.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
+    option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
+    option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
+    option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
 
     args = vars(parser.parse_args()) # create a dictionary of args
     config_path = args['config']
@@ -104,8 +111,13 @@ if __name__ == "__main__":
             from config import BOT_DATA_DIR
             pid = BOT_DATA_DIR + sep + 'err.pid'
         pidfile = PidFile(pid)
+
+        uid = getpwnam(args['user']).pw_uid if args['user'] else None
+        gid = getgrnam(args['group']).gr_gid if args['group'] else None
+
         try:
-            with daemon.DaemonContext(detach_process=True,working_directory=getcwd(),pidfile=pidfile): # put the initial working directory to be sure not to lost it after daemonization
+            with daemon.DaemonContext(detach_process=True, working_directory=getcwd(), pidfile=pidfile, uid=uid,
+                                      gid=gid): # put the initial working directory to be sure not to lost it after daemonization
                 main()
         except:
             logging.exception('Failed to daemonize the process')
@@ -113,6 +125,7 @@ if __name__ == "__main__":
     if args['test']:
         # Sets a minimal logging on the console for the critical config errors
         from errbot.testmode import patch_jabberbot
+
         patch_jabberbot()
 
     main()

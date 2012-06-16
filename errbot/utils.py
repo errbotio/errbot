@@ -120,3 +120,4 @@ class PidFile(object):
             if err.errno != 9:
                 raise
         os.remove(self.path)
+

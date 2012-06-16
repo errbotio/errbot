@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 1.2.1 (2012-06-16)
+--------------------------
+Added a split_args_with to the botcmd decorator to ease the burden of parsing args on the plugin side (see https://github.com/gbin/err/wiki/plugin-dev)
+Added the pid, uid, gid parameters to the daemon group to be able to package it on linux distributions
+Corrected a crash if the bot could not contact the server
+
 Version 1.2.0 (2012-06-14)
 --------------------------
 Don't nag the user for irrelevant settings from the setting-template
@@ -11,14 +17,12 @@ Added err-reviewboard a new plugin by Glen Zangirolam https://github.com/glenbot
 
 Version 1.1.1 (2012-06-12)
 --------------------------
-
 Fixed the problem updating the core + restart
 Greatly improved the reporting in case of configuration mistakes.
 Patched the presence for a better Hipchat interop.
 
 Version 1.1.0 (2012-06-10)
 --------------------------
-
 Added the !uptime command
 !uninstall doesn't require a full restart anymore
 !update a plugin doesn't require a full restart anymore
@@ -28,5 +32,4 @@ err.py now takes 2 optional parameters : -d to daemonize it and -c to specify th
 
 Version 1.0.4 (2012-06-08)
 --------------------------
-
 First real release, fixups for Pypi compliance.

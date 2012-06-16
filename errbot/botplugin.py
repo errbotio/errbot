@@ -74,7 +74,12 @@ class BotPlugin(object):
             A bypass to send directly a crafted xmppy message.
               Usefull to extend to bot in not forseen ways.
         """
-        return holder.bot.connect().send(xmppy_msg)
+        c = holder.bot.connect()
+        if c:
+            return c.send(xmppy_msg)
+        logging.warning('Ignored a message as the bot is not connected yet')
+        return None # the bot is not connected yet
+
 
     def join_room(self, room, username=None, password=None):
         """

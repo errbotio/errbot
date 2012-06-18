@@ -92,13 +92,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     parser.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
+    parser.add_argument('-G', '--graphic', action='store_true', help='Use graphical mode')
+
     if not ON_WINDOWS:
         option_group = parser.add_argument_group('arguments to run it as a Daemon')
         option_group.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
         option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
         option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
         option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
-
+    
     args = vars(parser.parse_args()) # create a dictionary of args
     config_path = args['config']
     # setup the environment to be able to import the config.py
@@ -132,6 +134,12 @@ if __name__ == "__main__":
         # Sets a minimal logging on the console for the critical config errors
         from errbot.testmode import patch_jabberbot
 
+        patch_jabberbot()
+
+    if args['graphic']:
+        # Sets a minimal logging on the console for the critical config errors
+        from errbot.graphicmode import patch_jabberbot
+        
         patch_jabberbot()
 
     main()

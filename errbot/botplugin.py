@@ -1,3 +1,4 @@
+import UserDict
 import inspect
 import logging
 import os
@@ -6,12 +7,24 @@ from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR
 from errbot import holder
 
-class BotPlugin(object):
+class BotPlugin(UserDict.DictMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot
     """
     is_activated = False
+
+    def __getitem__(self, key):
+        return self.shelf.__getitem__(key)
+
+    def __setitem__(self, key, item):
+        return self.shelf.__setitem__(key, item)
+
+    def __delitem__(self, key):
+        return self.shelf.__delitem__(key)
+
+    def keys(self):
+        return self.shelf.keys()
 
     def activate(self):
         """

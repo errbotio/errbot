@@ -22,7 +22,6 @@ import argparse
 import daemon
 from pwd import getpwnam
 from grp import getgrnam
-from errbot.utils import PidFile
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
@@ -110,6 +109,8 @@ if __name__ == "__main__":
         else:
             from config import BOT_DATA_DIR
             pid = BOT_DATA_DIR + sep + 'err.pid'
+
+        from errbot.utils import PidFile
         pidfile = PidFile(pid)
 
         uid = getpwnam(args['user']).pw_uid if args['user'] else None

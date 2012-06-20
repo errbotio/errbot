@@ -303,3 +303,12 @@ class ErrBot(JabberBot):
                 return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'
 
+    @botcmd(historize = False)
+    def history(self, mess, args):
+        """display the command history"""
+        answer = []
+        l = len(self.cmd_history)
+        for i in range(0, l):
+            c = self.cmd_history[i]
+            answer.append('%2i:!%s %s' %(l-i,c[0],c[1]))
+        return '\n'.join(answer)

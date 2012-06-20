@@ -51,6 +51,7 @@ import time
 import inspect
 import logging
 import traceback
+from collections import deque
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Thomas Perl <m@thp.io>'
@@ -70,12 +71,13 @@ def botcmd(*args, **kwargs):
     split_args_with : prepare the arguments by splitting them by the given character
     """
 
-    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False):
+    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False, historize = True):
         setattr(func, '_jabberbot_command', True)
         setattr(func, '_jabberbot_command_hidden', hidden)
         setattr(func, '_jabberbot_command_name', name or func.__name__)
         setattr(func, '_jabberbot_command_split_args_with', split_args_with)
         setattr(func, '_jabberbot_command_admin_only', admin_only)
+        setattr(func, '_jabberbot_command_historize', historize)
         setattr(func, '_jabberbot_command_thread', thread) # Experimental!
         return func
 
@@ -110,6 +112,8 @@ class JabberBot(object):
     MESSAGE_SIZE_ERROR_MESSAGE = '|<- SNIP ! Message too long.'
 
     return_code = 0 # code for the process exit
+
+    cmd_history = deque(maxlen=10)
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
@@ -576,13 +580,6 @@ class JabberBot(object):
         # txt will be None
         if not text: return
 
-        # Ignore messages from users not seen by this bot
-        #if jid not in self.__seen:
-        #    self.log.info('Ignoring message from unseen guest: %s' % jid)
-        #    self.log.debug("I've seen: %s" %
-        #                   ["%s" % x for x in self.__seen.keys()])
-        #    return
-
         # Remember the last-talked-in message thread for replies
         # FIXME i am not threadsafe
         self.__threads[jid] = mess.getThread()
@@ -609,6 +606,21 @@ class JabberBot(object):
                 if len(text_split) > 1:
                     args = ' '.join(text_split[1:])
 
+        if command == '!': # we did "!!" so recall the last command
+            if len(self.cmd_history):
+                cmd, args = self.cmd_history[-1]
+            else:
+                return # no command in history
+        elif command.isdigit(): # we did "!#" so we recall the specified command
+            index = int(command)
+            if len(self.cmd_history) >= index:
+                cmd, args = self.cmd_history[-index]
+            else:
+                return # no command in history
+
+        if (cmd, args) in self.cmd_history:
+            self.cmd_history.remove((cmd, args)) # we readd it below
+
         self.log.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
         if cmd:
@@ -633,6 +645,9 @@ class JabberBot(object):
                 usr = get_jid_from_message(mess)
                 if usr not in BOT_ADMINS:
                    raise Exception('You cannot administer the bot from this user %s.' % usr)
+
+            if f._jabberbot_command_historize:
+                self.cmd_history.append((cmd,  args)) # add it to the history only if it is authorized to be so
 
             if f._jabberbot_command_split_args_with:
                 args = args.split(f._jabberbot_command_split_args_with)

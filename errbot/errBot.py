@@ -39,13 +39,6 @@ def get_class_that_defined_method(meth):
     if meth.__name__ in cls.__dict__: return cls
   return None
 
-def admin_only(mess):
-    if mess.getType() == 'groupchat':
-        raise Exception('You cannot administer the bot from a chatroom, message the bot directly')
-    usr = get_jid_from_message(mess)
-    if usr not in BOT_ADMINS:
-        raise Exception('You cannot administer the bot from this user %s.' % usr)
-
 class ErrBot(JabberBot):
     """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
@@ -121,45 +114,40 @@ class ErrBot(JabberBot):
         """
         return 'I up for %s %s (since %s)' % (args, format_timedelta(datetime.now() - self.startup_time), datetime.strftime(self.startup_time, '%A, %b %d at %H:%M'))
 
-    @botcmd
+    @botcmd(admin_only = True)
     def restart(self, mess, args):
         """ restart the bot """
-        admin_only(mess)
         self.send(mess.getFrom(), "Deactivating all the plugins...")
         deactivate_all_plugins()
         self.send(mess.getFrom(), "Restarting")
         global_restart()
         return "I'm restarting..."
 
-    @botcmd
+    @botcmd(admin_only = True)
     def load(self, mess, args):
         """load a plugin"""
-        admin_only(mess)
         result = activate_plugin(args)
         return result
 
-    @botcmd
+    @botcmd(admin_only = True)
     def unload(self, mess, args):
         """unload a plugin"""
-        admin_only(mess)
         result = deactivate_plugin(args)
         return result
 
-    @botcmd
+    @botcmd(admin_only = True)
     def reload(self, mess, args):
         """reload a plugin"""
-        admin_only(mess)
         result = deactivate_plugin(args) + " / " + activate_plugin(args)
         return result
 
-    @botcmd
+    @botcmd(admin_only = True)
     def install(self, mess, args):
         """ install a plugin repository from the given source or a known public repo (see !repos to find those).
         for example from a known repo : !install err-codebot
         for example a git url : git@github.com:gbin/plugin.git
         or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
         """
-        admin_only(mess)
         if not args.strip():
             return "You should have an urls/git repo argument"
         if args in KNOWN_PUBLIC_REPOS:
@@ -182,11 +170,10 @@ class ErrBot(JabberBot):
         self.activate_non_started_plugins()
         return "Plugin reload done."
 
-    @botcmd
+    @botcmd(admin_only = True)
     def uninstall(self, mess, args):
         """ uninstall a plugin repository by name.
         """
-        admin_only(mess)
         if not args.strip():
             return "You should have a repo name as argument"
         repos = self.internal_shelf.get('repos', {})
@@ -253,7 +240,7 @@ class ErrBot(JabberBot):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
-    @botcmd(split_args_with = ' ')
+    @botcmd(split_args_with = ' ', admin_only = True)
     def update(self, mess, args):
         """ update the bot and/or plugins
         use : !update all
@@ -263,7 +250,6 @@ class ErrBot(JabberBot):
         or : !update repo_name repo_name ...
         to update selectively some repos
         """
-        admin_only(mess)
         directories = set()
         repos = self.internal_shelf.get('repos', {})
         core_to_update = 'all' in args or 'core' in args

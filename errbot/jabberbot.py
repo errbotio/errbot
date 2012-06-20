@@ -33,6 +33,8 @@ import re
 import sys
 import thread
 from xmpp.protocol import NS_CAPS
+from errbot.utils import get_jid_from_message
+from config import BOT_ADMINS
 
 from utils import get_sender_username
 
@@ -68,15 +70,13 @@ def botcmd(*args, **kwargs):
     split_args_with : prepare the arguments by splitting them by the given character
     """
 
-    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None):
+    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False):
         setattr(func, '_jabberbot_command', True)
         setattr(func, '_jabberbot_command_hidden', hidden)
         setattr(func, '_jabberbot_command_name', name or func.__name__)
-
         setattr(func, '_jabberbot_command_split_args_with', split_args_with)
-
+        setattr(func, '_jabberbot_command_admin_only', admin_only)
         setattr(func, '_jabberbot_command_thread', thread) # Experimental!
-
         return func
 
     if len(args):
@@ -626,6 +626,14 @@ class JabberBot(object):
                     self.send_simple_reply(mess, reply)
 
             f = self.commands[cmd]
+
+            if f._jabberbot_command_admin_only:
+                if mess.getType() == 'groupchat':
+                       raise Exception('You cannot administer the bot from a chatroom, message the bot directly')
+                usr = get_jid_from_message(mess)
+                if usr not in BOT_ADMINS:
+                   raise Exception('You cannot administer the bot from this user %s.' % usr)
+
             if f._jabberbot_command_split_args_with:
                 args = args.split(f._jabberbot_command_split_args_with)
             # Experimental!

@@ -7,6 +7,11 @@ from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR
 from errbot import holder
 
+def unicode_filter(key):
+    if type(key) == unicode:
+        return key.encode('utf-8')
+    return key
+
 class BotPlugin(UserDict.DictMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
@@ -15,16 +20,20 @@ class BotPlugin(UserDict.DictMixin):
     is_activated = False
 
     def __getitem__(self, key):
-        return self.shelf.__getitem__(key)
+        return self.shelf.__getitem__(unicode_filter(key))
 
     def __setitem__(self, key, item):
-        return self.shelf.__setitem__(key, item)
+        return self.shelf.__setitem__(unicode_filter(key), item)
 
     def __delitem__(self, key):
-        return self.shelf.__delitem__(key)
+        return self.shelf.__delitem__(unicode_filter(key))
 
     def keys(self):
-        return self.shelf.keys()
+        keys = []
+        for key in self.shelf.keys():
+            if type(key) == str:
+                keys.append(key.decode('utf-8'))
+        return keys
 
     def activate(self):
         """

@@ -12,7 +12,7 @@ def unicode_filter(key):
         return key.encode('utf-8')
     return key
 
-class BotPlugin(UserDict.DictMixin):
+class BotPlugin(object, UserDict.DictMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot

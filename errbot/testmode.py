@@ -1,4 +1,5 @@
 import logging
+import sys
 import config
 
 class JIDMock():
@@ -33,6 +34,8 @@ class ConnectionMock():
         if hasattr(mess, 'getBody'):
             print mess.getBody()
 
+ENCODING_INPUT = sys.stdin.encoding
+
 def patch_jabberbot():
     from errbot import jabberbot
 
@@ -41,9 +44,17 @@ def patch_jabberbot():
     def fake_serve_forever(self):
         self.jid = JIDMock('blah') # whatever
         self.connect() # be sure we are "connected" before the first command
-        while True:
-            entry = raw_input("Talk to  me >>")
-            self.callback_message(conn, MessageMock(entry))
+        try:
+            while True:
+                entry = raw_input("Talk to  me >>").decode(ENCODING_INPUT)
+                self.callback_message(conn, MessageMock(entry))
+        except EOFError as eof:
+            pass
+        except KeyboardInterrupt as ki:
+            pass
+        finally:
+            print "\nExiting..."
+
     def fake_connect(self):
         if not self.conn:
             self.conn = ConnectionMock()

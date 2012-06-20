@@ -1,4 +1,4 @@
-daemon
+python-daemon
 xmpppy
 yapsy
 configparser

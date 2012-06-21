@@ -1,6 +1,16 @@
 Release history
 ===============
 
+Version 1.2.2 (2012-06-21)
+--------------------------
+Added a dictionary mixin for the plugins themselves so you can access you data directly with self['entry']
+Corrected a problem when executing it from the dev tree with ./scripts/err.py
+Corrected the python-daemon dependency
+Corrected the encoding problem from the console to better match what the bot will gives to the plugins on a real XMPP server
+admin_only is now a simple parameter of @botcmd
+Implemented the history commands : !history !! !1 !2 !3
+Corrected a bug in the python path for the BOT_EXTRA_PLUGIN_DIR setup parameter
+
 Version 1.2.1 (2012-06-16)
 --------------------------
 Added a split_args_with to the botcmd decorator to ease the burden of parsing args on the plugin side (see https://github.com/gbin/err/wiki/plugin-dev)

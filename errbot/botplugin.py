@@ -19,6 +19,7 @@ class BotPlugin(object, UserDict.DictMixin):
     """
     is_activated = False
 
+    # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
     def __getitem__(self, key):
         return self.shelf.__getitem__(unicode_filter(key))
 
@@ -34,6 +35,22 @@ class BotPlugin(object, UserDict.DictMixin):
             if type(key) == str:
                 keys.append(key.decode('utf-8'))
         return keys
+
+    @property
+    def min_err_version(self):
+        """ If your plugin has a minimum version of err it needs to be on in order to run, please override accordingly this method.
+        returning a string with the dotted minimum version. it MUST be in a 3 dotted numbers format or None
+        for example: "1.2.2"
+        """
+        return None
+
+    @property
+    def max_err_version(self):
+        """ If your plugin has a maximal version of err it needs to be on in order to run, please override accordingly this method.
+        returning a string with the dotted maximal version. it MUST be in a 3 dotted numbers format or None
+        for example: "1.2.2"
+        """
+        return None
 
     def activate(self):
         """

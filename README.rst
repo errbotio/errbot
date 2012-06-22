@@ -22,7 +22,7 @@ Features
 - Can proxy and route one 2 one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier).
 - Really easily extensible (see example below)
 - Provides an an automatic persistance store per plugin
-- an !help command that generate dynamically the documentation from the python docstrings of the commands
+- an !help command that generates dynamically the documentation from the python docstrings of the commands
 
 .. _hipchat: http://www.hipchat.org/
 .. _openfire: http://www.igniterealtime.org/projects/openfire/
@@ -34,7 +34,7 @@ Features
 
 Prerequisites
 -------------
-Create a user for the bot on your private XMPP server or a public server like jabber.org.
+Create a user for the bot on your private XMPP server or on a public server like jabber.org.
 Optionally you can create a MUC (also called conference room or chatroom) in which you can interact with the bot. 
 
 
@@ -91,6 +91,12 @@ Then you can start and try your bot
 ::
     err.py
 
+Installation from gentoo
+------------------------
+The standard way:
+::
+    emerge net-im/err
+
 
 Interact with the Bot
 ---------------------
@@ -98,7 +104,7 @@ Interact with the Bot
 - Invite the bot directly from your chat client.
 - Send "!help" to it without the quotes
 - it should answer by the list of available commands and a short explanation
-- if you want to know more about a command you can do "!help command"
+- if you want to know more about a specific command you can do "!help command"
 
 More documentation is available on the wiki : https://github.com/gbin/err/wiki
 

@@ -31,8 +31,13 @@ def version2array(version):
         raise Exception('version %s in not in format "x.y.z" for example "1.2.2"' % version)
     return response
 
+def get_plugin_obj_by_name(name):
+    pta_item = simplePluginManager.getPluginByName(name, 'bots')
+    if pta_item is None:
+        return None
+    return pta_item.plugin_object
 
-def activate_plugin_with_version_check(name):
+def activate_plugin_with_version_check(name, config):
     pta_item = simplePluginManager.getPluginByName(name, 'bots')
     if pta_item is None:
         logging.warning('Could not active %s')
@@ -47,6 +52,9 @@ def activate_plugin_with_version_check(name):
 
     if max_version and version2array(max_version) < current_version:
         raise IncompatiblePluginException('The plugin %s asks for err with a maximal version of %s and err is %s' % (name, min_version, VERSION))
+
+    obj.configure(config) # even if it is None we pass it on
+
     return simplePluginManager.activatePluginByName(name, "bots")
 
 
@@ -59,12 +67,12 @@ def update_plugin_places(list):
     simplePluginManager.collectPlugins()
 
 
-def activate_all_plugins():
+def activate_all_plugins(configs):
     for pluginInfo in simplePluginManager.getAllPlugins():
         try:
             if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                 logging.info('Activate plugin %s' % pluginInfo.name)
-                activate_plugin_with_version_check(pluginInfo.name)
+                activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
         except Exception, e:
             logging.exception("Error loading %s" % pluginInfo.name)
 
@@ -84,21 +92,8 @@ def get_all_active_plugin_names():
 def get_all_plugin_names():
     return map(lambda p: p.name, simplePluginManager.getAllPlugins())
 
-
-def deactivate_plugin(name):
-    if name not in get_all_active_plugin_names():
-        return "Plugin %s not in active list" % name
-    simplePluginManager.deactivatePluginByName(name, "bots")
-    return "Plugin %s deactivated" % name
-
-
-def activate_plugin(name):
-    if name in get_all_active_plugin_names():
-        return "Plugin already in active list"
-    if name not in get_all_plugin_names():
-        return "I don't know this %s plugin" % name
-    activate_plugin_with_version_check(name)
-    return "Plugin %s activated" % name
+def deactivatePluginByName(name):
+    return simplePluginManager.deactivatePluginByName(name, "bots")
 
 
 def deactivate_all_plugins():

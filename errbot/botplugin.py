@@ -52,6 +52,21 @@ class BotPlugin(object, UserDict.DictMixin):
         """
         return None
 
+    def get_configuration_template(self):
+        """ If your plugin needs a configuration, override this method and return a configuration template.
+        for example a dictionary like:
+        return {'LOGIN' : 'example@example.com', 'PASSWORD' : 'password'}
+        Note : if this method returns None, the plugin won't be configured
+        """
+        return None
+
+    def configure(self, configuration):
+        """ By default, it will just store the current configuation in the self.config field of your plugin
+        If this plugin has no configuration yet, the framework will call this function anyway with None
+        This method will be called before activation so don't expect to be activated at that point
+        """
+        self.config = configuration
+
     def activate(self):
         """
             Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())

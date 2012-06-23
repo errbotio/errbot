@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+from ast import literal_eval
 from datetime import datetime
 import inspect
 
@@ -24,11 +25,11 @@ import shutil
 import subprocess
 from tarfile import TarFile
 from urllib2 import urlopen
-from config import BOT_DATA_DIR, BOT_ADMINS, BOT_LOG_FILE
+from config import BOT_DATA_DIR, BOT_LOG_FILE
 
 from errbot.jabberbot import JabberBot, botcmd
-from errbot.plugin_manager import get_all_active_plugin_names, activate_plugin, deactivate_plugin, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart
-from errbot.utils import get_jid_from_message, PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta
+from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name
+from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
@@ -53,8 +54,18 @@ class ErrBot(JabberBot):
         repos = self.get_installed_plugin_repos()
         repos[name] = url
         self.internal_shelf['repos'] = repos
-        self.internal_shelf.sync()
 
+    # configurations management
+    def get_plugin_configuration(self, name):
+        configs = self.internal_shelf['configs']
+        if not configs.has_key(name):
+            return None
+        return configs[name]
+
+    def set_plugin_configuration(self, name, obj):
+        configs = self.internal_shelf['configs']
+        configs[name] = str(obj)
+        self.internal_shelf['configs'] = configs
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
@@ -63,6 +74,9 @@ class ErrBot(JabberBot):
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
         JabberBot.__init__(self, username, password, res, debug, privatedomain, acceptownmsgs, handlers)
+        # be sure we have a configs entry for the plugin configurations
+        if not self.internal_shelf.has_key('configs'):
+            self.internal_shelf['configs'] = {}
 
     def callback_message(self, conn, mess):
         super(ErrBot, self).callback_message(conn, mess)
@@ -75,7 +89,7 @@ class ErrBot(JabberBot):
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
-        activate_all_plugins()
+        activate_all_plugins(self.internal_shelf['configs'])
 
     def signal_connect_to_all_plugins(self):
         for bot in get_all_active_plugin_objects():
@@ -123,22 +137,35 @@ class ErrBot(JabberBot):
         global_restart()
         return "I'm restarting..."
 
+    def activate_plugin(self, name):
+        if name in get_all_active_plugin_names():
+            return "Plugin already in active list"
+        if name not in get_all_plugin_names():
+            return "I don't know this %s plugin" % name
+        activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+        return "Plugin %s activated" % name
+
+    def deactivate_plugin(self, name):
+        if name not in get_all_active_plugin_names():
+            return "Plugin %s not in active list" % name
+        deactivatePluginByName(name)
+        return "Plugin %s deactivated" % name
+
     @botcmd(admin_only = True)
     def load(self, mess, args):
         """load a plugin"""
-        result = activate_plugin(args)
-        return result
+        return self.activate_plugin(args)
 
     @botcmd(admin_only = True)
     def unload(self, mess, args):
         """unload a plugin"""
-        result = deactivate_plugin(args)
+        result = self.deactivate_plugin(args)
         return result
 
     @botcmd(admin_only = True)
     def reload(self, mess, args):
         """reload a plugin"""
-        result = deactivate_plugin(args) + " / " + activate_plugin(args)
+        result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))
         return result
 
     @botcmd(admin_only = True)
@@ -184,12 +211,11 @@ class ErrBot(JabberBot):
         for plugin in get_all_plugins():
             if plugin.path.startswith(plugin_path) and hasattr(plugin,'is_activated') and plugin.is_activated:
                 self.send(mess.getFrom(), '/me is unloading plugin %s' % plugin.name)
-                deactivate_plugin(plugin.name)
+                self.deactivate_plugin(plugin.name)
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
         self.internal_shelf['repos'] = repos
-        self.internal_shelf.sync()
 
         return 'Plugins unloaded and repo %s removed' % args
 
@@ -276,17 +302,60 @@ class ErrBot(JabberBot):
                     for plugin in get_all_plugins():
                         if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
                             self.send(mess.getFrom(), '/me is reloading plugin %s' % plugin.name)
-                            deactivate_plugin(plugin.name)                     # calm the plugin down
+                            self.deactivate_plugin(plugin.name)                     # calm the plugin down
                             module = __import__(plugin.path.split(os.sep)[-1]) # find back the main module of the plugin
                             reload(module)                                     # reload it
                             class_name = type(plugin.plugin_object).__name__   # find the original name of the class
                             newclass = getattr(module, class_name)             # retreive the corresponding new class
                             plugin.plugin_object.__class__ = newclass          # BAM, declare the instance of the new type
-                            activate_plugin(plugin.name)                       # wake the plugin up
+                            self.activate_plugin(plugin.name)                       # wake the plugin up
         if core_to_update:
             self.restart(mess, '')
             return "You have updated the core, I need to restart."
         return "Done."
+
+    @botcmd(split_args_with = ' ', admin_only = True)
+    def config(self, mess, args):
+        """ configure or get the configuration / configuration template for a specific plugin
+        ie.
+        !config ExampleBot
+        could return a template if it is not configured:
+        {'LOGIN': 'example@example.com', 'PASSWORD': 'password', 'DIRECTORY': '/toto'}
+        Copy paste, adapt so can configure the plugin :
+        !config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
+        It will then reload the plugin with this config.
+        You can at any moment retreive the current values:
+        !config ExampleBot
+        should return :
+        {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
+        """
+        plugin_name = args[0]
+        obj = get_plugin_obj_by_name(plugin_name)
+        if obj is None:
+            return 'Unknown plugin or the plugin could not load %s' % plugin_name
+        template_obj = obj.get_configuration_template()
+        if template_obj is None:
+            return 'This plugin is not configurable.'
+
+        if len(args) == 1:
+            current_config = self.get_plugin_configuration(plugin_name)
+            answer = 'Copy paste and adapt the following:\n!config %s ' % plugin_name
+            if current_config:
+                return answer + str(current_config)
+            return answer + str(template_obj)
+
+        try:
+            real_config_obj = literal_eval(' '.join(args[1:]))
+        except Exception as e:
+            logging.exception('Invalid expression for the configuration of the plugin')
+            return 'Syntax error in the given configuration'
+        if type(real_config_obj) != type(template_obj):
+            return 'It looks fishy, your config type is not the same as the template !'
+
+        self.set_plugin_configuration(plugin_name, real_config_obj)
+        self.deactivate_plugin(plugin_name)
+        self.activate_plugin(plugin_name)
+        return 'Plugin configuration done.'
 
     @botcmd
     def log_tail(self, mess, args):

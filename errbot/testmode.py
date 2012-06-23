@@ -41,9 +41,11 @@ def patch_jabberbot():
 
     conn = ConnectionMock()
 
-    def fake_serve_forever(self):
+    def fake_serve_forever(self, connect_callback=None, disconnect_callback=None):
         self.jid = JIDMock('blah') # whatever
         self.connect() # be sure we are "connected" before the first command
+        if connect_callback:
+            connect_callback()
         try:
             while True:
                 entry = raw_input("Talk to  me >>").decode(ENCODING_INPUT)
@@ -53,7 +55,9 @@ def patch_jabberbot():
         except KeyboardInterrupt as ki:
             pass
         finally:
-            print "\nExiting..."
+            if disconnect_callback:
+                disconnect_callback()
+            self.shutdown()
 
     def fake_connect(self):
         if not self.conn:

@@ -64,7 +64,7 @@ class ErrBot(JabberBot):
 
     def set_plugin_configuration(self, name, obj):
         configs = self.internal_shelf['configs']
-        configs[name] = str(obj)
+        configs[name] = obj
         self.internal_shelf['configs'] = configs
 
     # this will load the plugins the admin has setup at runtime

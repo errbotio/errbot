@@ -15,11 +15,13 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import logging
-from os import path, access, makedirs, sep, getcwd
-from posix import W_OK
+from os import path, access, makedirs, sep, getcwd, W_OK
+from platform import system
+ON_WINDOWS = system() == 'Windows'
 import sys
 import argparse
-import daemon
+if not ON_WINDOWS:
+    import daemon
 from pwd import getpwnam
 from grp import getgrnam
 
@@ -88,11 +90,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     parser.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
-    option_group = parser.add_argument_group('arguments to run it as a Daemon')
-    option_group.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
-    option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
-    option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
-    option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
+    if not ON_WINDOWS:
+        option_group = parser.add_argument_group('arguments to run it as a Daemon')
+        option_group.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
+        option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
+        option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
+        option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
 
     args = vars(parser.parse_args()) # create a dictionary of args
     config_path = args['config']
@@ -100,7 +103,7 @@ if __name__ == "__main__":
     sys.path.append(config_path) # appends the current directory in order to find config.py
     check_config(config_path) # check if everything is ok before attempting to start
 
-    if args['daemon']:
+    if args['daemon'] and not ON_WINDOWS:
         if args['test']:
             raise Exception('You cannot run in test and daemon mode at the same time')
 

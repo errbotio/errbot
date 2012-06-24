@@ -11,6 +11,7 @@ Features:
 
 - Added a version check: plugins can define min_err_version and max_err_version to notify their compatibility
 - Added an online configuration of the plugins. No need to make your plugin users hack the config.py ! just use the command !config
+- Added a minimum Windows support.
 
 Version 1.2.2 (2012-06-21)
 --------------------------

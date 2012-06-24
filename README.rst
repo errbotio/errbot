@@ -2,15 +2,19 @@ Err - the pluggable jabber bot
 ==============================
 
 Err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable.
+It allows you to start scripts interactively from your chatrooms for any reason: random humour, starting a build, monitoring commits, triggering alerts ...
+
+It is open source under the GPL3 license.
+
 It is written in python and it is based on jabberbot_ and yapsy_ with some minor modifications for the first one.
 
+Community behind the project
+----------------------------
 Err has a google_ plus_ page_, feel free to mention it with +err if you need support, have any questions, share some of your creations etc ...
+If you have any bug to report or feature suggestion, please use log it from the github_ page.
 
-Brief History
--------------
-
-At Mondial Telecom (http://www.mondialtelecom.eu), we needed a chat bot over XMPP so it can reach the non techie audience of the company.
-We started to write so much features that we decided to make a more modular bot framework.
+We strongly encourage you to share your creations, as you will see, a git url is all that you need to share so other people can try out your plugin from err.
+If your feature could be interesting as a part of an existing plugin, feel free to fork it on github_ too.
 
 Features
 --------
@@ -31,12 +35,19 @@ Features
 .. _google: https://plus.google.com/101905029512356212669/
 .. _plus: https://plus.google.com/101905029512356212669/
 .. _page: https://plus.google.com/101905029512356212669/
+.. _github: http://github.com/gbin/err/
 
 Prerequisites
 -------------
+It runs under Python 2.7+ under Linux / Windows (since 1.3.0) and Mac.
+
 Create a user for the bot on your private XMPP server or on a public server like jabber.org.
 Optionally you can create a MUC (also called conference room or chatroom) in which you can interact with the bot. 
 
+Then follow either :
+- Installation from the sources 
+- Installation from Pypi          [Note: This one doesn't work yet under Windows]
+- Installation from Gentoo Linux
 
 Installation from the sources
 -----------------------------
@@ -93,7 +104,9 @@ Then you can start and try your bot
 
 Installation from gentoo
 ------------------------
-The standard way:
+It has been merged to the main tree.
+
+So the standard way:
 ::
     emerge net-im/err
 

@@ -113,7 +113,7 @@ if __name__ == "__main__":
             from config import BOT_DATA_DIR
             pid = BOT_DATA_DIR + sep + 'err.pid'
 
-        from errbot.utils import PidFile
+        from errbot.pid import PidFile
         pidfile = PidFile(pid)
 
         uid = getpwnam(args['user']).pw_uid if args['user'] else None

@@ -45,6 +45,7 @@ Create a user for the bot on your private XMPP server or on a public server like
 Optionally you can create a MUC (also called conference room or chatroom) in which you can interact with the bot. 
 
 Then follow either :
+
 - Installation from the sources 
 - Installation from Pypi          [Note: This one doesn't work yet under Windows]
 - Installation from Gentoo Linux

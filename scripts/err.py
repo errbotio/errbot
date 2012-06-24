@@ -103,7 +103,7 @@ if __name__ == "__main__":
     sys.path.append(config_path) # appends the current directory in order to find config.py
     check_config(config_path) # check if everything is ok before attempting to start
 
-    if args['daemon'] and not ON_WINDOWS:
+    if (not ON_WINDOWS) and args['daemon']:
         if args['test']:
             raise Exception('You cannot run in test and daemon mode at the same time')
 

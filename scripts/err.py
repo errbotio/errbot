@@ -22,8 +22,8 @@ import sys
 import argparse
 if not ON_WINDOWS:
     import daemon
-from pwd import getpwnam
-from grp import getgrnam
+    from pwd import getpwnam
+    from grp import getgrnam
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')

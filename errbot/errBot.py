@@ -129,6 +129,37 @@ class ErrBot(JabberBot):
         return 'I up for %s %s (since %s)' % (args, format_timedelta(datetime.now() - self.startup_time), datetime.strftime(self.startup_time, '%A, %b %d at %H:%M'))
 
     @botcmd(admin_only = True)
+    def export_configs(self, mess, args):
+        """ Returns all the configs in form of a string you can backup
+        """
+        return str(self.internal_shelf.get('configs', {}))
+
+    @botcmd(admin_only = True)
+    def import_configs(self, mess, args):
+        """ Restore the configs from an export from !export configs
+        It will merge with preexisting configurations.
+        """
+        orig = self.internal_shelf.get('configs', {})
+        added = literal_eval(args)
+        if type(added) is not dict:
+            raise Exception('Weird, it should be a dictionary')
+        self.internal_shelf['configs']=dict(orig.items() + added.items())
+        return "Import is done correctly, there are %i config entries now." % len(self.internal_shelf['configs'])
+
+    @botcmd(admin_only = True)
+    def zap_configs(self, mess, args):
+        """ WARNING : Deletes all the configuration of all the plugins
+        """
+        self.internal_shelf['configs']={}
+        return "Done"
+
+    @botcmd(admin_only = True)
+    def export_repos(self, mess, args):
+        """ Returns all the repos in form of a string you can backup
+        """
+        return str(self.get_installed_plugin_repos())
+
+    @botcmd(admin_only = True)
     def restart(self, mess, args):
         """ restart the bot """
         self.send(mess.getFrom(), "Deactivating all the plugins...")

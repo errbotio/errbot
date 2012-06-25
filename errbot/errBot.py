@@ -29,7 +29,7 @@ from config import BOT_DATA_DIR, BOT_LOG_FILE
 
 from errbot.jabberbot import JabberBot, botcmd
 from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name
-from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta
+from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
@@ -210,6 +210,10 @@ class ErrBot(JabberBot):
             return "You should have an urls/git repo argument"
         if args in KNOWN_PUBLIC_REPOS:
             args = KNOWN_PUBLIC_REPOS[args][0] # replace it by the url
+        git_path = which('git')
+
+        if not git_path:
+            return 'git command not found: You need to have git installed on your system to by able to install git based plugins.'
 
         if args.endswith('tar.gz'):
             tar = TarFile(fileobj=urlopen(args))
@@ -217,7 +221,7 @@ class ErrBot(JabberBot):
             human_name = args.split('/')[-1][:-7]
         else:
             human_name = human_name_for_git_url(args)
-            p = subprocess.Popen(['git', 'clone', args, human_name], cwd = PLUGIN_DIR, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            p = subprocess.Popen([git_path, 'clone', args, human_name], cwd = PLUGIN_DIR, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
             feedback = p.stdout.read()
             error_feedback = p.stderr.read()
             if p.wait():
@@ -307,6 +311,10 @@ class ErrBot(JabberBot):
         or : !update repo_name repo_name ...
         to update selectively some repos
         """
+        git_path = which('git')
+        if not git_path:
+            return 'git command not found: You need to have git installed on your system to by able to update git based plugins.'
+
         directories = set()
         repos = self.internal_shelf.get('repos', {})
         core_to_update = 'all' in args or 'core' in args
@@ -320,7 +328,7 @@ class ErrBot(JabberBot):
 
         for d in directories:
             self.send(mess.getFrom(), "I am updating %s ..." % d , message_type=mess.getType())
-            p = subprocess.Popen(['git', 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             feedback = p.stdout.read() + '\n' + '-'*50 + '\n'
             err = p.stderr.read().strip()
             if err:

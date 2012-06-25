@@ -79,7 +79,7 @@ def main():
     # make the plugins subdir to store the plugin shelves
     d = BOT_DATA_DIR + sep + PLUGINS_SUBDIR
     if not path.exists(d):
-        makedirs(d)
+        makedirs(d, mode=0755)
 
     holder.bot.update_dynamic_plugins()
     logging.debug('serve from %s' % holder.bot)

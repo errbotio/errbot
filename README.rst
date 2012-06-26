@@ -10,8 +10,8 @@ It is written in python and it is based on jabberbot_ and yapsy_ with some minor
 
 Community behind the project
 ----------------------------
-Err has a google_ plus_ page_, feel free to mention it with +err if you need support, have any questions, share some of your creations etc ...
-If you have any bug to report or feature suggestion, please use log it from the github_ page.
+Err has a `google plus page`_, feel free to mention it with +err if you need support, have any questions, share some of your creations etc ...
+If you have any bug to report or feature suggestion, please log it from its github_ page.
 
 We strongly encourage you to share your creations, as you will see, a git url is all that you need to share so other people can try out your plugin from err.
 If your feature could be interesting as a part of an existing plugin, feel free to fork it on github_ too.
@@ -32,9 +32,7 @@ Features
 .. _openfire: http://www.igniterealtime.org/projects/openfire/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _yapsy: http://yapsy.sourceforge.net/
-.. _google: https://plus.google.com/101905029512356212669/
-.. _plus: https://plus.google.com/101905029512356212669/
-.. _page: https://plus.google.com/101905029512356212669/
+.. _`google plus page`: https://plus.google.com/101905029512356212669/
 .. _github: http://github.com/gbin/err/
 
 Prerequisites
@@ -56,34 +54,34 @@ Installation from the sources
 **Dependencies**
 
 Python 2.7+ but probably not 3.0
-And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better
-::
+And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better::
+
     pip install -r requirements.txt
 
 Create a user for the bot in your XMPP server admin.
 
-From the installation directory copy
-::
+From the installation directory copy::
+
     cp errbot/config-template.py config.py
 
 Read the inline documentation of the file and edit the values so the bot can connect to your XMPP server
 
 **Starting the daemon**
 
-For a one shot try, I would recommend to use
-::
+For a one shot try, I would recommend to use::
+
     ./scripts/err.py
 
-Then you can use the -d (or --daemon) parameter to run it in a detached mode.
-::
+Then you can use the -d (or --daemon) parameter to run it in a detached mode.::
+
     ./script/err.py -d
 
 so you can inspect the logs for an immediate feedback
 
 Note that config.py needs to be at the root of the working directory of the bot by default.
 
-You can override this behaviour with -c specifying the directory where your config.py is, for example
-::
+You can override this behaviour with -c specifying the directory where your config.py is, for example::
+
     ./script/err.py -c /etc/err
 
 More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki/admin
@@ -91,26 +89,24 @@ More details on the bot admin features can be found on the wiki : https://github
 Installation from pypi
 ----------------------
 
-Pip will take care of installing err and the basic dependencies for you
-::
-    pip install err
+Pip will take care of installing err and the basic dependencies for you::
+pip install err
 
-Go to or create a working directory for it then copy there and adapt the configuration template
-::
+Go to or create a working directory for it then copy there and adapt the configuration template::
+
     cp /usr/lib64/python2.7/site-packages/errbot/config-template.py config.py
 
-Then you can start and try your bot
-::
+Then you can start and try your bot::
+
     err.py
 
 Installation from gentoo
 ------------------------
 It has been merged to the main tree.
 
-So the standard way:
-::
-    emerge net-im/err
+So the standard way: ::
 
+    emerge net-im/err
 
 Interact with the Bot
 ---------------------
@@ -125,12 +121,12 @@ More documentation is available on the wiki : https://github.com/gbin/err/wiki
 Install/uninstall a public known plugin
 ---------------------------------------
 
-To get a list of public repo you can do
-::
+To get a list of public repo you can do::
+
     !repos
 
-Then pick one that you fancy for example
-::
+Then pick one that you fancy for example::
+
     !install err-pollbot
 
 You should have instantly a new poll service you can use to vote for where to lunch with you collegues :)

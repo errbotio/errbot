@@ -7,8 +7,6 @@ from errbot.utils import version2array
 
 HOME = 'http://www.gootz.net/err/version'
 
-from config import BOT_ADMINS
-
 installed_version = version2array(VERSION)
 
 class VersionChecker(BotPlugin):
@@ -36,8 +34,7 @@ class VersionChecker(BotPlugin):
             current_version = version2array(current_version_txt)
             if installed_version < current_version:
                 logging.debug('A new version %s has been found, notify the admins !' % current_version)
-                for admin in BOT_ADMINS:
-                    self.send(admin, 'Version %s of err is available. http://pypi.python.org/pypi/err/%s. You can disable this check by doing !unload VersionChecker' % (current_version_txt, current_version_txt))
+                self.warn_admins('Version %s of err is available. http://pypi.python.org/pypi/err/%s. You can disable this check by doing !unload VersionChecker' % (current_version_txt, current_version_txt))
         except Exception as e:
             logging.exception('Could not version check')
         finally:

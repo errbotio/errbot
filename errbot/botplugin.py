@@ -113,6 +113,12 @@ class BotPlugin(object, UserDict.DictMixin):
     # Proxyfy some useful tools from the motherbot
     # this is basically the contract between the plugins and the main bot
 
+    def warn_admins(self, warning):
+        """
+            Sends a warning to the administrators of the bot
+        """
+        return holder.bot.warn_admins(warning)
+
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """
             Sends asynchronously a message a room or a user.

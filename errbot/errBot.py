@@ -25,7 +25,7 @@ import shutil
 import subprocess
 from tarfile import TarFile
 from urllib2 import urlopen
-from config import BOT_DATA_DIR, BOT_LOG_FILE
+from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 
 from errbot.jabberbot import JabberBot, botcmd
 from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name
@@ -87,16 +87,21 @@ class ErrBot(JabberBot):
                 except:
                     logging.exception("Probably a type error")
 
+    def warn_admins(self, warning):
+        for admin in BOT_ADMINS:
+            self.send(admin, warning)
+
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
-        activate_all_plugins(self.internal_shelf['configs'])
+        errors = activate_all_plugins(self.internal_shelf['configs'])
+        if errors: self.warn_admins(errors)
 
     def signal_connect_to_all_plugins(self):
         for bot in get_all_active_plugin_objects():
             if hasattr(bot, 'callback_connect'):
                 try:
                     bot.callback_connect()
-                except:
+                except Exception as e:
                     logging.exception("callback_connect failed for %s" % bot)
 
     def connect(self):

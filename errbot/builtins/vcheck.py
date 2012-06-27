@@ -35,7 +35,7 @@ class VersionChecker(BotPlugin):
             if installed_version < current_version:
                 logging.debug('A new version %s has been found, notify the admins !' % current_version)
                 for admin in BOT_ADMINS:
-                    self.send(admin, 'A new version (%s) of err is available is available. http://pypi.python.org/pypi/err/%s. You can disable this check by doing !unload VersionChecker' % (current_version_txt, current_version_txt))
+                    self.send(admin, 'Version %s of err is available. http://pypi.python.org/pypi/err/%s. You can disable this check by doing !unload VersionChecker' % (current_version_txt, current_version_txt))
         except Exception as e:
             logging.exception('Could not version check')
         finally:

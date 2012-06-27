@@ -20,9 +20,11 @@ class VersionChecker(BotPlugin):
 
     def activate(self):
         self.actived=True
+        super(VersionChecker, self).activate()
 
     def deactivate(self):
         self.actived=False
+        super(VersionChecker, self).deactivate()
 
     def version_check(self):
         if not self.actived:

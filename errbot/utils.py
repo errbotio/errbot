@@ -103,3 +103,9 @@ def which(program):
                 return exe_file
 
     return None
+
+def version2array(version):
+    response = [int(el) for el in version.split('.')]
+    if len(response) != 3:
+        raise Exception('version %s in not in format "x.y.z" for example "1.2.2"' % version)
+    return response

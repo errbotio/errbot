@@ -2,6 +2,7 @@ from itertools import chain
 import logging
 import sys, os
 from errbot.botplugin import BotPlugin
+from errbot.utils import version2array
 from errbot.version import VERSION
 from config import BOT_EXTRA_PLUGIN_DIR
 
@@ -25,11 +26,6 @@ def init_plugin_manager():
 
 init_plugin_manager()
 
-def version2array(version):
-    response = [int(el) for el in version.split('.')]
-    if len(response) != 3:
-        raise Exception('version %s in not in format "x.y.z" for example "1.2.2"' % version)
-    return response
 
 def get_plugin_obj_by_name(name):
     pta_item = simplePluginManager.getPluginByName(name, 'bots')

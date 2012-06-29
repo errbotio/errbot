@@ -641,10 +641,12 @@ class JabberBot(object):
 
             if f._jabberbot_command_admin_only:
                 if mess.getType() == 'groupchat':
-                       raise Exception('You cannot administer the bot from a chatroom, message the bot directly')
+                    self.send_simple_reply(mess, 'You cannot administer the bot from a chatroom, message the bot directly')
+                    return
                 usr = get_jid_from_message(mess)
                 if usr not in BOT_ADMINS:
-                   raise Exception('You cannot administer the bot from this user %s.' % usr)
+                    self.send_simple_reply(mess, 'You cannot administer the bot from this user %s.' % usr)
+                    return
 
             if f._jabberbot_command_historize:
                 self.cmd_history.append((cmd,  args)) # add it to the history only if it is authorized to be so

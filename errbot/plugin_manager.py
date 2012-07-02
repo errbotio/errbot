@@ -6,7 +6,6 @@ from errbot.utils import version2array
 from errbot.version import VERSION
 from config import BOT_EXTRA_PLUGIN_DIR
 
-__author__ = 'gbin'
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
@@ -59,8 +58,11 @@ def update_plugin_places(list):
         if entry not in sys.path:
             sys.path.append(entry) # so the plugins can relatively import their submodules
 
+    errors = [check_dependencies(path) for path in list]
+    errors = [error for error in errors if error is not None]
     simplePluginManager.setPluginPlaces(chain(BUILTINS, list))
     simplePluginManager.collectPlugins()
+    return errors
 
 
 def activate_all_plugins(configs):
@@ -102,3 +104,24 @@ def deactivate_all_plugins():
 def global_restart():
     python = sys.executable
     os.execl(python, python, *sys.argv)
+
+def check_dependencies(path):
+    try:
+        from pkg_resources import get_distribution
+        req_path = path + os.sep + 'requirements.txt'
+        if not os.path.isfile(req_path):
+            logging.debug('%s has ne requirements.txt file' % path)
+            return None
+        missing_pkg = []
+        with open(req_path) as f:
+            for line in f:
+                stripped= line.strip()
+                try:
+                    get_distribution(stripped)
+                except Exception as e:
+                    missing_pkg.append(stripped)
+        if missing_pkg:
+            return ('You need those dependencies for %s: ' % path) + ','.join(missing_pkg)
+        return None
+    except Exception as e:
+        return 'You need to have setuptools installed for the dependency check of the plugins'

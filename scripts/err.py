@@ -81,7 +81,9 @@ def main():
     if not path.exists(d):
         makedirs(d, mode=0755)
 
-    holder.bot.update_dynamic_plugins()
+    errors = holder.bot.update_dynamic_plugins()
+    if errors:
+        logging.error('Some plugins failed to load:\n' + '\n'.join(errors))
     logging.debug('serve from %s' % holder.bot)
     holder.bot.serve_forever()
 

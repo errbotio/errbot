@@ -69,7 +69,7 @@ class ErrBot(JabberBot):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        return update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
@@ -232,8 +232,11 @@ class ErrBot(JabberBot):
             if p.wait():
                return "Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback)
         self.add_plugin_repo(human_name, args)
-        self.send(mess.getFrom(), "A new plugin repository named %s has been installed correctly from %s. Refreshing the plugins commands..." % (human_name, args), message_type=mess.getType())
-        self.update_dynamic_plugins()
+        errors = self.update_dynamic_plugins()
+        if errors:
+            self.send(mess.getFrom(), 'Some plugins are generating errors:\n' + '\n'.join(errors) , message_type=mess.getType())
+        else:
+            self.send(mess.getFrom(), "A new plugin repository named %s has been installed correctly from %s. Refreshing the plugins commands..." % (human_name, args), message_type=mess.getType())
         self.activate_non_started_plugins()
         return "Plugin reload done."
 

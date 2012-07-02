@@ -1,6 +1,17 @@
 Release history
 ===============
 
+Version 1.3.1 (2012-07-02)
+--------------------------
+Bugs:
+- nicer warning message in case of public admin command
+
+Features:
+- added a warn_admins api for the plugins to warn the bot admins in case of serious problem
+- added err-tv in the official repos list
+- added an automatic version check so admins are warned if a new err is out
+- now if a repo has a standard requirements.txt it will be checked upon to avoid admins having to dig in the logs (warning: it added setuptools as a new dependency for err itself)
+
 Version 1.3.0 (2012-06-26)
 --------------------------
 Bugs:

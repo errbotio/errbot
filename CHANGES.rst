@@ -4,9 +4,11 @@ Release history
 Version 1.3.1 (2012-07-02)
 --------------------------
 Bugs:
+
 - nicer warning message in case of public admin command
 
 Features:
+
 - added a warn_admins api for the plugins to warn the bot admins in case of serious problem
 - added err-tv in the official repos list
 - added an automatic version check so admins are warned if a new err is out

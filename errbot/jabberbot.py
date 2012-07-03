@@ -559,16 +559,19 @@ class JabberBot(object):
 
         if type not in ("groupchat", "chat"):
             self.log.debug("unhandled message type %s" % mess)
-
             return
+
         if 'urn:xmpp:delay' in props:
             self.log.debug("Message from history, ignore it")
             return
-            # Ignore messages from before we joined
+
+        # Ignore messages from before we joined
         if xmpp.NS_DELAY in props: return
 
         # Ignore messages from myself
-        if self.jid.bareMatch(jid): return
+        if self.jid.bareMatch(get_jid_from_message(mess)):
+            logging.debug('Ignore a message from myself')
+            return
 
         self.log.debug("*** props = %s" % props)
         self.log.debug("*** jid = %s" % jid)

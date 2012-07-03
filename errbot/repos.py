@@ -11,6 +11,7 @@ KNOWN_PUBLIC_REPOS = {
 'err-tv' : ('git://github.com/gbin/err-tv.git','a plugin that gives you all you need to know about your favorite tv show, next airdate, status etc ...'),
 'err-weatherbot' : ('git://github.com/atalyad/err-weatherbot.git','query the local weather'),
 'err-coderwall' : ('git://github.com/gbin/err-coderwall.git','query users on coderwall'),
+'err-nettools' : ('git://github.com/gbin/err-nettools.git','various network query utilities'),
 'err-time' : ('git://github.com/gbin/err-time.git','gives the current time at a given place'),
 'err-elizabot' : ('git://github.com/gbin/err-elizabot.git','a classic electronic shrink'),
 'err-calcbot' : ('git://github.com/gbin/err-calcbot.git','a smart calculator, unit converter and math solver'),

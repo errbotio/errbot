@@ -23,6 +23,7 @@ import os
 import shelve
 import shutil
 import subprocess
+import difflib
 from tarfile import TarFile
 from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
@@ -428,3 +429,24 @@ class ErrBot(JabberBot):
             c = self.cmd_history[i]
             answer.append('%2i:!%s %s' %(l-i,c[0],c[1]))
         return '\n'.join(answer)
+
+    def unknown_command(self, mess, cmd, args):
+        """ Override the default unknown command behavior
+        """
+        full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
+        if full_cmd:
+            part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
+        else:
+            part1 = 'Command "%s" not found.' % cmd
+        ununderscore_keys = [m.replace('_',' ') for m in self.commands.keys()]
+        matches = difflib.get_close_matches(cmd, ununderscore_keys)
+        if full_cmd:
+            matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
+        matches = set(matches)
+        if matches:
+            return part1 + '\n\nDid you mean "!' + '" or "!'.join(matches) + '" ?'
+        else:
+            return part1
+
+
+

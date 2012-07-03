@@ -601,6 +601,7 @@ class JabberBot(object):
 
         if not cmd:
             command = text_split[0].lower()
+            args = ' '.join(text_split[1:])
             if self.commands.has_key(command):
                 cmd = command
                 if len(text_split) > 1:
@@ -663,13 +664,9 @@ class JabberBot(object):
             # In private chat, it's okay for the bot to always respond.
             # In group chat, the bot should silently ignore commands it
             # doesn't understand or aren't handled by unknown_command().
-            if type == 'groupchat':
-                default_reply = None
-            else:
-                default_reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
             reply = self.unknown_command(mess, command, args)
             if reply is None:
-                reply = default_reply
+                reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
             if reply:
                 self.send_simple_reply(mess, reply)
 

@@ -3,6 +3,8 @@ import inspect
 import logging
 import os
 import shelve
+from threading import Timer
+import threading
 from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR
 from errbot import holder
@@ -12,7 +14,8 @@ def unicode_filter(key):
         return key.encode('utf-8')
     return key
 
-class BotPlugin(object, UserDict.DictMixin):
+
+class BotPluginBase(object, UserDict.DictMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot
@@ -36,6 +39,65 @@ class BotPlugin(object, UserDict.DictMixin):
                 keys.append(key.decode('utf-8'))
         return keys
 
+    def activate(self):
+        """
+            Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
+        """
+        classname = self.__class__.__name__
+        logging.debug('Init shelf for %s' % classname)
+        filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
+        logging.debug('Loading %s' % filename)
+
+        self.shelf = shelve.DbfilenameShelf(filename)
+        for name, value in inspect.getmembers(self, inspect.ismethod):
+            if getattr(value, '_jabberbot_command', False):
+                name = getattr(value, '_jabberbot_command_name')
+                logging.debug('Adding command to %s : %s -> %s' % (holder.bot, name, value))
+                holder.bot.commands[name] = value
+        self.is_activated = True
+
+    current_pollers = []
+
+    def deactivate(self):
+        """
+            Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
+        """
+        if self.current_pollers:
+            logging.warning('You still have active pollers at deactivation stage, I cleaned them up for you.')
+            self.current_pollers = []
+
+        logging.debug('Closing shelf %s' % self.shelf)
+        self.shelf.close()
+        for name, value in inspect.getmembers(self, inspect.ismethod):
+            if getattr(value, '_jabberbot_command', False):
+                name = getattr(value, '_jabberbot_command_name')
+                del(holder.bot.commands[name])
+        self.is_activated = False
+
+    def start_poller(self, interval, method, args, kwargs):
+        logging.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (method.__name__, interval, str(args), str(kwargs)))
+        try:
+            self.current_pollers.append((method, args, kwargs))
+            self.program_next_poll(interval, method, args, kwargs)
+        except Exception, e:
+            logging.exception('failed')
+
+    def stop_poller(self, method, args, kwargs):
+        logging.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
+        self.current_pollers.remove((method, args, kwargs))
+
+    def program_next_poll(self, interval, method, args, kwargs):
+        if (method, args, kwargs) in self.current_pollers:
+            self.t = Timer(interval = interval, function = self.poller, kwargs={'interval': interval, 'method' : method, 'args' : args, 'kwargs': kwargs })
+            self.t.setDaemon(True) # so it is not locking on exit
+            self.t.start()
+
+    def poller(self, interval, method, args, kwargs):
+        method(*args, **kwargs)
+        self.program_next_poll(interval, method, args, kwargs)
+
+
+class BotPlugin(BotPluginBase):
     @property
     def min_err_version(self):
         """ If your plugin has a minimum version of err it needs to be on in order to run, please override accordingly this method.
@@ -71,31 +133,14 @@ class BotPlugin(object, UserDict.DictMixin):
         """
             Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
         """
-        classname = self.__class__.__name__
-        logging.debug('Init shelf for %s' % classname)
-        filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
-        logging.debug('Loading %s' % filename)
-
-        self.shelf = shelve.DbfilenameShelf(filename)
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-                logging.debug('Adding command to %s : %s -> %s' % (holder.bot, name, value))
-                holder.bot.commands[name] = value
-        self.is_activated = True
+        super(BotPlugin, self).activate()
 
 
     def deactivate(self):
         """
             Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
         """
-        logging.debug('Closing shelf %s' % self.shelf)
-        self.shelf.close()
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-                del(holder.bot.commands[name])
-        self.is_activated = False
+        super(BotPlugin, self).deactivate()
 
     def callback_connect(self):
         """
@@ -125,7 +170,7 @@ class BotPlugin(object, UserDict.DictMixin):
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
         # small hack to send back to the correct jid in case of chatroom
-        if message_type=='groupchat':
+        if message_type == 'groupchat':
             user = str(user).split('/')[0] # strip the precise user in the chatroom
         return holder.bot.send(user, text, in_reply_to, message_type)
 
@@ -153,3 +198,24 @@ class BotPlugin(object, UserDict.DictMixin):
         """
         return holder.bot.get_installed_plugin_repos()
 
+    def start_poller(self, interval, method, args=None, kwargs=None):
+        """
+            Start to poll a method at specific interval in seconds.
+            Note : it will call the method with the initial interval delay for the first time
+            Also, you can program
+            for example : self.program_poller(self.fetch_stuff, 30)
+            where you have def fetch_stuff(self) in your plugin
+        """
+        if not kwargs: kwargs = {}
+        if not args: args = []
+        super(BotPlugin, self).start_poller(interval, method, args, kwargs)
+
+    def stop_poller(self, method=None, args=None, kwargs=None):
+        """
+            stop poller(s).
+            if the method equals None -> it stops all the pollers
+            you need to regive the same parameters as the original start_poller to match a specific poller to stop
+        """
+        if not kwargs: kwargs = {}
+        if not args: args = []
+        super(BotPlugin, self).stop_poller(method, args, kwargs)

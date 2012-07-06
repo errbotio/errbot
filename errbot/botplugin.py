@@ -87,14 +87,15 @@ class BotPluginBase(object, UserDict.DictMixin):
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self, interval, method, args, kwargs):
-        if (method, args, kwargs) in self.current_pollers:
-            self.t = Timer(interval = interval, function = self.poller, kwargs={'interval': interval, 'method' : method, 'args' : args, 'kwargs': kwargs })
-            self.t.setDaemon(True) # so it is not locking on exit
-            self.t.start()
+        self.t = Timer(interval = interval, function = self.poller, kwargs={'interval': interval, 'method' : method, 'args' : args, 'kwargs': kwargs })
+        self.t.setDaemon(True) # so it is not locking on exit
+        self.t.start()
 
     def poller(self, interval, method, args, kwargs):
-        method(*args, **kwargs)
-        self.program_next_poll(interval, method, args, kwargs)
+        if (method, args, kwargs) in self.current_pollers:
+            method(*args, **kwargs)
+            self.program_next_poll(interval, method, args, kwargs)
+
 
 
 class BotPlugin(BotPluginBase):

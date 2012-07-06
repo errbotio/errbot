@@ -4,7 +4,6 @@ import logging
 import os
 import shelve
 from threading import Timer
-import threading
 from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR
 from errbot import holder
@@ -74,7 +73,10 @@ class BotPluginBase(object, UserDict.DictMixin):
                 del(holder.bot.commands[name])
         self.is_activated = False
 
-    def start_poller(self, interval, method, args, kwargs):
+    def start_poller(self, interval, method, args=None, kwargs=None):
+        if not kwargs: kwargs = {}
+        if not args: args = []
+
         logging.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (method.__name__, interval, str(args), str(kwargs)))
         try:
             self.current_pollers.append((method, args, kwargs))
@@ -82,12 +84,14 @@ class BotPluginBase(object, UserDict.DictMixin):
         except Exception, e:
             logging.exception('failed')
 
-    def stop_poller(self, method, args, kwargs):
+    def stop_poller(self, method, args=None, kwargs=None):
+        if not kwargs: kwargs = {}
+        if not args: args = []
         logging.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self, interval, method, args, kwargs):
-        self.t = Timer(interval = interval, function = self.poller, kwargs={'interval': interval, 'method' : method, 'args' : args, 'kwargs': kwargs })
+        self.t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
         self.t.setDaemon(True) # so it is not locking on exit
         self.t.start()
 
@@ -95,7 +99,6 @@ class BotPluginBase(object, UserDict.DictMixin):
         if (method, args, kwargs) in self.current_pollers:
             method(*args, **kwargs)
             self.program_next_poll(interval, method, args, kwargs)
-
 
 
 class BotPlugin(BotPluginBase):
@@ -204,11 +207,9 @@ class BotPlugin(BotPluginBase):
             Start to poll a method at specific interval in seconds.
             Note : it will call the method with the initial interval delay for the first time
             Also, you can program
-            for example : self.program_poller(self.fetch_stuff, 30)
+            for example : self.program_poller(self,30, fetch_stuff)
             where you have def fetch_stuff(self) in your plugin
         """
-        if not kwargs: kwargs = {}
-        if not args: args = []
         super(BotPlugin, self).start_poller(interval, method, args, kwargs)
 
     def stop_poller(self, method=None, args=None, kwargs=None):
@@ -217,6 +218,4 @@ class BotPlugin(BotPluginBase):
             if the method equals None -> it stops all the pollers
             you need to regive the same parameters as the original start_poller to match a specific poller to stop
         """
-        if not kwargs: kwargs = {}
-        if not args: args = []
         super(BotPlugin, self).stop_poller(method, args, kwargs)

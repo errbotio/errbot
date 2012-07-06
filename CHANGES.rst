@@ -1,6 +1,19 @@
 Release history
 ===============
 
+Version 1.4.0 ()
+--------------------------
+Bugs:
+
+- improved the detection of own messages
+
+Features:
+
+- added a close match find if the command is not found
+- added err-coderwall to repos
+- added err-nettools to repos
+- added a polling facility for the plugins
+
 Version 1.3.1 (2012-07-02)
 --------------------------
 Bugs:

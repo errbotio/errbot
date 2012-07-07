@@ -14,6 +14,10 @@ BUILTINS = [os.path.dirname(os.path.abspath(__file__)) + os.sep + 'builtins', ]
 class IncompatiblePluginException(Exception):
     pass
 
+class PluginConfigurationException(Exception):
+    pass
+
+
 # adds the extra plugin dir from the setup for developpers convenience
 if BOT_EXTRA_PLUGIN_DIR:
     BUILTINS.append(BOT_EXTRA_PLUGIN_DIR)
@@ -48,7 +52,12 @@ def activate_plugin_with_version_check(name, config):
     if max_version and version2array(max_version) < current_version:
         raise IncompatiblePluginException('The plugin %s asks for err with a maximal version of %s and err is %s' % (name, min_version, VERSION))
 
-    obj.configure(config) # even if it is None we pass it on
+    try:
+        obj.configure(config) # even if it is None we pass it on
+    except Exception, e:
+        logging.exception('Something is wrong with the configuration of the plugin %s' % name)
+        obj.config = None
+        raise PluginConfigurationException(str(e))
 
     return simplePluginManager.activatePluginByName(name, "bots")
 

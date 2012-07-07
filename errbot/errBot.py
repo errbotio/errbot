@@ -29,7 +29,7 @@ from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 
 from errbot.jabberbot import JabberBot, botcmd
-from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name
+from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
@@ -402,7 +402,12 @@ class ErrBot(JabberBot):
 
         self.set_plugin_configuration(plugin_name, real_config_obj)
         self.deactivate_plugin(plugin_name)
-        self.activate_plugin(plugin_name)
+        try:
+            self.activate_plugin(plugin_name)
+        except PluginConfigurationException, ce:
+            logging.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
+            self.set_plugin_configuration(plugin_name, None)
+            return 'Incorrect plugin configuration: %s' % ce
         return 'Plugin configuration done.'
 
     @botcmd

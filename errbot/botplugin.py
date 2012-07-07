@@ -97,7 +97,10 @@ class BotPluginBase(object, UserDict.DictMixin):
 
     def poller(self, interval, method, args, kwargs):
         if (method, args, kwargs) in self.current_pollers:
-            method(*args, **kwargs)
+            try:
+                method(*args, **kwargs)
+            except Exception, e:
+                logging.exception('A poller crashed')
             self.program_next_poll(interval, method, args, kwargs)
 
 

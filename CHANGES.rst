@@ -1,18 +1,27 @@
 Release history
 ===============
 
-Version 1.4.0 ()
+Version 1.4.0 (2012-07-09)
 --------------------------
 Bugs:
 
 - improved the detection of own messages
+- automatic rejection if the configuration failed so it the plugin restart with a virgin config
 
 Features:
 
-- added a close match find if the command is not found
-- added err-coderwall to repos
-- added err-nettools to repos
+- send a close match tip if the command is not found
 - added a polling facility for the plugins
+- added loads of plugins to the official repos: 
+  err-coderwall     [thx to glenbot https://github.com/glenbot]
+  err-nettools
+  err-topgunbot     [thx to krismolendyke https://github.com/krismolendyke]
+  err-diehardbot    [thx to krismolendyke https://github.com/krismolendyke]
+  err-devops_borat  [thx to Vincent Alsteen https://github.com/valsteen]
+  err-social
+  err-rssfeed       [thx to Tali Petrover https://github.com/atalyad]
+  err-translate     [thx to Ben Van Dael https://github.com/benvd]
+  err-tourney
 
 Version 1.3.1 (2012-07-02)
 --------------------------

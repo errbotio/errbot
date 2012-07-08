@@ -119,7 +119,7 @@ def check_dependencies(path):
         from pkg_resources import get_distribution
         req_path = path + os.sep + 'requirements.txt'
         if not os.path.isfile(req_path):
-            logging.debug('%s has ne requirements.txt file' % path)
+            logging.debug('%s has no requirements.txt file' % path)
             return None
         missing_pkg = []
         with open(req_path) as f:

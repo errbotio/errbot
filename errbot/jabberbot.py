@@ -568,11 +568,6 @@ class JabberBot(object):
         # Ignore messages from before we joined
         if xmpp.NS_DELAY in props: return
 
-        # Ignore messages from myself
-        if self.jid.bareMatch(get_jid_from_message(mess)):
-            logging.debug('Ignore a message from myself')
-            return
-
         self.log.debug("*** props = %s" % props)
         self.log.debug("*** jid = %s" % jid)
         self.log.debug("*** username = %s" % username)

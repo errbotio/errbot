@@ -30,7 +30,7 @@ from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 
 from errbot.jabberbot import JabberBot, botcmd
 from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException
-from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which
+from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
@@ -80,6 +80,10 @@ class ErrBot(JabberBot):
             self.internal_shelf['configs'] = {}
 
     def callback_message(self, conn, mess):
+        # Ignore messages from myself
+        if self.jid.bareMatch(get_jid_from_message(mess)):
+            logging.debug('Ignore a message from myself')
+            return
         super(ErrBot, self).callback_message(conn, mess)
         for bot in get_all_active_plugin_objects():
             if hasattr(bot, 'callback_message'):

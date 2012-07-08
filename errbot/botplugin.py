@@ -3,7 +3,7 @@ import inspect
 import logging
 import os
 import shelve
-from threading import Timer
+from threading import Timer, current_thread
 from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR
 from errbot import holder
@@ -56,14 +56,17 @@ class BotPluginBase(object, UserDict.DictMixin):
         self.is_activated = True
 
     current_pollers = []
+    current_timers = []
 
     def deactivate(self):
         """
             Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
         """
         if self.current_pollers:
-            logging.warning('You still have active pollers at deactivation stage, I cleaned them up for you.')
+            logging.debug('You still have active pollers at deactivation stage, I cleaned them up for you.')
             self.current_pollers = []
+            for timer in self.current_timers:
+                timer.cancel()
 
         logging.debug('Closing shelf %s' % self.shelf)
         self.shelf.close()
@@ -91,15 +94,21 @@ class BotPluginBase(object, UserDict.DictMixin):
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self, interval, method, args, kwargs):
-        self.t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
-        self.t.setDaemon(True) # so it is not locking on exit
-        self.t.start()
+        t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
+        self.current_timers.append(t) # save the timer to be able to kill it
+        t.setDaemon(True) # so it is not locking on exit
+        t.start()
 
     def poller(self, interval, method, args, kwargs):
+        previous_timer = current_thread()
+        if previous_timer in self.current_timers:
+            logging.debug('Previous timer found and removed')
+            self.current_timers.remove(previous_timer)
+
         if (method, args, kwargs) in self.current_pollers:
             try:
                 method(*args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 logging.exception('A poller crashed')
             self.program_next_poll(interval, method, args, kwargs)
 

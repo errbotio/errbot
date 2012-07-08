@@ -17,6 +17,11 @@ KNOWN_PUBLIC_REPOS = {
 'err-calcbot' : ('git://github.com/gbin/err-calcbot.git','a smart calculator, unit converter and math solver'),
 'err-pypi' : ('git://github.com/gbin/err-pypi.git','some commands to query pypi'),
 'err-reviewboard': ('git://github.com/glenbot/err-reviewboard.git', 'Err bot that displays the latest reviews from review board'),
-#'err-topgunbot' : ('git://github.com/krismolendyke/err-topgunbot.git', 'An Err chatbot serving up supersonic TOP GUN lines.'),
-#'err-diehardbot' : ('git://github.com/krismolendyke/err-diehardbot.git', 'An Err chatbot serving up Die Hard lines during the time of miracles..'),
+'err-topgunbot' : ('git://github.com/krismolendyke/err-topgunbot.git', 'An Err chatbot serving up supersonic TOP GUN lines.'),
+'err-diehardbot' : ('git://github.com/krismolendyke/err-diehardbot.git', 'An Err chatbot serving up Die Hard lines during the time of miracles..'),
+'err-devops_borat' :('git://github.com/gbin/err-devops_borat.git', 'random funny quotes about software development'),
+'err-social' : ('git://github.com/gbin/err-social.git','For the moment a Google plus bridge'),
+'err-rssfeed' : ('git://github.com/atalyad/err-rssfeed.git','register to rss feeds and get updates in the chat.'),
+'err-translate' : ('git://github.com/benvd/err-translate.git','Google Translate plugin for the err bot'),
+'err-tourney' : ('git://github.com/gbin/err-tourney.git','a ranking and tournament system for err'),
 }

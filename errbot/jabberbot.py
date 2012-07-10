@@ -72,13 +72,14 @@ def botcmd(*args, **kwargs):
     """
 
     def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False, historize = True):
-        setattr(func, '_jabberbot_command', True)
-        setattr(func, '_jabberbot_command_hidden', hidden)
-        setattr(func, '_jabberbot_command_name', name or func.__name__)
-        setattr(func, '_jabberbot_command_split_args_with', split_args_with)
-        setattr(func, '_jabberbot_command_admin_only', admin_only)
-        setattr(func, '_jabberbot_command_historize', historize)
-        setattr(func, '_jabberbot_command_thread', thread) # Experimental!
+        if not hasattr(func, '_jabberbot_command'): # don't override generated functions
+            setattr(func, '_jabberbot_command', True)
+            setattr(func, '_jabberbot_command_hidden', hidden)
+            setattr(func, '_jabberbot_command_name', name or func.__name__)
+            setattr(func, '_jabberbot_command_split_args_with', split_args_with)
+            setattr(func, '_jabberbot_command_admin_only', admin_only)
+            setattr(func, '_jabberbot_command_historize', historize)
+            setattr(func, '_jabberbot_command_thread', thread) # Experimental!
         return func
 
     if len(args):

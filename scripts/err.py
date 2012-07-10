@@ -91,8 +91,9 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
-    parser.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
-    parser.add_argument('-G', '--graphic', action='store_true', help='Use graphical mode')
+    debug_group = parser.add_mutually_exclusive_group()
+    debug_group.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
+    debug_group.add_argument('-G', '--graphic', action='store_true', help='Use graphical mode')
 
     if not ON_WINDOWS:
         option_group = parser.add_argument_group('arguments to run it as a Daemon')

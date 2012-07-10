@@ -1,6 +1,17 @@
 Release history
 ===============
 
+
+Version 1.4.1 (2012-07-)
+--------------------------
+Bugs:
+
+- corrected a vicious bug when you use metaclasses on plugins with botcmd decorator generated with parameters
+
+Features:
+
+- Added a new check_configuration callback now by default the configuration check is basic and no implementation has to be done on plugin side
+
 Version 1.4.0 (2012-07-09)
 --------------------------
 Bugs:

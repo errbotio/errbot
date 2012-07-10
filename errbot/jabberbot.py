@@ -88,6 +88,10 @@ def botcmd(*args, **kwargs):
         return lambda func: decorate(func, **kwargs)
 
 
+def is_from_history(mess):
+    props = mess.getProperties()
+    return 'urn:xmpp:delay' in props or xmpp.NS_DELAY in props
+
 class JabberBot(object):
     # Show types for presence
     AVAILABLE, AWAY, CHAT = None, 'away', 'chat'
@@ -562,12 +566,9 @@ class JabberBot(object):
             self.log.debug("unhandled message type %s" % mess)
             return
 
-        if 'urn:xmpp:delay' in props:
+        if is_from_history(mess):
             self.log.debug("Message from history, ignore it")
             return
-
-        # Ignore messages from before we joined
-        if xmpp.NS_DELAY in props: return
 
         self.log.debug("*** props = %s" % props)
         self.log.debug("*** jid = %s" % jid)

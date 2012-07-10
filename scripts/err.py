@@ -139,9 +139,12 @@ if __name__ == "__main__":
 
     if args['graphic']:
         # Sets a minimal logging on the console for the critical config errors
-        from errbot.graphicmode import patch_jabberbot
-        
-        patch_jabberbot()
+        try:
+            from errbot.graphicmode import patch_jabberbot
+            patch_jabberbot()
+        except ImportError as ie:
+            logging.error('You need to install the package "pyside" to be able to use the graphical test console\n\n%s' % ie)
+            exit(-31)
 
     main()
     logging.info('Process exiting')

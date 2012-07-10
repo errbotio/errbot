@@ -51,7 +51,13 @@ class BotPluginBase(object, UserDict.DictMixin):
         for name, value in inspect.getmembers(self, inspect.ismethod):
             if getattr(value, '_jabberbot_command', False):
                 name = getattr(value, '_jabberbot_command_name')
-                logging.debug('Adding command to %s : %s -> %s' % (holder.bot, name, value))
+
+                if name in holder.bot.commands:
+                    f = holder.bot.commands[name]
+                    new_name = (classname + '-' + name).lower()
+                    holder.bot.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, f.im_class.__name__, f.__name__, new_name ))
+                    name = new_name
+                logging.debug('Adding command : %s -> %s' % (name, value.__name__))
                 holder.bot.commands[name] = value
         self.is_activated = True
 

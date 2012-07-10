@@ -89,7 +89,7 @@ class ErrBot(JabberBot):
             if hasattr(bot, 'callback_message'):
                 try:
                     bot.callback_message(conn, mess)
-                except:
+                except Exception:
                     logging.exception("Probably a type error")
 
     def warn_admins(self, warning):

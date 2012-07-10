@@ -5,7 +5,7 @@ import os
 import shelve
 from threading import Timer, current_thread
 from config import BOT_DATA_DIR
-from errbot.utils import PLUGINS_SUBDIR
+from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
 from errbot import holder
 
 def unicode_filter(key):
@@ -137,6 +137,18 @@ class BotPlugin(BotPluginBase):
         Note : if this method returns None, the plugin won't be configured
         """
         return None
+
+    def check_configuration(self, configuration):
+        """ By default, this method will do only a BASIC check. You need to override it if you want to do more complex checks.
+        It will be called before the configure callback. Note if the config_template is None, it will never be called
+        It means recusively:
+        1. in case of a dictionary, it will check if all the entries and from the same type are there and not more
+        2. in case of an array or tuple, it will assume array members of the same type of first element of the template (no mix typed is supported)
+
+        In case of validation error it should raise a errbot.utils.ValidationException
+
+        """
+        recurse_check_structure(self.get_configuration_template(), configuration) # default behavior
 
     def configure(self, configuration):
         """ By default, it will just store the current configuation in the self.config field of your plugin

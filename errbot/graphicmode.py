@@ -46,6 +46,7 @@ def patch_jabberbot():
     conn = ConnectionMock()
     
     def send_command(self):
+        self.receive_message(self.input.text())
         self.callback_message(conn, MessageMock(self.input.text()))
         self.input.clear()
   

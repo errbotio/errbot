@@ -66,7 +66,7 @@ def patch_jabberbot():
 
                 imglink = ''
                 for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
-                    if text.endswith(a):
+                    if text.lower().endswith(a):
                         imglink = '<br /><img src="' + url + '" />'
                         break
                 return '<a class="comurl" href="' + url + '" target="_blank" rel="nofollow">' + text + '<img class="imglink" src="/images/linkout.png"></a>' + imglink

@@ -86,20 +86,32 @@ def patch_jabberbot():
         self.jid = JIDMock('blah') # whatever
         self.connect() # be sure we are "connected" before the first command
         
+        # create window and components
         app = QtGui.QApplication(sys.argv)
         self.mainW = QtGui.QWidget()
         vbox = QtGui.QVBoxLayout()
         self.input = QtGui.QLineEdit()
         self.output = QtWebKit.QWebView()
+        
+        # init webpage
         self.buffer = '<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head><body>' %\
           (QtCore.QUrl.fromLocalFile(config.BOT_DATA_DIR).toString())
         self.output.setHtml(self.buffer)
+        
+        # layout
         vbox.addWidget(self.output)
         vbox.addWidget(self.input)
         self.mainW.setLayout(vbox)
+        
+        # setup web view to open liks in external browser
+        self.output.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
+        
+        # connect signals/slots
         self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
+        self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
         self.input.returnPressed.connect(self.send_command)
         self.conn.newAnswer.connect(self.receive_message)
+        
         self.mainW.show()
         app.exec_()
 

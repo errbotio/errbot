@@ -77,7 +77,9 @@ def patch_jabberbot():
     def receive_message(self, text):
         self.buffer += htmlify(text)
         self.output.setHtml(self.buffer)
-        self.output.page().mainFrame().scroll(0, 2**24)
+        
+    def scroll_output_to_bottom(self):
+        self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
         
     def fake_serve_forever(self):
         self.jid = JIDMock('blah') # whatever
@@ -94,6 +96,7 @@ def patch_jabberbot():
         vbox.addWidget(self.output)
         vbox.addWidget(self.input)
         self.mainW.setLayout(vbox)
+        self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
         self.input.returnPressed.connect(self.send_command)
         self.conn.newAnswer.connect(self.receive_message)
         self.mainW.show()
@@ -111,4 +114,5 @@ def patch_jabberbot():
     jabberbot.JabberBot.send_command = send_command
     jabberbot.JabberBot.receive_message = receive_message
     jabberbot.JabberBot.serve_forever = fake_serve_forever
+    jabberbot.JabberBot.scroll_output_to_bottom = scroll_output_to_bottom
     jabberbot.JabberBot.connect = fake_connect

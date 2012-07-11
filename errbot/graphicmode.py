@@ -46,6 +46,7 @@ def patch_jabberbot():
     conn = ConnectionMock()
     
     def send_command(self):
+        self.receive_message(self.input.text())
         self.callback_message(conn, MessageMock(self.input.text()))
         self.input.clear()
   
@@ -77,25 +78,40 @@ def patch_jabberbot():
     def receive_message(self, text):
         self.buffer += htmlify(text)
         self.output.setHtml(self.buffer)
-        self.output.page().mainFrame().scroll(0, 2**24)
+        
+    def scroll_output_to_bottom(self):
+        self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
         
     def fake_serve_forever(self):
         self.jid = JIDMock('blah') # whatever
         self.connect() # be sure we are "connected" before the first command
         
+        # create window and components
         app = QtGui.QApplication(sys.argv)
         self.mainW = QtGui.QWidget()
         vbox = QtGui.QVBoxLayout()
         self.input = QtGui.QLineEdit()
         self.output = QtWebKit.QWebView()
+        
+        # init webpage
         self.buffer = '<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head><body>' %\
           (QtCore.QUrl.fromLocalFile(config.BOT_DATA_DIR).toString())
         self.output.setHtml(self.buffer)
+        
+        # layout
         vbox.addWidget(self.output)
         vbox.addWidget(self.input)
         self.mainW.setLayout(vbox)
+        
+        # setup web view to open liks in external browser
+        self.output.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
+        
+        # connect signals/slots
+        self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
+        self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
         self.input.returnPressed.connect(self.send_command)
         self.conn.newAnswer.connect(self.receive_message)
+        
         self.mainW.show()
         app.exec_()
 
@@ -111,4 +127,5 @@ def patch_jabberbot():
     jabberbot.JabberBot.send_command = send_command
     jabberbot.JabberBot.receive_message = receive_message
     jabberbot.JabberBot.serve_forever = fake_serve_forever
+    jabberbot.JabberBot.scroll_output_to_bottom = scroll_output_to_bottom
     jabberbot.JabberBot.connect = fake_connect

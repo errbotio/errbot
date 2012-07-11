@@ -320,6 +320,36 @@ class ErrBot(JabberBot):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
+    @botcmd
+    def apropos(self, mess, args):
+        """   Returns a help string listing available options.
+
+        Automatically assigned to the "help" command."""
+        if not args:
+            return 'Usage: !apropos search_term'
+
+        description = 'Available commands:\n'
+
+        clazz_commands = {}
+        for (name, command) in self.commands.iteritems():
+            clazz = get_class_that_defined_method(command)
+            commands = clazz_commands.get(clazz, [])
+            commands.append((name, command))
+            clazz_commands[clazz] = commands
+
+        usage = ''
+        for clazz in sorted(clazz_commands):
+            usage += '\n'.join(sorted([
+            '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
+                                '(undocumented)').strip().split('\n', 1)[0])
+            for (name, command) in clazz_commands[clazz] if args.lower() in command.__doc__.lower() and name != 'help' and not command._jabberbot_command_hidden
+            ]))
+        usage += '\n\n'
+
+        top = self.top_of_help_message()
+        bottom = self.bottom_of_help_message()
+        return ''.join(filter(None, [top, description, usage, bottom])).strip()
+
     @botcmd(split_args_with = ' ', admin_only = True)
     def update(self, mess, args):
         """ update the bot and/or plugins

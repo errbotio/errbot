@@ -105,7 +105,7 @@ class JabberBot(object):
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
                          'An unexpected error occurred.'
 
-    PING_FREQUENCY = 0 # Set to the number of seconds, e.g. 60.
+    PING_FREQUENCY = 10 # Set to the number of seconds, e.g. 60.
     PING_TIMEOUT = 2 # Seconds to wait for a response.
 
     MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
@@ -228,6 +228,7 @@ class JabberBot(object):
             else:
                 conn = xmpp.Client(self.jid.getDomain(), debug=[])
 
+            conn.UnregisterDisconnectHandler(conn.DisconnectHandler)
             #connection attempt
             self.log.info('Connect attempt')
             conres = conn.connect()
@@ -754,8 +755,8 @@ class JabberBot(object):
                 self.on_ping_timeout()
 
     def on_ping_timeout(self):
-        logging.info('Terminating due to PING timeout.')
-        self.quit()
+        logging.info('Tearing down current connection.')
+        self.conn = None
 
     def shutdown(self):
         """This function will be called when we're done serving
@@ -767,21 +768,34 @@ class JabberBot(object):
 
     def serve_forever(self, connect_callback=None, disconnect_callback=None):
         """Connects to the server and handles messages."""
-        conn = self.connect()
-        if conn:
-            self.log.info('bot connected. serving forever.')
-        else:
-            self.log.warn('could not connect to server - aborting.')
-            exit(-1) # gbin: just quit this thing !
+        while not self.__finished:
+            conn = self.connect()
+            if conn:
+                self.log.info('bot connected. serving forever.')
+                break
+            else:
+                self.log.warn('could not connect to server - sleeping 10 seconds.')
+                time.sleep(10)
 
         if connect_callback:
             connect_callback()
         self.__lastping = time.time()
 
+        connect = True
         while not self.__finished:
             try:
-                conn.Process(1)
-                self.idle_proc()
+                if connect:
+                    conn.Process(1)
+                    self.idle_proc()
+                if self.conn == None and connect == True:
+                    connect = False
+                if not connect:
+                    conn = self.connect()
+                    if conn:
+                        self.log.info('bot reconnected, serving forever')
+                        connect = True
+                    else:
+                        time.sleep(10)
             except KeyboardInterrupt:
                 self.log.info('bot stopped by user request. '\
                               'shutting down.')

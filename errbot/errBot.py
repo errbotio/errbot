@@ -112,6 +112,9 @@ class ErrBot(JabberBot):
     def connect(self):
         if not self.conn:
             self.conn = JabberBot.connect(self)
+            if not self.conn:
+                deactivate_all_plugins()
+                return None
             self.activate_non_started_plugins()
             logging.info('Notifying connection to all the plugins...')
             self.signal_connect_to_all_plugins()

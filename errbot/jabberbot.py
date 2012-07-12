@@ -284,7 +284,7 @@ class JabberBot(object):
         # TODO use xmpppy function getNode
             username = self.__username.split('@')[0]
         my_room_JID = '/'.join((room, username))
-        pres = xmpp.dispatcher.Presence(to=my_room_JID, frm=self.__username + '/bot')
+        pres = xmpp.dispatcher.Presence(to=my_room_JID) #, frm=self.__username + '/bot')
         pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
         t = pres.setTag('x', namespace=NS_MUC)
         if password is not None:
@@ -509,7 +509,18 @@ class JabberBot(object):
             return
 
         if type_ == 'error':
-            self.log.error(presence.getError())
+            error = presence.getTag('error')
+            text = ''
+            if error:
+                text = error.getTag('text')
+                if text:
+                    data = text.getData()
+                    self.log.error('Presence Error: ' + presence.getError() + ' : ' + data)
+                else:
+                    self.log.error('Presence Error: %s' % presence)
+            else:
+                self.log.error('Presence Error: %s' % presence)
+
 
         self.log.debug('Got presence: %s (type: %s, show: %s, status: %s, '\
                        'subscription: %s)' % (jid, type_, show, status, subscription))

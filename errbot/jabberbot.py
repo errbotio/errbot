@@ -318,7 +318,7 @@ class JabberBot(object):
         self.log.info(mess)
         self.connect().send(mess)
 
-    def quit(self, return_code):
+    def quit(self, return_code = -1):
         """Stop serving messages and exit.
 
         I find it is handy for development to run the

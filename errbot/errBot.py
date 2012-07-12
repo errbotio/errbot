@@ -26,10 +26,11 @@ import subprocess
 import difflib
 from tarfile import TarFile
 from urllib2 import urlopen
+
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 
 from errbot.jabberbot import JabberBot, botcmd, is_from_history
-from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException
+from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
@@ -185,11 +186,15 @@ class ErrBot(JabberBot):
         return "I'm restarting..."
 
     def activate_plugin(self, name):
-        if name in get_all_active_plugin_names():
-            return "Plugin already in active list"
-        if name not in get_all_plugin_names():
-            return "I don't know this %s plugin" % name
-        activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+        try:
+            if name in get_all_active_plugin_names():
+                return "Plugin already in active list"
+            if name not in get_all_plugin_names():
+                return "I don't know this %s plugin" % name
+            activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+        except Exception, e:
+            logging.exception("Error loading %s" % name)
+            return '%s failed to start : %s\n' % (name ,e)
         return "Plugin %s activated" % name
 
     def deactivate_plugin(self, name):
@@ -382,6 +387,9 @@ class ErrBot(JabberBot):
             err = p.stderr.read().strip()
             if err:
                 feedback += err + '\n' + '-'*50 + '\n'
+            dep_err = check_dependencies(d)
+            if dep_err:
+                feedback += dep_err + '\n'
             if p.wait():
                 self.send(mess.getFrom(), "Update of %s failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
             else:
@@ -389,14 +397,15 @@ class ErrBot(JabberBot):
                 if not core_to_update:
                     for plugin in get_all_plugins():
                         if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
-                            self.send(mess.getFrom(), '/me is reloading plugin %s' % plugin.name)
+                            name = plugin.name
+                            self.send(mess.getFrom(), '/me is reloading plugin %s' % name)
                             self.deactivate_plugin(plugin.name)                     # calm the plugin down
                             module = __import__(plugin.path.split(os.sep)[-1]) # find back the main module of the plugin
                             reload(module)                                     # reload it
                             class_name = type(plugin.plugin_object).__name__   # find the original name of the class
                             newclass = getattr(module, class_name)             # retreive the corresponding new class
                             plugin.plugin_object.__class__ = newclass          # BAM, declare the instance of the new type
-                            self.activate_plugin(plugin.name)                       # wake the plugin up
+                            self.activate_plugin(plugin.name)                  # wake the plugin up
         if core_to_update:
             self.restart(mess, '')
             return "You have updated the core, I need to restart."

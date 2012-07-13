@@ -112,6 +112,7 @@ class JabberBot(object):
 
     PING_FREQUENCY = 10 # Set to the number of seconds, e.g. 60.
     PING_TIMEOUT = 2 # Seconds to wait for a response.
+    RETRY_FREQUENCY = 10 # Set to the number of seconds to attempt another connection attempt in case of connectivity loss
 
     MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
     MESSAGE_SIZE_ERROR_MESSAGE = '|<- SNIP ! Message too long.'
@@ -733,7 +734,7 @@ class JabberBot(object):
         else:
             description = ''
             if args in self.commands:
-                usage = (self.commands[args].__doc__ or\
+                usage = (self.commands[args].__doc__ or
                          'undocumented').strip()
             else:
                 usage = self.MSG_HELP_UNDEFINED_COMMAND
@@ -751,24 +752,26 @@ class JabberBot(object):
 
         To enable set self.PING_FREQUENCY to a value higher than zero.
         """
-        if self.PING_FREQUENCY\
-        and time.time() - self.__lastping > self.PING_FREQUENCY:
+        if self.PING_FREQUENCY and time.time() - self.__lastping > self.PING_FREQUENCY:
             self.__lastping = time.time()
             #logging.debug('Pinging the server.')
-            ping = xmpp.Protocol('iq', typ='get',\
+            ping = xmpp.Protocol('iq', typ='get',
                 payload=[xmpp.Node('ping', attrs={'xmlns': 'urn:xmpp:ping'})])
             try:
-                res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
-                #logging.debug('Got response: ' + str(res))
-                if res is None:
-                    self.on_ping_timeout()
+                if self.conn:
+                    res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
+                    logging.debug('Got response: ' + str(res))
+                    if res is None:
+                        self.on_ping_timeout()
+                else:
+                    logging.debug('Ping cancelled : No connectivity.')
             except IOError, e:
                 logging.error('Error pinging the server: %s, '\
                               'treating as ping timeout.' % e)
                 self.on_ping_timeout()
 
     def on_ping_timeout(self):
-        logging.info('Tearing down current connection.')
+        logging.warning('Connection ping timeoutted, closing connection')
         self.conn = None
 
     def shutdown(self):
@@ -781,37 +784,28 @@ class JabberBot(object):
 
     def serve_forever(self, connect_callback=None, disconnect_callback=None):
         """Connects to the server and handles messages."""
-        while not self.__finished:
+        conn = None
+        while not self.__finished and not conn:
             conn = self.connect()
-            if conn:
-                self.log.info('bot connected. serving forever.')
-                break
-            else:
-                self.log.warn('could not connect to server - sleeping 10 seconds.')
-                time.sleep(10)
+            if not conn:
+                self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
+                time.sleep(self.RETRY_FREQUENCY)
 
         if connect_callback:
             connect_callback()
         self.__lastping = time.time()
 
-        connect = True
         while not self.__finished:
             try:
-                if connect:
+                if conn:
                     conn.Process(1)
                     self.idle_proc()
-                if self.conn == None and connect == True:
-                    connect = False
-                if not connect:
+                else:
+                    self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)
+                    time.sleep(self.RETRY_FREQUENCY)
                     conn = self.connect()
-                    if conn:
-                        self.log.info('bot reconnected, serving forever')
-                        connect = True
-                    else:
-                        time.sleep(10)
             except KeyboardInterrupt:
-                self.log.info('bot stopped by user request. '\
-                              'shutting down.')
+                self.log.info('bot stopped by user request. shutting down.')
                 break
 
         if disconnect_callback:

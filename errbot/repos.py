@@ -24,4 +24,5 @@ KNOWN_PUBLIC_REPOS = {
 'err-rssfeed' : ('git://github.com/atalyad/err-rssfeed.git','register to rss feeds and get updates in the chat.'),
 'err-translate' : ('git://github.com/benvd/err-translate.git','Google Translate plugin for the err bot'),
 'err-tourney' : ('git://github.com/gbin/err-tourney.git','a ranking and tournament system for err'),
+'err-music' : ('git://github.com/benvd/err-music.git','Query lyrics, compositors etc etc ...'),
 }

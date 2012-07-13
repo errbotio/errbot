@@ -2,15 +2,25 @@ Release history
 ===============
 
 
-Version 1.4.1 (2012-07-)
+Version 1.4.1 (2012-07-13)
 --------------------------
 Bugs:
 
 - corrected a vicious bug when you use metaclasses on plugins with botcmd decorator generated with parameters
+- don't call any callback message if the message is from the chat history
+- dependency problem with dnspython, it fixes the compatibility with google apps [Thx to linux techie https://github.com/linuxtechie]
+- on repos updates, err now recheck the dependencies (you never know if they changed after the update)
 
 Features:
 
 - Added a new check_configuration callback now by default the configuration check is basic and no implementation has to be done on plugin side
+- Warn the admins in case of command name clashes and fix them by prefixing the name of the plugin + -
+- A brand new graphical mode so you can debug with images displayed etc ... (command line option -G) it requires pyside
+- A new !apropos command that search a term into the help descriptions [thx to Ben Van Daele https://github.com/benvd]
+- Now the bot reconnects in case of bad internet connectivity [Thx to linux techie https://github.com/linuxtechie]
+- The bot now supports a "remote chatroom relay" (relay all messages from a MUC to a list of users) on top of a normal relay (from a user to a list of MUC) 
+     With this you can emulate a partychat mode.
+- err-music [thx to Ben Van Daele https://github.com/benvd and thx to Tali Petrover https://github.com/atalyad]
 
 Version 1.4.0 (2012-07-09)
 --------------------------
@@ -31,7 +41,7 @@ Features:
   err-devops_borat  [thx to Vincent Alsteen https://github.com/valsteen]
   err-social
   err-rssfeed       [thx to Tali Petrover https://github.com/atalyad]
-  err-translate     [thx to Ben Van Dael https://github.com/benvd]
+  err-translate     [thx to Ben Van Daele https://github.com/benvd]
   err-tourney
 
 Version 1.3.1 (2012-07-02)

@@ -15,7 +15,7 @@ Features:
 
 - Added a new check_configuration callback now by default the configuration check is basic and no implementation has to be done on plugin side
 - Warn the admins in case of command name clashes and fix them by prefixing the name of the plugin + -
-- A brand new graphical mode so you can debug with images displayed etc ... (command line option -G) it requires pyside
+- A brand new graphical mode so you can debug with images displayed etc ... (command line option -G) it requires pyside [thx to Paul Labedan https://github.com/pol51]
 - A new !apropos command that search a term into the help descriptions [thx to Ben Van Daele https://github.com/benvd]
 - Now the bot reconnects in case of bad internet connectivity [Thx to linux techie https://github.com/linuxtechie]
 - The bot now supports a "remote chatroom relay" (relay all messages from a MUC to a list of users) on top of a normal relay (from a user to a list of MUC) 

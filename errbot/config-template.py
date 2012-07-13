@@ -33,7 +33,7 @@ CHATROOM_RELAY = {'gbin@localhost' : (_TEST_ROOM,)}
 # REVERSE_CHATROOM_RELAY
 # this feature forward whatever is said to a specific JID
 # it can be useful if you client like gtalk doesn't support MUC correctly !
-REVERSE_CHATROOM_RELAY = {TEST_ROOM : ('gbin@localhost',)}
+REVERSE_CHATROOM_RELAY = {_TEST_ROOM : ('gbin@localhost',)}
 
 # CHATROOM_FN
 # Some XMPP implementations like HipChat are super picky on the fullname you join with for a MUC

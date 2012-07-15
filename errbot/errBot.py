@@ -287,15 +287,20 @@ class ErrBot(JabberBot):
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
-        max_width = max([len(name) for name,(_,_) in KNOWN_PUBLIC_REPOS.iteritems()])
-        answer = 'Public repos : \n' + '\n'.join(['%s  %s'%(name.ljust(max_width), desc) for name,(url,desc) in KNOWN_PUBLIC_REPOS.iteritems()])
-        answer += '\n' + '-'* 40 + '\n\nInstalled repos :\n'
-        repos = self.get_installed_plugin_repos()
-        if not len(repos):
-            answer += 'No plugin repo has been installed, use !install to add one.'
-            return answer
-        max_width = max([len(item[0]) for item in repos.iteritems()])
-        answer+= '\n'.join(['%s -> %s' % (item[0].ljust(max_width), item[1]) for item in repos.iteritems()])
+        installed_repos = self.get_installed_plugin_repos()
+        answer = 'Repos (P = Private repo, * = installed): \n'
+        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
+        max_width = max([len(name) for name in all_names])
+        for repo_name in all_names:
+            installed = repo_name in installed_repos
+            public = repo_name in KNOWN_PUBLIC_REPOS
+            aligned_name = repo_name.ljust(max_width)
+            if installed and public:
+                answer += '[* ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
+            elif installed and not public:
+                answer += '[*P] %s %s\n' % (aligned_name, installed_repos[repo_name])
+            elif not installed and public:
+                answer += '[  ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
         return answer
 
     @botcmd

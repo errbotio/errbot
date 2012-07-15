@@ -759,13 +759,35 @@ class JabberBot(object):
                 payload=[xmpp.Node('ping', attrs={'xmlns': 'urn:xmpp:ping'})])
             try:
                 if self.conn:
+#Traceback (most recent call last):
+#    File "dockstar-gtalk.py", line 142, in <module>
+#        main()
+#      File "dockstar-gtalk.py", line 93, in main
+#        holder.bot.serve_forever()
+#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 802, in serve_forever
+#        self.idle_proc()
+#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 748, in idle_proc
+#        self._idle_ping()
+#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 762, in _idle_ping
+#        res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
+#      File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 337, in
+#  SendAndWaitForResponse
+#        return self.WaitForResponse(self.send(stanza),timeout)
+#      File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 321, in WaitForResponse
+#        if not self.Process(0.04):
+#            File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 122, in Process
+#                self.Stream.Parse(data)
+#            xml.parsers.expat.ExpatError: mismatched tag: line 1, column 971
+#
+# Got above, hence changed IOError to Exception for futher investigation. Lets see if the domain
+# persists
                     res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
                     logging.debug('Got response: ' + str(res))
                     if res is None:
                         self.on_ping_timeout()
                 else:
                     logging.debug('Ping cancelled : No connectivity.')
-            except IOError, e:
+            except Exception, e:
                 logging.error('Error pinging the server: %s, '\
                               'treating as ping timeout.' % e)
                 self.on_ping_timeout()

@@ -17,9 +17,10 @@
 from ast import literal_eval
 from datetime import datetime
 import inspect
-
+import gc
 import logging
 import os
+
 import shelve
 import shutil
 import subprocess
@@ -33,6 +34,7 @@ from errbot.jabberbot import JabberBot, botcmd, is_from_history
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
+from errbot.version import VERSION
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
@@ -194,6 +196,13 @@ class ErrBot(JabberBot):
                 answer+= '[L] %s\n' % name
             else:
                 answer+= '[E] %s\n' % name
+        answer += '\n\n'
+        try:
+            from posix import getloadavg
+            answer += 'Load %f, %f, %f\n' % getloadavg()
+        except Exception as e:
+            pass
+        answer += 'Objects Generations    0->%i    1->%i    2->%i\n' % gc.get_count()
         return answer
 
     @botcmd
@@ -391,6 +400,14 @@ class ErrBot(JabberBot):
         top = self.top_of_help_message()
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
+
+    @botcmd
+    def about(self, mess, args):
+        """   Returns some information about this err instance"""
+
+        result = 'Err version %s \n\n' % VERSION
+        result += 'Authors: Mondial Telecom, Guillaume BINET, Tali PETROVER, Ben VAN DAELE, Paul LABEDAN and others.\n\n'
+        return result
 
     @botcmd
     def apropos(self, mess, args):

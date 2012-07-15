@@ -1,6 +1,11 @@
 Release history
 ===============
 
+Version 1.4.2 (2012-07-)
+--------------------------
+Features:
+
+- Better presentation on the !repos command
 
 Version 1.4.1 (2012-07-13)
 --------------------------

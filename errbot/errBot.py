@@ -30,7 +30,7 @@ from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 
 from errbot.jabberbot import JabberBot, botcmd, is_from_history
-from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
+from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 
@@ -56,6 +56,29 @@ class ErrBot(JabberBot):
         repos = self.get_installed_plugin_repos()
         repos[name] = url
         self.internal_shelf['repos'] = repos
+
+    # plugin blacklisting management
+    def get_blacklisted_plugin(self):
+        return self.internal_shelf.get('bl_plugins', [])
+
+    def is_plugin_blacklisted(self, name):
+        return name in self.get_blacklisted_plugin()
+
+    def blacklist_plugin(self, name):
+        if self.is_plugin_blacklisted(name):
+            logging.warning('Plugin %s is already blacklisted' % name)
+            return
+        self.internal_shelf['bl_plugins'] = self.get_blacklisted_plugin() + [name]
+        logging.info('Plugin %s is now blacklisted' % name)
+
+    def unblacklist_plugin(self, name):
+        if not self.is_plugin_blacklisted(name):
+            logging.warning('Plugin %s is not blacklisted' % name)
+            return
+        l = self.get_blacklisted_plugin()
+        l.remove(name)
+        self.internal_shelf['bl_plugins'] = l
+        logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management
     def get_plugin_configuration(self, name):
@@ -105,8 +128,24 @@ class ErrBot(JabberBot):
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
-        errors = activate_all_plugins(self.internal_shelf['configs'])
+        configs = self.internal_shelf['configs']
+        errors = ''
+        for pluginInfo in get_all_plugins():
+            try:
+                if self.is_plugin_blacklisted(pluginInfo.name):
+                    errors += 'Notice: %s is blacklisted, use !load %s to unblacklist it\n' % (pluginInfo.name, pluginInfo.name)
+                    continue
+                if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
+                    logging.info('Activate plugin %s' % pluginInfo.name)
+                    activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
+            except Exception, e:
+                logging.exception("Error loading %s" % pluginInfo.name)
+                errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name ,e)
         if errors: self.warn_admins(errors)
+        return errors
+
+
+
 
     def signal_connect_to_all_plugins(self):
         for bot in get_all_active_plugin_objects():
@@ -123,7 +162,8 @@ class ErrBot(JabberBot):
                 logging.warning('Could not connect, deactivating all the plugins')
                 deactivate_all_plugins()
                 return None
-            self.activate_non_started_plugins()
+            loading_errors = self.activate_non_started_plugins()
+            logging.info(loading_errors)
             logging.info('Notifying connection to all the plugins...')
             self.signal_connect_to_all_plugins()
             logging.info('Plugin activation done.')
@@ -131,8 +171,8 @@ class ErrBot(JabberBot):
 
     def shutdown(self):
         logging.info('Shutting down... deactivating all the plugins.')
-        deactivate_all_plugins()
         self.internal_shelf.close()
+        deactivate_all_plugins()
         logging.info('Bye.')
 
     @botcmd
@@ -210,17 +250,22 @@ class ErrBot(JabberBot):
     @botcmd(admin_only = True)
     def load(self, mess, args):
         """load a plugin"""
+        self.unblacklist_plugin(args)
         return self.activate_plugin(args)
 
     @botcmd(admin_only = True)
     def unload(self, mess, args):
         """unload a plugin"""
-        result = self.deactivate_plugin(args)
-        return result
+        if args not in get_all_active_plugin_names():
+            return '%s in not active' % args
+        self.blacklist_plugin(args)
+        return self.deactivate_plugin(args)
 
     @botcmd(admin_only = True)
     def reload(self, mess, args):
         """reload a plugin"""
+        if self.is_plugin_blacklisted(args):
+            self.unblacklist_plugin(args)
         result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))
         return result
 
@@ -436,6 +481,8 @@ class ErrBot(JabberBot):
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
         plugin_name = args[0]
+        if self.is_plugin_blacklisted(plugin_name):
+            return 'Load this plugin first with !load %s' % plugin_name
         obj = get_plugin_obj_by_name(plugin_name)
         if obj is None:
             return 'Unknown plugin or the plugin could not load %s' % plugin_name

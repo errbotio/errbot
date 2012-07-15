@@ -6,6 +6,7 @@ Version 1.4.2 (2012-07-)
 Features:
 
 - Better presentation on the !repos command
+- load / unload of plugins is now persistent (they are blacklisted when unloaded)
 
 Version 1.4.1 (2012-07-13)
 --------------------------

@@ -77,19 +77,6 @@ def update_plugin_places(list):
     simplePluginManager.collectPlugins()
     return errors
 
-
-def activate_all_plugins(configs):
-    errors = ''
-    for pluginInfo in simplePluginManager.getAllPlugins():
-        try:
-            if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
-                logging.info('Activate plugin %s' % pluginInfo.name)
-                activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
-        except Exception, e:
-            logging.exception("Error loading %s" % pluginInfo.name)
-            errors += '%s failed to start : %s\n' % (pluginInfo.name ,e)
-    return errors
-
 def get_all_plugins():
     return simplePluginManager.getAllPlugins()
 

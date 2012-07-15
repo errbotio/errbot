@@ -2,6 +2,8 @@ import logging
 import config
 import sys
 from PySide import QtCore, QtGui, QtWebKit
+from PySide.QtGui import QCompleter
+from PySide.QtCore import Qt, QUrl
 
 class CommandBox(QtGui.QLineEdit, object):
     history_index = 0
@@ -9,27 +11,31 @@ class CommandBox(QtGui.QLineEdit, object):
     def reset_history(self):
         self.history_index = len(self.history)
 
-    def __init__(self, history):
+    def __init__(self, history, commands):
         self.history = history
         self.reset_history()
         super(CommandBox, self).__init__()
+        completer = QCompleter(['!' + name for name in commands])
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.setCompleter(completer)
 
     #noinspection PyStringFormat
     def keyPressEvent(self, *args, **kwargs):
         key = args[0].key()
-        if key == QtCore.Qt.Key_Up:
+        if key == Qt.Key_Up:
             if self.history_index > 0:
                 self.history_index -= 1
                 self.setText('!%s %s' % self.history[self.history_index])
                 return
-        elif key == QtCore.Qt.Key_Down:
+        elif key == Qt.Key_Down:
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
                 self.setText('!%s %s' % self.history[self.history_index])
                 return
-        elif key == QtCore.Qt.Key_Return:
-            self.reset_history()
         super(CommandBox, self).keyPressEvent(*args, **kwargs)
+        if key == QtCore.Qt.Key_Return:
+            self.reset_history()
+
 
 
 class JIDMock():
@@ -133,13 +139,12 @@ def patch_jabberbot():
         app = QtGui.QApplication(sys.argv)
         self.mainW = QtGui.QWidget()
         vbox = QtGui.QVBoxLayout()
-        #self.input = QtGui.QLineEdit()
-        self.input = CommandBox(self.cmd_history)
+        self.input = CommandBox(self.cmd_history, self.commands)
         self.output = QtWebKit.QWebView()
 
         # init webpage
         self.buffer = '<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head><body>' %\
-                      (QtCore.QUrl.fromLocalFile(config.BOT_DATA_DIR).toString())
+                      (QUrl.fromLocalFile(config.BOT_DATA_DIR).toString())
         self.output.setHtml(self.buffer)
 
         # layout

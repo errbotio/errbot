@@ -47,6 +47,7 @@ class ErrBot(JabberBot):
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     internal_shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
+    startup_time = datetime.now()
 
     # Repo management
     def get_installed_plugin_repos(self):
@@ -94,7 +95,9 @@ class ErrBot(JabberBot):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        return update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        all_candidates, errors = update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        self.all_candidates = all_candidates
+        return errors
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
@@ -179,9 +182,19 @@ class ErrBot(JabberBot):
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
         """
-        return 'Yes, I am alive with those plugins :\n' + '\n'.join(get_all_active_plugin_names())
+        all_blacklisted = self.get_blacklisted_plugin()
+        all_loaded = get_all_active_plugin_names()
+        all_attempted = sorted([p.name for p in self.all_candidates])
 
-    startup_time = datetime.now()
+        answer = 'Yes I am alive... With those plugins (E=Error, B=Blacklisted/Unloaded, L=Loaded):\n'
+        for name in all_attempted:
+            if name in all_blacklisted:
+                answer+= '[B] %s\n' % name
+            elif name in all_loaded:
+                answer+= '[L] %s\n' % name
+            else:
+                answer+= '[E] %s\n' % name
+        return answer
 
     @botcmd
     def uptime(self, mess, args):

@@ -7,6 +7,7 @@ Features:
 
 - Better presentation on the !repos command
 - load / unload of plugins is now persistent (they are blacklisted when unloaded)
+- Better presentation of the !status command : Now you can see loaded, blacklisted and Erroneous plugins from there
 
 Version 1.4.1 (2012-07-13)
 --------------------------

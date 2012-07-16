@@ -24,7 +24,8 @@ BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful
 
 # CHATROOM_ PRESENCE
 # it must be an iterable of names of rooms you want the bot to join at startup
-CHATROOM_PRESENCE = () # for example : CHATROOM_PRESENCE = (_TEST_ROOM,)
+# for example : CHATROOM_PRESENCE = (_TEST_ROOM,)
+CHATROOM_PRESENCE = ()
 
 # CHATROOM_RELAY
 # can be used to relay one to one message from specific users to the bot to MUCs

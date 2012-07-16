@@ -1,4 +1,5 @@
 .. image:: http://gbin.github.com/err/images/err.png
+    :align: right
 Err - the pluggable jabber bot
 ==============================
 

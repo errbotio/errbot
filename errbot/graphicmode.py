@@ -1,4 +1,5 @@
 import logging
+import os
 import config
 import sys
 from PySide import QtCore, QtGui, QtWebKit
@@ -138,13 +139,21 @@ def patch_jabberbot():
         # create window and components
         app = QtGui.QApplication(sys.argv)
         self.mainW = QtGui.QWidget()
+        self.mainW.setWindowTitle('Err...')
+        icon_path = os.path.dirname(__file__) + os.sep + 'err.svg'
+        bg_path = os.path.dirname(__file__) + os.sep + 'err-bg.svg'
+        self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         self.input = CommandBox(self.cmd_history, self.commands)
         self.output = QtWebKit.QWebView()
 
         # init webpage
-        self.buffer = '<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head><body>' %\
-                      (QUrl.fromLocalFile(config.BOT_DATA_DIR).toString())
+        self.buffer = """<html>
+                           <head>
+                                <link rel="stylesheet" type="text/css" href="%s/style/style.css" />
+                           </head>
+                           <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center;">
+                           """ % (QUrl.fromLocalFile(config.BOT_DATA_DIR).toString(), QUrl.fromLocalFile(bg_path).toString())
         self.output.setHtml(self.buffer)
 
         # layout

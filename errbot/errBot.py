@@ -17,9 +17,10 @@
 from ast import literal_eval
 from datetime import datetime
 import inspect
-
+import gc
 import logging
 import os
+
 import shelve
 import shutil
 import subprocess
@@ -30,9 +31,10 @@ from urllib2 import urlopen
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 
 from errbot.jabberbot import JabberBot, botcmd, is_from_history
-from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
+from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
+from errbot.version import VERSION
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
@@ -47,6 +49,7 @@ class ErrBot(JabberBot):
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     internal_shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
+    startup_time = datetime.now()
 
     # Repo management
     def get_installed_plugin_repos(self):
@@ -56,6 +59,29 @@ class ErrBot(JabberBot):
         repos = self.get_installed_plugin_repos()
         repos[name] = url
         self.internal_shelf['repos'] = repos
+
+    # plugin blacklisting management
+    def get_blacklisted_plugin(self):
+        return self.internal_shelf.get('bl_plugins', [])
+
+    def is_plugin_blacklisted(self, name):
+        return name in self.get_blacklisted_plugin()
+
+    def blacklist_plugin(self, name):
+        if self.is_plugin_blacklisted(name):
+            logging.warning('Plugin %s is already blacklisted' % name)
+            return
+        self.internal_shelf['bl_plugins'] = self.get_blacklisted_plugin() + [name]
+        logging.info('Plugin %s is now blacklisted' % name)
+
+    def unblacklist_plugin(self, name):
+        if not self.is_plugin_blacklisted(name):
+            logging.warning('Plugin %s is not blacklisted' % name)
+            return
+        l = self.get_blacklisted_plugin()
+        l.remove(name)
+        self.internal_shelf['bl_plugins'] = l
+        logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management
     def get_plugin_configuration(self, name):
@@ -71,7 +97,9 @@ class ErrBot(JabberBot):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        return update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        all_candidates, errors = update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        self.all_candidates = all_candidates
+        return errors
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
@@ -105,8 +133,24 @@ class ErrBot(JabberBot):
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
-        errors = activate_all_plugins(self.internal_shelf['configs'])
+        configs = self.internal_shelf['configs']
+        errors = ''
+        for pluginInfo in get_all_plugins():
+            try:
+                if self.is_plugin_blacklisted(pluginInfo.name):
+                    errors += 'Notice: %s is blacklisted, use !load %s to unblacklist it\n' % (pluginInfo.name, pluginInfo.name)
+                    continue
+                if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
+                    logging.info('Activate plugin %s' % pluginInfo.name)
+                    activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
+            except Exception, e:
+                logging.exception("Error loading %s" % pluginInfo.name)
+                errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name ,e)
         if errors: self.warn_admins(errors)
+        return errors
+
+
+
 
     def signal_connect_to_all_plugins(self):
         for bot in get_all_active_plugin_objects():
@@ -123,7 +167,8 @@ class ErrBot(JabberBot):
                 logging.warning('Could not connect, deactivating all the plugins')
                 deactivate_all_plugins()
                 return None
-            self.activate_non_started_plugins()
+            loading_errors = self.activate_non_started_plugins()
+            logging.info(loading_errors)
             logging.info('Notifying connection to all the plugins...')
             self.signal_connect_to_all_plugins()
             logging.info('Plugin activation done.')
@@ -131,17 +176,34 @@ class ErrBot(JabberBot):
 
     def shutdown(self):
         logging.info('Shutting down... deactivating all the plugins.')
-        deactivate_all_plugins()
         self.internal_shelf.close()
+        deactivate_all_plugins()
         logging.info('Bye.')
 
     @botcmd
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
         """
-        return 'Yes, I am alive with those plugins :\n' + '\n'.join(get_all_active_plugin_names())
+        all_blacklisted = self.get_blacklisted_plugin()
+        all_loaded = get_all_active_plugin_names()
+        all_attempted = sorted([p.name for p in self.all_candidates])
 
-    startup_time = datetime.now()
+        answer = 'Yes I am alive... With those plugins (E=Error, B=Blacklisted/Unloaded, L=Loaded):\n'
+        for name in all_attempted:
+            if name in all_blacklisted:
+                answer+= '[B] %s\n' % name
+            elif name in all_loaded:
+                answer+= '[L] %s\n' % name
+            else:
+                answer+= '[E] %s\n' % name
+        answer += '\n\n'
+        try:
+            from posix import getloadavg
+            answer += 'Load %f, %f, %f\n' % getloadavg()
+        except Exception as e:
+            pass
+        answer += 'Objects Generations    0->%i    1->%i    2->%i\n' % gc.get_count()
+        return answer
 
     @botcmd
     def uptime(self, mess, args):
@@ -210,17 +272,22 @@ class ErrBot(JabberBot):
     @botcmd(admin_only = True)
     def load(self, mess, args):
         """load a plugin"""
+        self.unblacklist_plugin(args)
         return self.activate_plugin(args)
 
     @botcmd(admin_only = True)
     def unload(self, mess, args):
         """unload a plugin"""
-        result = self.deactivate_plugin(args)
-        return result
+        if args not in get_all_active_plugin_names():
+            return '%s in not active' % args
+        self.blacklist_plugin(args)
+        return self.deactivate_plugin(args)
 
     @botcmd(admin_only = True)
     def reload(self, mess, args):
         """reload a plugin"""
+        if self.is_plugin_blacklisted(args):
+            self.unblacklist_plugin(args)
         result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))
         return result
 
@@ -287,15 +354,20 @@ class ErrBot(JabberBot):
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
-        max_width = max([len(name) for name,(_,_) in KNOWN_PUBLIC_REPOS.iteritems()])
-        answer = 'Public repos : \n' + '\n'.join(['%s  %s'%(name.ljust(max_width), desc) for name,(url,desc) in KNOWN_PUBLIC_REPOS.iteritems()])
-        answer += '\n' + '-'* 40 + '\n\nInstalled repos :\n'
-        repos = self.get_installed_plugin_repos()
-        if not len(repos):
-            answer += 'No plugin repo has been installed, use !install to add one.'
-            return answer
-        max_width = max([len(item[0]) for item in repos.iteritems()])
-        answer+= '\n'.join(['%s -> %s' % (item[0].ljust(max_width), item[1]) for item in repos.iteritems()])
+        installed_repos = self.get_installed_plugin_repos()
+        answer = 'Repos (P = Private repo, * = installed): \n'
+        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
+        max_width = max([len(name) for name in all_names])
+        for repo_name in all_names:
+            installed = repo_name in installed_repos
+            public = repo_name in KNOWN_PUBLIC_REPOS
+            aligned_name = repo_name.ljust(max_width)
+            if installed and public:
+                answer += '[* ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
+            elif installed and not public:
+                answer += '[*P] %s %s\n' % (aligned_name, installed_repos[repo_name])
+            elif not installed and public:
+                answer += '[  ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
         return answer
 
     @botcmd
@@ -328,6 +400,14 @@ class ErrBot(JabberBot):
         top = self.top_of_help_message()
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
+
+    @botcmd
+    def about(self, mess, args):
+        """   Returns some information about this err instance"""
+
+        result = 'Err version %s \n\n' % VERSION
+        result += 'Authors: Mondial Telecom, Guillaume BINET, Tali PETROVER, Ben VAN DAELE, Paul LABEDAN and others.\n\n'
+        return result
 
     @botcmd
     def apropos(self, mess, args):
@@ -431,6 +511,8 @@ class ErrBot(JabberBot):
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
         plugin_name = args[0]
+        if self.is_plugin_blacklisted(plugin_name):
+            return 'Load this plugin first with !load %s' % plugin_name
         obj = get_plugin_obj_by_name(plugin_name)
         if obj is None:
             return 'Unknown plugin or the plugin could not load %s' % plugin_name

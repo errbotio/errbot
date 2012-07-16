@@ -39,7 +39,7 @@ def get_plugin_obj_by_name(name):
 def activate_plugin_with_version_check(name, config):
     pta_item = simplePluginManager.getPluginByName(name, 'bots')
     if pta_item is None:
-        logging.warning('Could not active %s')
+        logging.warning('Could not activate %s')
         return None
 
     obj = pta_item.plugin_object
@@ -74,21 +74,12 @@ def update_plugin_places(list):
     errors = [check_dependencies(path) for path in list]
     errors = [error for error in errors if error is not None]
     simplePluginManager.setPluginPlaces(chain(BUILTINS, list))
-    simplePluginManager.collectPlugins()
-    return errors
-
-
-def activate_all_plugins(configs):
-    errors = ''
-    for pluginInfo in simplePluginManager.getAllPlugins():
-        try:
-            if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
-                logging.info('Activate plugin %s' % pluginInfo.name)
-                activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
-        except Exception, e:
-            logging.exception("Error loading %s" % pluginInfo.name)
-            errors += '%s failed to start : %s\n' % (pluginInfo.name ,e)
-    return errors
+    all_candidates = []
+    def add_candidate(candidate):
+        all_candidates.append(candidate)
+    simplePluginManager.locatePlugins()
+    simplePluginManager.loadPlugins(add_candidate)
+    return all_candidates, errors
 
 def get_all_plugins():
     return simplePluginManager.getAllPlugins()

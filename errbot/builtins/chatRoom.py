@@ -6,7 +6,7 @@ from threading import Timer
 from errbot.version import VERSION
 
 __author__ = 'gbin'
-from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, HIPCHAT_MODE
+from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, HIPCHAT_MODE, REVERSE_CHATROOM_RELAY
 
 class ChatRoom(BotPlugin):
     min_err_version = VERSION # don't copy paste that for your plugin, it is just because it is a bundled plugin !
@@ -39,8 +39,9 @@ class ChatRoom(BotPlugin):
     def callback_message(self, conn, mess):
         #if mess.getBody():
         #    logging.debug(u'Received message %s' % mess.getBody())
-        if mess.getType() in ('groupchat', 'chat'):
-            try:
+        try:
+            mess_type = mess.getType()
+            if mess_type == 'chat':
                 username = get_jid_from_message(mess)
                 if username in CHATROOM_RELAY:
                     logging.debug('Message to relay from %s.' % username)
@@ -48,5 +49,15 @@ class ChatRoom(BotPlugin):
                     rooms = CHATROOM_RELAY[username]
                     for room in rooms:
                         self.send(room, body, message_type='groupchat')
-            except Exception, e:
-                logging.exception('crashed in callback_message %s' % e)
+            elif mess_type == 'groupchat':
+                fr = mess.getFrom()
+                chat_room = fr.node + '@' + fr.domain
+                if chat_room in REVERSE_CHATROOM_RELAY:
+                    users_to_relay_to = REVERSE_CHATROOM_RELAY[chat_room]
+                    logging.debug('Message to relay to %s.' % users_to_relay_to)
+                    body = '[%s] %s' % (fr.resource, mess.getBody())
+                    for user in users_to_relay_to:
+                        self.send(user, body, message_type='chat')
+        except Exception as e:
+            logging.exception('crashed in callback_message %s' % e)
+

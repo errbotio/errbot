@@ -1,3 +1,4 @@
+.. image:: http://gbin.github.com/err/images/err.png
 Err - the pluggable jabber bot
 ==============================
 

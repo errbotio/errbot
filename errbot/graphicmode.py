@@ -152,7 +152,7 @@ def patch_jabberbot():
                            <head>
                                 <link rel="stylesheet" type="text/css" href="%s/style/style.css" />
                            </head>
-                           <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center;">
+                           <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain;">
                            """ % (QUrl.fromLocalFile(config.BOT_DATA_DIR).toString(), QUrl.fromLocalFile(bg_path).toString())
         self.output.setHtml(self.buffer)
 

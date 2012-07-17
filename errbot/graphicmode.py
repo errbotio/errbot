@@ -86,6 +86,29 @@ class ConnectionMock(QtCore.QObject):
         if hasattr(mess, 'getBody') and len(mess.getBody()) > 0 and not mess.getBody().isspace():
             self.newAnswer.emit(mess.getBody())
 
+import re
+urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+def linkify(text):
+    def replacewithlink(matchobj):
+        url = matchobj.group(0)
+        text = unicode(url)
+        if text.startswith('http://'):
+            text = text.replace('http://', '', 1)
+        elif text.startswith('https://'):
+            text = text.replace('https://', '', 1)
+
+        if text.startswith('www.'):
+            text = text.replace('www.', '', 1)
+
+        imglink = ''
+        for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
+            if text.lower().endswith(a):
+                imglink = '<br /><img src="' + url + '" />'
+                break
+        return '<a href="' + url + '" target="_blank" rel="nofollow">' + text + '<img class="imglink" src="/images/linkout.png"></a>' + imglink
+
+    return urlfinder.sub(replacewithlink, text)
+
 
 def patch_jabberbot():
     from errbot import jabberbot
@@ -93,40 +116,17 @@ def patch_jabberbot():
     conn = ConnectionMock()
 
     def send_command(self):
-        self.receive_message(self.input.text())
+        self.new_message(self.input.text(), False)
         self.callback_message(conn, MessageMock(self.input.text()))
         self.input.clear()
 
-    def htmlify(text):
-        import re
+    def htmlify(text, receiving):
 
-        urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+        style = 'background-color : rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);' if receiving else 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
+        return '<pre style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </pre>' % (style, linkify(text))
 
-        def linkify(text):
-            def replacewithlink(matchobj):
-                url = matchobj.group(0)
-                text = unicode(url)
-                if text.startswith('http://'):
-                    text = text.replace('http://', '', 1)
-                elif text.startswith('https://'):
-                    text = text.replace('https://', '', 1)
-
-                if text.startswith('www.'):
-                    text = text.replace('www.', '', 1)
-
-                imglink = ''
-                for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
-                    if text.lower().endswith(a):
-                        imglink = '<br /><img src="' + url + '" />'
-                        break
-                return '<a class="comurl" href="' + url + '" target="_blank" rel="nofollow">' + text + '<img class="imglink" src="/images/linkout.png"></a>' + imglink
-
-            return urlfinder.sub(replacewithlink, text)
-
-        return '<pre>' + linkify(text) + '</pre>'
-
-    def receive_message(self, text):
-        self.buffer += htmlify(text)
+    def new_message(self, text, receiving = True):
+        self.buffer += htmlify(text, receiving)
         self.output.setHtml(self.buffer)
 
     def scroll_output_to_bottom(self):
@@ -152,7 +152,7 @@ def patch_jabberbot():
                            <head>
                                 <link rel="stylesheet" type="text/css" href="%s/style/style.css" />
                            </head>
-                           <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain;">
+                           <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain; margin:0;">
                            """ % (QUrl.fromLocalFile(config.BOT_DATA_DIR).toString(), QUrl.fromLocalFile(bg_path).toString())
         self.output.setHtml(self.buffer)
 
@@ -168,7 +168,7 @@ def patch_jabberbot():
         self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
         self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
         self.input.returnPressed.connect(self.send_command)
-        self.conn.newAnswer.connect(self.receive_message)
+        self.conn.newAnswer.connect(self.new_message)
 
         self.mainW.show()
         app.exec_()
@@ -183,7 +183,7 @@ def patch_jabberbot():
         return self.conn
 
     jabberbot.JabberBot.send_command = send_command
-    jabberbot.JabberBot.receive_message = receive_message
+    jabberbot.JabberBot.new_message = new_message
     jabberbot.JabberBot.serve_forever = fake_serve_forever
     jabberbot.JabberBot.scroll_output_to_bottom = scroll_output_to_bottom
     jabberbot.JabberBot.connect = fake_connect

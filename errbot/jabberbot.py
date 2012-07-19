@@ -33,6 +33,8 @@ import re
 import sys
 import thread
 from xmpp.protocol import NS_CAPS
+from xmpp.simplexml import XML2Node
+from errbot.templating import tenv
 from errbot.utils import get_jid_from_message
 from config import BOT_ADMINS
 
@@ -71,7 +73,7 @@ def botcmd(*args, **kwargs):
     split_args_with : prepare the arguments by splitting them by the given character
     """
 
-    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False, historize = True):
+    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False, historize = True, template = None):
         if not hasattr(func, '_jabberbot_command'): # don't override generated functions
             setattr(func, '_jabberbot_command', True)
             setattr(func, '_jabberbot_command_hidden', hidden)
@@ -80,6 +82,7 @@ def botcmd(*args, **kwargs):
             setattr(func, '_jabberbot_command_admin_only', admin_only)
             setattr(func, '_jabberbot_command_historize', historize)
             setattr(func, '_jabberbot_command_thread', thread) # Experimental!
+            setattr(func, '_jabberbot_command_template', template) # Experimental!
         return func
 
     if len(args):
@@ -414,27 +417,10 @@ class JabberBot(object):
         # Try to determine if text has xhtml-tags - TODO needs improvement
         text_plain = re.sub(r'<br/>', '\n', text)
         text_plain = re.sub(r'<[^>]+>', '', text_plain)
+        message = xmpp.protocol.Message(body=text_plain)
         if text_plain != text:
-            # Create body w stripped tags for reciptiens w/o xhtml-abilities
-            # FIXME unescape &quot; etc.
-            message = xmpp.protocol.Message(body=text_plain)
             # Start creating a xhtml body
-            html = xmpp.Node('html',
-                    {'xmlns': 'http://jabber.org/protocol/xhtml-im'})
-            try:
-                html.addChild(node=xmpp.simplexml.XML2Node(
-                    "<body xmlns='http://www.w3.org/1999/xhtml'>" +\
-                    text.encode('utf-8') + "</body>"))
-                message.addChild(node=html)
-            except Exception, e:
-                # Didn't work, incorrect markup or something.
-                self.log.debug('An error while building a xhtml message. '
-                               'Fallback to normal messagebody')
-                # Fallback - don't sanitize invalid input. User is responsible!
-                message = None
-        if message is None:
-            # Normal body
-            message = xmpp.protocol.Message(body=text)
+            message.addChild(node = XML2Node(text))
         return message
 
 
@@ -639,9 +625,14 @@ class JabberBot(object):
         self.log.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
         if cmd:
-            def execute_and_send():
+            def execute_and_send(template_name):
                 try:
                     reply = self.commands[cmd](mess, args)
+
+                    # integrated templating
+                    if template_name:
+                        reply = tenv.get_template(template_name + '.html').render(**reply)
+
                 except Exception, e:
                     self.log.exception('An error happened while processing '\
                                        'a message ("%s") from %s: %s"' %
@@ -668,12 +659,13 @@ class JabberBot(object):
 
             if f._jabberbot_command_split_args_with:
                 args = args.split(f._jabberbot_command_split_args_with)
+
             # Experimental!
             # if command should be executed in a seperate thread do it
             if f._jabberbot_command_thread:
-                thread.start_new_thread(execute_and_send, ())
+                thread.start_new_thread(execute_and_send, (f._jabberbot_command_template,))
             else:
-                execute_and_send()
+                execute_and_send(f._jabberbot_command_template)
         else:
             # In private chat, it's okay for the bot to always respond.
             # In group chat, the bot should silently ignore commands it

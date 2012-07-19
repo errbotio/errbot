@@ -35,6 +35,7 @@ from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_pl
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
+from templating import tenv
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
@@ -180,30 +181,28 @@ class ErrBot(JabberBot):
         deactivate_all_plugins()
         logging.info('Bye.')
 
-    @botcmd
+    @botcmd(template = 'status')
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
         """
         all_blacklisted = self.get_blacklisted_plugin()
         all_loaded = get_all_active_plugin_names()
         all_attempted = sorted([p.name for p in self.all_candidates])
-
-        answer = '<b>Yes I am alive... </b>With those plugins (E=Error, B=Blacklisted/Unloaded, L=Loaded):<br/>'
+        plugins_statuses = []
         for name in all_attempted:
             if name in all_blacklisted:
-                answer+= '[B] %s<br/>' % name
+                plugins_statuses.append(('B', name))
             elif name in all_loaded:
-                answer+= '[L] %s<br/>' % name
+                plugins_statuses.append(('L', name))
             else:
-                answer+= '[E] %s<br/>' % name
-        answer += '<br/><br/>'
+                plugins_statuses.append(('E', name))
+
         try:
             from posix import getloadavg
-            answer += 'Load %f, %f, %f<br/>' % getloadavg()
+            loads = getloadavg()
         except Exception as e:
-            pass
-        answer += 'Objects Generations    0->%i    1->%i    2->%i<br/>' % gc.get_count()
-        return answer
+            loads = None
+        return {'plugins_statuses' : plugins_statuses, 'loads' : loads, 'gc' : gc.get_count()}
 
     @botcmd
     def echo(self, mess, args):

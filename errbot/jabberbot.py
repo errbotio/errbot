@@ -412,7 +412,8 @@ class JabberBot(object):
         If input is not valid xhtml-im fallback to normal."""
         message = None # init message variable
         # Try to determine if text has xhtml-tags - TODO needs improvement
-        text_plain = re.sub(r'<[^>]+>', '', text)
+        text_plain = re.sub(r'<br/>', '\n', text)
+        text_plain = re.sub(r'<[^>]+>', '', text_plain)
         if text_plain != text:
             # Create body w stripped tags for reciptiens w/o xhtml-abilities
             # FIXME unescape &quot; etc.

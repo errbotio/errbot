@@ -188,22 +188,26 @@ class ErrBot(JabberBot):
         all_loaded = get_all_active_plugin_names()
         all_attempted = sorted([p.name for p in self.all_candidates])
 
-        answer = 'Yes I am alive... With those plugins (E=Error, B=Blacklisted/Unloaded, L=Loaded):\n'
+        answer = '<b>Yes I am alive... </b>With those plugins (E=Error, B=Blacklisted/Unloaded, L=Loaded):<br/>'
         for name in all_attempted:
             if name in all_blacklisted:
-                answer+= '[B] %s\n' % name
+                answer+= '[B] %s<br/>' % name
             elif name in all_loaded:
-                answer+= '[L] %s\n' % name
+                answer+= '[L] %s<br/>' % name
             else:
-                answer+= '[E] %s\n' % name
-        answer += '\n\n'
+                answer+= '[E] %s<br/>' % name
+        answer += '<br/><br/>'
         try:
             from posix import getloadavg
-            answer += 'Load %f, %f, %f\n' % getloadavg()
+            answer += 'Load %f, %f, %f<br/>' % getloadavg()
         except Exception as e:
             pass
-        answer += 'Objects Generations    0->%i    1->%i    2->%i\n' % gc.get_count()
+        answer += 'Objects Generations    0->%i    1->%i    2->%i<br/>' % gc.get_count()
         return answer
+
+    @botcmd
+    def echo(self, mess, args):
+        return args
 
     @botcmd
     def uptime(self, mess, args):

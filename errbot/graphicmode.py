@@ -84,7 +84,14 @@ class ConnectionMock(QtCore.QObject):
 
     def send(self, mess):
         if hasattr(mess, 'getBody') and len(mess.getBody()) > 0 and not mess.getBody().isspace():
-            self.newAnswer.emit(mess.getBody())
+            html_content = mess.getTag('html')
+
+            if html_content:
+                body = html_content.getTag('body')
+                answer = ''.join([unicode(kid) for kid in body.kids]) + body.getData()
+            else:
+                answer = mess.getBody()
+            self.newAnswer.emit(answer)
 
 import re
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')

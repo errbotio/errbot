@@ -127,12 +127,12 @@ class JabberBot(object):
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
         """Initializes the jabber bot and sets up commands.
-        
+
         username and password should be clear ;)
-        
+
         If res provided, res will be ressourcename,
         otherwise it defaults to classname of childclass
-        
+
         If debug is True log messages of xmpppy will be printed to console.
         Logging of Jabberbot itself is NOT affected.
 
@@ -145,7 +145,7 @@ class JabberBot(object):
         messages from the same JID that the bot itself has. This
         is useful when using JabberBot with a single Jabber account
         and multiple instances that want to talk to each other.
-        
+
         If handlers are provided, default handlers won't be enabled.
         Usage like: [('stanzatype1', function1), ('stanzatype2', function2)]
         Signature of function should be callback_xx(self, conn, stanza),
@@ -281,7 +281,7 @@ class JabberBot(object):
 
     def join_room(self, room, username=None, password=None):
         """Join the specified multi-user chat room
-        
+
         If username is NOT provided fallback to node part of JID"""
         # TODO fix namespacestrings and history settings
         NS_MUC = 'http://jabber.org/protocol/muc'
@@ -413,13 +413,13 @@ class JabberBot(object):
     def build_message(self, text):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
-        message = None # init message variable
         # Try to determine if text has xhtml-tags - TODO needs improvement
         text_plain = re.sub(r'<br/>', '\n', text)
+        text_plain = re.sub(r'&nbsp;', ' ', text_plain)
         text_plain = re.sub(r'<[^>]+>', '', text_plain)
         message = xmpp.protocol.Message(body=text_plain)
         if text_plain != text:
-            # Start creating a xhtml body
+            print text
             message.addChild(node = XML2Node(text))
         return message
 

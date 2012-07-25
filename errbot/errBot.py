@@ -353,25 +353,14 @@ class ErrBot(JabberBot):
         return 'Plugins unloaded and repo %s removed' % args
 
 
-    @botcmd
+    @botcmd(template='repos')
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
         installed_repos = self.get_installed_plugin_repos()
-        answer = 'Repos (P = Private repo, * = installed): \n'
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
         max_width = max([len(name) for name in all_names])
-        for repo_name in all_names:
-            installed = repo_name in installed_repos
-            public = repo_name in KNOWN_PUBLIC_REPOS
-            aligned_name = repo_name.ljust(max_width)
-            if installed and public:
-                answer += '[* ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
-            elif installed and not public:
-                answer += '[*P] %s %s\n' % (aligned_name, installed_repos[repo_name])
-            elif not installed and public:
-                answer += '[  ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
-        return answer
+        return {'repos':[(repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1] if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name]) for repo_name in all_names]}
 
     @botcmd
     def help(self, mess, args):

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% macro status(name) -%}
+   {% if name == 'L' %}<span style='font-weight:bold; color:green'>L</span>{% elif name == 'E' %}<span style='font-weight:bold; color:red'>E</span>{% elif name == 'B' %}<span style='font-weight:bold'>B</span>{% endif %}
+{%- endmacro %}
+{% block body %}
+<div style="font-family: monospace">
+<p style='margin-top: 0; margin-bottom: 0; font-weight:bold'>Yes I am alive... </p>
+<p style='margin-top: 0; margin-bottom: 0;'>With those plugins ({{status('L')}}=Loaded, {{status('E')}}=Error, {{status('B')}}=Blacklisted/Unloaded) :</p>
+{% for state, name in plugins_statuses %}
+    <p style='margin-top: 0; margin-bottom: 0;'>[{{status(state)}}] {{ name }}</p>
+{% endfor %}
+<p style='margin-top: 10px; margin-bottom: 0;'>
+   Load {{loads[0]}}, {{loads[1]}}, {{loads[2]}}<br/>
+   GC 0->{{gc[0]}} 1->{{gc[1]}} 2->{{gc[2]}}</p>
+</div>
+{% endblock %}

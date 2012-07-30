@@ -80,11 +80,18 @@ class ConnectionMock(QtCore.QObject):
     def __init__(self):
         super(ConnectionMock, self).__init__()
 
-    newAnswer = QtCore.Signal(str)
+    newAnswer = QtCore.Signal(str, bool)
 
     def send(self, mess):
         if hasattr(mess, 'getBody') and len(mess.getBody()) > 0 and not mess.getBody().isspace():
-            self.newAnswer.emit(mess.getBody())
+            html_content = mess.getTag('html')
+
+            if html_content:
+                body = html_content.getTag('body')
+                answer = ''.join([unicode(kid) for kid in body.kids]) + body.getData()
+            else:
+                answer = mess.getBody()
+            self.newAnswer.emit(answer, bool(html_content))
 
 import re
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
@@ -120,13 +127,15 @@ def patch_jabberbot():
         self.callback_message(conn, MessageMock(self.input.text()))
         self.input.clear()
 
-    def htmlify(text, receiving):
-
+    def htmlify(text, is_html, receiving):
+        tag = 'div' if is_html else 'pre'
+        if not is_html:
+            text = linkify(text)
         style = 'background-color : rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);' if receiving else 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
-        return '<pre style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </pre>' % (style, linkify(text))
+        return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (tag, style, text, tag)
 
-    def new_message(self, text, receiving = True):
-        self.buffer += htmlify(text, receiving)
+    def new_message(self, text, is_html, receiving = True):
+        self.buffer += htmlify(text, is_html, receiving)
         self.output.setHtml(self.buffer)
 
     def scroll_output_to_bottom(self):

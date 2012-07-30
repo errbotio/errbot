@@ -35,6 +35,7 @@ from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_pl
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
+from templating import tenv
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
@@ -180,30 +181,32 @@ class ErrBot(JabberBot):
         deactivate_all_plugins()
         logging.info('Bye.')
 
-    @botcmd
+    @botcmd(template = 'status')
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
         """
         all_blacklisted = self.get_blacklisted_plugin()
         all_loaded = get_all_active_plugin_names()
         all_attempted = sorted([p.name for p in self.all_candidates])
-
-        answer = 'Yes I am alive... With those plugins (E=Error, B=Blacklisted/Unloaded, L=Loaded):\n'
+        plugins_statuses = []
         for name in all_attempted:
             if name in all_blacklisted:
-                answer+= '[B] %s\n' % name
+                plugins_statuses.append(('B', name))
             elif name in all_loaded:
-                answer+= '[L] %s\n' % name
+                plugins_statuses.append(('L', name))
             else:
-                answer+= '[E] %s\n' % name
-        answer += '\n\n'
+                plugins_statuses.append(('E', name))
+
         try:
             from posix import getloadavg
-            answer += 'Load %f, %f, %f\n' % getloadavg()
+            loads = getloadavg()
         except Exception as e:
-            pass
-        answer += 'Objects Generations    0->%i    1->%i    2->%i\n' % gc.get_count()
-        return answer
+            loads = None
+        return {'plugins_statuses' : plugins_statuses, 'loads' : loads, 'gc' : gc.get_count()}
+
+    @botcmd
+    def echo(self, mess, args):
+        return args
 
     @botcmd
     def uptime(self, mess, args):
@@ -350,25 +353,14 @@ class ErrBot(JabberBot):
         return 'Plugins unloaded and repo %s removed' % args
 
 
-    @botcmd
+    @botcmd(template='repos')
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
         installed_repos = self.get_installed_plugin_repos()
-        answer = 'Repos (P = Private repo, * = installed): \n'
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
         max_width = max([len(name) for name in all_names])
-        for repo_name in all_names:
-            installed = repo_name in installed_repos
-            public = repo_name in KNOWN_PUBLIC_REPOS
-            aligned_name = repo_name.ljust(max_width)
-            if installed and public:
-                answer += '[* ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
-            elif installed and not public:
-                answer += '[*P] %s %s\n' % (aligned_name, installed_repos[repo_name])
-            elif not installed and public:
-                answer += '[  ] %s %s\n' % (aligned_name, KNOWN_PUBLIC_REPOS[repo_name][1])
-        return answer
+        return {'repos':[(repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1] if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name]) for repo_name in all_names]}
 
     @botcmd
     def help(self, mess, args):

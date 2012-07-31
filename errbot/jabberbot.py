@@ -813,7 +813,12 @@ class JabberBot(object):
         while not self.__finished:
             try:
                 if conn:
-                    conn.Process(1)
+                    try:
+                        conn.Process(1)
+                        if conn._owner.connected == '':
+                          conn = self.connect()
+                    except Exception:
+                        logging.exception("conn.Process exception")
                     self.idle_proc()
                 else:
                     self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)

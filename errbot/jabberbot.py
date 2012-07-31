@@ -816,7 +816,7 @@ class JabberBot(object):
                     try:
                         conn.Process(1)
                         if conn._owner.connected == '':
-                          conn = None
+                          conn = self.connect()
                     except Exception:
                         logging.exception("conn.Process exception")
                     self.idle_proc()

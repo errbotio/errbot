@@ -1,3 +1,5 @@
 include *.rst
 include errbot/builtins/*.plug
+include errbot/*.svg
+include errbot/templates/*.html
 

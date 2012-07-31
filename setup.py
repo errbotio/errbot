@@ -31,7 +31,7 @@ setup(
     packages = find_packages(),
     scripts = ['scripts/err.py'],
 
-    install_requires = ['setuptools', 'xmpppy', 'yapsy', 'python-daemon'],
+    install_requires = ['setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2'],
 
     package_data = {
         '': ['*.txt', '*.rst', '*.plug'],

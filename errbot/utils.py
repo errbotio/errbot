@@ -104,8 +104,36 @@ def which(program):
 
     return None
 
+
 def version2array(version):
     response = [int(el) for el in version.split('.')]
     if len(response) != 3:
         raise Exception('version %s in not in format "x.y.z" for example "1.2.2"' % version)
     return response
+
+
+class ValidationException(Exception):
+    pass
+
+
+def recurse_check_structure(sample, to_check):
+    sample_type = type(sample)
+    to_check_type = type(to_check)
+    if sample_type != to_check_type:
+        raise ValidationException('%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check_type, to_check_type))
+
+    if sample_type in (list, tuple):
+        for element in to_check:
+            recurse_check_structure(sample[0], element)
+        return
+
+    if sample_type == dict:
+        for key in sample:
+            if not to_check.has_key(key):
+                raise ValidationException("%s doesn't contain the key %s" % (to_check, key))
+        for key in to_check:
+            if not sample.has_key(key):
+                raise ValidationException("%s contains an unknown key %s" % (to_check, key))
+        for key in sample:
+            recurse_check_structure(sample[key], to_check[key])
+        return

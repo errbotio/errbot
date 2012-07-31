@@ -1,5 +1,7 @@
+jinja2
 setuptools
 python-daemon
+dnspython
 xmpppy
 yapsy
 configparser

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% macro status(installed, public) -%}
+    [<span style='font-weight:bold;'>{% if installed %}*{% else %} {% endif %}{% if public %}P{% else %} {% endif %}</span>]
+{%- endmacro %}
+{% block body %}
+<div style="font-family: monospace">
+<p style='margin-top: 0; margin-bottom: 0;'>Repos (P = Private repo, * = installed):</p>
+{% for installed, public, name, desc in repos %}
+    <p style='margin-top: 0; margin-bottom: 0; white-space:pre;'>{{status(installed, public)}} {{ name }} {{desc}}</p>
+{% endfor %}
+</div>
+{% endblock %}

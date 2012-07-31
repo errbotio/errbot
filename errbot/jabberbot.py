@@ -33,6 +33,8 @@ import re
 import sys
 import thread
 from xmpp.protocol import NS_CAPS
+from xmpp.simplexml import XML2Node
+from errbot.templating import tenv
 from errbot.utils import get_jid_from_message
 from config import BOT_ADMINS
 
@@ -71,14 +73,16 @@ def botcmd(*args, **kwargs):
     split_args_with : prepare the arguments by splitting them by the given character
     """
 
-    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False, historize = True):
-        setattr(func, '_jabberbot_command', True)
-        setattr(func, '_jabberbot_command_hidden', hidden)
-        setattr(func, '_jabberbot_command_name', name or func.__name__)
-        setattr(func, '_jabberbot_command_split_args_with', split_args_with)
-        setattr(func, '_jabberbot_command_admin_only', admin_only)
-        setattr(func, '_jabberbot_command_historize', historize)
-        setattr(func, '_jabberbot_command_thread', thread) # Experimental!
+    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False, historize = True, template = None):
+        if not hasattr(func, '_jabberbot_command'): # don't override generated functions
+            setattr(func, '_jabberbot_command', True)
+            setattr(func, '_jabberbot_command_hidden', hidden)
+            setattr(func, '_jabberbot_command_name', name or func.__name__)
+            setattr(func, '_jabberbot_command_split_args_with', split_args_with)
+            setattr(func, '_jabberbot_command_admin_only', admin_only)
+            setattr(func, '_jabberbot_command_historize', historize)
+            setattr(func, '_jabberbot_command_thread', thread) # Experimental!
+            setattr(func, '_jabberbot_command_template', template) # Experimental!
         return func
 
     if len(args):
@@ -86,6 +90,10 @@ def botcmd(*args, **kwargs):
     else:
         return lambda func: decorate(func, **kwargs)
 
+
+def is_from_history(mess):
+    props = mess.getProperties()
+    return 'urn:xmpp:delay' in props or xmpp.NS_DELAY in props
 
 class JabberBot(object):
     # Show types for presence
@@ -105,8 +113,9 @@ class JabberBot(object):
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
                          'An unexpected error occurred.'
 
-    PING_FREQUENCY = 0 # Set to the number of seconds, e.g. 60.
+    PING_FREQUENCY = 10 # Set to the number of seconds, e.g. 60.
     PING_TIMEOUT = 2 # Seconds to wait for a response.
+    RETRY_FREQUENCY = 10 # Set to the number of seconds to attempt another connection attempt in case of connectivity loss
 
     MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
     MESSAGE_SIZE_ERROR_MESSAGE = '|<- SNIP ! Message too long.'
@@ -118,12 +127,12 @@ class JabberBot(object):
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
         """Initializes the jabber bot and sets up commands.
-        
+
         username and password should be clear ;)
-        
+
         If res provided, res will be ressourcename,
         otherwise it defaults to classname of childclass
-        
+
         If debug is True log messages of xmpppy will be printed to console.
         Logging of Jabberbot itself is NOT affected.
 
@@ -136,7 +145,7 @@ class JabberBot(object):
         messages from the same JID that the bot itself has. This
         is useful when using JabberBot with a single Jabber account
         and multiple instances that want to talk to each other.
-        
+
         If handlers are provided, default handlers won't be enabled.
         Usage like: [('stanzatype1', function1), ('stanzatype2', function2)]
         Signature of function should be callback_xx(self, conn, stanza),
@@ -228,6 +237,7 @@ class JabberBot(object):
             else:
                 conn = xmpp.Client(self.jid.getDomain(), debug=[])
 
+            conn.UnregisterDisconnectHandler(conn.DisconnectHandler)
             #connection attempt
             self.log.info('Connect attempt')
             conres = conn.connect()
@@ -271,7 +281,7 @@ class JabberBot(object):
 
     def join_room(self, room, username=None, password=None):
         """Join the specified multi-user chat room
-        
+
         If username is NOT provided fallback to node part of JID"""
         # TODO fix namespacestrings and history settings
         NS_MUC = 'http://jabber.org/protocol/muc'
@@ -279,7 +289,7 @@ class JabberBot(object):
         # TODO use xmpppy function getNode
             username = self.__username.split('@')[0]
         my_room_JID = '/'.join((room, username))
-        pres = xmpp.dispatcher.Presence(to=my_room_JID, frm=self.__username + '/bot')
+        pres = xmpp.dispatcher.Presence(to=my_room_JID) #, frm=self.__username + '/bot')
         pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
         t = pres.setTag('x', namespace=NS_MUC)
         if password is not None:
@@ -313,7 +323,7 @@ class JabberBot(object):
         self.log.info(mess)
         self.connect().send(mess)
 
-    def quit(self, return_code):
+    def quit(self, return_code = -1):
         """Stop serving messages and exit.
 
         I find it is handy for development to run the
@@ -403,30 +413,14 @@ class JabberBot(object):
     def build_message(self, text):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
-        message = None # init message variable
         # Try to determine if text has xhtml-tags - TODO needs improvement
-        text_plain = re.sub(r'<[^>]+>', '', text)
+        text_plain = re.sub(r'<br/>', '\n', text)
+        text_plain = re.sub(r'&nbsp;', ' ', text_plain)
+        text_plain = re.sub(r'<[^>]+>', '', text_plain)
+        message = xmpp.protocol.Message(body=text_plain)
         if text_plain != text:
-            # Create body w stripped tags for reciptiens w/o xhtml-abilities
-            # FIXME unescape &quot; etc.
-            message = xmpp.protocol.Message(body=text_plain)
-            # Start creating a xhtml body
-            html = xmpp.Node('html',
-                    {'xmlns': 'http://jabber.org/protocol/xhtml-im'})
-            try:
-                html.addChild(node=xmpp.simplexml.XML2Node(
-                    "<body xmlns='http://www.w3.org/1999/xhtml'>" +\
-                    text.encode('utf-8') + "</body>"))
-                message.addChild(node=html)
-            except Exception, e:
-                # Didn't work, incorrect markup or something.
-                self.log.debug('An error while building a xhtml message. '
-                               'Fallback to normal messagebody')
-                # Fallback - don't sanitize invalid input. User is responsible!
-                message = None
-        if message is None:
-            # Normal body
-            message = xmpp.protocol.Message(body=text)
+            print text
+            message.addChild(node = XML2Node(text))
         return message
 
 
@@ -504,7 +498,18 @@ class JabberBot(object):
             return
 
         if type_ == 'error':
-            self.log.error(presence.getError())
+            error = presence.getTag('error')
+            text = ''
+            if error:
+                text = error.getTag('text')
+                if text:
+                    data = text.getData()
+                    self.log.error('Presence Error: ' + presence.getError() + ' : ' + data)
+                else:
+                    self.log.error('Presence Error: %s' % presence)
+            else:
+                self.log.error('Presence Error: %s' % presence)
+
 
         self.log.debug('Got presence: %s (type: %s, show: %s, status: %s, '\
                        'subscription: %s)' % (jid, type_, show, status, subscription))
@@ -561,12 +566,9 @@ class JabberBot(object):
             self.log.debug("unhandled message type %s" % mess)
             return
 
-        if 'urn:xmpp:delay' in props:
+        if is_from_history(mess):
             self.log.debug("Message from history, ignore it")
             return
-
-        # Ignore messages from before we joined
-        if xmpp.NS_DELAY in props: return
 
         self.log.debug("*** props = %s" % props)
         self.log.debug("*** jid = %s" % jid)
@@ -623,9 +625,14 @@ class JabberBot(object):
         self.log.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
         if cmd:
-            def execute_and_send():
+            def execute_and_send(template_name):
                 try:
                     reply = self.commands[cmd](mess, args)
+
+                    # integrated templating
+                    if template_name:
+                        reply = tenv.get_template(template_name + '.html').render(**reply)
+
                 except Exception, e:
                     self.log.exception('An error happened while processing '\
                                        'a message ("%s") from %s: %s"' %
@@ -652,12 +659,13 @@ class JabberBot(object):
 
             if f._jabberbot_command_split_args_with:
                 args = args.split(f._jabberbot_command_split_args_with)
+
             # Experimental!
             # if command should be executed in a seperate thread do it
             if f._jabberbot_command_thread:
-                thread.start_new_thread(execute_and_send, ())
+                thread.start_new_thread(execute_and_send, (f._jabberbot_command_template,))
             else:
-                execute_and_send()
+                execute_and_send(f._jabberbot_command_template)
         else:
             # In private chat, it's okay for the bot to always respond.
             # In group chat, the bot should silently ignore commands it
@@ -719,7 +727,7 @@ class JabberBot(object):
         else:
             description = ''
             if args in self.commands:
-                usage = (self.commands[args].__doc__ or\
+                usage = (self.commands[args].__doc__ or
                          'undocumented').strip()
             else:
                 usage = self.MSG_HELP_UNDEFINED_COMMAND
@@ -737,25 +745,49 @@ class JabberBot(object):
 
         To enable set self.PING_FREQUENCY to a value higher than zero.
         """
-        if self.PING_FREQUENCY\
-        and time.time() - self.__lastping > self.PING_FREQUENCY:
+        if self.PING_FREQUENCY and time.time() - self.__lastping > self.PING_FREQUENCY:
             self.__lastping = time.time()
             #logging.debug('Pinging the server.')
-            ping = xmpp.Protocol('iq', typ='get',\
+            ping = xmpp.Protocol('iq', typ='get',
                 payload=[xmpp.Node('ping', attrs={'xmlns': 'urn:xmpp:ping'})])
             try:
-                res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
-                #logging.debug('Got response: ' + str(res))
-                if res is None:
-                    self.on_ping_timeout()
-            except IOError, e:
+                if self.conn:
+#Traceback (most recent call last):
+#    File "dockstar-gtalk.py", line 142, in <module>
+#        main()
+#      File "dockstar-gtalk.py", line 93, in main
+#        holder.bot.serve_forever()
+#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 802, in serve_forever
+#        self.idle_proc()
+#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 748, in idle_proc
+#        self._idle_ping()
+#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 762, in _idle_ping
+#        res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
+#      File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 337, in
+#  SendAndWaitForResponse
+#        return self.WaitForResponse(self.send(stanza),timeout)
+#      File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 321, in WaitForResponse
+#        if not self.Process(0.04):
+#            File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 122, in Process
+#                self.Stream.Parse(data)
+#            xml.parsers.expat.ExpatError: mismatched tag: line 1, column 971
+#
+# Got above, hence changed IOError to Exception for futher investigation. Lets see if the domain
+# persists
+                    res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
+                    logging.debug('Got response: ' + str(res))
+                    if res is None:
+                        self.on_ping_timeout()
+                else:
+                    logging.debug('Ping cancelled : No connectivity.')
+            except Exception, e:
                 logging.error('Error pinging the server: %s, '\
                               'treating as ping timeout.' % e)
                 self.on_ping_timeout()
 
     def on_ping_timeout(self):
-        logging.info('Terminating due to PING timeout.')
-        self.quit()
+        logging.warning('Connection ping timeoutted, closing connection')
+        self.conn = None
 
     def shutdown(self):
         """This function will be called when we're done serving
@@ -767,12 +799,12 @@ class JabberBot(object):
 
     def serve_forever(self, connect_callback=None, disconnect_callback=None):
         """Connects to the server and handles messages."""
-        conn = self.connect()
-        if conn:
-            self.log.info('bot connected. serving forever.')
-        else:
-            self.log.warn('could not connect to server - aborting.')
-            exit(-1) # gbin: just quit this thing !
+        conn = None
+        while not self.__finished and not conn:
+            conn = self.connect()
+            if not conn:
+                self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
+                time.sleep(self.RETRY_FREQUENCY)
 
         if connect_callback:
             connect_callback()
@@ -780,11 +812,20 @@ class JabberBot(object):
 
         while not self.__finished:
             try:
-                conn.Process(1)
-                self.idle_proc()
+                if conn:
+                    try:
+                        conn.Process(1)
+                        if conn._owner.connected == '':
+                          conn = None
+                    except Exception:
+                        logging.exception("conn.Process exception")
+                    self.idle_proc()
+                else:
+                    self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)
+                    time.sleep(self.RETRY_FREQUENCY)
+                    conn = self.connect()
             except KeyboardInterrupt:
-                self.log.info('bot stopped by user request. '\
-                              'shutting down.')
+                self.log.info('bot stopped by user request. shutting down.')
                 break
 
         if disconnect_callback:

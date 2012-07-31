@@ -17,21 +17,25 @@
 from ast import literal_eval
 from datetime import datetime
 import inspect
-
+import gc
 import logging
 import os
+
 import shelve
 import shutil
 import subprocess
 import difflib
 from tarfile import TarFile
 from urllib2 import urlopen
+
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 
-from errbot.jabberbot import JabberBot, botcmd
-from errbot.plugin_manager import get_all_active_plugin_names, activate_all_plugins, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException
+from errbot.jabberbot import JabberBot, botcmd, is_from_history
+from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
+from errbot.version import VERSION
+from templating import tenv
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
@@ -46,6 +50,7 @@ class ErrBot(JabberBot):
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     internal_shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
+    startup_time = datetime.now()
 
     # Repo management
     def get_installed_plugin_repos(self):
@@ -55,6 +60,29 @@ class ErrBot(JabberBot):
         repos = self.get_installed_plugin_repos()
         repos[name] = url
         self.internal_shelf['repos'] = repos
+
+    # plugin blacklisting management
+    def get_blacklisted_plugin(self):
+        return self.internal_shelf.get('bl_plugins', [])
+
+    def is_plugin_blacklisted(self, name):
+        return name in self.get_blacklisted_plugin()
+
+    def blacklist_plugin(self, name):
+        if self.is_plugin_blacklisted(name):
+            logging.warning('Plugin %s is already blacklisted' % name)
+            return
+        self.internal_shelf['bl_plugins'] = self.get_blacklisted_plugin() + [name]
+        logging.info('Plugin %s is now blacklisted' % name)
+
+    def unblacklist_plugin(self, name):
+        if not self.is_plugin_blacklisted(name):
+            logging.warning('Plugin %s is not blacklisted' % name)
+            return
+        l = self.get_blacklisted_plugin()
+        l.remove(name)
+        self.internal_shelf['bl_plugins'] = l
+        logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management
     def get_plugin_configuration(self, name):
@@ -70,7 +98,9 @@ class ErrBot(JabberBot):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        return update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        all_candidates, errors = update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        self.all_candidates = all_candidates
+        return errors
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
@@ -84,12 +114,18 @@ class ErrBot(JabberBot):
         if self.jid.bareMatch(get_jid_from_message(mess)):
             logging.debug('Ignore a message from myself')
             return
+
+        # Ignore messages from history
+        if is_from_history(mess):
+            self.log.debug("Message from history, ignore it")
+            return
+
         super(ErrBot, self).callback_message(conn, mess)
         for bot in get_all_active_plugin_objects():
             if hasattr(bot, 'callback_message'):
                 try:
                     bot.callback_message(conn, mess)
-                except:
+                except Exception:
                     logging.exception("Probably a type error")
 
     def warn_admins(self, warning):
@@ -98,8 +134,24 @@ class ErrBot(JabberBot):
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
-        errors = activate_all_plugins(self.internal_shelf['configs'])
+        configs = self.internal_shelf['configs']
+        errors = ''
+        for pluginInfo in get_all_plugins():
+            try:
+                if self.is_plugin_blacklisted(pluginInfo.name):
+                    errors += 'Notice: %s is blacklisted, use !load %s to unblacklist it\n' % (pluginInfo.name, pluginInfo.name)
+                    continue
+                if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
+                    logging.info('Activate plugin %s' % pluginInfo.name)
+                    activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
+            except Exception, e:
+                logging.exception("Error loading %s" % pluginInfo.name)
+                errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name ,e)
         if errors: self.warn_admins(errors)
+        return errors
+
+
+
 
     def signal_connect_to_all_plugins(self):
         for bot in get_all_active_plugin_objects():
@@ -112,7 +164,12 @@ class ErrBot(JabberBot):
     def connect(self):
         if not self.conn:
             self.conn = JabberBot.connect(self)
-            self.activate_non_started_plugins()
+            if not self.conn:
+                logging.warning('Could not connect, deactivating all the plugins')
+                deactivate_all_plugins()
+                return None
+            loading_errors = self.activate_non_started_plugins()
+            logging.info(loading_errors)
             logging.info('Notifying connection to all the plugins...')
             self.signal_connect_to_all_plugins()
             logging.info('Plugin activation done.')
@@ -120,17 +177,36 @@ class ErrBot(JabberBot):
 
     def shutdown(self):
         logging.info('Shutting down... deactivating all the plugins.')
-        deactivate_all_plugins()
         self.internal_shelf.close()
+        deactivate_all_plugins()
         logging.info('Bye.')
 
-    @botcmd
+    @botcmd(template = 'status')
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
         """
-        return 'Yes, I am alive with those plugins :\n' + '\n'.join(get_all_active_plugin_names())
+        all_blacklisted = self.get_blacklisted_plugin()
+        all_loaded = get_all_active_plugin_names()
+        all_attempted = sorted([p.name for p in self.all_candidates])
+        plugins_statuses = []
+        for name in all_attempted:
+            if name in all_blacklisted:
+                plugins_statuses.append(('B', name))
+            elif name in all_loaded:
+                plugins_statuses.append(('L', name))
+            else:
+                plugins_statuses.append(('E', name))
 
-    startup_time = datetime.now()
+        try:
+            from posix import getloadavg
+            loads = getloadavg()
+        except Exception as e:
+            loads = None
+        return {'plugins_statuses' : plugins_statuses, 'loads' : loads, 'gc' : gc.get_count()}
+
+    @botcmd
+    def echo(self, mess, args):
+        return args
 
     @botcmd
     def uptime(self, mess, args):
@@ -179,11 +255,15 @@ class ErrBot(JabberBot):
         return "I'm restarting..."
 
     def activate_plugin(self, name):
-        if name in get_all_active_plugin_names():
-            return "Plugin already in active list"
-        if name not in get_all_plugin_names():
-            return "I don't know this %s plugin" % name
-        activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+        try:
+            if name in get_all_active_plugin_names():
+                return "Plugin already in active list"
+            if name not in get_all_plugin_names():
+                return "I don't know this %s plugin" % name
+            activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+        except Exception, e:
+            logging.exception("Error loading %s" % name)
+            return '%s failed to start : %s\n' % (name ,e)
         return "Plugin %s activated" % name
 
     def deactivate_plugin(self, name):
@@ -195,17 +275,22 @@ class ErrBot(JabberBot):
     @botcmd(admin_only = True)
     def load(self, mess, args):
         """load a plugin"""
+        self.unblacklist_plugin(args)
         return self.activate_plugin(args)
 
     @botcmd(admin_only = True)
     def unload(self, mess, args):
         """unload a plugin"""
-        result = self.deactivate_plugin(args)
-        return result
+        if args not in get_all_active_plugin_names():
+            return '%s in not active' % args
+        self.blacklist_plugin(args)
+        return self.deactivate_plugin(args)
 
     @botcmd(admin_only = True)
     def reload(self, mess, args):
         """reload a plugin"""
+        if self.is_plugin_blacklisted(args):
+            self.unblacklist_plugin(args)
         result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))
         return result
 
@@ -268,20 +353,14 @@ class ErrBot(JabberBot):
         return 'Plugins unloaded and repo %s removed' % args
 
 
-    @botcmd
+    @botcmd(template='repos')
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
-        max_width = max([len(name) for name,(_,_) in KNOWN_PUBLIC_REPOS.iteritems()])
-        answer = 'Public repos : \n' + '\n'.join(['%s  %s'%(name.ljust(max_width), desc) for name,(url,desc) in KNOWN_PUBLIC_REPOS.iteritems()])
-        answer += '\n' + '-'* 40 + '\n\nInstalled repos :\n'
-        repos = self.get_installed_plugin_repos()
-        if not len(repos):
-            answer += 'No plugin repo has been installed, use !install to add one.'
-            return answer
-        max_width = max([len(item[0]) for item in repos.iteritems()])
-        answer+= '\n'.join(['%s -> %s' % (item[0].ljust(max_width), item[1]) for item in repos.iteritems()])
-        return answer
+        installed_repos = self.get_installed_plugin_repos()
+        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
+        max_width = max([len(name) for name in all_names])
+        return {'repos':[(repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1] if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name]) for repo_name in all_names]}
 
     @botcmd
     def help(self, mess, args):
@@ -313,6 +392,44 @@ class ErrBot(JabberBot):
         top = self.top_of_help_message()
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
+
+    @botcmd
+    def about(self, mess, args):
+        """   Returns some information about this err instance"""
+
+        result = 'Err version %s \n\n' % VERSION
+        result += 'Authors: Mondial Telecom, Guillaume BINET, Tali PETROVER, Ben VAN DAELE, Paul LABEDAN and others.\n\n'
+        return result
+
+    @botcmd
+    def apropos(self, mess, args):
+        """   Returns a help string listing available options.
+
+        Automatically assigned to the "help" command."""
+        if not args:
+            return 'Usage: !apropos search_term'
+
+        description = 'Available commands:\n'
+
+        clazz_commands = {}
+        for (name, command) in self.commands.iteritems():
+            clazz = get_class_that_defined_method(command)
+            commands = clazz_commands.get(clazz, [])
+            commands.append((name, command))
+            clazz_commands[clazz] = commands
+
+        usage = ''
+        for clazz in sorted(clazz_commands):
+            usage += '\n'.join(sorted([
+            '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
+                                '(undocumented)').strip().split('\n', 1)[0])
+            for (name, command) in clazz_commands[clazz] if args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower() and name != 'help' and not command._jabberbot_command_hidden
+            ]))
+        usage += '\n\n'
+
+        top = self.top_of_help_message()
+        bottom = self.bottom_of_help_message()
+        return ''.join(filter(None, [top, description, usage, bottom])).strip()
 
     @botcmd(split_args_with = ' ', admin_only = True)
     def update(self, mess, args):
@@ -346,6 +463,9 @@ class ErrBot(JabberBot):
             err = p.stderr.read().strip()
             if err:
                 feedback += err + '\n' + '-'*50 + '\n'
+            dep_err = check_dependencies(d)
+            if dep_err:
+                feedback += dep_err + '\n'
             if p.wait():
                 self.send(mess.getFrom(), "Update of %s failed...\n\n%s\n\n resuming..." % (d,feedback) , message_type=mess.getType())
             else:
@@ -353,14 +473,15 @@ class ErrBot(JabberBot):
                 if not core_to_update:
                     for plugin in get_all_plugins():
                         if plugin.path.startswith(d) and hasattr(plugin,'is_activated') and plugin.is_activated:
-                            self.send(mess.getFrom(), '/me is reloading plugin %s' % plugin.name)
+                            name = plugin.name
+                            self.send(mess.getFrom(), '/me is reloading plugin %s' % name)
                             self.deactivate_plugin(plugin.name)                     # calm the plugin down
                             module = __import__(plugin.path.split(os.sep)[-1]) # find back the main module of the plugin
                             reload(module)                                     # reload it
                             class_name = type(plugin.plugin_object).__name__   # find the original name of the class
                             newclass = getattr(module, class_name)             # retreive the corresponding new class
                             plugin.plugin_object.__class__ = newclass          # BAM, declare the instance of the new type
-                            self.activate_plugin(plugin.name)                       # wake the plugin up
+                            self.activate_plugin(plugin.name)                  # wake the plugin up
         if core_to_update:
             self.restart(mess, '')
             return "You have updated the core, I need to restart."
@@ -382,6 +503,8 @@ class ErrBot(JabberBot):
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
         plugin_name = args[0]
+        if self.is_plugin_blacklisted(plugin_name):
+            return 'Load this plugin first with !load %s' % plugin_name
         obj = get_plugin_obj_by_name(plugin_name)
         if obj is None:
             return 'Unknown plugin or the plugin could not load %s' % plugin_name

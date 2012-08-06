@@ -416,10 +416,9 @@ class JabberBot(object):
         # Try to determine if text has xhtml-tags - TODO needs improvement
         text_plain = re.sub(r'<br/>', '\n', text)
         text_plain = re.sub(r'&nbsp;', ' ', text_plain)
-        text_plain = re.sub(r'<[^>]+>', '', text_plain)
+        text_plain = re.sub(r'<[^>]+>', '', text_plain).strip()
         message = xmpp.protocol.Message(body=text_plain)
         if text_plain != text:
-            print text
             message.addChild(node = XML2Node(text))
         return message
 

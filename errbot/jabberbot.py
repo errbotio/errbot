@@ -414,16 +414,17 @@ class JabberBot(object):
     def build_message(self, text):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
-        # Try to determine if text has xhtml-tags - TODO needs improvement
-        text_plain = re.sub(r'<br/>', '\n', text)
-        text_plain = re.sub(r'&nbsp;', ' ', text_plain)
-        text_plain = re.sub(r'<[^>]+>', '', text_plain).strip()
-        message = xmpp.protocol.Message(body=text_plain)
-        if text_plain != text:
-            try:
-                message.addChild(node = XML2Node(text))
-            except ExpatError as ee:
-                logging.warning("Message [%s] is not correctly formed XML or has been incorrectly detected as XML, I will send only the text version" % text)
+        try:
+            node = XML2Node(text) # test first if it is XML
+            #logging.debug('This message is XML : %s' % text)
+            text_plain = re.sub(r'<br/>', '\n', text)
+            text_plain = re.sub(r'&nbsp;', ' ', text_plain)
+            text_plain = re.sub(r'<[^>]+>', '', text_plain).strip()
+            message = xmpp.protocol.Message(body=text_plain)
+            message.addChild(node = node)
+        except ExpatError as ee:
+            #logging.debug('This message is pure Text : %s' % text)
+            message = xmpp.protocol.Message(body=text)
         return message
 
 

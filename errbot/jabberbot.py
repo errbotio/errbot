@@ -36,7 +36,7 @@ from pyexpat import ExpatError
 from xmpp.protocol import NS_CAPS
 from xmpp.simplexml import XML2Node
 from errbot.templating import tenv
-from errbot.utils import get_jid_from_message
+from errbot.utils import get_jid_from_message, unescape_xml
 from config import BOT_ADMINS
 
 from utils import get_sender_username
@@ -415,15 +415,17 @@ class JabberBot(object):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
         try:
-            node = XML2Node(text) # test first if it is XML
-            #logging.debug('This message is XML : %s' % text)
-            text_plain = re.sub(r'<br/>', '\n', text)
-            text_plain = re.sub(r'&nbsp;', ' ', text_plain)
-            text_plain = re.sub(r'<[^>]+>', '', text_plain).strip()
+            node = XML2Node(text)
+            # logging.debug('This message is XML : %s' % text)
+            text_plain = re.sub(r'\n', '', text) # Ignore formatting TODO exclude pre
+            text_plain = re.sub(r'</p>|</li>|<br/>', '\n', text_plain, flags=re.I) # readd the \n where they probably fit best
+            text_plain = re.sub(r'<[^>]+>', '', text_plain) # zap every tag left
+            text_plain = unescape_xml(text_plain).strip() # converts all the &blah;, unicode etc ..
+            logging.debug('Plain Text translation from XTML-IM:\n%s' % text_plain)
             message = xmpp.protocol.Message(body=text_plain)
             message.addChild(node = node)
         except ExpatError as ee:
-            #logging.debug('This message is pure Text : %s' % text)
+            logging.debug('Could not parse [%s] as XTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
             message = xmpp.protocol.Message(body=text)
         return message
 

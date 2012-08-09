@@ -421,11 +421,12 @@ class JabberBot(object):
             text_plain = re.sub(r'</p>|</li>|<br/>', '\n', text_plain, flags=re.I) # readd the \n where they probably fit best
             text_plain = re.sub(r'<[^>]+>', '', text_plain) # zap every tag left
             text_plain = unescape_xml(text_plain).strip() # converts all the &blah;, unicode etc ..
-            logging.debug('Plain Text translation from XTML-IM:\n%s' % text_plain)
+            logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
             message = xmpp.protocol.Message(body=text_plain)
             message.addChild(node = node)
         except ExpatError as ee:
-            logging.debug('Could not parse [%s] as XTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
+            if text.strip(): # avoids keep alive pollution
+                logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
             message = xmpp.protocol.Message(body=text)
         return message
 

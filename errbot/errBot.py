@@ -81,6 +81,7 @@ class ErrBot(JabberBot):
         l = self.get_blacklisted_plugin()
         l.remove(name)
         self.internal_shelf['bl_plugins'] = l
+        self.internal_shelf.sync()
         logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management

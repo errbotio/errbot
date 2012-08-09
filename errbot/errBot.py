@@ -35,7 +35,6 @@ from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_pl
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
-from templating import tenv
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 

@@ -32,6 +32,7 @@ import os
 import re
 import sys
 import thread
+from pyexpat import ExpatError
 from xmpp.protocol import NS_CAPS
 from xmpp.simplexml import XML2Node
 from errbot.templating import tenv
@@ -419,7 +420,10 @@ class JabberBot(object):
         text_plain = re.sub(r'<[^>]+>', '', text_plain).strip()
         message = xmpp.protocol.Message(body=text_plain)
         if text_plain != text:
-            message.addChild(node = XML2Node(text))
+            try:
+                message.addChild(node = XML2Node(text))
+            except ExpatError as ee:
+                logging.warning("Message [%s] is not correctly formed XML or has been incorrectly detected as XML, I will send only the text version" % text)
         return message
 
 
@@ -630,7 +634,7 @@ class JabberBot(object):
 
                     # integrated templating
                     if template_name:
-                        reply = tenv.get_template(template_name + '.html').render(**reply)
+                        reply = tenv().get_template(template_name + '.html').render(**reply)
 
                 except Exception, e:
                     self.log.exception('An error happened while processing '\

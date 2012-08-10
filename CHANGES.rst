@@ -4,6 +4,7 @@ Release history
 Version 1.5.0 (2012-08-10)
 --------------------------
 Bugs:
+
 - fix for ExpatError exception handling [Thx to linux techie https://github.com/linuxtechie]
 - Graphic mode cosmetics enhancement [thx to Paul Labedan https://github.com/pol51]
 - fix for high CPU usage  [Thx to linux techie https://github.com/linuxtechie]

@@ -1,13 +1,25 @@
 Release history
 ===============
 
-Version 1.4.2 (2012-07-)
+Version 1.5.0 (2012-08-10)
 --------------------------
+Bugs:
+- fix for ExpatError exception handling [Thx to linux techie https://github.com/linuxtechie]
+- Graphic mode cosmetics enhancement [thx to Paul Labedan https://github.com/pol51]
+- fix for high CPU usage  [Thx to linux techie https://github.com/linuxtechie]
+
 Features:
 
+- Added XHTML-IM support with Jinja2 templating see https://github.com/gbin/err/wiki/xhtml-im-templating to get started.
 - Better presentation on the !repos command
 - load / unload of plugins is now persistent (they are blacklisted when unloaded)
 - Better presentation of the !status command : Now you can see loaded, blacklisted and Erroneous plugins from there
+- A new !about command with some credits and the current version
+- Implemented the history navigation in the graphic test mode (up and down)
+- Added an autocomplete in the graphic test mode
+- Added the logo in the background of the graphic mode
+
+
 
 Version 1.4.1 (2012-07-13)
 --------------------------

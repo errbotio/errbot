@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 1.5.1 (2012-08-11)
+--------------------------
+Bugs:
+
+- the pypi package was not deploying html templates
+
 Version 1.5.0 (2012-08-10)
 --------------------------
 Bugs:

@@ -34,7 +34,7 @@ setup(
     install_requires = ['setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2'],
 
     package_data = {
-        '': ['*.txt', '*.rst', '*.plug'],
+        '': ['*.txt', '*.rst', '*.plug', '*.html'],
     },
 
     author = "Guillaume BINET",

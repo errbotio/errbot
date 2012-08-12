@@ -1,3 +1,4 @@
+flask
 jinja2
 setuptools
 python-daemon

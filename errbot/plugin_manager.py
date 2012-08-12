@@ -3,6 +3,7 @@ import logging
 import sys, os
 from errbot.botplugin import BotPlugin
 from errbot.utils import version2array
+from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
 from errbot.version import VERSION
 from config import BOT_EXTRA_PLUGIN_DIR
 
@@ -62,9 +63,21 @@ def activate_plugin_with_version_check(name, config):
         logging.exception('Something is wrong with the configuration of the plugin %s' % name)
         obj.config = None
         raise PluginConfigurationException(str(e))
+    add_plugin_templates_path(pta_item.path)
+    try:
+        return simplePluginManager.activatePluginByName(name, "bots")
+    except Exception as e:
+        remove_plugin_templates_path(pta_item.path)
+        raise
 
-    return simplePluginManager.activatePluginByName(name, "bots")
-
+def deactivatePluginByName(name):
+    pta_item = simplePluginManager.getPluginByName(name, 'bots')
+    remove_plugin_templates_path(pta_item.path)
+    try:
+        return simplePluginManager.deactivatePluginByName(name, "bots")
+    except Exception as e:
+        add_plugin_templates_path(pta_item.path)
+        raise
 
 def update_plugin_places(list):
     for entry in chain(BUILTINS, list):
@@ -95,10 +108,6 @@ def get_all_active_plugin_names():
 
 def get_all_plugin_names():
     return map(lambda p: p.name, simplePluginManager.getAllPlugins())
-
-def deactivatePluginByName(name):
-    return simplePluginManager.deactivatePluginByName(name, "bots")
-
 
 def deactivate_all_plugins():
     for name in get_all_active_plugin_names():

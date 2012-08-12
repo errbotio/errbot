@@ -35,7 +35,6 @@ from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_pl
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
-from templating import tenv
 
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
@@ -82,6 +81,7 @@ class ErrBot(JabberBot):
         l = self.get_blacklisted_plugin()
         l.remove(name)
         self.internal_shelf['bl_plugins'] = l
+        self.internal_shelf.sync()
         logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management
@@ -198,6 +198,8 @@ class ErrBot(JabberBot):
                 plugins_statuses.append(('B', name))
             elif name in all_loaded:
                 plugins_statuses.append(('L', name))
+            elif get_plugin_obj_by_name(name) and get_plugin_obj_by_name(name).get_configuration_template() and not self.get_plugin_configuration(name):
+                plugins_statuses.append(('C', name))
             else:
                 plugins_statuses.append(('E', name))
 

@@ -32,10 +32,11 @@ import os
 import re
 import sys
 import thread
+from pyexpat import ExpatError
 from xmpp.protocol import NS_CAPS
 from xmpp.simplexml import XML2Node
 from errbot.templating import tenv
-from errbot.utils import get_jid_from_message
+from errbot.utils import get_jid_from_message, unescape_xml
 from config import BOT_ADMINS
 
 from utils import get_sender_username
@@ -413,14 +414,20 @@ class JabberBot(object):
     def build_message(self, text):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
-        # Try to determine if text has xhtml-tags - TODO needs improvement
-        text_plain = re.sub(r'<br/>', '\n', text)
-        text_plain = re.sub(r'&nbsp;', ' ', text_plain)
-        text_plain = re.sub(r'<[^>]+>', '', text_plain)
-        message = xmpp.protocol.Message(body=text_plain)
-        if text_plain != text:
-            print text
-            message.addChild(node = XML2Node(text))
+        try:
+            node = XML2Node(text)
+            # logging.debug('This message is XML : %s' % text)
+            text_plain = re.sub(r'\n', '', text) # Ignore formatting TODO exclude pre
+            text_plain = re.sub(r'</p>|</li>|<br/>', '\n', text_plain, flags=re.I) # readd the \n where they probably fit best
+            text_plain = re.sub(r'<[^>]+>', '', text_plain) # zap every tag left
+            text_plain = unescape_xml(text_plain).strip() # converts all the &blah;, unicode etc ..
+            logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
+            message = xmpp.protocol.Message(body=text_plain)
+            message.addChild(node = node)
+        except ExpatError as ee:
+            if text.strip(): # avoids keep alive pollution
+                logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
+            message = xmpp.protocol.Message(body=text)
         return message
 
 
@@ -631,7 +638,7 @@ class JabberBot(object):
 
                     # integrated templating
                     if template_name:
-                        reply = tenv.get_template(template_name + '.html').render(**reply)
+                        reply = tenv().get_template(template_name + '.html').render(**reply)
 
                 except Exception, e:
                     self.log.exception('An error happened while processing '\

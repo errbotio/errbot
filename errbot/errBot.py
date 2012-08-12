@@ -194,6 +194,8 @@ class ErrBot(JabberBot):
                 plugins_statuses.append(('B', name))
             elif name in all_loaded:
                 plugins_statuses.append(('L', name))
+            elif get_plugin_obj_by_name(name).get_configuration_template() and not self.get_plugin_configuration(name):
+                plugins_statuses.append(('C', name))
             else:
                 plugins_statuses.append(('E', name))
 

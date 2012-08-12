@@ -13,13 +13,13 @@ def unicode_filter(key):
         return key.encode('utf-8')
     return key
 
-
 class BotPluginBase(object, UserDict.DictMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot
     """
     is_activated = False
+
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
     def __getitem__(self, key):

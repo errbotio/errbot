@@ -163,7 +163,11 @@ class ErrBot(JabberBot):
 
     def connect(self):
         if not self.conn:
-            self.conn = JabberBot.connect(self)
+            try:
+                self.conn = JabberBot.connect(self)
+            except Exception:
+                logging.exception("Exception occurred while connecting!")
+                self.conn = None
             if not self.conn:
                 logging.warning('Could not connect, deactivating all the plugins')
                 deactivate_all_plugins()

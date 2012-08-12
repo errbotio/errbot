@@ -2,6 +2,8 @@ from inspect import getmembers, ismethod
 import logging
 from threading import Thread
 from errbot import holder
+import simplejson
+from simplejson.decoder import JSONDecodeError
 from errbot.botplugin import BotPlugin
 from errbot.version import VERSION
 from flask.views import View
@@ -13,14 +15,23 @@ from errbot.jabberbot import botcmd
 OK = Response()
 
 class WebView(View):
-    def __init__(self, func):
+    def __init__(self, func, form_param):
         self.func = func
+        self.form_param = form_param
 
     def dispatch_request(self):
         for obj in get_all_active_plugin_objects(): # horrible hack to find back the bound method from the unbound function the decorator was able to give us
             for name, method in getmembers(obj, ismethod):
                 if method.im_func.__name__ == self.func.__name__: # FIXME : add a fully qualified name here
-                    response = self.func(obj, request.json if request.json else request.data) # flask will find out automagically if it is a JSON structure
+                    if self.form_param:
+                        content = request.form[self.form_param]
+                        try:
+                            content = simplejson.loads(content)
+                        except JSONDecodeError:
+                            logging.debug('The form parameter is not JSON, return it as a string')
+                        response = self.func(obj, content)
+                    else:
+                        response = self.func(obj, request.json if request.json else request.data) # flask will find out automagically if it is a JSON structure
                     return response if response else OK # assume None as an OK response (simplifies the client side)
 
         raise Exception('Problem finding back the correct Handlerfor func %s', self.func)
@@ -29,15 +40,15 @@ def webhook(*args, **kwargs):
         Simple shortcut for the plugins to be notified on webhooks
     """
     logging.info("webhooks:  Bind %s to %s" % (args, kwargs))
-    def decorate(method, uri_rule, methods=('POST',)):
+    def decorate(method, uri_rule, methods=('POST',), form_param = None):
         logging.info("decorate:  Bind %s to %s" % (uri_rule, method.__name__))
 
         for rule in holder.flask_app.url_map._rules:
             if rule.rule == uri_rule:
-                holder.flask_app.view_functions[rule.endpoint] = WebView.as_view(method.__name__, method) # in case of reload just update the view fonction reference
+                holder.flask_app.view_functions[rule.endpoint] = WebView.as_view(method.__name__, method, form_param) # in case of reload just update the view fonction reference
                 return method
 
-        holder.flask_app.add_url_rule(uri_rule, view_func=WebView.as_view(method.__name__, method), methods = methods)
+        holder.flask_app.add_url_rule(uri_rule, view_func=WebView.as_view(method.__name__, method, form_param), methods = methods)
         return method
 
     if not len(args):

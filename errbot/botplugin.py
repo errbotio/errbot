@@ -19,6 +19,7 @@ class BotPluginBase(object, UserDict.DictMixin):
      It is the main contract between the plugins and the bot
     """
     is_activated = False
+    shelf = {} # avoids crashes on the dictmixin when the plugin is not active
 
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin

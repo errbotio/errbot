@@ -4,36 +4,40 @@ from threading import Thread
 from errbot import holder
 from errbot.botplugin import BotPlugin
 from errbot.version import VERSION
-from flask.app import Flask
 from flask.views import View
 from flask import request
-from werkzeug.exceptions import abort
+from flask import Response
 from werkzeug.serving import ThreadedWSGIServer
 from errbot.plugin_manager import get_all_active_plugin_objects
-
-flask_app = Flask(__name__)
+from errbot.jabberbot import botcmd
+OK = Response()
 
 class WebView(View):
-    methods = ['POST', 'HEAD', 'OPTIONS', 'GET'] # this is static !! so I need to refilter again manually
-
-    def __init__(self, func, accept_methods=('POST',)):
-        self.accept_methods = accept_methods
+    def __init__(self, func):
         self.func = func
 
     def dispatch_request(self):
-        if request.method not in self.accept_methods: # this is so idiotic
-            abort(405)
         for obj in get_all_active_plugin_objects(): # horrible hack to find back the bound method from the unbound function the decorator was able to give us
             for name, method in getmembers(obj, ismethod):
-                if method.im_func == self.func:
-                    return self.func(obj, request.json if request.json else request.data) # flask will find out automagically if it is a JSON structure
+                if method.im_func.__name__ == self.func.__name__: # FIXME : add a fully qualified name here
+                    response = self.func(obj, request.json if request.json else request.data) # flask will find out automagically if it is a JSON structure
+                    return response if response else OK # assume None as an OK response (simplifies the client side)
 
+        raise Exception('Problem finding back the correct Handlerfor func %s', self.func)
 def webhook(*args, **kwargs):
     """
         Simple shortcut for the plugins to be notified on webhooks
     """
+    logging.info("webhooks:  Bind %s to %s" % (args, kwargs))
     def decorate(method, uri_rule, methods=('POST',)):
-        flask_app.add_url_rule(uri_rule, view_func=WebView.as_view(method.__name__, method, accept_methods=methods))
+        logging.info("decorate:  Bind %s to %s" % (uri_rule, method.__name__))
+
+        for rule in holder.flask_app.url_map._rules:
+            if rule.rule == uri_rule:
+                holder.flask_app.view_functions[rule.endpoint] = WebView.as_view(method.__name__, method) # in case of reload just update the view fonction reference
+                return method
+
+        holder.flask_app.add_url_rule(uri_rule, view_func=WebView.as_view(method.__name__, method), methods = methods)
         return method
 
     if not len(args):
@@ -53,7 +57,7 @@ class Webserver(BotPlugin):
             host = self.config['HOST']
             port = self.config['PORT']
             logging.info('Starting the webserver on %s:%i' % (host, port))
-            self.server = ThreadedWSGIServer(host, port, flask_app)
+            self.server = ThreadedWSGIServer(host, port, holder.flask_app)
             self.server.serve_forever()
             logging.debug('Webserver stopped')
         except Exception as e:
@@ -67,7 +71,7 @@ class Webserver(BotPlugin):
             logging.info('Webserver is not configured. Forbid activation')
             return
         if self.config['EXTRA_FLASK_CONFIG']:
-            flask_app.config.update(self.config['EXTRA_FLASK_CONFIG'])
+            holder.flask_app.config.update(self.config['EXTRA_FLASK_CONFIG'])
         if self.webserver_thread:
             raise Exception('Invalid state, you should not have a webserver already running.')
         self.webserver_thread = Thread(target=self.run_webserver)
@@ -84,9 +88,13 @@ class Webserver(BotPlugin):
         self.server = None
         super(Webserver, self).deactivate()
 
-    #@webhook(r'/test/')
-    #def test(self, incoming_request):
-    #    logging.debug(type(incoming_request))
-    #    logging.debug(str(incoming_request))
-    #    return str(holder.bot.status(None, None))
+    @botcmd
+    def webstatus(self, mess, args):
+        return '\n'.join((rule.rule + "->" + rule.endpoint for rule in holder.flask_app.url_map.iter_rules()))
+
+    @webhook(r'/test/')
+    def test_method(self, incoming_request):
+        logging.debug(type(incoming_request))
+        logging.debug(str(incoming_request))
+        return str(holder.bot.status(None, None))
 

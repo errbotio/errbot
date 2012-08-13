@@ -118,6 +118,15 @@ class Webserver(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def webhook_test(self, mess, args):
+        """
+            Test your webhooks from within err.
+
+        The syntax is :
+        !webhook test [name of the endpoint] [post content]
+
+        It triggers the notification and generate also a little test report.
+        You can get the list of the currently deployed endpoints with !webstatus
+        """
         endpoint = args[0]
         content = ' '.join(args[1:])
         for rule in  holder.flask_app.url_map.iter_rules():

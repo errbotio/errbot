@@ -39,9 +39,8 @@ def webhook(*args, **kwargs):
     """
         Simple shortcut for the plugins to be notified on webhooks
     """
-    logging.info("webhooks:  Bind %s to %s" % (args, kwargs))
     def decorate(method, uri_rule, methods=('POST',), form_param = None):
-        logging.info("decorate:  Bind %s to %s" % (uri_rule, method.__name__))
+        logging.info("webhooks:  Bind %s to %s" % (uri_rule, method.__name__))
 
         for rule in holder.flask_app.url_map._rules:
             if rule.rule == uri_rule:
@@ -51,9 +50,10 @@ def webhook(*args, **kwargs):
         holder.flask_app.add_url_rule(uri_rule, view_func=WebView.as_view(method.__name__, method, form_param), methods = methods)
         return method
 
-    if not len(args):
-        raise Exception('You need to at least pass the uri rule pattern you webhook will answer to')
-    return lambda method: decorate(method, args[0], **kwargs)
+    if isinstance(args[0], basestring):
+        return lambda method: decorate(method, args[0], **kwargs)
+    return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)
+
 
 
 class Webserver(BotPlugin):
@@ -103,9 +103,9 @@ class Webserver(BotPlugin):
     def webstatus(self, mess, args):
         return '\n'.join((rule.rule + "->" + rule.endpoint for rule in holder.flask_app.url_map.iter_rules()))
 
-    @webhook(r'/test/')
-    def test_method(self, incoming_request):
-        logging.debug(type(incoming_request))
-        logging.debug(str(incoming_request))
-        return str(holder.bot.status(None, None))
+    #@webhook(r'/zourby/')
+    #def test(self, incoming_request):
+    #    logging.debug(type(incoming_request))
+    #    logging.debug(str(incoming_request))
+    #    return str(holder.bot.status(None, None))
 

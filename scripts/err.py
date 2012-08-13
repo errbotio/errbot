@@ -17,6 +17,8 @@
 import logging
 from os import path, access, makedirs, sep, getcwd, W_OK
 from platform import system
+from errbot.utils import PLUGINS_SUBDIR
+
 ON_WINDOWS = system() == 'Windows'
 import sys
 import argparse
@@ -54,15 +56,14 @@ def check_config(config_path):
     logging.info('Config check passed...')
 
 
-def main():
+
+def main(bot_class):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
-    from errbot.utils import PLUGINS_SUBDIR
-    from errbot.errBot import ErrBot
+
+    #from errbot.errBot import ErrBot
     from errbot import holder
     from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
-
-    holder.bot = ErrBot(**BOT_IDENTITY)
 
     if BOT_LOG_FILE:
         hdlr = logging.FileHandler(BOT_LOG_FILE)
@@ -81,6 +82,7 @@ def main():
     if not path.exists(d):
         makedirs(d, mode=0755)
 
+    holder.bot = bot_class(**BOT_IDENTITY)
     errors = holder.bot.update_dynamic_plugins()
     if errors:
         logging.error('Some plugins failed to load:\n' + '\n'.join(errors))
@@ -108,6 +110,17 @@ if __name__ == "__main__":
     sys.path.append(config_path) # appends the current directory in order to find config.py
     check_config(config_path) # check if everything is ok before attempting to start
 
+
+    if args['test']:
+        from errbot.backends.testmode import TextBackend
+        bot_class = TextBackend
+    elif args['graphic']:
+        from errbot.backends.graphicmode import GraphicBackend
+        bot_class = GraphicBackend
+    else:
+        from errbot.backends.jabberbot import JabberBot
+        bot_class = JabberBot
+
     if (not ON_WINDOWS) and args['daemon']:
         if args['test']:
             raise Exception('You cannot run in test and daemon mode at the same time')
@@ -127,24 +140,10 @@ if __name__ == "__main__":
         try:
             with daemon.DaemonContext(detach_process=True, working_directory=getcwd(), pidfile=pidfile, uid=uid,
                                       gid=gid): # put the initial working directory to be sure not to lost it after daemonization
-                main()
+                main(bot_class)
         except:
             logging.exception('Failed to daemonize the process')
 
-    if args['test']:
-        # Sets a minimal logging on the console for the critical config errors
-        from errbot.testmode import patch_jabberbot
 
-        patch_jabberbot()
-
-    if args['graphic']:
-        # Sets a minimal logging on the console for the critical config errors
-        try:
-            from errbot.graphicmode import patch_jabberbot
-            patch_jabberbot()
-        except ImportError as ie:
-            logging.error('You need to install the package "pyside" to be able to use the graphical test console\n\n%s' % ie)
-            exit(-31)
-
-    main()
+    main(bot_class)
     logging.info('Process exiting')

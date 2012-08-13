@@ -1,6 +1,7 @@
 import logging
 import sys
 from errbot.backends.base import Backend, Identifier, Message
+from errbot.errBot import ErrBot
 
 class ConnectionMock():
     def send(self, mess):
@@ -8,7 +9,7 @@ class ConnectionMock():
 
 ENCODING_INPUT = sys.stdin.encoding
 
-class TextBackend(Backend):
+class TextBackend(ErrBot):
     conn = ConnectionMock()
 
     def serve_forever(self, connect_callback=None, disconnect_callback=None):
@@ -42,5 +43,5 @@ class TextBackend(Backend):
         return Message(text)
 
     def shutdown(self):
-        pass
+        super(TextBackend, self).shutdown()
 

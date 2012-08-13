@@ -33,10 +33,9 @@ import re
 from pyexpat import ExpatError
 from xmpp.protocol import NS_CAPS
 from xmpp.simplexml import XML2Node
+from errbot.errBot import ErrBot
 
 from errbot.utils import unescape_xml, get_jid_from_message
-
-from base import Backend
 
 import xmpp
 import time
@@ -54,7 +53,7 @@ def is_from_history(mess):
     props = mess.getProperties()
     return 'urn:xmpp:delay' in props or xmpp.NS_DELAY in props
 
-class JabberBot(Backend):
+class JabberBot(ErrBot):
     # Show types for presence
     AVAILABLE, AWAY, CHAT = None, 'away', 'chat'
     DND, XA, OFFLINE = 'dnd', 'xa', 'unavailable'
@@ -557,7 +556,7 @@ class JabberBot(Backend):
         """
         pass
 
-    def serve_forever(self, connect_callback=None, disconnect_callback=None):
+    def serve_forever(self):
         """Connects to the server and handles messages."""
         conn = None
         while not self.__finished and not conn:
@@ -566,8 +565,8 @@ class JabberBot(Backend):
                 self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
                 time.sleep(self.RETRY_FREQUENCY)
 
-        if connect_callback:
-            connect_callback()
+
+        self.connect_callback() # notify that the connection occured
         self.__lastping = time.time()
 
         while not self.__finished:
@@ -576,7 +575,8 @@ class JabberBot(Backend):
                     try:
                         conn.Process(1)
                         if conn._owner.connected == '':
-                          conn = None
+                            self.disconnect_callback() # notify that the connection is lost
+                            conn = None
                     except Exception:
                         logging.exception("conn.Process exception")
                     self.idle_proc()
@@ -584,12 +584,13 @@ class JabberBot(Backend):
                     self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)
                     time.sleep(self.RETRY_FREQUENCY)
                     conn = self.connect()
+                    if conn:
+                        self.connect_callback()
             except KeyboardInterrupt:
                 self.log.info('bot stopped by user request. shutting down.')
                 break
 
-        if disconnect_callback:
-            disconnect_callback()
+        self.disconnect_callback()
         self.shutdown()
         exit(self.return_code)
 

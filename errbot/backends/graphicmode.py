@@ -7,6 +7,7 @@ from PySide.QtGui import QCompleter
 from PySide.QtCore import Qt, QUrl
 import errbot
 from errbot.backends.base import Connection, Message, Identifier
+from errbot.errBot import ErrBot
 
 class CommandBox(QtGui.QLineEdit, object):
     history_index = 0
@@ -77,8 +78,6 @@ def linkify(text):
 
     return urlfinder.sub(replacewithlink, text)
 
-from errbot.backends.base import Backend
-
 def htmlify(text, is_html, receiving):
     tag = 'div' if is_html else 'pre'
     if not is_html:
@@ -86,7 +85,7 @@ def htmlify(text, is_html, receiving):
     style = 'background-color : rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);' if receiving else 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
     return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (tag, style, text, tag)
 
-class GraphicBackend(Backend):
+class GraphicBackend(ErrBot):
 
     conn = ConnectionMock()
 
@@ -145,7 +144,10 @@ class GraphicBackend(Backend):
         self.conn.newAnswer.connect(self.new_message)
 
         self.mainW.show()
-        app.exec_()
+        try:
+            app.exec_()
+        finally:
+            self.shutdown()
 
     def connect(self):
         if not self.conn:
@@ -155,3 +157,6 @@ class GraphicBackend(Backend):
             self.signal_connect_to_all_plugins()
             logging.info('Plugin activation done.')
         return self.conn
+
+    def shutdown(self):
+        super(GraphicBackend, self).shutdown()

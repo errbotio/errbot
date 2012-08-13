@@ -30,9 +30,7 @@ from urllib2 import urlopen
 
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 from errbot import botcmd
-from errbot.backends.graphicmode import GraphicBackend
-from errbot.backends.jabberbot import JabberBot
-from errbot.backends.testmode import TextBackend
+from errbot.backends.base import Backend
 
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
@@ -47,7 +45,7 @@ def get_class_that_defined_method(meth):
     if meth.__name__ in cls.__dict__: return cls
   return None
 
-class ErrBot(TextBackend):
+class ErrBot(Backend):
     """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
@@ -155,19 +153,15 @@ class ErrBot(TextBackend):
                 except Exception as e:
                     logging.exception("callback_connect failed for %s" % bot)
 
-    def connect(self):
-        if not self.conn:
-            self.conn = JabberBot.connect(self)
-            if not self.conn:
-                logging.warning('Could not connect, deactivating all the plugins')
-                deactivate_all_plugins()
-                return None
-            loading_errors = self.activate_non_started_plugins()
-            logging.info(loading_errors)
-            logging.info('Notifying connection to all the plugins...')
-            self.signal_connect_to_all_plugins()
-            logging.info('Plugin activation done.')
-        return self.conn
+    def connect_callback(self):
+        loading_errors = self.activate_non_started_plugins()
+        logging.info(loading_errors)
+        logging.info('Notifying connection to all the plugins...')
+        self.signal_connect_to_all_plugins()
+        logging.info('Plugin activation done.')
+
+    def disconnect_callback(self):
+        deactivate_all_plugins()
 
     def shutdown(self):
         logging.info('Shutting down... deactivating all the plugins.')

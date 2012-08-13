@@ -329,7 +329,12 @@ class Backend(object):
         raise NotImplementedError( "It should be implemented specifically for your backend" )
 
     def shutdown(self):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        pass
 
+    def connect_callback(self):
+        pass
+
+    def disconnect_callback(self):
+        pass
 
 

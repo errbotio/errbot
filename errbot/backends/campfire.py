@@ -31,7 +31,7 @@ class CampfireBackend(ErrBot):
 
     def __init__(self, subdomain, username, password, ssl=True):
         super(CampfireBackend, self).__init__()
-        self.jid = Identifier(username)
+        self.jid = Identifier(node = username)
         self.conn = None
         self.subdomain = subdomain
         self.username = username
@@ -70,7 +70,7 @@ class CampfireBackend(ErrBot):
             user = message.user.name
         if message.is_text():
             msg = Message(message.body)
-            msg.setFrom(Identifier(user))
+            msg.setFrom(Identifier(node = user))
             self.callback_message(self.conn, msg)
 
     def error_callback(self, error):

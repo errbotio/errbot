@@ -1,10 +1,12 @@
 import logging
 import os
-import config
+from config import BOT_DATA_DIR
 import sys
 from PySide import QtCore, QtGui, QtWebKit
 from PySide.QtGui import QCompleter
 from PySide.QtCore import Qt, QUrl
+import errbot
+from errbot.backends.base import Connection, Message, Identifier
 
 class CommandBox(QtGui.QLineEdit, object):
     history_index = 0
@@ -37,54 +39,13 @@ class CommandBox(QtGui.QLineEdit, object):
         if key == QtCore.Qt.Key_Return:
             self.reset_history()
 
-
-
-class JIDMock():
-    domain = 'meuh'
-    resource = 'bidon'
-
-    def __init__(self, node):
-        self.node = node
-
-    def getNode(self):
-        return self.node
-
-    def bareMatch(self, whatever):
-        return False
-
-    def getStripped(self):
-        return self.node
-
-
-class MessageMock():
-    def __init__(self, body):
-        self.body = body
-
-    def getType(self):
-        return 'chat'
-
-    def getFrom(self):
-        return JIDMock(config.BOT_ADMINS[0])
-
-    def getProperties(self):
-        return {}
-
-    def getBody(self):
-        return self.body
-
-    def getThread(self):
-        return None
-
-
-class ConnectionMock(QtCore.QObject):
-    def __init__(self):
-        super(ConnectionMock, self).__init__()
+class ConnectionMock(Connection, QtCore.QObject):
 
     newAnswer = QtCore.Signal(str, bool)
 
     def send(self, mess):
         if hasattr(mess, 'getBody') and len(mess.getBody()) > 0 and not mess.getBody().isspace():
-            html_content = mess.getTag('html')
+            html_content = mess.getHTML()
 
             if html_content:
                 body = html_content.getTag('body')
@@ -116,23 +77,24 @@ def linkify(text):
 
     return urlfinder.sub(replacewithlink, text)
 
+from errbot.backends.base import Backend
 
-def patch_jabberbot():
-    from errbot import jabberbot
+def htmlify(text, is_html, receiving):
+    tag = 'div' if is_html else 'pre'
+    if not is_html:
+        text = linkify(text)
+    style = 'background-color : rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);' if receiving else 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
+    return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (tag, style, text, tag)
+
+class GraphicBackend(Backend):
 
     conn = ConnectionMock()
 
     def send_command(self):
         self.new_message(self.input.text(), False)
-        self.callback_message(conn, MessageMock(self.input.text()))
+        self.callback_message(self.conn, Message(self.input.text()))
         self.input.clear()
 
-    def htmlify(text, is_html, receiving):
-        tag = 'div' if is_html else 'pre'
-        if not is_html:
-            text = linkify(text)
-        style = 'background-color : rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);' if receiving else 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
-        return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (tag, style, text, tag)
 
     def new_message(self, text, is_html, receiving = True):
         self.buffer += htmlify(text, is_html, receiving)
@@ -141,16 +103,19 @@ def patch_jabberbot():
     def scroll_output_to_bottom(self):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
 
-    def fake_serve_forever(self):
-        self.jid = JIDMock('blah') # whatever
+    def build_message(self, text):
+        return Message(text)
+
+    def serve_forever(self, connect_callback=None, disconnect_callback=None):
+        self.jid = Identifier('blah') # whatever
         self.connect() # be sure we are "connected" before the first command
 
         # create window and components
         app = QtGui.QApplication(sys.argv)
         self.mainW = QtGui.QWidget()
         self.mainW.setWindowTitle('Err...')
-        icon_path = os.path.dirname(__file__) + os.sep + 'err.svg'
-        bg_path = os.path.dirname(__file__) + os.sep + 'err-bg.svg'
+        icon_path = os.path.dirname(errbot.__file__) + os.sep + 'err.svg'
+        bg_path = os.path.dirname(errbot.__file__) + os.sep + 'err-bg.svg'
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         self.input = CommandBox(self.cmd_history, self.commands)
@@ -162,7 +127,7 @@ def patch_jabberbot():
                                 <link rel="stylesheet" type="text/css" href="%s/style/style.css" />
                            </head>
                            <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain; margin:0;">
-                           """ % (QUrl.fromLocalFile(config.BOT_DATA_DIR).toString(), QUrl.fromLocalFile(bg_path).toString())
+                           """ % (QUrl.fromLocalFile(BOT_DATA_DIR).toString(), QUrl.fromLocalFile(bg_path).toString())
         self.output.setHtml(self.buffer)
 
         # layout
@@ -182,7 +147,7 @@ def patch_jabberbot():
         self.mainW.show()
         app.exec_()
 
-    def fake_connect(self):
+    def connect(self):
         if not self.conn:
             self.conn = ConnectionMock()
             self.activate_non_started_plugins()
@@ -190,9 +155,3 @@ def patch_jabberbot():
             self.signal_connect_to_all_plugins()
             logging.info('Plugin activation done.')
         return self.conn
-
-    jabberbot.JabberBot.send_command = send_command
-    jabberbot.JabberBot.new_message = new_message
-    jabberbot.JabberBot.serve_forever = fake_serve_forever
-    jabberbot.JabberBot.scroll_output_to_bottom = scroll_output_to_bottom
-    jabberbot.JabberBot.connect = fake_connect

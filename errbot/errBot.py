@@ -24,13 +24,16 @@ import os
 import shelve
 import shutil
 import subprocess
-import difflib
+
 from tarfile import TarFile
 from urllib2 import urlopen
 
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
+from errbot import botcmd
+from errbot.backends.graphicmode import GraphicBackend
+from errbot.backends.jabberbot import JabberBot
+from errbot.backends.testmode import TextBackend
 
-from errbot.jabberbot import JabberBot, botcmd, is_from_history
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
@@ -44,7 +47,7 @@ def get_class_that_defined_method(meth):
     if meth.__name__ in cls.__dict__: return cls
   return None
 
-class ErrBot(JabberBot):
+class ErrBot(TextBackend):
     """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
@@ -104,29 +107,20 @@ class ErrBot(JabberBot):
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
-        JabberBot.__init__(self, username, password, res, debug, privatedomain, acceptownmsgs, handlers)
+        super(ErrBot, self).__init__(username, password, res, debug, privatedomain, acceptownmsgs, handlers)
         # be sure we have a configs entry for the plugin configurations
         if not self.internal_shelf.has_key('configs'):
             self.internal_shelf['configs'] = {}
 
     def callback_message(self, conn, mess):
-        # Ignore messages from myself
-        if self.jid.bareMatch(get_jid_from_message(mess)):
-            logging.debug('Ignore a message from myself')
-            return
-
-        # Ignore messages from history
-        if is_from_history(mess):
-            self.log.debug("Message from history, ignore it")
-            return
-
-        super(ErrBot, self).callback_message(conn, mess)
-        for bot in get_all_active_plugin_objects():
-            if hasattr(bot, 'callback_message'):
-                try:
-                    bot.callback_message(conn, mess)
-                except Exception:
-                    logging.exception("Probably a type error")
+        if super(ErrBot, self).callback_message(conn, mess):
+            # Act only in the backend tells us that this message is OK to broadcast
+            for bot in get_all_active_plugin_objects():
+                if hasattr(bot, 'callback_message'):
+                    try:
+                        bot.callback_message(conn, mess)
+                    except Exception:
+                        logging.exception("Probably a type error")
 
     def warn_admins(self, warning):
         for admin in BOT_ADMINS:
@@ -554,33 +548,6 @@ class ErrBot(JabberBot):
                 return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'
 
-    @botcmd(historize = False)
-    def history(self, mess, args):
-        """display the command history"""
-        answer = []
-        l = len(self.cmd_history)
-        for i in range(0, l):
-            c = self.cmd_history[i]
-            answer.append('%2i:!%s %s' %(l-i,c[0],c[1]))
-        return '\n'.join(answer)
-
-    def unknown_command(self, mess, cmd, args):
-        """ Override the default unknown command behavior
-        """
-        full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
-        if full_cmd:
-            part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
-        else:
-            part1 = 'Command "%s" not found.' % cmd
-        ununderscore_keys = [m.replace('_',' ') for m in self.commands.keys()]
-        matches = difflib.get_close_matches(cmd, ununderscore_keys)
-        if full_cmd:
-            matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
-        matches = set(matches)
-        if matches:
-            return part1 + '\n\nDid you mean "!' + '" or "!'.join(matches) + '" ?'
-        else:
-            return part1
 
 
 

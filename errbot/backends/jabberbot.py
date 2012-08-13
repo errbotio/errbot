@@ -30,31 +30,17 @@ bot's operation completely. MUCs are also supported.
 
 import os
 import re
-import sys
-import thread
 from pyexpat import ExpatError
 from xmpp.protocol import NS_CAPS
 from xmpp.simplexml import XML2Node
-from errbot.templating import tenv
-from errbot.utils import get_jid_from_message, unescape_xml
-from config import BOT_ADMINS
 
-from utils import get_sender_username
+from errbot.utils import unescape_xml, get_jid_from_message
 
-try:
-    import xmpp
-except ImportError:
-    print >> sys.stderr, """
-    You need to install xmpppy from http://xmpppy.sf.net/.
-    On Debian-based systems, install the python-xmpp package.
-    """
-    sys.exit(-1)
+from base import Backend
 
+import xmpp
 import time
-import inspect
 import logging
-import traceback
-from collections import deque
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Thomas Perl <m@thp.io>'
@@ -64,39 +50,11 @@ __license__ = 'GNU General Public License version 3 or later'
 
 HIPCHAT_PRESENCE_ATTRS = {'node': 'http://hipchat.com/client/bot', 'ver': 'v1.1.0'}
 
-
-
-def botcmd(*args, **kwargs):
-    """Decorator for bot command functions
-    extra parameters to customize the command:
-    name : override the command name
-    thread : asynchronize the command
-    split_args_with : prepare the arguments by splitting them by the given character
-    """
-
-    def decorate(func, hidden=False, name=None, thread=False, split_args_with = None, admin_only = False, historize = True, template = None):
-        if not hasattr(func, '_jabberbot_command'): # don't override generated functions
-            setattr(func, '_jabberbot_command', True)
-            setattr(func, '_jabberbot_command_hidden', hidden)
-            setattr(func, '_jabberbot_command_name', name or func.__name__)
-            setattr(func, '_jabberbot_command_split_args_with', split_args_with)
-            setattr(func, '_jabberbot_command_admin_only', admin_only)
-            setattr(func, '_jabberbot_command_historize', historize)
-            setattr(func, '_jabberbot_command_thread', thread) # Experimental!
-            setattr(func, '_jabberbot_command_template', template) # Experimental!
-        return func
-
-    if len(args):
-        return decorate(args[0], **kwargs)
-    else:
-        return lambda func: decorate(func, **kwargs)
-
-
 def is_from_history(mess):
     props = mess.getProperties()
     return 'urn:xmpp:delay' in props or xmpp.NS_DELAY in props
 
-class JabberBot(object):
+class JabberBot(Backend):
     # Show types for presence
     AVAILABLE, AWAY, CHAT = None, 'away', 'chat'
     DND, XA, OFFLINE = 'dnd', 'xa', 'unavailable'
@@ -106,24 +64,12 @@ class JabberBot(object):
                        'Authorize my request and I will do the same.'
     MSG_NOT_AUTHORIZED = 'You did not authorize my subscription request. '\
                          'Access denied.'
-    MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '\
-                          'Type "help" for available commands.'
-    MSG_HELP_TAIL = 'Type help <command name> to get more info '\
-                    'about that specific command.'
-    MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
-    MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
-                         'An unexpected error occurred.'
 
     PING_FREQUENCY = 10 # Set to the number of seconds, e.g. 60.
     PING_TIMEOUT = 2 # Seconds to wait for a response.
     RETRY_FREQUENCY = 10 # Set to the number of seconds to attempt another connection attempt in case of connectivity loss
 
-    MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
-    MESSAGE_SIZE_ERROR_MESSAGE = '|<- SNIP ! Message too long.'
-
     return_code = 0 # code for the process exit
-
-    cmd_history = deque(maxlen=10)
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
@@ -176,19 +122,11 @@ class JabberBot(object):
             ('presence', self.callback_presence)])
 
         # Collect commands from source
-        self.refresh_command_list()
         self.roster = None
+        super(JabberBot, self).__init__(username, password, res=res, debug=debug,
+                         privatedomain=privatedomain, acceptownmsgs=acceptownmsgs, handlers=handlers)
 
     ################################
-
-
-    def refresh_command_list(self):
-        self.commands = {}
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-                self.log.info('Registered command: %s' % name)
-                self.commands[name] = value
 
     def _send_status(self):
         """Send status to everyone"""
@@ -337,10 +275,6 @@ class JabberBot(object):
         self.__finished = True
         self.return_code = return_code
 
-    def send_message(self, mess):
-        """Send an XMPP message"""
-        self.connect().send(mess)
-
     def send_tune(self, song, debug=False):
         """Set information about the currently played tune
 
@@ -394,22 +328,6 @@ class JabberBot(object):
 
         self.send_message(mess)
 
-    def send_simple_reply(self, mess, text, private=False):
-        """Send a simple response to a message"""
-        self.send_message(self.build_reply(mess, text, private))
-
-    def build_reply(self, mess, text=None, private=False):
-        """Build a message for responding to another message.
-        Message is NOT sent"""
-        response = self.build_message(text)
-        if private:
-            response.setTo(mess.getFrom())
-            response.setType('chat')
-        else:
-            response.setTo(mess.getFrom().getStripped())
-            response.setType(mess.getType())
-        response.setThread(mess.getThread())
-        return response
 
     def build_message(self, text):
         """Builds an xhtml message without attributes.
@@ -559,189 +477,24 @@ class JabberBot(object):
 
     def callback_message(self, conn, mess):
         """Messages sent to the bot will arrive here.
-        Command handling + routing is done in this function."""
+        Command handling + routing is done in this function.
+        return False if the message should be ignored """
         self.__lastping = time.time()
-
-        # Prepare to handle either private chats or group chats
-        type = mess.getType()
-        jid = mess.getFrom()
-        props = mess.getProperties()
-        text = mess.getBody()
-        username = get_sender_username(mess)
-
-        if type not in ("groupchat", "chat"):
-            self.log.debug("unhandled message type %s" % mess)
-            return
-
         if is_from_history(mess):
             self.log.debug("Message from history, ignore it")
-            return
+            return False
 
-        self.log.debug("*** props = %s" % props)
-        self.log.debug("*** jid = %s" % jid)
-        self.log.debug("*** username = %s" % username)
-        self.log.debug("*** type = %s" % type)
-        self.log.debug("*** text = %s" % text)
-
-        # If a message format is not supported (eg. encrypted),
-        # txt will be None
-        if not text: return
+        # Ignore messages from myself
+        if self.jid.bareMatch(get_jid_from_message(mess)):
+            logging.debug('Ignore a message from myself')
+            return False
 
         # Remember the last-talked-in message thread for replies
         # FIXME i am not threadsafe
-        self.__threads[jid] = mess.getThread()
+        self.__threads[mess.getFrom()] = mess.getThread()
 
-        if not text.startswith('!'):
-            return
+        return super(JabberBot, self).callback_message(conn, mess)
 
-        text = text[1:]
-        text_split = text.strip().split(' ')
-
-        cmd = None
-        command = None
-        args = ''
-        if len(text_split) > 1:
-            command = (text_split[0] + '_' + text_split[1]).lower()
-            if self.commands.has_key(command):
-                cmd = command
-                args = ' '.join(text_split[2:])
-
-        if not cmd:
-            command = text_split[0].lower()
-            args = ' '.join(text_split[1:])
-            if self.commands.has_key(command):
-                cmd = command
-                if len(text_split) > 1:
-                    args = ' '.join(text_split[1:])
-
-        if command == '!': # we did "!!" so recall the last command
-            if len(self.cmd_history):
-                cmd, args = self.cmd_history[-1]
-            else:
-                return # no command in history
-        elif command.isdigit(): # we did "!#" so we recall the specified command
-            index = int(command)
-            if len(self.cmd_history) >= index:
-                cmd, args = self.cmd_history[-index]
-            else:
-                return # no command in history
-
-        if (cmd, args) in self.cmd_history:
-            self.cmd_history.remove((cmd, args)) # we readd it below
-
-        self.log.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
-
-        if cmd:
-            def execute_and_send(template_name):
-                try:
-                    reply = self.commands[cmd](mess, args)
-
-                    # integrated templating
-                    if template_name:
-                        reply = tenv().get_template(template_name + '.html').render(**reply)
-
-                except Exception, e:
-                    self.log.exception('An error happened while processing '\
-                                       'a message ("%s") from %s: %s"' %
-                                       (text, jid, traceback.format_exc(e)))
-                    reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
-                if reply:
-                    if len(reply) > self.MESSAGE_SIZE_LIMIT:
-                        reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
-                    self.send_simple_reply(mess, reply)
-
-            f = self.commands[cmd]
-
-            if f._jabberbot_command_admin_only:
-                if mess.getType() == 'groupchat':
-                    self.send_simple_reply(mess, 'You cannot administer the bot from a chatroom, message the bot directly')
-                    return
-                usr = get_jid_from_message(mess)
-                if usr not in BOT_ADMINS:
-                    self.send_simple_reply(mess, 'You cannot administer the bot from this user %s.' % usr)
-                    return
-
-            if f._jabberbot_command_historize:
-                self.cmd_history.append((cmd,  args)) # add it to the history only if it is authorized to be so
-
-            if f._jabberbot_command_split_args_with:
-                args = args.split(f._jabberbot_command_split_args_with)
-
-            # Experimental!
-            # if command should be executed in a seperate thread do it
-            if f._jabberbot_command_thread:
-                thread.start_new_thread(execute_and_send, (f._jabberbot_command_template,))
-            else:
-                execute_and_send(f._jabberbot_command_template)
-        else:
-            # In private chat, it's okay for the bot to always respond.
-            # In group chat, the bot should silently ignore commands it
-            # doesn't understand or aren't handled by unknown_command().
-            reply = self.unknown_command(mess, command, args)
-            if reply is None:
-                reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
-            if reply:
-                self.send_simple_reply(mess, reply)
-
-    def unknown_command(self, mess, cmd, args):
-        """Default handler for unknown commands
-
-        Override this method in derived class if you
-        want to trap some unrecognized commands.  If
-        'cmd' is handled, you must return some non-false
-        value, else some helpful text will be sent back
-        to the sender.
-        """
-        return None
-
-    def top_of_help_message(self):
-        """Returns a string that forms the top of the help message
-
-        Override this method in derived class if you
-        want to add additional help text at the
-        beginning of the help message.
-        """
-        return ""
-
-    def bottom_of_help_message(self):
-        """Returns a string that forms the bottom of the help message
-
-        Override this method in derived class if you
-        want to add additional help text at the end
-        of the help message.
-        """
-        return ""
-
-    @botcmd
-    def help(self, mess, args):
-        """   Returns a help string listing available options.
-
-        Automatically assigned to the "help" command."""
-        if not args:
-            if self.__doc__:
-                description = self.__doc__.strip()
-            else:
-                description = 'Available commands:'
-
-            usage = '\n'.join(sorted([
-            '!%s: %s' % (name, (command.__doc__ or
-                                '(undocumented)').strip().split('\n', 1)[0])
-            for (name, command) in self.commands.iteritems()\
-            if name != 'help'\
-            and not command._jabberbot_command_hidden
-            ]))
-            usage = '\n\n' + '\n\n'.join(filter(None, [usage, self.MSG_HELP_TAIL]))
-        else:
-            description = ''
-            if args in self.commands:
-                usage = (self.commands[args].__doc__ or
-                         'undocumented').strip()
-            else:
-                usage = self.MSG_HELP_UNDEFINED_COMMAND
-
-        top = self.top_of_help_message()
-        bottom = self.bottom_of_help_message()
-        return ''.join(filter(None, [top, description, usage, bottom]))
 
     def idle_proc(self):
         """This function will be called in the main loop."""

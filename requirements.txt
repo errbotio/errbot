@@ -1,3 +1,4 @@
+PySide
 simplejson
 flask
 jinja2

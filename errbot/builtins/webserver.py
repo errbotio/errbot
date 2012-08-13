@@ -12,7 +12,7 @@ from flask import request
 from flask import Response
 from werkzeug.serving import ThreadedWSGIServer
 from errbot.plugin_manager import get_all_active_plugin_objects
-from errbot.jabberbot import botcmd
+from errbot import botcmd
 from errbot.bundled.exrex import generate
 
 OK = Response()

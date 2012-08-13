@@ -1,3 +1,4 @@
+simplejson
 flask
 jinja2
 setuptools

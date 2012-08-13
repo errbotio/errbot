@@ -1,5 +1,5 @@
 import logging
-from errbot.botplugin import BotPlugin
+from errbot import BotPlugin
 from threading import Timer
 from errbot.version import VERSION
 import urllib2

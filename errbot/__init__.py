@@ -1,4 +1,6 @@
+import logging
 
+from errbot.botplugin import BotPlugin # repeat it here for convenience and coherence with @botcmd
 def botcmd(*args, **kwargs):
     """Decorator for bot command functions
     extra parameters to customize the command:
@@ -23,3 +25,19 @@ def botcmd(*args, **kwargs):
         return decorate(args[0], **kwargs)
     else:
         return lambda func: decorate(func, **kwargs)
+
+def deprecated_botcmd(*args, **kwargs):
+    logging.warn("""
+    DEPRECATED USAGE:
+    A plugin uses the former cmdbot place, please change the
+    'from errbot.jabberbot import botcmd'
+    to
+    'from errbot import botcmd'
+    """)
+    botcmd(*args, **kwargs)
+# hack the module system to have a deprecated version of botcmd
+import imp, sys
+module = imp.new_module('errbot.jabberbot')
+setattr(module, 'botcmd', deprecated_botcmd)
+sys.modules['errbot.jabberbot'] = module
+

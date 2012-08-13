@@ -5,15 +5,17 @@ import urllib2
 from errbot import holder
 import simplejson
 from simplejson.decoder import JSONDecodeError
-from errbot.botplugin import BotPlugin
+from werkzeug.serving import ThreadedWSGIServer
+
+from errbot import botcmd
+from errbot import BotPlugin
 from errbot.version import VERSION
+from errbot.plugin_manager import get_all_active_plugin_objects
+from errbot.bundled.exrex import generate
+
 from flask.views import View
 from flask import request
 from flask import Response
-from werkzeug.serving import ThreadedWSGIServer
-from errbot.plugin_manager import get_all_active_plugin_objects
-from errbot import botcmd
-from errbot.bundled.exrex import generate
 
 OK = Response()
 

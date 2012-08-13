@@ -18,6 +18,8 @@ class VersionChecker(BotPlugin):
 
     def activate(self):
         self.actived=True
+        self.version_check() # once at startup anyway
+        self.start_poller(3600 * 24 , self.version_check) # once every 24H
         super(VersionChecker, self).activate()
 
     def deactivate(self):
@@ -37,13 +39,7 @@ class VersionChecker(BotPlugin):
                 self.warn_admins('Version %s of err is available. http://pypi.python.org/pypi/err/%s. You can disable this check by doing !unload VersionChecker' % (current_version_txt, current_version_txt))
         except Exception as e:
             logging.exception('Could not version check')
-        finally:
-            self.t = Timer(3600 * 24, self.version_check)
-            self.t.setDaemon(True) # so it is not locking on exit
-            self.t.start()
 
     def callback_connect(self):
         if not self.connected:
             self.connected = True
-            logging.info('Start version checker...')
-            self.version_check()

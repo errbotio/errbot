@@ -90,6 +90,7 @@ class BotPluginBase(object, UserDict.DictMixin):
     def program_next_poll(self, interval, method, args, kwargs):
         t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t) # save the timer to be able to kill it
+        t.setName('Poller thread for %s' % method.im_class.__name__)
         t.setDaemon(True) # so it is not locking on exit
         t.start()
 

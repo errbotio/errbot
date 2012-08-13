@@ -97,7 +97,7 @@ class Webserver(BotPlugin):
             holder.flask_app.config.update(self.config['EXTRA_FLASK_CONFIG'])
         if self.webserver_thread:
             raise Exception('Invalid state, you should not have a webserver already running.')
-        self.webserver_thread = Thread(target=self.run_webserver)
+        self.webserver_thread = Thread(target=self.run_webserver, name = 'Webserver Thread')
         self.webserver_thread.start()
         super(Webserver, self).activate()
 

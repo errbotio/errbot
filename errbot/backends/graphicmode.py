@@ -150,6 +150,7 @@ class GraphicBackend(ErrBot):
         finally:
             self.disconnect_callback()
             self.shutdown()
+            exit(0)
 
     def connect(self):
         if not self.conn:

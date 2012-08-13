@@ -1,6 +1,6 @@
 import logging
 import sys
-from errbot.backends.base import Backend, Identifier, Message
+from errbot.backends.base import Identifier, Message
 from errbot.errBot import ErrBot
 
 class ConnectionMock():
@@ -12,11 +12,10 @@ ENCODING_INPUT = sys.stdin.encoding
 class TextBackend(ErrBot):
     conn = ConnectionMock()
 
-    def serve_forever(self, connect_callback=None, disconnect_callback=None):
+    def serve_forever(self):
         self.jid = Identifier('blah') # whatever
         self.connect() # be sure we are "connected" before the first command
-        if connect_callback:
-            connect_callback()
+        self.connect_callback() # notify that the connection occured
         try:
             while True:
                 entry = raw_input("Talk to  me >>").decode(ENCODING_INPUT)
@@ -26,17 +25,12 @@ class TextBackend(ErrBot):
         except KeyboardInterrupt as ki:
             pass
         finally:
-            if disconnect_callback:
-                disconnect_callback()
+            self.disconnect_callback()
             self.shutdown()
 
     def connect(self):
         if not self.conn:
             self.conn = ConnectionMock()
-            self.activate_non_started_plugins()
-            logging.info('Notifying connection to all the plugins...')
-            self.signal_connect_to_all_plugins()
-            logging.info('Plugin activation done.')
         return self.conn
 
     def build_message(self, text):

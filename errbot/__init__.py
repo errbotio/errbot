@@ -34,7 +34,7 @@ def deprecated_botcmd(*args, **kwargs):
     to
     'from errbot import botcmd'
     """)
-    botcmd(*args, **kwargs)
+    return botcmd(*args, **kwargs)
 # hack the module system to have a deprecated version of botcmd
 import imp, sys
 module = imp.new_module('errbot.jabberbot')

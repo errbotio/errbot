@@ -49,17 +49,7 @@ class BotPluginBase(object, UserDict.DictMixin):
         logging.debug('Loading %s' % filename)
 
         self.shelf = shelve.DbfilenameShelf(filename)
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-
-                if name in holder.bot.commands:
-                    f = holder.bot.commands[name]
-                    new_name = (classname + '-' + name).lower()
-                    holder.bot.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, f.im_class.__name__, f.__name__, new_name ))
-                    name = new_name
-                logging.debug('Adding command : %s -> %s' % (name, value.__name__))
-                holder.bot.commands[name] = value
+        holder.bot.inject_commands_from(self)
         self.is_activated = True
 
     current_pollers = []
@@ -77,10 +67,7 @@ class BotPluginBase(object, UserDict.DictMixin):
 
         logging.debug('Closing shelf %s' % self.shelf)
         self.shelf.close()
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-                del(holder.bot.commands[name])
+        holder.bot.remove_commands_from(self)
         self.is_activated = False
 
     def start_poller(self, interval, method, args=None, kwargs=None):

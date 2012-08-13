@@ -105,9 +105,10 @@ class GraphicBackend(ErrBot):
     def build_message(self, text):
         return Message(text)
 
-    def serve_forever(self, connect_callback=None, disconnect_callback=None):
+    def serve_forever(self):
         self.jid = Identifier('blah') # whatever
         self.connect() # be sure we are "connected" before the first command
+        self.connect_callback() # notify that the connection occured
 
         # create window and components
         app = QtGui.QApplication(sys.argv)
@@ -147,16 +148,16 @@ class GraphicBackend(ErrBot):
         try:
             app.exec_()
         finally:
+            self.disconnect_callback()
             self.shutdown()
 
     def connect(self):
         if not self.conn:
             self.conn = ConnectionMock()
-            self.activate_non_started_plugins()
-            logging.info('Notifying connection to all the plugins...')
-            self.signal_connect_to_all_plugins()
-            logging.info('Plugin activation done.')
         return self.conn
+
+    def join_room(self, room, username=None, password=None):
+        pass # just ignore that
 
     def shutdown(self):
         super(GraphicBackend, self).shutdown()

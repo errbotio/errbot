@@ -112,7 +112,6 @@ class JabberBot(ErrBot):
         self.__show = None
         self.__status = None
         self.__seen = {}
-        self.__threads = {}
         self.__lastping = time.time()
         self.__privatedomain = privatedomain
         self.__acceptownmsgs = acceptownmsgs
@@ -312,21 +311,6 @@ class JabberBot(ErrBot):
         if debug:
             self.log.info('Sending tune: %s' % iq.__str__().encode('utf8'))
         self.conn.send(iq)
-
-    def send(self, user, text, in_reply_to=None, message_type='chat'):
-        """Sends a simple message to the specified user."""
-        mess = self.build_message(text)
-        mess.setTo(user)
-
-        if in_reply_to:
-            mess.setThread(in_reply_to.getThread())
-            mess.setType(in_reply_to.getType())
-        else:
-            mess.setThread(self.__threads.get(user, None))
-            mess.setType(message_type)
-
-        self.send_message(mess)
-
 
     def build_message(self, text):
         """Builds an xhtml message without attributes.

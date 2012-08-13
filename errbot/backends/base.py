@@ -65,9 +65,7 @@ class Connection(object):
         raise NotImplementedError( "It should be implemented specifically for your backend" )
 
 class Backend(object):
-    """
-        Implements the basic Bot logic (logic independent from the backend) and leave to you to implement the missing parts
-    """
+    # Implements the basic Bot logic (logic independent from the backend) and leave to you to implement the missing parts
 
     cmd_history = deque(maxlen=10)
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
@@ -80,20 +78,13 @@ class Backend(object):
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
+    commands = {} # the dynamically populated list of commands available on the bot
+    __threads = {}  # TODO, thread handling
 
     def __init__(self, *args, **kwargs):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
-        self.refresh_command_list()
-
-    def refresh_command_list(self):
-        self.commands = {}
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-                logging.info('Registered command: %s' % name)
-                self.commands[name] = value
-
+        pass
 
     def send_message(self, mess):
         """Send a message"""
@@ -253,6 +244,30 @@ class Backend(object):
         else:
             return part1
 
+    def inject_commands_from(self, instance_to_inject):
+        classname = instance_to_inject.__class__.__name__
+        for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
+            if getattr(value, '_jabberbot_command', False):
+                name = getattr(value, '_jabberbot_command_name')
+
+                if name in self.commands:
+                    f = self.commands[name]
+                    new_name = (classname + '-' + name).lower()
+                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, f.im_class.__name__, f.__name__, new_name ))
+                    name = new_name
+                logging.debug('Adding command : %s -> %s' % (name, value.__name__))
+                self.commands[name] = value
+
+    def remove_commands_from(self, instance_to_inject):
+        for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
+            if getattr(value, '_jabberbot_command', False):
+                name = getattr(value, '_jabberbot_command_name')
+                del(self.commands[name])
+
+    def warn_admins(self, warning):
+        for admin in BOT_ADMINS:
+            self.send(admin, warning)
+
     def top_of_help_message(self):
         """Returns a string that forms the top of the help message
 
@@ -312,12 +327,27 @@ class Backend(object):
             answer.append('%2i:!%s %s' %(l-i,c[0],c[1]))
         return '\n'.join(answer)
 
+    def send(self, user, text, in_reply_to=None, message_type='chat'):
+        """Sends a simple message to the specified user."""
+        mess = self.build_message(text)
+        mess.setTo(user)
+
+        if in_reply_to:
+            mess.setThread(in_reply_to.getThread())
+            mess.setType(in_reply_to.getType())
+        else:
+            mess.setThread(self.__threads.get(user, None))
+            mess.setType(message_type)
+
+        self.send_message(mess)
+
+
     ###### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
     def build_message(self, text):
         raise NotImplementedError( "It should be implemented specifically for your backend" )
 
-    def serve_forever(self, connect_callback=None, disconnect_callback=None):
+    def serve_forever(self):
         raise NotImplementedError( "It should be implemented specifically for your backend" )
 
     def connect(self):

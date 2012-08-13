@@ -30,7 +30,9 @@ from urllib2 import urlopen
 
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
 from errbot import botcmd
+from errbot import BotPlugin
 from errbot.backends.base import Backend
+
 
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
@@ -120,10 +122,6 @@ class ErrBot(Backend):
                     except Exception:
                         logging.exception("Probably a type error")
 
-    def warn_admins(self, warning):
-        for admin in BOT_ADMINS:
-            self.send(admin, warning)
-
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
         configs = self.internal_shelf['configs']
@@ -134,16 +132,13 @@ class ErrBot(Backend):
                     errors += 'Notice: %s is blacklisted, use !load %s to unblacklist it\n' % (pluginInfo.name, pluginInfo.name)
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
-                    logging.info('Activate plugin %s' % pluginInfo.name)
+                    logging.info('Activate plugin: %s' % pluginInfo.name)
                     activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
             except Exception, e:
                 logging.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name ,e)
         if errors: self.warn_admins(errors)
         return errors
-
-
-
 
     def signal_connect_to_all_plugins(self):
         for bot in get_all_active_plugin_objects():
@@ -154,14 +149,18 @@ class ErrBot(Backend):
                     logging.exception("callback_connect failed for %s" % bot)
 
     def connect_callback(self):
+        logging.info('Activate internal commands')
         loading_errors = self.activate_non_started_plugins()
         logging.info(loading_errors)
         logging.info('Notifying connection to all the plugins...')
         self.signal_connect_to_all_plugins()
         logging.info('Plugin activation done.')
+        self.inject_commands_from(self)
 
     def disconnect_callback(self):
+        self.remove_commands_from(self)
         deactivate_all_plugins()
+
 
     def shutdown(self):
         logging.info('Shutting down... deactivating all the plugins.')

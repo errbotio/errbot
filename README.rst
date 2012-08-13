@@ -114,7 +114,7 @@ You can override this behaviour with -c specifying the directory where your conf
 
     ./script/err.py -c /etc/err
 
-More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki/admin
+More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki
 
 Installation from pypi
 ----------------------

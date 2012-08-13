@@ -35,7 +35,7 @@ from xmpp.protocol import NS_CAPS
 from xmpp.simplexml import XML2Node
 from errbot.errBot import ErrBot
 
-from errbot.utils import unescape_xml, get_jid_from_message
+from errbot.utils import unescape_xml, get_jid_from_message, xhtml2txt
 
 import xmpp
 import time
@@ -318,10 +318,7 @@ class JabberBot(ErrBot):
         try:
             node = XML2Node(text)
             # logging.debug('This message is XML : %s' % text)
-            text_plain = re.sub(r'\n', '', text) # Ignore formatting TODO exclude pre
-            text_plain = re.sub(r'</p>|</li>|<br/>', '\n', text_plain, flags=re.I) # readd the \n where they probably fit best
-            text_plain = re.sub(r'<[^>]+>', '', text_plain) # zap every tag left
-            text_plain = unescape_xml(text_plain).strip() # converts all the &blah;, unicode etc ..
+            text_plain = xhtml2txt(text)
             logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
             message = xmpp.protocol.Message(body=text_plain)
             message.addChild(node = node)

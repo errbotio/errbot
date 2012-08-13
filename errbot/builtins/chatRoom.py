@@ -2,11 +2,10 @@ import logging
 import xmpp
 from errbot import BotPlugin
 from errbot.utils import get_jid_from_message
-from threading import Timer
 from errbot.version import VERSION
 
 __author__ = 'gbin'
-from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, HIPCHAT_MODE, REVERSE_CHATROOM_RELAY
+from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, HIPCHAT_MODE, REVERSE_CHATROOM_RELAY, CAMPFIRE_MODE
 
 class ChatRoom(BotPlugin):
     min_err_version = VERSION # don't copy paste that for your plugin, it is just because it is a bundled plugin !
@@ -15,7 +14,7 @@ class ChatRoom(BotPlugin):
     connected = False
     def keep_alive(self):
         # logging.debug('Keep alive sent')
-        if self.connected:
+        if self.connected and not CAMPFIRE_MODE:
             if HIPCHAT_MODE:
                 self.send('nobody', ' ', message_type='groupchat') # hack from hipchat itself
             else:

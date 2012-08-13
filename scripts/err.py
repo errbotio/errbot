@@ -93,9 +93,12 @@ def main(bot_class):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
-    debug_group = parser.add_mutually_exclusive_group()
-    debug_group.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
-    debug_group.add_argument('-G', '--graphic', action='store_true', help='Use graphical mode')
+    backend_group = parser.add_mutually_exclusive_group()
+    backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
+    backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
+    backend_group.add_argument('-T', '--text', action='store_true', help='locale text debug backend')
+    backend_group.add_argument('-G', '--graphic', action='store_true', help='local graphical debug mode backend')
+
 
     if not ON_WINDOWS:
         option_group = parser.add_argument_group('arguments to run it as a Daemon')
@@ -111,14 +114,17 @@ if __name__ == "__main__":
     check_config(config_path) # check if everything is ok before attempting to start
 
 
-    if args['test']:
-        from errbot.backends.testmode import TextBackend
+    if args['text']:
+        from errbot.backends.text import TextBackend
         bot_class = TextBackend
     elif args['graphic']:
-        from errbot.backends.graphicmode import GraphicBackend
+        from errbot.backends.graphic import GraphicBackend
         bot_class = GraphicBackend
+    elif args['campfire']:
+            from errbot.backends.campfire import CampfireBackend
+            bot_class = CampfireBackend
     else:
-        from errbot.backends.jabberbot import JabberBot
+        from errbot.backends.jabber import JabberBot
         bot_class = JabberBot
 
     if (not ON_WINDOWS) and args['daemon']:

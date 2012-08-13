@@ -1,4 +1,3 @@
-import logging
 import sys
 from errbot.backends.base import Identifier, Message
 from errbot.errBot import ErrBot

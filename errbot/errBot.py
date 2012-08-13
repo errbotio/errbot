@@ -105,9 +105,8 @@ class ErrBot(Backend):
         self.all_candidates = all_candidates
         return errors
 
-    def __init__(self, username, password, res=None, debug=False,
-                 privatedomain=False, acceptownmsgs=False, handlers=None):
-        super(ErrBot, self).__init__(username, password, res, debug, privatedomain, acceptownmsgs, handlers)
+    def __init__(self, *args, **kwargs):
+        super(ErrBot, self).__init__(*args, **kwargs)
         # be sure we have a configs entry for the plugin configurations
         if not self.internal_shelf.has_key('configs'):
             self.internal_shelf['configs'] = {}

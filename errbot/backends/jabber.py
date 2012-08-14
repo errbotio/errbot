@@ -29,29 +29,36 @@ bot's operation completely. MUCs are also supported.
 """
 
 import os
-import re
 from pyexpat import ExpatError
-from xmpp.protocol import NS_CAPS
+from xmpp import Client, NS_DELAY, JID, dispatcher, simplexml, Protocol, Node
+from xmpp.client import DBG_CLIENT
+from xmpp.protocol import NS_CAPS, Iq, Message, NS_PUBSUB
 from xmpp.simplexml import XML2Node
+from errbot.backends.base import Connection
 from errbot.errBot import ErrBot
 
-from errbot.utils import unescape_xml, get_jid_from_message, xhtml2txt
+from errbot.utils import get_jid_from_message, xhtml2txt
 
-import xmpp
+
 import time
 import logging
 
-# Will be parsed by setup.py to determine package metadata
-__author__ = 'Thomas Perl <m@thp.io>'
-__version__ = '0.14'
-__website__ = 'http://thp.io/2007/python-jabberbot/'
-__license__ = 'GNU General Public License version 3 or later'
-
 HIPCHAT_PRESENCE_ATTRS = {'node': 'http://hipchat.com/client/bot', 'ver': 'v1.1.0'}
+
+# need to override it because the send method is created autonagically and I need to override it in certain cases
+class JabberClient(Client, Connection):
+    def __init__(self, *args, **kwargs):
+        self.Namespace,self.DBG='jabber:client',DBG_CLIENT # DAAAAAAAAAAH -> see the CommonClient class, it introspects it descendents to determine that
+        super(JabberClient,self).__init__(*args, **kwargs)
+
+    def send_message(self, mess):
+        logging.debug('Message filtered thru JabberClient : %s' % mess)
+        super(JabberClient,self).send(mess)
+
 
 def is_from_history(mess):
     props = mess.getProperties()
-    return 'urn:xmpp:delay' in props or xmpp.NS_DELAY in props
+    return 'urn:xmpp:delay' in props or NS_DELAY in props
 
 class JabberBot(ErrBot):
     # Show types for presence
@@ -100,12 +107,11 @@ class JabberBot(ErrBot):
         Don't forget to raise exception xmpp.NodeProcessed to stop
         processing in other handlers (see callback_presence)
         """
-        # TODO sort this initialisation thematically
         self.__debug = debug
         self.log = logging.getLogger(__name__)
         self.__username = username
         self.__password = password
-        self.jid = xmpp.JID(self.__username)
+        self.jid = JID(self.__username)
         self.res = (res or self.__class__.__name__)
         self.conn = None
         self.__finished = False
@@ -128,10 +134,10 @@ class JabberBot(ErrBot):
 
     def _send_status(self):
         """Send status to everyone"""
-        pres = xmpp.dispatcher.Presence(show=self.__show, status=self.__status)
+        pres = dispatcher.Presence(show=self.__show, status=self.__status)
         pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
 
-        self.conn.send(pres)
+        self.conn.send_message(pres)
 
     def __set_status(self, value):
         """Set status message.
@@ -161,6 +167,13 @@ class JabberBot(ErrBot):
 
     ################################
 
+    # meant to be overridden by XMPP backends variations
+    def create_connection(self):
+        if self.__debug:
+            return JabberClient(self.jid.getDomain())
+        return JabberClient(self.jid.getDomain(), debug=[])
+
+
     def connect(self):
         """Connects the bot to server or returns current connection,
         send inital presence stanza
@@ -168,12 +181,7 @@ class JabberBot(ErrBot):
         """
         if not self.conn:
             self.log.info('Start Connection ...........')
-            #TODO improve debug
-            if self.__debug:
-                conn = xmpp.Client(self.jid.getDomain())
-            else:
-                conn = xmpp.Client(self.jid.getDomain(), debug=[])
-
+            conn = self.create_connection()
             conn.UnregisterDisconnectHandler(conn.DisconnectHandler)
             #connection attempt
             self.log.info('Connect attempt')
@@ -183,8 +191,7 @@ class JabberBot(ErrBot):
                                self.jid.getDomain())
                 return None
             if conres != 'tls':
-                self.log.warning('unable to establish secure connection '\
-                                 '- TLS failed!')
+                self.log.warning('unable to establish secure connection - TLS failed!')
             self.log.info('Auth attempt')
             authres = conn.auth(self.jid.getNode(), self.__password, self.res)
             if not authres:
@@ -208,7 +215,7 @@ class JabberBot(ErrBot):
                 self.log.info('  %s' % contact)
             self.log.info('*** roster ***')
 
-            # Register given handlers (TODO move to own function)
+            # Register given handlers
             for (handler, callback) in self.handlers:
                 self.conn.RegisterHandler(handler, callback)
                 self.log.info('Registered handler: %s' % handler)
@@ -220,13 +227,11 @@ class JabberBot(ErrBot):
         """Join the specified multi-user chat room
 
         If username is NOT provided fallback to node part of JID"""
-        # TODO fix namespacestrings and history settings
         NS_MUC = 'http://jabber.org/protocol/muc'
         if username is None:
-        # TODO use xmpppy function getNode
             username = self.__username.split('@')[0]
         my_room_JID = '/'.join((room, username))
-        pres = xmpp.dispatcher.Presence(to=my_room_JID) #, frm=self.__username + '/bot')
+        pres = dispatcher.Presence(to=my_room_JID) #, frm=self.__username + '/bot')
         pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
         t = pres.setTag('x', namespace=NS_MUC)
         if password is not None:
@@ -238,10 +243,10 @@ class JabberBot(ErrBot):
         """Kicks user from muc
         Works only with sufficient rights."""
         NS_MUCADMIN = 'http://jabber.org/protocol/muc#admin'
-        item = xmpp.simplexml.Node('item')
+        item = simplexml.Node('item')
         item.setAttr('nick', nick)
         item.setAttr('role', 'none')
-        iq = xmpp.Iq(typ='set', queryNS=NS_MUCADMIN, xmlns=None, to=room, payload=item)
+        iq = Iq(typ='set', queryNS=NS_MUCADMIN, xmlns=None, to=room, payload=item)
         if reason is not None:
             item.setTagData('reason', reason)
             self.connect().send(iq)
@@ -250,9 +255,9 @@ class JabberBot(ErrBot):
         """Invites user to muc.
         Works only if user has permission to invite to muc"""
         NS_MUCUSER = 'http://jabber.org/protocol/muc#user'
-        mess = xmpp.Message(to=room)
+        mess = Message(to=room)
         for jid in jids:
-            invite = xmpp.simplexml.Node('invite')
+            invite = simplexml.Node('invite')
             invite.setAttr('to', jid)
             if reason is not None:
                 invite.setTagData('reason', reason)
@@ -280,9 +285,9 @@ class JabberBot(ErrBot):
         length, uri. For details see <http://xmpp.org/protocols/tune/>.
         """
         NS_TUNE = 'http://jabber.org/protocol/tune'
-        iq = xmpp.Iq(typ='set')
+        iq = Iq(typ='set')
         iq.setFrom(self.jid)
-        iq.pubsub = iq.addChild('pubsub', namespace=xmpp.NS_PUBSUB)
+        iq.pubsub = iq.addChild('pubsub', namespace=NS_PUBSUB)
         iq.pubsub.publish = iq.pubsub.addChild('publish',
             attrs={'node': NS_TUNE})
         iq.pubsub.publish.item = iq.pubsub.publish.addChild('item',
@@ -310,7 +315,7 @@ class JabberBot(ErrBot):
 
         if debug:
             self.log.info('Sending tune: %s' % iq.__str__().encode('utf8'))
-        self.conn.send(iq)
+        self.conn.send_message(iq)
 
     def build_message(self, text):
         """Builds an xhtml message without attributes.
@@ -320,12 +325,12 @@ class JabberBot(ErrBot):
             # logging.debug('This message is XML : %s' % text)
             text_plain = xhtml2txt(text)
             logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
-            message = xmpp.protocol.Message(body=text_plain)
+            message = Message(body=text_plain)
             message.addChild(node = node)
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
                 logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
-            message = xmpp.protocol.Message(body=text)
+            message = Message(body=text)
         return message
 
 
@@ -484,32 +489,10 @@ class JabberBot(ErrBot):
         if self.PING_FREQUENCY and time.time() - self.__lastping > self.PING_FREQUENCY:
             self.__lastping = time.time()
             #logging.debug('Pinging the server.')
-            ping = xmpp.Protocol('iq', typ='get',
-                payload=[xmpp.Node('ping', attrs={'xmlns': 'urn:xmpp:ping'})])
+            ping = Protocol('iq', typ='get',
+                payload=[Node('ping', attrs={'xmlns': 'urn:xmpp:ping'})])
             try:
                 if self.conn:
-#Traceback (most recent call last):
-#    File "dockstar-gtalk.py", line 142, in <module>
-#        main()
-#      File "dockstar-gtalk.py", line 93, in main
-#        holder.bot.serve_forever()
-#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 802, in serve_forever
-#        self.idle_proc()
-#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 748, in idle_proc
-#        self._idle_ping()
-#      File "/opt/dockstarmailer/dockstar-gtalk/err/errbot/jabberbot.py", line 762, in _idle_ping
-#        res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
-#      File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 337, in
-#  SendAndWaitForResponse
-#        return self.WaitForResponse(self.send(stanza),timeout)
-#      File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 321, in WaitForResponse
-#        if not self.Process(0.04):
-#            File "/opt/dockstarmailer/dockstar-gtalk/xmpp/dispatcher.py", line 122, in Process
-#                self.Stream.Parse(data)
-#            xml.parsers.expat.ExpatError: mismatched tag: line 1, column 971
-#
-# Got above, hence changed IOError to Exception for futher investigation. Lets see if the domain
-# persists
                     res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
                     logging.debug('Got response: ' + str(res))
                     if res is None:

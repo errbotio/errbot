@@ -65,7 +65,7 @@ class Message(object):
         return self.html
 
 class Connection(object):
-    def send(self, mess):
+    def send_message(self, mess):
         raise NotImplementedError( "It should be implemented specifically for your backend" )
 
 class Backend(object):
@@ -91,7 +91,7 @@ class Backend(object):
 
     def send_message(self, mess):
         """Send a message"""
-        self.connect().send(mess)
+        self.connect().send_message(mess)
 
     def send_simple_reply(self, mess, text, private=False):
         """Send a simple response to a message"""

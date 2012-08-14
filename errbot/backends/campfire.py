@@ -106,3 +106,7 @@ class CampfireBackend(ErrBot):
     def send_simple_reply(self, mess, text, private=False):
         """Total hack to avoid stripping of rooms"""
         self.send_message(self.build_reply(mess, text, True))
+
+    @property
+    def mode(self):
+        return 'campfire'

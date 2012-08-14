@@ -162,3 +162,7 @@ class GraphicBackend(ErrBot):
 
     def shutdown(self):
         super(GraphicBackend, self).shutdown()
+
+    @property
+    def mode(self):
+        return 'graphic'

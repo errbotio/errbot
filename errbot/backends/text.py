@@ -38,3 +38,6 @@ class TextBackend(ErrBot):
     def shutdown(self):
         super(TextBackend, self).shutdown()
 
+    @property
+    def mode(self):
+        return 'text'

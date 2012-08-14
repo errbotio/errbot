@@ -575,4 +575,8 @@ class JabberBot(ErrBot):
         self.shutdown()
         exit(self.return_code)
 
+    @property
+    def mode(self):
+        return 'jabber'
+
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4

@@ -378,4 +378,6 @@ class Backend(object):
     def disconnect_callback(self):
         pass
 
-
+    @property
+    def mode(self):
+        raise NotImplementedError( "It should be implemented specifically for your backend" )

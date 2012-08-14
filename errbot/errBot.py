@@ -160,6 +160,7 @@ class ErrBot(Backend):
         self.remove_commands_from(self)
         deactivate_all_plugins()
 
+
     def shutdown(self):
         logging.info('Shutting down... deactivating all the plugins.')
         self.internal_shelf.close()

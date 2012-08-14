@@ -166,3 +166,8 @@ def unescape_xml(text):
         return text # leave as is
     return re.sub("&#?\w+;", fixup, text)
 
+def xhtml2txt(xhtml):
+    text_plain = re.sub(r'\n', '', xhtml) # Ignore formatting TODO exclude pre
+    text_plain = re.sub(r'</p>|</li>|<br/>', '\n', text_plain, flags=re.I) # readd the \n where they probably fit best
+    text_plain = re.sub(r'<[^>]+>', '', text_plain) # zap every tag left
+    return unescape_xml(text_plain).strip()

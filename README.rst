@@ -4,12 +4,12 @@
 Err - the pluggable jabber bot
 ==============================
 
-Err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable.
+Err is a plugin based chatbot designed to be easily deployable, extensible and maintainable.
 It allows you to start scripts interactively from your chatrooms for any reason: random humour, starting a build, monitoring commits, triggering alerts ...
 
 It is open source under the GPL3 license.
 
-It is written in python and it is based on jabberbot_ and yapsy_ with some minor modifications for the first one.
+It is written in python and it is based on yapsy_ with an heavily adapted jabberbot_ for the XMPP backend.
 
 Community behind the project
 ----------------------------
@@ -22,14 +22,41 @@ If your feature could be interesting as a part of an existing plugin, feel free 
 Features
 --------
 
-- Tested with hipchat_ and openfire_ but should be compatible with any XMPP/Jabber servers.
-- Can be setup so a restricted list of persons have the administration rights
-- Dynamic plugin architecture : the bot admin can install/uninstall/enable/disable plugins dynamically just by chatting with the bot.
+Backends :
+
+- XMPP : Tested with hipchat_, openfire_ and Jabber but should be compatible with any standard XMPP servers.
+- CampFire support
 - Supports MUCs (chatrooms)
-- Can proxy and route one 2 one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier).
-- Really easily extensible (see example below)
-- Provides an an automatic persistance store per plugin
+- Local Graphical Console (for testing/dev)
+- Local Text Console (for testing/dev)
+
+Included : 
+
 - an !help command that generates dynamically the documentation from the python docstrings of the commands
+- A command history system where the users can recall a previous command
+- Can proxy and route one 2 one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier).
+
+Administration and Security :
+
+- Can be setup so a restricted list of persons have the administration rights
+- Dynamic plugin architecture : the bot admin can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot.
+- Plugins can be hosted publicly or privately on git
+- Plugins can be configured directly from the chat (no need to change setup files for every plugin)
+- Configs can be exported and reimported (!export)
+- Technical logs can be inspected from the chat
+
+Provides for Extensibility :  
+
+- a really easy learning curve for you to write your first plugin (see example below)
+- test consoles for superfast developement roundtrips
+- a support for subcommands
+- an automatic persistance store per plugin
+- a really simple webhooks integration
+- a polling framework for the plugins
+- an easy configuration framework
+- a templating framework to display fancy HTML messages
+- an automatic conversion from HTML to plaintext when the backend doesn't support it (you don't have to make 2 versions of your command output)
+
 
 .. _hipchat: http://www.hipchat.org/
 .. _openfire: http://www.igniterealtime.org/projects/openfire/
@@ -87,7 +114,7 @@ You can override this behaviour with -c specifying the directory where your conf
 
     ./script/err.py -c /etc/err
 
-More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki/admin
+More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki
 
 Installation from pypi
 ----------------------

@@ -1,3 +1,6 @@
+pyfire
+PySide
+simplejson
 flask
 jinja2
 setuptools

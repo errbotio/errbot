@@ -19,6 +19,7 @@ class BotPluginBase(object, UserDict.DictMixin):
      It is the main contract between the plugins and the bot
     """
     is_activated = False
+    shelf = {} # avoids crashes on the dictmixin when the plugin is not active
 
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
@@ -48,17 +49,7 @@ class BotPluginBase(object, UserDict.DictMixin):
         logging.debug('Loading %s' % filename)
 
         self.shelf = shelve.DbfilenameShelf(filename)
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-
-                if name in holder.bot.commands:
-                    f = holder.bot.commands[name]
-                    new_name = (classname + '-' + name).lower()
-                    holder.bot.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, f.im_class.__name__, f.__name__, new_name ))
-                    name = new_name
-                logging.debug('Adding command : %s -> %s' % (name, value.__name__))
-                holder.bot.commands[name] = value
+        holder.bot.inject_commands_from(self)
         self.is_activated = True
 
     current_pollers = []
@@ -76,10 +67,7 @@ class BotPluginBase(object, UserDict.DictMixin):
 
         logging.debug('Closing shelf %s' % self.shelf)
         self.shelf.close()
-        for name, value in inspect.getmembers(self, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
-                del(holder.bot.commands[name])
+        holder.bot.remove_commands_from(self)
         self.is_activated = False
 
     def start_poller(self, interval, method, args=None, kwargs=None):
@@ -102,6 +90,7 @@ class BotPluginBase(object, UserDict.DictMixin):
     def program_next_poll(self, interval, method, args, kwargs):
         t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t) # save the timer to be able to kill it
+        t.setName('Poller thread for %s' % method.im_class.__name__)
         t.setDaemon(True) # so it is not locking on exit
         t.start()
 

@@ -44,4 +44,3 @@ REVERSE_CHATROOM_RELAY = {}
 # If you use HipChat, make sure to exactly match the fullname you set for the bot user
 CHATROOM_FN = 'bot'
 
-HIPCHAT_MODE = False

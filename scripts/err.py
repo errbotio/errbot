@@ -17,6 +17,8 @@
 import logging
 from os import path, access, makedirs, sep, getcwd, W_OK
 from platform import system
+from errbot.utils import PLUGINS_SUBDIR
+
 ON_WINDOWS = system() == 'Windows'
 import sys
 import argparse
@@ -54,15 +56,14 @@ def check_config(config_path):
     logging.info('Config check passed...')
 
 
-def main():
+
+def main(bot_class):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
-    from errbot.utils import PLUGINS_SUBDIR
-    from errbot.errBot import ErrBot
+
+    #from errbot.errBot import ErrBot
     from errbot import holder
     from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
-
-    holder.bot = ErrBot(**BOT_IDENTITY)
 
     if BOT_LOG_FILE:
         hdlr = logging.FileHandler(BOT_LOG_FILE)
@@ -81,6 +82,7 @@ def main():
     if not path.exists(d):
         makedirs(d, mode=0755)
 
+    holder.bot = bot_class(**BOT_IDENTITY)
     errors = holder.bot.update_dynamic_plugins()
     if errors:
         logging.error('Some plugins failed to load:\n' + '\n'.join(errors))
@@ -91,9 +93,13 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
-    debug_group = parser.add_mutually_exclusive_group()
-    debug_group.add_argument('-t', '--test', action='store_true', help='put err in test mode on the console')
-    debug_group.add_argument('-G', '--graphic', action='store_true', help='Use graphical mode')
+    backend_group = parser.add_mutually_exclusive_group()
+    backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
+    backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
+    backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
+    backend_group.add_argument('-T', '--text', action='store_true', help='locale text debug backend')
+    backend_group.add_argument('-G', '--graphic', action='store_true', help='local graphical debug mode backend')
+
 
     if not ON_WINDOWS:
         option_group = parser.add_argument_group('arguments to run it as a Daemon')
@@ -107,6 +113,23 @@ if __name__ == "__main__":
     # setup the environment to be able to import the config.py
     sys.path.append(config_path) # appends the current directory in order to find config.py
     check_config(config_path) # check if everything is ok before attempting to start
+
+
+    if args['text']:
+        from errbot.backends.text import TextBackend
+        bot_class = TextBackend
+    elif args['graphic']:
+        from errbot.backends.graphic import GraphicBackend
+        bot_class = GraphicBackend
+    elif args['campfire']:
+        from errbot.backends.campfire import CampfireBackend
+        bot_class = CampfireBackend
+    elif args['hipchat']:
+        from errbot.backends.hipchat import HipchatBot
+        bot_class = HipchatBot
+    else:
+        from errbot.backends.jabber import JabberBot
+        bot_class = JabberBot
 
     if (not ON_WINDOWS) and args['daemon']:
         if args['test']:
@@ -127,24 +150,10 @@ if __name__ == "__main__":
         try:
             with daemon.DaemonContext(detach_process=True, working_directory=getcwd(), pidfile=pidfile, uid=uid,
                                       gid=gid): # put the initial working directory to be sure not to lost it after daemonization
-                main()
+                main(bot_class)
         except:
             logging.exception('Failed to daemonize the process')
 
-    if args['test']:
-        # Sets a minimal logging on the console for the critical config errors
-        from errbot.testmode import patch_jabberbot
 
-        patch_jabberbot()
-
-    if args['graphic']:
-        # Sets a minimal logging on the console for the critical config errors
-        try:
-            from errbot.graphicmode import patch_jabberbot
-            patch_jabberbot()
-        except ImportError as ie:
-            logging.error('You need to install the package "pyside" to be able to use the graphical test console\n\n%s' % ie)
-            exit(-31)
-
-    main()
+    main(bot_class)
     logging.info('Process exiting')

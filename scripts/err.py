@@ -17,7 +17,7 @@
 import logging
 from os import path, access, makedirs, sep, getcwd, W_OK
 from platform import system
-from errbot.utils import PLUGINS_SUBDIR
+
 
 ON_WINDOWS = system() == 'Windows'
 import sys
@@ -61,7 +61,7 @@ def main(bot_class):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
-    #from errbot.errBot import ErrBot
+    from errbot.utils import PLUGINS_SUBDIR
     from errbot import holder
     from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
 

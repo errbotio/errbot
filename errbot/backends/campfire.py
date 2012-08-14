@@ -6,16 +6,16 @@ from errbot.backends.base import Identifier, Message, Connection
 from errbot.errBot import ErrBot
 from errbot.utils import xhtml2txt
 from threading import Condition
+from config import CHATROOM_PRESENCE
 import pyfire
-
-
 
 class CampfireConnection(Connection, pyfire.Campfire):
     rooms = {} # keep track of joined room so we can send messages directly to them
 
     def send(self, mess):
-        for (name, (room, stream)) in self.rooms.iteritems():
-            room.speak(mess.getBody()) # Basic text support for the moment
+        to_identity = mess.getTo()
+        room = to_identity.getDomain() # we only reply to rooms in reality in campfire
+        room.speak(mess.getBody()) # Basic text support for the moment
 
     def join_room(self, name, msg_callback, error_callback):
         room = self.get_room_by_name(name)
@@ -31,7 +31,7 @@ class CampfireBackend(ErrBot):
 
     def __init__(self, subdomain, username, password, ssl=True):
         super(CampfireBackend, self).__init__()
-        self.jid = Identifier(node = username)
+
         self.conn = None
         self.subdomain = subdomain
         self.username = username
@@ -54,11 +54,16 @@ class CampfireBackend(ErrBot):
 
     def connect(self):
         if not self.conn:
+            if not CHATROOM_PRESENCE:
+                raise Exception('Your bot needs to join at least one room, please set CHATROOM_PRESENCE in your config')
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
+            self.jid = Identifier(resource= self.username, domain = self.conn.get_room_by_name(CHATROOM_PRESENCE[0]))
+            # put us by default in the first room
+            # resource emulates the XMPP behavior in chatrooms
         return self.conn
 
     def build_message(self, text):
-        return Message(text)
+        return Message(text, typ = 'groupchat') # it is always a groupchat in campfire
 
     def shutdown(self):
         super(CampfireBackend, self).shutdown()
@@ -69,8 +74,8 @@ class CampfireBackend(ErrBot):
         if message.user:
             user = message.user.name
         if message.is_text():
-            msg = Message(message.body)
-            msg.setFrom(Identifier(node = user))
+            msg = Message(message.body, typ = 'groupchat') # it is always a groupchat in campfire
+            msg.setFrom(Identifier(resource = user, domain = message.room))
             self.callback_message(self.conn, msg)
 
     def error_callback(self, error):
@@ -97,3 +102,7 @@ class CampfireBackend(ErrBot):
                 logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
             message = Message(body=text)
         return message
+
+    def send_simple_reply(self, mess, text, private=False):
+        """Total hack to avoid stripping of rooms"""
+        self.send_message(self.build_reply(mess, text, True))

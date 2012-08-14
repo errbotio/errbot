@@ -16,22 +16,33 @@ class Identifier(object):
     """
     def __init__(self, jid=None, node='', domain='', resource=''):
         self.node = node
+        self.domain = domain
+        self.resource = resource
+
     def getNode(self):
         return self.node
+    def getDomain(self):
+        return self.domain
     def bareMatch(self, other):
         return other.node == self.node
     def getStripped(self):
         return self.node
+    def getResource(self):
+        return self.resource
+
 
 class Message(object):
-    typ = 'chat'
     fr = Identifier('mock')
-    def __init__(self, body, html = None):
+    def __init__(self, body, typ = 'chat', html = None):
         self.body = body
         self.html = html
+        self.typ = typ
 
     def setTo(self, to):
         self.to = to
+
+    def getTo(self):
+        return self.to
 
     def setType(self, typ):
         self.typ = typ

@@ -1,7 +1,6 @@
 from collections import deque
 import inspect
 import logging
-import thread
 from errbot import botcmd
 import difflib
 from errbot.utils import get_sender_username
@@ -65,12 +64,6 @@ class Message(object):
     def getHTML(self):
         return self.html
 
-    def getThread(self):
-        return None
-
-    def setThread(self, thread):
-        return None
-
 class Connection(object):
     def send(self, mess):
         raise NotImplementedError( "It should be implemented specifically for your backend" )
@@ -90,7 +83,6 @@ class Backend(object):
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
     commands = {} # the dynamically populated list of commands available on the bot
-    __threads = {}  # TODO, thread handling
 
     def __init__(self, *args, **kwargs):
         """ Those arguments will be directly those put in BOT_IDENTITY
@@ -115,7 +107,6 @@ class Backend(object):
         else:
             response.setTo(mess.getFrom().getStripped())
             response.setType(mess.getType())
-        response.setThread(mess.getThread())
         return response
 
     def callback_message(self, conn, mess):
@@ -218,13 +209,7 @@ class Backend(object):
 
             if f._jabberbot_command_split_args_with:
                 args = args.split(f._jabberbot_command_split_args_with)
-
-            # Experimental!
-            # if command should be executed in a seperate thread do it
-            if f._jabberbot_command_thread:
-                thread.start_new_thread(execute_and_send, (f._jabberbot_command_template,))
-            else:
-                execute_and_send(f._jabberbot_command_template)
+            execute_and_send(f._jabberbot_command_template)
         else:
             # In private chat, it's okay for the bot to always respond.
             # In group chat, the bot should silently ignore commands it
@@ -344,10 +329,8 @@ class Backend(object):
         mess.setTo(user)
 
         if in_reply_to:
-            mess.setThread(in_reply_to.getThread())
             mess.setType(in_reply_to.getType())
         else:
-            mess.setThread(self.__threads.get(user, None))
             mess.setType(message_type)
 
         self.send_message(mess)

@@ -6,7 +6,7 @@ from errbot.version import VERSION
 from errbot.holder import bot
 
 __author__ = 'gbin'
-from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, HIPCHAT_MODE, REVERSE_CHATROOM_RELAY
+from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, REVERSE_CHATROOM_RELAY
 
 class ChatRoom(BotPlugin):
     min_err_version = VERSION # don't copy paste that for your plugin, it is just because it is a bundled plugin !
@@ -16,7 +16,7 @@ class ChatRoom(BotPlugin):
     def keep_alive(self):
         # logging.debug('Keep alive sent')
         if self.connected:
-            if HIPCHAT_MODE:
+            if bot.mode == 'hipchat':
                 self.send('nobody', ' ', message_type='groupchat') # hack from hipchat itself
             else:
                 self.bare_send(xmpp.Presence())

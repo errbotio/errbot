@@ -469,10 +469,6 @@ class JabberBot(ErrBot):
             logging.debug('Ignore a message from myself')
             return False
 
-        # Remember the last-talked-in message thread for replies
-        # FIXME i am not threadsafe
-        self.__threads[mess.getFrom()] = mess.getThread()
-
         return super(JabberBot, self).callback_message(conn, mess)
 
 

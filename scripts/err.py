@@ -95,6 +95,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
+    backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
     backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
     backend_group.add_argument('-T', '--text', action='store_true', help='locale text debug backend')
     backend_group.add_argument('-G', '--graphic', action='store_true', help='local graphical debug mode backend')
@@ -121,8 +122,11 @@ if __name__ == "__main__":
         from errbot.backends.graphic import GraphicBackend
         bot_class = GraphicBackend
     elif args['campfire']:
-            from errbot.backends.campfire import CampfireBackend
-            bot_class = CampfireBackend
+        from errbot.backends.campfire import CampfireBackend
+        bot_class = CampfireBackend
+    elif args['hipchat']:
+        from errbot.backends.hipchat import HipchatBot
+        bot_class = HipchatBot
     else:
         from errbot.backends.jabber import JabberBot
         bot_class = JabberBot

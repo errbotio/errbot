@@ -18,7 +18,6 @@ import logging
 from os import path, access, makedirs, sep, getcwd, W_OK
 from platform import system
 
-
 ON_WINDOWS = system() == 'Windows'
 import sys
 import argparse
@@ -111,7 +110,7 @@ if __name__ == "__main__":
     args = vars(parser.parse_args()) # create a dictionary of args
     config_path = args['config']
     # setup the environment to be able to import the config.py
-    sys.path.append(config_path) # appends the current directory in order to find config.py
+    sys.path.insert(0, config_path) # appends the current directory in order to find config.py
     check_config(config_path) # check if everything is ok before attempting to start
 
 

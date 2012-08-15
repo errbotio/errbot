@@ -111,12 +111,12 @@ class Webserver(BotPlugin):
         self.server = None
         super(Webserver, self).deactivate()
 
-    @botcmd
+    @botcmd(template='webstatus')
     def webstatus(self, mess, args):
         """
         Gives a quick status of what is mapped in the internal webserver
         """
-        return '\n'.join((rule.rule + " -> " + rule.endpoint for rule in holder.flask_app.url_map.iter_rules()))
+        return {'rules': (((rule.rule, rule.endpoint) for rule in holder.flask_app.url_map.iter_rules()))}
 
     @botcmd(split_args_with=' ')
     def webhook_test(self, mess, args):

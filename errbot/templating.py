@@ -17,11 +17,11 @@ def add_plugin_templates_path(path):
     global env
     tmpl_path = make_templates_from_plugin_path(path)
     if os.path.exists(tmpl_path):
-        logging.debug("Path %s exists, enabling templating for this plugin" % tmpl_path)
+        logging.debug("Templates directory found for this plugin [%s]" % tmpl_path)
         template_path.append(tmpl_path)
         env = Environment(loader=FileSystemLoader(template_path)) # ditch and recreate a new templating environment
         return
-    logging.debug("Path %s doesn't exist, disabling templating for this plugin" % tmpl_path)
+    logging.debug("No templates directory found for this plugin [Looking for %s]" % tmpl_path)
 
 def remove_plugin_templates_path(path):
     global env

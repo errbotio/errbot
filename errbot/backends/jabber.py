@@ -518,41 +518,42 @@ class JabberBot(ErrBot):
 
     def serve_forever(self):
         """Connects to the server and handles messages."""
-        conn = None
-        while not self.__finished and not conn:
-            conn = self.connect()
-            if not conn:
-                self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
-                time.sleep(self.RETRY_FREQUENCY)
-
-
-        self.connect_callback() # notify that the connection occured
-        self.__lastping = time.time()
-
-        while not self.__finished:
-            try:
-                if conn:
-                    try:
-                        conn.Process(1)
-                        if conn._owner.connected == '':
-                            self.disconnect_callback() # notify that the connection is lost
-                            conn = None
-                    except Exception:
-                        logging.exception("conn.Process exception")
-                    self.idle_proc()
-                else:
-                    self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)
+        try:
+            conn = None
+            while not self.__finished and not conn:
+                conn = self.connect()
+                if not conn:
+                    self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
                     time.sleep(self.RETRY_FREQUENCY)
-                    conn = self.connect()
-                    if conn:
-                        self.connect_callback()
-            except KeyboardInterrupt:
-                self.log.info('bot stopped by user request. shutting down.')
-                break
 
-        self.disconnect_callback()
-        self.shutdown()
-        exit(self.return_code)
+
+            self.connect_callback() # notify that the connection occured
+            self.__lastping = time.time()
+
+            while not self.__finished:
+                try:
+                    if conn:
+                        try:
+                            conn.Process(1)
+                            if conn._owner.connected == '':
+                                self.disconnect_callback() # notify that the connection is lost
+                                conn = None
+                        except Exception:
+                            logging.exception("conn.Process exception")
+                        self.idle_proc()
+                    else:
+                        self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)
+                        time.sleep(self.RETRY_FREQUENCY)
+                        conn = self.connect()
+                        if conn:
+                            self.connect_callback()
+                except KeyboardInterrupt:
+                    self.log.info('bot stopped by user request. shutting down.')
+                    break
+            self.disconnect_callback()
+        finally:
+            self.shutdown()
+            exit(self.return_code)
 
     @property
     def mode(self):

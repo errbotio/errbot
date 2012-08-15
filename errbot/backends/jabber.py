@@ -514,7 +514,7 @@ class JabberBot(ErrBot):
         Override this method in derived class if you
         want to do anything special at shutdown.
         """
-        pass
+        super(JabberBot, self).shutdown()
 
     def serve_forever(self):
         """Connects to the server and handles messages."""

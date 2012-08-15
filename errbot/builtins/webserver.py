@@ -103,10 +103,11 @@ class Webserver(BotPlugin):
 
     def deactivate(self):
         logging.debug('Sending signal to stop the webserver')
-        self.server.shutdown()
-        logging.info('Waiting for the webserver to terminate...')
-        self.webserver_thread.join()
-        logging.info('Webserver thread died as expected.')
+        if self.server:
+            self.server.shutdown()
+            logging.info('Waiting for the webserver to terminate...')
+            self.webserver_thread.join()
+            logging.info('Webserver thread died as expected.')
         self.webserver_thread = None
         self.server = None
         super(Webserver, self).deactivate()

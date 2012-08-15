@@ -160,9 +160,9 @@ class Webserver(BotPlugin):
         return 'Could not find endpoint %s. Check with !webstatus which endpoints are deployed' % endpoint
 
 
-    @webhook(r'/zourby/')
-    def zourby(self, incoming_request):
-        logging.debug(type(incoming_request))
-        logging.debug(str(incoming_request))
-        return str(holder.bot.status(None, None))
+    #@webhook(r'/zourby/')
+    #def zourby(self, incoming_request):
+    #    logging.debug(type(incoming_request))
+    #    logging.debug(str(incoming_request))
+    #    return str(holder.bot.status(None, None))
 

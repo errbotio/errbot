@@ -53,7 +53,7 @@ class JabberClient(Client, Connection):
 
     def send_message(self, mess):
         logging.debug('Message filtered thru JabberClient : %s' % mess)
-        super(JabberClient,self).send(mess)
+        self.send(mess)
 
 
 def is_from_history(mess):

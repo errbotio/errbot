@@ -16,7 +16,11 @@
 
 import os
 from setuptools import setup, find_packages
-from errbot.version import VERSION
+import sys
+
+sys.path.insert(0, 'errbot') # hack to avoid loading err machinery from the errbot package
+from version import VERSION
+
 def read(fname):
         return open(os.path.join(os.path.dirname(__file__), fname)).read()
 

@@ -39,7 +39,7 @@ class TextBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        return Message(text)
+        return Message(self.build_text_html_message_pair(text)[0]) # 0 = Only retain pure text
 
     def shutdown(self):
         super(TextBackend, self).shutdown()

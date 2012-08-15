@@ -88,15 +88,11 @@ class CampfireBackend(ErrBot):
         self.conn.join_room(room, self.msg_callback, self.error_callback)
 
     def build_message(self, text):
-        """Builds an xhtml message without attributes.
-        If input is not valid xhtml-im fallback to normal."""
         try:
             node = XML2Node(text)
-            # logging.debug('This message is XML : %s' % text)
             text_plain = xhtml2txt(text)
             logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
             message = Message(body=text_plain)
-            # message.addChild(node = node) TODO see if campfire supports that
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
                 logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))

@@ -1,9 +1,11 @@
 from collections import deque
 import inspect
 import logging
+from pyexpat import ExpatError
+from xmpp.simplexml import XML2Node
 from errbot import botcmd
 import difflib
-from errbot.utils import get_sender_username
+from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message
@@ -88,6 +90,20 @@ class Backend(object):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
         pass
+
+    def build_text_html_message_pair(self, source):
+        node = None
+        text_plain = None
+
+        try:
+            node = XML2Node(source)
+            text_plain = xhtml2txt(source)
+        except ExpatError as ee:
+            if source.strip(): # avoids keep alive pollution
+                logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
+                text_plain = source
+        return text_plain, node
+
 
     def send_message(self, mess):
         """Send a message"""

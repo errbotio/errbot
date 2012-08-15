@@ -5,6 +5,7 @@ import sys
 from PySide import QtCore, QtGui, QtWebKit
 from PySide.QtGui import QCompleter
 from PySide.QtCore import Qt, QUrl
+import config
 import errbot
 from errbot.backends.base import Connection, Message, Identifier
 from errbot.errBot import ErrBot
@@ -43,7 +44,8 @@ class CommandBox(QtGui.QLineEdit, object):
 class ConnectionMock(Connection, QtCore.QObject):
 
     newAnswer = QtCore.Signal(str, bool)
-
+    def send_message(self, mess):
+        self.send(mess)
     def send(self, mess):
         if hasattr(mess, 'getBody') and len(mess.getBody()) > 0 and not mess.getBody().isspace():
             html_content = mess.getHTML()
@@ -91,7 +93,9 @@ class GraphicBackend(ErrBot):
 
     def send_command(self):
         self.new_message(self.input.text(), False)
-        self.callback_message(self.conn, Message(self.input.text()))
+        msg = Message(self.input.text())
+        msg.setFrom(Identifier(node=config.BOT_ADMINS[0])) # assume this is the admin talking
+        self.callback_message(self.conn, msg)
         self.input.clear()
 
 

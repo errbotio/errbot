@@ -1,10 +1,14 @@
 import sys
+import config
 from errbot.backends.base import Identifier, Message
 from errbot.errBot import ErrBot
 
 class ConnectionMock():
     def send(self, mess):
         print mess.getBody()
+    def send_message(self, mess):
+        self.send(mess)
+
 
 ENCODING_INPUT = sys.stdin.encoding
 
@@ -18,7 +22,9 @@ class TextBackend(ErrBot):
         try:
             while True:
                 entry = raw_input("Talk to  me >>").decode(ENCODING_INPUT)
-                self.callback_message(self.conn, Message(entry))
+                msg = Message(entry)
+                msg.setFrom(Identifier(node=config.BOT_ADMINS[0])) # assume this is the admin talking
+                self.callback_message(self.conn, msg)
         except EOFError as eof:
             pass
         except KeyboardInterrupt as ki:
@@ -37,6 +43,9 @@ class TextBackend(ErrBot):
 
     def shutdown(self):
         super(TextBackend, self).shutdown()
+
+    def join_room(self, room, username=None, password=None):
+        pass # just ignore that
 
     @property
     def mode(self):

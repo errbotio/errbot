@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python
 
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -107,7 +107,7 @@ if __name__ == "__main__":
         option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
         option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
         option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
-    
+
     args = vars(parser.parse_args()) # create a dictionary of args
     config_path = args['config']
     # setup the environment to be able to import the config.py

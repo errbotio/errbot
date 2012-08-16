@@ -329,7 +329,7 @@ class JabberBot(ErrBot):
             message.addChild(node = node)
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
-                logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
+                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
 

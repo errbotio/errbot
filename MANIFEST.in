@@ -2,4 +2,4 @@ include *.rst
 include errbot/builtins/*.plug
 include errbot/*.svg
 include errbot/templates/*.html
-
+include errbot/builtins/templates/*.html

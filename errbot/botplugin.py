@@ -1,54 +1,27 @@
-import UserDict
-import inspect
 import logging
 import os
-import shelve
 from threading import Timer, current_thread
 from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
 from errbot import holder
+from storage import StoreMixin
 
-def unicode_filter(key):
-    if type(key) == unicode:
-        return key.encode('utf-8')
-    return key
-
-class BotPluginBase(object, UserDict.DictMixin):
+class BotPluginBase(object, StoreMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot
     """
     is_activated = False
-    shelf = {} # avoids crashes on the dictmixin when the plugin is not active
-
-
-    # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
-    def __getitem__(self, key):
-        return self.shelf.__getitem__(unicode_filter(key))
-
-    def __setitem__(self, key, item):
-        return self.shelf.__setitem__(unicode_filter(key), item)
-
-    def __delitem__(self, key):
-        return self.shelf.__delitem__(unicode_filter(key))
-
-    def keys(self):
-        keys = []
-        for key in self.shelf.keys():
-            if type(key) == str:
-                keys.append(key.decode('utf-8'))
-        return keys
 
     def activate(self):
         """
             Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
         """
         classname = self.__class__.__name__
-        logging.debug('Init shelf for %s' % classname)
+        logging.debug('Init storage for %s' % classname)
         filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
         logging.debug('Loading %s' % filename)
-
-        self.shelf = shelve.DbfilenameShelf(filename)
+        self.open_storage(filename)
         holder.bot.inject_commands_from(self)
         self.is_activated = True
 
@@ -65,8 +38,7 @@ class BotPluginBase(object, UserDict.DictMixin):
             for timer in self.current_timers:
                 timer.cancel()
 
-        logging.debug('Closing shelf %s' % self.shelf)
-        self.shelf.close()
+        self.close_storage()
         holder.bot.remove_commands_from(self)
         self.is_activated = False
 

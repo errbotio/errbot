@@ -175,3 +175,9 @@ def xhtml2txt(xhtml):
     text_plain = REINSERT_EOLS.sub('\n', text_plain) # readd the \n where they probably fit best
     text_plain = ZAP_TAGS.sub('', text_plain) # zap every tag left
     return unescape_xml(text_plain).strip()
+
+def unicode_filter(key):
+    if type(key) == unicode:
+        return key.encode('utf-8')
+    return key
+

@@ -1,3 +1,4 @@
+import logging
 import sys
 import config
 from errbot.backends.base import Identifier, Message
@@ -30,7 +31,9 @@ class TextBackend(ErrBot):
         except KeyboardInterrupt as ki:
             pass
         finally:
+            logging.debug("Trigger disconnect callback")
             self.disconnect_callback()
+            logging.debug("Trigger shutdown")
             self.shutdown()
 
     def connect(self):

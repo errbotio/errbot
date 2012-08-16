@@ -107,6 +107,7 @@ class JabberBot(ErrBot):
         Don't forget to raise exception xmpp.NodeProcessed to stop
         processing in other handlers (see callback_presence)
         """
+        super(JabberBot, self).__init__()
         self.__debug = debug
         self.log = logging.getLogger(__name__)
         self.__username = username
@@ -127,8 +128,7 @@ class JabberBot(ErrBot):
 
         # Collect commands from source
         self.roster = None
-        super(JabberBot, self).__init__(username, password, res=res, debug=debug,
-                         privatedomain=privatedomain, acceptownmsgs=acceptownmsgs, handlers=handlers)
+
 
     ################################
 

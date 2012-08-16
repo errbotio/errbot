@@ -43,7 +43,7 @@ setup(
 
     author = "Guillaume BINET",
     author_email = "gbin@gootz.net",
-    description = "err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable.",
+    description = "err is a plugin based team chatbot designed to be easily deployable, extensible and maintainable.",
     long_description=''.join([read('README.rst'),'\n\n',changes]),
     license = "GPL",
     keywords = "xmpp jabber chatbot bot plugin",

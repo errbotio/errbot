@@ -12,7 +12,7 @@ import pyfire
 class CampfireConnection(Connection, pyfire.Campfire):
     rooms = {} # keep track of joined room so we can send messages directly to them
 
-    def send(self, mess):
+    def send_message(self, mess):
         to_identity = mess.getTo()
         room = to_identity.getDomain() # we only reply to rooms in reality in campfire
         room.speak(mess.getBody()) # Basic text support for the moment
@@ -78,8 +78,8 @@ class CampfireBackend(ErrBot):
             msg.setFrom(Identifier(resource = user, domain = message.room))
             self.callback_message(self.conn, msg)
 
-    def error_callback(self, error):
-        logging.error("Stream STOPPED due to ERROR: %s" % error)
+    def error_callback(self, error, room):
+        logging.error("Stream STOPPED due to ERROR: %s in room %s" % (error, room))
         self.exit_lock.acquire()
         self.exit_lock.notify()
         self.exit_lock.release()

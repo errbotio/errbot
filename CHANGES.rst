@@ -1,8 +1,24 @@
 Release history
 ===============
 
-Version 1.6.0 (2012-08-)
-------------------------
+Version 1.6.0 (2012-08-16)
+--------------------------
+Bugs:
+
+- corrected a threading issue that was preventing err to quit
+- the python shebangs lines where not generic
+- the config path is not inserted first so we don't conflict with other installs
+- corrected a corruption of the configs on some persistance stores on shutdown
+
+Features:
+
+- Added support for CampFire (see: https://github.com/gbin/err/wiki/Setup-with-CampFire)
+- Added support for Hipchat API with basic html messages (https://github.com/gbin/err/wiki/Setup-with-Hipchat)
+- Added support for webhooks (see: https://github.com/gbin/err/wiki/webhooks)
+- Independent backends can be implemented
+- In order to simplify : now botcmd and BotPlugin are both imported from errbot (we left a big fat warning for the old deprecated spot, they will be removed in next release)
+- Better status report from !status (including Errors and non-configured plugins)
+
 
 Version 1.5.1 (2012-08-11)
 --------------------------

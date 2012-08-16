@@ -176,6 +176,22 @@ def xhtml2txt(xhtml):
     text_plain = ZAP_TAGS.sub('', text_plain) # zap every tag left
     return unescape_xml(text_plain).strip()
 
+
+HIPCHAT_FORCE_PRE = re.compile(r'<body>', re.I)
+HIPCHAT_FORCE_SLASH_PRE = re.compile(r'</body>', re.I)
+HIPCHAT_EOLS = re.compile(r'</p>|</li>', re.I)
+HIPCHAT_BOLS = re.compile(r'<p [^>]+>|<li [^>]+>', re.I)
+
+# Hipchat has a really limited html support
+def xhtml2hipchat(xhtml):
+    retarded_hipchat_html_plain = REMOVE_EOL.sub('', xhtml) # Ignore formatting
+    retarded_hipchat_html_plain = HIPCHAT_EOLS.sub('<br/>', retarded_hipchat_html_plain) # readd the \n where they probably fit best
+    retarded_hipchat_html_plain = HIPCHAT_BOLS.sub('', retarded_hipchat_html_plain) # zap every tag left
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_PRE.sub('<body><pre>', retarded_hipchat_html_plain) # fixor pre
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_SLASH_PRE.sub('</pre></body>', retarded_hipchat_html_plain) # fixor /pre
+    return retarded_hipchat_html_plain
+
+
 def unicode_filter(key):
     if type(key) == unicode:
         return key.encode('utf-8')

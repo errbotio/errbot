@@ -18,10 +18,12 @@ class IncompatiblePluginException(Exception):
 class PluginConfigurationException(Exception):
     pass
 
-
 # adds the extra plugin dir from the setup for developpers convenience
 if BOT_EXTRA_PLUGIN_DIR:
-    BUILTINS.append(BOT_EXTRA_PLUGIN_DIR)
+    if isinstance(BOT_EXTRA_PLUGIN_DIR, basestring):
+        BUILTINS.append(BOT_EXTRA_PLUGIN_DIR)
+    else:
+        BUILTINS.extend(BOT_EXTRA_PLUGIN_DIR)
 
 def init_plugin_manager():
     global simplePluginManager

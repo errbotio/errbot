@@ -23,7 +23,7 @@ class ChatRoom(BotPlugin):
 
     def activate(self):
         super(ChatRoom, self).activate()
-        if bot.mode != 'campfire': # no keep alive needed for campfire
+        if bot.mode in ('hipchat', 'jabber'):
             self.start_poller(10.0, self.keep_alive)
 
     def callback_connect(self):

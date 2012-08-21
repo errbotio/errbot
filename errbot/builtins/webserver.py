@@ -103,20 +103,21 @@ class Webserver(BotPlugin):
 
     def deactivate(self):
         logging.debug('Sending signal to stop the webserver')
-        self.server.shutdown()
-        logging.info('Waiting for the webserver to terminate...')
-        self.webserver_thread.join()
-        logging.info('Webserver thread died as expected.')
+        if self.server:
+            self.server.shutdown()
+            logging.info('Waiting for the webserver to terminate...')
+            self.webserver_thread.join()
+            logging.info('Webserver thread died as expected.')
         self.webserver_thread = None
         self.server = None
         super(Webserver, self).deactivate()
 
-    @botcmd
+    @botcmd(template='webstatus')
     def webstatus(self, mess, args):
         """
         Gives a quick status of what is mapped in the internal webserver
         """
-        return '\n'.join((rule.rule + " -> " + rule.endpoint for rule in holder.flask_app.url_map.iter_rules()))
+        return {'rules': (((rule.rule, rule.endpoint) for rule in holder.flask_app.url_map.iter_rules()))}
 
     @botcmd(split_args_with=' ')
     def webhook_test(self, mess, args):
@@ -160,9 +161,9 @@ class Webserver(BotPlugin):
         return 'Could not find endpoint %s. Check with !webstatus which endpoints are deployed' % endpoint
 
 
-    @webhook(r'/zourby/')
-    def zourby(self, incoming_request):
-        logging.debug(type(incoming_request))
-        logging.debug(str(incoming_request))
-        return str(holder.bot.status(None, None))
+    #@webhook(r'/zourby/')
+    #def zourby(self, incoming_request):
+    #    logging.debug(type(incoming_request))
+    #    logging.debug(str(incoming_request))
+    #    return str(holder.bot.status(None, None))
 

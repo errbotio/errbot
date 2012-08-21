@@ -21,20 +21,18 @@ import gc
 import logging
 import os
 
-import shelve
 import shutil
 import subprocess
 
 from tarfile import TarFile
 from urllib2 import urlopen
 
-from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_ADMINS
+from config import BOT_DATA_DIR, BOT_LOG_FILE
 from errbot import botcmd
-from errbot import BotPlugin
 from errbot.backends.base import Backend
 
-
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
+from errbot.storage import StoreMixin
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
@@ -42,30 +40,35 @@ from errbot.version import VERSION
 PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
 def get_class_that_defined_method(meth):
-  obj = meth.im_self
   for cls in inspect.getmro(meth.im_class):
     if meth.__name__ in cls.__dict__: return cls
   return None
 
-class ErrBot(Backend):
+class ErrBot(Backend, StoreMixin):
     """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
-    internal_shelf = shelve.DbfilenameShelf(BOT_DATA_DIR + os.sep + 'core.db')
     startup_time = datetime.now()
+
+    def __init__(self, *args, **kwargs):
+        self.open_storage(BOT_DATA_DIR + os.sep + 'core.db')
+        # be sure we have a configs entry for the plugin configurations
+        if not self.has_key('configs'):
+            self['configs'] = {}
+        super(ErrBot, self).__init__(*args, **kwargs)
 
     # Repo management
     def get_installed_plugin_repos(self):
-        return self.internal_shelf.get('repos', {})
+        return self.get('repos', {})
 
     def add_plugin_repo(self, name, url):
         repos = self.get_installed_plugin_repos()
         repos[name] = url
-        self.internal_shelf['repos'] = repos
+        self['repos'] = repos
 
     # plugin blacklisting management
     def get_blacklisted_plugin(self):
-        return self.internal_shelf.get('bl_plugins', [])
+        return self.get('bl_plugins', [])
 
     def is_plugin_blacklisted(self, name):
         return name in self.get_blacklisted_plugin()
@@ -74,7 +77,7 @@ class ErrBot(Backend):
         if self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is already blacklisted' % name)
             return
-        self.internal_shelf['bl_plugins'] = self.get_blacklisted_plugin() + [name]
+        self['bl_plugins'] = self.get_blacklisted_plugin() + [name]
         logging.info('Plugin %s is now blacklisted' % name)
 
     def unblacklist_plugin(self, name):
@@ -83,33 +86,27 @@ class ErrBot(Backend):
             return
         l = self.get_blacklisted_plugin()
         l.remove(name)
-        self.internal_shelf['bl_plugins'] = l
-        self.internal_shelf.sync()
+        self['bl_plugins'] = l
         logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management
     def get_plugin_configuration(self, name):
-        configs = self.internal_shelf['configs']
+        configs = self['configs']
         if not configs.has_key(name):
             return None
         return configs[name]
 
     def set_plugin_configuration(self, name, obj):
-        configs = self.internal_shelf['configs']
+        configs = self['configs']
         configs[name] = obj
-        self.internal_shelf['configs'] = configs
+        self['configs'] = configs
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        all_candidates, errors = update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.internal_shelf.get('repos', {}).keys()])
+        all_candidates, errors = update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.get('repos', {}).keys()])
         self.all_candidates = all_candidates
         return errors
 
-    def __init__(self, *args, **kwargs):
-        super(ErrBot, self).__init__(*args, **kwargs)
-        # be sure we have a configs entry for the plugin configurations
-        if not self.internal_shelf.has_key('configs'):
-            self.internal_shelf['configs'] = {}
 
     def callback_message(self, conn, mess):
         if super(ErrBot, self).callback_message(conn, mess):
@@ -123,7 +120,7 @@ class ErrBot(Backend):
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
-        configs = self.internal_shelf['configs']
+        configs = self['configs']
         errors = ''
         for pluginInfo in get_all_plugins():
             try:
@@ -158,13 +155,13 @@ class ErrBot(Backend):
 
     def disconnect_callback(self):
         self.remove_commands_from(self)
+        logging.info('Disconnect callback, deactivating all the plugins.')
         deactivate_all_plugins()
 
 
     def shutdown(self):
-        logging.info('Shutting down... deactivating all the plugins.')
-        self.internal_shelf.close()
-        deactivate_all_plugins()
+        logging.info('Shutdown.')
+        self.close_storage()
         logging.info('Bye.')
 
     @botcmd(template = 'status')
@@ -206,29 +203,29 @@ class ErrBot(Backend):
     def export_configs(self, mess, args):
         """ Returns all the configs in form of a string you can backup
         """
-        return str(self.internal_shelf.get('configs', {}))
+        return str(self.get('configs', {}))
 
     @botcmd(admin_only = True)
     def import_configs(self, mess, args):
         """ Restore the configs from an export from !export configs
         It will merge with preexisting configurations.
         """
-        orig = self.internal_shelf.get('configs', {})
+        orig = self.get('configs', {})
         added = literal_eval(args)
         if type(added) is not dict:
             raise Exception('Weird, it should be a dictionary')
-        self.internal_shelf['configs']=dict(orig.items() + added.items())
+        self['configs']=dict(orig.items() + added.items())
         return "Import is done correctly, there are %i config entries now." % len(self.internal_shelf['configs'])
 
     @botcmd(admin_only = True)
     def zap_configs(self, mess, args):
         """ WARNING : Deletes all the configuration of all the plugins
         """
-        self.internal_shelf['configs']={}
+        self['configs']={}
         return "Done"
 
     @botcmd(admin_only = True)
-    def export_repos(self, mess, args):
+    def repos_export(self, mess, args):
         """ Returns all the repos in form of a string you can backup
         """
         return str(self.get_installed_plugin_repos())
@@ -283,7 +280,7 @@ class ErrBot(Backend):
         return result
 
     @botcmd(admin_only = True)
-    def install(self, mess, args):
+    def repos_install(self, mess, args):
         """ install a plugin repository from the given source or a known public repo (see !repos to find those).
         for example from a known repo : !install err-codebot
         for example a git url : git@github.com:gbin/plugin.git
@@ -319,12 +316,12 @@ class ErrBot(Backend):
         return "Plugin reload done."
 
     @botcmd(admin_only = True)
-    def uninstall(self, mess, args):
+    def repos_uninstall(self, mess, args):
         """ uninstall a plugin repository by name.
         """
         if not args.strip():
             return "You should have a repo name as argument"
-        repos = self.internal_shelf.get('repos', {})
+        repos = self.get('repos', {})
         if not repos.has_key(args):
             return "This repo is not installed check with !repos the list of installed ones"
 
@@ -336,7 +333,7 @@ class ErrBot(Backend):
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
-        self.internal_shelf['repos'] = repos
+        self['repos'] = repos
 
         return 'Plugins unloaded and repo %s removed' % args
 
@@ -420,13 +417,13 @@ class ErrBot(Backend):
         return ''.join(filter(None, [top, description, usage, bottom])).strip()
 
     @botcmd(split_args_with = ' ', admin_only = True)
-    def update(self, mess, args):
+    def repos_update(self, mess, args):
         """ update the bot and/or plugins
-        use : !update all
+        use : !repos update all
         to update everything
-        or : !update core
+        or : !repos update core
         to update only the core
-        or : !update repo_name repo_name ...
+        or : !repos update repo_name repo_name ...
         to update selectively some repos
         """
         git_path = which('git')

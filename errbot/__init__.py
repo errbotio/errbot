@@ -24,18 +24,41 @@ def botcmd(*args, **kwargs):
     else:
         return lambda func: decorate(func, **kwargs)
 
-def deprecated_botcmd(*args, **kwargs):
-    logging.warn("""
-    DEPRECATED USAGE:
-    A plugin uses the former cmdbot place, please change the
-    'from errbot.jabberbot import botcmd'
-    to
-    'from errbot import botcmd'
-    """)
-    return botcmd(*args, **kwargs)
+#def deprecated_botcmd(*args, **kwargs):
+#    import traceback
+#    tb = traceback.extract_stack()[-2]
+#    logging.warn("""
+#    DEPRECATED USAGE:
+#    A plugin uses the former cmdbot place, please change the
+#    'from errbot.jabberbot import botcmd'
+#    the old @cmdbot is called from the line %i of %s
+#    to
+#    'from errbot import botcmd'
+#    """%(tb[1], tb[0]))
+#    return botcmd(*args, **kwargs)
 # hack the module system to have a deprecated version of botcmd
-import imp, sys
-module = imp.new_module('errbot.jabberbot')
-setattr(module, 'botcmd', deprecated_botcmd)
-sys.modules['errbot.jabberbot'] = module
 
+import imp, sys
+
+class DeprecationDetector(object):
+    def __init__(self):
+        # construct a virtual module
+        self.module = imp.new_module('errbot.jabberbot')
+        setattr(self.module, 'botcmd', botcmd)
+
+    def find_module(self, fullname, path=None):
+        if fullname == 'errbot.jabberbot':
+            self.path = path
+            return self
+        return None
+
+    def load_module(self, name):
+        import traceback
+        tb = traceback.extract_stack()[-2]
+        logging.warn("""DEPRECATED USAGE:
+            A plugin uses the former cmdbot place, please change the
+            'from errbot.jabberbot import botcmd' line %i of %s
+            to 'from errbot import botcmd'"""%(tb[1], tb[0]))
+        return self.module
+
+sys.meta_path = [DeprecationDetector()]

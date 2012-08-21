@@ -1,12 +1,16 @@
-import httplib
 import json
 import logging
 from urllib import urlencode
+from pyexpat import ExpatError
 from xmpp.client import DBG_CLIENT
+from xmpp.simplexml import XML2Node
+from xmpp.protocol import Message
 from errbot.backends.jabber import JabberBot
 from urllib2 import urlopen, Request
 from xmpp import Client
 from config import CHATROOM_FN
+from errbot.utils import xhtml2hipchat
+
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
 
@@ -41,6 +45,25 @@ class HipchatBot(JabberBot):
 
     def create_connection(self):
         return HipchatClient(self.jid.getDomain(), debug=[], token=self.api_token)
+
+    def build_message(self, text):
+        """Builds an xhtml message without attributes.
+        If input is not valid xhtml-im fallback to normal."""
+        try:
+            XML2Node(text) # test if is it xml
+            # yes, ok epurate it for hipchat
+            try:
+                hipchat_html = xhtml2hipchat(text)
+                node = XML2Node(hipchat_html)
+                message = Message()
+                message.addChild(node = node)
+            except ExpatError as ee:
+                logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (text, ee))
+        except ExpatError as ee:
+            if text.strip(): # avoids keep alive pollution
+                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (hipchat_html, ee))
+            message = Message(body=text)
+        return message
 
     @property
     def mode(self):

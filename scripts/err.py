@@ -136,8 +136,8 @@ if __name__ == "__main__":
         bot_class = JabberBot
 
     if (not ON_WINDOWS) and args['daemon']:
-        if args['test']:
-            raise Exception('You cannot run in test and daemon mode at the same time')
+        if args['text']:
+            raise Exception('You cannot run in text and daemon mode at the same time')
 
         if args['pidfile']:
             pid = args['pidfile']

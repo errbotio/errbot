@@ -28,6 +28,14 @@ BOT_IDENTITY = {
 #    'password' : 'changeme'
 #}
 
+# IRC template
+# BOT_IDENTITY = {
+#    'nickname' : 'err-chatbot',
+#    'password' : None, # optional
+#    'server' : 'irc.freenode.net',
+#    'port': 6667 # optional
+#}
+
 BOT_ADMINS = ('gbin@localhost',) # only those JIDs will have access to admin commands
 
 # CAMPFIRE it should be the full name
@@ -38,11 +46,12 @@ BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful
 
 # ---- Chatrooms configuration (used by the chatroom plugin)
 # it is a standard python file so you can reuse variables...
-# For example: _TEST_ROOM = 'test@conference.localhost'
+# For example: _TEST_ROOM = 'test@conference.localhost
 
 # CHATROOM_ PRESENCE
 # it must be an iterable of names of rooms you want the bot to join at startup
 # for example : CHATROOM_PRESENCE = (_TEST_ROOM,)
+# for IRC you can name them with their # like #err_chatroom
 CHATROOM_PRESENCE = ()
 
 # CHATROOM_RELAY

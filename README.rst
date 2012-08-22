@@ -1,15 +1,15 @@
 .. image:: http://gbin.github.com/err/images/err.png
     :align: right
 
-Err - the pluggable jabber bot
-==============================
+Err - the pluggable chatbot
+===========================
 
 Err is a plugin based chatbot designed to be easily deployable, extensible and maintainable.
 It allows you to start scripts interactively from your chatrooms for any reason: random humour, starting a build, monitoring commits, triggering alerts ...
 
 It is open source under the GPL3 license.
 
-It is written in python and it is based on yapsy_ with an heavily adapted jabberbot_ for the XMPP backend.
+It is written and extensible in python and it is based on yapsy_ with an heavily adapted jabberbot_ for the XMPP backend.
 
 Community behind the project
 ----------------------------

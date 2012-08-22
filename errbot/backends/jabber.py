@@ -39,7 +39,6 @@ from errbot.errBot import ErrBot
 
 from errbot.utils import get_jid_from_message, xhtml2txt
 
-
 import time
 import logging
 

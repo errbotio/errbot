@@ -66,6 +66,16 @@ class Message(object):
     def getHTML(self):
         return self.html
 
+    # XMPP backward compliance
+    def getTagAttr(self, tag, attr):
+        return None
+
+    def getTagData(self, tag):
+        return None
+
+    def getTag(self, tag):
+        return None
+
 class Connection(object):
     def send_message(self, mess):
         raise NotImplementedError( "It should be implemented specifically for your backend" )

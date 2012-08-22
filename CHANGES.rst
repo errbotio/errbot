@@ -10,7 +10,6 @@ Bugs:
 - put pyfire as an optional dependency as it is used only for the campfire backend
 - put PySide as an optional dependency as it is used only for the QT graphical backend
 
-
 Version 1.6.0 (2012-08-16)
 --------------------------
 Bugs:

@@ -1,5 +1,15 @@
 import logging
 import sys
+try:
+    import pyfire
+except ImportError:
+    logging.exception("Could not start the campfire backend")
+    logging.error("""
+    If you intend to use the campfire backend please install pyfire:
+    pip install pyfire
+    """)
+    sys.exit(-1)
+
 from pyexpat import ExpatError
 from xmpp.simplexml import XML2Node
 from errbot.backends.base import Identifier, Message, Connection
@@ -7,7 +17,7 @@ from errbot.errBot import ErrBot
 from errbot.utils import xhtml2txt
 from threading import Condition
 from config import CHATROOM_PRESENCE
-import pyfire
+
 
 class CampfireConnection(Connection, pyfire.Campfire):
     rooms = {} # keep track of joined room so we can send messages directly to them

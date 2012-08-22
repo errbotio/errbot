@@ -1,5 +1,3 @@
-pyfire
-PySide
 simplejson
 flask
 jinja2

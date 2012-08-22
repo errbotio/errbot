@@ -1,11 +1,27 @@
 import logging
-import os
-from config import BOT_DATA_DIR
 import sys
-from PySide import QtCore, QtGui, QtWebKit
-from PySide.QtGui import QCompleter
-from PySide.QtCore import Qt, QUrl
+try:
+    from PySide import QtCore, QtGui, QtWebKit
+    from PySide.QtGui import QCompleter
+    from PySide.QtCore import Qt, QUrl
+except ImportError:
+    logging.exception("Could not start the graphical backend")
+    logging.error("""
+    If you intend to use the graphical backend please install PySide:
+    -> On debian-like systems
+    sudo apt-get install python-software-properties
+    sudo apt-get update
+    sudo apt-get install python-pyside
+    -> On Gentoo
+    sudo emerge -av dev-python/pyside
+    -> Generic
+    pip install PySide
+    """)
+    sys.exit(-1)
+
+import os
 import config
+from config import BOT_DATA_DIR
 import errbot
 from errbot.backends.base import Connection, Message, Identifier
 from errbot.errBot import ErrBot

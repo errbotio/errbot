@@ -35,7 +35,7 @@ setup(
     packages = find_packages(),
     scripts = ['scripts/err.py'],
 
-    install_requires = ['configparser', 'setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2', 'pyfire', 'PySide', 'simplejson', 'flask'],
+    install_requires = ['configparser', 'setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2', 'simplejson', 'flask'],
 
     package_data = {
         '': ['*.txt', '*.rst', '*.plug', '*.html'],

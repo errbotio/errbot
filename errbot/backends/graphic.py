@@ -79,13 +79,6 @@ def linkify(text):
     def replacewithlink(matchobj):
         url = matchobj.group(0)
         text = unicode(url)
-        if text.startswith('http://'):
-            text = text.replace('http://', '', 1)
-        elif text.startswith('https://'):
-            text = text.replace('https://', '', 1)
-
-        if text.startswith('www.'):
-            text = text.replace('www.', '', 1)
 
         imglink = ''
         for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:

@@ -47,6 +47,7 @@ class WebView(View):
                     return response if response else OK # assume None as an OK response (simplifies the client side)
 
         raise Exception('Problem finding back the correct Handlerfor func %s', self.func)
+
 def webhook(*args, **kwargs):
     """
         Simple shortcut for the plugins to be notified on webhooks

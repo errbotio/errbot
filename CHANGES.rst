@@ -1,6 +1,20 @@
 Release history
 ===============
 
+Version 1.6.2 (2012-08-24)
+--------------------------
+
+Bugs:
+
+- missing a dependency for python config [thx to Joshua Tobin https://github.com/joshuatobin]
+- Fixing two logging debug statements that are mixed up [thx to Joshua Tobin https://github.com/joshuatobin]
+- Removed the URL rewritting from the QT user interface
+
+Features:
+
+- Added basic IRC support
+- Now the BOT_EXTRA_PLUGIN_DIR can be a list so you can develop several plugins at the same time
+
 Version 1.6.1 (2012-08-22)
 --------------------------
 Simplified the installation.

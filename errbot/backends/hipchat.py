@@ -58,10 +58,10 @@ class HipchatBot(JabberBot):
                 message = Message()
                 message.addChild(node = node)
             except ExpatError as ee:
-                logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (text, ee))
+                logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (hipchat_html, ee))
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
-                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (hipchat_html, ee))
+                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
 

@@ -7,3 +7,5 @@ dnspython
 xmpppy
 yapsy
 configparser
+config
+

@@ -38,7 +38,7 @@ setup(
     install_requires = ['configparser', 'setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2', 'simplejson', 'flask', 'config'],
 
     package_data = {
-        '': ['*.txt', '*.rst', '*.plug', '*.html'],
+        '': ['*.txt', '*.rst', '*.plug', '*.html', '*.js', '*.css'],
     },
 
     author = "Guillaume BINET",

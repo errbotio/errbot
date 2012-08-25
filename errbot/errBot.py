@@ -438,7 +438,7 @@ class ErrBot(Backend, StoreMixin):
             return 'git command not found: You need to have git installed on your system to by able to update git based plugins.'
 
         directories = set()
-        repos = self.internal_shelf.get('repos', {})
+        repos = self.get('repos', {})
         core_to_update = 'all' in args or 'core' in args
         if core_to_update:
             directories.add(os.path.dirname(__file__))

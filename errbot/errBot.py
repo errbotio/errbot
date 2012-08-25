@@ -107,16 +107,23 @@ class ErrBot(Backend, StoreMixin):
         self.all_candidates = all_candidates
         return errors
 
+    def send_message(self, mess):
+        super(ErrBot, self).send_message(mess)
+        # Act only in the backend tells us that this message is OK to broadcast
+        for bot in get_all_active_plugin_objects():
+            try:
+                bot.callback_botmessage(mess)
+            except Exception:
+                logging.exception("Crash in a callback_botmessage handler")
 
     def callback_message(self, conn, mess):
         if super(ErrBot, self).callback_message(conn, mess):
             # Act only in the backend tells us that this message is OK to broadcast
             for bot in get_all_active_plugin_objects():
-                if hasattr(bot, 'callback_message'):
-                    try:
-                        bot.callback_message(conn, mess)
-                    except Exception:
-                        logging.exception("Probably a type error")
+                try:
+                    bot.callback_message(conn, mess)
+                except Exception:
+                    logging.exception("Crash in a callback_message handler")
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')

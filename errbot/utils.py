@@ -197,3 +197,11 @@ def unicode_filter(key):
         return key.encode('utf-8')
     return key
 
+def mess_2_embeddablehtml(mess):
+    html_content = mess.getHTML()
+
+    if html_content:
+        body = html_content.getTag('body')
+        return ''.join([unicode(kid) for kid in body.kids]) + body.getData(), True
+    else:
+        return mess.getBody(), False

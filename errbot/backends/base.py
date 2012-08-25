@@ -130,9 +130,11 @@ class Backend(object):
         if private:
             response.setTo(mess.getFrom())
             response.setType('chat')
+            response.setFrom(self.jid)
         else:
             response.setTo(mess.getFrom().getStripped())
             response.setType(mess.getType())
+            response.setFrom(self.jid)
         return response
 
     def callback_message(self, conn, mess):

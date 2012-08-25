@@ -1,5 +1,7 @@
 import logging
 import sys
+from errbot.utils import mess_2_embeddablehtml
+
 try:
     from PySide import QtCore, QtGui, QtWebKit
     from PySide.QtGui import QCompleter
@@ -64,14 +66,8 @@ class ConnectionMock(Connection, QtCore.QObject):
         self.send(mess)
     def send(self, mess):
         if hasattr(mess, 'getBody') and mess.getBody() and not mess.getBody().isspace():
-            html_content = mess.getHTML()
-
-            if html_content:
-                body = html_content.getTag('body')
-                answer = ''.join([unicode(kid) for kid in body.kids]) + body.getData()
-            else:
-                answer = mess.getBody()
-            self.newAnswer.emit(answer, bool(html_content))
+            content, is_html = mess_2_embeddablehtml(mess)
+            self.newAnswer.emit(content, is_html)
 
 import re
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
@@ -117,12 +113,12 @@ class GraphicBackend(ErrBot):
 
     def build_message(self, text):
         txt, node = self.build_text_html_message_pair(text)
-        if node :
-            return Message(txt, html = node) # rebuild a pure html snippet to include directly in the console html
-        return Message(txt)
+        msg = Message(txt, html = node) if node else Message(txt)
+        msg.setFrom(self.jid)
+        return msg # rebuild a pure html snippet to include directly in the console html
 
     def serve_forever(self):
-        self.jid = Identifier('blah') # whatever
+        self.jid = Identifier(node='Err')
         self.connect() # be sure we are "connected" before the first command
         self.connect_callback() # notify that the connection occured
 

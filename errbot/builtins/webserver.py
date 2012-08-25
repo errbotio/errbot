@@ -91,9 +91,16 @@ class Webserver(BotPlugin):
 
             if self.webchat_mode:
                 # EVERYTHING NEEDS TO BE IN THE SAME THREAD OTHERWISE Socket.IO barfs
-                from socketio import socketio_manage
-                from socketio.namespace import BaseNamespace
-                from socketio.mixins import RoomsMixin, BroadcastMixin
+                try:
+                    from socketio import socketio_manage
+                    from socketio.namespace import BaseNamespace
+                    from socketio.mixins import RoomsMixin, BroadcastMixin
+                except ImportError:
+                    logging.exception("Could not start the webchat view")
+                    logging.error("""
+                    If you intend to use the webchat view please install gevent-socketio:
+                    pip install gevent-socketio
+                    """)
 
                 class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
                     def on_nickname(self, nickname):

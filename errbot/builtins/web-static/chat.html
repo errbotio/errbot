@@ -41,12 +41,16 @@ socket.on('error', function (e) {
 
 function announce (msg) {
     $('#lines').append($('<p>').append($('<em>').text(msg)));
+    scroll();
 }
 
 function message (from, msg) {
     $('#lines').append($('<p id="msg">').append($('<b>').text(from), '<br/>' + msg));
+    scroll();
 }
-
+function scroll() {
+    $('#lines').get(0).scrollTop = 10000000;
+}
 // dom manipulation
 $(function () {
     $('#set-nickname').submit(function (ev) {
@@ -64,13 +68,12 @@ $(function () {
 	    message('me', $('#message').val());
 	    socket.emit('user message', $('#message').val());
 	    clear();
-	    $('#lines').get(0).scrollTop = 10000000;
 	    return false;
     });
 
     function clear () {
         $('#message').val('').focus();
-    };
+    }
 });
     </script>
   </head>

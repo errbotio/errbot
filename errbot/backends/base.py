@@ -16,9 +16,13 @@ class Identifier(object):
     This class is the parent and the basic contract of all the ways the backends are identifying a person on their system
     """
     def __init__(self, jid=None, node='', domain='', resource=''):
-        self.node = node
-        self.domain = domain
-        self.resource = resource
+        if jid:
+            self.node, self.domain = jid.split('@')
+            self.resource = self.node
+        else:
+            self.node = node
+            self.domain = domain
+            self.resource = resource
 
     def getNode(self):
         return self.node
@@ -31,9 +35,12 @@ class Identifier(object):
     def getResource(self):
         return self.resource
 
+    def __unicode__(self):
+        return self.node + '@' + self.domain
+
 
 class Message(object):
-    fr = Identifier('mock')
+    fr = Identifier('unknown@localhost')
     def __init__(self, body, typ = 'chat', html = None):
         self.body = body
         self.html = html
@@ -55,7 +62,7 @@ class Message(object):
         return self.fr
 
     def setFrom(self, fr):
-        self.fr = fr
+        self.fr = Identifier(fr)
 
     def getProperties(self):
         return {}

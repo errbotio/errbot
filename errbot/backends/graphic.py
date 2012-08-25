@@ -118,7 +118,7 @@ class GraphicBackend(ErrBot):
         return msg # rebuild a pure html snippet to include directly in the console html
 
     def serve_forever(self):
-        self.jid = Identifier(node='Err')
+        self.jid = 'Err@localhost'
         self.connect() # be sure we are "connected" before the first command
         self.connect_callback() # notify that the connection occured
 

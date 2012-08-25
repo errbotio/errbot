@@ -198,7 +198,10 @@ def unicode_filter(key):
     return key
 
 def mess_2_embeddablehtml(mess):
-    html_content = mess.getHTML()
+    if hasattr(mess, 'getHTML'): # somebackends are happy to give you the HTML
+        html_content = mess.getHTML()
+    else:
+        html_content = mess.getTag('html')
 
     if html_content:
         body = html_content.getTag('body')

@@ -506,10 +506,9 @@ class ErrBot(Backend, StoreMixin):
 
         if len(args) == 1:
             current_config = self.get_plugin_configuration(plugin_name)
-            answer = 'Copy paste and adapt the following:\n!config %s ' % plugin_name
             if current_config:
-                return answer + str(current_config)
-            return answer + str(template_obj)
+                return 'Copy paste and adapt one of the following:\nDefault Config: !config %s %s\nCurrent Config: !config %s %s' % (plugin_name, repr(template_obj), plugin_name, repr(current_config))
+            return 'Copy paste and adapt of the following:\n!config %s %s' % (plugin_name, repr(template_obj))
 
         try:
             real_config_obj = literal_eval(' '.join(args[1:]))

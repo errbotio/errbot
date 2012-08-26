@@ -22,7 +22,7 @@ class HipchatClient(Client):
 
     def send_api_message(self, room_id, fr, message, message_format='html'):
         base = {'format': 'json', 'auth_token': self.token}
-        red_data = {'room_id': room_id, 'from': fr, 'message': message, 'message_format': message_format}
+        red_data = {'room_id': room_id, 'from': fr, 'message': message.encode('utf-8'), 'message_format': message_format}
         req = Request(url=HIPCHAT_MESSAGE_URL + '?' + urlencode(base), data=urlencode(red_data))
         return json.load(urlopen(req))
 
@@ -30,7 +30,7 @@ class HipchatClient(Client):
     def send_message(self, mess):
         if self.token and mess.name == 'message' and mess.getTag('html'):
             logging.debug('Message intercepted for Hipchat API')
-            content = ''.join((str(child) for child in mess.getTag('html').getTag('body').getChildren()))
+            content = u''.join((unicode(child) for child in mess.getTag('html').getTag('body').getChildren()))
             room_jid = mess.getTo()
             self.send_api_message(room_jid.getNode().split('_')[1], CHATROOM_FN, content)
         else:
@@ -50,6 +50,8 @@ class HipchatBot(JabberBot):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
         try:
+            if isinstance(text, unicode):
+                text = text.encode('utf-8')
             XML2Node(text) # test if is it xml
             # yes, ok epurate it for hipchat
             try:

@@ -25,7 +25,7 @@ import os
 import config
 from config import BOT_DATA_DIR
 import errbot
-from errbot.backends.base import Connection, Message, Identifier
+from errbot.backends.base import Connection, Message
 from errbot.errBot import ErrBot
 
 class CommandBox(QtGui.QLineEdit, object):
@@ -99,7 +99,8 @@ class GraphicBackend(ErrBot):
     def send_command(self):
         self.new_message(self.input.text(), False)
         msg = Message(self.input.text())
-        msg.setFrom(Identifier(node=config.BOT_ADMINS[0])) # assume this is the admin talking
+        msg.setFrom(config.BOT_ADMINS[0]) # assume this is the admin talking
+        msg.setTo(self.jid) # To me only
         self.callback_message(self.conn, msg)
         self.input.clear()
 

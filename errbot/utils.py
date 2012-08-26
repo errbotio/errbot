@@ -137,6 +137,7 @@ def recurse_check_structure(sample, to_check):
         for key in sample:
             recurse_check_structure(sample[key], to_check[key])
         return
+
 import re, htmlentitydefs
 
 ##
@@ -164,6 +165,7 @@ def unescape_xml(text):
             except KeyError:
                 pass
         return text # leave as is
+
     return re.sub("&#?\w+;", fixup, text)
 
 REMOVE_EOL = re.compile(r'\n')
@@ -192,10 +194,11 @@ def xhtml2hipchat(xhtml):
     return retarded_hipchat_html_plain
 
 
-def unicode_filter(key):
+def utf8(key):
     if type(key) == unicode:
         return key.encode('utf-8')
     return key
+
 
 def mess_2_embeddablehtml(mess):
     if hasattr(mess, 'getHTML'): # somebackends are happy to give you the HTML
@@ -208,3 +211,6 @@ def mess_2_embeddablehtml(mess):
         return ''.join([unicode(kid) for kid in body.kids]) + body.getData(), True
     else:
         return mess.getBody(), False
+
+
+

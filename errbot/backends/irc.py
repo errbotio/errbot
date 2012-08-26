@@ -1,6 +1,5 @@
 import logging
 import sys
-from pyexpat import ExpatError
 
 try:
     from twisted.internet import protocol, reactor
@@ -19,11 +18,9 @@ except ImportError:
     """)
     sys.exit(-1)
 
-from xmpp.simplexml import XML2Node
 from errbot.backends.base import Message
 from errbot.errBot import ErrBot
-from errbot.utils import xhtml2txt
-from config import CHATROOM_PRESENCE
+from errbot.utils import utf8
 
 class IRCConnection(IRCClient, object):
     connected = False
@@ -37,7 +34,7 @@ class IRCConnection(IRCClient, object):
 
     def send_message(self, mess):
         if self.connected:
-            self.msg(mess.getTo(), mess.getBody().encode("utf-8"))
+            self.msg(mess.getTo(), utf8(mess.getBody()))
         else:
             logging.debug("Zapped message because the backend is not connected yet %s" % mess.getBody())
 

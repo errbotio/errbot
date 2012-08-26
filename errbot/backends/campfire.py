@@ -14,7 +14,7 @@ from pyexpat import ExpatError
 from xmpp.simplexml import XML2Node
 from errbot.backends.base import Message, Connection
 from errbot.errBot import ErrBot
-from errbot.utils import xhtml2txt
+from errbot.utils import xhtml2txt, utf8
 from threading import Condition
 from config import CHATROOM_PRESENCE
 
@@ -24,7 +24,8 @@ class CampfireConnection(Connection, pyfire.Campfire):
 
     def send_message(self, mess):
         to_identity = mess.getTo()
-        room = to_identity.getDomain() # we only reply to rooms in reality in campfire
+        room_name = to_identity.getDomain() # we only reply to rooms in reality in campfire
+        room = self.rooms[room_name][0]
         room.speak(mess.getBody()) # Basic text support for the moment
 
     def join_room(self, name, msg_callback, error_callback):
@@ -67,7 +68,7 @@ class CampfireBackend(ErrBot):
             if not CHATROOM_PRESENCE:
                 raise Exception('Your bot needs to join at least one room, please set CHATROOM_PRESENCE in your config')
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = self.username + '@' + self.conn.get_room_by_name(CHATROOM_PRESENCE[0]) + '/' + self.username
+            self.jid = self.username + '@' + str(self.conn.get_room_by_name(CHATROOM_PRESENCE[0])) + '/' + self.username
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms
         return self.conn
@@ -85,7 +86,8 @@ class CampfireBackend(ErrBot):
             user = message.user.name
         if message.is_text():
             msg = Message(message.body, typ = 'groupchat') # it is always a groupchat in campfire
-            msg.setFrom(user + '@' +  message.room + '/' + user)
+            msg.setFrom(user + '@' +  message.room.get_data()['name'] + '/' + user)
+            msg.setTo(self.jid) # assume it is for me
             self.callback_message(self.conn, msg)
 
     def error_callback(self, error, room):
@@ -99,14 +101,14 @@ class CampfireBackend(ErrBot):
 
     def build_message(self, text):
         try:
-            node = XML2Node(text)
+            node = XML2Node(utf8(text))
             text_plain = xhtml2txt(text)
             logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
-            message = Message(body=text_plain)
+            message = Message(body=utf8(text_plain))
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
                 logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
-            message = Message(body=text)
+            message = Message(body=utf8(text))
         return message
 
     def send_simple_reply(self, mess, text, private=False):

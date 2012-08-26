@@ -9,7 +9,7 @@ from errbot.backends.jabber import JabberBot
 from urllib2 import urlopen, Request
 from xmpp import Client
 from config import CHATROOM_FN
-from errbot.utils import xhtml2hipchat
+from errbot.utils import xhtml2hipchat, utf8
 
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
@@ -22,7 +22,7 @@ class HipchatClient(Client):
 
     def send_api_message(self, room_id, fr, message, message_format='html'):
         base = {'format': 'json', 'auth_token': self.token}
-        red_data = {'room_id': room_id, 'from': fr, 'message': message.encode('utf-8'), 'message_format': message_format}
+        red_data = {'room_id': room_id, 'from': fr, 'message': utf8(message), 'message_format': message_format}
         req = Request(url=HIPCHAT_MESSAGE_URL + '?' + urlencode(base), data=urlencode(red_data))
         return json.load(urlopen(req))
 
@@ -50,8 +50,7 @@ class HipchatBot(JabberBot):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
         try:
-            if isinstance(text, unicode):
-                text = text.encode('utf-8')
+            text = utf8(text)
             XML2Node(text) # test if is it xml
             # yes, ok epurate it for hipchat
             try:

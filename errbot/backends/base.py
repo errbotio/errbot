@@ -8,7 +8,7 @@ import difflib
 from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
-from errbot.utils import get_jid_from_message
+from errbot.utils import get_jid_from_message, utf8
 from config import BOT_ADMINS
 
 class Identifier(object):
@@ -19,7 +19,10 @@ class Identifier(object):
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
             self.node, self.domain = jid.split('@')
-            self.resource = self.node
+            if self.domain.find('/') != -1:
+                self.domain, self.resource = self.domain.split('/')
+            else:
+                self.resource = self.node # put a default one
         else:
             self.node = node
             self.domain = domain
@@ -128,7 +131,7 @@ class Backend(object):
 
         try:
             if isinstance(source, unicode):
-                source = source.encode( "utf-8" )
+                source = utf8(source)
             node = XML2Node(source)
             text_plain = xhtml2txt(source)
         except ExpatError as ee:
@@ -151,7 +154,7 @@ class Backend(object):
         Message is NOT sent"""
         response = self.build_message(text)
         if private:
-            response.setTo(mess.getFrom())
+            response.setTo(mess.getFrom().getStripped())
             response.setType('chat')
             response.setFrom(self.jid)
         else:

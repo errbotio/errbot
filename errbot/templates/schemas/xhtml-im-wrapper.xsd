@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<xs:schema
+    xmlns:xs='http://www.w3.org/2001/XMLSchema'
+    xmlns:xhtml='http://www.w3.org/1999/xhtml'
+    targetNamespace='http://jabber.org/protocol/xhtml-im'
+    xmlns='http://jabber.org/protocol/xhtml-im'
+    elementFormDefault='qualified'>
+
+  <xs:import namespace='http://www.w3.org/1999/xhtml'
+             schemaLocation='http://www.w3.org/2002/08/xhtml/xhtml1-strict.xsd'/>
+
+  <xs:annotation>
+    <xs:documentation>
+
+      This schema defines the <html/> element qualified by
+      the 'http://jabber.org/protocol/xhtml-im' namespace.
+      The only allowable child is a <body/> element qualified
+      by the 'http://www.w3.org/1999/xhtml' namespace. Refer 
+      to the XHTML-IM schema driver for the definition of the 
+      XHTML 1.0 Integration Set.
+
+      Full documentation of this Integration Set is contained in
+      "XEP-0071: XHTML-IM", a specification published by the
+      XMPP Standards Foundation.
+
+         http://www.xmpp.org/extensions/xep-0071.html
+
+    </xs:documentation>
+    <xs:documentation source="http://www.xmpp.org/extensions/xep-0071.html"/>
+  </xs:annotation>
+
+  <xs:element name='html'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref='xhtml:body' 
+                    minOccurs='0' 
+                    maxOccurs='unbounded'/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

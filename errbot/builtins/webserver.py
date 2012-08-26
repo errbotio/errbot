@@ -116,6 +116,7 @@ class Webserver(BotPlugin):
                         message = holder.bot.build_message(msg)
                         message.setType('groupchat') # really important for security reasons
                         message.setFrom(self.socket.session['nickname']+ '@'+host)
+                        message.setTo(holder.bot.jid)
                         holder.bot.callback_message(holder.bot.conn, message)
 
                     def recv_message(self, message):

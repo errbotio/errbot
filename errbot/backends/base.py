@@ -15,6 +15,7 @@ class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends are identifying a person on their system
     """
+
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
             self.node, self.domain = jid.split('@')
@@ -26,28 +27,39 @@ class Identifier(object):
 
     def getNode(self):
         return self.node
+
     def getDomain(self):
         return self.domain
+
     def bareMatch(self, other):
         return other.node == self.node
+
     def getStripped(self):
-        return self.node
+        return self.node + '@' + self.domain
+
     def getResource(self):
         return self.resource
 
+    def __str__(self):
+        answer = self.getStripped()
+        if self.resource:
+            answer += '/' + self.resource
+        return answer
+
     def __unicode__(self):
-        return self.node + '@' + self.domain
+        return unicode(self.__str__())
 
 
 class Message(object):
     fr = Identifier('unknown@localhost')
-    def __init__(self, body, typ = 'chat', html = None):
+
+    def __init__(self, body, typ='chat', html=None):
         self.body = body
         self.html = html
         self.typ = typ
 
     def setTo(self, to):
-        self.to = to
+        self.to = Identifier(to)
 
     def getTo(self):
         return self.to
@@ -83,9 +95,11 @@ class Message(object):
     def getTag(self, tag):
         return None
 
+
 class Connection(object):
     def send_message(self, mess):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
 
 class Backend(object):
     # Implements the basic Bot logic (logic independent from the backend) and leave to you to implement the missing parts
@@ -113,6 +127,8 @@ class Backend(object):
         text_plain = None
 
         try:
+            if isinstance(source, unicode):
+                source = source.encode( "utf-8" )
             node = XML2Node(source)
             text_plain = xhtml2txt(source)
         except ExpatError as ee:
@@ -220,8 +236,8 @@ class Backend(object):
 
                 except Exception, e:
                     logging.exception('An error happened while processing '\
-                                       'a message ("%s") from %s: %s"' %
-                                       (text, jid, traceback.format_exc(e)))
+                                      'a message ("%s") from %s: %s"' %
+                                      (text, jid, traceback.format_exc(e)))
                     reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
                 if reply:
                     if len(reply) > self.MESSAGE_SIZE_LIMIT:
@@ -240,7 +256,7 @@ class Backend(object):
                     return False
 
             if f._jabberbot_command_historize:
-                self.cmd_history.append((cmd,  args)) # add it to the history only if it is authorized to be so
+                self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
 
             if f._jabberbot_command_split_args_with:
                 args = args.split(f._jabberbot_command_split_args_with)
@@ -265,7 +281,7 @@ class Backend(object):
             part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
             part1 = 'Command "%s" not found.' % cmd
-        ununderscore_keys = [m.replace('_',' ') for m in self.commands.keys()]
+        ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
@@ -348,14 +364,14 @@ class Backend(object):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
-    @botcmd(historize = False)
+    @botcmd(historize=False)
     def history(self, mess, args):
         """display the command history"""
         answer = []
         l = len(self.cmd_history)
         for i in range(0, l):
             c = self.cmd_history[i]
-            answer.append('%2i:!%s %s' %(l-i,c[0],c[1]))
+            answer.append('%2i:!%s %s' % (l - i, c[0], c[1]))
         return '\n'.join(answer)
 
     def send(self, user, text, in_reply_to=None, message_type='chat'):
@@ -374,18 +390,18 @@ class Backend(object):
     ###### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
     def build_message(self, text):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def serve_forever(self):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def connect(self):
         """Connects the bot to server or returns current connection
         """
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def join_room(self, room, username=None, password=None):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def shutdown(self):
         pass
@@ -398,4 +414,4 @@ class Backend(object):
 
     @property
     def mode(self):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")

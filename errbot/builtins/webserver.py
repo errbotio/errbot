@@ -165,10 +165,15 @@ class Webserver(BotPlugin):
     def deactivate(self):
         logging.debug('Sending signal to stop the webserver')
         if self.server:
-            self.server.shutdown()
-            logging.info('Waiting for the webserver to terminate...')
-            self.webserver_thread.join()
-            logging.info('Webserver thread died as expected.')
+            if isinstance(self.server, ThreadedWSGIServer):
+                logging.info('webserver is ThreadedWSGIServer')
+                self.server.shutdown()
+                logging.info('Waiting for the webserver to terminate...')
+                self.webserver_thread.join()
+                logging.info('Webserver thread died as expected.')
+            else:
+                logging.info('webserver is SocketIOServer')
+                self.server.kill() # it kills it but doesn't free the thread, I have to let it leak. [reported upstream]
         self.webserver_thread = None
         self.server = None
         super(Webserver, self).deactivate()

@@ -25,6 +25,7 @@ class TextBackend(ErrBot):
                 entry = raw_input("Talk to  me >>").decode(ENCODING_INPUT)
                 msg = Message(entry)
                 msg.setFrom(config.BOT_ADMINS[0]) # assume this is the admin talking
+                msg.setTo(self.jid) # To me only
                 self.callback_message(self.conn, msg)
         except EOFError as eof:
             pass

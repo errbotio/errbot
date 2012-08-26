@@ -130,9 +130,7 @@ class Backend(object):
         text_plain = None
 
         try:
-            if isinstance(source, unicode):
-                source = utf8(source)
-            node = XML2Node(source)
+            node = XML2Node(utf8(source))
             text_plain = xhtml2txt(source)
         except ExpatError as ee:
             if source.strip(): # avoids keep alive pollution

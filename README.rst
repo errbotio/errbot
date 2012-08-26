@@ -26,6 +26,7 @@ Backends :
 
 - XMPP : Tested with hipchat_, openfire_ and Jabber but should be compatible with any standard XMPP servers.
 - CampFire support
+- Basic IRC support
 - Supports MUCs (chatrooms)
 - Local Graphical Console (for testing/dev)
 - Local Text Console (for testing/dev)

@@ -2,7 +2,7 @@
 # Feel free to make a pull request to add yours !
 
 KNOWN_PUBLIC_REPOS = {
-'err-timemachine' : ('git://github.com/benvd/err-timemachine.git','Log, index and search in message history'),
+'err-timemachine' : ('git://github.com/gbin/err-timemachine.git','Log, index and search in message history'),
 'err-gitbot' : ('git://github.com/gbin/err-gitbot.git','a plugin that watchs your git repositories and shout in chatroom the last commits'),
 'err-dictbot' : ('git://github.com/gbin/err-dictbot.git','a plugin that gives you the definition of a word'),
 'err-pollbot' : ('git://github.com/gbin/err-pollbot.git','a voting plugin'),

@@ -16,10 +16,10 @@ class ChatRoom(BotPlugin):
     def keep_alive(self):
         # logging.debug('Keep alive sent')
         if self.connected:
-            if bot.mode == 'hipchat':
-                self.send('nobody', ' ', message_type='groupchat') # hack from hipchat itself
-            else:
-                self.bare_send(xmpp.Presence())
+            #if bot.mode == 'hipchat':
+            #    self.send(self.jid, ' ', message_type='groupchat') # hack from hipchat itself
+            #else:
+            self.bare_send(xmpp.Presence())
 
     def activate(self):
         super(ChatRoom, self).activate()

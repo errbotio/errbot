@@ -20,7 +20,7 @@ except ImportError:
     sys.exit(-1)
 
 from xmpp.simplexml import XML2Node
-from errbot.backends.base import Identifier, Message
+from errbot.backends.base import Message
 from errbot.errBot import ErrBot
 from errbot.utils import xhtml2txt
 from config import CHATROOM_PRESENCE
@@ -55,7 +55,7 @@ class IRCConnection(IRCClient, object):
             typ = 'groupchat'
         logging.debug('IRC message received from %s [%s]' % (fr, line))
         msg = Message(line, typ=typ)
-        msg.setFrom(Identifier(node=fr, domain=prefix))
+        msg.setFrom(fr + '@' + prefix)
         self.callback.callback_message(self, msg)
 
 
@@ -98,7 +98,7 @@ class IRCBackend(ErrBot):
         self.port = port
 
     def serve_forever(self):
-        self.jid = Identifier(node=self.nickname)
+        self.jid = self.nickname + '@localhost'
         self.connect() # be sure we are "connected" before the first command
         try:
             reactor.run()

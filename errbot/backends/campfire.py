@@ -12,7 +12,7 @@ except ImportError:
 
 from pyexpat import ExpatError
 from xmpp.simplexml import XML2Node
-from errbot.backends.base import Identifier, Message, Connection
+from errbot.backends.base import Message, Connection
 from errbot.errBot import ErrBot
 from errbot.utils import xhtml2txt
 from threading import Condition
@@ -67,7 +67,7 @@ class CampfireBackend(ErrBot):
             if not CHATROOM_PRESENCE:
                 raise Exception('Your bot needs to join at least one room, please set CHATROOM_PRESENCE in your config')
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = Identifier(resource= self.username, domain = self.conn.get_room_by_name(CHATROOM_PRESENCE[0]))
+            self.jid = self.username + '@' + self.conn.get_room_by_name(CHATROOM_PRESENCE[0]) + '/' + self.username
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms
         return self.conn
@@ -85,7 +85,7 @@ class CampfireBackend(ErrBot):
             user = message.user.name
         if message.is_text():
             msg = Message(message.body, typ = 'groupchat') # it is always a groupchat in campfire
-            msg.setFrom(Identifier(resource = user, domain = message.room))
+            msg.setFrom(user + '@' +  message.room + '/' + user)
             self.callback_message(self.conn, msg)
 
     def error_callback(self, error, room):

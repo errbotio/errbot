@@ -10,6 +10,7 @@ from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
 from config import BOT_ADMINS
+from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
 class Identifier(object):
     """
@@ -119,6 +120,8 @@ class Backend(object):
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
     commands = {} # the dynamically populated list of commands available on the bot
+
+    thread_pool = ThreadPool(3)
 
     def __init__(self, *args, **kwargs):
         """ Those arguments will be directly those put in BOT_IDENTITY
@@ -261,7 +264,9 @@ class Backend(object):
 
             if f._jabberbot_command_split_args_with:
                 args = args.split(f._jabberbot_command_split_args_with)
-            execute_and_send(f._jabberbot_command_template)
+            wr = WorkRequest(execute_and_send, [f._jabberbot_command_template]) #execute_and_send(f._jabberbot_command_template)
+            self.thread_pool.putRequest(wr)
+
         else:
             # In private chat, it's okay for the bot to always respond.
             # In group chat, the bot should silently ignore commands it

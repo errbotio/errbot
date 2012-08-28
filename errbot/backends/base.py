@@ -258,6 +258,7 @@ class Backend(object):
                 if usr not in BOT_ADMINS:
                     self.send_simple_reply(mess, 'You cannot administer the bot from this user %s.' % usr)
                     return False
+                self.thread_pool.wait() # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
 
             if f._err_command_historize:
                 self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
@@ -266,6 +267,8 @@ class Backend(object):
                 args = args.split(f._err_command_split_args_with)
             wr = WorkRequest(execute_and_send, [f._err_command_template]) #execute_and_send(f._err_command_template)
             self.thread_pool.putRequest(wr)
+            if f._err_command_admin_only:
+                self.thread_pool.wait() # Again wait for the completion before accepting a new command that could generate weird concurrency issues
 
         else:
             # In private chat, it's okay for the bot to always respond.

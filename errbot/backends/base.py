@@ -390,8 +390,10 @@ class Backend(object):
 
         if in_reply_to:
             mess.setType(in_reply_to.getType())
+            mess.setFrom(in_reply_to.getTo().getStripped())
         else:
             mess.setType(message_type)
+            mess.setFrom(self.jid)
 
         self.send_message(mess)
 

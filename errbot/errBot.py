@@ -375,7 +375,7 @@ class ErrBot(Backend, StoreMixin):
                 usage += '\n'.join(sorted([
                 '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
                                     '(undocumented)').strip().split('\n', 1)[0])
-                for (name, command) in clazz_commands[clazz] if name != 'help' and not command._jabberbot_command_hidden
+                for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
             usage += '\n\n'
         else:
@@ -415,7 +415,7 @@ class ErrBot(Backend, StoreMixin):
             usage += '\n'.join(sorted([
             '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])
-            for (name, command) in clazz_commands[clazz] if args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower() and name != 'help' and not command._jabberbot_command_hidden
+            for (name, command) in clazz_commands[clazz] if args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower() and name != 'help' and not command._err_command_hidden
             ]))
         usage += '\n\n'
 

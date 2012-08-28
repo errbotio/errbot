@@ -250,7 +250,7 @@ class Backend(object):
 
             f = self.commands[cmd]
 
-            if f._jabberbot_command_admin_only:
+            if f._err_command_admin_only:
                 if mess.getType() == 'groupchat':
                     self.send_simple_reply(mess, 'You cannot administer the bot from a chatroom, message the bot directly')
                     return False
@@ -259,12 +259,12 @@ class Backend(object):
                     self.send_simple_reply(mess, 'You cannot administer the bot from this user %s.' % usr)
                     return False
 
-            if f._jabberbot_command_historize:
+            if f._err_command_historize:
                 self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
 
-            if f._jabberbot_command_split_args_with:
-                args = args.split(f._jabberbot_command_split_args_with)
-            wr = WorkRequest(execute_and_send, [f._jabberbot_command_template]) #execute_and_send(f._jabberbot_command_template)
+            if f._err_command_split_args_with:
+                args = args.split(f._err_command_split_args_with)
+            wr = WorkRequest(execute_and_send, [f._err_command_template]) #execute_and_send(f._err_command_template)
             self.thread_pool.putRequest(wr)
 
         else:
@@ -300,8 +300,8 @@ class Backend(object):
     def inject_commands_from(self, instance_to_inject):
         classname = instance_to_inject.__class__.__name__
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
+            if getattr(value, '_err_command', False):
+                name = getattr(value, '_err_command_name')
 
                 if name in self.commands:
                     f = self.commands[name]
@@ -313,8 +313,8 @@ class Backend(object):
 
     def remove_commands_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
+            if getattr(value, '_err_command', False):
+                name = getattr(value, '_err_command_name')
                 del(self.commands[name])
 
     def warn_admins(self, warning):
@@ -355,7 +355,7 @@ class Backend(object):
                                 '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\
-            and not command._jabberbot_command_hidden
+            and not command._err_command_hidden
             ]))
             usage = '\n\n' + '\n\n'.join(filter(None, [usage, self.MSG_HELP_TAIL]))
         else:

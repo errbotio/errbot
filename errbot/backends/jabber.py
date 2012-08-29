@@ -534,7 +534,7 @@ class JabberBot(ErrBot):
                     if conn:
                         try:
                             conn.Process(1)
-                            if conn._owner.connected == '':
+                            if self.conn == None:
                                 self.disconnect_callback() # notify that the connection is lost
                                 conn = None
                         except Exception:

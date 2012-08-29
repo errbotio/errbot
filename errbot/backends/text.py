@@ -1,7 +1,7 @@
 import logging
 import sys
 import config
-from errbot.backends.base import Identifier, Message
+from errbot.backends.base import Message
 from errbot.errBot import ErrBot
 
 class ConnectionMock():
@@ -17,14 +17,15 @@ class TextBackend(ErrBot):
     conn = ConnectionMock()
 
     def serve_forever(self):
-        self.jid = Identifier('blah') # whatever
+        self.jid = 'Err@localhost' # whatever
         self.connect() # be sure we are "connected" before the first command
         self.connect_callback() # notify that the connection occured
         try:
             while True:
                 entry = raw_input("Talk to  me >>").decode(ENCODING_INPUT)
                 msg = Message(entry)
-                msg.setFrom(Identifier(node=config.BOT_ADMINS[0])) # assume this is the admin talking
+                msg.setFrom(config.BOT_ADMINS[0]) # assume this is the admin talking
+                msg.setTo(self.jid) # To me only
                 self.callback_message(self.conn, msg)
         except EOFError as eof:
             pass

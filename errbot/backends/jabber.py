@@ -39,7 +39,6 @@ from errbot.errBot import ErrBot
 
 from errbot.utils import get_jid_from_message, xhtml2txt
 
-
 import time
 import logging
 
@@ -551,6 +550,8 @@ class JabberBot(ErrBot):
                     self.log.info('bot stopped by user request. shutting down.')
                     break
             self.disconnect_callback()
+        except Exception as e:
+            logging.exception("Something broke deep inside err")
         finally:
             self.shutdown()
             exit(self.return_code)

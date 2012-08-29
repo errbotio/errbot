@@ -27,6 +27,6 @@ def remove_plugin_templates_path(path):
     global env
     tmpl_path = make_templates_from_plugin_path(path)
     if tmpl_path in template_path:
-        template_path.pop(tmpl_path)
+        template_path.pop(template_path.index(tmpl_path))
         env = Environment(loader=FileSystemLoader(template_path)) # ditch and recreate a new templating environment
 

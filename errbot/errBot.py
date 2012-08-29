@@ -107,16 +107,23 @@ class ErrBot(Backend, StoreMixin):
         self.all_candidates = all_candidates
         return errors
 
+    def send_message(self, mess):
+        super(ErrBot, self).send_message(mess)
+        # Act only in the backend tells us that this message is OK to broadcast
+        for bot in get_all_active_plugin_objects():
+            try:
+                bot.callback_botmessage(mess)
+            except Exception:
+                logging.exception("Crash in a callback_botmessage handler")
 
     def callback_message(self, conn, mess):
         if super(ErrBot, self).callback_message(conn, mess):
             # Act only in the backend tells us that this message is OK to broadcast
             for bot in get_all_active_plugin_objects():
-                if hasattr(bot, 'callback_message'):
-                    try:
-                        bot.callback_message(conn, mess)
-                    except Exception:
-                        logging.exception("Probably a type error")
+                try:
+                    bot.callback_message(conn, mess)
+                except Exception:
+                    logging.exception("Crash in a callback_message handler")
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
@@ -368,7 +375,7 @@ class ErrBot(Backend, StoreMixin):
                 usage += '\n'.join(sorted([
                 '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
                                     '(undocumented)').strip().split('\n', 1)[0])
-                for (name, command) in clazz_commands[clazz] if name != 'help' and not command._jabberbot_command_hidden
+                for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
             usage += '\n\n'
         else:
@@ -408,7 +415,7 @@ class ErrBot(Backend, StoreMixin):
             usage += '\n'.join(sorted([
             '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])
-            for (name, command) in clazz_commands[clazz] if args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower() and name != 'help' and not command._jabberbot_command_hidden
+            for (name, command) in clazz_commands[clazz] if args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower() and name != 'help' and not command._err_command_hidden
             ]))
         usage += '\n\n'
 
@@ -431,7 +438,7 @@ class ErrBot(Backend, StoreMixin):
             return 'git command not found: You need to have git installed on your system to by able to update git based plugins.'
 
         directories = set()
-        repos = self.internal_shelf.get('repos', {})
+        repos = self.get('repos', {})
         core_to_update = 'all' in args or 'core' in args
         if core_to_update:
             directories.add(os.path.dirname(__file__))
@@ -499,10 +506,9 @@ class ErrBot(Backend, StoreMixin):
 
         if len(args) == 1:
             current_config = self.get_plugin_configuration(plugin_name)
-            answer = 'Copy paste and adapt the following:\n!config %s ' % plugin_name
             if current_config:
-                return answer + str(current_config)
-            return answer + str(template_obj)
+                return 'Copy paste and adapt one of the following:\nDefault Config: !config %s %s\nCurrent Config: !config %s %s' % (plugin_name, repr(template_obj), plugin_name, repr(current_config))
+            return 'Copy paste and adapt of the following:\n!config %s %s' % (plugin_name, repr(template_obj))
 
         try:
             real_config_obj = literal_eval(' '.join(args[1:]))

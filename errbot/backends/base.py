@@ -8,39 +8,62 @@ import difflib
 from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
-from errbot.utils import get_jid_from_message
+from errbot.utils import get_jid_from_message, utf8
 from config import BOT_ADMINS
+from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
 class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends are identifying a person on their system
     """
+
     def __init__(self, jid=None, node='', domain='', resource=''):
-        self.node = node
-        self.domain = domain
-        self.resource = resource
+        if jid:
+            self.node, self.domain = jid.split('@')
+            if self.domain.find('/') != -1:
+                self.domain, self.resource = self.domain.split('/')
+            else:
+                self.resource = self.node # put a default one
+        else:
+            self.node = node
+            self.domain = domain
+            self.resource = resource
 
     def getNode(self):
         return self.node
+
     def getDomain(self):
         return self.domain
+
     def bareMatch(self, other):
         return other.node == self.node
+
     def getStripped(self):
-        return self.node
+        return self.node + '@' + self.domain
+
     def getResource(self):
         return self.resource
 
+    def __str__(self):
+        answer = self.getStripped()
+        if self.resource:
+            answer += '/' + self.resource
+        return answer
+
+    def __unicode__(self):
+        return unicode(self.__str__())
+
 
 class Message(object):
-    fr = Identifier('mock')
-    def __init__(self, body, typ = 'chat', html = None):
+    fr = Identifier('unknown@localhost')
+
+    def __init__(self, body, typ='chat', html=None):
         self.body = body
         self.html = html
         self.typ = typ
 
     def setTo(self, to):
-        self.to = to
+        self.to = Identifier(to)
 
     def getTo(self):
         return self.to
@@ -55,7 +78,7 @@ class Message(object):
         return self.fr
 
     def setFrom(self, fr):
-        self.fr = fr
+        self.fr = Identifier(fr)
 
     def getProperties(self):
         return {}
@@ -66,9 +89,21 @@ class Message(object):
     def getHTML(self):
         return self.html
 
+    # XMPP backward compliance
+    def getTagAttr(self, tag, attr):
+        return None
+
+    def getTagData(self, tag):
+        return None
+
+    def getTag(self, tag):
+        return None
+
+
 class Connection(object):
     def send_message(self, mess):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
 
 class Backend(object):
     # Implements the basic Bot logic (logic independent from the backend) and leave to you to implement the missing parts
@@ -86,6 +121,8 @@ class Backend(object):
 
     commands = {} # the dynamically populated list of commands available on the bot
 
+    thread_pool = ThreadPool(3)
+
     def __init__(self, *args, **kwargs):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
@@ -96,7 +133,7 @@ class Backend(object):
         text_plain = None
 
         try:
-            node = XML2Node(source)
+            node = XML2Node(utf8(source))
             text_plain = xhtml2txt(source)
         except ExpatError as ee:
             if source.strip(): # avoids keep alive pollution
@@ -118,11 +155,13 @@ class Backend(object):
         Message is NOT sent"""
         response = self.build_message(text)
         if private:
-            response.setTo(mess.getFrom())
+            response.setTo(mess.getFrom().getStripped())
             response.setType('chat')
+            response.setFrom(self.jid)
         else:
             response.setTo(mess.getFrom().getStripped())
             response.setType(mess.getType())
+            response.setFrom(self.jid)
         return response
 
     def callback_message(self, conn, mess):
@@ -201,8 +240,8 @@ class Backend(object):
 
                 except Exception, e:
                     logging.exception('An error happened while processing '\
-                                       'a message ("%s") from %s: %s"' %
-                                       (text, jid, traceback.format_exc(e)))
+                                      'a message ("%s") from %s: %s"' %
+                                      (text, jid, traceback.format_exc(e)))
                     reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
                 if reply:
                     if len(reply) > self.MESSAGE_SIZE_LIMIT:
@@ -211,7 +250,7 @@ class Backend(object):
 
             f = self.commands[cmd]
 
-            if f._jabberbot_command_admin_only:
+            if f._err_command_admin_only:
                 if mess.getType() == 'groupchat':
                     self.send_simple_reply(mess, 'You cannot administer the bot from a chatroom, message the bot directly')
                     return False
@@ -219,13 +258,18 @@ class Backend(object):
                 if usr not in BOT_ADMINS:
                     self.send_simple_reply(mess, 'You cannot administer the bot from this user %s.' % usr)
                     return False
+                self.thread_pool.wait() # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
 
-            if f._jabberbot_command_historize:
-                self.cmd_history.append((cmd,  args)) # add it to the history only if it is authorized to be so
+            if f._err_command_historize:
+                self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
 
-            if f._jabberbot_command_split_args_with:
-                args = args.split(f._jabberbot_command_split_args_with)
-            execute_and_send(f._jabberbot_command_template)
+            if f._err_command_split_args_with:
+                args = args.split(f._err_command_split_args_with)
+            wr = WorkRequest(execute_and_send, [f._err_command_template]) #execute_and_send(f._err_command_template)
+            self.thread_pool.putRequest(wr)
+            if f._err_command_admin_only:
+                self.thread_pool.wait() # Again wait for the completion before accepting a new command that could generate weird concurrency issues
+
         else:
             # In private chat, it's okay for the bot to always respond.
             # In group chat, the bot should silently ignore commands it
@@ -246,7 +290,7 @@ class Backend(object):
             part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
             part1 = 'Command "%s" not found.' % cmd
-        ununderscore_keys = [m.replace('_',' ') for m in self.commands.keys()]
+        ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
@@ -259,8 +303,8 @@ class Backend(object):
     def inject_commands_from(self, instance_to_inject):
         classname = instance_to_inject.__class__.__name__
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
+            if getattr(value, '_err_command', False):
+                name = getattr(value, '_err_command_name')
 
                 if name in self.commands:
                     f = self.commands[name]
@@ -272,8 +316,8 @@ class Backend(object):
 
     def remove_commands_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_jabberbot_command', False):
-                name = getattr(value, '_jabberbot_command_name')
+            if getattr(value, '_err_command', False):
+                name = getattr(value, '_err_command_name')
                 del(self.commands[name])
 
     def warn_admins(self, warning):
@@ -314,7 +358,7 @@ class Backend(object):
                                 '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\
-            and not command._jabberbot_command_hidden
+            and not command._err_command_hidden
             ]))
             usage = '\n\n' + '\n\n'.join(filter(None, [usage, self.MSG_HELP_TAIL]))
         else:
@@ -329,25 +373,30 @@ class Backend(object):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
-    @botcmd(historize = False)
+    @botcmd(historize=False)
     def history(self, mess, args):
         """display the command history"""
         answer = []
         l = len(self.cmd_history)
         for i in range(0, l):
             c = self.cmd_history[i]
-            answer.append('%2i:!%s %s' %(l-i,c[0],c[1]))
+            answer.append('%2i:!%s %s' % (l - i, c[0], c[1]))
         return '\n'.join(answer)
 
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
         mess = self.build_message(text)
-        mess.setTo(user)
+        if isinstance(user, basestring):
+            mess.setTo(user)
+        else:
+            mess.setTo(user.getStripped())
 
         if in_reply_to:
             mess.setType(in_reply_to.getType())
+            mess.setFrom(in_reply_to.getTo().getStripped())
         else:
             mess.setType(message_type)
+            mess.setFrom(self.jid)
 
         self.send_message(mess)
 
@@ -355,18 +404,18 @@ class Backend(object):
     ###### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
     def build_message(self, text):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def serve_forever(self):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def connect(self):
         """Connects the bot to server or returns current connection
         """
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def join_room(self, room, username=None, password=None):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def shutdown(self):
         pass
@@ -379,4 +428,4 @@ class Backend(object):
 
     @property
     def mode(self):
-        raise NotImplementedError( "It should be implemented specifically for your backend" )
+        raise NotImplementedError("It should be implemented specifically for your backend")

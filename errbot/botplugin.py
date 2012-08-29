@@ -145,8 +145,14 @@ class BotPlugin(BotPluginBase):
 
     def callback_message(self, conn, mess):
         """
-            Override to get a notified on *ANY* XMPP message.
+            Override to get a notified on *ANY* message.
             If you are interested only by chatting message you can filter for example mess.getType() in ('groupchat', 'chat')
+        """
+        pass
+
+    def callback_botmessage(self, mess):
+        """
+            Override to get a notified on messages from the bot itself (emitted from your plugin sisters and brothers for example).
         """
         pass
 
@@ -164,9 +170,6 @@ class BotPlugin(BotPluginBase):
             Sends asynchronously a message a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
-        # small hack to send back to the correct jid in case of chatroom
-        if message_type == 'groupchat':
-            user = str(user).split('/')[0] # strip the precise user in the chatroom
         return holder.bot.send(user, text, in_reply_to, message_type)
 
     def bare_send(self, xmppy_msg):

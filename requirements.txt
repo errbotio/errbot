@@ -1,5 +1,3 @@
-pyfire
-PySide
 simplejson
 flask
 jinja2
@@ -9,3 +7,5 @@ dnspython
 xmpppy
 yapsy
 configparser
+config
+

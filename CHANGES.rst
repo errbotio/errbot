@@ -1,6 +1,47 @@
 Release history
 ===============
 
+Version 1.6.3 (2012-08-26)
+--------------------------
+
+Bugs:
+
+- !reload was causing a crash on templating
+- !update was failing on internal_shelf
+- several consistency fixups around Identity and Message, now they should behave almost the same was across all the backends
+- corrected several unicode / utf-8 issues across the backends
+- unified the standard xmpp and hipchat keep alive, they work the same
+
+Features:
+
+- added err-timemachine, an "history" plugin that logs and indexes every messages. You can query it with a lucene syntax over specific dates etc ...
+- Added a webserver UI from the webserver builtin plugin (disabled by default see !config webserver to enable it)
+- Now if a config structure changed or failed, the bot will present you the config you had and the default template so you can adapt your current config easily
+- Added the schema for xhtml-im so you can use your favorite xml editor to check what your templates are generating
+
+Version 1.6.2 (2012-08-24)
+--------------------------
+
+Bugs:
+
+- missing a dependency for python config [thx to Joshua Tobin https://github.com/joshuatobin]
+- Fixing two logging debug statements that are mixed up [thx to Joshua Tobin https://github.com/joshuatobin]
+- Removed the URL rewritting from the QT user interface
+
+Features:
+
+- Added basic IRC support
+- Now the BOT_EXTRA_PLUGIN_DIR can be a list so you can develop several plugins at the same time
+
+Version 1.6.1 (2012-08-22)
+--------------------------
+Simplified the installation.
+
+Bugs:
+
+- put pyfire as an optional dependency as it is used only for the campfire backend
+- put PySide as an optional dependency as it is used only for the QT graphical backend
+
 Version 1.6.0 (2012-08-16)
 --------------------------
 Bugs:

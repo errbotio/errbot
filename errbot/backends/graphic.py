@@ -1,13 +1,31 @@
 import logging
-import os
-from config import BOT_DATA_DIR
 import sys
-from PySide import QtCore, QtGui, QtWebKit
-from PySide.QtGui import QCompleter
-from PySide.QtCore import Qt, QUrl
+from errbot.utils import mess_2_embeddablehtml
+
+try:
+    from PySide import QtCore, QtGui, QtWebKit
+    from PySide.QtGui import QCompleter
+    from PySide.QtCore import Qt, QUrl
+except ImportError:
+    logging.exception("Could not start the graphical backend")
+    logging.error("""
+    If you intend to use the graphical backend please install PySide:
+    -> On debian-like systems
+    sudo apt-get install python-software-properties
+    sudo apt-get update
+    sudo apt-get install python-pyside
+    -> On Gentoo
+    sudo emerge -av dev-python/pyside
+    -> Generic
+    pip install PySide
+    """)
+    sys.exit(-1)
+
+import os
 import config
+from config import BOT_DATA_DIR
 import errbot
-from errbot.backends.base import Connection, Message, Identifier
+from errbot.backends.base import Connection, Message
 from errbot.errBot import ErrBot
 
 class CommandBox(QtGui.QLineEdit, object):
@@ -48,14 +66,8 @@ class ConnectionMock(Connection, QtCore.QObject):
         self.send(mess)
     def send(self, mess):
         if hasattr(mess, 'getBody') and mess.getBody() and not mess.getBody().isspace():
-            html_content = mess.getHTML()
-
-            if html_content:
-                body = html_content.getTag('body')
-                answer = ''.join([unicode(kid) for kid in body.kids]) + body.getData()
-            else:
-                answer = mess.getBody()
-            self.newAnswer.emit(answer, bool(html_content))
+            content, is_html = mess_2_embeddablehtml(mess)
+            self.newAnswer.emit(content, is_html)
 
 import re
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
@@ -63,13 +75,6 @@ def linkify(text):
     def replacewithlink(matchobj):
         url = matchobj.group(0)
         text = unicode(url)
-        if text.startswith('http://'):
-            text = text.replace('http://', '', 1)
-        elif text.startswith('https://'):
-            text = text.replace('https://', '', 1)
-
-        if text.startswith('www.'):
-            text = text.replace('www.', '', 1)
 
         imglink = ''
         for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
@@ -94,7 +99,8 @@ class GraphicBackend(ErrBot):
     def send_command(self):
         self.new_message(self.input.text(), False)
         msg = Message(self.input.text())
-        msg.setFrom(Identifier(node=config.BOT_ADMINS[0])) # assume this is the admin talking
+        msg.setFrom(config.BOT_ADMINS[0]) # assume this is the admin talking
+        msg.setTo(self.jid) # To me only
         self.callback_message(self.conn, msg)
         self.input.clear()
 
@@ -108,12 +114,12 @@ class GraphicBackend(ErrBot):
 
     def build_message(self, text):
         txt, node = self.build_text_html_message_pair(text)
-        if node :
-            return Message(txt, html = node) # rebuild a pure html snippet to include directly in the console html
-        return Message(txt)
+        msg = Message(txt, html = node) if node else Message(txt)
+        msg.setFrom(self.jid)
+        return msg # rebuild a pure html snippet to include directly in the console html
 
     def serve_forever(self):
-        self.jid = Identifier('blah') # whatever
+        self.jid = 'Err@localhost'
         self.connect() # be sure we are "connected" before the first command
         self.connect_callback() # notify that the connection occured
 

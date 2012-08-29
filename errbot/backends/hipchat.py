@@ -9,7 +9,7 @@ from errbot.backends.jabber import JabberBot
 from urllib2 import urlopen, Request
 from xmpp import Client
 from config import CHATROOM_FN
-from errbot.utils import xhtml2hipchat
+from errbot.utils import xhtml2hipchat, utf8
 
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
@@ -22,7 +22,7 @@ class HipchatClient(Client):
 
     def send_api_message(self, room_id, fr, message, message_format='html'):
         base = {'format': 'json', 'auth_token': self.token}
-        red_data = {'room_id': room_id, 'from': fr, 'message': message, 'message_format': message_format}
+        red_data = {'room_id': room_id, 'from': fr, 'message': utf8(message), 'message_format': message_format}
         req = Request(url=HIPCHAT_MESSAGE_URL + '?' + urlencode(base), data=urlencode(red_data))
         return json.load(urlopen(req))
 
@@ -30,7 +30,7 @@ class HipchatClient(Client):
     def send_message(self, mess):
         if self.token and mess.name == 'message' and mess.getTag('html'):
             logging.debug('Message intercepted for Hipchat API')
-            content = ''.join((str(child) for child in mess.getTag('html').getTag('body').getChildren()))
+            content = u''.join((unicode(child) for child in mess.getTag('html').getTag('body').getChildren()))
             room_jid = mess.getTo()
             self.send_api_message(room_jid.getNode().split('_')[1], CHATROOM_FN, content)
         else:
@@ -50,6 +50,7 @@ class HipchatBot(JabberBot):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
         try:
+            text = utf8(text)
             XML2Node(text) # test if is it xml
             # yes, ok epurate it for hipchat
             try:
@@ -58,10 +59,10 @@ class HipchatBot(JabberBot):
                 message = Message()
                 message.addChild(node = node)
             except ExpatError as ee:
-                logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (text, ee))
+                logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (hipchat_html, ee))
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
-                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (hipchat_html, ee))
+                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
 

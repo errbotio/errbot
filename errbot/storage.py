@@ -1,6 +1,6 @@
 import UserDict
 import logging
-from utils import unicode_filter
+from utils import utf8
 import shelve
 
 class StoreMixin(UserDict.DictMixin):
@@ -18,15 +18,15 @@ class StoreMixin(UserDict.DictMixin):
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
     def __getitem__(self, key):
-        return self.shelf.__getitem__(unicode_filter(key))
+        return self.shelf.__getitem__(utf8(key))
 
     def __setitem__(self, key, item):
-        answer = self.shelf.__setitem__(unicode_filter(key), item)
+        answer = self.shelf.__setitem__(utf8(key), item)
         self.shelf.sync()
         return answer
 
     def __delitem__(self, key):
-        answer = self.shelf.__delitem__(unicode_filter(key))
+        answer = self.shelf.__delitem__(utf8(key))
         self.shelf.sync()
         return answer
 

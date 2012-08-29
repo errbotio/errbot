@@ -17,6 +17,7 @@
 import logging
 from os import path, access, makedirs, sep, getcwd, W_OK
 from platform import system
+from zlogger import ZRotatingFileHandler
 
 ON_WINDOWS = system() == 'Windows'
 import sys
@@ -65,7 +66,7 @@ def main(bot_class):
     from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
 
     if BOT_LOG_FILE:
-        hdlr = logging.FileHandler(BOT_LOG_FILE)
+        hdlr = ZRotatingFileHandler(BOT_LOG_FILE, maxBytes=5*1024*1024, backupCount=100, compress_mode="zip")
         hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
         logger.addHandler(hdlr)
     logger.setLevel(BOT_LOG_LEVEL)
@@ -161,3 +162,4 @@ if __name__ == "__main__":
 
     main(bot_class)
     logging.info('Process exiting')
+

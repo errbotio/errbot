@@ -53,7 +53,7 @@ class JabberClient(Client, Connection):
 
     def send_message(self, mess):
         logging.debug('Message filtered thru JabberClient : %s' % mess)
-        super(JabberClient,self).send(mess)
+        self.send(mess)
 
 
 def is_from_history(mess):
@@ -107,6 +107,7 @@ class JabberBot(ErrBot):
         Don't forget to raise exception xmpp.NodeProcessed to stop
         processing in other handlers (see callback_presence)
         """
+        super(JabberBot, self).__init__()
         self.__debug = debug
         self.log = logging.getLogger(__name__)
         self.__username = username
@@ -127,8 +128,7 @@ class JabberBot(ErrBot):
 
         # Collect commands from source
         self.roster = None
-        super(JabberBot, self).__init__(username, password, res=res, debug=debug,
-                         privatedomain=privatedomain, acceptownmsgs=acceptownmsgs, handlers=handlers)
+
 
     ################################
 
@@ -329,7 +329,7 @@ class JabberBot(ErrBot):
             message.addChild(node = node)
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
-                logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
+                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
 
@@ -514,45 +514,46 @@ class JabberBot(ErrBot):
         Override this method in derived class if you
         want to do anything special at shutdown.
         """
-        pass
+        super(JabberBot, self).shutdown()
 
     def serve_forever(self):
         """Connects to the server and handles messages."""
-        conn = None
-        while not self.__finished and not conn:
-            conn = self.connect()
-            if not conn:
-                self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
-                time.sleep(self.RETRY_FREQUENCY)
-
-
-        self.connect_callback() # notify that the connection occured
-        self.__lastping = time.time()
-
-        while not self.__finished:
-            try:
-                if conn:
-                    try:
-                        conn.Process(1)
-                        if conn._owner.connected == '':
-                            self.disconnect_callback() # notify that the connection is lost
-                            conn = None
-                    except Exception:
-                        logging.exception("conn.Process exception")
-                    self.idle_proc()
-                else:
-                    self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)
+        try:
+            conn = None
+            while not self.__finished and not conn:
+                conn = self.connect()
+                if not conn:
+                    self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
                     time.sleep(self.RETRY_FREQUENCY)
-                    conn = self.connect()
-                    if conn:
-                        self.connect_callback()
-            except KeyboardInterrupt:
-                self.log.info('bot stopped by user request. shutting down.')
-                break
 
-        self.disconnect_callback()
-        self.shutdown()
-        exit(self.return_code)
+
+            self.connect_callback() # notify that the connection occured
+            self.__lastping = time.time()
+
+            while not self.__finished:
+                try:
+                    if conn:
+                        try:
+                            conn.Process(1)
+                            if conn._owner.connected == '':
+                                self.disconnect_callback() # notify that the connection is lost
+                                conn = None
+                        except Exception:
+                            logging.exception("conn.Process exception")
+                        self.idle_proc()
+                    else:
+                        self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)
+                        time.sleep(self.RETRY_FREQUENCY)
+                        conn = self.connect()
+                        if conn:
+                            self.connect_callback()
+                except KeyboardInterrupt:
+                    self.log.info('bot stopped by user request. shutting down.')
+                    break
+            self.disconnect_callback()
+        finally:
+            self.shutdown()
+            exit(self.return_code)
 
     @property
     def mode(self):

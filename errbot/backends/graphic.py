@@ -47,7 +47,7 @@ class ConnectionMock(Connection, QtCore.QObject):
     def send_message(self, mess):
         self.send(mess)
     def send(self, mess):
-        if hasattr(mess, 'getBody') and len(mess.getBody()) > 0 and not mess.getBody().isspace():
+        if hasattr(mess, 'getBody') and mess.getBody() and not mess.getBody().isspace():
             html_content = mess.getHTML()
 
             if html_content:
@@ -107,7 +107,10 @@ class GraphicBackend(ErrBot):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
 
     def build_message(self, text):
-        return Message(text)
+        txt, node = self.build_text_html_message_pair(text)
+        if node :
+            return Message(txt, html = node) # rebuild a pure html snippet to include directly in the console html
+        return Message(txt)
 
     def serve_forever(self):
         self.jid = Identifier('blah') # whatever

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,11 @@
 
 import os
 from setuptools import setup, find_packages
-from errbot.version import VERSION
+import sys
+
+sys.path.insert(0, 'errbot') # hack to avoid loading err machinery from the errbot package
+from version import VERSION
+
 def read(fname):
         return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
@@ -39,7 +43,7 @@ setup(
 
     author = "Guillaume BINET",
     author_email = "gbin@gootz.net",
-    description = "err is a plugin based XMPP chatbot designed to be easily deployable, extensible and maintainable.",
+    description = "err is a plugin based team chatbot designed to be easily deployable, extensible and maintainable.",
     long_description=''.join([read('README.rst'),'\n\n',changes]),
     license = "GPL",
     keywords = "xmpp jabber chatbot bot plugin",

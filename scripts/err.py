@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python
 
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 import logging
 from os import path, access, makedirs, sep, getcwd, W_OK
 from platform import system
-
+from zlogger import ZRotatingFileHandler
 
 ON_WINDOWS = system() == 'Windows'
 import sys
@@ -66,7 +66,7 @@ def main(bot_class):
     from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
 
     if BOT_LOG_FILE:
-        hdlr = logging.FileHandler(BOT_LOG_FILE)
+        hdlr = ZRotatingFileHandler(BOT_LOG_FILE, maxBytes=5*1024*1024, backupCount=100, compress_mode="zip")
         hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
         logger.addHandler(hdlr)
     logger.setLevel(BOT_LOG_LEVEL)
@@ -107,11 +107,11 @@ if __name__ == "__main__":
         option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
         option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
         option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
-    
+
     args = vars(parser.parse_args()) # create a dictionary of args
     config_path = args['config']
     # setup the environment to be able to import the config.py
-    sys.path.append(config_path) # appends the current directory in order to find config.py
+    sys.path.insert(0, config_path) # appends the current directory in order to find config.py
     check_config(config_path) # check if everything is ok before attempting to start
 
 

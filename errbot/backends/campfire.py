@@ -12,7 +12,7 @@ import pyfire
 class CampfireConnection(Connection, pyfire.Campfire):
     rooms = {} # keep track of joined room so we can send messages directly to them
 
-    def send(self, mess):
+    def send_message(self, mess):
         to_identity = mess.getTo()
         room = to_identity.getDomain() # we only reply to rooms in reality in campfire
         room.speak(mess.getBody()) # Basic text support for the moment
@@ -78,8 +78,8 @@ class CampfireBackend(ErrBot):
             msg.setFrom(Identifier(resource = user, domain = message.room))
             self.callback_message(self.conn, msg)
 
-    def error_callback(self, error):
-        logging.error("Stream STOPPED due to ERROR: %s" % error)
+    def error_callback(self, error, room):
+        logging.error("Stream STOPPED due to ERROR: %s in room %s" % (error, room))
         self.exit_lock.acquire()
         self.exit_lock.notify()
         self.exit_lock.release()
@@ -88,18 +88,14 @@ class CampfireBackend(ErrBot):
         self.conn.join_room(room, self.msg_callback, self.error_callback)
 
     def build_message(self, text):
-        """Builds an xhtml message without attributes.
-        If input is not valid xhtml-im fallback to normal."""
         try:
             node = XML2Node(text)
-            # logging.debug('This message is XML : %s' % text)
             text_plain = xhtml2txt(text)
             logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
             message = Message(body=text_plain)
-            # message.addChild(node = node) TODO see if campfire supports that
         except ExpatError as ee:
             if text.strip(): # avoids keep alive pollution
-                logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (text, ee))
+                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
 

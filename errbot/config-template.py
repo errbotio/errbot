@@ -14,6 +14,8 @@ BOT_IDENTITY = {
     'password' : 'changeme' # password of the bot user
 }
 
+BOT_ASYNC = False # If true, the bot will handle the commands asynchronously [EXPERIMENTAL]
+
 # HIPCHAT template
 #BOT_IDENTITY = {
 #    'username' : '12345_123456@chat.hipchat.com',

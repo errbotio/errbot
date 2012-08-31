@@ -9,8 +9,10 @@ from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS
-from errbot.bundled.threadpool import ThreadPool, WorkRequest
+from config import BOT_ADMINS, BOT_ASYNC
+
+if BOT_ASYNC:
+    from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
 class Identifier(object):
     """
@@ -119,14 +121,14 @@ class Backend(object):
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
-    commands = {} # the dynamically populated list of commands available on the bot
-
-    thread_pool = ThreadPool(3)
 
     def __init__(self, *args, **kwargs):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
-        pass
+        if BOT_ASYNC:
+            self.thread_pool = ThreadPool(3)
+            logging.debug('created the thread pool' + str(self.thread_pool))
+        self.commands = {} # the dynamically populated list of commands available on the bot
 
     def build_text_html_message_pair(self, source):
         node = None
@@ -258,17 +260,21 @@ class Backend(object):
                 if usr not in BOT_ADMINS:
                     self.send_simple_reply(mess, 'You cannot administer the bot from this user %s.' % usr)
                     return False
-                self.thread_pool.wait() # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
+                if BOT_ASYNC:
+                    self.thread_pool.wait() # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
 
             if f._err_command_historize:
                 self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
 
             if f._err_command_split_args_with:
                 args = args.split(f._err_command_split_args_with)
-            wr = WorkRequest(execute_and_send, [f._err_command_template]) #execute_and_send(f._err_command_template)
-            self.thread_pool.putRequest(wr)
-            if f._err_command_admin_only:
-                self.thread_pool.wait() # Again wait for the completion before accepting a new command that could generate weird concurrency issues
+            if BOT_ASYNC:
+                wr = WorkRequest(execute_and_send, [f._err_command_template]) #execute_and_send(f._err_command_template)
+                self.thread_pool.putRequest(wr)
+                if f._err_command_admin_only:
+                    self.thread_pool.wait() # Again wait for the completion before accepting a new command that could generate weird concurrency issues
+            else:
+                execute_and_send(f._err_command_template)
 
         else:
             # In private chat, it's okay for the bot to always respond.

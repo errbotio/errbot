@@ -30,7 +30,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
 
-def check_config(config_path):
+def check_config(config_path, mode):
     __import__('errbot.config-template') # - is on purpose, it should not be imported normally ;)
     template = sys.modules['errbot.config-template']
     config_fullpath = config_path + sep + 'config.py'
@@ -41,7 +41,14 @@ def check_config(config_path):
         exit(-1)
 
     try:
-        import config
+        try:
+            # gives the opportunity to have one config per mode to simplify the debugging
+            config = __import__('config_'+mode)
+            sys.modules['config'] = config
+        except ImportError as ie:
+            if not ie.message.startswith('No module named'):
+                logging.exception('Error while trying to load %s' % 'config_'+mode)
+            import config
 
         diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
         if diffs:
@@ -62,6 +69,7 @@ def main(bot_class):
 
     from errbot.utils import PLUGINS_SUBDIR
     from errbot import holder
+
     from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
 
     if BOT_LOG_FILE:
@@ -93,7 +101,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     backend_group = parser.add_mutually_exclusive_group()
-    backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
+    backend_group.add_argument('-X', '--xmpp', default = True, action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
     backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
     backend_group.add_argument('-I', '--irc', action='store_true', help='IRC backend')
@@ -113,27 +121,36 @@ if __name__ == "__main__":
     config_path = args['config']
     # setup the environment to be able to import the config.py
     sys.path.insert(0, config_path) # appends the current directory in order to find config.py
-    check_config(config_path) # check if everything is ok before attempting to start
+    mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp'))[0]
+
+    check_config(config_path, mode) # check if everything is ok before attempting to start
 
 
-    if args['text']:
+    def text():
         from errbot.backends.text import TextBackend
-        bot_class = TextBackend
-    elif args['graphic']:
+        return TextBackend
+
+    def graphic():
         from errbot.backends.graphic import GraphicBackend
-        bot_class = GraphicBackend
-    elif args['campfire']:
+        return GraphicBackend
+
+    def campfire():
         from errbot.backends.campfire import CampfireBackend
-        bot_class = CampfireBackend
-    elif args['hipchat']:
+        return CampfireBackend
+
+    def hipchat():
         from errbot.backends.hipchat import HipchatBot
-        bot_class = HipchatBot
-    elif args['irc']:
+        return HipchatBot
+
+    def irc():
         from errbot.backends.irc import IRCBackend
-        bot_class = IRCBackend
-    else:
+        return IRCBackend
+
+    def xmpp():
         from errbot.backends.jabber import JabberBot
-        bot_class = JabberBot
+        return JabberBot
+
+    bot_class = locals()[mode]()
 
     if (not ON_WINDOWS) and args['daemon']:
         if args['text']:

@@ -31,6 +31,8 @@ See the end of the module code for a brief, annotated usage example.
 Website : http://chrisarndt.de/projects/threadpool/
 
 """
+import logging
+
 __docformat__ = "restructuredtext en"
 
 __all__ = [
@@ -156,6 +158,7 @@ class WorkerThread(threading.Thread):
                     result = request.callable(*request.args, **request.kwds)
                     self._results_queue.put((request, result))
                 except:
+                    logging.exception('Command failed')
                     request.exception = True
                     self._results_queue.put((request, sys.exc_info()))
 

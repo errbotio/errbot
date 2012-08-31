@@ -334,6 +334,11 @@ class JabberBot(ErrBot):
             message = Message(body=text)
         return message
 
+    def send_message(self, mess):
+        """Send a message"""
+        if mess.getType() in ('chat', 'groupchat') and mess.getAttr('from'):
+            mess.delAttr('from') # we strip the from here which could be rejected by some xmpp implementations
+        self.connect().send_message(mess)
 
     def get_full_jids(self, jid):
         """Returns all full jids, which belong to a bare jid

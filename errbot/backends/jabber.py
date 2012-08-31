@@ -30,6 +30,7 @@ bot's operation completely. MUCs are also supported.
 
 import os
 from pyexpat import ExpatError
+import select
 from xmpp import Client, NS_DELAY, JID, dispatcher, simplexml, Protocol, Node
 from xmpp.client import DBG_CLIENT
 from xmpp.protocol import NS_CAPS, Iq, Message, NS_PUBSUB
@@ -537,8 +538,14 @@ class JabberBot(ErrBot):
                             if self.conn == None:
                                 self.disconnect_callback() # notify that the connection is lost
                                 conn = None
-                        except Exception:
-                            logging.exception("conn.Process exception")
+                        except Exception as e:
+                            if isinstance(e, KeyboardInterrupt): # don't prevent the bot to shutdown normally !
+                                raise
+                            if isinstance(e, select.error) and e.args[0] == 4: # 'Interrupted system call'
+                                self.log.info('Interrupted system call detected on socket. shutting down.')
+                                break
+
+                            logging.exception("conn.Process Generated exception %s" % e.__class__)
                         self.idle_proc()
                     else:
                         self.log.warn('Connection lost, retry to connect in %i seconds.' % self.RETRY_FREQUENCY)

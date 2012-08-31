@@ -107,7 +107,7 @@ class IRCBackend(ErrBot):
 
     def connect(self):
         if not self.conn:
-            ircFactory = IRCFactory(self, self.jid.node)
+            ircFactory = IRCFactory(self, self.jid)
             self.conn = ircFactory.irc
             reactor.connectTCP(self.server, self.port, ircFactory)
 

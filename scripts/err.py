@@ -18,13 +18,28 @@ import logging
 from os import path, access, makedirs, sep, getcwd, W_OK
 from platform import system
 
+def debug(sig, frame):
+    """Interrupt running process, and provide a python prompt for
+    interactive debugging."""
+    d={'_frame':frame}         # Allow access to frame object.
+    d.update(frame.f_globals)  # Unless shadowed by global
+    d.update(frame.f_locals)
+
+    i = code.InteractiveConsole(d)
+    message  = "Signal received : entering python shell.\nTraceback:\n"
+    message += ''.join(traceback.format_stack(frame))
+    i.interact(message)
+
 ON_WINDOWS = system() == 'Windows'
+
 import sys
 import argparse
 if not ON_WINDOWS:
     import daemon
     from pwd import getpwnam
     from grp import getgrnam
+    import code, traceback, signal
+    signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')

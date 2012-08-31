@@ -9,7 +9,7 @@ from errbot.backends.jabber import JabberBot
 from urllib2 import urlopen, Request
 from xmpp import Client
 from config import CHATROOM_FN
-from errbot.utils import xhtml2hipchat, utf8
+from errbot.utils import xhtml2hipchat, utf8, xhtml2txt
 
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
@@ -28,7 +28,7 @@ class HipchatClient(Client):
 
 
     def send_message(self, mess):
-        if self.token and mess.name == 'message' and mess.getTag('html'):
+        if self.token and mess.name == 'message' and mess.getType() =='groupchat' and mess.getTag('html'):
             logging.debug('Message intercepted for Hipchat API')
             content = u''.join((unicode(child) for child in mess.getTag('html').getTag('body').getChildren()))
             room_jid = mess.getTo()
@@ -56,7 +56,7 @@ class HipchatBot(JabberBot):
             try:
                 hipchat_html = xhtml2hipchat(text)
                 node = XML2Node(hipchat_html)
-                message = Message()
+                message = Message(body=xhtml2txt(text))
                 message.addChild(node = node)
             except ExpatError as ee:
                 logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (hipchat_html, ee))

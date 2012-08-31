@@ -264,7 +264,7 @@ class ThreadPool:
         """
         for i in range(num_workers):
             self.workers.append(WorkerThread(self._requests_queue,
-                self._results_queue, poll_timeout=poll_timeout))
+                self._results_queue, poll_timeout=poll_timeout, name='ThreadPool worker %i'%i))
 
     def dismissWorkers(self, num_workers, do_join=False):
         """Tell num_workers worker threads to quit after their current task."""

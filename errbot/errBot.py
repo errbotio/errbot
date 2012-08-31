@@ -184,7 +184,7 @@ class ErrBot(Backend, StoreMixin):
                 plugins_statuses.append(('B', name))
             elif name in all_loaded:
                 plugins_statuses.append(('L', name))
-            elif get_plugin_obj_by_name(name) and get_plugin_obj_by_name(name).get_configuration_template() and not self.get_plugin_configuration(name):
+            elif get_plugin_obj_by_name(name) is not None and get_plugin_obj_by_name(name).get_configuration_template() is not None and self.get_plugin_configuration(name) is None:
                 plugins_statuses.append(('C', name))
             else:
                 plugins_statuses.append(('E', name))

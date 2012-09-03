@@ -23,7 +23,7 @@ except ImportError:
 
 import os
 import config
-from config import BOT_DATA_DIR
+from config import BOT_DATA_DIR, BOT_PREFIX
 import errbot
 from errbot.backends.base import Connection, Message
 from errbot.errBot import ErrBot
@@ -38,7 +38,7 @@ class CommandBox(QtGui.QLineEdit, object):
         self.history = history
         self.reset_history()
         super(CommandBox, self).__init__()
-        completer = QCompleter(['!' + name for name in commands])
+        completer = QCompleter([BOT_PREFIX + name for name in commands])
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.setCompleter(completer)
 
@@ -48,12 +48,12 @@ class CommandBox(QtGui.QLineEdit, object):
         if key == Qt.Key_Up:
             if self.history_index > 0:
                 self.history_index -= 1
-                self.setText('!%s %s' % self.history[self.history_index])
+                self.setText(BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 return
         elif key == Qt.Key_Down:
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
-                self.setText('!%s %s' % self.history[self.history_index])
+                self.setText(BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 return
         super(CommandBox, self).keyPressEvent(*args, **kwargs)
         if key == QtCore.Qt.Key_Return:

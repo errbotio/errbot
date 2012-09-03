@@ -9,7 +9,7 @@ from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS, BOT_ASYNC
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
 
 if BOT_ASYNC:
     from errbot.bundled.threadpool import ThreadPool, WorkRequest
@@ -116,7 +116,7 @@ class Backend(object):
     MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
     MESSAGE_SIZE_ERROR_MESSAGE = '|<- SNIP ! Message too long.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '\
-                          'Type "!help" for available commands.'
+                          'Type "' + BOT_PREFIX + 'help" for available commands.'
     MSG_HELP_TAIL = 'Type help <command name> to get more info '\
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
@@ -191,7 +191,7 @@ class Backend(object):
         # txt will be None
         if not text: return False
 
-        if not text.startswith('!'):
+        if not text.startswith(BOT_PREFIX):
             return True
 
         text = text[1:]
@@ -214,7 +214,7 @@ class Backend(object):
                 if len(text_split) > 1:
                     args = ' '.join(text_split[1:])
 
-        if command == '!': # we did "!!" so recall the last command
+        if command == BOT_PREFIX: # we did "!!" so recall the last command
             if len(self.cmd_history):
                 cmd, args = self.cmd_history[-1]
             else:
@@ -302,7 +302,7 @@ class Backend(object):
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            return part1 + '\n\nDid you mean "!' + '" or "!'.join(matches) + '" ?'
+            return part1 + '\n\nDid you mean "' + BOT_PREFIX + ('" or "' + BOT_PREFIX).join(matches) + '" ?'
         else:
             return part1
 
@@ -360,7 +360,7 @@ class Backend(object):
                 description = 'Available commands:'
 
             usage = '\n'.join(sorted([
-            '!%s: %s' % (name, (command.__doc__ or
+            BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\
@@ -386,7 +386,7 @@ class Backend(object):
         l = len(self.cmd_history)
         for i in range(0, l):
             c = self.cmd_history[i]
-            answer.append('%2i:!%s %s' % (l - i, c[0], c[1]))
+            answer.append('%2i:%s%s %s' % (l - i, BOT_PREFIX, c[0], c[1]))
         return '\n'.join(answer)
 
     def send(self, user, text, in_reply_to=None, message_type='chat'):

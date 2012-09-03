@@ -27,7 +27,7 @@ import subprocess
 from tarfile import TarFile
 from urllib2 import urlopen
 
-from config import BOT_DATA_DIR, BOT_LOG_FILE
+from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_PREFIX
 from errbot import botcmd
 from errbot.backends.base import Backend
 
@@ -132,7 +132,7 @@ class ErrBot(Backend, StoreMixin):
         for pluginInfo in get_all_plugins():
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
-                    errors += 'Notice: %s is blacklisted, use !load %s to unblacklist it\n' % (pluginInfo.name, pluginInfo.name)
+                    errors += 'Notice: %s is blacklisted, use ' + BOT_PREFIX + 'load %s to unblacklist it\n' % (pluginInfo.name, pluginInfo.name)
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     logging.info('Activate plugin: %s' % pluginInfo.name)
@@ -330,7 +330,7 @@ class ErrBot(Backend, StoreMixin):
             return "You should have a repo name as argument"
         repos = self.get('repos', {})
         if not repos.has_key(args):
-            return "This repo is not installed check with !repos the list of installed ones"
+            return "This repo is not installed check with ' + BOT_PREFIX + 'repos the list of installed ones"
 
         plugin_path = PLUGIN_DIR + os.sep + args
         for plugin in get_all_plugins():
@@ -354,6 +354,16 @@ class ErrBot(Backend, StoreMixin):
         max_width = max([len(name) for name in all_names])
         return {'repos':[(repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1] if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name]) for repo_name in all_names]}
 
+
+    def get_doc(self, command):
+        """Get command documentation
+        """
+        if not command.__doc__:
+            return '(undocumented)'
+        if BOT_PREFIX == '!':
+            return command.__doc__
+        return command.__doc__.replace('!', BOT_PREFIX)
+
     @botcmd
     def help(self, mess, args):
         """   Returns a help string listing available options.
@@ -373,8 +383,8 @@ class ErrBot(Backend, StoreMixin):
             for clazz in sorted(clazz_commands):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__doc__ or '')
                 usage += '\n'.join(sorted([
-                '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
-                                    '(undocumented)').strip().split('\n', 1)[0])
+                '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1), 
+                    (self.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
             usage += '\n\n'
@@ -399,7 +409,7 @@ class ErrBot(Backend, StoreMixin):
 
         Automatically assigned to the "help" command."""
         if not args:
-            return 'Usage: !apropos search_term'
+            return 'Usage: ' + BOT_PREFIX + 'apropos search_term'
 
         description = 'Available commands:\n'
 
@@ -413,7 +423,7 @@ class ErrBot(Backend, StoreMixin):
         usage = ''
         for clazz in sorted(clazz_commands):
             usage += '\n'.join(sorted([
-            '\t!%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
+            '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in clazz_commands[clazz] if args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower() and name != 'help' and not command._err_command_hidden
             ]))
@@ -496,7 +506,7 @@ class ErrBot(Backend, StoreMixin):
         """
         plugin_name = args[0]
         if self.is_plugin_blacklisted(plugin_name):
-            return 'Load this plugin first with !load %s' % plugin_name
+            return 'Load this plugin first with ' + BOT_PREFIX + 'load %s' % plugin_name
         obj = get_plugin_obj_by_name(plugin_name)
         if obj is None:
             return 'Unknown plugin or the plugin could not load %s' % plugin_name
@@ -507,8 +517,8 @@ class ErrBot(Backend, StoreMixin):
         if len(args) == 1:
             current_config = self.get_plugin_configuration(plugin_name)
             if current_config:
-                return 'Copy paste and adapt one of the following:\nDefault Config: !config %s %s\nCurrent Config: !config %s %s' % (plugin_name, repr(template_obj), plugin_name, repr(current_config))
-            return 'Copy paste and adapt of the following:\n!config %s %s' % (plugin_name, repr(template_obj))
+                return 'Copy paste and adapt one of the following:\nDefault Config: ' + BOT_PREFIX + 'config %s %s\nCurrent Config: !config %s %s' % (plugin_name, repr(template_obj), plugin_name, repr(current_config))
+            return 'Copy paste and adapt of the following:\n' + BOT_PREFIX + 'config %s %s' % (plugin_name, repr(template_obj))
 
         try:
             real_config_obj = literal_eval(' '.join(args[1:]))

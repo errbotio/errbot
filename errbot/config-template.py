@@ -46,6 +46,11 @@ BOT_ADMINS = ('gbin@localhost',) # only those JIDs will have access to admin com
 BOT_DATA_DIR = '/var/lib/err' # Point this to a writeable directory by the system user running the bot
 BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful to develop a new plugin locally)
 
+# Prefix used for commands. Note that in help strings, you should still use the
+# default '!'. If the prefix is changed from the default, the help strings will
+# be automatically adjusted.
+BOT_PREFIX = '!'
+
 # ---- Chatrooms configuration (used by the chatroom plugin)
 # it is a standard python file so you can reuse variables...
 # For example: _TEST_ROOM = 'test@conference.localhost

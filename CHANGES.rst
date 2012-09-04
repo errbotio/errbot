@@ -11,14 +11,14 @@ Bugs:
 - Identity stripping problems
 - fixed warn_admin that regressed
 - close correctly shelves on connection drop [Thx to linux techie https://github.com/linuxtechie] 
-- corrected the !status reporting was was incorrect for non configured plugins (label C)
+- corrected the !status reporting was incorrect for non configured plugins (label C)
 - force a complete reconnection on "See Other Host" XMPP message
 
 Features:
 
 - You can now change the default prefix of the bot (new config BOT_PREFIX) [Thx to Ciaran Gultnieks https://github.com/CiaranG]
 - Added an optional threadpool to execute commands in parallel (Experimental, new config : BOT_ASYNC)
-- Now the bot wait on signal USR1 so you can do a kill -USR1 PID of err to make it spawn a local python console to debug it live
+- Now the bot waits on signal USR1 so you can do a kill -USR1 PID of err to make it spawn a local python console to debug it live
 - Now you can have several config_*.py, one per backend (to be able to test specifically a backend without having to reconfigure each time the bot)
 
 Version 1.6.3 (2012-08-26)

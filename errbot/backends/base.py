@@ -241,8 +241,8 @@ class Backend(object):
                         reply = tenv().get_template(template_name + '.html').render(**reply)
 
                 except Exception, e:
-                    logging.exception('An error happened while processing '\
-                                      'a message ("%s") from %s: %s"' %
+                    logging.exception(u'An error happened while processing '\
+                                      u'a message ("%s") from %s: %s"' %
                                       (text, jid, traceback.format_exc(e)))
                     reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
                 if reply:

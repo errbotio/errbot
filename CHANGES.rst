@@ -1,6 +1,18 @@
 Release history
 ===============
 
+Version 1.6.5 (2012-09-10)
+--------------------------
+
+Bugs:
+
+- https://github.com/gbin/err/issues/59 [Thx to https://github.com/bubba-h57 & https://github.com/zoni for helping to diagnose it]
+
+Features:
+
+- The graphical backend now uses a multiline chat to better reflect some backends.
+
+
 Version 1.6.4 (2012-09-04)
 --------------------------
 

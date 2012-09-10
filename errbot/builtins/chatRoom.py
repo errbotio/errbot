@@ -13,12 +13,10 @@ class ChatRoom(BotPlugin):
     max_err_version = VERSION
 
     connected = False
+
     def keep_alive(self):
         # logging.debug('Keep alive sent')
         if self.connected:
-            #if bot.mode == 'hipchat':
-            #    self.send(self.jid, ' ', message_type='groupchat') # hack from hipchat itself
-            #else:
             self.bare_send(xmpp.Presence())
 
     def activate(self):
@@ -33,6 +31,10 @@ class ChatRoom(BotPlugin):
             for room in CHATROOM_PRESENCE:
                 logging.info('Join room ' + room)
                 self.join_room(room, CHATROOM_FN)
+
+    def deactivate(self):
+        self.connected = False
+        super(ChatRoom, self).deactivate()
 
     def callback_message(self, conn, mess):
         if bot.mode != 'campfire': # no relay support in campfire

@@ -19,8 +19,6 @@ from errbot.utils import mess_2_embeddablehtml
 from errbot.version import VERSION
 from errbot.plugin_manager import get_all_active_plugin_objects
 from errbot.bundled.exrex import generate
-from errbot.backends.base import Identifier
-
 
 OK = Response()
 

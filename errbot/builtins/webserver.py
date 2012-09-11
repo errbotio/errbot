@@ -86,7 +86,7 @@ class Webserver(BotPlugin):
             host = self.config['HOST']
             port = self.config['PORT']
             logging.info('Starting the webserver on %s:%i' % (host, port))
-            holder.flask_app = Flask(__name__)
+            holder.flask_app = Flask('errbot')
 
             if self.webchat_mode:
                 # EVERYTHING NEEDS TO BE IN THE SAME THREAD OTHERWISE Socket.IO barfs

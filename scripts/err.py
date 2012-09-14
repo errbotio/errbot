@@ -122,6 +122,7 @@ if __name__ == "__main__":
     backend_group.add_argument('-I', '--irc', action='store_true', help='IRC backend')
     backend_group.add_argument('-T', '--text', action='store_true', help='locale text debug backend')
     backend_group.add_argument('-G', '--graphic', action='store_true', help='local graphical debug mode backend')
+    backend_group.add_argument('-N', '--null', action='store_true', help='no backend')
 
 
 
@@ -136,7 +137,7 @@ if __name__ == "__main__":
     config_path = args['config']
     # setup the environment to be able to import the config.py
     sys.path.insert(0, config_path) # appends the current directory in order to find config.py
-    mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp'))[0]
+    mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null'))[0]
 
     check_config(config_path, mode) # check if everything is ok before attempting to start
 
@@ -164,6 +165,10 @@ if __name__ == "__main__":
     def xmpp():
         from errbot.backends.jabber import JabberBot
         return JabberBot
+
+    def null():
+        from errbot.backends.null import NullBackend
+        return NullBackend
 
     bot_class = locals()[mode]()
 

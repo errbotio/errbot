@@ -38,7 +38,8 @@ class NullBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        return Message(self.build_text_html_message_pair(text)[0]) # 0 = Only retain pure text
+        text, html = self.build_text_html_message_pair(text)
+        return Message(text, html=html)
 
     def join_room(self, room, username=None, password=None):
         pass # just ignore that

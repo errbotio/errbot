@@ -116,7 +116,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     backend_group = parser.add_mutually_exclusive_group()
-    backend_group.add_argument('-X', '--xmpp', default = True, action='store_true', help='XMPP backend [DEFAULT]')
+    backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
     backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
     backend_group.add_argument('-I', '--irc', action='store_true', help='IRC backend')
@@ -137,7 +137,8 @@ if __name__ == "__main__":
     config_path = args['config']
     # setup the environment to be able to import the config.py
     sys.path.insert(0, config_path) # appends the current directory in order to find config.py
-    mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null'))[0]
+    filtered_mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null'))
+    mode = filtered_mode[0] if filtered_mode else 'xmpp' # default value
 
     check_config(config_path, mode) # check if everything is ok before attempting to start
 

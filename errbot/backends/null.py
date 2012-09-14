@@ -12,14 +12,15 @@ class ConnectionMock():
 
 class NullBackend(ErrBot):
     conn = ConnectionMock()
+    running = True
 
     def serve_forever(self):
         self.jid = 'Err@localhost' # whatever
         self.connect() # be sure we are "connected" before the first command
         self.connect_callback() # notify that the connection occured
         try:
-            while True:
-                sleep(60)
+            while self.running:
+                sleep(1)
 
         except EOFError as eof:
             pass
@@ -41,6 +42,11 @@ class NullBackend(ErrBot):
 
     def join_room(self, room, username=None, password=None):
         pass # just ignore that
+
+    def shutdown(self):
+        if self.running:
+            self.running = False
+            super(NullBackend, self).shutdown() # only once (hackish)
 
     @property
     def mode(self):

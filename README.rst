@@ -120,7 +120,7 @@ More details on the bot admin features can be found on the wiki : https://github
 Installation from pypi
 ----------------------
 
-Pip will take care of installing err and the basic dependencies for you::
+Pip will take care of installing err and the basic dependencies for you:
 pip install err
 
 Go to or create a working directory for it then copy there and adapt the configuration template::

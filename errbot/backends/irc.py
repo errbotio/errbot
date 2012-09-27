@@ -49,7 +49,7 @@ class IRCConnection(IRCClient, object):
     def irc_PRIVMSG(self, prefix, params):
         fr, line = params
         if fr == self.nickname: # it is a private message
-            fr = prefix.split('!')[1] # reextract the real from
+            fr = prefix.split('!')[0] # reextract the real from
             typ = 'chat'
         else:
             typ = 'groupchat'

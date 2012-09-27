@@ -50,7 +50,7 @@ class ChatRoom(BotPlugin):
                             self.send(room, body, message_type='groupchat')
                 elif mess_type == 'groupchat':
                     fr = mess.getFrom()
-                    chat_room = fr.node + '@' + fr.domain
+                    chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node # some backends has no domain notion
                     if chat_room in REVERSE_CHATROOM_RELAY:
                         users_to_relay_to = REVERSE_CHATROOM_RELAY[chat_room]
                         logging.debug('Message to relay to %s.' % users_to_relay_to)

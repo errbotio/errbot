@@ -21,11 +21,16 @@ class Identifier(object):
 
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
-            self.node, self.domain = jid.split('@')
-            if self.domain.find('/') != -1:
-                self.domain, self.resource = self.domain.split('/')
+            if jid.find('@') != -1:
+                self.node, self.domain = jid.split('@')[0:2] # hack for IRC
+                if self.domain.find('/') != -1:
+                    self.domain, self.resource = self.domain.split('/')[0:2] # hack for IRC where you can have several slashes here
+                else:
+                    self.resource = self.node # put a default one
             else:
-                self.resource = self.node # put a default one
+                self.node = jid
+                self.resource = None
+                self.domain = None
         else:
             self.node = node
             self.domain = domain
@@ -41,10 +46,15 @@ class Identifier(object):
         return other.node == self.node
 
     def getStripped(self):
-        return self.node + '@' + self.domain
+        if self.domain:
+            return self.node + '@' + self.domain
+        return self.node # if the backend has no domain notion
+
 
     def getResource(self):
-        return self.resource
+        if self.resource:
+            return self.resource
+        return self.node # this is because if the backend has no resource notion we need to return the plain identifier
 
     def __str__(self):
         answer = self.getStripped()

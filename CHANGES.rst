@@ -1,6 +1,21 @@
 Release history
 ===============
 
+Version 1.6.6 (2012-09-10)
+--------------------------
+
+Bugs:
+
+- bot initiated messages were not correctly callbacked on jabber backend
+- !apropos was generating an unicode error thx to https://github.com/zoni for the fix
+- corrected a serie of issues related to the sharedmiddleware on flask
+- fixed a regression on the IRC backend thx to https://github.com/nvdk for helping on those
+
+Features:
+
+- added err-mailwatch to the official repo thx to https://github.com/zoni for the contribution
+- added a "null" backend to stabilise the web ui
+
 Version 1.6.5 (2012-09-10)
 --------------------------
 

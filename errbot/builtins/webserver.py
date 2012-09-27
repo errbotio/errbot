@@ -128,13 +128,13 @@ class Webserver(BotPlugin):
                 def run_socketio(path):
                     socketio_manage(request.environ, {'': ChatNamespace})
 
-                holder.flask_app = SharedDataMiddleware(holder.flask_app, {
-                    '/': os.path.join(os.path.dirname(__file__), 'web-static')
-                })
+                encapsulating_middleware = SharedDataMiddleware(holder.flask_app, {
+                                    '/': os.path.join(os.path.dirname(__file__), 'web-static')
+                                })
 
                 from socketio.server import SocketIOServer
 
-                self.server = SocketIOServer((host, port), holder.flask_app, namespace="socket.io", policy_server=False)
+                self.server = SocketIOServer((host, port), encapsulating_middleware, namespace="socket.io", policy_server=False)
             else:
                 self.server = ThreadedWSGIServer(host, port, holder.flask_app)
             self.server.serve_forever()
@@ -238,6 +238,9 @@ class Webserver(BotPlugin):
         return 'Could not find endpoint %s. Check with !webstatus which endpoints are deployed' % endpoint
 
     def emit_mess_to_webroom(self, mess):
+        if not self.server or not self.webchat_mode:
+            return
+
         if hasattr(mess, 'getBody') and mess.getBody() and not mess.getBody().isspace():
             content, is_html = mess_2_embeddablehtml(mess)
             if not is_html:
@@ -260,5 +263,4 @@ class Webserver(BotPlugin):
             self.emit_mess_to_webroom(mess)
 
     def callback_botmessage(self, mess):
-        if self.webchat_mode:
-            self.emit_mess_to_webroom(mess)
+        self.emit_mess_to_webroom(mess)

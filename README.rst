@@ -105,7 +105,7 @@ For a one shot try, I would recommend to use::
 
 Then you can use the -d (or --daemon) parameter to run it in a detached mode.::
 
-    ./script/err.py -d
+    ./scripts/err.py -d
 
 so you can inspect the logs for an immediate feedback
 
@@ -113,7 +113,7 @@ Note that config.py needs to be at the root of the working directory of the bot 
 
 You can override this behaviour with -c specifying the directory where your config.py is, for example::
 
-    ./script/err.py -c /etc/err
+    ./scripts/err.py -c /etc/err
 
 More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki
 

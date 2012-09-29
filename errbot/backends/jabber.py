@@ -54,8 +54,13 @@ class JabberClient(Client, Connection):
 
     def send_message(self, mess):
         logging.debug('Message filtered thru JabberClient : %s' % mess)
-        self.send(mess)
-
+        if mess.getType() in ('chat', 'groupchat') and mess.getAttr('from'):
+            oldfrom = mess.getAttr('from')
+            mess.delAttr('from') # we strip the from here which could be rejected by some xmpp implementations
+            self.send(mess)
+            mess.setFrom(oldfrom) # we restore it back
+        else:
+            self.send(mess)
 
 def is_from_history(mess):
     props = mess.getProperties()
@@ -333,12 +338,6 @@ class JabberBot(ErrBot):
                 logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
-
-    def send_message(self, mess):
-        """Send a message"""
-        super(JabberBot, self).send_message(mess)
-        if mess.getType() in ('chat', 'groupchat') and mess.getAttr('from'):
-            mess.delAttr('from') # we strip the from here which could be rejected by some xmpp implementations
 
     def get_full_jids(self, jid):
         """Returns all full jids, which belong to a bare jid

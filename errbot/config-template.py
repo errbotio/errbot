@@ -78,3 +78,8 @@ REVERSE_CHATROOM_RELAY = {}
 # If you use HipChat, make sure to exactly match the fullname you set for the bot user
 CHATROOM_FN = 'bot'
 
+# DIVERT_TO_PRIVATE
+# An iterable of commands which should be responded to in private, even if the command was given
+# in a MUC. For example: DIVERT_TO_PRIVATE = ('help', 'about', 'status')
+DIVERT_TO_PRIVATE = ()
+

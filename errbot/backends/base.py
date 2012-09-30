@@ -10,6 +10,12 @@ from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
+try:
+    from config import DIVERT_TO_PRIVATE
+except ImportError:
+    DIVERT_TO_PRIVATE = ()
+    logging.warning("DIVERT_TO_PRIVATE is missing in config")
+    pass
 
 if BOT_ASYNC:
     from errbot.bundled.threadpool import ThreadPool, WorkRequest
@@ -167,7 +173,10 @@ class Backend(object):
         Message is NOT sent"""
         response = self.build_message(text)
         if private:
-            response.setTo(mess.getFrom().getStripped())
+            # Use get_jid_from_message here instead of mess.getFrom because
+            # getFrom will return the groupchat id instead of user's jid when
+            # sent from a chatroom
+            response.setTo(get_jid_from_message(mess))
             response.setType('chat')
             response.setFrom(self.jid)
         else:
@@ -258,7 +267,7 @@ class Backend(object):
                 if reply:
                     if len(reply) > self.MESSAGE_SIZE_LIMIT:
                         reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
-                    self.send_simple_reply(mess, reply)
+                    self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
 
             f = self.commands[cmd]
 

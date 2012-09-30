@@ -167,7 +167,10 @@ class Backend(object):
         Message is NOT sent"""
         response = self.build_message(text)
         if private:
-            response.setTo(mess.getFrom().getStripped())
+            # Use get_jid_from_message here instead of mess.getFrom because
+            # getFrom will return the groupchat id instead of user's jid when
+            # sent from a chatroom
+            response.setTo(get_jid_from_message(mess))
             response.setType('chat')
             response.setFrom(self.jid)
         else:

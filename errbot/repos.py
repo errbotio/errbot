@@ -27,4 +27,5 @@ KNOWN_PUBLIC_REPOS = {
 'err-tourney' : ('git://github.com/gbin/err-tourney.git','a ranking and tournament system for err'),
 'err-music' : ('git://github.com/benvd/err-music.git','Query lyrics, compositors etc etc ...'),
 'err-mailwatch' : ('git://github.com/zoni/err-mailwatch.git','Watch IMAP servers for new mails'),
+'err-dnsutils' : ('git://github.com/zoni/err-dnsutils.git','Run common DNS utils: host, dig, nslookup'),
 }

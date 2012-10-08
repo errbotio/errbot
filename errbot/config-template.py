@@ -35,7 +35,8 @@ BOT_ASYNC = False # If true, the bot will handle the commands asynchronously [EX
 #    'nickname' : 'err-chatbot',
 #    'password' : None, # optional
 #    'server' : 'irc.freenode.net',
-#    'port': 6667 # optional
+#    'port': 6667, # optional
+#    'ssl': False,  # optional
 #}
 
 BOT_ADMINS = ('gbin@localhost',) # only those JIDs will have access to admin commands

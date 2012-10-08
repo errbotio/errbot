@@ -25,10 +25,11 @@ from errbot.utils import utf8
 class IRCConnection(IRCClient, object):
     connected = False
 
-    def __init__(self, callback, nickname='err'):
+    def __init__(self, callback, nickname='err', password=None):
         self.nickname = nickname
         self.callback = callback
         self.lineRate = 1 # ONE second ... it looks like it is a minimum for freenode.
+        self.password = password
 
     #### Connection
 
@@ -76,8 +77,8 @@ class IRCFactory(ClientFactory):
 
     protocol = IRCConnection
 
-    def __init__(self, callback, nickname='err-chatbot'):
-        self.irc = IRCConnection(callback, nickname)
+    def __init__(self, callback, nickname='err-chatbot', password=None):
+        self.irc = IRCConnection(callback, nickname, password)
 
     def buildProtocol(self, addr=None):
         return self.irc
@@ -91,11 +92,30 @@ ENCODING_INPUT = sys.stdin.encoding
 class IRCBackend(ErrBot):
     conn = None
 
-    def __init__(self, nickname, server, port=6667, password=None):
+    def __init__(self, nickname, server, port=6667, password=None, ssl=False):
         super(IRCBackend, self).__init__()
         self.nickname = nickname
         self.server = server
         self.port = port
+        self.password = password
+        self.ssl = ssl
+
+        if ssl:
+            try:
+                from twisted.internet import ssl
+            except ImportError:
+                logging.exception("Could not start the IRC backend")
+                logging.error("""
+If you intend to use SSL with the IRC backend please install pyopenssl:
+-> On debian-like systems
+sudo apt-get install python-openssl
+-> On Gentoo
+sudo emerge -av dev-python/pyopenssl
+-> Generic
+pip install pyopenssl
+                """)
+                sys.exit(-1)
+
 
     def serve_forever(self):
         self.jid = self.nickname + '@localhost'
@@ -110,10 +130,13 @@ class IRCBackend(ErrBot):
 
     def connect(self):
         if not self.conn:
-            ircFactory = IRCFactory(self, self.jid.split('@')[0])
+            ircFactory = IRCFactory(self, self.jid.split('@')[0], self.password)
             self.conn = ircFactory.irc
-            reactor.connectTCP(self.server, self.port, ircFactory)
-
+            if self.ssl:
+                from twisted.internet import ssl
+                reactor.connectSSL(self.server, self.port, ircFactory, ssl.ClientContextFactory())
+            else:
+                reactor.connectTCP(self.server, self.port, ircFactory)
         return self.conn
 
     def build_message(self, text):

@@ -8,5 +8,4 @@ xmpppy
 yapsy
 configparser
 config
-twisted
-pyopenssl
+

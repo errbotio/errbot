@@ -2,7 +2,7 @@ import logging
 import sys
 
 try:
-    from twisted.internet import protocol, reactor, ssl
+    from twisted.internet import protocol, reactor
     from twisted.words.protocols.irc import IRCClient
     from twisted.internet.protocol import ClientFactory
 except ImportError:
@@ -100,6 +100,23 @@ class IRCBackend(ErrBot):
         self.password = password
         self.ssl = ssl
 
+        if ssl:
+            try:
+                from twisted.internet import ssl
+            except ImportError:
+                logging.exception("Could not start the IRC backend")
+                logging.error("""
+If you intend to use SSL with the IRC backend please install pyopenssl:
+-> On debian-like systems
+sudo apt-get install python-openssl
+-> On Gentoo
+sudo emerge -av dev-python/pyopenssl
+-> Generic
+pip install pyopenssl
+                """)
+                sys.exit(-1)
+
+
     def serve_forever(self):
         self.jid = self.nickname + '@localhost'
         self.connect() # be sure we are "connected" before the first command
@@ -116,6 +133,7 @@ class IRCBackend(ErrBot):
             ircFactory = IRCFactory(self, self.jid.split('@')[0], self.password)
             self.conn = ircFactory.irc
             if self.ssl:
+                from twisted.internet import ssl
                 reactor.connectSSL(self.server, self.port, ircFactory, ssl.ClientContextFactory())
             else:
                 reactor.connectTCP(self.server, self.port, ircFactory)

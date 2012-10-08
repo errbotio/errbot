@@ -8,6 +8,11 @@ BOT_LOG_LEVEL = logging.INFO
 # set the log file, None = console only, be sure the user of the bot can write there
 BOT_LOG_FILE = '/var/log/err/err.log'
 
+# Enable logging to sentry (find out more about sentry at www.getsentry.com).
+BOT_LOG_SENTRY = False
+SENTRY_DSN = ''
+SENTRY_LOGLEVEL = BOT_LOG_LEVEL
+
 # Base configuration (Jabber mode)
 BOT_IDENTITY = {
     'username' : 'err@localhost', # JID of the user you have created for the bot

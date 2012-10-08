@@ -85,13 +85,23 @@ def main(bot_class):
     from errbot.utils import PLUGINS_SUBDIR
     from errbot import holder
 
-    from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE
+    from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE, BOT_LOG_SENTRY
 
     if BOT_LOG_FILE:
         hdlr = logging.FileHandler(BOT_LOG_FILE)
         hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
         logger.addHandler(hdlr)
     logger.setLevel(BOT_LOG_LEVEL)
+
+    if BOT_LOG_SENTRY:
+        try:
+            from raven.handlers.logging import SentryHandler
+        except ImportError, e:
+            logging.exception("You have BOT_LOG_SENTRY enabled, but I couldn't import modules needed for Sentry integration.\nDid you install raven? (See http://raven.readthedocs.org/en/latest/install/index.html for installation instructions)\n\n")
+            exit(-1)
+        from config import SENTRY_DSN, SENTRY_LOGLEVEL
+        sentryhandler = SentryHandler(SENTRY_DSN, level=SENTRY_LOGLEVEL)
+        logger.addHandler(sentryhandler)
 
     d = path.dirname(BOT_DATA_DIR)
     if not path.exists(d):

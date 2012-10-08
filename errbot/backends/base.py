@@ -285,7 +285,9 @@ class Backend(object):
             if f._err_command_historize:
                 self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
 
-            if f._err_command_split_args_with:
+            # Don't check for None here as None can be a valid argument to split.
+            # '' was chosen as default argument because this isn't a valid argument to split()
+            if f._err_command_split_args_with != '':
                 args = args.split(f._err_command_split_args_with)
             if BOT_ASYNC:
                 wr = WorkRequest(execute_and_send, [f._err_command_template]) #execute_and_send(f._err_command_template)

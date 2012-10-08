@@ -8,7 +8,7 @@ def botcmd(*args, **kwargs):
     split_args_with : prepare the arguments by splitting them by the given character
     """
 
-    def decorate(func, hidden=False, name=None, split_args_with = None, admin_only = False, historize = True, template = None):
+    def decorate(func, hidden=False, name=None, split_args_with = '', admin_only = False, historize = True, template = None):
         if not hasattr(func, '_err_command'): # don't override generated functions
             setattr(func, '_err_command', True)
             setattr(func, '_err_command_hidden', hidden)

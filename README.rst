@@ -48,7 +48,7 @@ Administration and Security :
 - Plugins can be hosted publicly or privately on git
 - Plugins can be configured directly from the chat (no need to change setup files for every plugin)
 - Configs can be exported and reimported (!export)
-- Technical logs can be inspected from the chat
+- Technical logs can be inspected from the chat or [logged to Sentry](https://github.com/gbin/err/wiki/Logging-with-Sentry)
 
 Provides for Extensibility :  
 

@@ -10,15 +10,13 @@ Err - the pluggable chatbot
 Err is a plugin based chatbot designed to be easily deployable, extensible and maintainable.
 It allows you to start scripts interactively from your chatrooms for any reason: random humour, starting a build, monitoring commits, triggering alerts ...
 
-It is open source under the GPL3 license.
+It is available as open source software under the GPL3 license.
 
-It is written and extensible in python and it is based on yapsy_ with an heavily adapted jabberbot_ for the XMPP backend.
+Err is written and extensible in python, it's based on yapsy_ with an heavily adapted jabberbot_ for the XMPP backend.
 
 Community behind the project
 ----------------------------
-
-Err has a `google plus community`_, feel free to join if you need support, have any questions, share some of your creations etc ...
-If you have any bug to report or feature suggestion, please log it from its github_ page.
+Err has a `google plus community`_, please feel free to mention it with +err if you need support, have any questions or wish to share some of your creations. If you have a bug to report or wish to request a feature, please log these on it's github_ page.
 
 We strongly encourage you to share your creations, as you will see, a git url is all that you need to share so other people can try out your plugin from err.
 If your feature could be interesting as a part of an existing plugin, feel free to fork it on github_ too.
@@ -26,41 +24,41 @@ If your feature could be interesting as a part of an existing plugin, feel free 
 Features
 --------
 
-Backends :
+Backends and main features :
 
-- XMPP : Tested with hipchat_, openfire_ and Jabber but should be compatible with any standard XMPP servers.
+- XMPP support: Tested with hipchat_, openfire_ and Jabber but should be compatible with any standard XMPP server
 - CampFire support
 - Basic IRC support
 - Supports MUCs (chatrooms)
-- Local Graphical Console (for testing/dev)
-- Local Text Console (for testing/dev)
+- Local graphical console (for testing/development)
+- Local text console (for testing/development)
 
 Included : 
 
-- an !help command that generates dynamically the documentation from the python docstrings of the commands
-- A command history system where the users can recall a previous command
-- Can proxy and route one 2 one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier).
+- A !help command that generates documentation dynamically from the python docstrings of the commands
+- A command history system where users can recall previous commands
+- Can proxy and route one 2 one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier)
 
 Administration and Security :
 
-- Can be setup so a restricted list of persons have the administration rights (You can even limit specific commands to specific users and rooms)
-- Dynamic plugin architecture : the bot admin can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot.
+- Can be setup so a restricted list of people have administrative rights (You can even limit specific commands to specific users and rooms)
+- Dynamic plugin architecture : Bot admins can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot
 - Plugins can be hosted publicly or privately on git
-- Plugins can be configured directly from the chat (no need to change setup files for every plugin)
-- Configs can be exported and reimported (!export)
+- Plugins can be configured directly from chat (no need to change setup files for every plugin)
+- Configs can be exported and imported again with two commands (!export and !import respectively)
 - Technical logs can be inspected from the chat or [logged to Sentry](https://github.com/gbin/err/wiki/Logging-with-Sentry)
 
 Provides for Extensibility :  
 
-- a really easy learning curve for you to write your first plugin (see example below)
-- test consoles for superfast developement roundtrips
-- a support for subcommands
-- an automatic persistance store per plugin
-- a really simple webhooks integration
-- a polling framework for the plugins
-- an easy configuration framework
-- a templating framework to display fancy HTML messages
-- an automatic conversion from HTML to plaintext when the backend doesn't support it (you don't have to make 2 versions of your command output)
+- A really low learning curve for writing plugins (see example below)
+- Graphical and text development consoles for superfast development roundtrips
+- Out of the box support for subcommands in plugins
+- An automatic persistence store per plugin
+- Really simple webhooks integration
+- A polling framework for plugins
+- An easy configuration framework
+- A templating framework to display fancy HTML messages
+- Automatic conversion from HTML to plaintext when the backend doesn't support HTML (so you don't have to make text and HTML versions of your command output)
 
 
 .. _hipchat: http://www.hipchat.org/
@@ -72,20 +70,15 @@ Provides for Extensibility :
 
 Prerequisites
 -------------
-
 It runs under Python 2.7.x or Python 3.2+ under Linux / Windows and Mac.
 
 Create a user for the bot on your private XMPP server or on a public server like jabber.org.
 Optionally you can create a MUC (also called conference room or chatroom) in which you can interact with the bot. 
+Requires a user account on your private XMPP server or on a public server like jabber.org.
+You can optionally create a MUC (also called conference room or chatroom) as well in which you can interact with the bot. 
 
-Then follow either :
-
-- Installation from the sources 
-- Installation from Pypi          [Note: This one doesn't work yet under Windows]
-- Installation from Gentoo Linux
-
-Installation from the sources
------------------------------
+Installation from source
+------------------------
 
 **Dependencies**
 
@@ -147,38 +140,38 @@ So the standard way: ::
 
     emerge net-im/err
 
-Interact with the Bot
----------------------
+Interacting with the Bot
+------------------------
 
 - Invite the bot directly from your chat client.
-- Send "!help" to it without the quotes
-- it should answer by the list of available commands and a short explanation
-- if you want to know more about a specific command you can do "!help command"
+- Send commands directly to the bot, or in a MUC the bot has joined. (Try sending _!help_, without the quotes)
+- If you wish to know more about a specific command you can send _!help command_
 
 More documentation is available on the wiki : https://github.com/gbin/err/wiki
 
-Install/uninstall a public known plugin
----------------------------------------
+Install/uninstalling public plugins
+-----------------------------------
 
-To get a list of public repo you can do::
+To get a list of public plugin repos you can do::
 
     !repos
 
-Then pick one that you fancy for example::
+Then pick one that you fancy, for example::
 
     !install err-pollbot
 
-You should have instantly a new poll service you can use to vote for where to lunch with you collegues :)
+You should then instantly have a new poll service you can use to vote for where to go for lunch with your colleagues :)
 
-You can imply uninstall a plugin by its name:
-!uninstall err-pollbot
+You can always uninstall a plugin again with::
 
-Note: Please pay attention when you install a plugin, it may require more python external dependencies.
+    !uninstall err-pollbot
+
+Note: Please pay attention when you install a plugin, it may have additional dependencies
 
 Tutorial to write a simple plugin
 ---------------------------------
 
-Try it ! It is super simple !
+Try it! It's super simple!
 
 You can find a tutorial here : https://github.com/gbin/err/wiki/plugin-dev
 

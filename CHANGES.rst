@@ -1,6 +1,22 @@
 Release history
 ===============
 
+Version 1.6.7 (2012-10-08)
+--------------------------
+
+Bugs:
+
+- the XMPP from was not removed as it should and broke the gtalk compatibility
+- fixed 'jid-malformed' error with build_reply()
+
+Features:
+
+- new plugin : err-dnsutils https://github.com/zoni/err-dnsutils
+- Now you can selectively divert chatroom answers from a list of specified commands to a private chat (avoids flooding on IRC for example)
+- the logging can be done using sentry
+- Err can now login using SSL on IRC (thx to Dan Poirier https://github.com/poirier)
+
+
 Version 1.6.6 (2012-09-27)
 --------------------------
 

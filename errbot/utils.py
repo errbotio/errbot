@@ -37,6 +37,13 @@ def get_jid_from_message(mess):
     if jid:
         logging.debug('found the jid from the x/sender tag : %s' % jid)
         return jid
+
+    # If the message is from MUC, return response to MUC
+    if mess.getType() == 'groupchat':
+        jid = mess.getFrom()
+        logging.debug('Message from MUC. Replying to: %s' % jid)
+        return jid
+
     splitted = str(mess.getFrom()).split('/')
     jid = splitted[1] if len(splitted) > 1 else splitted[0] # despair
 

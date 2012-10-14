@@ -364,12 +364,20 @@ class ErrBot(Backend, StoreMixin):
             return command.__doc__
         return command.__doc__.replace('!', BOT_PREFIX)
 
+    def get_command_classes(self):
+        return (get_class_that_defined_method(command).__name__ for command in self.commands.values())
+
     @botcmd
     def help(self, mess, args):
         """   Returns a help string listing available options.
 
         Automatically assigned to the "help" command."""
+        usage = ''
         if not args:
+            description = 'Available help:\n'
+            command_classes = sorted(set(self.get_command_classes()))
+            usage = '\n'.join(BOT_PREFIX + 'help %s: %s' % (clazz.__name__, clazz.__doc__ or '(undocumented)') for clazz in command_classes)
+        elif args == 'full':
             description = 'Available commands:'
 
             clazz_commands = {}
@@ -379,7 +387,7 @@ class ErrBot(Backend, StoreMixin):
                 commands.append((name, command))
                 clazz_commands[clazz] = commands
 
-            usage = ''
+
             for clazz in sorted(clazz_commands):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__doc__ or '')
                 usage += '\n'.join(sorted([
@@ -388,6 +396,15 @@ class ErrBot(Backend, StoreMixin):
                 for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
             usage += '\n\n'
+        elif args in self.get_command_classes():
+            # filter out the commands related to this class
+            commands = [(name, command) for (name, command) in self.commands.iteritems() if get_class_that_defined_method(command).__name__ == args]
+            description = 'Available commands for %s:\n\n' % args
+            usage += '\n'.join(sorted([
+            '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1),
+                (self.get_doc(command).strip()).split('\n', 1)[0])
+            for (name, command) in commands if not command._err_command_hidden
+            ]))
         else:
             return super(ErrBot, self).help(mess,'_'.join(args.strip().split(' ')))
 

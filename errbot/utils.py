@@ -21,7 +21,7 @@ def get_sender_username(mess):
 def get_jid_from_message(mess):
     if mess.getType() == 'chat':
         return str(mess.getFrom().getStripped())
-        # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
+    # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
     jid = mess.getTagAttr('delay', 'from_jid')
     if jid:
         logging.debug('found the jid from the delay tag : %s' % jid)

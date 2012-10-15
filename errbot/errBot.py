@@ -365,7 +365,7 @@ class ErrBot(Backend, StoreMixin):
         return command.__doc__.replace('!', BOT_PREFIX)
 
     def get_command_classes(self):
-        return (get_class_that_defined_method(command).__name__ for command in self.commands.values())
+        return (get_class_that_defined_method(command) for command in self.commands.values())
 
     @botcmd
     def help(self, mess, args):
@@ -396,7 +396,7 @@ class ErrBot(Backend, StoreMixin):
                 for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
             usage += '\n\n'
-        elif args in self.get_command_classes():
+        elif args in (clazz.__name__ for clazz in self.get_command_classes()):
             # filter out the commands related to this class
             commands = [(name, command) for (name, command) in self.commands.iteritems() if get_class_that_defined_method(command).__name__ == args]
             description = 'Available commands for %s:\n\n' % args

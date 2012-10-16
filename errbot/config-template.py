@@ -57,6 +57,22 @@ BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful
 # be automatically adjusted.
 BOT_PREFIX = '!'
 
+# Access controls, allowing commands to be restricted to specific users/rooms.
+# Available filters (you can omit a filter or set it to None to disable it):
+#   allowusers: Allow command from these users only
+#   denyusers: Deny command from these users
+#   allowrooms: Allow command only in these rooms (and direct messages)
+#   denyrooms: Deny command in these rooms
+#   allowprivate: Allow command from direct messages to the bot
+#   allowmuc: Allow command inside rooms
+# Example:
+#ACCESS_CONTROLS = {'status': {'allowrooms': ('someroom@conference.localhost',)},
+#                   'about': {'denyusers': ('baduser@localhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
+#                   'uptime': {'allowusers': BOT_ADMINS},
+#                   'help': {'allowmuc': False},
+#                  }
+ACCESS_CONTROLS = {}
+
 # ---- Chatrooms configuration (used by the chatroom plugin)
 # it is a standard python file so you can reuse variables...
 # For example: _TEST_ROOM = 'test@conference.localhost

@@ -39,7 +39,7 @@ Included :
 
 Administration and Security :
 
-- Can be setup so a restricted list of persons have the administration rights
+- Can be setup so a restricted list of persons have the administration rights (You can even limit specific commands to specific users and rooms)
 - Dynamic plugin architecture : the bot admin can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot.
 - Plugins can be hosted publicly or privately on git
 - Plugins can be configured directly from the chat (no need to change setup files for every plugin)

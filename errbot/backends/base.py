@@ -400,16 +400,6 @@ class Backend(object):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
-    @botcmd(historize=False)
-    def history(self, mess, args):
-        """display the command history"""
-        answer = []
-        l = len(self.cmd_history)
-        for i in range(0, l):
-            c = self.cmd_history[i]
-            answer.append('%2i:%s%s %s' % (l - i, BOT_PREFIX, c[0], c[1]))
-        return '\n'.join(answer)
-
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
         mess = self.build_message(text)

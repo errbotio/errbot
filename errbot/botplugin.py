@@ -81,6 +81,7 @@ class BotPluginBase(object, StoreMixin):
 
 
 class BotPlugin(BotPluginBase):
+
     @property
     def min_err_version(self):
         """ If your plugin has a minimum version of err it needs to be on in order to run, please override accordingly this method.

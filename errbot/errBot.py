@@ -45,7 +45,7 @@ def get_class_that_defined_method(meth):
   return None
 
 class ErrBot(Backend, StoreMixin):
-    """ Commands related to the bot administration """
+    __errdoc__ = """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
@@ -376,7 +376,7 @@ class ErrBot(Backend, StoreMixin):
         if not args:
             description = 'Available help:\n'
             command_classes = sorted(set(self.get_command_classes()))
-            usage = '\n'.join(BOT_PREFIX + 'help %s: %s' % (clazz.__name__, clazz.__doc__ or '(undocumented)') for clazz in command_classes)
+            usage = '\n'.join(BOT_PREFIX + 'help %s: %s' % (clazz.__name__, clazz.__errdoc__ or '(undocumented)') for clazz in command_classes)
         elif args == 'full':
             description = 'Available commands:'
 
@@ -389,7 +389,7 @@ class ErrBot(Backend, StoreMixin):
 
 
             for clazz in sorted(clazz_commands):
-                usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__doc__ or '')
+                usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
                 usage += '\n'.join(sorted([
                 '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1), 
                     (self.get_doc(command).strip()).split('\n', 1)[0])
@@ -411,6 +411,16 @@ class ErrBot(Backend, StoreMixin):
         top = self.top_of_help_message()
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
+
+    @botcmd(historize=False)
+    def history(self, mess, args):
+        """display the command history"""
+        answer = []
+        l = len(self.cmd_history)
+        for i in range(0, l):
+            c = self.cmd_history[i]
+            answer.append('%2i:%s%s %s' % (l - i, BOT_PREFIX, c[0], c[1]))
+        return '\n'.join(answer)
 
     @botcmd
     def about(self, mess, args):

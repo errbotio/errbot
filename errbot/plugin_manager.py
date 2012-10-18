@@ -39,6 +39,10 @@ def get_plugin_obj_by_name(name):
         return None
     return pta_item.plugin_object
 
+def populate_doc(plugin):
+    plugin_type = type(plugin.plugin_object)
+    plugin_type.__errdoc__ = plugin_type.__doc__ if plugin_type.__doc__ else plugin.description
+
 def activate_plugin_with_version_check(name, config):
     pta_item = simplePluginManager.getPluginByName(name, 'bots')
     if pta_item is None:
@@ -66,6 +70,7 @@ def activate_plugin_with_version_check(name, config):
         obj.config = None
         raise PluginConfigurationException(str(e))
     add_plugin_templates_path(pta_item.path)
+    populate_doc(pta_item)
     try:
         return simplePluginManager.activatePluginByName(name, "bots")
     except Exception as e:

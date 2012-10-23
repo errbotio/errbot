@@ -81,7 +81,10 @@ class Message(object):
         self.typ = typ
 
     def setTo(self, to):
-        self.to = Identifier(to)
+        if isinstance(to, Identifier):
+            self.to = to
+        else:
+            self.to = Identifier(to) #assume a parseable string
 
     def getTo(self):
         return self.to
@@ -96,7 +99,10 @@ class Message(object):
         return self.fr
 
     def setFrom(self, fr):
-        self.fr = Identifier(fr)
+        if isinstance(fr, Identifier):
+            self.fr = fr
+        else:
+            self.fr = Identifier(fr) #assume a parseable string
 
     def getProperties(self):
         return {}

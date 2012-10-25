@@ -216,7 +216,7 @@ class Backend(object):
         if not text.startswith(BOT_PREFIX):
             return True
 
-        text = text[1:]
+        text = text[len(BOT_PREFIX):]
         text_split = text.strip().split(' ')
 
         cmd = None

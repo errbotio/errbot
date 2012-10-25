@@ -132,7 +132,7 @@ class ErrBot(Backend, StoreMixin):
         for pluginInfo in get_all_plugins():
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
-                    errors += 'Notice: %s is blacklisted, use ' + BOT_PREFIX + 'load %s to unblacklist it\n' % (pluginInfo.name, pluginInfo.name)
+                    errors += ('Notice: %s is blacklisted, use ' + BOT_PREFIX + 'load %s to unblacklist it\n') % (pluginInfo.name, pluginInfo.name)
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     logging.info('Activate plugin: %s' % pluginInfo.name)

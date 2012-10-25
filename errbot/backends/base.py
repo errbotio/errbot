@@ -32,7 +32,7 @@ class Identifier(object):
                 if self.domain.find('/') != -1:
                     self.domain, self.resource = self.domain.split('/')[0:2] # hack for IRC where you can have several slashes here
                 else:
-                    self.resource = self.node # put a default one
+                    self.resource = None
             else:
                 self.node = jid
                 self.resource = None
@@ -49,18 +49,15 @@ class Identifier(object):
         return self.domain
 
     def bareMatch(self, other):
-        return other.node == self.node
+        return other.getStripped() == self.getStripped()
 
     def getStripped(self):
         if self.domain:
             return self.node + '@' + self.domain
         return self.node # if the backend has no domain notion
 
-
     def getResource(self):
-        if self.resource:
-            return self.resource
-        return self.node # this is because if the backend has no resource notion we need to return the plain identifier
+        return self.resource
 
     def __str__(self):
         answer = self.getStripped()

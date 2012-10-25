@@ -9,7 +9,8 @@ from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, \
+    BOT_PREFIX_SEPARATORS, ACCESS_CONTROLS
 try:
     from config import DIVERT_TO_PRIVATE
 except ImportError:
@@ -217,8 +218,14 @@ class Backend(object):
             return True
 
         text = text[len(BOT_PREFIX):]
-        text_split = text.strip().split(' ')
 
+
+        # check to see if any separators exist and strip them out
+        for sep in BOT_PREFIX_SEPARATORS:
+            if text[:1] == sep:
+                text = text[2:]
+
+        text_split = text.strip().split(' ')
         cmd = None
         command = None
         args = ''

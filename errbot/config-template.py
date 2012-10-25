@@ -57,6 +57,13 @@ BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful
 # be automatically adjusted.
 BOT_PREFIX = '!'
 
+# Separators that could separate the prefix from the command. If you end up
+# using a nickname for the BOT_PREFIX, some people may use either a comma (,)
+# or a colon (:) between the name and the command. Note: the code already
+# checks for spaces, so do not add one here.
+# IE: err, echo hi
+BOT_PREFIX_SEPARATORS = (':', ',')
+
 # Access controls, allowing commands to be restricted to specific users/rooms.
 # Available filters (you can omit a filter or set it to None to disable it):
 #   allowusers: Allow command from these users only

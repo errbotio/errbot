@@ -214,6 +214,9 @@ class Backend(object):
         # txt will be None
         if not text: return False
 
+        if not text.startswith(BOT_PREFIX) and type == 'chat':
+            text = BOT_PREFIX + text
+
         if not text.startswith(BOT_PREFIX):
             return True
 
@@ -423,8 +426,15 @@ class Backend(object):
             else:
                 description = 'Available commands:'
 
+            logging.info("help here")
+            if len(BOT_PREFIX) > 1:
+                print "here"
+                local_prefix = '%s ' % BOT_PREFIX
+            else:
+                print "nothere"
+                local_prefix = BOT_PREFIX
             usage = '\n'.join(sorted([
-            BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
+            local_bot_prefix + '%s: %s' % (name, (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\

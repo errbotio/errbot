@@ -350,6 +350,11 @@ class Backend(object):
         """ Override the default unknown command behavior
         """
         full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
+        if len(BOT_PREFIX) > 1:
+            local_prefix = BOT_PREFIX + ' '
+        else:
+            local_prefix = BOT_PREFIX
+
         if full_cmd:
             part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
@@ -360,7 +365,8 @@ class Backend(object):
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            return part1 + '\n\nDid you mean "' + BOT_PREFIX + ('" or "' + BOT_PREFIX).join(matches) + '" ?'
+            return part1 + '\n\nDid you mean "' + local_prefix + ('" or "' +
+                                       local_prefix).join(matches) + '" ?'
         else:
             return part1
 

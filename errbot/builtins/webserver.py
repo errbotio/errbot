@@ -3,8 +3,7 @@ import logging
 import os
 from threading import Thread
 import urllib2
-import simplejson
-from simplejson.decoder import JSONDecodeError
+from json import loads
 
 from werkzeug.serving import ThreadedWSGIServer
 from werkzeug.wsgi import SharedDataMiddleware
@@ -41,8 +40,8 @@ class WebView(View):
                     if self.form_param:
                         content = request.form[self.form_param]
                         try:
-                            content = simplejson.loads(content)
-                        except JSONDecodeError:
+                            content = loads(content)
+                        except ValueError:
                             logging.debug('The form parameter is not JSON, return it as a string')
                         response = self.func(obj, content)
                     else:
@@ -219,14 +218,14 @@ class Webserver(BotPlugin):
                     # try to guess the content-type of what has been passed
                     try:
                         # try if it is plain json
-                        simplejson.loads(content)
+                        loads(content)
                         contenttype = 'application/json'
-                    except JSONDecodeError:
+                    except ValueError:
                         # try if it is a form
                         splitted = content.split('=')
                         try:
                             payload = '='.join(splitted[1:])
-                            simplejson.loads(urllib2.unquote(payload))
+                            loads(urllib2.unquote(payload))
                             contenttype = 'application/x-www-form-urlencoded'
                         except Exception as e:
                             contenttype = 'text/plain' # dunno what it is

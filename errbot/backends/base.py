@@ -426,12 +426,9 @@ class Backend(object):
             else:
                 description = 'Available commands:'
 
-            logging.info("help here")
             if len(BOT_PREFIX) > 1:
-                print "here"
                 local_prefix = '%s ' % BOT_PREFIX
             else:
-                print "nothere"
                 local_prefix = BOT_PREFIX
             usage = '\n'.join(sorted([
             local_bot_prefix + '%s: %s' % (name, (command.__doc__ or

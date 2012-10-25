@@ -49,12 +49,13 @@ class HipchatBot(JabberBot):
     def build_message(self, text):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
+        message = None # keeps the compiler happy
         try:
             text = utf8(text)
             XML2Node(text) # test if is it xml
             # yes, ok epurate it for hipchat
+            hipchat_html = xhtml2hipchat(text)
             try:
-                hipchat_html = xhtml2hipchat(text)
                 node = XML2Node(hipchat_html)
                 message = Message(body=xhtml2txt(text))
                 message.addChild(node = node)

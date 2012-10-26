@@ -9,8 +9,24 @@ from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, \
-    BOT_PREFIX_SEPARATORS, ACCESS_CONTROLS
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS, \
+                   CHATROOM_FN
+
+try:
+    from config import BOT_PREFIX_SEPARATORS
+except ImportError:
+    BOT_PREFIX_SEPARATORS = (':', ',')
+
+try:
+    from config import INSERT_SPACE
+except ImportError:
+    INSERT_SPACE = False
+
+try:
+    from config import RESPOND_TO_FULLNAME
+except ImportError:
+    RESPOND_TO_FULLNAME = False
+
 try:
     from config import DIVERT_TO_PRIVATE
 except ImportError:
@@ -214,6 +230,11 @@ class Backend(object):
         # txt will be None
         if not text: return False
 
+        # remove CHATROOM_FN and replace with BOT_PREFIX
+        if RESPOND_TO_FULLNAME and text.startswith(CHATROOM_FN):
+            text = BOT_PREFIX + text[len(CHATROOM_FN):]
+
+        # if in "private" chat, prepend BOT_PREFIX
         if not text.startswith(BOT_PREFIX) and type == 'chat':
             text = BOT_PREFIX + text
 
@@ -353,7 +374,7 @@ class Backend(object):
         """ Override the default unknown command behavior
         """
         full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
-        if len(BOT_PREFIX) > 1:
+        if INSERT_SPACE:
             local_prefix = BOT_PREFIX + ' '
         else:
             local_prefix = BOT_PREFIX
@@ -426,10 +447,11 @@ class Backend(object):
             else:
                 description = 'Available commands:'
 
-            if len(BOT_PREFIX) > 1:
-                local_prefix = '%s ' % BOT_PREFIX
+            if INSERT_SPACE:
+                local_prefix = BOT_PREFIX + ' '
             else:
                 local_prefix = BOT_PREFIX
+
             usage = '\n'.join(sorted([
             local_bot_prefix + '%s: %s' % (name, (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])

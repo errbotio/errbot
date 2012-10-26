@@ -60,9 +60,13 @@ BOT_PREFIX = '!'
 # Separators that could separate the prefix from the command. If you end up
 # using a nickname for the BOT_PREFIX, some people may use either a comma (,)
 # or a colon (:) between the name and the command. Note: the code already
-# checks for spaces, so do not add one here.
+# checks for spaces, so do not add one here. Defaults to (':', ',')
 # IE: err, echo hi
-BOT_PREFIX_SEPARATORS = (':', ',')
+# BOT_PREFIX_SEPARATORS = (':', ',')
+
+# Depending on your BOT_PREFIX, you may want help messages to insert a space
+# between the BOT_PREFIX and the command. Defaults to False
+# INSERT_SPACE = False
 
 # Access controls, allowing commands to be restricted to specific users/rooms.
 # Available filters (you can omit a filter or set it to None to disable it):
@@ -106,6 +110,11 @@ REVERSE_CHATROOM_RELAY = {}
 # Some XMPP implementations like HipChat are super picky on the fullname you join with for a MUC
 # If you use HipChat, make sure to exactly match the fullname you set for the bot user
 CHATROOM_FN = 'bot'
+
+# RESPOND_TO_FULLNAME
+# By setting this to True, the bot will respond to the it's name (as
+# specified in CHATROOM_FN. Default is False
+# RESPOND_TO_FULLNAME = False
 
 # DIVERT_TO_PRIVATE
 # An iterable of commands which should be responded to in private, even if the command was given

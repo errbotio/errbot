@@ -28,6 +28,12 @@ from tarfile import TarFile
 from urllib2 import urlopen
 
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_PREFIX
+
+try:
+    from config import INSERT_SPACE
+except ImportError:
+    INSERT_SPACE = False
+
 from errbot import botcmd
 from errbot.backends.base import Backend
 
@@ -374,7 +380,7 @@ class ErrBot(Backend, StoreMixin):
         Automatically assigned to the "help" command."""
         usage = ''
 
-        if len(BOT_PREFIX) > 1:
+        if INSERT_SPACE:
             local_prefix = BOT_PREFIX + ' '
         else:
             local_prefix = BOT_PREFIX

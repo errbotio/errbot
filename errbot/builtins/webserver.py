@@ -28,27 +28,32 @@ Detected your post as : %s
 Status code : %i
 """
 
+
 class WebView(View):
     def __init__(self, func, form_param):
         self.func = func
         self.form_param = form_param
+        self.method_filter = lambda object : ismethod(object) and self.func.__name__ == object.__name__
 
-    def dispatch_request(self):
+    def dispatch_request(self, *args, **kwargs):
+        name_to_find = self.func.__name__
         for obj in get_all_active_plugin_objects(): # horrible hack to find back the bound method from the unbound function the decorator was able to give us
-            for name, method in getmembers(obj, ismethod):
-                if method.im_func.__name__ == self.func.__name__: # FIXME : add a fully qualified name here
-                    if self.form_param:
-                        content = request.form[self.form_param]
-                        try:
-                            content = loads(content)
-                        except ValueError:
-                            logging.debug('The form parameter is not JSON, return it as a string')
-                        response = self.func(obj, content)
-                    else:
-                        response = self.func(obj, request.json if request.json else request.data) # flask will find out automagically if it is a JSON structure
-                    return response if response else OK # assume None as an OK response (simplifies the client side)
+            matching_members = getmembers(obj, self.method_filter)
+            if matching_members:
+                name, func = matching_members[0]
+                if self.form_param:
+                    content = request.form[self.form_param]
+                    try:
+                        content = loads(content)
+                    except ValueError:
+                        logging.debug('The form parameter is not JSON, return it as a string')
+                    response = func(content, **kwargs)
+                else:
+                    data = request.json if request.json else request.data # flask will find out automagically if it is a JSON structure
+                    response = func(data if data else request.form, **kwargs) # or it will magically parse a form so adapt for our users
+                return response if response else OK # assume None as an OK response (simplifies the client side)
 
-        raise Exception('Problem finding back the correct Handlerfor func %s', self.func)
+        raise Exception('Problem finding back the correct Handler for func %s', name_to_find)
 
 
 def webhook(*args, **kwargs):
@@ -56,7 +61,7 @@ def webhook(*args, **kwargs):
         Simple shortcut for the plugins to be notified on webhooks
     """
 
-    def decorate(method, uri_rule, methods=('POST',), form_param=None):
+    def decorate(method, uri_rule, methods=('POST','GET'), form_param=None):
         logging.info("webhooks:  Bind %s to %s" % (uri_rule, method.__name__))
 
         for rule in holder.flask_app.url_map._rules:

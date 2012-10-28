@@ -47,10 +47,11 @@ class BotPluginBase(object, StoreMixin):
         if not args: args = []
 
         logging.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (method.__name__, interval, str(args), str(kwargs)))
+        #noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
             self.program_next_poll(interval, method, args, kwargs)
-        except Exception, e:
+        except Exception as e:
             logging.exception('failed')
 
     def stop_poller(self, method, args=None, kwargs=None):
@@ -73,6 +74,7 @@ class BotPluginBase(object, StoreMixin):
             self.current_timers.remove(previous_timer)
 
         if (method, args, kwargs) in self.current_pollers:
+            #noinspection PyBroadException
             try:
                 method(*args, **kwargs)
             except Exception as e:

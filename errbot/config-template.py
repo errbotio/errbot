@@ -81,6 +81,7 @@ ACCESS_CONTROLS = {}
 # it must be an iterable of names of rooms you want the bot to join at startup
 # for example : CHATROOM_PRESENCE = (_TEST_ROOM,)
 # for IRC you can name them with their # like #err_chatroom
+# for XMPP MUC with passwords you can add tuples in the form (ROOM, PASSWORD)
 CHATROOM_PRESENCE = ()
 
 # CHATROOM_RELAY

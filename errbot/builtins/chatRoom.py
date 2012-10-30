@@ -29,8 +29,11 @@ class ChatRoom(BotPlugin):
         if not self.connected:
             self.connected = True
             for room in CHATROOM_PRESENCE:
-                logging.info('Join room ' + room)
-                self.join_room(room, CHATROOM_FN)
+                logging.info('Join room ' + unicode(room))
+                if isinstance(room, basestring):
+                    self.join_room(room, CHATROOM_FN)
+                else:
+                    self.join_room(room[0],password=room[1])
 
     def deactivate(self):
         self.connected = False

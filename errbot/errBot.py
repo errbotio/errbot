@@ -28,6 +28,12 @@ from tarfile import TarFile
 from urllib2 import urlopen
 
 from config import BOT_DATA_DIR, BOT_LOG_FILE, BOT_PREFIX
+
+try:
+    from config import INSERT_SPACE
+except ImportError:
+    INSERT_SPACE = False
+
 from errbot import botcmd
 from errbot.backends.base import Backend
 
@@ -373,10 +379,17 @@ class ErrBot(Backend, StoreMixin):
 
         Automatically assigned to the "help" command."""
         usage = ''
+
+        if INSERT_SPACE:
+            local_prefix = BOT_PREFIX + ' '
+        else:
+            local_prefix = BOT_PREFIX
+
         if not args:
             description = 'Available help:\n'
             command_classes = sorted(set(self.get_command_classes()))
-            usage = '\n'.join(BOT_PREFIX + 'help %s: %s' % (clazz.__name__, clazz.__errdoc__ or '(undocumented)') for clazz in command_classes)
+            usage = '\n'.join(local_prefix + 'help %s: %s' % (clazz.__name__,
+                                                   clazz.__errdoc__ or '(undocumented)') for clazz in command_classes)
         elif args == 'full':
             description = 'Available commands:'
 
@@ -391,7 +404,7 @@ class ErrBot(Backend, StoreMixin):
             for clazz in sorted(clazz_commands):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
                 usage += '\n'.join(sorted([
-                '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1), 
+                '\t' + local_prefix + '%s: %s' % (name.replace('_', ' ', 1),
                     (self.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
@@ -401,7 +414,7 @@ class ErrBot(Backend, StoreMixin):
             commands = [(name, command) for (name, command) in self.commands.iteritems() if get_class_that_defined_method(command).__name__ == args]
             description = 'Available commands for %s:\n\n' % args
             usage += '\n'.join(sorted([
-            '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1),
+            '\t' + local_prefix + '%s: %s' % (name.replace('_', ' ', 1),
                 (self.get_doc(command).strip()).split('\n', 1)[0])
             for (name, command) in commands if not command._err_command_hidden
             ]))

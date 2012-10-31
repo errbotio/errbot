@@ -9,7 +9,24 @@ from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS, \
+                   CHATROOM_FN
+
+try:
+    from config import BOT_PREFIX_SEPARATORS
+except ImportError:
+    BOT_PREFIX_SEPARATORS = (':', ',')
+
+try:
+    from config import INSERT_SPACE
+except ImportError:
+    INSERT_SPACE = False
+
+try:
+    from config import RESPOND_TO_FULLNAME
+except ImportError:
+    RESPOND_TO_FULLNAME = False
+
 try:
     from config import DIVERT_TO_PRIVATE
 except ImportError:
@@ -213,12 +230,26 @@ class Backend(object):
         # txt will be None
         if not text: return False
 
+        # remove CHATROOM_FN and replace with BOT_PREFIX
+        if RESPOND_TO_FULLNAME and text.startswith(CHATROOM_FN):
+            text = BOT_PREFIX + text[len(CHATROOM_FN):]
+
+        # if in "private" chat, prepend BOT_PREFIX
+        if not text.startswith(BOT_PREFIX) and type == 'chat':
+            text = BOT_PREFIX + text
+
         if not text.startswith(BOT_PREFIX):
             return True
 
         text = text[len(BOT_PREFIX):]
-        text_split = text.strip().split(' ')
 
+
+        # check to see if any separators exist and strip them out
+        for sep in BOT_PREFIX_SEPARATORS:
+            if text[:1] == sep:
+                text = text[2:]
+
+        text_split = text.strip().split(' ')
         cmd = None
         command = None
         args = ''
@@ -343,6 +374,11 @@ class Backend(object):
         """ Override the default unknown command behavior
         """
         full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
+        if INSERT_SPACE:
+            local_prefix = BOT_PREFIX + ' '
+        else:
+            local_prefix = BOT_PREFIX
+
         if full_cmd:
             part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
@@ -353,7 +389,8 @@ class Backend(object):
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            return part1 + '\n\nDid you mean "' + BOT_PREFIX + ('" or "' + BOT_PREFIX).join(matches) + '" ?'
+            return part1 + '\n\nDid you mean "' + local_prefix + ('" or "' +
+                                       local_prefix).join(matches) + '" ?'
         else:
             return part1
 
@@ -410,8 +447,13 @@ class Backend(object):
             else:
                 description = 'Available commands:'
 
+            if INSERT_SPACE:
+                local_prefix = BOT_PREFIX + ' '
+            else:
+                local_prefix = BOT_PREFIX
+
             usage = '\n'.join(sorted([
-            BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
+            local_bot_prefix + '%s: %s' % (name, (command.__doc__ or
                                 '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\

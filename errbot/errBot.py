@@ -284,6 +284,7 @@ class ErrBot(Backend, StoreMixin):
         if self.is_plugin_blacklisted(args):
             self.unblacklist_plugin(args)
         result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))
+        get_plugin_obj_by_name(args).callback_connect()
         return result
 
     @botcmd(admin_only = True)
@@ -391,7 +392,7 @@ class ErrBot(Backend, StoreMixin):
             for clazz in sorted(clazz_commands):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
                 usage += '\n'.join(sorted([
-                '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1), 
+                '\t' + BOT_PREFIX + '%s: %s' % (name.replace('_', ' ', 1),
                     (self.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))

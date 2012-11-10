@@ -57,6 +57,22 @@ BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful
 # be automatically adjusted.
 BOT_PREFIX = '!'
 
+# You might wish to have your bot respond by being called with certain names, rather
+# than the BOT_PREFIX above. This option allows you to specify alternative prefixes
+# the bot will respond to in addition to the prefix above.
+#BOT_ALT_PREFIXES = ('Err',)
+
+# If you use alternative prefixes, you might want to allow users to insert separators
+# like , and ; between the prefix and the command itself. This allows users to refer
+# to your bot like this (Assuming 'Err' is in your BOT_ALT_PREFIXES):
+# "Err, status" or "Err: status"
+# Note: There's no need to add spaces to the separators here
+#BOT_ALT_PREFIX_SEPARATORS = (':', ',', ';')
+
+# Continuing on this theme, you might want to permit your users to be lazy and not
+# require correct capitalization, so they can do 'Err', 'err' or even 'ERR'.
+#BOT_ALT_PREFIX_CASEINSENSITIVE = True
+
 # Access controls, allowing commands to be restricted to specific users/rooms.
 # Available filters (you can omit a filter or set it to None to disable it):
 #   allowusers: Allow command from these users only

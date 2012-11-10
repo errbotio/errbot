@@ -9,7 +9,24 @@ from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS, \
+                   CHATROOM_FN
+
+try:
+    from config import BOT_ALT_PREFIXES
+except ImportError:
+    BOT_ALT_PREFIXES = ()
+
+try:
+    from config import BOT_ALT_PREFIX_SEPARATORS
+except ImportError:
+    BOT_ALT_PREFIX_SEPARATORS = ()
+
+try:
+    from config import BOT_ALT_PREFIX_CASEINSENSITIVE
+except ImportError:
+    BOT_ALT_PREFIX_CASEINSENSITIVE = False
+
 try:
     from config import DIVERT_TO_PRIVATE
 except ImportError:
@@ -149,6 +166,11 @@ class Backend(object):
             logging.debug('created the thread pool' + str(self.thread_pool))
         self.commands = {} # the dynamically populated list of commands available on the bot
 
+        if BOT_ALT_PREFIX_CASEINSENSITIVE:
+            self.bot_alt_prefixes = tuple(prefix.lower() for prefix in BOT_ALT_PREFIXES)
+        else:
+            self.bot_alt_prefixes = BOT_ALT_PREFIXES
+
     def build_text_html_message_pair(self, source):
         node = None
         text_plain = None
@@ -213,12 +235,32 @@ class Backend(object):
         # txt will be None
         if not text: return False
 
-        if not text.startswith(BOT_PREFIX):
-            return True
+        tomatch = text.lower() if BOT_ALT_PREFIX_CASEINSENSITIVE else text
+        if len(BOT_ALT_PREFIXES) > 0 and tomatch.startswith(self.bot_alt_prefixes):
+            # Yay! We were called by one of our alternate prefixes. Now we just have to find out
+            # which one... (And find the longest matching, in case you have 'err' and 'errbot' and
+            # someone uses 'errbot', which also matches 'err' but would leave 'bot' to be taken as
+            # part of the called command in that case)
+            longest = 0
+            for prefix in self.bot_alt_prefixes:
+                l = len(prefix)
+                if tomatch.startswith(prefix) and l > longest:
+                    longest = l
+            text = text[longest:]
 
-        text = text[len(BOT_PREFIX):]
+            # Now also remove the separator from the text
+            for sep in BOT_ALT_PREFIX_SEPARATORS:
+                # While unlikely, one may have separators consisting of
+                # more than one character
+                l = len(sep) 
+                if text[:l] == sep:
+                    text = text[l:]
+        elif not text.startswith(BOT_PREFIX):
+            return True 
+        else:
+            text = text[len(BOT_PREFIX):]
+
         text_split = text.strip().split(' ')
-
         cmd = None
         command = None
         args = ''

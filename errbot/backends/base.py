@@ -9,8 +9,7 @@ from errbot.utils import get_sender_username, xhtml2txt
 from errbot.templating import tenv
 import traceback
 from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS, \
-                   CHATROOM_FN
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
 
 try:
     from config import BOT_ALT_PREFIXES

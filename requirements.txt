@@ -7,4 +7,3 @@ xmpppy
 yapsy
 configparser
 config
-

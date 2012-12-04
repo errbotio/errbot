@@ -55,8 +55,9 @@ class IRCConnection(IRCClient, object):
         else:
             typ = 'groupchat'
         logging.debug('IRC message received from %s [%s]' % (fr, line))
-        msg = Message(line, typ=typ)
-        msg.setFrom(fr) # already a compatible format
+        msg = Message(unicode(line, 'replace'), typ=typ)
+        msg.setFrom(unicode(fr, 'replace')) # already a compatible format
+        msg.setTo(unicode(params[0], 'replace'))
         self.callback.callback_message(self, msg)
 
 

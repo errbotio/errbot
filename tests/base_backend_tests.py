@@ -38,6 +38,12 @@ class TestBase(unittest.TestCase):
         self.assertEqual(node.getChildren()[0].name, "body")
         self.assertEqual(node.getChildren()[0].data, [u'Message'])
 
+    def test_identifier_double_at_parsing(self):
+        id1 = Identifier(jid="gbin@titi.net@gootz.net/toto")
+        self.assertEqual(id1.getNode(), "gbin@titi.net")
+        self.assertEqual(id1.getDomain(), "gootz.net")
+        self.assertEqual(id1.getResource(), "toto")
+
 
     def test_buildreply(self):
         class DummyBackend(Backend):

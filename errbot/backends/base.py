@@ -5,10 +5,10 @@ from pyexpat import ExpatError
 from xmpp.simplexml import XML2Node
 from errbot import botcmd
 import difflib
-from errbot.utils import get_sender_username, xhtml2txt
+from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, utf8, parse_jid
 from errbot.templating import tenv
 import traceback
-from errbot.utils import get_jid_from_message, utf8
+
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
 try:
     from config import DIVERT_TO_PRIVATE
@@ -20,6 +20,7 @@ except ImportError:
 if BOT_ASYNC:
     from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
+
 class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends are identifying a person on their system
@@ -27,16 +28,7 @@ class Identifier(object):
 
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
-            if jid.find('@') != -1:
-                self.node, self.domain = jid.split('@')[0:2] # hack for IRC
-                if self.domain.find('/') != -1:
-                    self.domain, self.resource = self.domain.split('/')[0:2] # hack for IRC where you can have several slashes here
-                else:
-                    self.resource = None
-            else:
-                self.node = jid
-                self.resource = None
-                self.domain = None
+            self.node, self.domain, self.resource = parse_jid(jid)
         else:
             self.node = node
             self.domain = domain

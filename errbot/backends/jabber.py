@@ -38,8 +38,7 @@ from xmpp.protocol import NS_CAPS, Iq, Message, NS_PUBSUB
 from xmpp.simplexml import XML2Node
 from errbot.backends.base import Connection
 from errbot.errBot import ErrBot
-
-from errbot.utils import get_jid_from_message, xhtml2txt
+from errbot.utils import get_jid_from_message, parse_jid, xhtml2txt
 
 import time
 import logging
@@ -65,6 +64,14 @@ class JabberClient(Client, Connection):
 def is_from_history(mess):
     props = mess.getProperties()
     return 'urn:xmpp:delay' in props or NS_DELAY in props
+
+
+class Identity(JID):
+    def __init__(self, jid=None, node='', domain='', resource=''):
+        if jid:
+            node, domain, resource = parse_jid(jid)
+        JID.__init__(self,node=node, domain=domain, resource=resource)
+
 
 class JabberBot(ErrBot):
     # Show types for presence
@@ -118,7 +125,7 @@ class JabberBot(ErrBot):
         self.log = logging.getLogger(__name__)
         self.__username = username
         self.__password = password
-        self.jid = JID(self.__username)
+        self.jid = Identity(self.__username)
         self.res = (res or self.__class__.__name__)
         self.conn = None
         self.__finished = False

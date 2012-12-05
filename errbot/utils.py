@@ -220,4 +220,17 @@ def mess_2_embeddablehtml(mess):
         return mess.getBody(), False
 
 
+def parse_jid(jid):
+    if jid.find('@') != -1:
+        split_jid = jid.split('@')
+        node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
+        if domain.find('/') != -1:
+            domain, resource = domain.split('/')[0:2] # hack for IRC where you can have several slashes here
+        else:
+            resource = None
+    else:
+        node = jid
+        domain = None
+        resource = None
 
+    return node, domain, resource

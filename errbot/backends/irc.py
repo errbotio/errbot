@@ -38,7 +38,7 @@ class IRCConnection(IRCClient, object):
             m = utf8(mess.getBody())
             if m[-1] != '\n':
                 m+='\n'
-            self.msg(mess.getTo().node, m)
+            self.msg(mess.getTo().node.encode('ascii', 'replace'), m.encode('ascii', 'replace'))
         else:
             logging.debug("Zapped message because the backend is not connected yet %s" % mess.getBody())
 
@@ -55,9 +55,9 @@ class IRCConnection(IRCClient, object):
         else:
             typ = 'groupchat'
         logging.debug('IRC message received from %s [%s]' % (fr, line))
-        msg = Message(unicode(line, 'replace'), typ=typ)
-        msg.setFrom(unicode(fr, 'replace')) # already a compatible format
-        msg.setTo(unicode(params[0], 'replace'))
+        msg = Message(unicode(line, errors='replace'), typ=typ)
+        msg.setFrom(unicode(fr, errors='replace')) # already a compatible format
+        msg.setTo(unicode(params[0], errors='replace'))
         self.callback.callback_message(self, msg)
 
 
@@ -141,7 +141,7 @@ pip install pyopenssl
         return self.conn
 
     def build_message(self, text):
-        return Message(self.build_text_html_message_pair(text)[0]) # 0 = Only retain pure text
+        return Message((self.build_text_html_message_pair(text)[0]).encode('ascii', 'replace')) # 0 = Only retain pure text
 
     def shutdown(self):
         super(IRCBackend, self).shutdown()

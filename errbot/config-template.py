@@ -44,6 +44,10 @@ BOT_ASYNC = False # If true, the bot will handle the commands asynchronously [EX
 #    'ssl': False,  # optional
 #}
 
+# Extra optional parameters for IRC
+# IRC_CHANNEL_RATE = 1 # Rate limiter in seconds between 2 messages in a channel, put None for no limit
+# IRC_PRIVATE_RATE = 1 # Rate limiter in seconds between 2 private messages, put None for no limit
+
 BOT_ADMINS = ('gbin@localhost',) # only those JIDs will have access to admin commands
 
 # CAMPFIRE it should be the full name

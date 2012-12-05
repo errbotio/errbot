@@ -1,5 +1,8 @@
 import logging
 import sys
+import threading
+irc_message_lock = threading.Lock()
+import config
 
 try:
     from twisted.internet import protocol, reactor
@@ -28,17 +31,23 @@ class IRCConnection(IRCClient, object):
     def __init__(self, callback, nickname='err', password=None):
         self.nickname = nickname
         self.callback = callback
-        self.lineRate = 1 # ONE second ... it looks like it is a minimum for freenode.
         self.password = password
+        config_dict = config.__dict__
+        self.channel_rate = config_dict.get("IRC_CHANNEL_RATE", 1)
+        self.private_rate = config_dict.get("IRC_PRIVATE_RATE", 1)
 
     #### Connection
 
     def send_message(self, mess):
+        global irc_message_lock
         if self.connected:
             m = utf8(mess.getBody())
             if m[-1] != '\n':
                 m+='\n'
-            self.msg(mess.getTo().node.encode('ascii', 'replace'), m.encode('ascii', 'replace'))
+            with irc_message_lock:
+                to = mess.getTo().node.encode('ascii', 'replace')
+                self.lineRate = self.channel_rate if to.startswith('#') else self.private_rate
+                self.msg(to, m.encode('ascii', 'replace'))
         else:
             logging.debug("Zapped message because the backend is not connected yet %s" % mess.getBody())
 

@@ -28,4 +28,5 @@ KNOWN_PUBLIC_REPOS = {
 'err-music' : ('git://github.com/benvd/err-music.git','Query lyrics, compositors etc etc ...'),
 'err-mailwatch' : ('git://github.com/zoni/err-mailwatch.git','Watch IMAP servers for new mails'),
 'err-dnsutils' : ('git://github.com/zoni/err-dnsutils.git','Run common DNS utils: host, dig, nslookup'),
+'err-insult' : ('git://github.com/xnaveira/err-insult.git', 'Hubot insult plugin clone for Err bot'),
 }

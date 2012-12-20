@@ -248,7 +248,7 @@ class Backend(object):
         if cmd:
             def execute_and_send(template_name):
                 try:
-                    reply = str(self.commands[cmd](mess, args))
+                    reply = self.commands[cmd](mess, args)
 
                     # integrated templating
                     if template_name:

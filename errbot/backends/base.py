@@ -112,6 +112,9 @@ class Message(object):
     def getTag(self, tag):
         return None
 
+    def __str__(self):
+        return self.body
+
 
 class Connection(object):
     def send_message(self, mess):

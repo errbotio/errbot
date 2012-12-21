@@ -44,11 +44,14 @@ class IRCConnection(IRCClient, object):
         if self.connected:
             m = utf8(mess.getBody())
             if m[-1] != '\n':
-                m+='\n'
+                m += '\n'
             with irc_message_lock:
-                to = mess.getTo().node.encode('ascii', 'replace')
+                if mess.typ == 'chat' and mess.getTo().resource: # if this is a response in private of a public message take the recipient in the resource instead of the incoming chatroom
+                    to = mess.getTo().resource
+                else:
+                    to = mess.getTo().node
                 self.lineRate = self.channel_rate if to.startswith('#') else self.private_rate
-                self.msg(to, m.encode('ascii', 'replace'))
+                self.msg(to, m)
         else:
             logging.debug("Zapped message because the backend is not connected yet %s" % mess.getBody())
 

@@ -21,9 +21,10 @@ except ImportError:
     """)
     sys.exit(-1)
 
-from errbot.backends.base import Message
+from errbot.backends.base import Message, Identifier
 from errbot.errBot import ErrBot
-from errbot.utils import utf8
+from errbot.utils import utf8, get_sender_username
+
 
 class IRCConnection(IRCClient, object):
     connected = False
@@ -56,19 +57,25 @@ class IRCConnection(IRCClient, object):
         logging.debug('IRC line received : %s' % line)
         super(IRCConnection, self).lineReceived(line)
 
+    def extract_from_from_prefix(self, prefix):
+        """ Prefix are strings like 'gbin!~gbin@c-50-131-249-52.hsd1.ca.comcast.net'
+        """
+        return prefix.split('!')[0]
+
     def irc_PRIVMSG(self, prefix, params):
         fr, line = params
         if fr == self.nickname: # it is a private message
-            fr = prefix.split('!')[0] # reextract the real from
+            from_identity = Identifier(node = self.extract_from_from_prefix(prefix)) # reextract the real from
             typ = 'chat'
         else:
+            from_identity = Identifier(node = fr, resource = self.extract_from_from_prefix(prefix)) # So we don't loose the original sender and the chatroom
             typ = 'groupchat'
         logging.debug('IRC message received from %s [%s]' % (fr, line))
+
         msg = Message(unicode(line, errors='replace'), typ=typ)
-        msg.setFrom(unicode(fr, errors='replace')) # already a compatible format
+        msg.setFrom(from_identity)
         msg.setTo(unicode(params[0], errors='replace'))
         self.callback.callback_message(self, msg)
-
 
     def connectionMade(self):
         self.connected = True

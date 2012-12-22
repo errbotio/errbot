@@ -98,7 +98,11 @@ def update_plugin_places(list):
     def add_candidate(candidate):
         all_candidates.append(candidate)
     simplePluginManager.locatePlugins()
-    simplePluginManager.loadPlugins(add_candidate)
+    try:
+        simplePluginManager.loadPlugins(add_candidate)
+    except Exception as _:
+        logging.exception("Error while loading plugins")
+        
     return all_candidates, errors
 
 def get_all_plugins():

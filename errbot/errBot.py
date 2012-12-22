@@ -52,8 +52,7 @@ class ErrBot(Backend, StoreMixin):
     def __init__(self, *args, **kwargs):
         from config import BOT_DATA_DIR, BOT_PREFIX
 
-        global PLUGIN_DIR
-        PLUGIN_DIR = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
+        self.plugin_dir = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
         self.open_storage(BOT_DATA_DIR + os.sep + 'core.db')
         self.prefix = BOT_PREFIX
@@ -108,7 +107,7 @@ class ErrBot(Backend, StoreMixin):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        all_candidates, errors = update_plugin_places([PLUGIN_DIR + os.sep + d for d in self.get('repos', {}).keys()])
+        all_candidates, errors = update_plugin_places([self.plugin_dir + os.sep + d for d in self.get('repos', {}).keys()])
         self.all_candidates = all_candidates
         return errors
 
@@ -311,11 +310,11 @@ class ErrBot(Backend, StoreMixin):
 
         if args.endswith('tar.gz'):
             tar = TarFile(fileobj=urlopen(args))
-            tar.extractall(path=PLUGIN_DIR)
+            tar.extractall(path=self.plugin_dir)
             human_name = args.split('/')[-1][:-7]
         else:
             human_name = human_name_for_git_url(args)
-            p = subprocess.Popen([git_path, 'clone', args, human_name], cwd=PLUGIN_DIR, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen([git_path, 'clone', args, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             feedback = p.stdout.read()
             error_feedback = p.stderr.read()
             if p.wait():
@@ -339,7 +338,7 @@ class ErrBot(Backend, StoreMixin):
         if args not in repos:
             return "This repo is not installed check with " + self.prefix + "repos the list of installed ones"
 
-        plugin_path = PLUGIN_DIR + os.sep + args
+        plugin_path = self.plugin_dir + os.sep + args
         for plugin in get_all_plugins():
             if plugin.path.startswith(plugin_path) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                 self.send(mess.getFrom(), '/me is unloading plugin %s' % plugin.name)
@@ -490,9 +489,9 @@ class ErrBot(Backend, StoreMixin):
             directories.add(os.path.dirname(__file__))
 
         if 'all' in args:
-            directories.update([PLUGIN_DIR + os.sep + name for name in repos])
+            directories.update([self.plugin_dir + os.sep + name for name in repos])
         else:
-            directories.update([PLUGIN_DIR + os.sep + name for name in set(args).intersection(set(repos))])
+            directories.update([self.plugin_dir + os.sep + name for name in set(args).intersection(set(repos))])
 
         for d in directories:
             self.send(mess.getFrom(), "I am updating %s ..." % d, message_type=mess.getType())

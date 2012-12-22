@@ -9,16 +9,6 @@ import logging
 # create a mock configuration
 import sys
 
-__import__('errbot.config-template')
-config_module = sys.modules['errbot.config-template']
-sys.modules['config'] = config_module
-
-tempdir = mkdtemp()
-config_module.BOT_DATA_DIR = tempdir
-config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
-config_module.BOT_EXTRA_PLUGIN_DIR = []
-config_module.BOT_LOG_LEVEL = logging.DEBUG
-
 from errbot.main import main
 from tests import TestBackend, outgoing_message_queue, incoming_message_queue, QUIT_MESSAGE
 

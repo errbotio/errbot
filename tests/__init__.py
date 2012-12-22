@@ -1,5 +1,20 @@
 from Queue import Queue
 import logging
+from os.path import sep
+import sys
+from tempfile import mkdtemp
+
+__import__('errbot.config-template')
+config_module = sys.modules['errbot.config-template']
+sys.modules['config'] = config_module
+
+tempdir = mkdtemp()
+config_module.BOT_DATA_DIR = tempdir
+config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+config_module.BOT_EXTRA_PLUGIN_DIR = []
+config_module.BOT_LOG_LEVEL = logging.DEBUG
+
+
 from errbot.backends.base import Message
 from errbot.errBot import ErrBot
 

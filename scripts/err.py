@@ -82,7 +82,7 @@ def check_config(config_path, mode):
 
 
 if __name__ == "__main__":
-    from errbot.main import main
+
 
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
@@ -170,9 +170,10 @@ if __name__ == "__main__":
         try:
             with daemon.DaemonContext(detach_process=True, working_directory=getcwd(), pidfile=pidfile, uid=uid,
                                       gid=gid):  # put the initial working directory to be sure not to lost it after daemonization
+                from errbot.main import main
                 main(bot_class, logger)
         except:
             logging.exception('Failed to daemonize the process')
-
+    from errbot.main import main
     main(bot_class, logger)
     logging.info('Process exiting')

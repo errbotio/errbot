@@ -1,7 +1,6 @@
 import logging
 import os
 from threading import Timer, current_thread
-from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
 from errbot import holder
 from storage import StoreMixin
@@ -17,6 +16,7 @@ class BotPluginBase(object, StoreMixin):
         """
             Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
         """
+        from config import BOT_DATA_DIR
         classname = self.__class__.__name__
         logging.debug('Init storage for %s' % classname)
         filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'

@@ -4,5 +4,7 @@ python:
 before_script: 
   - pip install nose
   - cp errbot/config-template.py config.py
+  - pip freeze
+
 install: pip install -r requirements.txt
-script: nosetests tests/ 
+script: nosetests -v tests/ 

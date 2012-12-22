@@ -15,18 +15,19 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import logging
-from os import path, access, makedirs, sep, getcwd, W_OK
+from os import path, sep, getcwd
 from platform import system
+
 
 def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
-    d={'_frame':frame}         # Allow access to frame object.
+    d = {'_frame': frame}         # Allow access to frame object.
     d.update(frame.f_globals)  # Unless shadowed by global
     d.update(frame.f_locals)
 
     i = code.InteractiveConsole(d)
-    message  = "Signal received : entering python shell.\nTraceback:\n"
+    message = "Signal received : entering python shell.\nTraceback:\n"
     message += ''.join(traceback.format_stack(frame))
     i.interact(message)
 
@@ -34,16 +35,19 @@ ON_WINDOWS = system() == 'Windows'
 
 import sys
 import argparse
+
 if not ON_WINDOWS:
     import daemon
     from pwd import getpwnam
     from grp import getgrnam
     import code, traceback, signal
+
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
+
 
 def check_config(config_path, mode):
     __import__('errbot.config-template') # - is on purpose, it should not be imported normally ;)
@@ -58,11 +62,11 @@ def check_config(config_path, mode):
     try:
         try:
             # gives the opportunity to have one config per mode to simplify the debugging
-            config = __import__('config_'+mode)
+            config = __import__('config_' + mode)
             sys.modules['config'] = config
         except ImportError as ie:
             if not ie.message.startswith('No module named'):
-                logging.exception('Error while trying to load %s' % 'config_'+mode)
+                logging.exception('Error while trying to load %s' % 'config_' + mode)
             import config
 
         diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
@@ -71,58 +75,15 @@ def check_config(config_path, mode):
             for diff in diffs:
                 logging.error('Missing config : %s' % diff)
             exit(-1)
-    except Exception, e:
+    except Exception as _:
         logging.exception('I could not import your config from %s, please check the error below...' % config_fullpath)
         exit(-1)
     logging.info('Config check passed...')
 
 
-
-def main(bot_class):
-    # from here the environment is supposed to be set (daemon / non daemon,
-    # config.py in the python path )
-
-    from errbot.utils import PLUGINS_SUBDIR
-    from errbot import holder
-
-    from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE, BOT_LOG_SENTRY
-
-    if BOT_LOG_FILE:
-        hdlr = logging.FileHandler(BOT_LOG_FILE)
-        hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
-        logger.addHandler(hdlr)
-    logger.setLevel(BOT_LOG_LEVEL)
-
-    if BOT_LOG_SENTRY:
-        try:
-            from raven.handlers.logging import SentryHandler
-        except ImportError, e:
-            logging.exception("You have BOT_LOG_SENTRY enabled, but I couldn't import modules needed for Sentry integration.\nDid you install raven? (See http://raven.readthedocs.org/en/latest/install/index.html for installation instructions)\n\n")
-            exit(-1)
-        from config import SENTRY_DSN, SENTRY_LOGLEVEL
-        sentryhandler = SentryHandler(SENTRY_DSN, level=SENTRY_LOGLEVEL)
-        logger.addHandler(sentryhandler)
-
-    d = path.dirname(BOT_DATA_DIR)
-    if not path.exists(d):
-        raise Exception('The data directory %s for the bot does not exist' % BOT_DATA_DIR)
-    if not access(BOT_DATA_DIR, W_OK):
-        raise Exception('The data directory %s should be writable for the bot' % BOT_DATA_DIR)
-
-    # make the plugins subdir to store the plugin shelves
-    d = BOT_DATA_DIR + sep + PLUGINS_SUBDIR
-    if not path.exists(d):
-        makedirs(d, mode=0755)
-
-    holder.bot = bot_class(**BOT_IDENTITY)
-    errors = holder.bot.update_dynamic_plugins()
-    if errors:
-        logging.error('Some plugins failed to load:\n' + '\n'.join(errors))
-    logging.debug('serve from %s' % holder.bot)
-    holder.bot.serve_forever()
-
-
 if __name__ == "__main__":
+    from errbot.main import main
+
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     backend_group = parser.add_mutually_exclusive_group()
@@ -134,8 +95,6 @@ if __name__ == "__main__":
     backend_group.add_argument('-G', '--graphic', action='store_true', help='local graphical debug mode backend')
     backend_group.add_argument('-N', '--null', action='store_true', help='no backend')
 
-
-
     if not ON_WINDOWS:
         option_group = parser.add_argument_group('arguments to run it as a Daemon')
         option_group.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
@@ -143,42 +102,49 @@ if __name__ == "__main__":
         option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
         option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
 
-    args = vars(parser.parse_args()) # create a dictionary of args
+    args = vars(parser.parse_args())  # create a dictionary of args
     config_path = args['config']
     # setup the environment to be able to import the config.py
-    sys.path.insert(0, config_path) # appends the current directory in order to find config.py
+    sys.path.insert(0, config_path)  # appends the current directory in order to find config.py
     filtered_mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null'))
-    mode = filtered_mode[0] if filtered_mode else 'xmpp' # default value
+    mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
-    check_config(config_path, mode) # check if everything is ok before attempting to start
+    check_config(config_path, mode)  # check if everything is ok before attempting to start
 
 
     def text():
         from errbot.backends.text import TextBackend
+
         return TextBackend
 
     def graphic():
         from errbot.backends.graphic import GraphicBackend
+
         return GraphicBackend
 
     def campfire():
         from errbot.backends.campfire import CampfireBackend
+
         return CampfireBackend
 
     def hipchat():
         from errbot.backends.hipchat import HipchatBot
+
         return HipchatBot
 
     def irc():
         from errbot.backends.irc import IRCBackend
+
         return IRCBackend
 
     def xmpp():
         from errbot.backends.jabber import JabberBot
+
         return JabberBot
 
     def null():
         from errbot.backends.null import NullBackend
+
         return NullBackend
 
     bot_class = locals()[mode]()
@@ -191,9 +157,11 @@ if __name__ == "__main__":
             pid = args['pidfile']
         else:
             from config import BOT_DATA_DIR
+
             pid = BOT_DATA_DIR + sep + 'err.pid'
 
         from errbot.pid import PidFile
+
         pidfile = PidFile(pid)
 
         uid = getpwnam(args['user']).pw_uid if args['user'] else None
@@ -201,11 +169,10 @@ if __name__ == "__main__":
 
         try:
             with daemon.DaemonContext(detach_process=True, working_directory=getcwd(), pidfile=pidfile, uid=uid,
-                                      gid=gid): # put the initial working directory to be sure not to lost it after daemonization
-                main(bot_class)
+                                      gid=gid):  # put the initial working directory to be sure not to lost it after daemonization
+                main(bot_class, logger)
         except:
             logging.exception('Failed to daemonize the process')
 
-
-    main(bot_class)
+    main(bot_class, logger)
     logging.info('Process exiting')

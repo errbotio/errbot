@@ -210,7 +210,7 @@ class ErrBot(Backend, StoreMixin):
     def export_configs(self, mess, args):
         """ Returns all the configs in form of a string you can backup
         """
-        return str(self.get('configs', {}))
+        return repr(self.get('configs', {}))
 
     @botcmd(admin_only = True)
     def import_configs(self, mess, args):
@@ -222,7 +222,7 @@ class ErrBot(Backend, StoreMixin):
         if type(added) is not dict:
             raise Exception('Weird, it should be a dictionary')
         self['configs']=dict(orig.items() + added.items())
-        return "Import is done correctly, there are %i config entries now." % len(self.internal_shelf['configs'])
+        return "Import is done correctly, there are %i config entries now." % len(self['configs'])
 
     @botcmd(admin_only = True)
     def zap_configs(self, mess, args):

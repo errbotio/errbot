@@ -23,7 +23,6 @@ class TestBackend(ErrBot):
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
         try:
-            outgoing_message_queue.put('Ok, bot ready !')
             while True:
                 entry = incoming_message_queue.get()
                 if entry == QUIT_MESSAGE:

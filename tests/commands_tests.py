@@ -1,13 +1,26 @@
 # coding=utf-8
 from ast import literal_eval
-import json
+from os.path import sep
+from tempfile import mkdtemp
 from threading import Thread
 import unittest
-
-from tests import TestBackend, outgoing_message_queue, incoming_message_queue, QUIT_MESSAGE
-from errbot.main import main
 import logging
 
+# create a mock configuration
+import sys
+
+__import__('errbot.config-template')
+config_module = sys.modules['errbot.config-template']
+sys.modules['config'] = config_module
+
+tempdir = mkdtemp()
+config_module.BOT_DATA_DIR = tempdir
+config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+config_module.BOT_EXTRA_PLUGIN_DIR = []
+config_module.BOT_LOG_LEVEL = logging.DEBUG
+
+from errbot.main import main
+from tests import TestBackend, outgoing_message_queue, incoming_message_queue, QUIT_MESSAGE
 
 def popMessage():
     return outgoing_message_queue.get(timeout=5)
@@ -33,7 +46,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class TestCommands(unittest.TestCase):
-    bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
+    bot_thread = None
 
     def setUp(self):
         zapQueues()
@@ -43,19 +56,28 @@ class TestCommands(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
         cls.bot_thread.setDaemon(True)
         cls.bot_thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        pushMessage(QUIT_MESSAGE)
+        cls.bot_thread.join()
+        logging.info("Main bot thread quits")
 
     def test_root_help(self):
         pushMessage('!help')
         self.assertIn('Available help', popMessage())
 
     def test_help(self):
-        # AssertionError: !history: display the command history\n\t!import configs: Restore the configs from an export from !export configs\n\t!load: load a plugin\n\t!log tail: Display a tail of the log of n lines or 40 by default\n\t!reload: reload a plugin\n\t!repos export: Returns all the repos in form of a string you can backup\n\t!repos install: install a plugin repository from the given source or a known public repo (see !repos to find those).\n\t!repos uninstall: uninstall a plugin repository by name.\n\t!repos update: update the bot and/or plugins\n\t!repos: list the current active plugin repositories\n\t!restart: restart the bot\n\t!status: If I am alive I should be able to respond to this one\n\t!unload: unload a plugin\n\t!uptime: Return the uptime of the bot\n\t!zap configs: WARNING : Deletes all the configuration of all the plugins'
         pushMessage('!help ErrBot')
         response = popMessage()
         self.assertIn('Available commands for ErrBot', response)
         self.assertIn('!about', response)
+
+        pushMessage('!help beurk')
+        self.assertEqual('That command is not defined.', popMessage())
 
     def test_about(self):
         pushMessage('!about')
@@ -99,8 +121,52 @@ class TestCommands(unittest.TestCase):
         pushMessage('!apropos about')
         self.assertIn('!about: Returns some', popMessage())
 
-    @classmethod
-    def tearDownClass(cls):
-        pushMessage(QUIT_MESSAGE)
-        cls.bot_thread.join()
-        logging.info("Main bot thread quits")
+    def test_logtail(self):
+        pushMessage('!log tail')
+        self.assertIn('INFO', popMessage())
+        # AssertionError: !load: load a plugin\n\t! !repos update: update the bot and/or plugins\n\t!repos: list the current active plugin repositories\n\t!unload: unload a plugin\n\t!uptime: Return the uptime of the bot\n\t!zap configs: WARNING : Deletes all the configuration of all the plugins'
+
+    def test_history(self):
+        pushMessage('!uptime')
+        popMessage()
+        pushMessage('!history')
+        self.assertIn('uptime', popMessage())
+
+    def test_plugin_cycle(self):
+        pushMessage('!repos install git://github.com/gbin/err-helloworld.git')
+        self.assertIn('err-helloworld', popMessage())
+        self.assertIn('reload', popMessage())
+
+        pushMessage('!repos export')  # should appear in the export
+        self.assertEqual("{'err-helloworld': 'git://github.com/gbin/err-helloworld.git'}", popMessage())
+
+        pushMessage('!help hello')  # should appear in the help
+        self.assertEqual("this command says hello", popMessage())
+
+        pushMessage('!hello')  # should respond
+        self.assertEqual('Hello World !', popMessage())
+
+        pushMessage('!reload HelloWorld')
+        self.assertEqual('Plugin HelloWorld deactivated / Plugin HelloWorld activated', popMessage())
+
+        pushMessage('!hello')  # should still respond
+        self.assertEqual('Hello World !', popMessage())
+
+        pushMessage('!unload HelloWorld')
+        self.assertEqual('Plugin HelloWorld deactivated', popMessage())
+
+        pushMessage('!hello')  # should not respond
+        self.assertIn('Command "hello" not found', popMessage())
+
+        pushMessage('!load HelloWorld')
+        self.assertEqual('Plugin HelloWorld activated', popMessage())
+
+        pushMessage('!hello')  # should respond back
+        self.assertEqual('Hello World !', popMessage())
+
+        pushMessage('!repos uninstall err-helloworld')
+        self.assertEqual('/me is unloading plugin HelloWorld', popMessage())
+        self.assertEqual('Plugins unloaded and repo err-helloworld removed', popMessage())
+
+        pushMessage('!hello')  # should not respond
+        self.assertIn('Command "hello" not found', popMessage())

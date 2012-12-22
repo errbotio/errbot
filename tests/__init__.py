@@ -1,6 +1,5 @@
 from Queue import Queue
 import logging
-import config
 from errbot.backends.base import Message
 from errbot.errBot import ErrBot
 
@@ -19,6 +18,7 @@ class TestBackend(ErrBot):
     conn = ConnectionMock()
 
     def serve_forever(self):
+        import config
         self.jid = 'Err@localhost'  # whatever
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured

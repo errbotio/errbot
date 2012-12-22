@@ -1,6 +1,6 @@
 language: python
 python:
   - "2.7"
-before_script: touch config.py
+before_script: cp errbot/config-template config.py
 install: pip install nose
 script: nosetests tests/ 

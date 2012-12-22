@@ -9,6 +9,7 @@ class StoreMixin(UserDict.DictMixin):
     """
 
     def open_storage(self, path):
+        logging.info("Try to open db file %s" % path)
         self.shelf = shelve.DbfilenameShelf(path, protocol = 2)
         logging.debug('Opened shelf of %s' % self.__class__.__name__)
 

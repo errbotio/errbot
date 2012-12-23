@@ -142,7 +142,7 @@ def check_dependencies(path):
                 stripped= line.strip()
                 try:
                     get_distribution(stripped)
-                except Exception as e:
+                except Exception as _:
                     missing_pkg.append(stripped)
         if missing_pkg:
             return ('You need those dependencies for %s: ' % path) + ','.join(missing_pkg)

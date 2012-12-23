@@ -3,6 +3,7 @@ import logging
 from utils import utf8
 import shelve
 
+
 class StoreMixin(UserDict.DictMixin):
     """
      This class handle the basic needs of bot plugins and core like loading, unloading and creating a storage
@@ -10,7 +11,7 @@ class StoreMixin(UserDict.DictMixin):
 
     def open_storage(self, path):
         logging.info("Try to open db file %s" % path)
-        self.shelf = shelve.DbfilenameShelf(path, protocol = 2)
+        self.shelf = shelve.DbfilenameShelf(path, protocol=2)
         logging.debug('Opened shelf of %s' % self.__class__.__name__)
 
     def close_storage(self):

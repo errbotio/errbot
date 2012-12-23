@@ -1,8 +1,8 @@
 import fcntl
 import os
 
-class PidFile(object):
 
+class PidFile(object):
     """Context manager that locks a pid file.  Implemented as class
     not generator because daemon.py is calling .__exit__() with no parameters
     instead of the None, None, None specified by PEP-343."""
@@ -25,6 +25,7 @@ class PidFile(object):
         self.pidfile.seek(0)
         return self.pidfile
 
+    #noinspection PyUnusedLocal
     def __exit__(self, exc_type=None, exc_value=None, exc_tb=None):
         try:
             self.pidfile.close()
@@ -33,4 +34,3 @@ class PidFile(object):
             if err.errno != 9:
                 raise
         os.remove(self.path)
-

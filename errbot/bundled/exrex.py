@@ -17,35 +17,33 @@
 #
 # (C) 2012- by Adam Tauber, <asciimoo@gmail.com>
 
-try:
-    from future_builtins import map, range
-except:
-    pass
 from re import sre_parse
 from itertools import product, chain, tee
 
 __all__ = ('generate', 'CATEGORIES', 'count', 'parse')
 
-CATEGORIES = {'category_space'  : sorted(sre_parse.WHITESPACE)
-             ,'category_digit'  : sorted(sre_parse.DIGITS)
-             ,'category_any'    : [chr(x) for x in range(32, 123)]
-             }
+CATEGORIES = {'category_space': sorted(sre_parse.WHITESPACE),
+              'category_digit': sorted(sre_parse.DIGITS),
+              'category_any': [chr(x) for x in range(32, 123)]}
+
 
 def comb(g, i):
     for c in g:
-        g2,i = tee(i)
+        g2, i = tee(i)
         for c2 in g2:
-            yield c+c2
+            yield c + c2
+
 
 def mappend(g, c):
     for cc in g:
-        yield cc+c
+        yield cc + c
+
 
 def _in(d):
     ret = []
     for i in d:
         if i[0] == 'range':
-            ret.extend(map(chr, range(i[1][0], i[1][1]+1)))
+            ret.extend(map(chr, range(i[1][0], i[1][1] + 1)))
         elif i[0] == 'literal':
             ret.append(chr(i[1]))
         elif i[0] == 'category':
@@ -58,7 +56,8 @@ def prods(orig, ran, items):
     for o in orig:
         for r in ran:
             for s in product(items, repeat=r):
-                yield o+''.join(s)
+                yield o + ''.join(s)
+
 
 def _gen(d, limit=20, count=False):
     """docstring for _p"""
@@ -85,10 +84,10 @@ def _gen(d, limit=20, count=False):
             ret = comb(ret, subs)
         elif i[0] == 'max_repeat':
             chars = filter(None, _gen(list(i[1][2]), limit))
-            if i[1][1]+1 - i[1][0] > limit:
-                ran = range(i[1][0], i[1][0]+limit)
+            if i[1][1] + 1 - i[1][0] > limit:
+                ran = range(i[1][0], i[1][0] + limit)
             else:
-                ran = range(i[1][0], i[1][1]+1)
+                ran = range(i[1][0], i[1][1] + 1)
             if count:
                 for i in ran:
                     strings += pow(len(chars), i)
@@ -123,6 +122,7 @@ def parse(s):
     r = sre_parse.parse(s)
     return list(r)
 
+
 def generate(s, limit=20):
     """Creates a generator that generates all matching strings to a given regular expression
 
@@ -133,6 +133,7 @@ def generate(s, limit=20):
     :returns: string generator object
     """
     return _gen(parse(s), limit)
+
 
 def count(s, limit=20):
     """Counts all matching strings to a given regular expression
@@ -146,39 +147,16 @@ def count(s, limit=20):
     """
     return _gen(parse(s), limit, count=True)
 
+
 def argparser():
     import argparse
     from sys import stdout
+
     argp = argparse.ArgumentParser(description='exrex - regular expression string generator')
-    argp.add_argument('-o', '--output'
-                     ,help      = 'Output file - default is STDOUT'
-                     ,metavar   = 'FILE'
-                     ,default   = stdout
-                     ,type      = argparse.FileType('w')
-                     )
-    argp.add_argument('-l', '--limit'
-                     ,help      = 'Max limit for range size - default is 20'
-                     ,default   = 20
-                     ,action    = 'store'
-                     ,type      = int
-                     ,metavar   = 'N'
-                     )
-    argp.add_argument('-c', '--count'
-                     ,help      = 'Count matching strings'
-                     ,default   = False
-                     ,action    = 'store_true'
-                     )
-    argp.add_argument('-d', '--delimiter'
-                     ,help      = 'Delimiter - default is \\n'
-                     ,default   = '\n'
-                     )
-    argp.add_argument('-v', '--verbose'
-                     ,action    = 'store_true'
-                     ,help      = 'Verbose mode'
-                     ,default   = False
-                     )
-    argp.add_argument('regex'
-                     ,metavar   = 'REGEX'
-                     ,help      = 'REGEX string'
-                     )
+    argp.add_argument('-o', '--output', help='Output file - default is STDOUT', metavar='FILE', default=stdout, type=argparse.FileType('w'))
+    argp.add_argument('-l', '--limit', help='Max limit for range size - default is 20', default=20, action='store', type=int, metavar='N')
+    argp.add_argument('-c', '--count', help='Count matching strings', default=False, action='store_true')
+    argp.add_argument('-d', '--delimiter', help='Delimiter - default is \\n', default='\n')
+    argp.add_argument('-v', '--verbose', action='store_true', help='Verbose mode', default=False)
+    argp.add_argument('regex', metavar='REGEX', help='REGEX string')
     return vars(argp.parse_args())

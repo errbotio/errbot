@@ -46,21 +46,22 @@ import logging
 
 HIPCHAT_PRESENCE_ATTRS = {'node': 'http://hipchat.com/client/bot', 'ver': 'v1.1.0'}
 
-# need to override it because the send method is created autonagically and I need to override it in certain cases
+
 class JabberClient(Client, Connection):
     def __init__(self, *args, **kwargs):
-        self.Namespace,self.DBG='jabber:client',DBG_CLIENT # DAAAAAAAAAAH -> see the CommonClient class, it introspects it descendents to determine that
-        super(JabberClient,self).__init__(*args, **kwargs)
+        self.Namespace, self.DBG = 'jabber:client', DBG_CLIENT  # DAAAAAAAAAAH -> see the CommonClient class, it introspects it descendents to determine that
+        super(JabberClient, self).__init__(*args, **kwargs)
 
     def send_message(self, mess):
         logging.debug('Message filtered thru JabberClient : %s' % mess)
         if mess.getType() in ('chat', 'groupchat') and mess.getAttr('from'):
             oldfrom = mess.getAttr('from')
-            mess.delAttr('from') # we strip the from here which could be rejected by some xmpp implementations
+            mess.delAttr('from')  # we strip the from here which could be rejected by some xmpp implementations
             self.send(mess)
-            mess.setFrom(oldfrom) # we restore it back
+            mess.setFrom(oldfrom)  # we restore it back
         else:
             self.send(mess)
+
 
 def is_from_history(mess):
     props = mess.getProperties()
@@ -71,7 +72,7 @@ class Identity(JID):
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
             node, domain, resource = parse_jid(jid)
-        JID.__init__(self,node=node, domain=domain, resource=resource)
+        JID.__init__(self, node=node, domain=domain, resource=resource)
 
 
 class JabberBot(ErrBot):
@@ -85,11 +86,11 @@ class JabberBot(ErrBot):
     MSG_NOT_AUTHORIZED = 'You did not authorize my subscription request. '\
                          'Access denied.'
 
-    PING_FREQUENCY = 10 # Set to the number of seconds, e.g. 60.
-    PING_TIMEOUT = 2 # Seconds to wait for a response.
-    RETRY_FREQUENCY = 10 # Set to the number of seconds to attempt another connection attempt in case of connectivity loss
+    PING_FREQUENCY = 10  # Set to the number of seconds, e.g. 60.
+    PING_TIMEOUT = 2  # Seconds to wait for a response.
+    RETRY_FREQUENCY = 10  # Set to the number of seconds to attempt another connection attempt in case of connectivity loss
 
-    return_code = 0 # code for the process exit
+    return_code = 0  # code for the process exit
 
     def __init__(self, username, password, res=None, debug=False,
                  privatedomain=False, acceptownmsgs=False, handlers=None):
@@ -138,13 +139,10 @@ class JabberBot(ErrBot):
         self.__acceptownmsgs = acceptownmsgs
 
         self.handlers = (handlers or [('message', self.callback_message),
-            ('presence', self.callback_presence)])
+                                      ('presence', self.callback_presence)])
 
         # Collect commands from source
         self.roster = None
-
-
-    ################################
 
     def _send_status(self):
         """Send status to everyone"""
@@ -187,7 +185,6 @@ class JabberBot(ErrBot):
             return JabberClient(self.jid.getDomain())
         return JabberClient(self.jid.getDomain(), debug=[])
 
-
     def connect(self):
         """Connects the bot to server or returns current connection,
         send inital presence stanza
@@ -212,7 +209,7 @@ class JabberBot(ErrBot):
                 self.log.error('unable to authorize with server.')
                 return None
             if authres != 'sasl':
-                self.log.warning("unable to perform SASL auth on %s. "\
+                self.log.warning("unable to perform SASL auth on %s. "
                                  "Old authentication method used!" % self.jid.getDomain())
             self.log.info('Connection established')
             # Connection established - save connection
@@ -245,7 +242,7 @@ class JabberBot(ErrBot):
         if username is None:
             username = self.__username.split('@')[0]
         my_room_JID = '/'.join((room, username))
-        pres = dispatcher.Presence(to=my_room_JID) #, frm=self.__username + '/bot')
+        pres = dispatcher.Presence(to=my_room_JID)
         pres.setTag('c', namespace=NS_CAPS, attrs=HIPCHAT_PRESENCE_ATTRS)
         t = pres.setTag('x', namespace=NS_MUC)
         if password is not None:
@@ -279,7 +276,7 @@ class JabberBot(ErrBot):
         self.log.info(mess)
         self.connect().send(mess)
 
-    def quit(self, return_code = -1):
+    def quit(self, return_code=-1):
         """Stop serving messages and exit.
 
         I find it is handy for development to run the
@@ -303,28 +300,28 @@ class JabberBot(ErrBot):
         iq.setFrom(self.jid)
         iq.pubsub = iq.addChild('pubsub', namespace=NS_PUBSUB)
         iq.pubsub.publish = iq.pubsub.addChild('publish',
-            attrs={'node': NS_TUNE})
+                                               attrs={'node': NS_TUNE})
         iq.pubsub.publish.item = iq.pubsub.publish.addChild('item',
-            attrs={'id': 'current'})
+                                                            attrs={'id': 'current'})
         tune = iq.pubsub.publish.item.addChild('tune')
         tune.setNamespace(NS_TUNE)
 
         title = None
-        if song.has_key('title'):
+        if 'title' in song:
             title = song['title']
-        elif song.has_key('file'):
+        elif 'file' in song:
             title = os.path.splitext(os.path.basename(song['file']))[0]
         if title is not None:
             tune.addChild('title').addData(title)
-        if song.has_key('artist'):
+        if 'artist' in song:
             tune.addChild('artist').addData(song['artist'])
-        if song.has_key('album'):
+        if 'album' in song:
             tune.addChild('source').addData(song['album'])
-        if song.has_key('pos') and song['pos'] > 0:
+        if 'pos' in song and song['pos'] > 0:
             tune.addChild('track').addData(str(song['pos']))
-        if song.has_key('time'):
+        if 'time' in song:
             tune.addChild('length').addData(str(song['time']))
-        if song.has_key('uri'):
+        if 'uri' in song:
             tune.addChild('uri').addData(song['uri'])
 
         if debug:
@@ -340,9 +337,9 @@ class JabberBot(ErrBot):
             text_plain = xhtml2txt(text)
             logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
             message = Message(body=text_plain)
-            message.addChild(node = node)
+            message.addChild(node=node)
         except ExpatError as ee:
-            if text.strip(): # avoids keep alive pollution
+            if text.strip():  # avoids keep alive pollution
                 logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
@@ -381,8 +378,8 @@ class JabberBot(ErrBot):
     def callback_presence(self, conn, presence):
         self.__lastping = time.time()
         jid, type_, show, status = presence.getFrom(),\
-                                   presence.getType(), presence.getShow(),\
-                                   presence.getStatus()
+            presence.getType(), presence.getShow(),\
+            presence.getStatus()
 
         if self.jid.bareMatch(jid):
             # update internal status
@@ -433,8 +430,7 @@ class JabberBot(ErrBot):
             else:
                 self.log.error('Presence Error: %s' % presence)
 
-
-        self.log.debug('Got presence: %s (type: %s, show: %s, status: %s, '\
+        self.log.debug('Got presence: %s (type: %s, show: %s, status: %s, '
                        'subscription: %s)' % (jid, type_, show, status, subscription))
 
         # If subscription is private,
@@ -450,7 +446,7 @@ class JabberBot(ErrBot):
             # Check if the sender is in the private domain
             user_domain = jid.getDomain()
             if domain != user_domain:
-                self.log.info('Ignoring subscribe request: %s does not '\
+                self.log.info('Ignoring subscribe request: %s does not '
                               'match private domain (%s)' % (user_domain, domain))
                 return
 
@@ -488,13 +484,11 @@ class JabberBot(ErrBot):
         # background discussion on this). Matching against CHATROOM_FN isn't technically
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
-        if (self.jid.bareMatch(get_jid_from_message(mess)) or
-            mess.getType() == "groupchat" and mess.getFrom().getResource() == CHATROOM_FN):
+        if self.jid.bareMatch(get_jid_from_message(mess)) or mess.getType() == "groupchat" and mess.getFrom().getResource() == CHATROOM_FN:
             logging.debug('Ignore a message from myself')
             return False
 
         return super(JabberBot, self).callback_message(conn, mess)
-
 
     def idle_proc(self):
         """This function will be called in the main loop."""
@@ -509,7 +503,7 @@ class JabberBot(ErrBot):
             self.__lastping = time.time()
             #logging.debug('Pinging the server.')
             ping = Protocol('iq', typ='get',
-                payload=[Node('ping', attrs={'xmlns': 'urn:xmpp:ping'})])
+                            payload=[Node('ping', attrs={'xmlns': 'urn:xmpp:ping'})])
             try:
                 if self.conn:
                     res = self.conn.SendAndWaitForResponse(ping, self.PING_TIMEOUT)
@@ -519,8 +513,7 @@ class JabberBot(ErrBot):
                 else:
                     logging.debug('Ping cancelled : No connectivity.')
             except Exception, e:
-                logging.error('Error pinging the server: %s, '\
-                              'treating as ping timeout.' % e)
+                logging.error('Error pinging the server: %s treating as ping timeout.' % e)
                 self.on_ping_timeout()
 
     def on_ping_timeout(self):
@@ -537,6 +530,7 @@ class JabberBot(ErrBot):
 
     def serve_forever(self):
         """Connects to the server and handles messages."""
+        #noinspection PyBroadException
         try:
             conn = None
             while not self.__finished and not conn:
@@ -545,8 +539,7 @@ class JabberBot(ErrBot):
                     self.log.warn('could not connect to server - sleeping %i seconds.' % self.RETRY_FREQUENCY)
                     time.sleep(self.RETRY_FREQUENCY)
 
-
-            self.connect_callback() # notify that the connection occured
+            self.connect_callback()  # notify that the connection occured
             self.__lastping = time.time()
 
             while not self.__finished:
@@ -555,19 +548,19 @@ class JabberBot(ErrBot):
                         try:
                             conn.Process(1)
                             if self.conn is None:
-                                self.disconnect_callback() # notify that the connection is lost
+                                self.disconnect_callback()  # notify that the connection is lost
                                 conn = None
                         except Exception as e:
-                            if isinstance(e, KeyboardInterrupt): # don't prevent the bot to shutdown normally !
+                            if isinstance(e, KeyboardInterrupt):  # don't prevent the bot to shutdown normally !
                                 raise
-                            elif isinstance(e, select.error) and e.args[0] == 4: # 'Interrupted system call'
+                            elif isinstance(e, select.error) and e.args[0] == 4:  # 'Interrupted system call'
                                 self.log.info('Interrupted system call detected on socket. shutting down.')
                                 break
-                            elif isinstance(e, xmpp.protocol.SeeOtherHost): # it means reconnect, here I disconnect to select another host automatically
+                            elif isinstance(e, xmpp.protocol.SeeOtherHost):  # it means reconnect, here I disconnect to select another host automatically
                                 logging.info("xmpp.protocol.SeeOtherHost received, trying to reconnect to another host")
                                 self.conn = None
                                 conn = None
-                                self.disconnect_callback() # notify that the connection is lost
+                                self.disconnect_callback()  # notify that the connection is lost
                             else:
                                 logging.exception("conn.Process Generated exception %s" % e.__class__)
                         self.idle_proc()

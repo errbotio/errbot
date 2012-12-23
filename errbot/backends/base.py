@@ -10,6 +10,7 @@ from errbot.templating import tenv
 import traceback
 
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
+
 try:
     from config import DIVERT_TO_PRIVATE
 except ImportError:
@@ -287,8 +288,8 @@ class Backend(object):
                         self.send_simple_reply(mess, "You're not allowed to access this command from a chatroom")
                         return False
                     if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
-                            self.send_simple_reply(mess, "You're not allowed to access this command from this room")
-                            return False
+                        self.send_simple_reply(mess, "You're not allowed to access this command from this room")
+                        return False
                     if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
                         self.send_simple_reply(mess, "You're not allowed to access this command from this room")
                         return False
@@ -372,7 +373,7 @@ class Backend(object):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
                 name = getattr(value, '_err_command_name')
-                del(self.commands[name])
+                del (self.commands[name])
 
     def warn_admins(self, warning):
         for admin in BOT_ADMINS:
@@ -409,7 +410,7 @@ class Backend(object):
 
             usage = '\n'.join(sorted([
             BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
-                                '(undocumented)').strip().split('\n', 1)[0])
+                                            '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\
             and not command._err_command_hidden

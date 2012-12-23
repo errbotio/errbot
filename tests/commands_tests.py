@@ -12,6 +12,7 @@ import sys
 from errbot.main import main
 from tests import TestBackend, outgoing_message_queue, incoming_message_queue, QUIT_MESSAGE
 
+
 def popMessage():
     return outgoing_message_queue.get(timeout=5)
 
@@ -114,7 +115,6 @@ class TestCommands(unittest.TestCase):
     def test_logtail(self):
         pushMessage('!log tail')
         self.assertIn('INFO', popMessage())
-        # AssertionError: !load: load a plugin\n\t! !repos update: update the bot and/or plugins\n\t!repos: list the current active plugin repositories\n\t!unload: unload a plugin\n\t!uptime: Return the uptime of the bot\n\t!zap configs: WARNING : Deletes all the configuration of all the plugins'
 
     def test_history(self):
         pushMessage('!uptime')

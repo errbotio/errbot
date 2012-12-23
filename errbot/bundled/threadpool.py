@@ -63,12 +63,14 @@ class NoResultsPending(Exception):
     """All work requests have been processed."""
     pass
 
+
 class NoWorkersAvailable(Exception):
     """No worker threads available to process remaining requests."""
     pass
 
 
 # internal module helper functions
+#noinspection PyUnusedLocal
 def _handle_thread_exception(request, exc_info):
     """Default exception handler callback function.
 
@@ -80,7 +82,7 @@ def _handle_thread_exception(request, exc_info):
 
 # utility functions
 def makeRequests(callable_, args_list, callback=None,
-        exc_callback=_handle_thread_exception):
+                 exc_callback=_handle_thread_exception):
     """Create several work requests for same callable with different arguments.
 
     Convenience function for creating several work requests for the same
@@ -101,12 +103,12 @@ def makeRequests(callable_, args_list, callback=None,
         if isinstance(item, tuple):
             requests.append(
                 WorkRequest(callable_, item[0], item[1], callback=callback,
-                    exc_callback=exc_callback)
+                            exc_callback=exc_callback)
             )
         else:
             requests.append(
                 WorkRequest(callable_, [item], None, callback=callback,
-                    exc_callback=exc_callback)
+                            exc_callback=exc_callback)
             )
     return requests
 
@@ -142,7 +144,7 @@ class WorkerThread(threading.Thread):
             if self._dismissed.isSet():
                 # we are dismissed, break out of loop
                 break
-            # get next work request. If we don't get a new request from the
+                # get next work request. If we don't get a new request from the
             # queue after self._poll_timout seconds, we jump to the start of
             # the while loop again, to give the thread a chance to exit.
             try:
@@ -154,10 +156,11 @@ class WorkerThread(threading.Thread):
                     # we are dismissed, put back request in queue and exit loop
                     self._requests_queue.put(request)
                     break
+                #noinspection PyBroadException
                 try:
                     result = request.callable(*request.args, **request.kwds)
                     self._results_queue.put((request, result))
-                except:
+                except Exception as _:
                     logging.exception('Command failed')
                     request.exception = True
                     self._results_queue.put((request, sys.exc_info()))
@@ -177,7 +180,7 @@ class WorkRequest:
     """
 
     def __init__(self, callable_, args=None, kwds=None, requestID=None,
-            callback=None, exc_callback=_handle_thread_exception):
+                 callback=None, exc_callback=_handle_thread_exception):
         """Create a work request for a callable and attach callbacks.
 
         A work request consists of the a callable to be executed by a
@@ -218,8 +221,9 @@ class WorkRequest:
         self.kwds = kwds or {}
 
     def __str__(self):
-        return "<WorkRequest id=%s args=%r kwargs=%r exception=%s>" % \
-            (self.requestID, self.args, self.kwds, self.exception)
+        return "<WorkRequest id=%s args=%r kwargs=%r exception=%s>" %\
+               (self.requestID, self.args, self.kwds, self.exception)
+
 
 class ThreadPool:
     """A thread pool, distributing work requests and collecting results.
@@ -267,7 +271,7 @@ class ThreadPool:
         """
         for i in range(num_workers):
             self.workers.append(WorkerThread(self._requests_queue,
-                self._results_queue, poll_timeout=poll_timeout, name='ThreadPool worker %i'%i))
+                                             self._results_queue, poll_timeout=poll_timeout, name='ThreadPool worker %i' % i))
 
     def dismissWorkers(self, num_workers, do_join=False):
         """Tell num_workers worker threads to quit after their current task."""
@@ -313,9 +317,8 @@ class ThreadPool:
                 # has an exception occured?
                 if request.exception and request.exc_callback:
                     request.exc_callback(request, result)
-                # hand results to callback, if any
-                if request.callback and not \
-                       (request.exception and request.exc_callback):
+                    # hand results to callback, if any
+                if request.callback and not (request.exception and request.exc_callback):
                     request.callback(request, result)
                 del self.workRequests[request.requestID]
             except Queue.Empty:
@@ -340,7 +343,7 @@ if __name__ == '__main__':
 
     # the work the threads will have to do (rather trivial in our example)
     def do_something(data):
-        time.sleep(random.randint(1,5))
+        time.sleep(random.randint(1, 5))
         result = round(random.random() * data, 5)
         # just to show off, we throw an exception once in a while
         if result > 5:
@@ -359,11 +362,11 @@ if __name__ == '__main__':
             print request
             print exc_info
             raise SystemExit
-        print "**** Exception occured in request #%s: %s" % \
-          (request.requestID, exc_info)
+        print "**** Exception occured in request #%s: %s" %\
+              (request.requestID, exc_info)
 
     # assemble the arguments for each job to a list...
-    data = [random.randint(1,10) for i in range(20)]
+    data = [random.randint(1, 10) for i in range(20)]
     # ... and build a WorkRequest object for each item in data
     requests = makeRequests(do_something, data, print_result, handle_exception)
     # to use the default exception handler, uncomment next line and comment out
@@ -371,7 +374,7 @@ if __name__ == '__main__':
     #requests = makeRequests(do_something, data, print_result)
 
     # or the other form of args_lists accepted by makeRequests: ((,), {})
-    data = [((random.randint(1,10),), {}) for i in range(20)]
+    data = [((random.randint(1, 10),), {}) for i in range(20)]
     requests.extend(
         makeRequests(do_something, data, print_result, handle_exception)
         #makeRequests(do_something, data, print_result)
@@ -387,7 +390,7 @@ if __name__ == '__main__':
     for req in requests:
         main.putRequest(req)
         print "Work request #%s added." % req.requestID
-    # or shorter:
+        # or shorter:
     # [main.putRequest(req) for req in requests]
 
     # ...and wait for the results to arrive in the result queue
@@ -402,7 +405,7 @@ if __name__ == '__main__':
             time.sleep(0.5)
             main.poll()
             print "Main thread working...",
-            print "(active worker threads: %i)" % (threading.activeCount()-1, )
+            print "(active worker threads: %i)" % (threading.activeCount() - 1, )
             if i == 10:
                 print "**** Adding 3 more worker threads..."
                 main.createWorkers(3)

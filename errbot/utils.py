@@ -2,8 +2,11 @@
 import logging
 import inspect
 import os
+import re
+import htmlentitydefs
 
 PLUGINS_SUBDIR = 'plugins'
+
 
 def get_sender_username(mess):
     """Extract the sender's user name from a message"""
@@ -21,7 +24,7 @@ def get_sender_username(mess):
 def get_jid_from_message(mess):
     if mess.getType() == 'chat':
         return str(mess.getFrom().getStripped())
-    # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
+        # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
     jid = mess.getTagAttr('delay', 'from_jid')
     if jid:
         logging.debug('found the jid from the delay tag : %s' % jid)
@@ -45,7 +48,7 @@ def get_jid_from_message(mess):
         return jid
 
     splitted = str(mess.getFrom()).split('/')
-    jid = splitted[1] if len(splitted) > 1 else splitted[0] # despair
+    jid = splitted[1] if len(splitted) > 1 else splitted[0]  # despair
 
     logging.debug('deduced the jid from the chatroom to %s' % jid)
     return jid
@@ -64,7 +67,9 @@ def format_timedelta(timedelta):
     else:
         return '%i hours and %i minutes' % (hours, minutes)
 
+
 BAR_WIDTH = 15.0
+
 
 def drawbar(value, max):
     if max:
@@ -77,7 +82,8 @@ def drawbar(value, max):
 # Introspect to know from which plugin a command is implemented
 def get_class_for_method(meth):
     for cls in inspect.getmro(meth.im_class):
-        if meth.__name__ in cls.__dict__: return cls
+        if meth.__name__ in cls.__dict__:
+            return cls
     return None
 
 
@@ -91,7 +97,7 @@ def human_name_for_git_url(url):
     return last_part[:-4] if last_part.endswith('.git') else last_part
 
 
-def tail( f, window=20 ):
+def tail(f, window=20):
     return ''.join(f.readlines()[-window:])
 
 
@@ -136,24 +142,22 @@ def recurse_check_structure(sample, to_check):
 
     if sample_type == dict:
         for key in sample:
-            if not to_check.has_key(key):
+            if key not in to_check:
                 raise ValidationException("%s doesn't contain the key %s" % (to_check, key))
         for key in to_check:
-            if not sample.has_key(key):
+            if key not in sample:
                 raise ValidationException("%s contains an unknown key %s" % (to_check, key))
         for key in sample:
             recurse_check_structure(sample[key], to_check[key])
         return
 
-import re, htmlentitydefs
-
-##
-# Removes HTML or XML character references and entities from a text string.
-#
-# @param text The HTML (or XML) source text.
-# @return The plain text, as a Unicode string, if necessary.
 
 def unescape_xml(text):
+    """
+    Removes HTML or XML character references and entities from a text string.
+    @param text The HTML (or XML) source text.
+    @return The plain text, as a Unicode string, if necessary.
+    """
     def fixup(m):
         text = m.group(0)
         if text[:2] == "&#":
@@ -171,18 +175,20 @@ def unescape_xml(text):
                 text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
-        return text # leave as is
+        return text  # leave as is
 
     return re.sub("&#?\w+;", fixup, text)
+
 
 REMOVE_EOL = re.compile(r'\n')
 REINSERT_EOLS = re.compile(r'</p>|</li>|<br/>', re.I)
 ZAP_TAGS = re.compile(r'<[^>]+>')
 
+
 def xhtml2txt(xhtml):
-    text_plain = REMOVE_EOL.sub('', xhtml) # Ignore formatting TODO exclude pre
-    text_plain = REINSERT_EOLS.sub('\n', text_plain) # readd the \n where they probably fit best
-    text_plain = ZAP_TAGS.sub('', text_plain) # zap every tag left
+    text_plain = REMOVE_EOL.sub('', xhtml)  # Ignore formatting TODO exclude pre
+    text_plain = REINSERT_EOLS.sub('\n', text_plain)  # readd the \n where they probably fit best
+    text_plain = ZAP_TAGS.sub('', text_plain)  # zap every tag left
     return unescape_xml(text_plain).strip()
 
 
@@ -191,13 +197,14 @@ HIPCHAT_FORCE_SLASH_PRE = re.compile(r'</body>', re.I)
 HIPCHAT_EOLS = re.compile(r'</p>|</li>', re.I)
 HIPCHAT_BOLS = re.compile(r'<p [^>]+>|<li [^>]+>', re.I)
 
-# Hipchat has a really limited html support
+
 def xhtml2hipchat(xhtml):
-    retarded_hipchat_html_plain = REMOVE_EOL.sub('', xhtml) # Ignore formatting
-    retarded_hipchat_html_plain = HIPCHAT_EOLS.sub('<br/>', retarded_hipchat_html_plain) # readd the \n where they probably fit best
-    retarded_hipchat_html_plain = HIPCHAT_BOLS.sub('', retarded_hipchat_html_plain) # zap every tag left
-    retarded_hipchat_html_plain = HIPCHAT_FORCE_PRE.sub('<body><pre>', retarded_hipchat_html_plain) # fixor pre
-    retarded_hipchat_html_plain = HIPCHAT_FORCE_SLASH_PRE.sub('</pre></body>', retarded_hipchat_html_plain) # fixor /pre
+    # Hipchat has a really limited html support
+    retarded_hipchat_html_plain = REMOVE_EOL.sub('', xhtml)  # Ignore formatting
+    retarded_hipchat_html_plain = HIPCHAT_EOLS.sub('<br/>', retarded_hipchat_html_plain)  # readd the \n where they probably fit best
+    retarded_hipchat_html_plain = HIPCHAT_BOLS.sub('', retarded_hipchat_html_plain)  # zap every tag left
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_PRE.sub('<body><pre>', retarded_hipchat_html_plain)  # fixor pre
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_SLASH_PRE.sub('</pre></body>', retarded_hipchat_html_plain)  # fixor /pre
     return retarded_hipchat_html_plain
 
 
@@ -208,7 +215,7 @@ def utf8(key):
 
 
 def mess_2_embeddablehtml(mess):
-    if hasattr(mess, 'getHTML'): # somebackends are happy to give you the HTML
+    if hasattr(mess, 'getHTML'):  # somebackends are happy to give you the HTML
         html_content = mess.getHTML()
     else:
         html_content = mess.getTag('html')
@@ -225,7 +232,7 @@ def parse_jid(jid):
         split_jid = jid.split('@')
         node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
         if domain.find('/') != -1:
-            domain, resource = domain.split('/')[0:2] # hack for IRC where you can have several slashes here
+            domain, resource = domain.split('/')[0:2]  # hack for IRC where you can have several slashes here
         else:
             resource = None
     else:

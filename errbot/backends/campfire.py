@@ -1,5 +1,6 @@
 import logging
 import sys
+
 try:
     import pyfire
 except ImportError:
@@ -20,13 +21,13 @@ from config import CHATROOM_PRESENCE
 
 
 class CampfireConnection(Connection, pyfire.Campfire):
-    rooms = {} # keep track of joined room so we can send messages directly to them
+    rooms = {}  # keep track of joined room so we can send messages directly to them
 
     def send_message(self, mess):
         to_identity = mess.getTo()
-        room_name = to_identity.getDomain() # we only reply to rooms in reality in campfire
+        room_name = to_identity.getDomain()  # we only reply to rooms in reality in campfire
         room = self.rooms[room_name][0]
-        room.speak(mess.getBody()) # Basic text support for the moment
+        room.speak(mess.getBody())  # Basic text support for the moment
 
     def join_room(self, name, msg_callback, error_callback):
         room = self.get_room_by_name(name)
@@ -35,7 +36,9 @@ class CampfireConnection(Connection, pyfire.Campfire):
         stream.attach(msg_callback).start()
         self.rooms[name] = (room, stream)
 
+
 ENCODING_INPUT = sys.stdin.encoding
+
 
 class CampfireBackend(ErrBot):
     exit_lock = Condition()
@@ -51,8 +54,8 @@ class CampfireBackend(ErrBot):
 
     def serve_forever(self):
         self.exit_lock.acquire()
-        self.connect() # be sure we are "connected" before the first command
-        self.connect_callback() # notify that the connection occured
+        self.connect()  # be sure we are "connected" before the first command
+        self.connect_callback()  # notify that the connection occured
         try:
             logging.info("Campfire connected.")
             self.exit_lock.wait()
@@ -74,7 +77,7 @@ class CampfireBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        return Message(text, typ = 'groupchat') # it is always a groupchat in campfire
+        return Message(text, typ='groupchat')  # it is always a groupchat in campfire
 
     def shutdown(self):
         super(CampfireBackend, self).shutdown()
@@ -85,9 +88,9 @@ class CampfireBackend(ErrBot):
         if message.user:
             user = message.user.name
         if message.is_text():
-            msg = Message(message.body, typ = 'groupchat') # it is always a groupchat in campfire
-            msg.setFrom(user + '@' +  message.room.get_data()['name'] + '/' + user)
-            msg.setTo(self.jid) # assume it is for me
+            msg = Message(message.body, typ='groupchat')  # it is always a groupchat in campfire
+            msg.setFrom(user + '@' + message.room.get_data()['name'] + '/' + user)
+            msg.setTo(self.jid)  # assume it is for me
             self.callback_message(self.conn, msg)
 
     def error_callback(self, error, room):
@@ -106,7 +109,7 @@ class CampfireBackend(ErrBot):
             logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
             message = Message(body=utf8(text_plain))
         except ExpatError as ee:
-            if text.strip(): # avoids keep alive pollution
+            if text.strip():  # avoids keep alive pollution
                 logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=utf8(text))
         return message

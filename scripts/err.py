@@ -19,6 +19,7 @@ from os import path, sep, getcwd
 from platform import system
 
 
+#noinspection PyUnusedLocal
 def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
@@ -40,7 +41,9 @@ if not ON_WINDOWS:
     import daemon
     from pwd import getpwnam
     from grp import getgrnam
-    import code, traceback, signal
+    import code
+    import traceback
+    import signal
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
@@ -50,7 +53,7 @@ logger.setLevel(logging.INFO)
 
 
 def check_config(config_path, mode):
-    __import__('errbot.config-template') # - is on purpose, it should not be imported normally ;)
+    __import__('errbot.config-template')  # - is on purpose, it should not be imported normally ;)
     template = sys.modules['errbot.config-template']
     config_fullpath = config_path + sep + 'config.py'
 
@@ -59,6 +62,7 @@ def check_config(config_path, mode):
         logging.info('You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (path.dirname(template.__file__) + sep + 'config-template.py', config_path + sep))
         exit(-1)
 
+    #noinspection PyBroadException
     try:
         try:
             # gives the opportunity to have one config per mode to simplify the debugging
@@ -82,8 +86,6 @@ def check_config(config_path, mode):
 
 
 if __name__ == "__main__":
-
-
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
     backend_group = parser.add_mutually_exclusive_group()
@@ -110,7 +112,6 @@ if __name__ == "__main__":
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
     check_config(config_path, mode)  # check if everything is ok before attempting to start
-
 
     def text():
         from errbot.backends.text import TextBackend
@@ -167,12 +168,13 @@ if __name__ == "__main__":
         uid = getpwnam(args['user']).pw_uid if args['user'] else None
         gid = getgrnam(args['group']).gr_gid if args['group'] else None
 
+        #noinspection PyBroadException
         try:
             with daemon.DaemonContext(detach_process=True, working_directory=getcwd(), pidfile=pidfile, uid=uid,
                                       gid=gid):  # put the initial working directory to be sure not to lost it after daemonization
                 from errbot.main import main
                 main(bot_class, logger)
-        except:
+        except Exception as _:
             logging.exception('Failed to daemonize the process')
     from errbot.main import main
     main(bot_class, logger)

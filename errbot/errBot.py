@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #    This program is free software; you can redistribute it and/or modify
@@ -30,7 +29,10 @@ from urllib2 import urlopen
 from errbot import botcmd
 from errbot.backends.base import Backend
 
-from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects, get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name, PluginConfigurationException, check_dependencies
+from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,\
+    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name,\
+    PluginConfigurationException, check_dependencies
+
 from errbot.storage import StoreMixin
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_jid_from_message
 from errbot.repos import KNOWN_PUBLIC_REPOS
@@ -39,7 +41,8 @@ from errbot.version import VERSION
 
 def get_class_that_defined_method(meth):
     for cls in inspect.getmro(meth.im_class):
-        if meth.__name__ in cls.__dict__: return cls
+        if meth.__name__ in cls.__dict__:
+            return cls
     return None
 
 
@@ -57,7 +60,7 @@ class ErrBot(Backend, StoreMixin):
         self.open_storage(BOT_DATA_DIR + os.sep + 'core.db')
         self.prefix = BOT_PREFIX
         # be sure we have a configs entry for the plugin configurations
-        if not self.has_key('configs'):
+        if 'configs' not in self:
             self['configs'] = {}
         super(ErrBot, self).__init__(*args, **kwargs)
 
@@ -96,7 +99,7 @@ class ErrBot(Backend, StoreMixin):
     # configurations management
     def get_plugin_configuration(self, name):
         configs = self['configs']
-        if not configs.has_key(name):
+        if name not in configs:
             return None
         return configs[name]
 
@@ -115,18 +118,20 @@ class ErrBot(Backend, StoreMixin):
         super(ErrBot, self).send_message(mess)
         # Act only in the backend tells us that this message is OK to broadcast
         for bot in get_all_active_plugin_objects():
+            #noinspection PyBroadException
             try:
                 bot.callback_botmessage(mess)
-            except Exception:
+            except Exception as _:
                 logging.exception("Crash in a callback_botmessage handler")
 
     def callback_message(self, conn, mess):
         if super(ErrBot, self).callback_message(conn, mess):
             # Act only in the backend tells us that this message is OK to broadcast
             for bot in get_all_active_plugin_objects():
+                #noinspection PyBroadException
                 try:
                     bot.callback_message(conn, mess)
-                except Exception:
+                except Exception as _:
                     logging.exception("Crash in a callback_message handler")
 
     def activate_non_started_plugins(self):
@@ -144,15 +149,17 @@ class ErrBot(Backend, StoreMixin):
             except Exception, e:
                 logging.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
-        if errors: self.warn_admins(errors)
+        if errors:
+            self.warn_admins(errors)
         return errors
 
     def signal_connect_to_all_plugins(self):
         for bot in get_all_active_plugin_objects():
             if hasattr(bot, 'callback_connect'):
+                #noinspection PyBroadException
                 try:
                     bot.callback_connect()
-                except Exception as e:
+                except Exception as _:
                     logging.exception("callback_connect failed for %s" % bot)
 
     def connect_callback(self):
@@ -169,12 +176,12 @@ class ErrBot(Backend, StoreMixin):
         logging.info('Disconnect callback, deactivating all the plugins.')
         deactivate_all_plugins()
 
-
     def shutdown(self):
         logging.info('Shutdown.')
         self.close_storage()
         logging.info('Bye.')
 
+    #noinspection PyUnusedLocal
     @botcmd(template='status')
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
@@ -193,30 +200,35 @@ class ErrBot(Backend, StoreMixin):
             else:
                 plugins_statuses.append(('E', name))
 
+        #noinspection PyBroadException
         try:
             from posix import getloadavg
 
             loads = getloadavg()
-        except Exception as e:
+        except Exception as _:
             loads = None
         return {'plugins_statuses': plugins_statuses, 'loads': loads, 'gc': gc.get_count()}
 
+    #noinspection PyUnusedLocal
     @botcmd
     def echo(self, mess, args):
         return args
 
+    #noinspection PyUnusedLocal
     @botcmd
     def uptime(self, mess, args):
         """ Return the uptime of the bot
         """
         return 'I up for %s %s (since %s)' % (args, format_timedelta(datetime.now() - self.startup_time), datetime.strftime(self.startup_time, '%A, %b %d at %H:%M'))
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def export_configs(self, mess, args):
         """ Returns all the configs in form of a string you can backup
         """
         return repr(self.get('configs', {}))
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def import_configs(self, mess, args):
         """ Restore the configs from an export from !export configs
@@ -229,6 +241,7 @@ class ErrBot(Backend, StoreMixin):
         self['configs'] = dict(orig.items() + added.items())
         return "Import is done correctly, there are %i config entries now." % len(self['configs'])
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def zap_configs(self, mess, args):
         """ WARNING : Deletes all the configuration of all the plugins
@@ -236,12 +249,14 @@ class ErrBot(Backend, StoreMixin):
         self['configs'] = {}
         return "Done"
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def repos_export(self, mess, args):
         """ Returns all the repos in form of a string you can backup
         """
         return str(self.get_installed_plugin_repos())
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def restart(self, mess, args):
         """ restart the bot """
@@ -269,12 +284,14 @@ class ErrBot(Backend, StoreMixin):
         deactivatePluginByName(name)
         return "Plugin %s deactivated" % name
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def load(self, mess, args):
         """load a plugin"""
         self.unblacklist_plugin(args)
         return self.activate_plugin(args)
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def unload(self, mess, args):
         """unload a plugin"""
@@ -283,6 +300,7 @@ class ErrBot(Backend, StoreMixin):
         self.blacklist_plugin(args)
         return self.deactivate_plugin(args)
 
+    #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def reload(self, mess, args):
         """reload a plugin"""
@@ -302,7 +320,7 @@ class ErrBot(Backend, StoreMixin):
         if not args.strip():
             return "You should have an urls/git repo argument"
         if args in KNOWN_PUBLIC_REPOS:
-            args = KNOWN_PUBLIC_REPOS[args][0] # replace it by the url
+            args = KNOWN_PUBLIC_REPOS[args][0]  # replace it by the url
         git_path = which('git')
 
         if not git_path:
@@ -350,7 +368,7 @@ class ErrBot(Backend, StoreMixin):
 
         return 'Plugins unloaded and repo %s removed' % args
 
-
+    #noinspection PyUnusedLocal
     @botcmd(template='repos')
     def repos(self, mess, args):
         """ list the current active plugin repositories
@@ -359,9 +377,9 @@ class ErrBot(Backend, StoreMixin):
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
         max_width = max([len(name) for name in all_names])
         return {'repos': [
-        (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1] if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
-        for repo_name in all_names]}
-
+            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1]
+                if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
+            for repo_name in all_names]}
 
     def get_doc(self, command):
         """Get command documentation
@@ -398,9 +416,9 @@ class ErrBot(Backend, StoreMixin):
             for clazz in sorted(clazz_commands):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
                 usage += '\n'.join(sorted([
-                '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
-                                                (self.get_doc(command).strip()).split('\n', 1)[0])
-                for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
+                    '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
+                    (self.get_doc(command).strip()).split('\n', 1)[0])
+                    for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self.get_command_classes()):
@@ -408,9 +426,9 @@ class ErrBot(Backend, StoreMixin):
             commands = [(name, command) for (name, command) in self.commands.iteritems() if get_class_that_defined_method(command).__name__ == args]
             description = 'Available commands for %s:\n\n' % args
             usage += '\n'.join(sorted([
-            '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
-                                            (self.get_doc(command).strip()).split('\n', 1)[0])
-            for (name, command) in commands if not command._err_command_hidden
+                '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
+                (self.get_doc(command).strip()).split('\n', 1)[0])
+                for (name, command) in commands if not command._err_command_hidden
             ]))
         else:
             return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))
@@ -419,6 +437,7 @@ class ErrBot(Backend, StoreMixin):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
+    #noinspection PyUnusedLocal
     @botcmd(historize=False)
     def history(self, mess, args):
         """display the command history"""
@@ -429,6 +448,7 @@ class ErrBot(Backend, StoreMixin):
             answer.append('%2i:%s%s %s' % (l - i, self.prefix, c[0], c[1]))
         return '\n'.join(answer)
 
+    #noinspection PyUnusedLocal
     @botcmd
     def about(self, mess, args):
         """   Returns some information about this err instance"""
@@ -437,6 +457,7 @@ class ErrBot(Backend, StoreMixin):
         result += 'Authors: Mondial Telecom, Guillaume BINET, Tali PETROVER, Ben VAN DAELE, Paul LABEDAN and others.\n\n'
         return result
 
+    #noinspection PyUnusedLocal
     @botcmd
     def apropos(self, mess, args):
         """   Returns a help string listing available options.
@@ -457,10 +478,9 @@ class ErrBot(Backend, StoreMixin):
         usage = ''
         for clazz in sorted(clazz_commands):
             usage += '\n'.join(sorted([
-            '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or
-                                                                        '(undocumented)').strip().split('\n', 1)[0])
-            for (name, command) in clazz_commands[clazz] if
-            args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower().decode('utf-8', 'ignore') and name != 'help' and not command._err_command_hidden
+                '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or '(undocumented)').strip().split('\n', 1)[0])
+                for (name, command) in clazz_commands[clazz] if
+                args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower().decode('utf-8', 'ignore') and name != 'help' and not command._err_command_hidden
             ]))
         usage += '\n\n'
 
@@ -512,18 +532,19 @@ class ErrBot(Backend, StoreMixin):
                         if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                             name = plugin.name
                             self.send(mess.getFrom(), '/me is reloading plugin %s' % name)
-                            self.deactivate_plugin(plugin.name)                     # calm the plugin down
-                            module = __import__(plugin.path.split(os.sep)[-1]) # find back the main module of the plugin
-                            reload(module)                                     # reload it
-                            class_name = type(plugin.plugin_object).__name__   # find the original name of the class
-                            newclass = getattr(module, class_name)             # retreive the corresponding new class
-                            plugin.plugin_object.__class__ = newclass          # BAM, declare the instance of the new type
-                            self.activate_plugin(plugin.name)                  # wake the plugin up
+                            self.deactivate_plugin(plugin.name)                 # calm the plugin down
+                            module = __import__(plugin.path.split(os.sep)[-1])  # find back the main module of the plugin
+                            reload(module)                                      # reload it
+                            class_name = type(plugin.plugin_object).__name__    # find the original name of the class
+                            newclass = getattr(module, class_name)              # retreive the corresponding new class
+                            plugin.plugin_object.__class__ = newclass           # BAM, declare the instance of the new type
+                            self.activate_plugin(plugin.name)                   # wake the plugin up
         if core_to_update:
             self.restart(mess, '')
             return "You have updated the core, I need to restart."
         return "Done."
 
+    #noinspection PyUnusedLocal
     @botcmd(split_args_with=' ', admin_only=True)
     def config(self, mess, args):
         """ configure or get the configuration / configuration template for a specific plugin
@@ -553,12 +574,13 @@ class ErrBot(Backend, StoreMixin):
             current_config = self.get_plugin_configuration(plugin_name)
             if current_config:
                 return 'Copy paste and adapt one of the following:\nDefault Config: ' + self.prefix + 'config %s %s\nCurrent Config: !config %s %s' % (
-                plugin_name, repr(template_obj), plugin_name, repr(current_config))
+                    plugin_name, repr(template_obj), plugin_name, repr(current_config))
             return 'Copy paste and adapt of the following:\n' + self.prefix + 'config %s %s' % (plugin_name, repr(template_obj))
 
+        #noinspection PyBroadException
         try:
             real_config_obj = literal_eval(' '.join(args[1:]))
-        except Exception as e:
+        except Exception as _:
             logging.exception('Invalid expression for the configuration of the plugin')
             return 'Syntax error in the given configuration'
         if type(real_config_obj) != type(template_obj):
@@ -574,6 +596,7 @@ class ErrBot(Backend, StoreMixin):
             return 'Incorrect plugin configuration: %s' % ce
         return 'Plugin configuration done.'
 
+    #noinspection PyUnusedLocal
     @botcmd
     def log_tail(self, mess, args):
         """ Display a tail of the log of n lines or 40 by default
@@ -584,11 +607,8 @@ class ErrBot(Backend, StoreMixin):
         if args.isdigit():
             n = int(args)
         from config import BOT_LOG_FILE
+
         if BOT_LOG_FILE:
             with open(BOT_LOG_FILE, 'r') as f:
                 return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'
-
-
-
-

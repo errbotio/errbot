@@ -18,11 +18,13 @@ import os
 from setuptools import setup, find_packages
 import sys
 
-sys.path.insert(0, 'errbot') # hack to avoid loading err machinery from the errbot package
+sys.path.insert(0, 'errbot')  # hack to avoid loading err machinery from the errbot package
 from version import VERSION
 
+
 def read(fname):
-        return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 changes = read('CHANGES.rst')
 
@@ -30,25 +32,25 @@ if changes.find(VERSION) == -1:
     raise Exception('You forgot to put a release note in CHANGES.rst ?!')
 
 setup(
-    name = "err",
-    version = VERSION,
-    packages = find_packages(),
-    scripts = ['scripts/err.py'],
+    name="err",
+    version=VERSION,
+    packages=find_packages(),
+    scripts=['scripts/err.py'],
 
-    install_requires = ['configparser', 'setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2', 'flask', 'config'],
+    install_requires=['configparser', 'setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2', 'flask', 'config'],
 
-    package_data = {
+    package_data={
         '': ['*.txt', '*.rst', '*.plug', '*.html', '*.js', '*.css'],
     },
 
-    author = "Guillaume BINET",
-    author_email = "gbin@gootz.net",
-    description = "err is a plugin based team chatbot designed to be easily deployable, extensible and maintainable.",
-    long_description=''.join([read('README.rst'),'\n\n',changes]),
-    license = "GPL",
-    keywords = "xmpp jabber chatbot bot plugin",
-    url = "http://gbin.github.com/err/",
-    classifiers = [
+    author="Guillaume BINET",
+    author_email="gbin@gootz.net",
+    description="err is a plugin based team chatbot designed to be easily deployable, extensible and maintainable.",
+    long_description=''.join([read('README.rst'), '\n\n', changes]),
+    license="GPL",
+    keywords="xmpp jabber chatbot bot plugin",
+    url="http://gbin.github.com/err/",
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Topic :: Communications :: Chat",
         "Topic :: Communications :: Conferencing",
@@ -57,4 +59,4 @@ setup(
         "Programming Language :: Python :: 2",
     ],
     #test_suite="tests",
-    )
+)

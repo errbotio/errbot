@@ -1,6 +1,7 @@
 import logging
 import sys
 import threading
+
 irc_message_lock = threading.Lock()
 import config
 
@@ -46,7 +47,7 @@ class IRCConnection(IRCClient, object):
             if m[-1] != '\n':
                 m += '\n'
             with irc_message_lock:
-                if mess.typ == 'chat' and mess.getTo().resource: # if this is a response in private of a public message take the recipient in the resource instead of the incoming chatroom
+                if mess.typ == 'chat' and mess.getTo().resource:  # if this is a response in private of a public message take the recipient in the resource instead of the incoming chatroom
                     to = mess.getTo().resource
                 else:
                     to = mess.getTo().node
@@ -67,11 +68,11 @@ class IRCConnection(IRCClient, object):
 
     def irc_PRIVMSG(self, prefix, params):
         fr, line = params
-        if fr == self.nickname: # it is a private message
-            from_identity = Identifier(node = self.extract_from_from_prefix(prefix)) # reextract the real from
+        if fr == self.nickname:  # it is a private message
+            from_identity = Identifier(node=self.extract_from_from_prefix(prefix))  # reextract the real from
             typ = 'chat'
         else:
-            from_identity = Identifier(node = fr, resource = self.extract_from_from_prefix(prefix)) # So we don't loose the original sender and the chatroom
+            from_identity = Identifier(node=fr, resource=self.extract_from_from_prefix(prefix))  # So we don't loose the original sender and the chatroom
             typ = 'groupchat'
         logging.debug('IRC message received from %s [%s]' % (fr, line))
 
@@ -83,7 +84,7 @@ class IRCConnection(IRCClient, object):
     def connectionMade(self):
         self.connected = True
         super(IRCConnection, self).connectionMade()
-        self.callback.connect_callback() # notify that the connection occured
+        self.callback.connect_callback()  # notify that the connection occured
         logging.debug("IRC Connected")
 
     def clientConnectionLost(self, connection, reason):
@@ -108,6 +109,7 @@ class IRCFactory(ClientFactory):
 
 
 ENCODING_INPUT = sys.stdin.encoding
+
 
 class IRCBackend(ErrBot):
     conn = None
@@ -136,10 +138,9 @@ pip install pyopenssl
                 """)
                 sys.exit(-1)
 
-
     def serve_forever(self):
         self.jid = self.nickname + '@localhost'
-        self.connect() # be sure we are "connected" before the first command
+        self.connect()  # be sure we are "connected" before the first command
         try:
             reactor.run()
         finally:
@@ -154,13 +155,14 @@ pip install pyopenssl
             self.conn = ircFactory.irc
             if self.ssl:
                 from twisted.internet import ssl
+
                 reactor.connectSSL(self.server, self.port, ircFactory, ssl.ClientContextFactory())
             else:
                 reactor.connectTCP(self.server, self.port, ircFactory)
         return self.conn
 
     def build_message(self, text):
-        return Message((self.build_text_html_message_pair(text)[0]).encode('ascii', 'replace')) # 0 = Only retain pure text
+        return Message((self.build_text_html_message_pair(text)[0]).encode('ascii', 'replace'))  # 0 = Only retain pure text
 
     def shutdown(self):
         super(IRCBackend, self).shutdown()

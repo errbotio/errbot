@@ -14,7 +14,6 @@ config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 config_module.BOT_EXTRA_PLUGIN_DIR = []
 config_module.BOT_LOG_LEVEL = logging.DEBUG
 
-
 from errbot.backends.base import Message
 from errbot.errBot import ErrBot
 
@@ -23,17 +22,21 @@ outgoing_message_queue = Queue()
 
 QUIT_MESSAGE = '$STOP$'
 
+
 class ConnectionMock():
     def send(self, mess):
         outgoing_message_queue.put(mess.getBody())
+
     def send_message(self, mess):
         self.send(mess)
+
 
 class TestBackend(ErrBot):
     conn = ConnectionMock()
 
     def serve_forever(self):
         import config
+
         self.jid = 'Err@localhost'  # whatever
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
@@ -44,12 +47,12 @@ class TestBackend(ErrBot):
                     logging.info("Stop magic message received, quitting...")
                     break
                 msg = Message(entry)
-                msg.setFrom(config.BOT_ADMINS[0]) # assume this is the admin talking
-                msg.setTo(self.jid) # To me only
+                msg.setFrom(config.BOT_ADMINS[0])  # assume this is the admin talking
+                msg.setTo(self.jid)  # To me only
                 self.callback_message(self.conn, msg)
-        except EOFError as eof:
+        except EOFError as _:
             pass
-        except KeyboardInterrupt as ki:
+        except KeyboardInterrupt as _:
             pass
         finally:
             logging.debug("Trigger disconnect callback")

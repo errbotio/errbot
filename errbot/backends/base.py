@@ -274,12 +274,10 @@ class Backend(object):
             usr = get_jid_from_message(mess)
             typ = mess.getType()
             if cmd in ACCESS_CONTROLS:
-                if 'allowusers' in ACCESS_CONTROLS[cmd]:
-                    if usr not in ACCESS_CONTROLS[cmd]['allowusers']:
+                if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
                         self.send_simple_reply(mess, "You're not allowed to access this command from this user")
                         return False
-                if 'denyusers' in ACCESS_CONTROLS[cmd]:
-                    if usr in ACCESS_CONTROLS[cmd]['denyusers']:
+                if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
                         self.send_simple_reply(mess, "You're not allowed to access this command from this user")
                         return False
                 if typ == 'groupchat':

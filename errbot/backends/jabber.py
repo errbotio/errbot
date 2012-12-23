@@ -39,6 +39,7 @@ from xmpp.simplexml import XML2Node
 from errbot.backends.base import Connection
 from errbot.errBot import ErrBot
 from errbot.utils import get_jid_from_message, parse_jid, xhtml2txt
+from config import CHATROOM_FN
 
 import time
 import logging
@@ -481,8 +482,14 @@ class JabberBot(ErrBot):
             self.log.debug("Message from history, ignore it")
             return False
 
-        # Ignore messages from myself
-        if self.jid.bareMatch(get_jid_from_message(mess)):
+        # Ignore messages from ourselves. Because it isn't always possible to get the
+        # real JID from a MUC participant (including ourself), matching the JID against
+        # ourselves isn't enough (see https://github.com/gbin/err/issues/90 for
+        # background discussion on this). Matching against CHATROOM_FN isn't technically
+        # correct in all cases because a MUC could give us another nickname, but it
+        # covers 99% of the MUC cases, so it should suffice for the time being.
+        if (self.jid.bareMatch(get_jid_from_message(mess)) or
+            mess.getType() == "groupchat" and mess.getFrom().getResource() == CHATROOM_FN):
             logging.debug('Ignore a message from myself')
             return False
 

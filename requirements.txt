@@ -4,6 +4,6 @@ setuptools
 python-daemon
 dnspython
 xmpppy
-yapsy==1.9.2
+yapsy
 configparser
 config

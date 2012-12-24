@@ -65,7 +65,7 @@ def activate_plugin_with_version_check(name, config):
         raise IncompatiblePluginException('The plugin %s asks for err with a minimal version of %s and err is %s' % (name, min_version, VERSION))
 
     if max_version and version2array(max_version) < current_version:
-        raise IncompatiblePluginException('The plugin %s asks for err with a maximal version of %s and err is %s' % (name, min_version, VERSION))
+        raise IncompatiblePluginException('The plugin %s asks for err with a maximal version of %s and err is %s' % (name, max_version, VERSION))
 
     try:
         if obj.get_configuration_template() is not None and config is not None:

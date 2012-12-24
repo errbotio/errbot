@@ -1,10 +1,10 @@
 import logging
 import os
 from threading import Timer, current_thread
-from config import BOT_DATA_DIR
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
 from errbot import holder
 from storage import StoreMixin
+
 
 class BotPluginBase(object, StoreMixin):
     """
@@ -17,6 +17,8 @@ class BotPluginBase(object, StoreMixin):
         """
             Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
         """
+        from config import BOT_DATA_DIR
+
         classname = self.__class__.__name__
         logging.debug('Init storage for %s' % classname)
         filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
@@ -43,28 +45,32 @@ class BotPluginBase(object, StoreMixin):
         self.is_activated = False
 
     def start_poller(self, interval, method, args=None, kwargs=None):
-        if not kwargs: kwargs = {}
-        if not args: args = []
+        if not kwargs:
+            kwargs = {}
+        if not args:
+            args = []
 
         logging.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (method.__name__, interval, str(args), str(kwargs)))
         #noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
             self.program_next_poll(interval, method, args, kwargs)
-        except Exception as e:
+        except Exception as _:
             logging.exception('failed')
 
     def stop_poller(self, method, args=None, kwargs=None):
-        if not kwargs: kwargs = {}
-        if not args: args = []
+        if not kwargs:
+            kwargs = {}
+        if not args:
+            args = []
         logging.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self, interval, method, args, kwargs):
         t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
-        self.current_timers.append(t) # save the timer to be able to kill it
+        self.current_timers.append(t)  # save the timer to be able to kill it
         t.setName('Poller thread for %s' % method.im_class.__name__)
-        t.setDaemon(True) # so it is not locking on exit
+        t.setDaemon(True)  # so it is not locking on exit
         t.start()
 
     def poller(self, interval, method, args, kwargs):
@@ -77,13 +83,12 @@ class BotPluginBase(object, StoreMixin):
             #noinspection PyBroadException
             try:
                 method(*args, **kwargs)
-            except Exception as e:
+            except Exception as _:
                 logging.exception('A poller crashed')
             self.program_next_poll(interval, method, args, kwargs)
 
 
 class BotPlugin(BotPluginBase):
-
     @property
     def min_err_version(self):
         """ If your plugin has a minimum version of err it needs to be on in order to run, please override accordingly this method.
@@ -118,7 +123,7 @@ class BotPlugin(BotPluginBase):
         In case of validation error it should raise a errbot.utils.ValidationException
 
         """
-        recurse_check_structure(self.get_configuration_template(), configuration) # default behavior
+        recurse_check_structure(self.get_configuration_template(), configuration)  # default behavior
 
     def configure(self, configuration):
         """ By default, it will just store the current configuation in the self.config field of your plugin
@@ -132,7 +137,6 @@ class BotPlugin(BotPluginBase):
             Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
         """
         super(BotPlugin, self).activate()
-
 
     def deactivate(self):
         """
@@ -184,8 +188,7 @@ class BotPlugin(BotPluginBase):
         if c:
             return c.send(xmppy_msg)
         logging.warning('Ignored a message as the bot is not connected yet')
-        return None # the bot is not connected yet
-
+        return None  # the bot is not connected yet
 
     def join_room(self, room, username=None, password=None):
         """

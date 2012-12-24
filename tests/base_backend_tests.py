@@ -2,6 +2,7 @@
 import unittest
 from errbot.backends.base import Identifier, Backend, Message
 
+
 class TestBase(unittest.TestCase):
     def test_identifier_parsing(self):
         id1 = Identifier(jid="gbin@gootz.net/toto")
@@ -13,7 +14,6 @@ class TestBase(unittest.TestCase):
         self.assertEqual(id2.getNode(), "gbin")
         self.assertEqual(id2.getDomain(), "gootz.net")
         self.assertIsNone(id2.getResource())
-
 
     def test_identifier_matching(self):
         id1 = Identifier(jid="gbin@gootz.net/toto")
@@ -38,6 +38,11 @@ class TestBase(unittest.TestCase):
         self.assertEqual(node.getChildren()[0].name, "body")
         self.assertEqual(node.getChildren()[0].data, [u'Message'])
 
+    def test_identifier_double_at_parsing(self):
+        id1 = Identifier(jid="gbin@titi.net@gootz.net/toto")
+        self.assertEqual(id1.getNode(), "gbin@titi.net")
+        self.assertEqual(id1.getDomain(), "gootz.net")
+        self.assertEqual(id1.getResource(), "toto")
 
     def test_buildreply(self):
         class DummyBackend(Backend):

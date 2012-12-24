@@ -1,6 +1,8 @@
 .. image:: http://gbin.github.com/err/images/err.png
     :align: right
 
+.. image:: https://secure.travis-ci.org/gbin/err.png
+
 Err - the pluggable chatbot
 ===========================
 

@@ -14,10 +14,11 @@ from errbot.utils import xhtml2hipchat, utf8, xhtml2txt
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
 
+
 class HipchatClient(Client):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
-        self.Namespace, self.DBG = 'jabber:client', DBG_CLIENT # DAAAAAAAAAAH -> see the CommonClient class, it introspects it descendents to determine that
+        self.Namespace, self.DBG = 'jabber:client', DBG_CLIENT  # DAAAAAAAAAAH -> see the CommonClient class, it introspects it descendents to determine that
         Client.__init__(self, *args, **kwargs)
 
     def send_api_message(self, room_id, fr, message, message_format='html'):
@@ -26,9 +27,8 @@ class HipchatClient(Client):
         req = Request(url=HIPCHAT_MESSAGE_URL + '?' + urlencode(base), data=urlencode(red_data))
         return json.load(urlopen(req))
 
-
     def send_message(self, mess):
-        if self.token and mess.name == 'message' and mess.getType() =='groupchat' and mess.getTag('html'):
+        if self.token and mess.name == 'message' and mess.getType() == 'groupchat' and mess.getTag('html'):
             logging.debug('Message intercepted for Hipchat API')
             content = u''.join((unicode(child) for child in mess.getTag('html').getTag('body').getChildren()))
             room_jid = mess.getTo()
@@ -49,20 +49,20 @@ class HipchatBot(JabberBot):
     def build_message(self, text):
         """Builds an xhtml message without attributes.
         If input is not valid xhtml-im fallback to normal."""
-        message = None # keeps the compiler happy
+        message = None  # keeps the compiler happy
         try:
             text = utf8(text)
-            XML2Node(text) # test if is it xml
+            XML2Node(text)  # test if is it xml
             # yes, ok epurate it for hipchat
             hipchat_html = xhtml2hipchat(text)
             try:
                 node = XML2Node(hipchat_html)
                 message = Message(body=xhtml2txt(text))
-                message.addChild(node = node)
+                message.addChild(node=node)
             except ExpatError as ee:
                 logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (hipchat_html, ee))
         except ExpatError as ee:
-            if text.strip(): # avoids keep alive pollution
+            if text.strip():  # avoids keep alive pollution
                 logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
             message = Message(body=text)
         return message
@@ -70,4 +70,3 @@ class HipchatBot(JabberBot):
     @property
     def mode(self):
         return 'hipchat'
-

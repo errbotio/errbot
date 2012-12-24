@@ -28,6 +28,7 @@ import errbot
 from errbot.backends.base import Connection, Message
 from errbot.errBot import ErrBot
 
+
 class CommandBox(QtGui.QPlainTextEdit, object):
     newCommand = QtCore.Signal(str)
 
@@ -46,7 +47,6 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         self.completer.setWidget(self)
         self.completer.activated.connect(self.onAutoComplete)
         self.autocompleteStart = None
-
 
     def onAutoComplete(self, text):
         #Select the text from autocompleteStart until the current cursor
@@ -67,26 +67,22 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             event.ignore()
             return
 
-        if self.autocompleteStart is not None and not event.text().isalnum() and not (
-            key == Qt.Key_Backspace and self.textCursor().position() > self.autocompleteStart):
+        if self.autocompleteStart is not None and not event.text().isalnum() and \
+                not (key == Qt.Key_Backspace and self.textCursor().position() > self.autocompleteStart):
             self.completer.popup().hide()
             self.autocompleteStart = None
-
 
         if key == Qt.Key_Space and ctrl:
             #Pop-up the autocompleteList
             rect = self.cursorRect(self.textCursor())
             rect.setSize(QtCore.QSize(100, 150))
             self.autocompleteStart = self.textCursor().position()
-            self.completer.complete(rect) #The popup is positioned in the next if block
+            self.completer.complete(rect)  # The popup is positioned in the next if block
 
         if self.autocompleteStart:
             prefix = self.toPlainText()
             cur = self.textCursor()
             cur.setPosition(self.autocompleteStart)
-            position = self.cursorRect(cur).bottomLeft() +\
-                       self.geometry().topLeft() + self.viewport().pos()
-            #self.completer.popup().move(position)
 
             self.completer.setCompletionPrefix(prefix)
             #Select the first one of the matches
@@ -110,7 +106,6 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super(CommandBox, self).keyPressEvent(*args, **kwargs)
 
 
-
 class ConnectionMock(Connection, QtCore.QObject):
     newAnswer = QtCore.Signal(str, bool)
 
@@ -122,9 +117,11 @@ class ConnectionMock(Connection, QtCore.QObject):
             content, is_html = mess_2_embeddablehtml(mess)
             self.newAnswer.emit(content, is_html)
 
+
 import re
 
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+
 
 def linkify(text):
     def replacewithlink(matchobj):
@@ -148,6 +145,9 @@ def htmlify(text, is_html, receiving):
     style = 'background-color : rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);' if receiving else 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
     return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (tag, style, text, tag)
 
+INIT_PAGE = """<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head>
+<body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain; margin:0;">"""
+
 
 class GraphicBackend(ErrBot):
     conn = ConnectionMock()
@@ -155,11 +155,10 @@ class GraphicBackend(ErrBot):
     def send_command(self, text):
         self.new_message(text, False)
         msg = Message(text)
-        msg.setFrom(config.BOT_ADMINS[0]) # assume this is the admin talking
-        msg.setTo(self.jid) # To me only
+        msg.setFrom(config.BOT_ADMINS[0])  # assume this is the admin talking
+        msg.setTo(self.jid)  # To me only
         self.callback_message(self.conn, msg)
         self.input.clear()
-
 
     def new_message(self, text, is_html, receiving=True):
         self.buffer += htmlify(text, is_html, receiving)
@@ -172,12 +171,12 @@ class GraphicBackend(ErrBot):
         txt, node = self.build_text_html_message_pair(text)
         msg = Message(txt, html=node) if node else Message(txt)
         msg.setFrom(self.jid)
-        return msg # rebuild a pure html snippet to include directly in the console html
+        return msg  # rebuild a pure html snippet to include directly in the console html
 
     def serve_forever(self):
         self.jid = 'Err@localhost'
-        self.connect() # be sure we are "connected" before the first command
-        self.connect_callback() # notify that the connection occured
+        self.connect()  # be sure we are "connected" before the first command
+        self.connect_callback()  # notify that the connection occured
 
         # create window and components
         app = QtGui.QApplication(sys.argv)
@@ -192,12 +191,7 @@ class GraphicBackend(ErrBot):
         self.output = QtWebKit.QWebView()
 
         # init webpage
-        self.buffer = """<html>
-                           <head>
-                                <link rel="stylesheet" type="text/css" href="%s/style/style.css" />
-                           </head>
-                           <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain; margin:0;">
-                           """ % (QUrl.fromLocalFile(BOT_DATA_DIR).toString(), QUrl.fromLocalFile(bg_path).toString())
+        self.buffer = INIT_PAGE % (BOT_DATA_DIR, bg_path)
         self.output.setHtml(self.buffer)
 
         # layout
@@ -229,7 +223,7 @@ class GraphicBackend(ErrBot):
         return self.conn
 
     def join_room(self, room, username=None, password=None):
-        pass # just ignore that
+        pass  # just ignore that
 
     def shutdown(self):
         super(GraphicBackend, self).shutdown()

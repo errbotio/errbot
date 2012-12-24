@@ -5,11 +5,21 @@ from pyexpat import ExpatError
 from xmpp.simplexml import XML2Node
 from errbot import botcmd
 import difflib
-from errbot.utils import get_sender_username, xhtml2txt
+from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, utf8, parse_jid
 from errbot.templating import tenv
 import traceback
-from errbot.utils import get_jid_from_message, utf8
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
+
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
+
+try:
+    from config import ACCESS_CONTROLS_DEFAULT
+except ImportError:
+    ACCESS_CONTROLS_DEFAULT = {}
+
+try:
+    from config import ACCESS_CONTROLS
+except ImportError:
+    ACCESS_CONTROLS = {}
 
 try:
     from config import BOT_ALT_PREFIXES
@@ -36,6 +46,7 @@ except ImportError:
 if BOT_ASYNC:
     from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
+
 class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends are identifying a person on their system
@@ -43,16 +54,7 @@ class Identifier(object):
 
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
-            if jid.find('@') != -1:
-                self.node, self.domain = jid.split('@')[0:2] # hack for IRC
-                if self.domain.find('/') != -1:
-                    self.domain, self.resource = self.domain.split('/')[0:2] # hack for IRC where you can have several slashes here
-                else:
-                    self.resource = None
-            else:
-                self.node = jid
-                self.resource = None
-                self.domain = None
+            self.node, self.domain, self.resource = parse_jid(jid)
         else:
             self.node = node
             self.domain = domain
@@ -135,6 +137,9 @@ class Message(object):
 
     def getTag(self, tag):
         return None
+
+    def __str__(self):
+        return self.body
 
 
 class Connection(object):
@@ -303,6 +308,8 @@ class Backend(object):
                     if template_name:
                         reply = tenv().get_template(template_name + '.html').render(**reply)
 
+                    # Reply should be all text at this point (See https://github.com/gbin/err/issues/96) 
+                    reply = str(reply)
                 except Exception, e:
                     logging.exception(u'An error happened while processing '\
                                       u'a message ("%s") from %s: %s"' %
@@ -313,33 +320,32 @@ class Backend(object):
                         reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
                     self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
 
-            # Check access controls
-            usr = get_jid_from_message(mess)
+            usr = str(get_jid_from_message(mess))
             typ = mess.getType()
-            if cmd in ACCESS_CONTROLS:
-                if 'allowusers' in ACCESS_CONTROLS[cmd]:
-                    if usr not in ACCESS_CONTROLS[cmd]['allowusers']:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from this user")
-                        return False
-                if 'denyusers' in ACCESS_CONTROLS[cmd]:
-                    if usr in ACCESS_CONTROLS[cmd]['denyusers']:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from this user")
-                        return False
-                if typ == 'groupchat':
-                    stripped = mess.getFrom().getStripped()
-                    if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from a chatroom")
-                        return False
-                    if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
-                            self.send_simple_reply(mess, "You're not allowed to access this command from this room")
-                            return False
-                    if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from this room")
-                        return False
-                else:
-                    if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
-                        self.send_simple_reply(mess, "You're not allowed to access this command via private message to me")
-                        return False
+            if cmd not in ACCESS_CONTROLS:
+                ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
+
+            if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
+                self.send_simple_reply(mess, "You're not allowed to access this command from this user")
+                return False
+            if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
+                self.send_simple_reply(mess, "You're not allowed to access this command from this user")
+                return False
+            if typ == 'groupchat':
+                stripped = mess.getFrom().getStripped()
+                if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
+                    self.send_simple_reply(mess, "You're not allowed to access this command from a chatroom")
+                    return False
+                if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
+                    self.send_simple_reply(mess, "You're not allowed to access this command from this room")
+                    return False
+                if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
+                    self.send_simple_reply(mess, "You're not allowed to access this command from this room")
+                    return False
+            else:
+                if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
+                    self.send_simple_reply(mess, "You're not allowed to access this command via private message to me")
+                    return False
 
             f = self.commands[cmd]
 
@@ -416,7 +422,7 @@ class Backend(object):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
                 name = getattr(value, '_err_command_name')
-                del(self.commands[name])
+                del (self.commands[name])
 
     def warn_admins(self, warning):
         for admin in BOT_ADMINS:
@@ -453,7 +459,7 @@ class Backend(object):
 
             usage = '\n'.join(sorted([
             BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
-                                '(undocumented)').strip().split('\n', 1)[0])
+                                            '(undocumented)').strip().split('\n', 1)[0])
             for (name, command) in self.commands.iteritems()\
             if name != 'help'\
             and not command._err_command_hidden

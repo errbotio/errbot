@@ -1,5 +1,9 @@
 import logging
 import sys
+import threading
+
+irc_message_lock = threading.Lock()
+import config
 
 try:
     from twisted.internet import protocol, reactor
@@ -18,9 +22,10 @@ except ImportError:
     """)
     sys.exit(-1)
 
-from errbot.backends.base import Message
+from errbot.backends.base import Message, Identifier
 from errbot.errBot import ErrBot
-from errbot.utils import utf8
+from errbot.utils import utf8, get_sender_username
+
 
 class IRCConnection(IRCClient, object):
     connected = False
@@ -28,17 +33,26 @@ class IRCConnection(IRCClient, object):
     def __init__(self, callback, nickname='err', password=None):
         self.nickname = nickname
         self.callback = callback
-        self.lineRate = 1 # ONE second ... it looks like it is a minimum for freenode.
         self.password = password
+        config_dict = config.__dict__
+        self.channel_rate = config_dict.get("IRC_CHANNEL_RATE", 1)
+        self.private_rate = config_dict.get("IRC_PRIVATE_RATE", 1)
 
     #### Connection
 
     def send_message(self, mess):
+        global irc_message_lock
         if self.connected:
             m = utf8(mess.getBody())
             if m[-1] != '\n':
-                m+='\n'
-            self.msg(mess.getTo().node, m)
+                m += '\n'
+            with irc_message_lock:
+                if mess.typ == 'chat' and mess.getTo().resource:  # if this is a response in private of a public message take the recipient in the resource instead of the incoming chatroom
+                    to = mess.getTo().resource
+                else:
+                    to = mess.getTo().node
+                self.lineRate = self.channel_rate if to.startswith('#') else self.private_rate
+                self.msg(to, m)
         else:
             logging.debug("Zapped message because the backend is not connected yet %s" % mess.getBody())
 
@@ -47,23 +61,30 @@ class IRCConnection(IRCClient, object):
         logging.debug('IRC line received : %s' % line)
         super(IRCConnection, self).lineReceived(line)
 
+    def extract_from_from_prefix(self, prefix):
+        """ Prefix are strings like 'gbin!~gbin@c-50-131-249-52.hsd1.ca.comcast.net'
+        """
+        return prefix.split('!')[0]
+
     def irc_PRIVMSG(self, prefix, params):
         fr, line = params
-        if fr == self.nickname: # it is a private message
-            fr = prefix.split('!')[0] # reextract the real from
+        if fr == self.nickname:  # it is a private message
+            from_identity = Identifier(node=self.extract_from_from_prefix(prefix))  # reextract the real from
             typ = 'chat'
         else:
+            from_identity = Identifier(node=fr, resource=self.extract_from_from_prefix(prefix))  # So we don't loose the original sender and the chatroom
             typ = 'groupchat'
         logging.debug('IRC message received from %s [%s]' % (fr, line))
-        msg = Message(line, typ=typ)
-        msg.setFrom(fr) # already a compatible format
-        self.callback.callback_message(self, msg)
 
+        msg = Message(unicode(line, errors='replace'), typ=typ)
+        msg.setFrom(from_identity)
+        msg.setTo(unicode(params[0], errors='replace'))
+        self.callback.callback_message(self, msg)
 
     def connectionMade(self):
         self.connected = True
         super(IRCConnection, self).connectionMade()
-        self.callback.connect_callback() # notify that the connection occured
+        self.callback.connect_callback()  # notify that the connection occured
         logging.debug("IRC Connected")
 
     def clientConnectionLost(self, connection, reason):
@@ -88,6 +109,7 @@ class IRCFactory(ClientFactory):
 
 
 ENCODING_INPUT = sys.stdin.encoding
+
 
 class IRCBackend(ErrBot):
     conn = None
@@ -116,10 +138,9 @@ pip install pyopenssl
                 """)
                 sys.exit(-1)
 
-
     def serve_forever(self):
         self.jid = self.nickname + '@localhost'
-        self.connect() # be sure we are "connected" before the first command
+        self.connect()  # be sure we are "connected" before the first command
         try:
             reactor.run()
         finally:
@@ -134,13 +155,14 @@ pip install pyopenssl
             self.conn = ircFactory.irc
             if self.ssl:
                 from twisted.internet import ssl
+
                 reactor.connectSSL(self.server, self.port, ircFactory, ssl.ClientContextFactory())
             else:
                 reactor.connectTCP(self.server, self.port, ircFactory)
         return self.conn
 
     def build_message(self, text):
-        return Message(self.build_text_html_message_pair(text)[0]) # 0 = Only retain pure text
+        return Message((self.build_text_html_message_pair(text)[0]).encode('ascii', 'replace'))  # 0 = Only retain pure text
 
     def shutdown(self):
         super(IRCBackend, self).shutdown()

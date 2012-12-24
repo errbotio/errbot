@@ -15,11 +15,11 @@ SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 
 # Base configuration (Jabber mode)
 BOT_IDENTITY = {
-    'username' : 'err@localhost', # JID of the user you have created for the bot
-    'password' : 'changeme' # password of the bot user
+    'username': 'err@localhost',  # JID of the user you have created for the bot
+    'password': 'changeme'  # password of the bot user
 }
 
-BOT_ASYNC = False # If true, the bot will handle the commands asynchronously [EXPERIMENTAL]
+BOT_ASYNC = False  # If true, the bot will handle the commands asynchronously [EXPERIMENTAL]
 
 # HIPCHAT template
 #BOT_IDENTITY = {
@@ -44,13 +44,17 @@ BOT_ASYNC = False # If true, the bot will handle the commands asynchronously [EX
 #    'ssl': False,  # optional
 #}
 
-BOT_ADMINS = ('gbin@localhost',) # only those JIDs will have access to admin commands
+# Extra optional parameters for IRC
+# IRC_CHANNEL_RATE = 1 # Rate limiter in seconds between 2 messages in a channel, put None for no limit
+# IRC_PRIVATE_RATE = 1 # Rate limiter in seconds between 2 private messages, put None for no limit
+
+BOT_ADMINS = ('gbin@localhost',)  # only those JIDs will have access to admin commands
 
 # CAMPFIRE it should be the full name
 # BOT_ADMINS = ('Guillaume Binet',) # only those JIDs will have access to admin commands
 
-BOT_DATA_DIR = '/var/lib/err' # Point this to a writeable directory by the system user running the bot
-BOT_EXTRA_PLUGIN_DIR = None # Add this directory to the plugin discovery (useful to develop a new plugin locally)
+BOT_DATA_DIR = '/var/lib/err'  # Point this to a writeable directory by the system user running the bot
+BOT_EXTRA_PLUGIN_DIR = None  # Add this directory to the plugin discovery (useful to develop a new plugin locally)
 
 # Prefix used for commands. Note that in help strings, you should still use the
 # default '!'. If the prefix is changed from the default, the help strings will
@@ -81,13 +85,16 @@ BOT_PREFIX = '!'
 #   denyrooms: Deny command in these rooms
 #   allowprivate: Allow command from direct messages to the bot
 #   allowmuc: Allow command inside rooms
+# Rules listed in ACCESS_CONTROLS_DEFAULT are applied when a command cannot 
+# be found inside ACCESS_CONTROLS
+#
 # Example:
+#ACCESS_CONTROLS_DEFAULT = {} # Allow everyone access by default
 #ACCESS_CONTROLS = {'status': {'allowrooms': ('someroom@conference.localhost',)},
 #                   'about': {'denyusers': ('baduser@localhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
 #                   'uptime': {'allowusers': BOT_ADMINS},
 #                   'help': {'allowmuc': False},
 #                  }
-ACCESS_CONTROLS = {}
 
 # ---- Chatrooms configuration (used by the chatroom plugin)
 # it is a standard python file so you can reuse variables...
@@ -121,4 +128,3 @@ CHATROOM_FN = 'bot'
 # An iterable of commands which should be responded to in private, even if the command was given
 # in a MUC. For example: DIVERT_TO_PRIVATE = ('help', 'about', 'status')
 DIVERT_TO_PRIVATE = ()
-

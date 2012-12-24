@@ -22,6 +22,11 @@ except ImportError:
     ACCESS_CONTROLS = {}
 
 try:
+    from config import BOT_PREFIX_OPTIONAL_ON_CHAT
+except ImportError:
+    BOT_PREFIX_OPTIONAL_ON_CHAT = False
+
+try:
     from config import BOT_ALT_PREFIXES
 except ImportError:
     BOT_ALT_PREFIXES = ()
@@ -239,6 +244,8 @@ class Backend(object):
         # txt will be None
         if not text: return False
 
+        surpress_cmd_not_found = False
+
         tomatch = text.lower() if BOT_ALT_PREFIX_CASEINSENSITIVE else text
         if len(BOT_ALT_PREFIXES) > 0 and tomatch.startswith(self.bot_alt_prefixes):
             # Yay! We were called by one of our alternate prefixes. Now we just have to find out
@@ -259,6 +266,12 @@ class Backend(object):
                 l = len(sep) 
                 if text[:l] == sep:
                     text = text[l:]
+        elif type == "chat" and BOT_PREFIX_OPTIONAL_ON_CHAT:
+            logging.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
+            # In order to keep noise down we surpress messages about the command
+            # not being found, because it's possible a plugin will trigger on what
+            # was said with trigger_message.
+            surpress_cmd_not_found = True
         elif not text.startswith(BOT_PREFIX):
             return True 
         else:
@@ -375,14 +388,15 @@ class Backend(object):
                 execute_and_send(f._err_command_template)
 
         else:
-            # In private chat, it's okay for the bot to always respond.
-            # In group chat, the bot should silently ignore commands it
-            # doesn't understand or aren't handled by unknown_command().
-            reply = self.unknown_command(mess, command, args)
-            if reply is None:
-                reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
-            if reply:
-                self.send_simple_reply(mess, reply)
+            logging.debug("Command not found")
+            if surpress_cmd_not_found:
+                logging.debug("Surpressing command not found feedback")
+            else:
+                reply = self.unknown_command(mess, command, args)
+                if reply is None:
+                    reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
+                if reply:
+                    self.send_simple_reply(mess, reply)
 
         return True
 

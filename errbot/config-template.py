@@ -61,6 +61,10 @@ BOT_EXTRA_PLUGIN_DIR = None  # Add this directory to the plugin discovery (usefu
 # be automatically adjusted.
 BOT_PREFIX = '!'
 
+# Uncomment the following and set it to True if you want the prefix to be optional for normal chat
+# (Meaning messages sent directly to the bot as opposed to within a MUC)
+#BOT_PREFIX_OPTIONAL_ON_CHAT = False
+
 # You might wish to have your bot respond by being called with certain names, rather
 # than the BOT_PREFIX above. This option allows you to specify alternative prefixes
 # the bot will respond to in addition to the prefix above.

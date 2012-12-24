@@ -76,9 +76,9 @@ class IRCConnection(IRCClient, object):
             typ = 'groupchat'
         logging.debug('IRC message received from %s [%s]' % (fr, line))
 
-        msg = Message(unicode(line, errors='replace'), typ=typ)
+        msg = Message(line, typ=typ)
         msg.setFrom(from_identity)
-        msg.setTo(unicode(params[0], errors='replace'))
+        msg.setTo(params[0])
         self.callback.callback_message(self, msg)
 
     def connectionMade(self):

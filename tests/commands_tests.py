@@ -128,7 +128,7 @@ class TestCommands(unittest.TestCase):
         self.assertIn('reload', popMessage())
 
         pushMessage('!repos export')  # should appear in the export
-        self.assertEqual("{'err-helloworld': 'git://github.com/gbin/err-helloworld.git'}", popMessage())
+        self.assertEqual("{'err-helloworld': u'git://github.com/gbin/err-helloworld.git'}", popMessage())
 
         pushMessage('!help hello')  # should appear in the help
         self.assertEqual("this command says hello", popMessage())

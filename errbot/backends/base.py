@@ -96,7 +96,11 @@ class Message(object):
     fr = Identifier('unknown@localhost')
 
     def __init__(self, body, typ='chat', html=None):
-        self.body = body
+        # it is either unicode or assume it is utf-8
+        if isinstance(body, unicode):
+            self.body = body
+        else:
+            self.body = body.decode('utf-8')
         self.html = html
         self.typ = typ
 
@@ -122,7 +126,7 @@ class Message(object):
         if isinstance(fr, Identifier):
             self.fr = fr
         else:
-            self.fr = Identifier(fr) #assume a parseable string
+            self.fr = Identifier(fr)  # assume a parseable string
 
     def getProperties(self):
         return {}
@@ -263,7 +267,7 @@ class Backend(object):
             for sep in BOT_ALT_PREFIX_SEPARATORS:
                 # While unlikely, one may have separators consisting of
                 # more than one character
-                l = len(sep) 
+                l = len(sep)
                 if text[:l] == sep:
                     text = text[l:]
         elif type == "chat" and BOT_PREFIX_OPTIONAL_ON_CHAT:
@@ -273,7 +277,7 @@ class Backend(object):
             # was said with trigger_message.
             surpress_cmd_not_found = True
         elif not text.startswith(BOT_PREFIX):
-            return True 
+            return True
         else:
             text = text[len(BOT_PREFIX):]
 
@@ -283,32 +287,32 @@ class Backend(object):
         args = ''
         if len(text_split) > 1:
             command = (text_split[0] + '_' + text_split[1]).lower()
-            if self.commands.has_key(command):
+            if command in self.commands:
                 cmd = command
                 args = ' '.join(text_split[2:])
 
         if not cmd:
             command = text_split[0].lower()
             args = ' '.join(text_split[1:])
-            if self.commands.has_key(command):
+            if command in self.commands:
                 cmd = command
                 if len(text_split) > 1:
                     args = ' '.join(text_split[1:])
 
-        if command == BOT_PREFIX: # we did "!!" so recall the last command
+        if command == BOT_PREFIX:  # we did "!!" so recall the last command
             if len(self.cmd_history):
                 cmd, args = self.cmd_history[-1]
             else:
-                return False # no command in history
-        elif command.isdigit(): # we did "!#" so we recall the specified command
+                return False  # no command in history
+        elif command.isdigit():  # we did "!#" so we recall the specified command
             index = int(command)
             if len(self.cmd_history) >= index:
                 cmd, args = self.cmd_history[-index]
             else:
-                return False # no command in history
+                return False  # no command in history
 
         if (cmd, args) in self.cmd_history:
-            self.cmd_history.remove((cmd, args)) # we readd it below
+            self.cmd_history.remove((cmd, args))  # we readd it below
 
         logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
@@ -321,10 +325,10 @@ class Backend(object):
                     if template_name:
                         reply = tenv().get_template(template_name + '.html').render(**reply)
 
-                    # Reply should be all text at this point (See https://github.com/gbin/err/issues/96) 
+                    # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
                     reply = unicode(reply)
                 except Exception, e:
-                    logging.exception(u'An error happened while processing '\
+                    logging.exception(u'An error happened while processing '
                                       u'a message ("%s") from %s: %s"' %
                                       (text, jid, traceback.format_exc(e)))
                     reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e

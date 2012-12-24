@@ -1,6 +1,40 @@
 Release history
 ===============
 
+Version 1.7.0 (2012-12-24)
+--------------------------
+
+Incompatible changes:
+
+For this one if your plugin uses PLUGIN_DIR, you will need to change it to self.plugin_dir as it is a runtime value now. 
+
+Bugs:
+
+- yapsy 1.10 compatibility 
+- better detection of self in MUC
+- force python 2 for shebang lines
+- Parses the real nick and the room and put it in the from identity of messages
+- fix for JID Instance has no attribute '__len__'
+- partial support for @ in JIDs nodes
+- when a plugin was reloaded, it was not connect notified
+
+
+Features:
+
+- botprefix is now optional on one on one chats
+- fine grained access control
+- better serialization to disk by default (protocol 2)
+- configurable separate rate limiting for IRC for public and private chats
+- added support for MUC with passwords
+- bot prefixes can be of any length
+- modular !help command (it lists the plugin list with no parameters instead of the full command list)
+
+
+Dev Improvements:
+
+- better unit tests
+- Travis CI
+
 Version 1.6.7 (2012-10-08)
 --------------------------
 

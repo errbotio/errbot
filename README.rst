@@ -86,7 +86,7 @@ Installation from the sources
 
 **Dependencies**
 
-Python 2.7+ but probably not 3.0
+Python 2.7.x
 And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better::
 
     pip install -r requirements.txt

@@ -9,7 +9,17 @@ from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, u
 from errbot.templating import tenv
 import traceback
 
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS_DEFAULT, ACCESS_CONTROLS
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
+
+try:
+    from config import ACCESS_CONTROLS_DEFAULT
+except ImportError:
+    ACCESS_CONTROLS_DEFAULT = {}
+
+try:
+    from config import ACCESS_CONTROLS
+except ImportError:
+    ACCESS_CONTROLS = {}
 
 try:
     from config import DIVERT_TO_PRIVATE

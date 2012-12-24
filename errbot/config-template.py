@@ -71,15 +71,14 @@ BOT_PREFIX = '!'
 #   allowmuc: Allow command inside rooms
 # Rules listed in ACCESS_CONTROLS_DEFAULT are applied when a command cannot 
 # be found inside ACCESS_CONTROLS
+#
 # Example:
-#ACCESS_CONTROLS_DEFAULT = {} 
+#ACCESS_CONTROLS_DEFAULT = {} # Allow everyone access by default
 #ACCESS_CONTROLS = {'status': {'allowrooms': ('someroom@conference.localhost',)},
 #                   'about': {'denyusers': ('baduser@localhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
 #                   'uptime': {'allowusers': BOT_ADMINS},
 #                   'help': {'allowmuc': False},
 #                  }
-ACCESS_CONTROLS_DEFAULT = {}
-ACCESS_CONTROLS = {}
 
 # ---- Chatrooms configuration (used by the chatroom plugin)
 # it is a standard python file so you can reuse variables...

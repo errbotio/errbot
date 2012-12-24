@@ -14,7 +14,7 @@ config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 config_module.BOT_EXTRA_PLUGIN_DIR = []
 config_module.BOT_LOG_LEVEL = logging.DEBUG
 
-from errbot.backends.base import Message
+from errbot.backends.base import Message, build_text_html_message_pair, build_message
 from errbot.errBot import ErrBot
 
 incoming_message_queue = Queue()
@@ -66,7 +66,7 @@ class TestBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        return Message(self.build_text_html_message_pair(text)[0])  # 0 = Only retain pure text
+        return build_message(text, Message)
 
     def shutdown(self):
         super(TestBackend, self).shutdown()

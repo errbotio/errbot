@@ -1,6 +1,6 @@
 import logging
 import sys
-from errbot.utils import mess_2_embeddablehtml
+from errbot.utils import mess_2_embeddablehtml, utf8
 
 try:
     from PySide import QtCore, QtGui, QtWebKit
@@ -25,7 +25,7 @@ import os
 import config
 from config import BOT_DATA_DIR, BOT_PREFIX
 import errbot
-from errbot.backends.base import Connection, Message
+from errbot.backends.base import Connection, Message, build_text_html_message_pair
 from errbot.errBot import ErrBot
 
 
@@ -168,7 +168,7 @@ class GraphicBackend(ErrBot):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
 
     def build_message(self, text):
-        txt, node = self.build_text_html_message_pair(text)
+        txt, node = build_text_html_message_pair(utf8(text))
         msg = Message(txt, html=node) if node else Message(txt)
         msg.setFrom(self.jid)
         return msg  # rebuild a pure html snippet to include directly in the console html

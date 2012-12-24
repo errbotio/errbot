@@ -11,11 +11,8 @@ except ImportError:
     """)
     sys.exit(-1)
 
-from pyexpat import ExpatError
-from xmpp.simplexml import XML2Node
-from errbot.backends.base import Message, Connection
+from errbot.backends.base import Message, Connection, build_message
 from errbot.errBot import ErrBot
-from errbot.utils import xhtml2txt, utf8
 from threading import Condition
 from config import CHATROOM_PRESENCE
 
@@ -24,10 +21,15 @@ class CampfireConnection(Connection, pyfire.Campfire):
     rooms = {}  # keep track of joined room so we can send messages directly to them
 
     def send_message(self, mess):
-        to_identity = mess.getTo()
-        room_name = to_identity.getDomain()  # we only reply to rooms in reality in campfire
-        room = self.rooms[room_name][0]
-        room.speak(mess.getBody())  # Basic text support for the moment
+        # we only reply to rooms in reality in campfire so we need to find one or a default one at least
+        room_name = mess.getTo().getDomain()
+        if not room_name:
+            room_name = mess.getFrom().getDomain()
+        if room_name in self.rooms:
+            room = self.rooms[room_name][0]
+            room.speak(mess.getBody())  # Basic text support for the moment
+        else:
+            logging.info("Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.getBody()))
 
     def join_room(self, name, msg_callback, error_callback):
         room = self.get_room_by_name(name)
@@ -71,7 +73,7 @@ class CampfireBackend(ErrBot):
             if not CHATROOM_PRESENCE:
                 raise Exception('Your bot needs to join at least one room, please set CHATROOM_PRESENCE in your config')
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = self.username + '@' + str(self.conn.get_room_by_name(CHATROOM_PRESENCE[0])) + '/' + self.username
+            self.jid = self.username + '@' + self.conn.get_room_by_name(CHATROOM_PRESENCE[0]).name  + '/' + self.username
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms
         return self.conn
@@ -103,16 +105,7 @@ class CampfireBackend(ErrBot):
         self.conn.join_room(room, self.msg_callback, self.error_callback)
 
     def build_message(self, text):
-        try:
-            node = XML2Node(utf8(text))
-            text_plain = xhtml2txt(text)
-            logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
-            message = Message(body=utf8(text_plain))
-        except ExpatError as ee:
-            if text.strip():  # avoids keep alive pollution
-                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
-            message = Message(body=utf8(text))
-        return message
+        return build_message(text, Message)
 
     def send_simple_reply(self, mess, text, private=False):
         """Total hack to avoid stripping of rooms"""

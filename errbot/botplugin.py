@@ -11,7 +11,13 @@ class BotPluginBase(object, StoreMixin):
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot
     """
-    is_activated = False
+
+    def __init__(self):
+        self.plugin_dir = holder.bot.plugin_dir
+        self.is_activated = False
+        self.current_pollers = []
+        self.current_timers = []
+        super(BotPluginBase, self).__init__()
 
     def activate(self):
         """
@@ -26,9 +32,6 @@ class BotPluginBase(object, StoreMixin):
         self.open_storage(filename)
         holder.bot.inject_commands_from(self)
         self.is_activated = True
-
-    current_pollers = []
-    current_timers = []
 
     def deactivate(self):
         """

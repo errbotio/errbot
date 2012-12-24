@@ -22,7 +22,7 @@ except ImportError:
     """)
     sys.exit(-1)
 
-from errbot.backends.base import Message, Identifier
+from errbot.backends.base import Message, Identifier, build_message
 from errbot.errBot import ErrBot
 from errbot.utils import utf8, get_sender_username
 
@@ -162,7 +162,7 @@ pip install pyopenssl
         return self.conn
 
     def build_message(self, text):
-        return Message(self.build_text_html_message_pair(text)[0])
+        return build_message(text, Message)
 
     def shutdown(self):
         super(IRCBackend, self).shutdown()

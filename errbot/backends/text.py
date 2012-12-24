@@ -1,11 +1,11 @@
 import logging
 import sys
 import config
-from errbot.backends.base import Message
+from errbot.backends.base import Message, build_message
 from errbot.errBot import ErrBot
 
 
-class ConnectionMock():
+class ConnectionMock(object):
     def send(self, mess):
         print mess.getBody()
 
@@ -46,7 +46,7 @@ class TextBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        return Message(self.build_text_html_message_pair(text)[0])  # 0 = Only retain pure text
+        return build_message(text, Message)
 
     def shutdown(self):
         super(TextBackend, self).shutdown()

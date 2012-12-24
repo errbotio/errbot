@@ -108,7 +108,7 @@ class Message(object):
         if isinstance(to, Identifier):
             self.to = to
         else:
-            self.to = Identifier(to) #assume a parseable string
+            self.to = Identifier(to)  # assume a parseable string
 
     def getTo(self):
         return self.to
@@ -147,6 +147,15 @@ class Message(object):
     def getTag(self, tag):
         return None
 
+    def addChild(self, name=None, attrs={}, payload=[], namespace=None, node=None):
+        """ If "node" argument is provided, adds it as child node. Else creates new node from
+            the other arguments' values and adds it as well."""
+        if node.name == 'html':
+            self.html = unicode(node)  # assume this is the html node you want to set
+        else:
+            raise TypeError('We only support the custom html node from XMPP')
+        return node
+
     def __str__(self):
         return self.body
 
@@ -154,6 +163,43 @@ class Message(object):
 class Connection(object):
     def send_message(self, mess):
         raise NotImplementedError("It should be implemented specifically for your backend")
+
+
+def build_text_html_message_pair(source):
+    node = None
+    text_plain = None
+
+    try:
+        node = XML2Node(source)
+        text_plain = xhtml2txt(source)
+    except ExpatError as ee:
+        if source.strip():  # avoids keep alive pollution
+            logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
+            text_plain = source
+    return text_plain, node
+
+def build_message(text, message_class, conversion_function=None):
+    """Builds an xhtml message without attributes.
+    If input is not valid xhtml-im fallback to normal."""
+    message = None  # keeps the compiler happy
+    try:
+        text = utf8(text)
+
+        text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
+
+        XML2Node(text)  # test if is it xml
+        edulcorated_html = conversion_function(text) if conversion_function else text
+        try:
+            text_plain, node = build_text_html_message_pair(edulcorated_html)
+            message = message_class(body=text_plain)
+            message.addChild(node=node)
+        except ExpatError as ee:
+            logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (edulcorated_html, ee))
+    except ExpatError as ee:
+        if text.strip():  # avoids keep alive pollution
+            logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
+        message = message_class(body=text)
+    return message
 
 
 class Backend(object):
@@ -177,25 +223,12 @@ class Backend(object):
         if BOT_ASYNC:
             self.thread_pool = ThreadPool(3)
             logging.debug('created the thread pool' + str(self.thread_pool))
-        self.commands = {} # the dynamically populated list of commands available on the bot
+        self.commands = {}  # the dynamically populated list of commands available on the bot
 
         if BOT_ALT_PREFIX_CASEINSENSITIVE:
             self.bot_alt_prefixes = tuple(prefix.lower() for prefix in BOT_ALT_PREFIXES)
         else:
             self.bot_alt_prefixes = BOT_ALT_PREFIXES
-
-    def build_text_html_message_pair(self, source):
-        node = None
-        text_plain = None
-
-        try:
-            node = XML2Node(utf8(source))
-            text_plain = xhtml2txt(source)
-        except ExpatError as ee:
-            if source.strip(): # avoids keep alive pollution
-                logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
-                text_plain = source
-        return text_plain, node
 
 
     def send_message(self, mess):

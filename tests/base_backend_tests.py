@@ -1,6 +1,6 @@
 # coding=utf-8
 import unittest
-from errbot.backends.base import Identifier, Backend, Message
+from errbot.backends.base import Identifier, Backend, Message, build_text_html_message_pair
 
 
 class TestBase(unittest.TestCase):
@@ -31,8 +31,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual(str(Identifier(jid="gbin@gootz.net")), "gbin@gootz.net")
 
     def test_xhtmlparsing_and_textify(self):
-        be = Backend()
-        text_plain, node = be.build_text_html_message_pair("<html><body>Message</body></html>")
+        text_plain, node = build_text_html_message_pair("<html><body>Message</body></html>")
         self.assertEqual(text_plain, "Message")
         self.assertEqual(node.name, "html")
         self.assertEqual(node.getChildren()[0].name, "body")

@@ -1,18 +1,32 @@
 import json
 import logging
 from urllib import urlencode
-from pyexpat import ExpatError
 from xmpp.client import DBG_CLIENT
-from xmpp.simplexml import XML2Node
 from xmpp.protocol import Message
 from errbot.backends.jabber import JabberBot
 from urllib2 import urlopen, Request
 from xmpp import Client
 from config import CHATROOM_FN
-from errbot.utils import xhtml2hipchat, utf8, xhtml2txt
-
+from errbot.backends.base import build_message
+from errbot.utils import utf8, REMOVE_EOL
+import re
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
+
+HIPCHAT_FORCE_PRE = re.compile(r'<body>', re.I)
+HIPCHAT_FORCE_SLASH_PRE = re.compile(r'</body>', re.I)
+HIPCHAT_EOLS = re.compile(r'</p>|</li>', re.I)
+HIPCHAT_BOLS = re.compile(r'<p [^>]+>|<li [^>]+>', re.I)
+
+
+def xhtml2hipchat(xhtml):
+    # Hipchat has a really limited html support
+    retarded_hipchat_html_plain = REMOVE_EOL.sub('', xhtml)  # Ignore formatting
+    retarded_hipchat_html_plain = HIPCHAT_EOLS.sub('<br/>', retarded_hipchat_html_plain)  # readd the \n where they probably fit best
+    retarded_hipchat_html_plain = HIPCHAT_BOLS.sub('', retarded_hipchat_html_plain)  # zap every tag left
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_PRE.sub('<body><pre>', retarded_hipchat_html_plain)  # fixor pre
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_SLASH_PRE.sub('</pre></body>', retarded_hipchat_html_plain)  # fixor /pre
+    return retarded_hipchat_html_plain
 
 
 class HipchatClient(Client):
@@ -47,25 +61,7 @@ class HipchatBot(JabberBot):
         return HipchatClient(self.jid.getDomain(), debug=[], token=self.api_token)
 
     def build_message(self, text):
-        """Builds an xhtml message without attributes.
-        If input is not valid xhtml-im fallback to normal."""
-        message = None  # keeps the compiler happy
-        try:
-            text = utf8(text)
-            XML2Node(text)  # test if is it xml
-            # yes, ok epurate it for hipchat
-            hipchat_html = xhtml2hipchat(text)
-            try:
-                node = XML2Node(hipchat_html)
-                message = Message(body=xhtml2txt(text))
-                message.addChild(node=node)
-            except ExpatError as ee:
-                logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (hipchat_html, ee))
-        except ExpatError as ee:
-            if text.strip():  # avoids keep alive pollution
-                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
-            message = Message(body=text)
-        return message
+        return build_message(text, Message, xhtml2hipchat)
 
     @property
     def mode(self):

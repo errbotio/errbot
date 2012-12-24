@@ -9,7 +9,7 @@ from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, u
 from errbot.templating import tenv
 import traceback
 
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, ACCESS_CONTROLS_DEFAULT, ACCESS_CONTROLS
 
 try:
     from config import DIVERT_TO_PRIVATE
@@ -270,31 +270,32 @@ class Backend(object):
                         reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
                     self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
 
-            # Check access controls
             usr = get_jid_from_message(mess)
             typ = mess.getType()
-            if cmd in ACCESS_CONTROLS:
-                if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from this user")
-                        return False
-                if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from this user")
-                        return False
-                if typ == 'groupchat':
-                    stripped = mess.getFrom().getStripped()
-                    if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from a chatroom")
-                        return False
-                    if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from this room")
-                        return False
-                    if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
-                        self.send_simple_reply(mess, "You're not allowed to access this command from this room")
-                        return False
-                else:
-                    if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
-                        self.send_simple_reply(mess, "You're not allowed to access this command via private message to me")
-                        return False
+            if cmd not in ACCESS_CONTROLS:
+                ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
+
+            if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
+                self.send_simple_reply(mess, "You're not allowed to access this command from this user")
+                return False
+            if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
+                self.send_simple_reply(mess, "You're not allowed to access this command from this user")
+                return False
+            if typ == 'groupchat':
+                stripped = mess.getFrom().getStripped()
+                if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
+                    self.send_simple_reply(mess, "You're not allowed to access this command from a chatroom")
+                    return False
+                if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
+                    self.send_simple_reply(mess, "You're not allowed to access this command from this room")
+                    return False
+                if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
+                    self.send_simple_reply(mess, "You're not allowed to access this command from this room")
+                    return False
+            else:
+                if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
+                    self.send_simple_reply(mess, "You're not allowed to access this command via private message to me")
+                    return False
 
             f = self.commands[cmd]
 

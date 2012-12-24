@@ -322,7 +322,7 @@ class Backend(object):
                         reply = tenv().get_template(template_name + '.html').render(**reply)
 
                     # Reply should be all text at this point (See https://github.com/gbin/err/issues/96) 
-                    reply = str(reply)
+                    reply = unicode(reply)
                 except Exception, e:
                     logging.exception(u'An error happened while processing '\
                                       u'a message ("%s") from %s: %s"' %

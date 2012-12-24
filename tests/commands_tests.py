@@ -160,3 +160,7 @@ class TestCommands(unittest.TestCase):
 
         pushMessage('!hello')  # should not respond
         self.assertIn('Command "hello" not found', popMessage())
+
+    def test_encoding_preservation(self):
+        pushMessage(u'!echo へようこそ')
+        self.assertEquals(u'へようこそ', popMessage())

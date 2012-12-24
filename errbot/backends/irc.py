@@ -162,7 +162,7 @@ pip install pyopenssl
         return self.conn
 
     def build_message(self, text):
-        return Message((self.build_text_html_message_pair(text)[0]).encode('ascii', 'replace'))  # 0 = Only retain pure text
+        return Message(self.build_text_html_message_pair(text)[0])
 
     def shutdown(self):
         super(IRCBackend, self).shutdown()

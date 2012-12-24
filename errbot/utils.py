@@ -98,7 +98,7 @@ def human_name_for_git_url(url):
 
 
 def tail(f, window=20):
-    return ''.join(f.readlines()[-window:])
+    return ''.join(f.readlines()[-window:]).decode('utf-8')
 
 
 def which(program):

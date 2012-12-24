@@ -212,6 +212,8 @@ class ErrBot(Backend, StoreMixin):
     #noinspection PyUnusedLocal
     @botcmd
     def echo(self, mess, args):
+        """ A simple echo command. Useful for encoding tests etc ...
+        """
         return args
 
     #noinspection PyUnusedLocal

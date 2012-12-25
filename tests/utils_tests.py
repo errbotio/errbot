@@ -5,8 +5,8 @@ from nose.tools import raises
 from xmpp import Message as XMPPMessage
 from errbot.utils import *
 from errbot.storage import StoreMixin
-from backends.base import build_message
-from backends.base import Message as BaseMessage
+from errbot.backends.base import build_message
+from errbot.backends.base import Message as BaseMessage
 
 
 class TestUtils(unittest.TestCase):

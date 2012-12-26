@@ -1,6 +1,14 @@
 Release history
 ===============
 
+Version 1.7.1 (2012-12-25)
+--------------------------
+
+Bugs:
+
+- unicode encoding on jabber 
+
+
 Version 1.7.0 (2012-12-24)
 --------------------------
 

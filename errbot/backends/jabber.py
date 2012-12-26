@@ -36,7 +36,7 @@ import xmpp
 from xmpp.client import DBG_CLIENT
 from xmpp.protocol import NS_CAPS, Iq, Message, NS_PUBSUB
 from xmpp.simplexml import XML2Node
-from errbot.backends.base import Connection
+from errbot.backends.base import Connection, build_message
 from errbot.errBot import ErrBot
 from errbot.utils import get_jid_from_message, parse_jid, xhtml2txt
 from config import CHATROOM_FN
@@ -329,20 +329,7 @@ class JabberBot(ErrBot):
         self.conn.send_message(iq)
 
     def build_message(self, text):
-        """Builds an xhtml message without attributes.
-        If input is not valid xhtml-im fallback to normal."""
-        try:
-            node = XML2Node(text)
-            # logging.debug('This message is XML : %s' % text)
-            text_plain = xhtml2txt(text)
-            logging.debug('Plain Text translation from XHTML-IM:\n%s' % text_plain)
-            message = Message(body=text_plain)
-            message.addChild(node=node)
-        except ExpatError as ee:
-            if text.strip():  # avoids keep alive pollution
-                logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
-            message = Message(body=text)
-        return message
+        return build_message(text, Message)
 
     def get_full_jids(self, jid):
         """Returns all full jids, which belong to a bare jid

@@ -90,7 +90,7 @@ class TestCommands(unittest.TestCase):
         pushMessage('!config Webserver')
         self.assertIn('Copy paste and adapt', popMessage())
 
-        pushMessage("!config Webserver {'EXTRA_FLASK_CONFIG': None, 'HOST': '127.0.3.4', 'PORT': 3141, 'WEBCHAT': False}")
+        pushMessage("!config Webserver {'EXTRA_FLASK_CONFIG': None, 'HOST': '127.0.3.4', 'PORT': 3141, 'WEBCHAT': False, 'SSL': None}")
         self.assertIn('Plugin configuration done.', popMessage())
 
         pushMessage('!config Webserver')

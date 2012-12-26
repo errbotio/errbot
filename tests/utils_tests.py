@@ -112,3 +112,44 @@ class TestUtils(unittest.TestCase):
         msg2 = build_message(txt, BaseMessage)
         self.assertEquals(msg2.getBody(), pure_expected_text)
         self.assertEquals(msg2.getHTML(), expected_clean_unicode)
+
+    def test_recurse_check_structure_valid(self):
+        sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        recurse_check_structure(sample, to_check)
+
+    @raises(ValidationException)
+    def test_recurse_check_structure_missingitem(self):
+        sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True)
+        recurse_check_structure(sample, to_check)
+
+    @raises(ValidationException)
+    def test_recurse_check_structure_extrasubitem(self):
+        sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar", 'Bar': "Foo"}, none=None, true=True, false=False)
+        recurse_check_structure(sample, to_check)
+
+    @raises(ValidationException)
+    def test_recurse_check_structure_missingsubitem(self):
+        sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={}, none=None, true=True, false=False)
+        recurse_check_structure(sample, to_check)
+
+    @raises(ValidationException)
+    def test_recurse_check_structure_wrongtype_1(self):
+        sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string=None, list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        recurse_check_structure(sample, to_check)
+
+    @raises(ValidationException)
+    def test_recurse_check_structure_wrongtype_2(self):
+        sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list={'foo': "Bar"}, dict={'foo': "Bar"}, none=None, true=True, false=False)
+        recurse_check_structure(sample, to_check)
+
+    @raises(ValidationException)
+    def test_recurse_check_structure_wrongtype_3(self):
+        sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list=["Foo", "Bar"], dict=["Foo", "Bar"], none=None, true=True, false=False)
+        recurse_check_structure(sample, to_check)

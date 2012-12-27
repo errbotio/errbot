@@ -11,9 +11,9 @@ class TestUtils(unittest.TestCase):
         self.assertEqual('1 hours and 13 minutes', format_timedelta(td))
 
     def test_drawbar(self):
-        self.assertEqual(drawbar(5, 10), u'[████████▒▒▒▒▒▒▒]')
-        self.assertEqual(drawbar(0, 10), u'[▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]')
-        self.assertEqual(drawbar(10, 10), u'[███████████████]')
+        self.assertEqual(drawbar(5, 10), '[████████▒▒▒▒▒▒▒]')
+        self.assertEqual(drawbar(0, 10), '[▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]')
+        self.assertEqual(drawbar(10, 10), '[███████████████]')
 
     def test_storage(self):
         class MyPersistentClass(StoreMixin):

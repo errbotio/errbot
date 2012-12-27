@@ -6,7 +6,7 @@ from errbot import holder
 from storage import StoreMixin
 
 
-class BotPluginBase(object, StoreMixin):
+class BotPluginBase(StoreMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot

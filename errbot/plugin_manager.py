@@ -23,7 +23,7 @@ class PluginConfigurationException(Exception):
 
 # adds the extra plugin dir from the setup for developpers convenience
 if BOT_EXTRA_PLUGIN_DIR:
-    if isinstance(BOT_EXTRA_PLUGIN_DIR, basestring):
+    if isinstance(BOT_EXTRA_PLUGIN_DIR, str):
         #noinspection PyTypeChecker
         BUILTINS.append(BOT_EXTRA_PLUGIN_DIR)
     else:
@@ -73,7 +73,7 @@ def activate_plugin_with_version_check(name, config):
             obj.check_configuration(config)
             logging.debug('Configuration for %s checked OK.' % name)
         obj.configure(config)  # even if it is None we pass it on
-    except Exception, e:
+    except Exception as e:
         logging.exception('Something is wrong with the configuration of the plugin %s' % name)
         obj.config = None
         raise PluginConfigurationException(str(e))

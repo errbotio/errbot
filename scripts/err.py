@@ -37,7 +37,7 @@ ON_WINDOWS = system() == 'Windows'
 import sys
 import argparse
 
-if not ON_WINDOWS:
+if not ON_WINDOWS and sys.version_info[0] < 3:
     import daemon
     from pwd import getpwnam
     from grp import getgrnam
@@ -71,7 +71,7 @@ def check_config(config_path, mode):
             config = __import__('config_' + mode)
             sys.modules['config'] = config
         except ImportError as ie:
-            if not ie.message.startswith('No module named'):
+            if not str(ie).startswith('No module named'):
                 logging.exception('Error while trying to load %s' % 'config_' + mode)
             import config
 
@@ -110,8 +110,8 @@ if __name__ == "__main__":
     config_path = args['config']
     # setup the environment to be able to import the config.py
     sys.path.insert(0, config_path)  # appends the current directory in order to find config.py
-    filtered_mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null'))
-    mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
+    filtered_mode = (mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if args[mname])
+    mode = next(filtered_mode) if filtered_mode else 'xmpp'  # default value
 
     check_config(config_path, mode)  # check if everything is ok before attempting to start
 

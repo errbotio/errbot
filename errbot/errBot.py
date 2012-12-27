@@ -22,9 +22,10 @@ import os
 
 import shutil
 import subprocess
+from imp import reload
 
 from tarfile import TarFile
-from urllib2 import urlopen
+from urllib.request import urlopen
 
 from errbot import botcmd
 from errbot.backends.base import Backend
@@ -40,7 +41,7 @@ from errbot.version import VERSION
 
 
 def get_class_that_defined_method(meth):
-    for cls in inspect.getmro(meth.im_class):
+    for cls in inspect.getmro(type(meth.__self__)):
         if meth.__name__ in cls.__dict__:
             return cls
     return None
@@ -125,12 +126,12 @@ class ErrBot(Backend, StoreMixin):
                 logging.exception("Crash in a callback_botmessage handler")
 
     def callback_message(self, conn, mess):
-
         if super(ErrBot, self).callback_message(conn, mess):
             # Act only in the backend tells us that this message is OK to broadcast
             for bot in get_all_active_plugin_objects():
                 #noinspection PyBroadException
                 try:
+                    logging.debug('Callback %s' % bot)
                     bot.callback_message(conn, mess)
                 except Exception as _:
                     logging.exception("Crash in a callback_message handler")
@@ -147,7 +148,7 @@ class ErrBot(Backend, StoreMixin):
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     logging.info('Activate plugin: %s' % pluginInfo.name)
                     activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
-            except Exception, e:
+            except Exception as e:
                 logging.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
         if errors:
@@ -159,6 +160,7 @@ class ErrBot(Backend, StoreMixin):
             if hasattr(bot, 'callback_connect'):
                 #noinspection PyBroadException
                 try:
+                    logging.debug('Callback %s' % bot)
                     bot.callback_connect()
                 except Exception as _:
                     logging.exception("callback_connect failed for %s" % bot)
@@ -276,7 +278,7 @@ class ErrBot(Backend, StoreMixin):
             if name not in get_all_plugin_names():
                 return "I don't know this %s plugin" % name
             activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
-        except Exception, e:
+        except Exception as e:
             logging.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)
         return "Plugin %s activated" % name
@@ -380,9 +382,9 @@ class ErrBot(Backend, StoreMixin):
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
         max_width = max([len(name) for name in all_names])
         return {'repos': [
-            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1]
-                if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
-            for repo_name in all_names]}
+        (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width), KNOWN_PUBLIC_REPOS[repo_name][1]
+        if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
+        for repo_name in all_names]}
 
     def get_doc(self, command):
         """Get command documentation
@@ -419,19 +421,19 @@ class ErrBot(Backend, StoreMixin):
             for clazz in sorted(clazz_commands):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
                 usage += '\n'.join(sorted([
-                    '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
-                    (self.get_doc(command).strip()).split('\n', 1)[0])
-                    for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
+                '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
+                                                 (self.get_doc(command).strip()).split('\n', 1)[0])
+                for (name, command) in clazz_commands[clazz] if name != 'help' and not command._err_command_hidden
                 ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self.get_command_classes()):
             # filter out the commands related to this class
-            commands = [(name, command) for (name, command) in self.commands.iteritems() if get_class_that_defined_method(command).__name__ == args]
+            commands = [(name, command) for (name, command) in self.commands.items() if get_class_that_defined_method(command).__name__ == args]
             description = 'Available commands for %s:\n\n' % args
             usage += '\n'.join(sorted([
-                '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
-                (self.get_doc(command).strip()).split('\n', 1)[0])
-                for (name, command) in commands if not command._err_command_hidden
+            '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
+                                             (self.get_doc(command).strip()).split('\n', 1)[0])
+            for (name, command) in commands if not command._err_command_hidden
             ]))
         else:
             return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))
@@ -472,7 +474,7 @@ class ErrBot(Backend, StoreMixin):
         description = 'Available commands:\n'
 
         clazz_commands = {}
-        for (name, command) in self.commands.iteritems():
+        for (name, command) in self.commands.items():
             clazz = get_class_that_defined_method(command)
             commands = clazz_commands.get(clazz, [])
             commands.append((name, command))
@@ -481,9 +483,9 @@ class ErrBot(Backend, StoreMixin):
         usage = ''
         for clazz in sorted(clazz_commands):
             usage += '\n'.join(sorted([
-                '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or '(undocumented)').strip().split('\n', 1)[0])
-                for (name, command) in clazz_commands[clazz] if
-                args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower().decode('utf-8', 'ignore') and name != 'help' and not command._err_command_hidden
+            '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1), (command.__doc__ or '(undocumented)').strip().split('\n', 1)[0])
+            for (name, command) in clazz_commands[clazz] if
+            args is not None and command.__doc__ is not None and args.lower() in command.__doc__.lower() and name != 'help' and not command._err_command_hidden
             ]))
         usage += '\n\n'
 
@@ -593,7 +595,7 @@ class ErrBot(Backend, StoreMixin):
         self.deactivate_plugin(plugin_name)
         try:
             self.activate_plugin(plugin_name)
-        except PluginConfigurationException, ce:
+        except PluginConfigurationException as ce:
             logging.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
             self.set_plugin_configuration(plugin_name, None)
             return 'Incorrect plugin configuration: %s' % ce

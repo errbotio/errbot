@@ -126,7 +126,7 @@ urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 def linkify(text):
     def replacewithlink(matchobj):
         url = matchobj.group(0)
-        text = unicode(url)
+        text = chr(url)
 
         imglink = ''
         for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
@@ -168,7 +168,7 @@ class GraphicBackend(ErrBot):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
 
     def build_message(self, text):
-        txt, node = build_text_html_message_pair(utf8(text))
+        txt, node = build_text_html_message_pair(text)
         msg = Message(txt, html=node) if node else Message(txt)
         msg.setFrom(self.jid)
         return msg  # rebuild a pure html snippet to include directly in the console html

@@ -20,7 +20,7 @@ def main(bot_class, logger):
     if BOT_LOG_SENTRY:
         try:
             from raven.handlers.logging import SentryHandler
-        except ImportError, e:
+        except ImportError as _:
             logging.exception("""You have BOT_LOG_SENTRY enabled, but I couldn't import modules needed for Sentry integration.
             Did you install raven? (See http://raven.readthedocs.org/en/latest/install/index.html for installation instructions)
 
@@ -40,7 +40,7 @@ def main(bot_class, logger):
     # make the plugins subdir to store the plugin shelves
     d = BOT_DATA_DIR + sep + PLUGINS_SUBDIR
     if not path.exists(d):
-        makedirs(d, mode=0755)
+        makedirs(d, mode=0o755)
 
     holder.bot = bot_class(**BOT_IDENTITY)
     errors = holder.bot.update_dynamic_plugins()

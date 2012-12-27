@@ -1,14 +1,13 @@
 from collections import deque
 import inspect
 import logging
-from pyexpat import ExpatError
 from xml.etree import cElementTree as ET
+from xml.etree.cElementTree import ParseError
 from errbot import botcmd
 import difflib
 from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, utf8, parse_jid
 from errbot.templating import tenv
 import traceback
-from xml.dom import minidom
 
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
 
@@ -90,7 +89,7 @@ class Identifier(object):
         return answer
 
     def __unicode__(self):
-        return unicode(self.__str__())
+        return str(self.__str__())
 
 
 class Message(object):
@@ -98,7 +97,7 @@ class Message(object):
 
     def __init__(self, body, typ='chat', html=None):
         # it is either unicode or assume it is utf-8
-        if isinstance(body, unicode):
+        if isinstance(body, str):
             self.body = body
         else:
             self.body = body.decode('utf-8')
@@ -169,7 +168,7 @@ def build_text_html_message_pair(source):
     try:
         node = ET.XML(source)
         text_plain = xhtml2txt(source)
-    except ExpatError as ee:
+    except ParseError as ee:
         if source.strip():  # avoids keep alive pollution
             logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
             text_plain = source
@@ -180,7 +179,7 @@ def build_message(text, message_class, conversion_function=None):
     If input is not valid xhtml-im fallback to normal."""
     message = None  # keeps the compiler happy
     try:
-        text = utf8(text)
+        text = text
 
         text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
 
@@ -356,10 +355,10 @@ class Backend(object):
                         reply = tenv().get_template(template_name + '.html').render(**reply)
 
                     # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
-                    reply = unicode(reply)
-                except Exception, e:
-                    logging.exception(u'An error happened while processing '
-                                      u'a message ("%s") from %s: %s"' %
+                    reply = str(reply)
+                except Exception as e:
+                    logging.exception('An error happened while processing '
+                                      'a message ("%s") from %s: %s"' %
                                       (text, jid, traceback.format_exc(e)))
                     reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
                 if reply:
@@ -367,7 +366,7 @@ class Backend(object):
                         reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
                     self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
 
-            usr = unicode(get_jid_from_message(mess))
+            usr = str(get_jid_from_message(mess))
             typ = mess.getType()
             if cmd not in ACCESS_CONTROLS:
                 ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
@@ -529,7 +528,7 @@ class Backend(object):
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
         mess = self.build_message(text)
-        if isinstance(user, basestring):
+        if isinstance(user, str):
             mess.setTo(user)
         else:
             mess.setTo(user.getStripped())

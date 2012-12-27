@@ -23,34 +23,15 @@ def get_sender_username(mess):
 
 def get_jid_from_message(mess):
     if mess.getType() == 'chat':
+        # strip the resource for direct chats
         return str(mess.getFrom().getStripped())
-        # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
-    jid = mess.getTagAttr('delay', 'from_jid')
-    if jid:
-        logging.debug('found the jid from the delay tag : %s' % jid)
-        return jid
-    jid = mess.getTagData('sender')
-    if jid:
-        logging.debug('found the jid from the sender tag : %s' % jid)
-        return jid
-    x = mess.getTag('x')
-    if x:
-        jid = x.getTagData('sender')
 
-    if jid:
-        logging.debug('found the jid from the x/sender tag : %s' % jid)
-        return jid
+    # this is a hack for hipchat as it doesn't support private reply in MUC
+    
 
-    # If the message is from MUC, return response to MUC
-    if mess.getType() == 'groupchat':
-        jid = mess.getFrom()
-        logging.debug('Message from MUC. Replying to: %s' % jid)
-        return jid
-
-    splitted = str(mess.getFrom()).split('/')
-    jid = splitted[1] if len(splitted) > 1 else splitted[0]  # despair
-
-    logging.debug('deduced the jid from the chatroom to %s' % jid)
+    # this is a standard private XMPP reply in MUC
+    jid = str(mess.getFrom()) + '/' + mess.getMuckNick()
+    logging.debug('Message from MUC. Replying to: %s' % jid)
     return jid
 
 

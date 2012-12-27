@@ -31,8 +31,8 @@ bot's operation completely. MUCs are also supported.
 import os
 from pyexpat import ExpatError
 import select
-from xmpp import Client, NS_DELAY, JID, dispatcher, simplexml, Protocol, Node
 import xmpp
+from xmpp import Client, NS_DELAY, JID, dispatcher, simplexml, Protocol, Node
 from xmpp.client import DBG_CLIENT
 from xmpp.protocol import NS_CAPS, Iq, Message, NS_PUBSUB
 from xmpp.simplexml import XML2Node

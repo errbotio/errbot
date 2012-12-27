@@ -68,11 +68,6 @@ class XMPPBackend(ErrBot):
     def incoming_message(self, xmppmsg):
 
         msg = Message(xmppmsg['body'])
-        try:
-            xmppmsg['sender'].get_jid()
-        except Exception as e:
-            logging.exception('cannot find the sender')
-
         msg.setFrom(xmppmsg['from'].bare)
         msg.setTo(xmppmsg['to'].bare)
         msg.setType(xmppmsg['type'])

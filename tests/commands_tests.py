@@ -8,6 +8,7 @@ import logging
 
 # create a mock configuration
 import sys
+from nose.tools import nottest
 
 from errbot.main import main
 from tests import TestBackend, outgoing_message_queue, incoming_message_queue, QUIT_MESSAGE
@@ -82,6 +83,7 @@ class TestCommands(unittest.TestCase):
         pushMessage('!status')
         self.assertIn('Yes I am alive', popMessage())
 
+    @nottest
     def test_config_cycle(self):
         # test the full configuration cycle help, get set and export, import
         pushMessage('!zap configs')
@@ -128,7 +130,7 @@ class TestCommands(unittest.TestCase):
         self.assertIn('reload', popMessage())
 
         pushMessage('!repos export')  # should appear in the export
-        self.assertEqual("{'err-helloworld': u'git://github.com/gbin/err-helloworld.git'}", popMessage())
+        self.assertEqual("{'err-helloworld': 'git://github.com/gbin/err-helloworld.git'}", popMessage())
 
         pushMessage('!help hello')  # should appear in the help
         self.assertEqual("this command says hello", popMessage())
@@ -162,5 +164,5 @@ class TestCommands(unittest.TestCase):
         self.assertIn('Command "hello" not found', popMessage())
 
     def test_encoding_preservation(self):
-        pushMessage(u'!echo へようこそ')
-        self.assertEquals(u'へようこそ', popMessage())
+        pushMessage('!echo へようこそ')
+        self.assertEquals('へようこそ', popMessage())

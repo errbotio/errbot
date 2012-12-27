@@ -31,10 +31,10 @@ class TestBase(unittest.TestCase):
         self.assertEqual(str(Identifier(jid="gbin@gootz.net")), "gbin@gootz.net")
 
     def test_identifier_unicode_rep(self):
-        self.assertEqual(unicode(Identifier(jid=u"gbin@gootz.net/へようこそ")), u"gbin@gootz.net/へようこそ")
+        self.assertEqual(str(Identifier(jid="gbin@gootz.net/へようこそ")), "gbin@gootz.net/へようこそ")
 
     def test_xhtmlparsing_and_textify(self):
-        text_plain, node = build_text_html_message_pair(u"<html><body>Message</body></html>")
+        text_plain, node = build_text_html_message_pair("<html><body>Message</body></html>")
         self.assertEqual(text_plain, "Message")
         self.assertEqual(node.tag, "html")
         self.assertEqual(node.getchildren()[0].tag, "body")

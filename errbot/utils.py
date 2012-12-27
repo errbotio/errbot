@@ -3,7 +3,7 @@ import logging
 import inspect
 import os
 import re
-import htmlentitydefs
+from html import entities
 
 PLUGINS_SUBDIR = 'plugins'
 
@@ -25,9 +25,6 @@ def get_jid_from_message(mess):
     if mess.getType() == 'chat':
         # strip the resource for direct chats
         return str(mess.getFrom().getStripped())
-
-    # this is a hack for hipchat as it doesn't support private reply in MUC
-    
 
     # this is a standard private XMPP reply in MUC
     jid = str(mess.getFrom()) + '/' + mess.getMuckNick()
@@ -57,7 +54,7 @@ def drawbar(value, max):
         value_in_chr = int(round((value * BAR_WIDTH / max)))
     else:
         value_in_chr = 0
-    return u'[' + u'█' * value_in_chr + u'▒' * int(round(BAR_WIDTH - value_in_chr)) + u']'
+    return '[' + '█' * value_in_chr + '▒' * int(round(BAR_WIDTH - value_in_chr)) + ']'
 
 
 # Introspect to know from which plugin a command is implemented
@@ -79,7 +76,7 @@ def human_name_for_git_url(url):
 
 
 def tail(f, window=20):
-    return ''.join(f.readlines()[-window:]).decode('utf-8')
+    return ''.join(f.readlines()[-window:])
 
 
 def which(program):
@@ -151,15 +148,15 @@ def unescape_xml(text):
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
+                    return chr(int(text[3:-1], 16))
                 else:
-                    return unichr(int(text[2:-1]))
+                    return chr(int(text[2:-1]))
             except ValueError:
                 pass
         else:
             # named entity
             try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text = chr(entities.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text  # leave as is
@@ -180,7 +177,7 @@ def xhtml2txt(xhtml):
 
 
 def utf8(key):
-    if type(key) == unicode:
+    if type(key) == str:
         return key.encode('utf-8')
     return key
 
@@ -193,7 +190,7 @@ def mess_2_embeddablehtml(mess):
 
     if html_content:
         body = html_content.getTag('body')
-        return ''.join([unicode(kid) for kid in body.kids]) + body.getData(), True
+        return ''.join([str(kid) for kid in body.kids]) + body.getData(), True
     else:
         return mess.getBody(), False
 

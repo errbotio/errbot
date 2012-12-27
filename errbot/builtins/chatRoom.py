@@ -1,5 +1,4 @@
 import logging
-import xmpp
 from errbot import BotPlugin
 from errbot.utils import get_jid_from_message
 from errbot.version import VERSION
@@ -20,8 +19,8 @@ class ChatRoom(BotPlugin):
         if not self.connected:
             self.connected = True
             for room in CHATROOM_PRESENCE:
-                logging.info('Join room ' + unicode(room))
-                if isinstance(room, basestring):
+                logging.info('Join room ' + room)
+                if isinstance(room, str):
                     self.join_room(room, CHATROOM_FN)
                 else:
                     self.join_room(room[0], password=room[1])

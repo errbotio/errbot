@@ -113,7 +113,12 @@ class ValidationException(Exception):
 def recurse_check_structure(sample, to_check):
     sample_type = type(sample)
     to_check_type = type(to_check)
-    if sample_type != to_check_type:
+
+    # Skip this check if the sample is None because it will always be something
+    # other than NoneType when changed from the default. Raising ValidationException
+    # would make no sense then because it would defeat the whole purpose of having
+    # that key in the sample when it could only ever be None.
+    if sample is not None and sample_type != to_check_type:
         raise ValidationException('%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check_type, to_check_type))
 
     if sample_type in (list, tuple):

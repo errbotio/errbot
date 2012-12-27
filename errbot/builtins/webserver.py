@@ -11,12 +11,14 @@ from werkzeug.wsgi import SharedDataMiddleware
 from errbot import holder
 from errbot import botcmd
 from errbot import BotPlugin
-from errbot.utils import mess_2_embeddablehtml
+from errbot.utils import mess_2_embeddablehtml, recurse_check_structure, ValidationException
 from errbot.version import VERSION
 from errbot.plugin_manager import get_all_active_plugin_objects
 from errbot.bundled.exrex import generate
 from errbot.builtins.wsview import WebView
 from wsview import OK, webhook
+
+from types import *
 
 TEST_REPORT = """*** Test Report
 Found the matching rule : %s
@@ -33,12 +35,23 @@ class Webserver(BotPlugin):
     webserver_thread = None
     server = None
     webchat_mode = False
+    ssl_context = None
+
+    def _tuple_to_ssl_context(self, tuple_):
+        """Turn a (certificate, key) tuple into an SSL context for werkzeug"""
+        assert len(tuple_) == 2
+        from OpenSSL import SSL
+        context = SSL.Context(SSL.SSLv23_METHOD)
+        context.use_privatekey_file(tuple_[1])
+        context.use_certificate_file(tuple_[0])
+        return context
 
     def run_webserver(self):
         #noinspection PyBroadException
         try:
             host = self.config['HOST']
             port = self.config['PORT']
+            ssl_context = self.ssl_context
             logging.info('Starting the webserver on %s:%i' % (host, port))
             if self.webchat_mode:
                 # EVERYTHING NEEDS TO BE IN THE SAME THREAD OTHERWISE Socket.IO barfs
@@ -91,7 +104,7 @@ class Webserver(BotPlugin):
 
                 self.server = SocketIOServer((host, port), encapsulating_middleware, namespace="socket.io", policy_server=False)
             else:
-                self.server = ThreadedWSGIServer(host, port, holder.flask_app)
+                self.server = ThreadedWSGIServer(host, port, holder.flask_app, ssl_context=ssl_context)
             self.server.serve_forever()
             logging.debug('Webserver stopped')
         except KeyboardInterrupt as _:
@@ -108,7 +121,19 @@ class Webserver(BotPlugin):
             logging.exception('The webserver exploded.')
 
     def get_configuration_template(self):
-        return {'HOST': '0.0.0.0', 'PORT': 3141, 'EXTRA_FLASK_CONFIG': None, 'WEBCHAT': False}
+        return {'HOST': '0.0.0.0', 'PORT': 3141, 'EXTRA_FLASK_CONFIG': None, 'WEBCHAT': False, 'SSL': None}
+
+    def check_configuration(self, configuration):
+        super(Webserver, self).check_configuration(configuration)
+
+        ssl = configuration['SSL']
+        ssl_type = type(ssl)
+        ssl_error_message = "SSL must be None, a Tuple ('/path/to/certificate', '/path/to/key') or the string \"adhoc\""
+        if ssl_type not in (NoneType, TupleType, StringType):
+            raise ValidationException(ssl_error_message)
+        if ssl is not None and (ssl_type == StringType and ssl != "adhoc" or
+                                ssl_type == TupleType and len(ssl) != 2):
+            raise ValidationException(ssl_error_message)
 
     def activate(self):
         if not self.config:
@@ -116,8 +141,30 @@ class Webserver(BotPlugin):
             return
         if self.config['EXTRA_FLASK_CONFIG']:
             holder.flask_app.config.update(self.config['EXTRA_FLASK_CONFIG'])
-
+        if self.config['WEBCHAT'] and self.config['SSL'] is not None:
+            self.warn_admins("(Webserver) SSL is ignored when WEBCHAT = True")
         self.webchat_mode = self.config['WEBCHAT']
+
+        ssl = self.config['SSL']
+        if ssl is not None:
+            if type(ssl) == StringType:
+                # check_configuration will have made sure it contains a valid string
+                # so we can assign this directly
+                self.ssl_context = ssl
+            # Assume check_configuration did it's job, so it can only be a tuple if not a string
+            else:
+                # Werkzeug docs say a tuple with (cert, key) is directly supported by ssl_context
+                # but I found this to not be true. These docs were for 0.9-dev while I had 0.8.3
+                # at the time of this writing, so maybe that is new with 0.9.
+                # I couldn't find docs specific to 0.8 to verify though, but regardless, we'll have
+                # to do it the manual way.
+                try:
+                    self.ssl_context = self._tuple_to_ssl_context(ssl)
+                except ImportError:
+                    logging.error("Couldn't import from OpenSSL, aborting Webserver activation")
+                    self.warn_admins("You need to have Python bindings for OpenSSL installed "
+                                     "in order to use SSL-enabled webhooks. Aborting!")
+                    return
 
         if self.webserver_thread:
             raise Exception('Invalid state, you should not have a webserver already running.')

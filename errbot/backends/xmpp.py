@@ -7,7 +7,7 @@ from errbot.errBot import ErrBot
 class XMPPConnection(Connection):
     def __init__(self, jid, password):
         self.connected = False
-        self.client = ClientXMPP(jid, password)
+        self.client = ClientXMPP(jid, password, plugin_config={'feature_mechanisms': {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
         self.client.register_plugin('xep_0199')  # XMPP Ping
@@ -66,7 +66,6 @@ class XMPPBackend(ErrBot):
         return XMPPConnection(self.jid, self.password)
 
     def incoming_message(self, xmppmsg):
-
         msg = Message(xmppmsg['body'])
         msg.setFrom(xmppmsg['from'].bare)
         msg.setTo(xmppmsg['to'].bare)

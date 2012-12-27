@@ -110,8 +110,8 @@ if __name__ == "__main__":
     config_path = args['config']
     # setup the environment to be able to import the config.py
     sys.path.insert(0, config_path)  # appends the current directory in order to find config.py
-    filtered_mode = (mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if args[mname])
-    mode = next(filtered_mode) if filtered_mode else 'xmpp'  # default value
+    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if args[mname]]
+    mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
     check_config(config_path, mode)  # check if everything is ok before attempting to start
 

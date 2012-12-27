@@ -49,7 +49,9 @@ if not ON_WINDOWS:
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
+logging.getLogger('yapsy').setLevel(logging.INFO) # this one is way too verbose in debug
 logger.setLevel(logging.INFO)
+
 
 
 def check_config(config_path, mode):
@@ -115,37 +117,33 @@ if __name__ == "__main__":
 
     def text():
         from errbot.backends.text import TextBackend
-
         return TextBackend
 
     def graphic():
         from errbot.backends.graphic import GraphicBackend
-
         return GraphicBackend
 
     def campfire():
         from errbot.backends.campfire import CampfireBackend
-
         return CampfireBackend
 
     def hipchat():
-        from errbot.backends.hipchat import HipchatBot
-
-        return HipchatBot
+        #from errbot.backends.jabber import JabberBot
+        #return JabberBot
+        from errbot.backends.hipchat import HipchatBackend
+        return HipchatBackend
 
     def irc():
         from errbot.backends.irc import IRCBackend
-
         return IRCBackend
 
     def xmpp():
-        from errbot.backends.jabber import JabberBot
+        from errbot.backends.xmpp import XMPPBackend
+        return XMPPBackend
 
-        return JabberBot
 
     def null():
         from errbot.backends.null import NullBackend
-
         return NullBackend
 
     bot_class = locals()[mode]()

@@ -15,16 +15,6 @@ class ChatRoom(BotPlugin):
 
     connected = False
 
-    def keep_alive(self):
-        # logging.debug('Keep alive sent')
-        if self.connected:
-            self.bare_send(xmpp.Presence())
-
-    def activate(self):
-        super(ChatRoom, self).activate()
-        if bot.mode in ('hipchat', 'jabber'):
-            self.start_poller(10.0, self.keep_alive)
-
     def callback_connect(self):
         logging.info('Callback_connect')
         if not self.connected:

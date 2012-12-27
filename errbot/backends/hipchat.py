@@ -1,15 +1,18 @@
 import json
 import logging
 from urllib import urlencode
-from xmpp.client import DBG_CLIENT
-from xmpp.protocol import Message
-from errbot.backends.jabber import JabberBot
+
 from urllib2 import urlopen, Request
-from xmpp import Client
 from config import CHATROOM_FN
+from errbot.backends.xmpp import XMPPBackend, XMPPConnection
 from errbot.backends.base import build_message
 from errbot.utils import utf8, REMOVE_EOL
 import re
+
+from sleekxmpp import JID, Message
+from sleekxmpp.xmlstream import ElementBase
+
+# Parses the hipchat element like : "<x xmlns='http://hipchat.com'><sender>15585_60268@chat.hipchat.com</sender></x>"
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
 
@@ -29,11 +32,12 @@ def xhtml2hipchat(xhtml):
     return retarded_hipchat_html_plain
 
 
-class HipchatClient(Client):
+class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
-        self.Namespace, self.DBG = 'jabber:client', DBG_CLIENT  # DAAAAAAAAAAH -> see the CommonClient class, it introspects it descendents to determine that
-        Client.__init__(self, *args, **kwargs)
+        self.debug = kwargs.pop('debug')
+        super(HipchatClient, self).__init__(*args, **kwargs)
+        self.client.register_plugin('hipchat', module=self.__module__)
 
     def send_api_message(self, room_id, fr, message, message_format='html'):
         base = {'format': 'json', 'auth_token': self.token}
@@ -48,20 +52,17 @@ class HipchatClient(Client):
             room_jid = mess.getTo()
             self.send_api_message(room_jid.getNode().split('_')[1], CHATROOM_FN, content)
         else:
-            self.send(mess)
-
+            super(HipchatClient, self).send_message(mess)
 
 # It is just a different mode for the moment
-class HipchatBot(JabberBot):
+class HipchatBackend(XMPPBackend):
     def __init__(self, username, password, token=None):
-        super(HipchatBot, self).__init__(username, password)
         self.api_token = token
+        self.password = password
+        super(HipchatBackend, self).__init__(username, password)
 
     def create_connection(self):
-        return HipchatClient(self.jid.getDomain(), debug=[], token=self.api_token)
-
-    def build_message(self, text):
-        return build_message(text, Message, xhtml2hipchat)
+        return HipchatClient(self.jid, password=self.password, debug=[], token=self.api_token)
 
     @property
     def mode(self):

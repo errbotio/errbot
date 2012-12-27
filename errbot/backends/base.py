@@ -2,12 +2,13 @@ from collections import deque
 import inspect
 import logging
 from pyexpat import ExpatError
-from xmpp.simplexml import XML2Node
+from xml.etree import cElementTree as ET
 from errbot import botcmd
 import difflib
 from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, utf8, parse_jid
 from errbot.templating import tenv
 import traceback
+from xml.dom import minidom
 
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
 
@@ -103,6 +104,8 @@ class Message(object):
             self.body = body.decode('utf-8')
         self.html = html
         self.typ = typ
+        self.delayed = False
+        self.mucknick = None
 
     def setTo(self, to):
         if isinstance(to, Identifier):
@@ -128,36 +131,30 @@ class Message(object):
         else:
             self.fr = Identifier(fr)  # assume a parseable string
 
-    def getProperties(self):
-        return {}
-
     def getBody(self):
         return self.body
 
     def getHTML(self):
         return self.html
 
-    # XMPP backward compliance
-    def getTagAttr(self, tag, attr):
-        return None
+    def setHTML(self, html):
+        self.html = html
 
-    def getTagData(self, tag):
-        return None
+    def setDelayed(self, delayed):
+        self.delayed = delayed
 
-    def getTag(self, tag):
-        return None
+    def isDelayed(self):
+        return self.delayed
 
-    def addChild(self, name=None, attrs={}, payload=[], namespace=None, node=None):
-        """ If "node" argument is provided, adds it as child node. Else creates new node from
-            the other arguments' values and adds it as well."""
-        if node.name == 'html':
-            self.html = unicode(node)  # assume this is the html node you want to set
-        else:
-            raise TypeError('We only support the custom html node from XMPP')
-        return node
+    def setMuckNick(self, nick):
+        self.mucknick = nick
+
+    def getMuckNick(self):
+        return self.mucknick
 
     def __str__(self):
         return self.body
+
 
 
 class Connection(object):
@@ -170,7 +167,7 @@ def build_text_html_message_pair(source):
     text_plain = None
 
     try:
-        node = XML2Node(source)
+        node = ET.XML(source)
         text_plain = xhtml2txt(source)
     except ExpatError as ee:
         if source.strip():  # avoids keep alive pollution
@@ -187,15 +184,15 @@ def build_message(text, message_class, conversion_function=None):
 
         text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
 
-        XML2Node(text)  # test if is it xml
+        ET.XML(text)  # test if is it xml
         edulcorated_html = conversion_function(text) if conversion_function else text
         try:
             text_plain, node = build_text_html_message_pair(edulcorated_html)
             message = message_class(body=text_plain)
-            message.addChild(node=node)
-        except ExpatError as ee:
+            message.setHTML(node)
+        except ET.ParseError as ee:
             logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (edulcorated_html, ee))
-    except ExpatError as ee:
+    except ET.ParseError as ee:
         if text.strip():  # avoids keep alive pollution
             logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
         message = message_class(body=text)
@@ -244,9 +241,6 @@ class Backend(object):
         Message is NOT sent"""
         response = self.build_message(text)
         if private:
-            # Use get_jid_from_message here instead of mess.getFrom because
-            # getFrom will return the groupchat id instead of user's jid when
-            # sent from a chatroom
             response.setTo(get_jid_from_message(mess))
             response.setType('chat')
             response.setFrom(self.jid)
@@ -263,15 +257,17 @@ class Backend(object):
         # Prepare to handle either private chats or group chats
         type = mess.getType()
         jid = mess.getFrom()
-        props = mess.getProperties()
         text = mess.getBody()
         username = get_sender_username(mess)
+
+        if mess.isDelayed():
+            logging.debug("Message from history, ignore it")
+            return False
 
         if type not in ("groupchat", "chat"):
             logging.debug("unhandled message type %s" % mess)
             return False
 
-        logging.debug("*** props = %s" % props)
         logging.debug("*** jid = %s" % jid)
         logging.debug("*** username = %s" % username)
         logging.debug("*** type = %s" % type)
@@ -279,7 +275,8 @@ class Backend(object):
 
         # If a message format is not supported (eg. encrypted),
         # txt will be None
-        if not text: return False
+        if not text:
+            return False
 
         surpress_cmd_not_found = False
 

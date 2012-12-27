@@ -4,8 +4,6 @@ import unittest
 from nose.tools import raises
 from errbot.utils import *
 from errbot.storage import StoreMixin
-from errbot.backends.base import build_message, Message
-from errbot.backends.base import Message as BaseMessage
 
 class TestUtils(unittest.TestCase):
     def test_formattimedelta(self):

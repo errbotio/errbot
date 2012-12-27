@@ -125,6 +125,7 @@ class ErrBot(Backend, StoreMixin):
                 logging.exception("Crash in a callback_botmessage handler")
 
     def callback_message(self, conn, mess):
+
         if super(ErrBot, self).callback_message(conn, mess):
             # Act only in the backend tells us that this message is OK to broadcast
             for bot in get_all_active_plugin_objects():

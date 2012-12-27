@@ -14,28 +14,6 @@ from sleekxmpp.xmlstream import ElementBase
 
 # Parses the hipchat element like : "<x xmlns='http://hipchat.com'><sender>15585_60268@chat.hipchat.com</sender></x>"
 
-from sleekxmpp.plugins.base import base_plugin, register_plugin
-from sleekxmpp.xmlstream import register_stanza_plugin
-
-
-class HipchatMUCSender(ElementBase):
-    name = 'x'
-    namespace = 'http://hipchat.com'
-    plugin_attrib = 'sender'
-    interfaces = {'sender'}
-    sub_interfaces = interfaces
-
-class HipchatPlugin(base_plugin):
-    name = 'hipchat'
-    dependencies = {'xep_0045'}
-    description = "Hipchat compatibility"
-
-    def plugin_init(self):
-        register_stanza_plugin(Message, HipchatMUCSender)
-
-
-register_plugin(HipchatPlugin)
-
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
 
 HIPCHAT_FORCE_PRE = re.compile(r'<body>', re.I)

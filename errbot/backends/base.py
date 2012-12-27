@@ -104,6 +104,8 @@ class Message(object):
             self.body = body.decode('utf-8')
         self.html = html
         self.typ = typ
+        self.delayed = False
+        self.mucknick = None
 
     def setTo(self, to):
         if isinstance(to, Identifier):

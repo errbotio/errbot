@@ -370,7 +370,7 @@ class Backend(object):
                         reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
                     self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
 
-            usr = str(get_jid_from_message(mess))
+            usr = unicode(get_jid_from_message(mess))
             typ = mess.getType()
             if cmd not in ACCESS_CONTROLS:
                 ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT

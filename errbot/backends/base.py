@@ -470,7 +470,8 @@ class Backend(object):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
                 name = getattr(value, '_err_command_name')
-                del (self.commands[name])
+                if name in self.commands:  # this could happen in premature shutdown
+                    del (self.commands[name])
 
     def warn_admins(self, warning):
         for admin in BOT_ADMINS:

@@ -8,7 +8,6 @@ from errbot.storage import StoreMixin
 from errbot.backends.base import build_message
 from errbot.backends.base import Message as BaseMessage
 
-
 class TestUtils(unittest.TestCase):
     def test_formattimedelta(self):
         td = timedelta(0, 60 * 60 + 13 * 60)

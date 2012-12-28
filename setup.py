@@ -66,6 +66,8 @@ def need_to_regenerate():
     return False
 
 def setup_python2():
+    from pip import main as mainpip
+    mainpip(['install', '3to2'])
     from lib3to2 import main as three2two
     import shutil
     import shlex

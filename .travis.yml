@@ -8,5 +8,5 @@ before_script:
   - cp errbot/config-template.py config.py
   - pip freeze
 
-install: ./setup install
+install: python setup.py install
 script: python run_tests.py 

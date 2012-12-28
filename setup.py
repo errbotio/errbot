@@ -22,18 +22,18 @@ py_version = sys.version_info[:2]
 PY3 = py_version[0] == 3
 
 if PY3:
+    deps = ['configparser', 'setuptools', 'sleekxmpp', 'yapsy']
     if py_version < (3, 2):
         raise RuntimeError(
             'On Python 3, Err requires Python 3.2 or later')
 else:
+    deps = ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'python-daemon', 'config']
     if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')
 
 py2_root = os.path.abspath(os.path.join("build", "py2_src"))
 src_dirs = ("errbot", "scripts", "tests")
-
-deps = ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'config'] if PY3 else ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'python-daemon', 'config']
 
 def all_files_in_rep(rootfolder, extension=".py"):
     return (os.path.join(dirname, filename)

@@ -1,62 +1,11 @@
 # coding=utf-8
 from ast import literal_eval
-from os.path import sep
-from tempfile import mkdtemp
-from threading import Thread
-import unittest
-import logging
 
 # create a mock configuration
-import sys
-from nose.tools import nottest
-
-from errbot.main import main
-from tests import TestBackend, outgoing_message_queue, incoming_message_queue, QUIT_MESSAGE
+from tests import FullStackTest, pushMessage, popMessage
 
 
-def popMessage():
-    return outgoing_message_queue.get(timeout=5)
-
-
-def pushMessage(msg):
-    incoming_message_queue.put(msg, timeout=5)
-
-
-def zapQueues():
-    while not incoming_message_queue.empty():
-        msg = incoming_message_queue.get(block=False)
-        logging.error('Message left in the incoming queue during a test : %s' % msg)
-
-    while not outgoing_message_queue.empty():
-        msg = outgoing_message_queue.get(block=False)
-        logging.error('Message left in the outgoing queue during a test : %s' % msg)
-
-
-logging.basicConfig(format='%(levelname)s:%(message)s')
-logger = logging.getLogger('')
-logger.setLevel(logging.DEBUG)
-
-
-class TestCommands(unittest.TestCase):
-    bot_thread = None
-
-    def setUp(self):
-        zapQueues()
-
-    def tearDown(self):
-        zapQueues()
-
-    @classmethod
-    def setUpClass(cls):
-        cls.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
-        cls.bot_thread.setDaemon(True)
-        cls.bot_thread.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        pushMessage(QUIT_MESSAGE)
-        cls.bot_thread.join()
-        logging.info("Main bot thread quits")
+class TestCommands(FullStackTest):
 
     def test_root_help(self):
         pushMessage('!help')
@@ -83,7 +32,6 @@ class TestCommands(unittest.TestCase):
         pushMessage('!status')
         self.assertIn('Yes I am alive', popMessage())
 
-    @nottest
     def test_config_cycle(self):
         # test the full configuration cycle help, get set and export, import
         pushMessage('!zap configs')
@@ -92,7 +40,7 @@ class TestCommands(unittest.TestCase):
         pushMessage('!config Webserver')
         self.assertIn('Copy paste and adapt', popMessage())
 
-        pushMessage("!config Webserver {'EXTRA_FLASK_CONFIG': None, 'HOST': '127.0.3.4', 'PORT': 3141, 'WEBCHAT': False, 'SSL': None}")
+        pushMessage("!config Webserver {'HOST': '127.0.3.4', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', popMessage())
 
         pushMessage('!config Webserver')

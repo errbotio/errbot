@@ -3,6 +3,9 @@ import logging
 from os.path import sep
 import sys
 from tempfile import mkdtemp
+from threading import Thread
+import unittest
+from errbot.main import main
 
 __import__('errbot.config-template')
 config_module = sys.modules['errbot.config-template']
@@ -77,3 +80,48 @@ class TestBackend(ErrBot):
     @property
     def mode(self):
         return 'text'
+
+def popMessage():
+    return outgoing_message_queue.get(timeout=5)
+
+
+def pushMessage(msg):
+    incoming_message_queue.put(msg, timeout=5)
+
+
+def zapQueues():
+    while not incoming_message_queue.empty():
+        msg = incoming_message_queue.get(block=False)
+        logging.error('Message left in the incoming queue during a test : %s' % msg)
+
+    while not outgoing_message_queue.empty():
+        msg = outgoing_message_queue.get(block=False)
+        logging.error('Message left in the outgoing queue during a test : %s' % msg)
+
+
+logging.basicConfig(format='%(levelname)s:%(message)s')
+logger = logging.getLogger('')
+logger.setLevel(logging.DEBUG)
+
+class FullStackTest(unittest.TestCase):
+    """ This class starts a full bot with a test backend so you can add unit tests on an almost complete bot
+    """
+    bot_thread = None
+
+    def setUp(self):
+        zapQueues()
+
+    def tearDown(self):
+        zapQueues()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
+        cls.bot_thread.setDaemon(True)
+        cls.bot_thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        pushMessage(QUIT_MESSAGE)
+        cls.bot_thread.join()
+        logging.info("Main bot thread quits")

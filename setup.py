@@ -33,6 +33,7 @@ else:
 py2_root = os.path.abspath(os.path.join("build", "py2_src"))
 src_dirs = ("errbot", "scripts", "tests")
 
+deps = ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'config'] if PY3 else ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'python-daemon', 'config']
 
 def all_files_in_rep(rootfolder, extension=".py"):
     return (os.path.join(dirname, filename)
@@ -120,7 +121,7 @@ if __name__ == "__main__":
         packages=find_packages(),
         scripts=['scripts/err.py'],
 
-        install_requires=['configparser', 'setuptools', 'xmpppy', 'dnspython', 'yapsy', 'python-daemon', 'jinja2', 'flask', 'config'],
+        install_requires=deps,
 
         package_data={
             '': ['*.txt', '*.rst', '*.plug', '*.html', '*.js', '*.css'],

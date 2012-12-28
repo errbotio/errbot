@@ -106,8 +106,9 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())  # create a dictionary of args
     config_path = args['config']
-    # setup the environment to be able to import the config.py
-    sys.path.insert(0, config_path)  # appends the current directory in order to find config.py
+    # setup the environment to be able to import modules in '..' and config.py
+    parent_folder = path.dirname(path.dirname(__file__))
+    sys.path[:0] = [config_path, parent_folder]
     filtered_mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null'))
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 

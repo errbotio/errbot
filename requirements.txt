@@ -1,3 +1,4 @@
+bottle
 setuptools
 sleekxmpp
 yapsy

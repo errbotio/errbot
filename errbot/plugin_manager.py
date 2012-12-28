@@ -12,6 +12,8 @@ from config import BOT_EXTRA_PLUGIN_DIR
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
+import holder
+
 BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
 if PY2:  # keys needs to be byte strings en shelves under python 2
     BUILTIN = BUILTIN.encode()
@@ -37,8 +39,14 @@ if BOT_EXTRA_PLUGIN_DIR:
 
 def init_plugin_manager():
     global simplePluginManager
-    simplePluginManager = PluginManager(categories_filter={"bots": BotPlugin})
-    simplePluginManager.setPluginInfoExtension('plug')
+
+    if not holder.plugin_manager:
+        logging.info('init plugin manager')
+        simplePluginManager = PluginManager(categories_filter={"bots": BotPlugin})
+        simplePluginManager.setPluginInfoExtension('plug')
+        holder.plugin_manager = simplePluginManager
+    else:
+        simplePluginManager = holder.plugin_manager
 
 
 init_plugin_manager()
@@ -125,19 +133,20 @@ def update_plugin_places(list):
 
 
 def get_all_plugins():
+    logging.debug("All plugins: %s" % simplePluginManager.getAllPlugins())
     return simplePluginManager.getAllPlugins()
 
 
 def get_all_active_plugin_objects():
-    return [plug.plugin_object for plug in simplePluginManager.getAllPlugins() if hasattr(plug, 'is_activated') and plug.is_activated]
+    return [plug.plugin_object for plug in get_all_plugins() if hasattr(plug, 'is_activated') and plug.is_activated]
 
 
 def get_all_active_plugin_names():
-    return map(lambda p: p.name, filter(lambda p: hasattr(p, 'is_activated') and p.is_activated, simplePluginManager.getAllPlugins()))
+    return [p.name for p in get_all_plugins() if hasattr(p, 'is_activated') and p.is_activated]
 
 
 def get_all_plugin_names():
-    return map(lambda p: p.name, simplePluginManager.getAllPlugins())
+    return [p.name for p in get_all_plugins()]
 
 
 def deactivate_all_plugins():

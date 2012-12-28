@@ -461,7 +461,7 @@ class Backend(object):
                 if name in self.commands:
                     f = self.commands[name]
                     new_name = (classname + '-' + name).lower()
-                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, f.im_class.__name__, f.__name__, new_name ))
+                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, type(f.__self__).__name__, f.__name__, new_name ))
                     name = new_name
                 logging.debug('Adding command : %s -> %s' % (name, value.__name__))
                 self.commands[name] = value

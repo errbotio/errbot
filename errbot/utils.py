@@ -12,7 +12,6 @@ PY2 = not PY3
 PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
 
 
-
 def get_sender_username(mess):
     """Extract the sender's user name from a message"""
     type = mess.getType()
@@ -64,7 +63,7 @@ def drawbar(value, max):
 
 # Introspect to know from which plugin a command is implemented
 def get_class_for_method(meth):
-    for cls in inspect.getmro(meth.im_class):
+    for cls in inspect.getmro(type(meth.__self__)):
         if meth.__name__ in cls.__dict__:
             return cls
     return None
@@ -214,3 +213,31 @@ def parse_jid(jid):
         resource = None
 
     return node, domain, resource
+
+
+import threading
+
+
+class KillableThread(threading.Thread):
+    def __init__(self, *args, **keywords):
+        threading.Thread.__init__(self, *args, **keywords)
+        self.to_kill = False
+
+    def start(self):
+        self.run_sav = self.run
+        self.run = self.run2
+        threading.Thread.start(self)
+
+    def run2(self):
+        sys.settrace(self.trace)
+        self.run_sav()
+        self.run = self.run_sav
+
+    def trace(self, frame, event, arg):
+        if self.to_kill:
+            if event == 'line':
+                raise KeyboardInterrupt('Intentionally killed internally')
+        return self.trace
+
+    def kill(self):
+        self.to_kill = True

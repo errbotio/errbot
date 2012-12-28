@@ -2,8 +2,9 @@ import logging
 import os
 from threading import Timer, current_thread
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
+from errbot.storage import StoreMixin
 from errbot import holder
-from storage import StoreMixin
+
 
 
 class BotPluginBase(StoreMixin):

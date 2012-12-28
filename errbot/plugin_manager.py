@@ -12,7 +12,7 @@ from config import BOT_EXTRA_PLUGIN_DIR
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
-import holder
+from errbot import holder
 
 BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
 if PY2:  # keys needs to be byte strings en shelves under python 2

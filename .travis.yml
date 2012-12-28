@@ -8,7 +8,6 @@ before_script:
   - cp errbot/config-template.py config.py
 
 install: 
-  - pip install 3to2
   - python setup.py install
   - pip freeze
 

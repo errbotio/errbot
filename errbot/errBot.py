@@ -249,7 +249,7 @@ class ErrBot(Backend, StoreMixin):
         added = literal_eval(args)
         if type(added) is not dict:
             raise Exception('Weird, it should be a dictionary')
-        self[CONFIGS] = dict(orig.items() + added.items())
+        self[CONFIGS] = dict(list(orig.items()) + list(added.items()))
         return "Import is done correctly, there are %i config entries now." % len(self['configs'])
 
     #noinspection PyUnusedLocal
@@ -412,7 +412,7 @@ class ErrBot(Backend, StoreMixin):
         usage = ''
         if not args:
             description = 'Available help:\n'
-            command_classes = sorted(set(self.get_command_classes()))
+            command_classes = sorted(set(self.get_command_classes()), key = lambda c:c.__name__)
             usage = '\n'.join(self.prefix + 'help %s: %s' % (clazz.__name__, clazz.__errdoc__ or '(undocumented)') for clazz in command_classes)
         elif args == 'full':
             description = 'Available commands:'

@@ -22,7 +22,7 @@ py_version = sys.version_info[:2]
 PY3 = py_version[0] == 3
 
 if PY3:
-    deps = ['configparser', 'setuptools', 'sleekxmpp', 'yapsy', 'jinja2']
+    deps = ['setuptools', 'sleekxmpp', 'yapsy', 'jinja2']
     if py_version < (3, 2):
         raise RuntimeError(
             'On Python 3, Err requires Python 3.2 or later')

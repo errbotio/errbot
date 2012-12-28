@@ -1,9 +1,6 @@
 setuptools
-python-daemon
-dnspython
 sleekxmpp
 yapsy
-configparser
 config
 pyasn1
 pyasn1-modules

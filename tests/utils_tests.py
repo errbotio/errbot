@@ -20,14 +20,15 @@ class TestUtils(unittest.TestCase):
             pass
 
         from config import BOT_DATA_DIR
+        key = b'test' if PY2 else 'test'
 
         persistent_object = MyPersistentClass()
         persistent_object.open_storage(BOT_DATA_DIR + os.path.sep + 'test.db')
-        persistent_object['tést'] = 'à value'
-        self.assertEquals(persistent_object['tést'], 'à value')
-        self.assertIn('tést', persistent_object)
-        del persistent_object['tést']
-        self.assertNotIn('tést', persistent_object)
+        persistent_object[key] = 'à value'
+        self.assertEquals(persistent_object[key], 'à value')
+        self.assertIn(key, persistent_object)
+        del persistent_object[key]
+        self.assertNotIn(key, persistent_object)
         self.assertEquals(len(persistent_object), 0)
 
     @raises(SystemExit)

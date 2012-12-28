@@ -46,15 +46,9 @@ def get_class_that_defined_method(meth):
             return cls
     return None
 
-
-CONFIGS = 'configs'
-REPOS = 'repos'
-BL_PLUGINS = 'bl_plugins'
-
-if PY2:  # keys needs to be byte strings en shelves under python 2
-    CONFIGS = CONFIGS.encode()
-    REPOS = REPOS.encode()
-    BL_PLUGINS = BL_PLUGINS.encode()
+CONFIGS = b'configs' if PY2 else 'configs'
+REPOS = b'repos' if PY2 else 'repos'
+BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
 class ErrBot(Backend, StoreMixin):
     __errdoc__ = """ Commands related to the bot administration """
@@ -79,6 +73,9 @@ class ErrBot(Backend, StoreMixin):
         return self.get(REPOS, {})
 
     def add_plugin_repo(self, name, url):
+        if PY2:
+            name = name.encode('utf-8')
+            url = url.encode('utf-8')
         repos = self.get_installed_plugin_repos()
         repos[name] = url
         self[REPOS] = repos

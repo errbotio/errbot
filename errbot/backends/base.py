@@ -3,7 +3,7 @@ import inspect
 import logging
 from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
-from errbot import botcmd
+from errbot import botcmd, PY2
 import difflib
 from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, utf8, parse_jid
 from errbot.templating import tenv
@@ -179,11 +179,12 @@ def build_message(text, message_class, conversion_function=None):
     If input is not valid xhtml-im fallback to normal."""
     message = None  # keeps the compiler happy
     try:
-        text = text
-
         text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
+        if PY2:
+            ET.XML(text.encode('utf-8'))  # test if is it xml
+        else:
+            ET.XML(text)
 
-        ET.XML(text)  # test if is it xml
         edulcorated_html = conversion_function(text) if conversion_function else text
         try:
             text_plain, node = build_text_html_message_pair(edulcorated_html)

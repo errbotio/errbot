@@ -30,7 +30,7 @@ else:
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')
 
-py2_root = os.path.join("build", "py2_src")
+py2_root = os.path.abspath(os.path.join("build", "py2_src"))
 src_dirs = ("errbot", "scripts", "tests")
 
 
@@ -63,7 +63,6 @@ def need_to_regenerate():
         if newest > oldest:
             return True
     return False
-
 
 def setup_python2():
     from lib3to2 import main as three2two
@@ -148,3 +147,6 @@ if __name__ == "__main__":
         src_root=src_root,
         #test_suite="tests",
     )
+
+# restore the paths
+sys.path.remove(src_root + os.path.sep + 'errbot')

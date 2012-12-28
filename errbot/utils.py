@@ -4,8 +4,13 @@ import inspect
 import os
 import re
 from html import entities
+import sys
 
-PLUGINS_SUBDIR = 'plugins'
+PY3 = sys.version_info[0] == 3
+PY2 = not PY3
+
+PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
+
 
 
 def get_sender_username(mess):

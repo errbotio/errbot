@@ -3,11 +3,15 @@ from sleekxmpp import ClientXMPP
 from errbot.backends.base import Message, build_message, Connection
 from errbot.errBot import ErrBot
 
+try:
+    from config import XMPP_FEATURE_MECHANISMS
+except ImportError:
+    XMPP_FEATURE_MECHANISMS = {}
 
 class XMPPConnection(Connection):
     def __init__(self, jid, password):
         self.connected = False
-        self.client = ClientXMPP(jid, password, plugin_config={'feature_mechanisms': {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}})
+        self.client = ClientXMPP(jid, password, plugin_config={'feature_mechanisms': XMPP_FEATURE_MECHANISMS})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
         self.client.register_plugin('xep_0199')  # XMPP Ping

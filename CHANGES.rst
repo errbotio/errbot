@@ -1,6 +1,15 @@
 Release history
 ===============
 
+
+Version 2.0.0 (2012-12-)
+--------------------------
+Features:
+
+- xmpp backend has been replaced by sleekxmpp
+- python 3 compatibility
+
+
 Version 1.7.1 (2012-12-25)
 --------------------------
 

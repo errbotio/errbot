@@ -178,7 +178,7 @@ def xhtml2txt(xhtml):
 
 def utf8(key):
     if type(key) == str:
-        return key.encode('utf-8')
+        return key.encode()  # it defaults to utf-8
     return key
 
 

@@ -27,7 +27,7 @@ from imp import reload
 from tarfile import TarFile
 from urllib.request import urlopen
 
-from errbot import botcmd
+from errbot import botcmd, PY2
 from errbot.backends.base import Backend
 
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,\
@@ -47,6 +47,15 @@ def get_class_that_defined_method(meth):
     return None
 
 
+CONFIGS = 'configs'
+REPOS = 'repos'
+BL_PLUGINS = 'bl_plugins'
+
+if PY2:  # keys needs to be byte strings en shelves under python 2
+    CONFIGS = CONFIGS.encode()
+    REPOS = REPOS.encode()
+    BL_PLUGINS = BL_PLUGINS.encode()
+
 class ErrBot(Backend, StoreMixin):
     __errdoc__ = """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
@@ -61,22 +70,22 @@ class ErrBot(Backend, StoreMixin):
         self.open_storage(BOT_DATA_DIR + os.sep + 'core.db')
         self.prefix = BOT_PREFIX
         # be sure we have a configs entry for the plugin configurations
-        if 'configs' not in self:
-            self['configs'] = {}
+        if CONFIGS not in self:
+            self[CONFIGS] = {}
         super(ErrBot, self).__init__(*args, **kwargs)
 
     # Repo management
     def get_installed_plugin_repos(self):
-        return self.get('repos', {})
+        return self.get(REPOS, {})
 
     def add_plugin_repo(self, name, url):
         repos = self.get_installed_plugin_repos()
         repos[name] = url
-        self['repos'] = repos
+        self[REPOS] = repos
 
     # plugin blacklisting management
     def get_blacklisted_plugin(self):
-        return self.get('bl_plugins', [])
+        return self.get(BL_PLUGINS, [])
 
     def is_plugin_blacklisted(self, name):
         return name in self.get_blacklisted_plugin()
@@ -85,7 +94,7 @@ class ErrBot(Backend, StoreMixin):
         if self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is already blacklisted' % name)
             return
-        self['bl_plugins'] = self.get_blacklisted_plugin() + [name]
+        self[BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
         logging.info('Plugin %s is now blacklisted' % name)
 
     def unblacklist_plugin(self, name):
@@ -94,24 +103,24 @@ class ErrBot(Backend, StoreMixin):
             return
         l = self.get_blacklisted_plugin()
         l.remove(name)
-        self['bl_plugins'] = l
+        self[BL_PLUGINS] = l
         logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management
     def get_plugin_configuration(self, name):
-        configs = self['configs']
+        configs = self[CONFIGS]
         if name not in configs:
             return None
         return configs[name]
 
     def set_plugin_configuration(self, name, obj):
-        configs = self['configs']
+        configs = self[CONFIGS]
         configs[name] = obj
-        self['configs'] = configs
+        self[CONFIGS] = configs
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        all_candidates, errors = update_plugin_places([self.plugin_dir + os.sep + d for d in self.get('repos', {}).keys()])
+        all_candidates, errors = update_plugin_places([self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()])
         self.all_candidates = all_candidates
         return errors
 
@@ -138,7 +147,7 @@ class ErrBot(Backend, StoreMixin):
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
-        configs = self['configs']
+        configs = self[CONFIGS]
         errors = ''
         for pluginInfo in get_all_plugins():
             try:
@@ -231,7 +240,7 @@ class ErrBot(Backend, StoreMixin):
     def export_configs(self, mess, args):
         """ Returns all the configs in form of a string you can backup
         """
-        return repr(self.get('configs', {}))
+        return repr(self.get(CONFIGS, {}))
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
@@ -239,11 +248,11 @@ class ErrBot(Backend, StoreMixin):
         """ Restore the configs from an export from !export configs
         It will merge with preexisting configurations.
         """
-        orig = self.get('configs', {})
+        orig = self.get(CONFIGS, {})
         added = literal_eval(args)
         if type(added) is not dict:
             raise Exception('Weird, it should be a dictionary')
-        self['configs'] = dict(orig.items() + added.items())
+        self[CONFIGS] = dict(orig.items() + added.items())
         return "Import is done correctly, there are %i config entries now." % len(self['configs'])
 
     #noinspection PyUnusedLocal
@@ -251,7 +260,7 @@ class ErrBot(Backend, StoreMixin):
     def zap_configs(self, mess, args):
         """ WARNING : Deletes all the configuration of all the plugins
         """
-        self['configs'] = {}
+        self[CONFIGS] = {}
         return "Done"
 
     #noinspection PyUnusedLocal
@@ -357,7 +366,7 @@ class ErrBot(Backend, StoreMixin):
         """
         if not args.strip():
             return "You should have a repo name as argument"
-        repos = self.get('repos', {})
+        repos = self.get(REPOS, {})
         if args not in repos:
             return "This repo is not installed check with " + self.prefix + "repos the list of installed ones"
 
@@ -369,7 +378,7 @@ class ErrBot(Backend, StoreMixin):
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
-        self['repos'] = repos
+        self[REPOS] = repos
 
         return 'Plugins unloaded and repo %s removed' % args
 
@@ -412,7 +421,7 @@ class ErrBot(Backend, StoreMixin):
             description = 'Available commands:'
 
             clazz_commands = {}
-            for (name, command) in self.commands.iteritems():
+            for (name, command) in self.commands.items():
                 clazz = get_class_that_defined_method(command)
                 commands = clazz_commands.get(clazz, [])
                 commands.append((name, command))
@@ -508,7 +517,7 @@ class ErrBot(Backend, StoreMixin):
             return 'git command not found: You need to have git installed on your system to by able to update git based plugins.'
 
         directories = set()
-        repos = self.get('repos', {})
+        repos = self.get(REPOS, {})
         core_to_update = 'all' in args or 'core' in args
         if core_to_update:
             directories.add(os.path.dirname(__file__))

@@ -2,6 +2,7 @@ from itertools import chain
 import logging
 import sys
 import os
+from errbot import PY2
 from errbot.botplugin import BotPlugin
 from errbot.utils import version2array
 from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
@@ -11,7 +12,11 @@ from config import BOT_EXTRA_PLUGIN_DIR
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
-BUILTINS = [os.path.dirname(os.path.abspath(__file__)) + os.sep + 'builtins', ]
+BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
+if PY2:  # keys needs to be byte strings en shelves under python 2
+    BUILTIN = BUILTIN.encode()
+
+BUILTINS = [BUILTIN, ]
 
 
 class IncompatiblePluginException(Exception):

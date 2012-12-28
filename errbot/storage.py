@@ -1,6 +1,5 @@
 from collections import MutableMapping
 import logging
-from utils import utf8
 import shelve
 
 

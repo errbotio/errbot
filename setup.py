@@ -22,12 +22,12 @@ py_version = sys.version_info[:2]
 PY3 = py_version[0] == 3
 
 if PY3:
-    deps = ['setuptools', 'sleekxmpp', 'yapsy', 'jinja2']
+    deps = ['setuptools', 'sleekxmpp', 'yapsy', 'bottle', 'jinja2']
     if py_version < (3, 2):
         raise RuntimeError(
             'On Python 3, Err requires Python 3.2 or later')
 else:
-    deps = ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'python-daemon', 'config', 'jinja2']
+    deps = ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'python-daemon', 'config', 'bottle', 'jinja2']
     if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     setup(
         name="err",
         version=VERSION,
-        packages=find_packages(),
+        packages=find_packages(src_root),
         scripts=['scripts/err.py'],
 
         install_requires=deps,
@@ -148,7 +148,6 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.2",
         ],
         src_root=src_root,
-        #test_suite="tests",
     )
 
 # restore the paths

@@ -40,23 +40,23 @@ class TestCommands(FullStackTest):
         pushMessage('!config Webserver')
         self.assertIn('Copy paste and adapt', popMessage())
 
-        pushMessage("!config Webserver {'HOST': '127.0.3.4', 'PORT': 3141, 'SSL':  None}")
+        pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('127.0.3.4', popMessage())
+        self.assertIn('localhost', popMessage())
 
         pushMessage('!export configs')
         configs = popMessage()
-        self.assertIn('127.0.3.4', configs)
+        self.assertIn('localhost', configs)
         obj = literal_eval(configs)  # be sure it is parseable
-        obj['Webserver']['HOST'] = '127.0.3.5'
+        obj['Webserver']['HOST'] = 'localhost'
 
         pushMessage('!import configs ' + repr(obj))
         self.assertIn('Import is done correctly', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('127.0.3.5', popMessage())
+        self.assertIn('localhost', popMessage())
 
     def test_apropos(self):
         pushMessage('!apropos about')

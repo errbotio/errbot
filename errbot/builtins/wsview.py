@@ -20,6 +20,12 @@ class DynamicBottle(Bottle):
 
 bottle_app = DynamicBottle()
 
+def reset_app():
+    """Zap everything here, useful for unit tests
+    """
+    global bottle_app
+    bottle_app = DynamicBottle()
+
 class WebView(object):
     def __init__(self, func, form_param):
         self.func = func
@@ -42,13 +48,17 @@ class WebView(object):
                         logging.debug('The form parameter is not JSON, return it as a string')
                     response = func(content, **kwargs)
                 else:
-                    data = request.json if request.json else request.body.read()  # flask will find out automagically if it is a JSON structure
-                    if data:
-                        response = func(data, **kwargs)
+                    if request.json:
+                        data = request.json  # pure json
                     elif hasattr(request, 'form'):
-                        response = func(request.form, **kwargs)  # or it will magically parse a form so adapt for our users
+                        data = request.form  # form encoded
                     else:
-                        response = func('', **kwargs)  # nothing to feed in the request
+                        data = request.body.read().decode()
+                        try:
+                            data = loads(data)
+                        except Exception as _:
+                            pass
+                    response = func(data, **kwargs)
                 return response if response else ''  # assume None as an OK response (simplifies the client side)
 
         raise Exception('Problem finding back the correct Handler for func %s' % name_to_find)

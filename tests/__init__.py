@@ -19,6 +19,7 @@ config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 from errbot.backends.base import Message, build_text_html_message_pair, build_message
 from errbot.errBot import ErrBot
+from errbot.builtins.wsview import reset_app
 
 incoming_message_queue = Queue()
 outgoing_message_queue = Queue()
@@ -124,4 +125,5 @@ class FullStackTest(unittest.TestCase):
     def tearDownClass(cls):
         pushMessage(QUIT_MESSAGE)
         cls.bot_thread.join()
+        reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")

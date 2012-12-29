@@ -1,11 +1,11 @@
 import logging
+from threading import Thread
 
 from errbot import holder
 from errbot import botcmd
 from errbot import BotPlugin
-from errbot.utils import KillableThread
 from errbot.version import VERSION
-from errbot.builtins.wsview import bottle_app, webhook
+from errbot.builtins.wsview import bottle_app, webhook, reset_app
 from bottle import run as bottle_run
 
 TEST_REPORT = """*** Test Report
@@ -91,19 +91,14 @@ class Webserver(BotPlugin):
 #                                     "in order to use SSL-enabled webhooks. Aborting!")
 #                    return
 
-        if self.webserver_thread:
-            raise Exception('Invalid state, you should not have a webserver already running.')
-        self.webserver_thread = KillableThread(target=self.run_webserver, name='Webserver Thread')
-        self.webserver_thread.start()
+        if not self.webserver_thread:
+            self.webserver_thread = Thread(target=self.run_webserver, name='Webserver Thread')
+            self.webserver_thread.start()
         super(Webserver, self).activate()
         logging.info('Webserver activated')
 
     def deactivate(self):
         logging.debug('Sending signal to stop the webserver')
-        if self.webserver_thread:
-            self.webserver_thread.kill()
-            self.webserver_thread.join(5)
-        self.webserver_thread = None
         super(Webserver, self).deactivate()
 
     #noinspection PyUnusedLocal
@@ -115,9 +110,12 @@ class Webserver(BotPlugin):
         return {'rules': (((route.rule, route.name) for route in bottle_app.routes))}
 
     @webhook
-    def test(self, incoming_request):
+    def echo(self, incoming_request):
+        """
+        A simple test webhook
+        """
         logging.debug(repr(incoming_request))
-        return "OK"
+        return repr(incoming_request)
 
     #noinspection PyUnusedLocal
 #    @botcmd(split_args_with=' ')

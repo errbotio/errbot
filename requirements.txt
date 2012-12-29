@@ -6,3 +6,4 @@ config
 pyasn1
 pyasn1-modules
 requests
+jinja2

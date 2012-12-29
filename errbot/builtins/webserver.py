@@ -56,6 +56,8 @@ class Webserver(BotPlugin):
         return {'HOST': '0.0.0.0', 'PORT': 3141, 'SSL': None, 'SERVER': 'wsgiref'}
 
     def check_configuration(self, configuration):
+        for k,v in dict(SSL=None, SERVER='wsgiref').items():
+            if k not in configuration: configuration[k] = v
         super(Webserver, self).check_configuration(configuration)
 
         # ssl = configuration['SSL']

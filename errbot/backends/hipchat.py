@@ -1,11 +1,10 @@
 import json
 import logging
-from urllib import urlencode
+from urllib.parse import urlencode
+from urllib.request import urlopen, Request
 
-from urllib2 import urlopen, Request
 from config import CHATROOM_FN
 from errbot.backends.xmpp import XMPPBackend, XMPPConnection
-from errbot.backends.base import build_message
 from errbot.utils import utf8, REMOVE_EOL
 import re
 
@@ -48,7 +47,7 @@ class HipchatClient(XMPPConnection):
     def send_message(self, mess):
         if self.token and mess.name == 'message' and mess.getType() == 'groupchat' and mess.getTag('html'):
             logging.debug('Message intercepted for Hipchat API')
-            content = u''.join((unicode(child) for child in mess.getTag('html').getTag('body').getChildren()))
+            content = ''.join((str(child) for child in mess.getTag('html').getTag('body').getChildren()))
             room_jid = mess.getTo()
             self.send_api_message(room_jid.getNode().split('_')[1], CHATROOM_FN, content)
         else:

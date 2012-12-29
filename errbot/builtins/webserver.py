@@ -49,6 +49,7 @@ class Webserver(BotPlugin):
             holder.bot.shutdown()
         except Exception as _:
             logging.exception('The webserver exploded.')
+            self.warn_admins("There's an issue with the webserver: %s" % _)
 
     def get_configuration_template(self):
         return {'HOST': '0.0.0.0', 'PORT': 3141, 'SSL': None}

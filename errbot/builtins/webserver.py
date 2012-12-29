@@ -40,9 +40,10 @@ class Webserver(BotPlugin):
         try:
             host = self.config['HOST']
             port = self.config['PORT']
+            server = self.config['SERVER']
             #ssl_context = self.ssl_context
             logging.info('Starting the webserver on %s:%i' % (host, port))
-            bottle_run(bottle_app, host=host, port=port)
+            bottle_run(bottle_app, host=host, port=port, server=server)
             logging.debug('Webserver stopped')
         except KeyboardInterrupt as _:
             logging.exception('Keyboard interrupt, request a global shutdown.')
@@ -52,7 +53,7 @@ class Webserver(BotPlugin):
             self.warn_admins("There's an issue with the webserver: %s" % _)
 
     def get_configuration_template(self):
-        return {'HOST': '0.0.0.0', 'PORT': 3141, 'SSL': None}
+        return {'HOST': '0.0.0.0', 'PORT': 3141, 'SSL': None, 'SERVER': 'wsgiref'}
 
     def check_configuration(self, configuration):
         super(Webserver, self).check_configuration(configuration)

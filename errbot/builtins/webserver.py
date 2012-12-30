@@ -6,7 +6,7 @@ from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
 from errbot.builtins.wsview import bottle_app, webhook, reset_app
-from bottle import run as bottle_run
+from rocket import Rocket
 
 TEST_REPORT = """*** Test Report
 Found the matching rule : %s
@@ -40,10 +40,12 @@ class Webserver(BotPlugin):
         try:
             host = self.config['HOST']
             port = self.config['PORT']
-            server = self.config['SERVER']
-            #ssl_context = self.ssl_context
             logging.info('Starting the webserver on %s:%i' % (host, port))
-            bottle_run(bottle_app, host=host, port=port, server=server)
+            rocket = Rocket(interfaces=(host, port),
+                            method='wsgi',
+                            app_info={'wsgi_app': bottle_app},
+                           )
+            rocket.start()
             logging.debug('Webserver stopped')
         except KeyboardInterrupt as _:
             logging.exception('Keyboard interrupt, request a global shutdown.')
@@ -53,10 +55,12 @@ class Webserver(BotPlugin):
             self.warn_admins("There's an issue with the webserver: %s" % _)
 
     def get_configuration_template(self):
-        return {'HOST': '0.0.0.0', 'PORT': 3141, 'SSL': None, 'SERVER': 'wsgiref'}
+        return {'HOST': '0.0.0.0', 'PORT': 3141, 'SSL': None}
 
     def check_configuration(self, configuration):
-        for k,v in dict(SSL=None, SERVER='wsgiref').items():
+        # Doing a loop on one item seems silly, but this used to be a bigger dictionary.
+        # Keeping the code makes it easy to add new items again in the future.
+        for k,v in dict(SSL=None).items():
             if k not in configuration: configuration[k] = v
         super(Webserver, self).check_configuration(configuration)
 
@@ -97,6 +101,7 @@ class Webserver(BotPlugin):
 
         if not self.webserver_thread:
             self.webserver_thread = Thread(target=self.run_webserver, name='Webserver Thread')
+            self.webserver_thread.setDaemon(True)
             self.webserver_thread.start()
         super(Webserver, self).activate()
         logging.info('Webserver activated')

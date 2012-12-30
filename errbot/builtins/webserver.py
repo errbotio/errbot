@@ -31,27 +31,40 @@ class Webserver(BotPlugin):
         try:
             host = self.config['HOST']
             port = self.config['PORT']
-            logging.info('Starting the webserver on %s:%i' % (host, port))
-            rocket = Rocket(interfaces=(host, port),
+            ssl = self.config['SSL']
+            interfaces = [(host, port)]
+            if ssl['enabled']:
+                interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
+            logging.info('Firing up the Rocket')
+            rocket = Rocket(interfaces=interfaces,
                             method='wsgi',
                             app_info={'wsgi_app': bottle_app},
                            )
             rocket.start()
-            logging.debug('Webserver stopped')
+            logging.debug('Rocket has landed')
         except KeyboardInterrupt as _:
             logging.exception('Keyboard interrupt, request a global shutdown.')
             holder.bot.shutdown()
         except Exception as _:
-            logging.exception('The webserver exploded.')
-            self.warn_admins("There's an issue with the webserver: %s" % _)
+            logging.exception('The Rocket has exploded.')
+            self.warn_admins("There's an issue with the Rocket: %s" % _)
 
     def get_configuration_template(self):
-        return {'HOST': '0.0.0.0', 'PORT': 3141, 'SSL': None}
+        return {'HOST': '0.0.0.0',
+                'PORT': 3141,
+                'SSL': {'enabled': False,
+                        'host': '0.0.0.0',
+                        'port': 3142,
+                        'certificate': "",
+                        'key': ""
+                       }
+               }
 
     def check_configuration(self, configuration):
+        ssl = self.get_configuration_template()['SSL']
         # Doing a loop on one item seems silly, but this used to be a bigger dictionary.
         # Keeping the code makes it easy to add new items again in the future.
-        for k,v in dict(SSL=None).items():
+        for k,v in dict(SSL=ssl).items():
             if k not in configuration: configuration[k] = v
         super(Webserver, self).check_configuration(configuration)
 

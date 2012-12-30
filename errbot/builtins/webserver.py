@@ -26,15 +26,6 @@ class Webserver(BotPlugin):
         self.ssl_context = None
         super(Webserver, self).__init__()
 
-    def _tuple_to_ssl_context(self, tuple_):
-        """Turn a (certificate, key) tuple into an SSL context for werkzeug"""
-        assert len(tuple_) == 2
-        from OpenSSL import SSL
-        context = SSL.Context(SSL.SSLv23_METHOD)
-        context.use_privatekey_file(tuple_[1])
-        context.use_certificate_file(tuple_[0])
-        return context
-
     def run_webserver(self):
         #noinspection PyBroadException
         try:
@@ -64,40 +55,10 @@ class Webserver(BotPlugin):
             if k not in configuration: configuration[k] = v
         super(Webserver, self).check_configuration(configuration)
 
-        # ssl = configuration['SSL']
-        # ssl_type = type(ssl)
-        # ssl_error_message = "SSL must be None, a Tuple ('/path/to/certificate', '/path/to/key') or the string \"adhoc\""
-        # if ssl_type not in (NoneType, TupleType, StringType):
-        #    raise ValidationException(ssl_error_message)
-        #if ssl is not None and (ssl_type == StringType and ssl != "adhoc" or
-        #                        ssl_type == TupleType and len(ssl) != 2):
-        #    raise ValidationException(ssl_error_message)
-
     def activate(self):
         if not self.config:
             logging.info('Webserver is not configured. Forbid activation')
             return
-
-#        ssl = self.config['SSL']
-#        if ssl is not None:
-#            if type(ssl) == StringType:
-#                # check_configuration will have made sure it contains a valid string
-#                # so we can assign this directly
-#                self.ssl_context = ssl
-#            # Assume check_configuration did it's job, so it can only be a tuple if not a string
-#            else:
-#                # Werkzeug docs say a tuple with (cert, key) is directly supported by ssl_context
-#                # but I found this to not be true. These docs were for 0.9-dev while I had 0.8.3
-#                # at the time of this writing, so maybe that is new with 0.9.
-#                # I couldn't find docs specific to 0.8 to verify though, but regardless, we'll have
-#                # to do it the manual way.
-#                try:
-#                    self.ssl_context = self._tuple_to_ssl_context(ssl)
-#                except ImportError:
-#                    logging.error("Couldn't import from OpenSSL, aborting Webserver activation")
-#                    self.warn_admins("You need to have Python bindings for OpenSSL installed "
-#                                     "in order to use SSL-enabled webhooks. Aborting!")
-#                    return
 
         if not self.webserver_thread:
             self.webserver_thread = Thread(target=self.run_webserver, name='Webserver Thread')

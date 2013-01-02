@@ -37,9 +37,7 @@ class Webserver(BotPlugin):
                 interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
             logging.info('Firing up the Rocket')
             rocket = Rocket(interfaces=interfaces,
-                            method='wsgi',
-                            app_info={'wsgi_app': bottle_app},
-                           )
+                            app_info={'wsgi_app': bottle_app}, )
             rocket.start()
             logging.debug('Rocket has landed')
         except KeyboardInterrupt as _:
@@ -56,16 +54,12 @@ class Webserver(BotPlugin):
                         'host': '0.0.0.0',
                         'port': 3142,
                         'certificate': "",
-                        'key': ""
-                       }
-               }
+                        'key': ""}}
 
     def check_configuration(self, configuration):
-        ssl = self.get_configuration_template()['SSL']
-        # Doing a loop on one item seems silly, but this used to be a bigger dictionary.
-        # Keeping the code makes it easy to add new items again in the future.
-        for k,v in dict(SSL=ssl).items():
-            if k not in configuration: configuration[k] = v
+        # it is a pain, just assume a default config if SSL is absent or set to None
+        if configuration.get('SSL', None) is None:
+            configuration['SSL'] = {'enabled': False, 'host': '0.0.0.0', 'port': 3142, 'certificate': "", 'key': ""}
         super(Webserver, self).check_configuration(configuration)
 
     def activate(self):
@@ -100,7 +94,8 @@ class Webserver(BotPlugin):
         logging.debug(str(incoming_request))
         return str(incoming_request)
 
-    #noinspection PyUnusedLocal
+        #noinspection PyUnusedLocal
+
 #    @botcmd(split_args_with=' ')
 #    def webhook_test(self, mess, args):
 #        """

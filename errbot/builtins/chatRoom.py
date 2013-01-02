@@ -1,6 +1,5 @@
 import logging
 from errbot import BotPlugin
-from errbot.utils import get_jid_from_message
 from errbot.version import VERSION
 from errbot.holder import bot
 
@@ -34,7 +33,7 @@ class ChatRoom(BotPlugin):
             try:
                 mess_type = mess.getType()
                 if mess_type == 'chat':
-                    username = get_jid_from_message(mess)
+                    username = mess.getFrom().node
                     if username in CHATROOM_RELAY:
                         logging.debug('Message to relay from %s.' % username)
                         body = mess.getBody()

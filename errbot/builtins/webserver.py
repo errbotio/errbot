@@ -5,7 +5,7 @@ from errbot import holder
 from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
-from errbot.builtins.wsview import bottle_app, webhook, reset_app
+from errbot.builtins.wsview import bottle_app, webhook
 from rocket import Rocket
 
 TEST_REPORT = """*** Test Report

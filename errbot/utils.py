@@ -5,6 +5,7 @@ import os
 import re
 from html import entities
 import sys
+import time
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
@@ -23,17 +24,6 @@ def get_sender_username(mess):
     else:
         username = ""
     return username
-
-
-def get_jid_from_message(mess):
-    if mess.getType() == 'chat':
-        # strip the resource for direct chats
-        return str(mess.getFrom().getStripped())
-
-    # this is a standard private XMPP reply in MUC
-    jid = str(mess.getFrom()) + '/' + mess.getMuckNick()
-    logging.debug('Message from MUC. Replying to: %s' % jid)
-    return jid
 
 
 def format_timedelta(timedelta):
@@ -213,3 +203,23 @@ def parse_jid(jid):
         resource = None
 
     return node, domain, resource
+
+
+def RateLimited(minInterval):
+    def decorate(func):
+        lastTimeCalled = [0.0]
+
+        def rateLimitedFunction(*args, **kargs):
+            elapsed = time.time() - lastTimeCalled[0]
+            logging.debug('Elapsed %f since last call' % elapsed)
+            leftToWait = minInterval - elapsed
+            if leftToWait > 0:
+                logging.debug('Wait %f due to rate limiting...' % leftToWait)
+                time.sleep(leftToWait)
+            ret = func(*args, **kargs)
+            lastTimeCalled[0] = time.time()
+            return ret
+
+        return rateLimitedFunction
+
+    return decorate

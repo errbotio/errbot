@@ -5,7 +5,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 from errbot import botcmd, PY2
 import difflib
-from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, utf8, parse_jid
+from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid
 from errbot.templating import tenv
 import traceback
 
@@ -572,3 +572,14 @@ class Backend(object):
     @property
     def mode(self):
         raise NotImplementedError("It should be implemented specifically for your backend")
+
+def get_jid_from_message(mess):
+    if mess.getType() == 'chat':
+        # strip the resource for direct chats
+        return str(mess.getFrom().getStripped())
+
+    # this is a standard private XMPP reply in MUC
+    fr = mess.getFrom()
+    jid = Identifier(node=fr.node, domain=fr.domain, resource=mess.getMuckNick())
+    logging.debug('Message from MUC. Replying to: %s' % jid)
+    return jid

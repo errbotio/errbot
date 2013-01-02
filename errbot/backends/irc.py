@@ -1,148 +1,81 @@
 import logging
 import sys
-import threading
-
-irc_message_lock = threading.Lock()
 import config
+from errbot.backends.base import Message, build_message
+from errbot.errBot import ErrBot
+from utils import RateLimited
 
 try:
-    from twisted.internet import protocol, reactor
-    from twisted.words.protocols.irc import IRCClient
-    from twisted.internet.protocol import ClientFactory
-except ImportError:
+    from irc.bot import SingleServerIRCBot
+except ImportError as _:
     logging.exception("Could not start the IRC backend")
-    logging.error("""
-    If you intend to use the IRC backend please install Twisted Words:
+    logging.fatal("""
+    If you intend to use the IRC backend please install the python irc package:
     -> On debian-like systems
-    sudo apt-get install python-twisted-words
+    sudo apt-get install python-software-properties
+    sudo apt-get update
+    sudo apt-get install python-irc
     -> On Gentoo
-    sudo emerge -av dev-python/twisted-words
+    sudo emerge -av dev-python/irc
     -> Generic
-    pip install "Twisted Words"
+    pip install irc
     """)
     sys.exit(-1)
 
-from errbot.backends.base import Message, Identifier, build_message
-from errbot.errBot import ErrBot
-from errbot.utils import utf8, get_sender_username
 
-
-class IRCConnection(IRCClient, object):
-    connected = False
-
-    def __init__(self, callback, nickname='err', password=None):
-        self.nickname = nickname
+class IRCConnection(SingleServerIRCBot):
+    def __init__(self, callback, nickname, server, port=6667, ssl=False):
         self.callback = callback
-        self.password = password
-        config_dict = config.__dict__
-        self.channel_rate = config_dict.get("IRC_CHANNEL_RATE", 1)
-        self.private_rate = config_dict.get("IRC_PRIVATE_RATE", 1)
+        super().__init__([(server, port)], nickname, nickname)
 
-    #### Connection
+    def _dispatcher(self, c, e):
+        super()._dispatcher(c, e)
 
-    def send_message(self, mess):
-        global irc_message_lock
-        if self.connected:
-            m = utf8(mess.getBody())
-            if m[-1] != '\n':
-                m += '\n'
-            with irc_message_lock:
-                if mess.typ == 'chat' and mess.getTo().resource:  # if this is a response in private of a public message take the recipient in the resource instead of the incoming chatroom
-                    to = mess.getTo().resource
-                else:
-                    to = mess.getTo().node
-                self.lineRate = self.channel_rate if to.startswith('#') else self.private_rate
-                self.msg(to, m)
-        else:
-            logging.debug("Zapped message because the backend is not connected yet %s" % mess.getBody())
+    def on_welcome(self, c, e):
+        logging.info("IRC welcome %s" % e)
+        self.callback.connect_callback()
 
-    #### IRC Client duck typing
-    def lineReceived(self, line):
-        logging.debug('IRC line received : %s' % line)
-        super(IRCConnection, self).lineReceived(line)
-
-    def extract_from_from_prefix(self, prefix):
-        """ Prefix are strings like 'gbin!~gbin@c-50-131-249-52.hsd1.ca.comcast.net'
-        """
-        return prefix.split('!')[0]
-
-    def irc_PRIVMSG(self, prefix, params):
-        fr, line = params
-        if fr == self.nickname:  # it is a private message
-            from_identity = Identifier(node=self.extract_from_from_prefix(prefix))  # reextract the real from
-            typ = 'chat'
-        else:
-            from_identity = Identifier(node=fr, resource=self.extract_from_from_prefix(prefix))  # So we don't loose the original sender and the chatroom
-            typ = 'groupchat'
-        logging.debug('IRC message received from %s [%s]' % (fr, line))
-
-        msg = Message(line, typ=typ)
-        msg.setFrom(from_identity)
-        msg.setTo(params[0])
+    def on_pubmsg(self, c, e):
+        msg = Message(e.arguments[0])
+        msg.setFrom(e.target)
+        msg.setTo(self.callback.jid)
+        msg.setMuckNick(e.source.split('!')[0])  # FIXME find the real nick in the channel
+        msg.setType('groupchat')
         self.callback.callback_message(self, msg)
 
-    def connectionMade(self):
-        self.connected = True
-        super(IRCConnection, self).connectionMade()
-        self.callback.connect_callback()  # notify that the connection occured
-        logging.debug("IRC Connected")
+    def on_privmsg(self, c, e):
+        msg = Message(e.arguments[0])
+        msg.setFrom(e.source.split('!')[0])
+        msg.setTo(e.target)
+        msg.setType('chat')
+        self.callback.callback_message(self, msg)
 
-    def clientConnectionLost(self, connection, reason):
-        pass
+    def send_message(self, mess):
+        msg_func = self.send_private_message if mess.typ == 'chat' else self.send_public_message
+        if mess.typ == 'chat' and mess.getTo().resource:  # if this is a response in private of a public message take the recipient in the resource instead of the incoming chatroom
+            to = mess.getTo().resource
+        else:
+            to = mess.getTo().node
+        for line in mess.getBody().split('\n'):
+            msg_func(to, line)
 
+    @RateLimited(config.__dict__.get('IRC_PRIVATE_RATE', 1))
+    def send_private_message(self, to, line):
+        self.connection.privmsg(to, line)
 
-class IRCFactory(ClientFactory):
-    """
-    Factory used for creating IRC protocol objects
-    """
-
-    protocol = IRCConnection
-
-    def __init__(self, callback, nickname='err-chatbot', password=None):
-        self.irc = IRCConnection(callback, nickname, password)
-
-    def buildProtocol(self, addr=None):
-        return self.irc
-
-    def clientConnectionLost(self, conn, reason):
-        pass
-
-
-ENCODING_INPUT = sys.stdin.encoding
-
+    @RateLimited(config.__dict__.get('IRC_CHANNEL_RATE', 1))
+    def send_public_message(self, to, line):
+        self.connection.privmsg(to, line)
 
 class IRCBackend(ErrBot):
-    conn = None
-
     def __init__(self, nickname, server, port=6667, password=None, ssl=False):
+        self.jid = nickname + '@' + server
         super(IRCBackend, self).__init__()
-        self.nickname = nickname
-        self.server = server
-        self.port = port
-        self.password = password
-        self.ssl = ssl
-
-        if ssl:
-            try:
-                from twisted.internet import ssl
-            except ImportError:
-                logging.exception("Could not start the IRC backend")
-                logging.error("""
-If you intend to use SSL with the IRC backend please install pyopenssl:
--> On debian-like systems
-sudo apt-get install python-openssl
--> On Gentoo
-sudo emerge -av dev-python/pyopenssl
--> Generic
-pip install pyopenssl
-                """)
-                sys.exit(-1)
+        self.conn = IRCConnection(self, nickname, server, port, ssl)
 
     def serve_forever(self):
-        self.jid = self.nickname + '@localhost'
-        self.connect()  # be sure we are "connected" before the first command
         try:
-            reactor.run()
+            self.conn.start()
         finally:
             logging.debug("Trigger disconnect callback")
             self.disconnect_callback()
@@ -150,26 +83,17 @@ pip install pyopenssl
             self.shutdown()
 
     def connect(self):
-        if not self.conn:
-            ircFactory = IRCFactory(self, self.jid.split('@')[0], self.password)
-            self.conn = ircFactory.irc
-            if self.ssl:
-                from twisted.internet import ssl
-
-                reactor.connectSSL(self.server, self.port, ircFactory, ssl.ClientContextFactory())
-            else:
-                reactor.connectTCP(self.server, self.port, ircFactory)
         return self.conn
 
     def build_message(self, text):
         return build_message(text, Message)
 
     def shutdown(self):
-        super(IRCBackend, self).shutdown()
+        super().shutdown()
 
     def join_room(self, room, username=None, password=None):
-        self.conn.join(room)
+        self.conn.connection.join(room)
 
     @property
     def mode(self):
-        return 'IRC'
+        return 'irc'

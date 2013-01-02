@@ -8,11 +8,6 @@ from errbot.backends.xmpp import XMPPBackend, XMPPConnection
 from errbot.utils import utf8, REMOVE_EOL
 import re
 
-from sleekxmpp import JID, Message
-from sleekxmpp.xmlstream import ElementBase
-
-# Parses the hipchat element like : "<x xmlns='http://hipchat.com'><sender>15585_60268@chat.hipchat.com</sender></x>"
-
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
 
 HIPCHAT_FORCE_PRE = re.compile(r'<body>', re.I)

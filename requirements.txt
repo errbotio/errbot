@@ -1,6 +1,5 @@
 bottle
 setuptools
-sleekxmpp
 yapsy
 config
 pyasn1

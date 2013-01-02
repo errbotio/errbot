@@ -22,12 +22,12 @@ py_version = sys.version_info[:2]
 PY3 = py_version[0] == 3
 
 if PY3:
-    deps = ['setuptools', 'sleekxmpp', 'yapsy', 'bottle', 'requests', 'jinja2']  # requests are for the unittests
+    deps = ['setuptools', 'yapsy', 'bottle', 'requests', 'jinja2']  # requests are for the unittests
     if py_version < (3, 2):
         raise RuntimeError(
             'On Python 3, Err requires Python 3.2 or later')
 else:
-    deps = ['configparser', 'setuptools', 'sleekxmpp', 'dnspython', 'yapsy', 'python-daemon', 'config', 'bottle', 'requests', 'jinja2']
+    deps = ['configparser', 'setuptools', 'dnspython', 'yapsy', 'python-daemon', 'config', 'bottle', 'requests', 'jinja2']
     if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')

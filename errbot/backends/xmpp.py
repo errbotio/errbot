@@ -1,7 +1,27 @@
 import logging
-from sleekxmpp import ClientXMPP
+import sys
+
 from errbot.backends.base import Message, build_message, Connection
 from errbot.errBot import ErrBot
+
+try:
+    from sleekxmpp import ClientXMPP
+except ImportError as _:
+    logging.exception("Could not start the XMPP backend")
+    logging.fatal("""
+    If you intend to use the XMPP backend please install the python sleekxmpp package:
+    -> On debian-like systems
+    sudo apt-get install python-software-properties
+    sudo apt-get update
+    sudo apt-get install python-sleekxmpp
+    -> On Gentoo
+    sudo layman -a laurentb
+    sudo emerge -av dev-python/sleekxmpp
+    -> Generic
+    pip install sleekxmpp
+    """)
+    sys.exit(-1)
+
 
 try:
     from config import XMPP_FEATURE_MECHANISMS

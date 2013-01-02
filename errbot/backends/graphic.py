@@ -8,7 +8,7 @@ try:
     from PySide.QtCore import Qt, QUrl
 except ImportError:
     logging.exception("Could not start the graphical backend")
-    logging.error("""
+    logging.fatal("""
     If you intend to use the graphical backend please install PySide:
     -> On debian-like systems
     sudo apt-get install python-software-properties

@@ -97,8 +97,8 @@ class Webserver(BotPlugin):
         """
         A simple test webhook
         """
-        logging.debug(repr(incoming_request))
-        return repr(incoming_request)
+        logging.debug(str(incoming_request))
+        return str(incoming_request)
 
     #noinspection PyUnusedLocal
 #    @botcmd(split_args_with=' ')

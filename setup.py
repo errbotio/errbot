@@ -89,7 +89,7 @@ def setup_python2():
             for fname in all_files_in_rep(tmp_src):
                 os.utime(fname, None)
 
-        three2two.main("lib3to2.fixes", shlex.split("-w {0}".format(py2_root)))
+        three2two.main("lib3to2.fixes", shlex.split("-n --no-diffs -w {0}".format(py2_root)))
     else:
         print('Sources already uptodate for python 2')
 

@@ -1,6 +1,6 @@
 from queue import Queue
 import logging
-from os.path import sep
+from os.path import sep, abspath
 import sys
 from tempfile import mkdtemp
 from threading import Thread
@@ -82,6 +82,7 @@ class TestBackend(ErrBot):
     def mode(self):
         return 'text'
 
+
 def popMessage():
     return outgoing_message_queue.get(timeout=5)
 
@@ -104,6 +105,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
 logger.setLevel(logging.DEBUG)
 
+
 class FullStackTest(unittest.TestCase):
     """ This class starts a full bot with a test backend so you can add unit tests on an almost complete bot
     """
@@ -115,8 +117,12 @@ class FullStackTest(unittest.TestCase):
     def tearDown(self):
         zapQueues()
 
+    #noinspection PyTypeChecker
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, extra_test_file=None):
+        if extra_test_file:
+            import config
+            config.BOT_EXTRA_PLUGIN_DIR = sep.join(abspath(extra_test_file).split(sep)[:-2])
         cls.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
         cls.bot_thread.setDaemon(True)
         cls.bot_thread.start()
@@ -127,3 +133,7 @@ class FullStackTest(unittest.TestCase):
         cls.bot_thread.join()
         reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")
+
+    def assertCommand(self, command, response):
+        pushMessage(command)
+        self.assertIn(response, popMessage())

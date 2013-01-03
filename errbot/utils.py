@@ -110,7 +110,7 @@ def recurse_check_structure(sample, to_check):
     # would make no sense then because it would defeat the whole purpose of having
     # that key in the sample when it could only ever be None.
     if sample is not None and sample_type != to_check_type:
-        raise ValidationException('%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check_type, to_check_type))
+        raise ValidationException('%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
 
     if sample_type in (list, tuple):
         for element in to_check:

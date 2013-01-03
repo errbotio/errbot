@@ -1,10 +1,11 @@
 from errbot.backends.test import FullStackTest, pushMessage, popMessage
 import requests
+from errbot import PY2
 
 
 class TestWebhooks(FullStackTest):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, extra_test_file=None):
         super(TestWebhooks, cls).setUpClass()
         pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         popMessage()
@@ -17,8 +18,8 @@ class TestWebhooks(FullStackTest):
         self.assertIn("echo", popMessage())
 
     def test_plain_json(self):
-        self.assertEquals(requests.post('http://localhost:3141/echo/', '{"toto": "titui"}').text, "{'toto': 'titui'}")  # yes as it takes a json and gives back the python representation as string
-
+        repr_response = "{u'toto': u'titui'}" if PY2 else "{'toto': 'titui'}"
+        self.assertEquals(requests.post('http://localhost:3141/echo/', '{"toto": "titui"}').text, repr_response)  # yes as it takes a json and gives back the python representation as string
 
     def test_form(self):
         payload = {'toto': 'titui'}

@@ -105,6 +105,10 @@ def recurse_check_structure(sample, to_check):
     sample_type = type(sample)
     to_check_type = type(to_check)
 
+    if PY2 and to_check_type.__name__ == 'str':  # __name__ to avoid beeing touched by 3to2
+        to_check_type = unicode
+        to_check = to_check.decode()
+
     # Skip this check if the sample is None because it will always be something
     # other than NoneType when changed from the default. Raising ValidationException
     # would make no sense then because it would defeat the whole purpose of having

@@ -148,6 +148,7 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.2",
         ],
         src_root=src_root,
+        platforms='any',
     )
 
 # restore the paths

@@ -83,8 +83,8 @@ class TestBackend(ErrBot):
         return 'text'
 
 
-def popMessage():
-    return outgoing_message_queue.get(timeout=5)
+def popMessage(timeout=5):
+    return outgoing_message_queue.get(timeout)
 
 
 def pushMessage(msg):
@@ -134,6 +134,6 @@ class FullStackTest(unittest.TestCase):
         reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")
 
-    def assertCommand(self, command, response):
+    def assertCommand(self, command, response, timeout=5):
         pushMessage(command)
-        self.assertIn(response, popMessage())
+        self.assertIn(response, popMessage(), timeout)

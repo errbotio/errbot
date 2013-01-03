@@ -30,6 +30,8 @@ def get_builtins(extra):
             #noinspection PyTypeChecker
             return [BUILTIN, extra]
         return BUILTIN + extra
+    else:
+        return [BUILTIN]
 
 def init_plugin_manager():
     global simplePluginManager

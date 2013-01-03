@@ -1,4 +1,4 @@
-from tests import FullStackTest, pushMessage, popMessage
+from errbot.backends.test import FullStackTest, pushMessage, popMessage
 import requests
 
 

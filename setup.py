@@ -27,7 +27,7 @@ if PY3:
         raise RuntimeError(
             'On Python 3, Err requires Python 3.2 or later')
 else:
-    deps = ['configparser', 'setuptools', 'dnspython', 'yapsy', 'python-daemon', 'config', 'bottle', 'rocket', 'requests', 'jinja2']
+    deps = ['setuptools', 'dnspython', 'yapsy', 'python-daemon', 'config', 'bottle', 'rocket', 'requests', 'jinja2']
     if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')

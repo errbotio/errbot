@@ -7,8 +7,6 @@ from errbot.botplugin import BotPlugin
 from errbot.utils import version2array
 from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
 from errbot.version import VERSION
-from config import BOT_EXTRA_PLUGIN_DIR
-
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
@@ -18,9 +16,6 @@ BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
 if PY2:  # keys needs to be byte strings en shelves under python 2
     BUILTIN = BUILTIN.encode()
 
-BUILTINS = [BUILTIN, ]
-
-
 class IncompatiblePluginException(Exception):
     pass
 
@@ -28,14 +23,13 @@ class IncompatiblePluginException(Exception):
 class PluginConfigurationException(Exception):
     pass
 
-# adds the extra plugin dir from the setup for developpers convenience
-if BOT_EXTRA_PLUGIN_DIR:
-    if isinstance(BOT_EXTRA_PLUGIN_DIR, str):
-        #noinspection PyTypeChecker
-        BUILTINS.append(BOT_EXTRA_PLUGIN_DIR)
-    else:
-        BUILTINS.extend(BOT_EXTRA_PLUGIN_DIR)
-
+def get_builtins(extra):
+    # adds the extra plugin dir from the setup for developpers convenience
+    if extra:
+        if isinstance(extra, str):
+            #noinspection PyTypeChecker
+            return [BUILTIN, extra]
+        return BUILTIN + extra
 
 def init_plugin_manager():
     global simplePluginManager
@@ -110,13 +104,15 @@ def deactivatePluginByName(name):
 
 
 def update_plugin_places(list):
-    for entry in chain(BUILTINS, list):
+    from config import BOT_EXTRA_PLUGIN_DIR
+    builtins = get_builtins(BOT_EXTRA_PLUGIN_DIR)
+    for entry in chain(builtins, list):
         if entry not in sys.path:
             sys.path.append(entry)  # so the plugins can relatively import their submodules
 
     errors = [check_dependencies(path) for path in list]
     errors = [error for error in errors if error is not None]
-    simplePluginManager.setPluginPlaces(chain(BUILTINS, list))
+    simplePluginManager.setPluginPlaces(chain(builtins, list))
     all_candidates = []
 
     def add_candidate(candidate):

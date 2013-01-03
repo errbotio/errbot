@@ -2,7 +2,7 @@
 from ast import literal_eval
 
 # create a mock configuration
-from tests import FullStackTest, pushMessage, popMessage
+from errbot.backends.test import FullStackTest, pushMessage, popMessage
 
 
 class TestCommands(FullStackTest):

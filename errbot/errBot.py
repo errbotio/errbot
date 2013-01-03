@@ -250,7 +250,7 @@ class ErrBot(Backend, StoreMixin):
         if type(added) is not dict:
             raise Exception('Weird, it should be a dictionary')
         self[CONFIGS] = dict(list(orig.items()) + list(added.items()))
-        return "Import is done correctly, there are %i config entries now." % len(self['configs'])
+        return "Import is done correctly, there are %i config entries now." % len(self[CONFIGS])
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)

@@ -58,6 +58,8 @@ class TestBackend(ErrBot):
             pass
         except KeyboardInterrupt as _:
             pass
+        except Exception:
+            logging.exception("Something exploded in the main callback_message")
         finally:
             logging.debug("Trigger disconnect callback")
             self.disconnect_callback()

@@ -25,7 +25,6 @@ import subprocess
 from imp import reload
 
 from tarfile import TarFile
-import threading
 from urllib.request import urlopen
 
 from errbot import botcmd, PY2
@@ -51,21 +50,12 @@ CONFIGS = b'configs' if PY2 else 'configs'
 REPOS = b'repos' if PY2 else 'repos'
 BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
-configuration_lock = threading.Lock()
-
-def conflock(f):
-    def inner(*args, **kwargs):
-        with configuration_lock:
-            return f(*args, **kwargs)
-    return inner
-
 class ErrBot(Backend, StoreMixin):
     __errdoc__ = """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
 
-    @conflock
     def __init__(self, *args, **kwargs):
         from config import BOT_DATA_DIR, BOT_PREFIX
 
@@ -82,7 +72,6 @@ class ErrBot(Backend, StoreMixin):
     def get_installed_plugin_repos(self):
         return self.get(REPOS, {})
 
-    @conflock
     def add_plugin_repo(self, name, url):
         if PY2:
             name = name.encode('utf-8')
@@ -115,21 +104,18 @@ class ErrBot(Backend, StoreMixin):
         logging.info('Plugin %s is now unblacklisted' % name)
 
     # configurations management
-    @conflock
     def get_plugin_configuration(self, name):
         configs = self[CONFIGS]
         if name not in configs:
             return None
         return configs[name]
 
-    @conflock
     def set_plugin_configuration(self, name, obj):
         configs = self[CONFIGS]
         configs[name] = obj
         self[CONFIGS] = configs
 
     # this will load the plugins the admin has setup at runtime
-    @conflock
     def update_dynamic_plugins(self):
         all_candidates, errors = update_plugin_places([self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()])
         self.all_candidates = all_candidates
@@ -156,7 +142,6 @@ class ErrBot(Backend, StoreMixin):
                 except Exception as _:
                     logging.exception("Crash in a callback_message handler")
 
-    @conflock
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')
         configs = self[CONFIGS]
@@ -200,7 +185,6 @@ class ErrBot(Backend, StoreMixin):
         logging.info('Disconnect callback, deactivating all the plugins.')
         deactivate_all_plugins()
 
-    @conflock
     def shutdown(self):
         logging.info('Shutdown.')
         self.close_storage()

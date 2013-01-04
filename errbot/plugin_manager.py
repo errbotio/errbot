@@ -26,10 +26,9 @@ class PluginConfigurationException(Exception):
 def get_builtins(extra):
     # adds the extra plugin dir from the setup for developpers convenience
     if extra:
-        if isinstance(extra, str):
-            #noinspection PyTypeChecker
-            return [BUILTIN, extra]
-        return BUILTIN + extra
+        if isinstance(extra, list):
+            return [BUILTIN] + extra
+        return [BUILTIN, extra]
     else:
         return [BUILTIN]
 

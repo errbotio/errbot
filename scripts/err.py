@@ -47,9 +47,10 @@ if not ON_WINDOWS and sys.version_info[0] < 3:
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
-logging.basicConfig(format='%(levelname)s:%(message)s')
+logging.basicConfig(format='%(levelname)s:%(name)s:%(message)s')
 logger = logging.getLogger('')
-logging.getLogger('yapsy').setLevel(logging.INFO) # this one is way too verbose in debug
+logging.getLogger('yapsy').setLevel(logging.INFO)  # this one is way too verbose in debug
+logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one is way too verbose in debug
 logger.setLevel(logging.INFO)
 
 

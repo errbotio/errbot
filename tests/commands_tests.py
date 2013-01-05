@@ -114,3 +114,6 @@ class TestCommands(FullStackTest):
     def test_encoding_preservation(self):
         pushMessage('!echo へようこそ')
         self.assertEquals('へようこそ', popMessage())
+
+    def test_webserver_webhook_test(self):
+        self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')

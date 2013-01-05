@@ -1,16 +1,22 @@
+from json import loads
 import logging
 from threading import Thread
 
-from errbot import holder
+from errbot import holder, PY3
 from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
 from errbot.builtins.wsview import bottle_app, webhook
 from rocket import Rocket
+from webtest import TestApp
+
+if PY3:
+    from urllib.request import unquote
+else:
+    from urllib2 import unquote
 
 TEST_REPORT = """*** Test Report
-Found the matching rule : %s
-Generated URL : %s
+URL : %s
 Detected your post as : %s
 Status code : %i
 """
@@ -24,6 +30,7 @@ class Webserver(BotPlugin):
         self.webserver_thread = None
         self.webchat_mode = False
         self.ssl_context = None
+        self.test_app = TestApp(bottle_app)
         super(Webserver, self).__init__()
 
     def run_webserver(self):
@@ -96,44 +103,36 @@ class Webserver(BotPlugin):
 
         #noinspection PyUnusedLocal
 
-#    @botcmd(split_args_with=' ')
-#    def webhook_test(self, mess, args):
-#        """
-#            Test your webhooks from within err.
-#
-#        The syntax is :
-#        !webhook test [name of the endpoint] [post content]
-#
-#        It triggers the notification and generate also a little test report.
-#        You can get the list of the currently deployed endpoints with !webstatus
-#        """
-#        endpoint = args[0]
-#        content = ' '.join(args[1:])
-#        for rule in holder.flask_app.url_map.iter_rules():
-#            if endpoint == rule.endpoint:
-#                with holder.flask_app.test_client() as client:
-#                    logging.debug('Found the matching rule : %s' % rule.rule)
-#                    generated_url = generate(rule.rule, 1).next()  # generate a matching url from the pattern
-#                    logging.debug('Generated URL : %s' % generated_url)
-#
-#                    # try to guess the content-type of what has been passed
-#                    try:
-#                        # try if it is plain json
-#                        loads(content)
-#                        contenttype = 'application/json'
-#                    except ValueError:
-#                        # try if it is a form
-#                        splitted = content.split('=')
-#                        #noinspection PyBroadException
-#                        try:
-#                            payload = '='.join(splitted[1:])
-#                            loads(urllib2.unquote(payload))
-#                            contenttype = 'application/x-www-form-urlencoded'
-#                        except Exception as e:
-#                            contenttype = 'text/plain'  # dunno what it is
-#
-#                    logging.debug('Detected your post as : %s' % contenttype)
-#
-#                    response = client.post(generated_url, data=content, content_type=contenttype)
-#                    return TEST_REPORT % (rule.rule, generated_url, contenttype, response.status_code)
-#        return 'Could not find endpoint %s. Check with !webstatus which endpoints are deployed' % endpoint
+    @botcmd(split_args_with=' ')
+    def webhook_test(self, _, args):
+        """
+            Test your webhooks from within err.
+
+        The syntax is :
+        !webhook test [relative_url] [post content]
+
+        It triggers the notification and generate also a little test report.
+        """
+        url = args[0]
+        content = ' '.join(args[1:])
+
+        # try to guess the content-type of what has been passed
+        try:
+            # try if it is plain json
+            loads(content)
+            contenttype = 'application/json'
+        except ValueError:
+            # try if it is a form
+            splitted = content.split('=')
+            #noinspection PyBroadException
+            try:
+                payload = '='.join(splitted[1:])
+                loads(unquote(payload))
+                contenttype = 'application/x-www-form-urlencoded'
+            except Exception as _:
+                contenttype = 'text/plain'  # dunno what it is
+
+        logging.debug('Detected your post as : %s' % contenttype)
+
+        response = self.test_app.post(url, params=content, content_type=contenttype)
+        return TEST_REPORT % (url, contenttype, response.status_code)

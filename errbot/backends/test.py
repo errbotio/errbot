@@ -17,7 +17,7 @@ config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 config_module.BOT_EXTRA_PLUGIN_DIR = []
 config_module.BOT_LOG_LEVEL = logging.DEBUG
 
-from errbot.backends.base import Message, build_text_html_message_pair, build_message
+from errbot.backends.base import Message, build_message
 from errbot.errBot import ErrBot
 from errbot.builtins.wsview import reset_app
 
@@ -101,11 +101,6 @@ def zapQueues():
         logging.error('Message left in the outgoing queue during a test : %s' % msg)
 
 
-logging.basicConfig(format='%(levelname)s:%(message)s')
-logger = logging.getLogger('')
-logger.setLevel(logging.DEBUG)
-
-
 class FullStackTest(unittest.TestCase):
     """ This class starts a full bot with a test backend so you can add unit tests on an almost complete bot
     """
@@ -120,6 +115,14 @@ class FullStackTest(unittest.TestCase):
     #noinspection PyTypeChecker
     @classmethod
     def setUpClass(cls, extra_test_file=None):
+        # reset logging to console
+        logging.basicConfig(format='%(levelname)s:%(message)s')
+        console = logging.StreamHandler()
+        file = logging.FileHandler(config_module.BOT_LOG_FILE, encoding='utf-8')
+        logger = logging.getLogger('')
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(console)
+        logger.addHandler(file)
         if extra_test_file:
             import config
             config.BOT_EXTRA_PLUGIN_DIR = sep.join(abspath(extra_test_file).split(sep)[:-2])
@@ -137,3 +140,7 @@ class FullStackTest(unittest.TestCase):
     def assertCommand(self, command, response, timeout=5):
         pushMessage(command)
         self.assertIn(response, popMessage(), timeout)
+
+    def assertCommandFound(self, command, timeout=5):
+        pushMessage(command)
+        self.assertNotIn('not found', popMessage(), timeout)

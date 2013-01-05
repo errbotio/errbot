@@ -2,11 +2,12 @@ import logging
 import os
 from threading import Timer, current_thread
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
+from errbot.storage import StoreMixin
 from errbot import holder
-from storage import StoreMixin
 
 
-class BotPluginBase(object, StoreMixin):
+
+class BotPluginBase(StoreMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
      It is the main contract between the plugins and the bot
@@ -72,7 +73,7 @@ class BotPluginBase(object, StoreMixin):
     def program_next_poll(self, interval, method, args, kwargs):
         t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t)  # save the timer to be able to kill it
-        t.setName('Poller thread for %s' % method.im_class.__name__)
+        t.setName('Poller thread for %s' % type(method.__self__).__name__)
         t.setDaemon(True)  # so it is not locking on exit
         t.start()
 

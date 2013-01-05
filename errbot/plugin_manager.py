@@ -2,17 +2,19 @@ from itertools import chain
 import logging
 import sys
 import os
+from errbot import PY2
 from errbot.botplugin import BotPlugin
 from errbot.utils import version2array
 from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
 from errbot.version import VERSION
-from config import BOT_EXTRA_PLUGIN_DIR
-
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
-BUILTINS = [os.path.dirname(os.path.abspath(__file__)) + os.sep + 'builtins', ]
+from errbot import holder
 
+BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
+if PY2:  # keys needs to be byte strings en shelves under python 2
+    BUILTIN = BUILTIN.encode()
 
 class IncompatiblePluginException(Exception):
     pass
@@ -21,19 +23,25 @@ class IncompatiblePluginException(Exception):
 class PluginConfigurationException(Exception):
     pass
 
-# adds the extra plugin dir from the setup for developpers convenience
-if BOT_EXTRA_PLUGIN_DIR:
-    if isinstance(BOT_EXTRA_PLUGIN_DIR, basestring):
-        #noinspection PyTypeChecker
-        BUILTINS.append(BOT_EXTRA_PLUGIN_DIR)
+def get_builtins(extra):
+    # adds the extra plugin dir from the setup for developpers convenience
+    if extra:
+        if isinstance(extra, list):
+            return [BUILTIN] + extra
+        return [BUILTIN, extra]
     else:
-        BUILTINS.extend(BOT_EXTRA_PLUGIN_DIR)
-
+        return [BUILTIN]
 
 def init_plugin_manager():
     global simplePluginManager
-    simplePluginManager = PluginManager(categories_filter={"bots": BotPlugin})
-    simplePluginManager.setPluginInfoExtension('plug')
+
+    if not holder.plugin_manager:
+        logging.info('init plugin manager')
+        simplePluginManager = PluginManager(categories_filter={"bots": BotPlugin})
+        simplePluginManager.setPluginInfoExtension('plug')
+        holder.plugin_manager = simplePluginManager
+    else:
+        simplePluginManager = holder.plugin_manager
 
 
 init_plugin_manager()
@@ -73,7 +81,7 @@ def activate_plugin_with_version_check(name, config):
             obj.check_configuration(config)
             logging.debug('Configuration for %s checked OK.' % name)
         obj.configure(config)  # even if it is None we pass it on
-    except Exception, e:
+    except Exception as e:
         logging.exception('Something is wrong with the configuration of the plugin %s' % name)
         obj.config = None
         raise PluginConfigurationException(str(e))
@@ -97,13 +105,15 @@ def deactivatePluginByName(name):
 
 
 def update_plugin_places(list):
-    for entry in chain(BUILTINS, list):
+    from config import BOT_EXTRA_PLUGIN_DIR
+    builtins = get_builtins(BOT_EXTRA_PLUGIN_DIR)
+    for entry in chain(builtins, list):
         if entry not in sys.path:
             sys.path.append(entry)  # so the plugins can relatively import their submodules
 
     errors = [check_dependencies(path) for path in list]
     errors = [error for error in errors if error is not None]
-    simplePluginManager.setPluginPlaces(chain(BUILTINS, list))
+    simplePluginManager.setPluginPlaces(chain(builtins, list))
     all_candidates = []
 
     def add_candidate(candidate):
@@ -120,19 +130,20 @@ def update_plugin_places(list):
 
 
 def get_all_plugins():
+    logging.debug("All plugins: %s" % simplePluginManager.getAllPlugins())
     return simplePluginManager.getAllPlugins()
 
 
 def get_all_active_plugin_objects():
-    return [plug.plugin_object for plug in simplePluginManager.getAllPlugins() if hasattr(plug, 'is_activated') and plug.is_activated]
+    return [plug.plugin_object for plug in get_all_plugins() if hasattr(plug, 'is_activated') and plug.is_activated]
 
 
 def get_all_active_plugin_names():
-    return map(lambda p: p.name, filter(lambda p: hasattr(p, 'is_activated') and p.is_activated, simplePluginManager.getAllPlugins()))
+    return [p.name for p in get_all_plugins() if hasattr(p, 'is_activated') and p.is_activated]
 
 
 def get_all_plugin_names():
-    return map(lambda p: p.name, simplePluginManager.getAllPlugins())
+    return [p.name for p in get_all_plugins()]
 
 
 def deactivate_all_plugins():

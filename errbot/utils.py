@@ -3,9 +3,14 @@ import logging
 import inspect
 import os
 import re
-import htmlentitydefs
+from html import entities
+import sys
+import time
 
-PLUGINS_SUBDIR = 'plugins'
+PY3 = sys.version_info[0] == 3
+PY2 = not PY3
+
+PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
 
 
 def get_sender_username(mess):
@@ -19,39 +24,6 @@ def get_sender_username(mess):
     else:
         username = ""
     return username
-
-
-def get_jid_from_message(mess):
-    if mess.getType() == 'chat':
-        return str(mess.getFrom().getStripped())
-        # this is a hipchat message from a group so find out from the sender node, for the moment hardcoded because it is not parsed, it could brake in the future
-    jid = mess.getTagAttr('delay', 'from_jid')
-    if jid:
-        logging.debug('found the jid from the delay tag : %s' % jid)
-        return jid
-    jid = mess.getTagData('sender')
-    if jid:
-        logging.debug('found the jid from the sender tag : %s' % jid)
-        return jid
-    x = mess.getTag('x')
-    if x:
-        jid = x.getTagData('sender')
-
-    if jid:
-        logging.debug('found the jid from the x/sender tag : %s' % jid)
-        return jid
-
-    # If the message is from MUC, return response to MUC
-    if mess.getType() == 'groupchat':
-        jid = mess.getFrom()
-        logging.debug('Message from MUC. Replying to: %s' % jid)
-        return jid
-
-    splitted = str(mess.getFrom()).split('/')
-    jid = splitted[1] if len(splitted) > 1 else splitted[0]  # despair
-
-    logging.debug('deduced the jid from the chatroom to %s' % jid)
-    return jid
 
 
 def format_timedelta(timedelta):
@@ -76,12 +48,12 @@ def drawbar(value, max):
         value_in_chr = int(round((value * BAR_WIDTH / max)))
     else:
         value_in_chr = 0
-    return u'[' + u'█' * value_in_chr + u'▒' * int(round(BAR_WIDTH - value_in_chr)) + u']'
+    return '[' + '█' * value_in_chr + '▒' * int(round(BAR_WIDTH - value_in_chr)) + ']'
 
 
 # Introspect to know from which plugin a command is implemented
 def get_class_for_method(meth):
-    for cls in inspect.getmro(meth.im_class):
+    for cls in inspect.getmro(type(meth.__self__)):
         if meth.__name__ in cls.__dict__:
             return cls
     return None
@@ -98,7 +70,7 @@ def human_name_for_git_url(url):
 
 
 def tail(f, window=20):
-    return ''.join(f.readlines()[-window:]).decode('utf-8')
+    return ''.join(f.readlines()[-window:])
 
 
 def which(program):
@@ -133,12 +105,16 @@ def recurse_check_structure(sample, to_check):
     sample_type = type(sample)
     to_check_type = type(to_check)
 
+    if PY2 and to_check_type.__name__ == 'str':  # __name__ to avoid beeing touched by 3to2
+        to_check_type = unicode
+        to_check = to_check.decode()
+
     # Skip this check if the sample is None because it will always be something
     # other than NoneType when changed from the default. Raising ValidationException
     # would make no sense then because it would defeat the whole purpose of having
     # that key in the sample when it could only ever be None.
     if sample is not None and sample_type != to_check_type:
-        raise ValidationException('%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check_type, to_check_type))
+        raise ValidationException('%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
 
     if sample_type in (list, tuple):
         for element in to_check:
@@ -170,15 +146,15 @@ def unescape_xml(text):
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
+                    return chr(int(text[3:-1], 16))
                 else:
-                    return unichr(int(text[2:-1]))
+                    return chr(int(text[2:-1]))
             except ValueError:
                 pass
         else:
             # named entity
             try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text = chr(entities.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text  # leave as is
@@ -199,8 +175,8 @@ def xhtml2txt(xhtml):
 
 
 def utf8(key):
-    if type(key) == unicode:
-        return key.encode('utf-8')
+    if type(key) == str:
+        return key.encode()  # it defaults to utf-8
     return key
 
 
@@ -212,7 +188,7 @@ def mess_2_embeddablehtml(mess):
 
     if html_content:
         body = html_content.getTag('body')
-        return ''.join([unicode(kid) for kid in body.kids]) + body.getData(), True
+        return ''.join([str(kid) for kid in body.kids]) + body.getData(), True
     else:
         return mess.getBody(), False
 
@@ -231,3 +207,23 @@ def parse_jid(jid):
         resource = None
 
     return node, domain, resource
+
+
+def RateLimited(minInterval):
+    def decorate(func):
+        lastTimeCalled = [0.0]
+
+        def rateLimitedFunction(*args, **kargs):
+            elapsed = time.time() - lastTimeCalled[0]
+            logging.debug('Elapsed %f since last call' % elapsed)
+            leftToWait = minInterval - elapsed
+            if leftToWait > 0:
+                logging.debug('Wait %f due to rate limiting...' % leftToWait)
+                time.sleep(leftToWait)
+            ret = func(*args, **kargs)
+            lastTimeCalled[0] = time.time()
+            return ret
+
+        return rateLimitedFunction
+
+    return decorate

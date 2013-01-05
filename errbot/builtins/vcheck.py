@@ -1,7 +1,7 @@
 import logging
 from errbot import BotPlugin
 from errbot.version import VERSION
-import urllib2
+from urllib.request import urlopen
 from errbot.utils import version2array
 
 HOME = 'http://www.gootz.net/err/version'
@@ -33,7 +33,7 @@ class VersionChecker(BotPlugin):
         logging.debug('Checking version')
         #noinspection PyBroadException
         try:
-            current_version_txt = urllib2.urlopen(HOME).read().strip()
+            current_version_txt = urlopen(HOME).read().decode("utf-8").strip()
             current_version = version2array(current_version_txt)
             if installed_version < current_version:
                 logging.debug('A new version %s has been found, notify the admins !' % current_version)

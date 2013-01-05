@@ -1,10 +1,14 @@
 language: python
+
 python:
   - "2.7"
+  - "3.2"
+
 before_script: 
-  - pip install nose
   - cp errbot/config-template.py config.py
+
+install: 
+  - python setup.py install
   - pip freeze
 
-install: pip install -r requirements.txt
-script: nosetests -v tests/ 
+script: python run_tests.py 

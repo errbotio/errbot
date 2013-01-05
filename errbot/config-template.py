@@ -21,6 +21,12 @@ BOT_IDENTITY = {
 
 BOT_ASYNC = False  # If true, the bot will handle the commands asynchronously [EXPERIMENTAL]
 
+# Influence the security methods used on connection with XMPP-based backends.
+# Default is to try anything:
+# XMPP_FEATURE_MECHANISMS = {}
+# To use only unencrypted plain auth:
+# XMPP_FEATURE_MECHANISMS =  {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
+
 # HIPCHAT template
 #BOT_IDENTITY = {
 #    'username' : '12345_123456@chat.hipchat.com',

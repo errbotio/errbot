@@ -1,11 +1,11 @@
 from collections import deque
 import inspect
 import logging
-from pyexpat import ExpatError
-from xmpp.simplexml import XML2Node
-from errbot import botcmd
+from xml.etree import cElementTree as ET
+from xml.etree.cElementTree import ParseError
+from errbot import botcmd, PY2
 import difflib
-from errbot.utils import get_sender_username, xhtml2txt, get_jid_from_message, utf8, parse_jid
+from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid
 from errbot.templating import tenv
 import traceback
 
@@ -89,7 +89,7 @@ class Identifier(object):
         return answer
 
     def __unicode__(self):
-        return unicode(self.__str__())
+        return str(self.__str__())
 
 
 class Message(object):
@@ -97,12 +97,14 @@ class Message(object):
 
     def __init__(self, body, typ='chat', html=None):
         # it is either unicode or assume it is utf-8
-        if isinstance(body, unicode):
+        if isinstance(body, str):
             self.body = body
         else:
             self.body = body.decode('utf-8')
         self.html = html
         self.typ = typ
+        self.delayed = False
+        self.mucknick = None
 
     def setTo(self, to):
         if isinstance(to, Identifier):
@@ -128,36 +130,30 @@ class Message(object):
         else:
             self.fr = Identifier(fr)  # assume a parseable string
 
-    def getProperties(self):
-        return {}
-
     def getBody(self):
         return self.body
 
     def getHTML(self):
         return self.html
 
-    # XMPP backward compliance
-    def getTagAttr(self, tag, attr):
-        return None
+    def setHTML(self, html):
+        self.html = html
 
-    def getTagData(self, tag):
-        return None
+    def setDelayed(self, delayed):
+        self.delayed = delayed
 
-    def getTag(self, tag):
-        return None
+    def isDelayed(self):
+        return self.delayed
 
-    def addChild(self, name=None, attrs={}, payload=[], namespace=None, node=None):
-        """ If "node" argument is provided, adds it as child node. Else creates new node from
-            the other arguments' values and adds it as well."""
-        if node.name == 'html':
-            self.html = unicode(node)  # assume this is the html node you want to set
-        else:
-            raise TypeError('We only support the custom html node from XMPP')
-        return node
+    def setMuckNick(self, nick):
+        self.mucknick = nick
+
+    def getMuckNick(self):
+        return self.mucknick
 
     def __str__(self):
         return self.body
+
 
 
 class Connection(object):
@@ -170,9 +166,9 @@ def build_text_html_message_pair(source):
     text_plain = None
 
     try:
-        node = XML2Node(source)
+        node = ET.XML(source)
         text_plain = xhtml2txt(source)
-    except ExpatError as ee:
+    except ParseError as ee:
         if source.strip():  # avoids keep alive pollution
             logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
             text_plain = source
@@ -183,19 +179,20 @@ def build_message(text, message_class, conversion_function=None):
     If input is not valid xhtml-im fallback to normal."""
     message = None  # keeps the compiler happy
     try:
-        text = utf8(text)
-
         text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
+        if PY2:
+            ET.XML(text.encode('utf-8'))  # test if is it xml
+        else:
+            ET.XML(text)
 
-        XML2Node(text)  # test if is it xml
         edulcorated_html = conversion_function(text) if conversion_function else text
         try:
             text_plain, node = build_text_html_message_pair(edulcorated_html)
             message = message_class(body=text_plain)
-            message.addChild(node=node)
-        except ExpatError as ee:
+            message.setHTML(node)
+        except ET.ParseError as ee:
             logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (edulcorated_html, ee))
-    except ExpatError as ee:
+    except ET.ParseError as ee:
         if text.strip():  # avoids keep alive pollution
             logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
         message = message_class(body=text)
@@ -244,9 +241,6 @@ class Backend(object):
         Message is NOT sent"""
         response = self.build_message(text)
         if private:
-            # Use get_jid_from_message here instead of mess.getFrom because
-            # getFrom will return the groupchat id instead of user's jid when
-            # sent from a chatroom
             response.setTo(get_jid_from_message(mess))
             response.setType('chat')
             response.setFrom(self.jid)
@@ -263,15 +257,17 @@ class Backend(object):
         # Prepare to handle either private chats or group chats
         type = mess.getType()
         jid = mess.getFrom()
-        props = mess.getProperties()
         text = mess.getBody()
         username = get_sender_username(mess)
+
+        if mess.isDelayed():
+            logging.debug("Message from history, ignore it")
+            return False
 
         if type not in ("groupchat", "chat"):
             logging.debug("unhandled message type %s" % mess)
             return False
 
-        logging.debug("*** props = %s" % props)
         logging.debug("*** jid = %s" % jid)
         logging.debug("*** username = %s" % username)
         logging.debug("*** type = %s" % type)
@@ -279,7 +275,8 @@ class Backend(object):
 
         # If a message format is not supported (eg. encrypted),
         # txt will be None
-        if not text: return False
+        if not text:
+            return False
 
         surpress_cmd_not_found = False
 
@@ -359,18 +356,19 @@ class Backend(object):
                         reply = tenv().get_template(template_name + '.html').render(**reply)
 
                     # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
-                    reply = unicode(reply)
-                except Exception, e:
-                    logging.exception(u'An error happened while processing '
-                                      u'a message ("%s") from %s: %s"' %
-                                      (text, jid, traceback.format_exc(e)))
+                    reply = str(reply)
+                except Exception as e:
+                    tb = traceback.format_exc()
+                    logging.exception('An error happened while processing '
+                                      'a message ("%s") from %s: %s"' %
+                                      (text, jid, tb))
                     reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
                 if reply:
                     if len(reply) > self.MESSAGE_SIZE_LIMIT:
                         reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
                     self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
 
-            usr = unicode(get_jid_from_message(mess))
+            usr = str(get_jid_from_message(mess))
             typ = mess.getType()
             if cmd not in ACCESS_CONTROLS:
                 ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
@@ -417,10 +415,10 @@ class Backend(object):
             if f._err_command_split_args_with != '':
                 args = args.split(f._err_command_split_args_with)
             if BOT_ASYNC:
-                wr = WorkRequest(execute_and_send, [f._err_command_template]) #execute_and_send(f._err_command_template)
+                wr = WorkRequest(execute_and_send, [f._err_command_template])
                 self.thread_pool.putRequest(wr)
                 if f._err_command_admin_only:
-                    self.thread_pool.wait() # Again wait for the completion before accepting a new command that could generate weird concurrency issues
+                    self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
             else:
                 execute_and_send(f._err_command_template)
 
@@ -464,7 +462,7 @@ class Backend(object):
                 if name in self.commands:
                     f = self.commands[name]
                     new_name = (classname + '-' + name).lower()
-                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, f.im_class.__name__, f.__name__, new_name ))
+                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, type(f.__self__).__name__, f.__name__, new_name ))
                     name = new_name
                 logging.debug('Adding command : %s -> %s' % (name, value.__name__))
                 self.commands[name] = value
@@ -473,7 +471,8 @@ class Backend(object):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
                 name = getattr(value, '_err_command_name')
-                del (self.commands[name])
+                if name in self.commands:  # this could happen in premature shutdown
+                    del (self.commands[name])
 
     def warn_admins(self, warning):
         for admin in BOT_ADMINS:
@@ -531,7 +530,7 @@ class Backend(object):
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
         mess = self.build_message(text)
-        if isinstance(user, basestring):
+        if isinstance(user, str):
             mess.setTo(user)
         else:
             mess.setTo(user.getStripped())
@@ -574,3 +573,14 @@ class Backend(object):
     @property
     def mode(self):
         raise NotImplementedError("It should be implemented specifically for your backend")
+
+def get_jid_from_message(mess):
+    if mess.getType() == 'chat':
+        # strip the resource for direct chats
+        return str(mess.getFrom().getStripped())
+
+    # this is a standard private XMPP reply in MUC
+    fr = mess.getFrom()
+    jid = Identifier(node=fr.node, domain=fr.domain, resource=mess.getMuckNick())
+    logging.debug('Message from MUC. Replying to: %s' % jid)
+    return jid

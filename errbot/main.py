@@ -6,10 +6,9 @@ def main(bot_class, logger):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
+    from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE, BOT_LOG_SENTRY
     from errbot.utils import PLUGINS_SUBDIR
     from errbot import holder
-
-    from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE, BOT_LOG_SENTRY
 
     if BOT_LOG_FILE:
         hdlr = logging.FileHandler(BOT_LOG_FILE)
@@ -20,7 +19,7 @@ def main(bot_class, logger):
     if BOT_LOG_SENTRY:
         try:
             from raven.handlers.logging import SentryHandler
-        except ImportError, e:
+        except ImportError as _:
             logging.exception("""You have BOT_LOG_SENTRY enabled, but I couldn't import modules needed for Sentry integration.
             Did you install raven? (See http://raven.readthedocs.org/en/latest/install/index.html for installation instructions)
 
@@ -38,9 +37,9 @@ def main(bot_class, logger):
         raise Exception('The data directory %s should be writable for the bot' % BOT_DATA_DIR)
 
     # make the plugins subdir to store the plugin shelves
-    d = BOT_DATA_DIR + sep + PLUGINS_SUBDIR
+    d = BOT_DATA_DIR + sep + str(PLUGINS_SUBDIR)
     if not path.exists(d):
-        makedirs(d, mode=0755)
+        makedirs(d, mode=0o755)
 
     holder.bot = bot_class(**BOT_IDENTITY)
     errors = holder.bot.update_dynamic_plugins()

@@ -1,61 +1,11 @@
 # coding=utf-8
 from ast import literal_eval
-from os.path import sep
-from tempfile import mkdtemp
-from threading import Thread
-import unittest
-import logging
 
 # create a mock configuration
-import sys
-
-from errbot.main import main
-from tests import TestBackend, outgoing_message_queue, incoming_message_queue, QUIT_MESSAGE
+from errbot.backends.test import FullStackTest, pushMessage, popMessage
 
 
-def popMessage():
-    return outgoing_message_queue.get(timeout=5)
-
-
-def pushMessage(msg):
-    incoming_message_queue.put(msg, timeout=5)
-
-
-def zapQueues():
-    while not incoming_message_queue.empty():
-        msg = incoming_message_queue.get(block=False)
-        logging.error('Message left in the incoming queue during a test : %s' % msg)
-
-    while not outgoing_message_queue.empty():
-        msg = outgoing_message_queue.get(block=False)
-        logging.error('Message left in the outgoing queue during a test : %s' % msg)
-
-
-logging.basicConfig(format='%(levelname)s:%(message)s')
-logger = logging.getLogger('')
-logger.setLevel(logging.DEBUG)
-
-
-class TestCommands(unittest.TestCase):
-    bot_thread = None
-
-    def setUp(self):
-        zapQueues()
-
-    def tearDown(self):
-        zapQueues()
-
-    @classmethod
-    def setUpClass(cls):
-        cls.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
-        cls.bot_thread.setDaemon(True)
-        cls.bot_thread.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        pushMessage(QUIT_MESSAGE)
-        cls.bot_thread.join()
-        logging.info("Main bot thread quits")
+class TestCommands(FullStackTest):
 
     def test_root_help(self):
         pushMessage('!help')
@@ -90,23 +40,23 @@ class TestCommands(unittest.TestCase):
         pushMessage('!config Webserver')
         self.assertIn('Copy paste and adapt', popMessage())
 
-        pushMessage("!config Webserver {'EXTRA_FLASK_CONFIG': None, 'HOST': '127.0.3.4', 'PORT': 3141, 'WEBCHAT': False, 'SSL': None}")
+        pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('127.0.3.4', popMessage())
+        self.assertIn('localhost', popMessage())
 
         pushMessage('!export configs')
         configs = popMessage()
-        self.assertIn('127.0.3.4', configs)
+        self.assertIn('localhost', configs)
         obj = literal_eval(configs)  # be sure it is parseable
-        obj['Webserver']['HOST'] = '127.0.3.5'
+        obj['Webserver']['HOST'] = 'localhost'
 
         pushMessage('!import configs ' + repr(obj))
         self.assertIn('Import is done correctly', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('127.0.3.5', popMessage())
+        self.assertIn('localhost', popMessage())
 
     def test_apropos(self):
         pushMessage('!apropos about')
@@ -128,7 +78,7 @@ class TestCommands(unittest.TestCase):
         self.assertIn('reload', popMessage())
 
         pushMessage('!repos export')  # should appear in the export
-        self.assertEqual("{'err-helloworld': u'git://github.com/gbin/err-helloworld.git'}", popMessage())
+        self.assertEqual("{'err-helloworld': 'git://github.com/gbin/err-helloworld.git'}", popMessage())
 
         pushMessage('!help hello')  # should appear in the help
         self.assertEqual("this command says hello", popMessage())
@@ -162,5 +112,5 @@ class TestCommands(unittest.TestCase):
         self.assertIn('Command "hello" not found', popMessage())
 
     def test_encoding_preservation(self):
-        pushMessage(u'!echo へようこそ')
-        self.assertEquals(u'へようこそ', popMessage())
+        pushMessage('!echo へようこそ')
+        self.assertEquals('へようこそ', popMessage())

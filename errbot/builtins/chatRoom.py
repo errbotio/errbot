@@ -1,7 +1,5 @@
 import logging
-import xmpp
 from errbot import BotPlugin
-from errbot.utils import get_jid_from_message
 from errbot.version import VERSION
 from errbot.holder import bot
 
@@ -15,23 +13,13 @@ class ChatRoom(BotPlugin):
 
     connected = False
 
-    def keep_alive(self):
-        # logging.debug('Keep alive sent')
-        if self.connected:
-            self.bare_send(xmpp.Presence())
-
-    def activate(self):
-        super(ChatRoom, self).activate()
-        if bot.mode in ('hipchat', 'jabber'):
-            self.start_poller(10.0, self.keep_alive)
-
     def callback_connect(self):
         logging.info('Callback_connect')
         if not self.connected:
             self.connected = True
             for room in CHATROOM_PRESENCE:
-                logging.info('Join room ' + unicode(room))
-                if isinstance(room, basestring):
+                logging.info('Join room ' + room)
+                if isinstance(room, str):
                     self.join_room(room, CHATROOM_FN)
                 else:
                     self.join_room(room[0], password=room[1])
@@ -45,7 +33,7 @@ class ChatRoom(BotPlugin):
             try:
                 mess_type = mess.getType()
                 if mess_type == 'chat':
-                    username = get_jid_from_message(mess)
+                    username = mess.getFrom().node
                     if username in CHATROOM_RELAY:
                         logging.debug('Message to relay from %s.' % username)
                         body = mess.getBody()

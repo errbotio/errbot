@@ -5,7 +5,7 @@ try:
     import pyfire
 except ImportError:
     logging.exception("Could not start the campfire backend")
-    logging.error("""
+    logging.fatal("""
     If you intend to use the campfire backend please install pyfire:
     pip install pyfire
     """)

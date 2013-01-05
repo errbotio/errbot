@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ ON_WINDOWS = system() == 'Windows'
 import sys
 import argparse
 
-if not ON_WINDOWS:
+if not ON_WINDOWS and sys.version_info[0] < 3:
     import daemon
     from pwd import getpwnam
     from grp import getgrnam
@@ -49,7 +49,9 @@ if not ON_WINDOWS:
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
 logger = logging.getLogger('')
+logging.getLogger('yapsy').setLevel(logging.INFO) # this one is way too verbose in debug
 logger.setLevel(logging.INFO)
+
 
 
 def check_config(config_path, mode):
@@ -69,7 +71,7 @@ def check_config(config_path, mode):
             config = __import__('config_' + mode)
             sys.modules['config'] = config
         except ImportError as ie:
-            if not ie.message.startswith('No module named'):
+            if not str(ie).startswith('No module named'):
                 logging.exception('Error while trying to load %s' % 'config_' + mode)
             import config
 
@@ -108,44 +110,40 @@ if __name__ == "__main__":
     config_path = args['config']
     # setup the environment to be able to import the config.py
     sys.path.insert(0, config_path)  # appends the current directory in order to find config.py
-    filtered_mode = filter(lambda mname: args[mname], ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null'))
+    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if args[mname]]
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
     check_config(config_path, mode)  # check if everything is ok before attempting to start
 
     def text():
         from errbot.backends.text import TextBackend
-
         return TextBackend
 
     def graphic():
         from errbot.backends.graphic import GraphicBackend
-
         return GraphicBackend
 
     def campfire():
         from errbot.backends.campfire import CampfireBackend
-
         return CampfireBackend
 
     def hipchat():
-        from errbot.backends.hipchat import HipchatBot
-
-        return HipchatBot
+        #from errbot.backends.jabber import JabberBot
+        #return JabberBot
+        from errbot.backends.hipchat import HipchatBackend
+        return HipchatBackend
 
     def irc():
         from errbot.backends.irc import IRCBackend
-
         return IRCBackend
 
     def xmpp():
-        from errbot.backends.jabber import JabberBot
+        from errbot.backends.xmpp import XMPPBackend
+        return XMPPBackend
 
-        return JabberBot
 
     def null():
         from errbot.backends.null import NullBackend
-
         return NullBackend
 
     bot_class = locals()[mode]()

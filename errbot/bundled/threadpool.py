@@ -21,10 +21,10 @@ handling mechanism.
 
 Basic usage::
 
-    >>> pool = ThreadPool(poolsize)
-    >>> requests = makeRequests(some_callable, list_of_args, callback)
-    >>> [pool.putRequest(req) for req in requests]
-    >>> pool.wait()
+    >> pool = ThreadPool(poolsize)
+    >> requests = makeRequests(some_callable, list_of_args, callback)
+    >> [pool.putRequest(req) for req in requests]
+    >> pool.wait()
 
 See the end of the module code for a brief, annotated usage example.
 
@@ -54,7 +54,7 @@ __license__ = "MIT license"
 # standard library modules
 import sys
 import threading
-from queue import Queue
+from queue import Queue, Empty
 import traceback
 
 
@@ -149,7 +149,7 @@ class WorkerThread(threading.Thread):
             # the while loop again, to give the thread a chance to exit.
             try:
                 request = self._requests_queue.get(True, self._poll_timeout)
-            except Queue.Empty:
+            except Empty:
                 continue
             else:
                 if self._dismissed.isSet():
@@ -254,8 +254,8 @@ class ThreadPool:
             ``ThreadPool.putRequest()`` and catch ``Queue.Full`` exceptions.
 
         """
-        self._requests_queue = Queue.Queue(q_size)
-        self._results_queue = Queue.Queue(resq_size)
+        self._requests_queue = Queue(q_size)
+        self._results_queue = Queue(resq_size)
         self.workers = []
         self.dismissedWorkers = []
         self.workRequests = {}
@@ -321,7 +321,7 @@ class ThreadPool:
                 if request.callback and not (request.exception and request.exc_callback):
                     request.callback(request, result)
                 del self.workRequests[request.requestID]
-            except Queue.Empty:
+            except Empty:
                 break
 
     def wait(self):
@@ -331,91 +331,3 @@ class ThreadPool:
                 self.poll(True)
             except NoResultsPending:
                 break
-
-
-################
-# USAGE EXAMPLE
-################
-
-if __name__ == '__main__':
-    import random
-    import time
-
-    # the work the threads will have to do (rather trivial in our example)
-    def do_something(data):
-        time.sleep(random.randint(1, 5))
-        result = round(random.random() * data, 5)
-        # just to show off, we throw an exception once in a while
-        if result > 5:
-            raise RuntimeError("Something extraordinary happened!")
-        return result
-
-    # this will be called each time a result is available
-    def print_result(request, result):
-        logging.error("**** Result from request #%s: %r" % (request.requestID, result))
-
-    # this will be called when an exception occurs within a thread
-    # this example exception handler does little more than the default handler
-    def handle_exception(request, exc_info):
-        if not isinstance(exc_info, tuple):
-            # Something is seriously wrong...
-            raise SystemExit
-        logging.error("**** Exception occured in request #%s: %s" % (request.requestID, exc_info))
-
-    # assemble the arguments for each job to a list...
-    data = [random.randint(1, 10) for i in range(20)]
-    # ... and build a WorkRequest object for each item in data
-    requests = makeRequests(do_something, data, print_result, handle_exception)
-    # to use the default exception handler, uncomment next line and comment out
-    # the preceding one.
-    #requests = makeRequests(do_something, data, print_result)
-
-    # or the other form of args_lists accepted by makeRequests: ((,), {})
-    data = [((random.randint(1, 10),), {}) for i in range(20)]
-    requests.extend(
-        makeRequests(do_something, data, print_result, handle_exception)
-        #makeRequests(do_something, data, print_result)
-        # to use the default exception handler, uncomment next line and comment
-        # out the preceding one.
-    )
-
-    # we create a pool of 3 worker threads
-    logging.debug("Creating thread pool with 3 worker threads.")
-    main = ThreadPool(3)
-
-    # then we put the work requests in the queue...
-    for req in requests:
-        main.putRequest(req)
-        logging.debug("Work request #%s added." % req.requestID)
-        # or shorter:
-    # [main.putRequest(req) for req in requests]
-
-    # ...and wait for the results to arrive in the result queue
-    # by using ThreadPool.wait(). This would block until results for
-    # all work requests have arrived:
-    # main.wait()
-
-    # instead we can poll for results while doing something else:
-    i = 0
-    while True:
-        try:
-            time.sleep(0.5)
-            main.poll()
-            logging.debug("Main thread working...")
-            logging.debug("(active worker threads: %i)" % (threading.activeCount() - 1, ))
-            if i == 10:
-                logging.debug("**** Adding 3 more worker threads...")
-                main.createWorkers(3)
-            if i == 20:
-                logging.debug("**** Dismissing 2 worker threads...")
-                main.dismissWorkers(2)
-            i += 1
-        except KeyboardInterrupt:
-            logging.debug("**** Interrupted!")
-            break
-        except NoResultsPending:
-            logging.debug("**** No pending results.")
-            break
-    if main.dismissedWorkers:
-        logging.debug("Joining all dismissed worker threads...")
-        main.joinAllDismissedWorkers()

@@ -106,6 +106,7 @@ def recurse_check_structure(sample, to_check):
     to_check_type = type(to_check)
 
     if PY2 and to_check_type.__name__ == 'str':  # __name__ to avoid beeing touched by 3to2
+        #noinspection PyUnresolvedReferences
         to_check_type = unicode
         to_check = to_check.decode()
 

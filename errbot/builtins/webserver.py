@@ -113,7 +113,7 @@ class Webserver(BotPlugin):
 
         It triggers the notification and generate also a little test report.
         """
-        url = args[0]
+        url = args[0] if PY3 else args[0].encode()  # PY2 needs a str not unicode
         content = ' '.join(args[1:])
 
         # try to guess the content-type of what has been passed

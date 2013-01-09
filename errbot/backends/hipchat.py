@@ -31,7 +31,6 @@ class HipchatClient(XMPPConnection):
         self.token = kwargs.pop('token')
         self.debug = kwargs.pop('debug')
         super(HipchatClient, self).__init__(*args, **kwargs)
-        self.client.register_plugin('hipchat', module=self.__module__)
 
     def send_api_message(self, room_id, fr, message, message_format='html'):
         base = {'format': 'json', 'auth_token': self.token}

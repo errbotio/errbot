@@ -19,7 +19,7 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in CHATROOM_PRESENCE:
                 logging.info('Join room ' + room)
-                if isinstance(room, str):
+                if isinstance(room, basestring):
                     self.join_room(room, CHATROOM_FN)
                 else:
                     self.join_room(room[0], password=room[1])

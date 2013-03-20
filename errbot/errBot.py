@@ -35,7 +35,7 @@ from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_pl
     PluginConfigurationException, check_dependencies
 
 from errbot.storage import StoreMixin
-from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which
+from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_sender_username
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
 
@@ -453,9 +453,10 @@ class ErrBot(Backend, StoreMixin):
     def history(self, mess, args):
         """display the command history"""
         answer = []
-        l = len(self.cmd_history)
+        user_cmd_history = self.cmd_history[get_sender_username(mess)]
+        l = len(user_cmd_history)
         for i in range(0, l):
-            c = self.cmd_history[i]
+            c = user_cmd_history[i]
             answer.append('%2i:%s%s %s' % (l - i, self.prefix, c[0], c[1]))
         return '\n'.join(answer)
 

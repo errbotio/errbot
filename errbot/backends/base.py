@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 import inspect
 import logging
 from xml.etree import cElementTree as ET
@@ -202,7 +202,8 @@ def build_message(text, message_class, conversion_function=None):
 class Backend(object):
     # Implements the basic Bot logic (logic independent from the backend) and leave to you to implement the missing parts
 
-    cmd_history = deque(maxlen=10)
+    cmd_history = defaultdict(lambda: deque(maxlen=10)) #this will be a per user history
+
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
                          'An unexpected error occurred.'
     MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
@@ -259,6 +260,7 @@ class Backend(object):
         jid = mess.getFrom()
         text = mess.getBody()
         username = get_sender_username(mess)
+        user_cmd_history = self.cmd_history[username];
 
         if mess.isDelayed():
             logging.debug("Message from history, ignore it")
@@ -330,19 +332,19 @@ class Backend(object):
                     args = ' '.join(text_split[1:])
 
         if command == BOT_PREFIX:  # we did "!!" so recall the last command
-            if len(self.cmd_history):
-                cmd, args = self.cmd_history[-1]
+            if len(user_cmd_history):
+                cmd, args = user_cmd_history[-1]
             else:
                 return False  # no command in history
         elif command.isdigit():  # we did "!#" so we recall the specified command
             index = int(command)
-            if len(self.cmd_history) >= index:
-                cmd, args = self.cmd_history[-index]
+            if len(user_cmd_history) >= index:
+                cmd, args = user_cmd_history[-index]
             else:
                 return False  # no command in history
 
-        if (cmd, args) in self.cmd_history:
-            self.cmd_history.remove((cmd, args))  # we readd it below
+        if (cmd, args) in user_cmd_history:
+            user_cmd_history.remove((cmd, args))  # we readd it below
 
         logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
@@ -408,7 +410,7 @@ class Backend(object):
                     self.thread_pool.wait() # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
 
             if f._err_command_historize:
-                self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
+                user_cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
 
             # Don't check for None here as None can be a valid argument to split.
             # '' was chosen as default argument because this isn't a valid argument to split()

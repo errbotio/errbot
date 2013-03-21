@@ -1,10 +1,16 @@
 import logging
-from errbot import BotPlugin
+from errbot import BotPlugin, PY3
 from errbot.version import VERSION
 from errbot.holder import bot
 
 __author__ = 'gbin'
 from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, REVERSE_CHATROOM_RELAY
+
+# 2to3 hack
+# thanks to https://github.com/oxplot/fysom/issues/1
+# which in turn references http://www.rfk.id.au/blog/entry/preparing-pyenchant-for-python-3/
+if PY3:
+    basestring = (str, bytes)
 
 
 class ChatRoom(BotPlugin):

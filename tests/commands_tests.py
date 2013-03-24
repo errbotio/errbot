@@ -3,7 +3,7 @@ from ast import literal_eval
 
 # create a mock configuration
 from errbot.backends.test import FullStackTest, pushMessage, popMessage
-
+from queue import Empty
 
 class TestCommands(FullStackTest):
 
@@ -67,8 +67,26 @@ class TestCommands(FullStackTest):
         self.assertIn('INFO', popMessage())
 
     def test_history(self):
+        from errbot.holder import bot
+
         pushMessage('!uptime')
         popMessage()
+        pushMessage('!history')
+        self.assertIn('uptime', popMessage())
+
+        orig_sender = bot.sender
+        try:
+            # Pretend to be someone else. History should be empty
+            bot.sender = 'non_default_person@localhost'
+            pushMessage('!history')
+            self.assertRaises(Empty, popMessage, block=False)
+            pushMessage('!echo should be seperate history')
+            popMessage()
+            pushMessage('!history')
+            self.assertIn('should be seperate history', popMessage())
+        finally:
+            bot.sender = orig_sender
+        # Pretend to be the original person again. History should still contain uptime
         pushMessage('!history')
         self.assertIn('uptime', popMessage())
 

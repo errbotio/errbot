@@ -84,7 +84,7 @@ class TestBackend(ErrBot):
 
 
 def popMessage(timeout=5):
-    return outgoing_message_queue.get(timeout)
+    return outgoing_message_queue.get(timeout=timeout)
 
 
 def pushMessage(msg):

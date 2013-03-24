@@ -2,7 +2,11 @@
 import sys
 from setup import PY3, py2_root
 
-import nose
+try:
+    import nose
+except ImportError:
+    sys.stderr.write("Tests require the 'nose' package which you are currently missing.\nYou can install nose with `pip install nose`.\n")
+    sys.exit(1)
 
 try:
     import webtest

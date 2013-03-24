@@ -4,6 +4,12 @@ from setup import PY3, py2_root
 
 import nose
 
+try:
+    import webtest
+except ImportError:
+    sys.stderr.write("Tests require the 'webtest' package which you are currently missing.\nYou can install webtest with `pip install webtest`.\n")
+    sys.exit(1)
+
 if not PY3:  # hack the path system to take the python 2 converted sources
     print('Changing root to ' + py2_root)
     print('Sys path ' + ', '.join(sys.path))

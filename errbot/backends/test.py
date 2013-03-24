@@ -44,6 +44,7 @@ class TestBackend(ErrBot):
         self.jid = 'Err@localhost'  # whatever
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
+        self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
         try:
             while True:
                 entry = incoming_message_queue.get()
@@ -51,7 +52,7 @@ class TestBackend(ErrBot):
                     logging.info("Stop magic message received, quitting...")
                     break
                 msg = Message(entry)
-                msg.setFrom(config.BOT_ADMINS[0])  # assume this is the admin talking
+                msg.setFrom(self.sender)
                 msg.setTo(self.jid)  # To me only
                 self.callback_message(self.conn, msg)
         except EOFError as _:

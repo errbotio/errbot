@@ -106,6 +106,10 @@ BOT_PREFIX = '!'
 #                   'help': {'allowmuc': False},
 #                  }
 
+# HIDE_RESTRICTED_COMMANDS
+# set to True to hide the restricted commands from the help output
+# HIDE_RESTRICTED_COMMANDS = True
+
 # ---- Chatrooms configuration (used by the chatroom plugin)
 # it is a standard python file so you can reuse variables...
 # For example: _TEST_ROOM = 'test@conference.localhost

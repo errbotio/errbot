@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 import inspect
 import logging
 from xml.etree import cElementTree as ET
@@ -20,6 +20,11 @@ try:
     from config import ACCESS_CONTROLS
 except ImportError:
     ACCESS_CONTROLS = {}
+
+try:
+    from config import HIDE_RESTRICTED_COMMANDS
+except ImportError:
+    HIDE_RESTRICTED_COMMANDS = False
 
 try:
     from config import BOT_PREFIX_OPTIONAL_ON_CHAT
@@ -202,7 +207,8 @@ def build_message(text, message_class, conversion_function=None):
 class Backend(object):
     # Implements the basic Bot logic (logic independent from the backend) and leave to you to implement the missing parts
 
-    cmd_history = deque(maxlen=10)
+    cmd_history = defaultdict(lambda: deque(maxlen=10)) #this will be a per user history
+
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
                          'An unexpected error occurred.'
     MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
@@ -259,6 +265,7 @@ class Backend(object):
         jid = mess.getFrom()
         text = mess.getBody()
         username = get_sender_username(mess)
+        user_cmd_history = self.cmd_history[username];
 
         if mess.isDelayed():
             logging.debug("Message from history, ignore it")
@@ -330,19 +337,19 @@ class Backend(object):
                     args = ' '.join(text_split[1:])
 
         if command == BOT_PREFIX:  # we did "!!" so recall the last command
-            if len(self.cmd_history):
-                cmd, args = self.cmd_history[-1]
+            if len(user_cmd_history):
+                cmd, args = user_cmd_history[-1]
             else:
                 return False  # no command in history
         elif command.isdigit():  # we did "!#" so we recall the specified command
             index = int(command)
-            if len(self.cmd_history) >= index:
-                cmd, args = self.cmd_history[-index]
+            if len(user_cmd_history) >= index:
+                cmd, args = user_cmd_history[-index]
             else:
                 return False  # no command in history
 
-        if (cmd, args) in self.cmd_history:
-            self.cmd_history.remove((cmd, args))  # we readd it below
+        if (cmd, args) in user_cmd_history:
+            user_cmd_history.remove((cmd, args))  # we readd it below
 
         logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
@@ -370,45 +377,20 @@ class Backend(object):
 
             usr = str(get_jid_from_message(mess))
             typ = mess.getType()
-            if cmd not in ACCESS_CONTROLS:
-                ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
 
-            if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
-                self.send_simple_reply(mess, "You're not allowed to access this command from this user")
-                return False
-            if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
-                self.send_simple_reply(mess, "You're not allowed to access this command from this user")
-                return False
-            if typ == 'groupchat':
-                stripped = mess.getFrom().getStripped()
-                if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
-                    self.send_simple_reply(mess, "You're not allowed to access this command from a chatroom")
-                    return False
-                if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
-                    self.send_simple_reply(mess, "You're not allowed to access this command from this room")
-                    return False
-                if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
-                    self.send_simple_reply(mess, "You're not allowed to access this command from this room")
-                    return False
-            else:
-                if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
-                    self.send_simple_reply(mess, "You're not allowed to access this command via private message to me")
-                    return False
+            access, accessError = self.checkCommandAccess(mess, cmd)
+
+            if not access:
+                self.send_simple_reply(mess, accessError)
+                return False                           
 
             f = self.commands[cmd]
 
-            if f._err_command_admin_only:
-                if typ == 'groupchat':
-                    self.send_simple_reply(mess, 'You cannot administer the bot from a chatroom, message the bot directly')
-                    return False
-                if usr not in BOT_ADMINS:
-                    self.send_simple_reply(mess, 'You cannot administer the bot from this user %s.' % usr)
-                    return False
-                if BOT_ASYNC:
+            if f._err_command_admin_only and BOT_ASYNC:
                     self.thread_pool.wait() # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
 
             if f._err_command_historize:
-                self.cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
+                user_cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
 
             # Don't check for None here as None can be a valid argument to split.
             # '' was chosen as default argument because this isn't a valid argument to split()
@@ -434,6 +416,39 @@ class Backend(object):
                     self.send_simple_reply(mess, reply)
 
         return True
+
+    def checkCommandAccess(self, mess, cmd):        
+        usr = str(get_jid_from_message(mess))
+        typ = mess.getType()
+
+        if cmd not in ACCESS_CONTROLS:
+            ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
+
+        if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
+            return False, "You're not allowed to access this command from this user"
+        if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
+            return False, "You're not allowed to access this command from this user"
+        if typ == 'groupchat':
+            stripped = mess.getFrom().getStripped()
+            if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
+                return False, "You're not allowed to access this command from a chatroom"
+            if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
+                return False, "You're not allowed to access this command from this room"
+            if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
+                return False, "You're not allowed to access this command from this room"
+        else:
+            if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
+                return False, "You're not allowed to access this command via private message to me"
+
+        f = self.commands[cmd]
+
+        if f._err_command_admin_only:
+            if typ == 'groupchat':
+                return False, 'You cannot administer the bot from a chatroom, message the bot directly'
+            if usr not in BOT_ADMINS:
+                return False, 'You cannot administer the bot from this user %s.' % usr
+        
+        return True, ""
 
     def unknown_command(self, mess, cmd, args):
         """ Override the default unknown command behavior

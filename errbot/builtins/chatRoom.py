@@ -1,5 +1,5 @@
 import logging
-from errbot import BotPlugin
+from errbot import BotPlugin, PY2
 from errbot.version import VERSION
 from errbot.holder import bot
 
@@ -19,7 +19,7 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in CHATROOM_PRESENCE:
                 logging.info('Join room ' + room)
-                if isinstance(room, basestring):
+                if (PY2 and isinstance(room, basestring)) or isinstance(room, str):
                     self.join_room(room, CHATROOM_FN)
                 else:
                     self.join_room(room[0], password=room[1])

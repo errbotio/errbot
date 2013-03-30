@@ -1,10 +1,10 @@
 import logging
 import sys
 
-from errbot.botplugin import BotPlugin  # repeat it here for convenience and coherence with @botcmd
-
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
+
+from errbot.botplugin import BotPlugin  # repeat it here for convenience and coherence with @botcmd
 
 def botcmd(*args, **kwargs):
     """Decorator for bot command functions

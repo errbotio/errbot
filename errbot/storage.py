@@ -2,6 +2,8 @@ from collections import MutableMapping
 import logging
 import shelve
 
+from errbot import PY2
+
 
 class StoreMixin(MutableMapping):
     """
@@ -32,10 +34,9 @@ class StoreMixin(MutableMapping):
         return answer
 
     def keys(self):
-        keys = []
-        for key in self.shelf.keys():
-            if type(key) == str:
-                keys.append(key.decode('utf-8'))
+        keys = self.shelf.keys()
+        if PY2:
+            keys = [key.decode('utf-8') for key in keys]
         return keys
 
     def __len__(self):

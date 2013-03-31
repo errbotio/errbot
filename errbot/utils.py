@@ -89,11 +89,36 @@ def which(program):
 
     return None
 
+INVALID_VERSION_EXCEPTION = 'version %s in not in format "x.y.z" or "x.y.z-{beta,alpha,rc1,rc2...}" for example "1.2.2"'
+
 
 def version2array(version):
-    response = [int(el) for el in version.split('.')]
-    if len(response) != 3:
-        raise Exception('version %s in not in format "x.y.z" for example "1.2.2"' % version)
+    vsplit = version.split('-')
+
+    if len(vsplit) == 2:
+        main, sub = vsplit
+        if sub == 'alpha':
+            sub_int = -1
+        elif sub == 'beta':
+            sub_int = 0
+        elif sub.startswith('rc'):
+            sub_int = int(sub[2:])
+        else:
+            raise ValueError(INVALID_VERSION_EXCEPTION % version)
+
+    elif len(vsplit) == 1:
+        main = vsplit[0]
+        sub_int = sys.maxsize
+    else:
+        raise ValueError(INVALID_VERSION_EXCEPTION % version)
+
+
+    response = [int(el) for el in main.split('.')]
+    response.append(sub_int)
+
+    if len(response) != 4:
+        raise ValueError(INVALID_VERSION_EXCEPTION % version)
+
     return response
 
 

@@ -15,6 +15,7 @@ It is written and extensible in python and it is based on yapsy_ with an heavily
 
 Community behind the project
 ----------------------------
+
 Err has a `google plus community`_, feel free to join if you need support, have any questions, share some of your creations etc ...
 If you have any bug to report or feature suggestion, please log it from its github_ page.
 
@@ -70,6 +71,7 @@ Provides for Extensibility :
 
 Prerequisites
 -------------
+
 It runs under Python 2.7.x or Python 3.2+ under Linux / Windows and Mac.
 
 Create a user for the bot on your private XMPP server or on a public server like jabber.org.
@@ -137,6 +139,7 @@ Then you can start and try your bot::
 
 Installation from gentoo
 ------------------------
+
 It has been merged to the main tree.
 
 So the standard way: ::

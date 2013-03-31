@@ -3,9 +3,10 @@ Release history
 
 
 Version 2.0.0-beta (2013-03-31)
---------------------------
+-------------------------------
 
 Features:
+
 - SSL support for webhook callbacks
 - JID unicode support
 - Per user command history (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
@@ -14,6 +15,7 @@ Features:
 - the version parsing now supports beta, alpha, rc etc ... statuses
 
 Major refactoring:
+
 - python 3 compatibility
 - xmpp backend has been replaced by sleekxmpp
 - flask has been replaced by bottle (sorry flask no py3 support, no future)

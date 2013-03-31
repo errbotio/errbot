@@ -15,7 +15,7 @@ It is written and extensible in python and it is based on yapsy_ with an heavily
 
 Community behind the project
 ----------------------------
-Err has a `google plus page`_, feel free to mention it with +err if you need support, have any questions, share some of your creations etc ...
+Err has a `google plus community`_, feel free to join if you need support, have any questions, share some of your creations etc ...
 If you have any bug to report or feature suggestion, please log it from its github_ page.
 
 We strongly encourage you to share your creations, as you will see, a git url is all that you need to share so other people can try out your plugin from err.
@@ -65,12 +65,12 @@ Provides for Extensibility :
 .. _openfire: http://www.igniterealtime.org/projects/openfire/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _yapsy: http://yapsy.sourceforge.net/
-.. _`google plus page`: https://plus.google.com/101905029512356212669/
+.. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _github: http://github.com/gbin/err/
 
 Prerequisites
 -------------
-It runs under Python 2.7+ under Linux / Windows (since 1.3.0) and Mac.
+It runs under Python 2.7.x or Python 3.2+ under Linux / Windows and Mac.
 
 Create a user for the bot on your private XMPP server or on a public server like jabber.org.
 Optionally you can create a MUC (also called conference room or chatroom) in which you can interact with the bot. 
@@ -86,7 +86,7 @@ Installation from the sources
 
 **Dependencies**
 
-Python 2.7.x
+Python 2.7.x or Python 3.2+
 And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better::
 
     pip install -r requirements.txt
@@ -128,6 +128,8 @@ pip install err
 Go to or create a working directory for it then copy there and adapt the configuration template::
 
     cp /usr/lib64/python2.7/site-packages/errbot/config-template.py config.py
+
+(Replace 2.7 by you python version)
 
 Then you can start and try your bot::
 

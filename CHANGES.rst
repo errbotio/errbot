@@ -2,12 +2,25 @@ Release history
 ===============
 
 
-Version 2.0.0 (2012-12-)
+Version 2.0.0-beta (2013-03-31)
 --------------------------
-Features:
 
-- xmpp backend has been replaced by sleekxmpp
+Features:
+- SSL support for webhook callbacks
+- JID unicode support
+- Per user command history (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
+- HIDE_RESTRICTED_COMMANDS option added to filter out the non accessoble commands from the help  (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
+- err-markovbot has been added to the official plugins list (Thanks to Max Wagner https://github.com/MaxWagner)
+- the version parsing now supports beta, alpha, rc etc ... statuses
+
+Major refactoring:
 - python 3 compatibility
+- xmpp backend has been replaced by sleekxmpp
+- flask has been replaced by bottle (sorry flask no py3 support, no future)
+- rocket is used as webserver with SSL support
+- now the IRC backend uses the smpler python/irc package
+- improved unittest coverage
+
 
 
 Version 1.7.1 (2012-12-25)

@@ -344,8 +344,8 @@ class ErrBot(Backend, StoreMixin):
         else:
             human_name = human_name_for_git_url(args)
             p = subprocess.Popen([git_path, 'clone', args, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            feedback = p.stdout.read()
-            error_feedback = p.stderr.read()
+            feedback = p.stdout.read().decode('utf-8')
+            error_feedback = p.stderr.read().decode('utf-8')
             if p.wait():
                 return "Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback)
         self.add_plugin_repo(human_name, args)
@@ -527,8 +527,8 @@ class ErrBot(Backend, StoreMixin):
         for d in directories:
             self.send(mess.getFrom(), "I am updating %s ..." % d, message_type=mess.getType())
             p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            feedback = p.stdout.read() + '\n' + '-' * 50 + '\n'
-            err = p.stderr.read().strip()
+            feedback = p.stdout.read().decode('utf-8') + '\n' + '-' * 50 + '\n'
+            err = p.stderr.read().strip().decode('utf-8')
             if err:
                 feedback += err + '\n' + '-' * 50 + '\n'
             dep_err = check_dependencies(d)

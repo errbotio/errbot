@@ -137,7 +137,7 @@ if __name__ == "__main__":
         keywords="xmpp jabber chatbot bot plugin",
         url="http://gbin.github.com/err/",
         classifiers=[
-            "Development Status :: 5 - Production/Stable",
+            "Development Status :: 4 - Beta",
             "Topic :: Communications :: Chat",
             "Topic :: Communications :: Conferencing",
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

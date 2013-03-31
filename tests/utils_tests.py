@@ -5,6 +5,28 @@ from nose.tools import raises
 from errbot.utils import *
 from errbot.storage import StoreMixin
 
+vc = lambda v1, v2: version2array(v1) < version2array(v2)
+
+
+def test_version_check():
+    yield vc, '2.0.0', '2.0.1'
+    yield vc, '2.0.0', '2.1.0'
+    yield vc, '2.0.0', '3.0.0'
+    yield vc, '2.0.0-alpha', '2.0.0-beta'
+    yield vc, '2.0.0-beta', '2.0.0-rc1'
+    yield vc, '2.0.0-rc1', '2.0.0-rc2'
+    yield vc, '2.0.0-rc2', '2.0.0-rc3'
+    yield vc, '2.0.0-rc2', '2.0.0'
+    yield vc, '2.0.0-beta', '2.0.1'
+
+
+def test_version_check_negative():
+    raises(ValueError)(version2array)('1.2.3.4',)
+    raises(ValueError)(version2array)('1.2',)
+    raises(ValueError)(version2array)('1.2.-beta',)
+    raises(ValueError)(version2array)('1.2.3-toto',)
+    raises(ValueError)(version2array)('1.2.3-rc',)
+
 class TestUtils(unittest.TestCase):
     def test_formattimedelta(self):
         td = timedelta(0, 60 * 60 + 13 * 60)
@@ -89,3 +111,4 @@ class TestUtils(unittest.TestCase):
         sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
         to_check = dict(string="Foobar", list=["Foo", "Bar"], dict=["Foo", "Bar"], none=None, true=True, false=False)
         recurse_check_structure(sample, to_check)
+

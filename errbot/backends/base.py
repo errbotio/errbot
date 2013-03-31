@@ -315,7 +315,7 @@ class Backend(object):
             surpress_cmd_not_found = True
         elif not text.startswith(BOT_PREFIX):
             return True
-        else:
+        if text.startswith(BOT_PREFIX):
             text = text[len(BOT_PREFIX):]
 
         text_split = text.strip().split(' ')

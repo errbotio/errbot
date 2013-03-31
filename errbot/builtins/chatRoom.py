@@ -1,10 +1,16 @@
 import logging
-from errbot import BotPlugin, PY2
+from errbot import BotPlugin, PY3
 from errbot.version import VERSION
 from errbot.holder import bot
 
 __author__ = 'gbin'
 from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, REVERSE_CHATROOM_RELAY
+
+# 2to3 hack
+# thanks to https://github.com/oxplot/fysom/issues/1
+# which in turn references http://www.rfk.id.au/blog/entry/preparing-pyenchant-for-python-3/
+if PY3:
+    basestring = (str, bytes)
 
 
 class ChatRoom(BotPlugin):
@@ -19,7 +25,7 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in CHATROOM_PRESENCE:
                 logging.info('Join room ' + room)
-                if (PY2 and isinstance(room, basestring)) or isinstance(room, str):
+                if isinstance(room, basestring):
                     self.join_room(room, CHATROOM_FN)
                 else:
                     self.join_room(room[0], password=room[1])

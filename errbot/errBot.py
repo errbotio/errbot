@@ -60,7 +60,10 @@ class ErrBot(Backend, StoreMixin):
 
         self.plugin_dir = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
 
-        self.open_storage(BOT_DATA_DIR + os.sep + 'core.db')
+        if PY2:
+            self.open_storage(BOT_DATA_DIR + os.sep + 'core.db')
+        else:
+            self.open_storage(BOT_DATA_DIR + os.sep + 'core')
         self.prefix = BOT_PREFIX
         # be sure we have a configs entry for the plugin configurations
         if CONFIGS not in self:

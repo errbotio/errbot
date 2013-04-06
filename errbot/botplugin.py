@@ -3,7 +3,7 @@ import os
 from threading import Timer, current_thread
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
 from errbot.storage import StoreMixin
-from errbot import holder
+from errbot import holder, PY2
 
 
 
@@ -28,8 +28,10 @@ class BotPluginBase(StoreMixin):
 
         classname = self.__class__.__name__
         logging.debug('Init storage for %s' % classname)
-        filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
-        logging.debug('Loading %s' % filename)
+        filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname
+        logging.debug('Loading %s.db' % filename)
+        if PY2:
+            filename = filename + '.db'  # the shelve module assumes this ending in python 3
         self.open_storage(filename)
         holder.bot.inject_commands_from(self)
         self.is_activated = True

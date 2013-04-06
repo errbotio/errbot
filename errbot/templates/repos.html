@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% macro status(installed, public) -%}
-    [<span style='font-weight:bold;'>{% if installed %}*{% else %} {% endif %}{% if public %}P{% else %} {% endif %}</span>]
+    [<span style='font-weight:bold;'>{% if installed %}*{% else %} {% endif %}{% if public %} {% else %}P{% endif %}</span>]
 {%- endmacro %}
 {% block body %}
 <div style="font-family: monospace">

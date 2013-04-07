@@ -5,7 +5,7 @@ from errbot.utils import mess_2_embeddablehtml, utf8
 try:
     from PySide import QtCore, QtGui, QtWebKit
     from PySide.QtGui import QCompleter
-    from PySide.QtCore import Qt, QUrl
+    from PySide.QtCore import Qt, QUrl, QObject
 except ImportError:
     logging.exception("Could not start the graphical backend")
     logging.fatal("""
@@ -149,16 +149,41 @@ INIT_PAGE = """<html><head><link rel="stylesheet" type="text/css" href="%s/style
 <body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain; margin:0;">"""
 
 
-class GraphicBackend(ErrBot):
-    conn = ConnectionMock()
+class ChatApplication(QtGui.QApplication):
+    def __init__(self, *args, **kwargs):
+        backend = kwargs.pop('backend')
+        super().__init__(*args, **kwargs)
+        self.mainW = QtGui.QWidget()
+        self.mainW.setWindowTitle('Err...')
 
-    def send_command(self, text):
-        self.new_message(text, False)
-        msg = Message(text)
-        msg.setFrom(config.BOT_ADMINS[0])  # assume this is the admin talking
-        msg.setTo(self.jid)  # To me only
-        self.callback_message(self.conn, msg)
-        self.input.clear()
+        icon_path = os.path.join(os.path.dirname(errbot.__file__), 'err.svg')
+        bg_path = os.path.join(os.path.dirname(errbot.__file__), 'err-bg.svg')
+        self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
+        vbox = QtGui.QVBoxLayout()
+        help_label = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
+        self.input = CommandBox(backend.cmd_history, backend.commands)
+        self.output = QtWebKit.QWebView()
+
+        # init webpage
+        self.buffer = INIT_PAGE % (BOT_DATA_DIR, bg_path)
+        self.output.setHtml(self.buffer)
+
+        # layout
+        vbox.addWidget(self.output)
+        vbox.addWidget(self.input)
+        vbox.addWidget(help_label)
+        self.mainW.setLayout(vbox)
+
+        # setup web view to open liks in external browser
+        self.output.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
+
+        # connect signals/slots
+        self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
+        self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
+        self.input.newCommand.connect(lambda text: backend.send_command(text))
+        backend.conn.newAnswer.connect(self.new_message)
+
+        self.mainW.show()
 
     def new_message(self, text, is_html, receiving=True):
         self.buffer += htmlify(text, is_html, receiving)
@@ -166,6 +191,22 @@ class GraphicBackend(ErrBot):
 
     def scroll_output_to_bottom(self):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
+
+
+class GraphicBackend(ErrBot):
+    def __init__(self, *args, **kwargs):
+        self.conn = None
+        super().__init__(*args, **kwargs)
+
+
+    def send_command(self, text):
+        self.app.new_message(text, False)
+        msg = Message(text)
+        msg.setFrom(config.BOT_ADMINS[0])  # assume this is the admin talking
+        msg.setTo(self.jid)  # To me only
+        self.callback_message(self.conn, msg)
+        self.app.input.clear()
+
 
     def build_message(self, text):
         txt, node = build_text_html_message_pair(text)
@@ -179,39 +220,9 @@ class GraphicBackend(ErrBot):
         self.connect_callback()  # notify that the connection occured
 
         # create window and components
-        app = QtGui.QApplication(sys.argv)
-        self.mainW = QtGui.QWidget()
-        self.mainW.setWindowTitle('Err...')
-        icon_path = os.path.dirname(errbot.__file__) + os.sep + 'err.svg'
-        bg_path = os.path.dirname(errbot.__file__) + os.sep + 'err-bg.svg'
-        self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
-        vbox = QtGui.QVBoxLayout()
-        help = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
-        self.input = CommandBox(self.cmd_history, self.commands)
-        self.output = QtWebKit.QWebView()
-
-        # init webpage
-        self.buffer = INIT_PAGE % (BOT_DATA_DIR, bg_path)
-        self.output.setHtml(self.buffer)
-
-        # layout
-        vbox.addWidget(self.output)
-        vbox.addWidget(self.input)
-        vbox.addWidget(help)
-        self.mainW.setLayout(vbox)
-
-        # setup web view to open liks in external browser
-        self.output.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
-
-        # connect signals/slots
-        self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
-        self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
-        self.input.newCommand.connect(self.send_command)
-        self.conn.newAnswer.connect(self.new_message)
-
-        self.mainW.show()
+        self.app = ChatApplication(sys.argv, backend=self)
         try:
-            app.exec_()
+            self.app.exec_()
         finally:
             self.disconnect_callback()
             self.shutdown()
@@ -224,9 +235,6 @@ class GraphicBackend(ErrBot):
 
     def join_room(self, room, username=None, password=None):
         pass  # just ignore that
-
-    def shutdown(self):
-        super(GraphicBackend, self).shutdown()
 
     @property
     def mode(self):

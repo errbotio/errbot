@@ -6,6 +6,7 @@ import re
 from html import entities
 import sys
 import time
+from xml.etree.ElementTree import tostring
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
@@ -207,17 +208,15 @@ def utf8(key):
 
 
 def mess_2_embeddablehtml(mess):
-    if hasattr(mess, 'getHTML'):  # somebackends are happy to give you the HTML
-        html_content = mess.getHTML()
-    else:
-        html_content = mess.getTag('html')
-
-    if html_content:
-        body = html_content.getTag('body')
-        return ''.join([str(kid) for kid in body.kids]) + body.getData(), True
+    html_content = mess.getHTML()
+    if html_content is not None:
+        body = html_content.find('{http://jabber.org/protocol/xhtml-im}body')
+        result = ''
+        for child in body.getchildren():
+            result += tostring(child).decode().replace('ns0:', '')
+        return result, True
     else:
         return mess.getBody(), False
-
 
 def parse_jid(jid):
     if jid.find('@') != -1:

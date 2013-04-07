@@ -1,8 +1,8 @@
 from collections import deque, defaultdict
 import inspect
 import logging
-from xml.etree import cElementTree as ET
-from xml.etree.cElementTree import ParseError
+from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import ParseError
 from errbot import botcmd, PY2
 import difflib
 from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid

@@ -16,6 +16,7 @@
 
 import logging
 from os import path, sep, getcwd
+import os
 from platform import system
 
 
@@ -89,8 +90,14 @@ def check_config(config_path, mode):
 
 
 if __name__ == "__main__":
+
+    execution_dir = getcwd()
+
+    # By default insert the execution path (useful to be able to execute err from the source tree directly without installing it
+    sys.path.insert(0, execution_dir)
+
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
-    parser.add_argument('-c', '--config', default=getcwd(), help='Specify the directory where your config.py is (default: current working directory)')
+    parser.add_argument('-c', '--config', default=None, help='Specify the directory where your config.py is (default: current working directory)')
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
@@ -110,7 +117,10 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())  # create a dictionary of args
     config_path = args['config']
     # setup the environment to be able to import the config.py
-    sys.path.insert(0, config_path)  # appends the current directory in order to find config.py
+    if config_path:
+        sys.path.insert(0, config_path)  # appends the current config in order to find config.py
+    else:
+        config_path = execution_dir
     filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if args[mname]]
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 

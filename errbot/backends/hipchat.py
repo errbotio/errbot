@@ -5,7 +5,7 @@ from urllib.request import urlopen, Request
 
 from config import CHATROOM_FN
 from errbot.backends.xmpp import XMPPBackend, XMPPConnection
-from errbot.utils import utf8, REMOVE_EOL
+from errbot.utils import utf8, REMOVE_EOL, mess_2_embeddablehtml
 import re
 
 HIPCHAT_MESSAGE_URL = 'https://api.hipchat.com/v1/rooms/message'
@@ -39,9 +39,10 @@ class HipchatClient(XMPPConnection):
         return json.load(urlopen(req))
 
     def send_message(self, mess):
-        if self.token and mess.name == 'message' and mess.getType() == 'groupchat' and mess.getTag('html'):
+        if self.token and mess.name == 'message' and mess.getType() == 'groupchat':
+
             logging.debug('Message intercepted for Hipchat API')
-            content = ''.join((str(child) for child in mess.getTag('html').getTag('body').getChildren()))
+            content, _ = mess_2_embeddablehtml(mess)
             room_jid = mess.getTo()
             self.send_api_message(room_jid.getNode().split('_')[1], CHATROOM_FN, content)
         else:

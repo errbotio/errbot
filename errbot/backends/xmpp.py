@@ -91,8 +91,8 @@ class XMPPBackend(ErrBot):
 
     def incoming_message(self, xmppmsg):
         msg = Message(xmppmsg['body'])
-        msg.setFrom(xmppmsg['from'].bare)
-        msg.setTo(xmppmsg['to'].bare)
+        msg.setFrom(xmppmsg['from'].full)
+        msg.setTo(xmppmsg['to'].full)
         msg.setType(xmppmsg['type'])
         msg.setMuckNick(xmppmsg['mucnick'])
         msg.setDelayed(bool(xmppmsg['delay']._get_attr('stamp')))  # this is a bug in sleekxmpp it should be ['from']

@@ -8,6 +8,7 @@ nohup.out
 /dist
 /err.egg-info*
 /config-*.egg
+/.tox
 config_campfire.py
 config_hipchat.py
 config_irc.py

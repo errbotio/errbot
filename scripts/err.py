@@ -109,6 +109,11 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())  # create a dictionary of args
     config_path = args['config']
+
+    # Add the parent directory of this script to the path so it can be ran
+    # from any directory/have any config directory and still find everything.
+    sys.path.append(path.dirname(path.dirname(__file__)))
+
     # setup the environment to be able to import the config.py
     sys.path.insert(0, config_path)  # appends the current directory in order to find config.py
     filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if args[mname]]

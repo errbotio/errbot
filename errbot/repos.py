@@ -29,5 +29,6 @@ KNOWN_PUBLIC_REPOS = {
     'err-mailwatch': ('git://github.com/zoni/err-mailwatch.git', 'Watch IMAP servers for new mails'),
     'err-dnsutils': ('git://github.com/zoni/err-dnsutils.git', 'Run common DNS utils: host, dig, nslookup'),
     'err-insult': ('git://github.com/xnaveira/err-insult.git', 'Hubot insult plugin clone for Err bot'),
-    'err-markovbot': ('git://github.com/MaxWagner/err-markovbot.git', 'Markov chain bot that supports db generation from url, file or string')
+    'err-markovbot': ('git://github.com/MaxWagner/err-markovbot.git', 'Markov chain bot that supports db generation from url, file or string'),
+    'err-faustbot': ('git://github.com/Scaatis/err-faustbot.git', "Output a random line of Goethe's \"Faust\" in sentence context (in German).")
 }

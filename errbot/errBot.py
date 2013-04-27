@@ -489,6 +489,7 @@ class ErrBot(Backend, StoreMixin):
         clazz_commands = {}
         for (name, command) in self.commands.items():
             clazz = get_class_that_defined_method(command)
+            clazz = str.__module__ + '.' + clazz.__name__  # makes the fuul qualified name
             commands = clazz_commands.get(clazz, [])
             if not HIDE_RESTRICTED_COMMANDS or self.checkCommandAccess(mess, name)[0]:
                 commands.append((name, command))

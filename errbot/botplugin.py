@@ -200,6 +200,13 @@ class BotPlugin(BotPluginBase):
         """
         return holder.bot.join_room(room, username, password)
 
+    def invite_in_room(self, room, jids_to_invite):
+        """
+            Make the bot invite a list of jids to a room
+        """
+        return holder.bot.invite_in_room(room, jids_to_invite)
+
+
     def get_installed_plugin_repos(self):
         """
             Get the current installed plugin repos in a dictionary of name / url

@@ -1,7 +1,8 @@
 import logging
-from errbot import BotPlugin, PY3
+from errbot import BotPlugin, PY3, botcmd
 from errbot.version import VERSION
 from errbot.holder import bot
+from uuid import uuid4
 
 __author__ = 'gbin'
 from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, REVERSE_CHATROOM_RELAY
@@ -34,6 +35,21 @@ class ChatRoom(BotPlugin):
         self.connected = False
         super(ChatRoom, self).deactivate()
 
+    @botcmd
+    def room_create(self, mess, args):
+        """ Create an adhoc chatroom for Google talk and invite the listed persons.
+            If no person is listed, only the requestor is invited.
+
+            Examples:
+            !root create
+            !root create gbin@gootz.net toto@gootz.net
+        """
+        room_name = "private-chat-%s@groupchat.google.com" % uuid4()
+        self.join_room(room_name)
+        to_invite = (mess.getFrom().getStripped(),) if not args else (jid.strip() for jid in args.split())
+        self.invite_in_room(room_name, to_invite)
+        return "Room created (%s)" % room_name
+
     def callback_message(self, conn, mess):
         if bot.mode != 'campfire':  # no relay support in campfire
             try:
@@ -54,6 +70,6 @@ class ChatRoom(BotPlugin):
                         logging.debug('Message to relay to %s.' % users_to_relay_to)
                         body = '[%s] %s' % (fr.resource, mess.getBody())
                         for user in users_to_relay_to:
-                            self.send(user, body, message_type='chat')
+                            self.send(user, body)
             except Exception as e:
                 logging.exception('crashed in callback_message %s' % e)

@@ -6,6 +6,7 @@ from errbot.errBot import ErrBot
 
 try:
     from sleekxmpp import ClientXMPP
+    from sleekxmpp.xmlstream import resolver, cert
 except ImportError as _:
     logging.exception("Could not start the XMPP backend")
     logging.fatal("""
@@ -28,15 +29,46 @@ try:
 except ImportError:
     XMPP_FEATURE_MECHANISMS = {}
 
+
+def verify_gtalk_cert(xmpp_client):
+    """
+        Hack specific for google apps domains with SRV entries.
+        It needs to fid the SSL certificate of google and not the one for your domain
+    """
+
+    hosts = resolver.get_SRV(xmpp_client.boundjid.server, 5222,
+                             xmpp_client.dns_service,
+                             resolver=resolver.default_resolver())
+    it_is_google = False
+    for host, _ in hosts:
+        if host.lower().find('google.com') > -1:
+            it_is_google = True
+
+    if it_is_google:
+        raw_cert = xmpp_client.socket.getpeercert(binary_form=True)
+        try:
+            if cert.verify('talk.google.com', raw_cert):
+                logging.info('google cert found for %s', xmpp_client.boundjid.server)
+                return
+        except cert.CertificateError:
+            pass
+
+    logging.error("invalid cert received for %s", xmpp_client.boundjid.server)
+
+
 class XMPPConnection(Connection):
     def __init__(self, jid, password):
         self.connected = False
         self.client = ClientXMPP(jid, password, plugin_config={'feature_mechanisms': XMPP_FEATURE_MECHANISMS})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
+        self.client.register_plugin('old_0004')  # Multi-User Chat backward compability (necessary for join room)
         self.client.register_plugin('xep_0199')  # XMPP Ping
         self.client.register_plugin('xep_0203')  # XMPP Delayed messages
+        self.client.register_plugin('xep_0249')  # XMPP direct MUC invites
+
         self.client.add_event_handler("session_start", self.session_start)
+        self.client.add_event_handler("ssl_invalid_cert", self.ssl_invalid_cert)
 
     def send_message(self, mess):
         self.client.send_message(mto=mess.getTo(),
@@ -44,9 +76,13 @@ class XMPPConnection(Connection):
                                  mtype=mess.getType(),
                                  mhtml=mess.getHTML())
 
-    def session_start(self, event):
+    def session_start(self, _):
         self.client.send_presence()
         self.client.get_roster()
+
+    def ssl_invalid_cert(self, _):
+        # Special quirk for google domains
+        verify_gtalk_cert(self.client)
 
     def connect(self):
         if not self.connected:
@@ -75,6 +111,13 @@ class XMPPConnection(Connection):
             muc.configureRoom(room, form)
         else:
             logging.error("Error configuring the MUC Room %s" % room)
+
+    def invite_in_room(self, room, jids_to_invite):
+        muc = self.client.plugin['xep_0045']
+        for jid in jids_to_invite:
+            logging.debug("Inviting %s to %s..." % (jid, room))
+            muc.invite(room, jid)
+
 
 
 class XMPPBackend(ErrBot):
@@ -120,6 +163,9 @@ class XMPPBackend(ErrBot):
 
     def join_room(self, room, username=None, password=None):
         self.conn.join_room(room, username, password)
+
+    def invite_in_room(self, room, jids_to_invite):
+        self.conn.invite_in_room(room, jids_to_invite)
 
     @property
     def mode(self):

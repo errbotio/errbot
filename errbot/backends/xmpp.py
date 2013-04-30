@@ -134,6 +134,8 @@ class XMPPBackend(ErrBot):
 
     def incoming_message(self, xmppmsg):
         msg = Message(xmppmsg['body'])
+        if 'html' in xmppmsg.keys():
+            msg.setHTML(xmppmsg['html'])
         msg.setFrom(xmppmsg['from'].full)
         msg.setTo(xmppmsg['to'].full)
         msg.setType(xmppmsg['type'])

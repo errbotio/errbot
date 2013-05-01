@@ -4,13 +4,13 @@ import sys
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
 
-__all__ = ['BotPlugin', 'webhook', 'web_route', 'template']
+__all__ = ['BotPlugin', 'webhook', 'webroute', 'template']
 
 from errbot.botplugin import BotPlugin  # repeat it here for convenience and coherence with @botcmd
 from errbot.builtins.wsview import webhook, bottle_app, template  # idem repeat here the webhook feature for convenience to expose webhooks
 
 
-web_route = bottle_app.route  # this allows plugins to expose dynamic webpages on err embedded webserver
+webroute = bottle_app.route  # this allows plugins to expose dynamic webpages on err embedded webserver
 
 def botcmd(*args, **kwargs):
     """Decorator for bot command functions

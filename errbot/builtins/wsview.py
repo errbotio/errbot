@@ -1,7 +1,8 @@
 from inspect import getmembers, ismethod
 from json import loads
 import logging
-from bottle import Bottle, request
+# noinspection PyUnresolvedReferences
+from bottle import Bottle, request, template
 from errbot.plugin_manager import get_all_active_plugin_objects
 
 

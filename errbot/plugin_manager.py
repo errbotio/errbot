@@ -90,7 +90,10 @@ def activate_plugin_with_version_check(name, config):
     try:
         return simplePluginManager.activatePluginByName(name, "bots")
     except Exception as _:
+        pta_item.activated = False  # Yapsy doesn't revert this in case of error
         remove_plugin_templates_path(pta_item.path)
+        logging.error("Plugin %s failed at activation stage, deactivating it..." % name)
+        simplePluginManager.deactivatePluginByName(name, "bots")
         raise
 
 

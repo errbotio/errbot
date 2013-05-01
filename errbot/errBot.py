@@ -425,7 +425,7 @@ class ErrBot(Backend, StoreMixin):
                     commands.append((name, command))
                     clazz_commands[clazz] = commands
 
-            for clazz in sorted(clazz_commands):
+            for clazz in sorted(set(clazz_commands), key = lambda c:c.__name__):
                 usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
                 usage += '\n'.join(sorted([
                 '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),

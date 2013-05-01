@@ -1,6 +1,6 @@
 import logging
 import sys
-from errbot.utils import mess_2_embeddablehtml, utf8
+from errbot.utils import mess_2_embeddablehtml
 
 try:
     from PySide import QtCore, QtGui, QtWebKit
@@ -126,7 +126,7 @@ urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 def linkify(text):
     def replacewithlink(matchobj):
         url = matchobj.group(0)
-        text = chr(url)
+        text = str(url)
 
         imglink = ''
         for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:

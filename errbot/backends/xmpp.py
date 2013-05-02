@@ -128,6 +128,7 @@ class XMPPBackend(ErrBot):
         self.conn = self.create_connection()
         self.conn.add_event_handler("message", self.incoming_message)
         self.conn.add_event_handler("session_start", self.connected)
+        self.conn.add_event_handler("disconnected", self.disconnected)
 
     def create_connection(self):
         return XMPPConnection(self.jid, self.password)
@@ -145,6 +146,9 @@ class XMPPBackend(ErrBot):
 
     def connected(self, data):
         self.connect_callback()  # notify that the connection occured
+
+    def disconnected(self, data):
+        self.disconnect_callback()  # notify plugins that the disconnect occurred
 
     def serve_forever(self):
         self.connect()  # be sure we are "connected" before the first command

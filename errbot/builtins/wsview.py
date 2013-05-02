@@ -1,8 +1,13 @@
 from inspect import getmembers, ismethod
 from json import loads
 import logging
+
+from bottle import Bottle, request
 # noinspection PyUnresolvedReferences
-from bottle import Bottle, request, template
+from bottle import jinja2_view as view
+# noinspection PyUnresolvedReferences
+from bottle import jinja2_template as template
+
 from errbot.plugin_manager import get_all_active_plugin_objects
 
 
@@ -20,6 +25,8 @@ class DynamicBottle(Bottle):
 
 
 bottle_app = DynamicBottle()
+
+route = bottle_app.route  # make that the default
 
 def try_decode_json(request):
     data = request.body.read().decode()

@@ -134,6 +134,7 @@ class XMPPBackend(ErrBot):
         return XMPPConnection(self.jid, self.password)
 
     def incoming_message(self, xmppmsg):
+        """Callback for message events"""
         msg = Message(xmppmsg['body'])
         if 'html' in xmppmsg.keys():
             msg.setHTML(xmppmsg['html'])
@@ -145,10 +146,12 @@ class XMPPBackend(ErrBot):
         self.callback_message(self.conn, msg)
 
     def connected(self, data):
-        self.connect_callback()  # notify that the connection occured
+        """Callback for connection events"""
+        self.connect_callback()
 
     def disconnected(self, data):
-        self.disconnect_callback()  # notify plugins that the disconnect occurred
+        """Callback for disconnection events"""
+        self.disconnect_callback()
 
     def serve_forever(self):
         self.connect()  # be sure we are "connected" before the first command

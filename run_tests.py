@@ -17,7 +17,7 @@ except ImportError:
 if not PY3:  # hack the path system to take the python 2 converted sources
     print('Changing root to ' + py2_root)
     print('Sys path ' + ', '.join(sys.path))
-    if nose.run('tests', argv=['-v', '-w', py2_root]):
+    if nose.run('tests', argv=['-w', py2_root]):
         exit(0)  # no error
 else:
     if nose.run('tests'):

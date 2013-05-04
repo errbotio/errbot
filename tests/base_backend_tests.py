@@ -86,7 +86,7 @@ class TestBase(unittest.TestCase):
         def return_args_as_str(mess, args):
             return "".join(args)
 
-        @botcmd(template='return_args_as_html')
+        @botcmd(template='args_as_html')
         def return_args_as_html(mess, args):
             return {'args': args}
 
@@ -94,10 +94,28 @@ class TestBase(unittest.TestCase):
         def raises_exception(mess, args):
             raise Exception("Kaboom!")
 
+        @botcmd
+        def yield_args_as_str(mess, args):
+            for arg in args:
+                yield arg
+
+        @botcmd(template='args_as_html')
+        def yield_args_as_html(mess, args):
+            for arg in args:
+                yield {'args': [arg]}
+
+        @botcmd
+        def yields_str_then_raises_exception(mess, args):
+            yield "foobar"
+            raise Exception("Kaboom!")
+
         dummy = self.dummy
         dummy.commands['return_args_as_str'] = return_args_as_str
         dummy.commands['return_args_as_html'] = return_args_as_html
         dummy.commands['raises_exception'] = raises_exception
+        dummy.commands['yield_args_as_str'] = yield_args_as_str
+        dummy.commands['yield_args_as_html'] = yield_args_as_html
+        dummy.commands['yields_str_then_raises_exception'] = yields_str_then_raises_exception
 
         m = dummy.build_message("some_message")
         m.setFrom("noterr@localhost/resource")
@@ -110,4 +128,16 @@ class TestBase(unittest.TestCase):
         self.assertEqual("<strong>foo</strong><em>bar</em>", dummy.pop_message().getBody())
 
         dummy._execute_and_send(cmd='raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=raises_exception._err_command_template)
+        self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
+
+        dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=yield_args_as_str._err_command_template)
+        self.assertEqual("foo", dummy.pop_message().getBody())
+        self.assertEqual("bar", dummy.pop_message().getBody())
+
+        dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=yield_args_as_html._err_command_template)
+        self.assertEqual("<strong>foo</strong>", dummy.pop_message().getBody())
+        self.assertEqual("<strong>bar</strong>", dummy.pop_message().getBody())
+
+        dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=yields_str_then_raises_exception._err_command_template)
+        self.assertEqual("foobar", dummy.pop_message().getBody())
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())

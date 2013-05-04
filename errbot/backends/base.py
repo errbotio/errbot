@@ -406,25 +406,34 @@ class Backend(object):
             html-im output, if any
 
         """
-        try:
-            reply = self.commands[cmd](mess, args)
 
+        def process_reply(reply):
             # integrated templating
             if template_name:
                 reply = tenv().get_template(template_name + '.html').render(**reply)
 
             # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
-            reply = str(reply)
+            return str(reply)
+
+        def send_reply(reply):
+            if len(reply) > self.MESSAGE_SIZE_LIMIT:
+                reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
+            self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
+
+        try:
+            if inspect.isgeneratorfunction(self.commands[cmd]):
+                replies = self.commands[cmd](mess, args)
+                for reply in replies:
+                    if reply: send_reply(process_reply(reply))
+            else:
+                reply = self.commands[cmd](mess, args)
+                if reply: send_reply(process_reply(reply))
         except Exception as e:
             tb = traceback.format_exc()
             logging.exception('An error happened while processing '
                               'a message ("%s") from %s: %s"' %
                               (mess.getBody(), jid, tb))
-            reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
-        if reply:
-            if len(reply) > self.MESSAGE_SIZE_LIMIT:
-                reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
-            self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
+            send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
     def checkCommandAccess(self, mess, cmd):        
         usr = str(get_jid_from_message(mess))

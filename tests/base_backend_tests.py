@@ -1,9 +1,32 @@
 # coding=utf-8
 import unittest
+import os
+from queue import Queue
 from errbot.backends.base import Identifier, Backend, Message, build_text_html_message_pair
+from errbot import botcmd, templating
+
+class DummyBackend(Backend):
+    outgoing_message_queue = Queue()
+    jid = Identifier('err@localhost/err')
+
+    def build_message(self, text):
+        return Message(text)
+
+    def send_message(self, mess):
+        self.outgoing_message_queue.put(mess)
+
+    def pop_message(self, timeout=3, block=True):
+        return self.outgoing_message_queue.get(timeout=timeout, block=block)
 
 
 class TestBase(unittest.TestCase):
+    def setUp(self):
+        self.dummy = DummyBackend()
+
+        assets_path = os.path.dirname(__file__) + os.sep + "assets"
+        template_path = [templating.make_templates_path(assets_path)]
+        templating.env = templating.Environment(loader=templating.FileSystemLoader(template_path))
+
     def test_identifier_parsing(self):
         id1 = Identifier(jid="gbin@gootz.net/toto")
         self.assertEqual(id1.getNode(), "gbin")
@@ -47,17 +70,44 @@ class TestBase(unittest.TestCase):
         self.assertEqual(id1.getResource(), "toto")
 
     def test_buildreply(self):
-        class DummyBackend(Backend):
-            def build_message(self, text):
-                return Message(text)
+        dummy = self.dummy
 
-        be = DummyBackend()
-        be.jid = Identifier("bot@here.com/metal")
-        m = be.build_message("Content")
+        m = dummy.build_message("Content")
         m.setFrom("from@fromdomain.net/fromresource")
         m.setTo("to@todomain.net/toresource")
+        resp = dummy.build_reply(m, "Response")
 
-        resp = be.build_reply(m, "Response")
         self.assertEqual(str(resp.getTo()), "from@fromdomain.net")
-        self.assertEqual(str(resp.getFrom()), "bot@here.com/metal")
+        self.assertEqual(str(resp.getFrom()), "err@localhost/err")
         self.assertEqual(str(resp.getBody()), "Response")
+
+    def test_execute_and_send(self):
+        @botcmd
+        def return_args_as_str(mess, args):
+            return "".join(args)
+
+        @botcmd(template='return_args_as_html')
+        def return_args_as_html(mess, args):
+            return {'args': args}
+
+        @botcmd
+        def raises_exception(mess, args):
+            raise Exception("Kaboom!")
+
+        dummy = self.dummy
+        dummy.commands['return_args_as_str'] = return_args_as_str
+        dummy.commands['return_args_as_html'] = return_args_as_html
+        dummy.commands['raises_exception'] = raises_exception
+
+        m = dummy.build_message("some_message")
+        m.setFrom("noterr@localhost/resource")
+        m.setTo("err@localhost/resource")
+
+        dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=return_args_as_str._err_command_template)
+        self.assertEqual("foobar", dummy.pop_message().getBody())
+
+        dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=return_args_as_html._err_command_template)
+        self.assertEqual("<strong>foo</strong><em>bar</em>", dummy.pop_message().getBody())
+
+        dummy._execute_and_send(cmd='raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=raises_exception._err_command_template)
+        self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())

@@ -1,0 +1,4 @@
+{% for arg in args -%}
+{%  set tag = loop.cycle('strong', 'em') -%}
+<{{ tag }}>{{ arg }}</{{ tag }}>
+{%- endfor %}

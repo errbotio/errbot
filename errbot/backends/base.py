@@ -354,32 +354,7 @@ class Backend(object):
         logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
         if cmd:
-            def execute_and_send(template_name):
-                try:
-                    reply = self.commands[cmd](mess, args)
-
-                    # integrated templating
-                    if template_name:
-                        reply = tenv().get_template(template_name + '.html').render(**reply)
-
-                    # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
-                    reply = str(reply)
-                except Exception as e:
-                    tb = traceback.format_exc()
-                    logging.exception('An error happened while processing '
-                                      'a message ("%s") from %s: %s"' %
-                                      (text, jid, tb))
-                    reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
-                if reply:
-                    if len(reply) > self.MESSAGE_SIZE_LIMIT:
-                        reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
-                    self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
-
-            usr = str(get_jid_from_message(mess))
-            typ = mess.getType()
-
             access, accessError = self.checkCommandAccess(mess, cmd)
-
             if not access:
                 self.send_simple_reply(mess, accessError)
                 return False                           
@@ -397,12 +372,15 @@ class Backend(object):
             if f._err_command_split_args_with != '':
                 args = args.split(f._err_command_split_args_with)
             if BOT_ASYNC:
-                wr = WorkRequest(execute_and_send, [f._err_command_template])
+                wr = WorkRequest(self._execute_and_send,
+                                 [], {'cmd': cmd, 'args': args, 'mess': mess, 'jid': jid,
+                                      'template_name': f._err_command_template})
                 self.thread_pool.putRequest(wr)
                 if f._err_command_admin_only:
                     self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
             else:
-                execute_and_send(f._err_command_template)
+                self._execute_and_send(cmd=cmd, args=args, mess=mess, jid=jid,
+                                       template_name=f._err_command_template)
 
         else:
             logging.debug("Command not found")
@@ -416,6 +394,37 @@ class Backend(object):
                     self.send_simple_reply(mess, reply)
 
         return True
+
+    def _execute_and_send(self, cmd, args, mess, jid, template_name=None):
+        """Execute a bot command and send output back to the caller
+
+        cmd: The command that was given to the bot (after being expanded)
+        args: Arguments given along with cmd
+        mess: The message object
+        jid: The jid of the person executing the command
+        template_name: The name of the template which should be used to render
+            html-im output, if any
+
+        """
+        try:
+            reply = self.commands[cmd](mess, args)
+
+            # integrated templating
+            if template_name:
+                reply = tenv().get_template(template_name + '.html').render(**reply)
+
+            # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
+            reply = str(reply)
+        except Exception as e:
+            tb = traceback.format_exc()
+            logging.exception('An error happened while processing '
+                              'a message ("%s") from %s: %s"' %
+                              (mess.getBody(), jid, tb))
+            reply = self.MSG_ERROR_OCCURRED + ':\n %s' % e
+        if reply:
+            if len(reply) > self.MESSAGE_SIZE_LIMIT:
+                reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
+            self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
 
     def checkCommandAccess(self, mess, cmd):        
         usr = str(get_jid_from_message(mess))

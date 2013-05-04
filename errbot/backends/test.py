@@ -122,7 +122,6 @@ class FullStackTest(unittest.TestCase):
         file = logging.FileHandler(config_module.BOT_LOG_FILE, encoding='utf-8')
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
-        logger.addHandler(console)
         logger.addHandler(file)
         if extra_test_file:
             import config

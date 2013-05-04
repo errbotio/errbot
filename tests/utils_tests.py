@@ -37,6 +37,9 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(drawbar(0, 10), '[▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]')
         self.assertEqual(drawbar(10, 10), '[███████████████]')
 
+    def unescape_test(self):
+        self.assertEqual(unescape_xml('&#32;'), ' ')
+
     def test_storage(self):
         class MyPersistentClass(StoreMixin):
             pass

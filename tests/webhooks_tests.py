@@ -1,12 +1,16 @@
 from errbot.backends.test import FullStackTest, pushMessage, popMessage
 import requests
 from errbot import PY2
+from time import sleep
 
 
 class TestWebhooks(FullStackTest):
     @classmethod
     def setUpClass(cls, extra_test_file=None):
         super(TestWebhooks, cls).setUpClass()
+        # Give the rocket webserver just a fraction of extra time to initialize
+        # Was getting 50/50 chance of test failures (Connection refused) without this delay
+        sleep(0.1) 
         pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         popMessage()
 

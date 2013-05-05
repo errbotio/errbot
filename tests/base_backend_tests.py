@@ -2,15 +2,18 @@
 import unittest
 import os
 from queue import Queue
-from errbot.backends.base import Identifier, Backend, Message, build_text_html_message_pair
+from errbot.backends.base import Identifier, Backend, Message
+from errbot.backends.base import build_message, build_text_html_message_pair
 from errbot import botcmd, templating
+from errbot.utils import mess_2_embeddablehtml
+
 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
     jid = Identifier('err@localhost/err')
 
     def build_message(self, text):
-        return Message(text)
+        return build_message(text, Message)
 
     def send_message(self, mess):
         self.outgoing_message_queue.put(mess)
@@ -24,8 +27,8 @@ class TestBase(unittest.TestCase):
         self.dummy = DummyBackend()
 
         assets_path = os.path.dirname(__file__) + os.sep + "assets"
-        template_path = [templating.make_templates_path(assets_path)]
-        templating.env = templating.Environment(loader=templating.FileSystemLoader(template_path))
+        templating.template_path.append(templating.make_templates_path(assets_path))
+        templating.env = templating.Environment(loader=templating.FileSystemLoader(templating.template_path))
 
     def test_identifier_parsing(self):
         id1 = Identifier(jid="gbin@gootz.net/toto")
@@ -125,7 +128,11 @@ class TestBase(unittest.TestCase):
         self.assertEqual("foobar", dummy.pop_message().getBody())
 
         dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=return_args_as_html._err_command_template)
-        self.assertEqual("<strong>foo</strong><em>bar</em>", dummy.pop_message().getBody())
+        response = dummy.pop_message()
+        self.assertEqual("foobar", response.getBody())
+        self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>'
+                         '<em xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</em>\n\n',
+                         mess_2_embeddablehtml(response)[0])
 
         dummy._execute_and_send(cmd='raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=raises_exception._err_command_template)
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
@@ -135,8 +142,14 @@ class TestBase(unittest.TestCase):
         self.assertEqual("bar", dummy.pop_message().getBody())
 
         dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=yield_args_as_html._err_command_template)
-        self.assertEqual("<strong>foo</strong>", dummy.pop_message().getBody())
-        self.assertEqual("<strong>bar</strong>", dummy.pop_message().getBody())
+        response1 = dummy.pop_message()
+        response2 = dummy.pop_message()
+        self.assertEqual("foo", response1.getBody())
+        self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>\n\n',
+                         mess_2_embeddablehtml(response1)[0])
+        self.assertEqual("bar", response2.getBody())
+        self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</strong>\n\n',
+                         mess_2_embeddablehtml(response2)[0])
 
         dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=yields_str_then_raises_exception._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().getBody())

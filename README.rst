@@ -24,10 +24,10 @@ you need support, have any questions or wish to share some of your creations. If
 you have a bug to report or wish to request a feature, please log these on it's
 github_ page.
 
-We strongly encourage you to share your creations and as you will see, a Git url
-is all that you need to share it so that other people may use your plugin from
-err. Or, if instead your feature could be interesting as part of an existing
-plugin, please feel free to fork it on github_ too.
+We strongly encourage you to share your creations. The only thing you have to do
+to make your new plugin available to Err installations is to provide a Git url pointing to it.
+Or, if you feel your new feature could fit as a part of an existing
+plugin, please feel free to open a pull request for it on github_.
 
 Features
 --------

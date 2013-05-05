@@ -12,9 +12,8 @@ maintainable. It allows you to start scripts interactively from your chatrooms
 for any reason: random humour, starting a build, monitoring commits, triggering
 alerts... The possibilities are endless.
 
-It is written and extensible in Python, based on yapsy_ with a heavily adapted
-jabberbot_ for the XMPP backend. It is available as open source software under
-the GPL3 license.
+It is written and extensible in Python, based on yapsy_. 
+It is available as open source software under the GPL3 license.
 
 Community behind the project
 ----------------------------
@@ -34,7 +33,7 @@ Features
 
 Main features:
 
-- XMPP support: Tested with hipchat_, openfire_ and Jabber but should be compatible with any standard XMPP server
+- XMPP support: Tested with Google Talk, Hipchat_, Openfire_ and Jabber but should be compatible with any standard XMPP server
 - CampFire support
 - Basic IRC support
 - Multi User Chatroom (MUC) support
@@ -70,8 +69,8 @@ An extensive framework for writing custom plugins:
 - And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make seperate text and HTML versions of your command output yourself
 
 
-.. _hipchat: http://www.hipchat.org/
-.. _openfire: http://www.igniterealtime.org/projects/openfire/
+.. _Hipchat: http://www.hipchat.org/
+.. _Openfire: http://www.igniterealtime.org/projects/openfire/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _yapsy: http://yapsy.sourceforge.net/
 .. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288

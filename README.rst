@@ -2,6 +2,7 @@
     :align: right
 
 .. image:: https://secure.travis-ci.org/gbin/err.png
+    :target: https://travis-ci.org/gbin/err/
 
 Err - the pluggable chatbot
 ===========================

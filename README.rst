@@ -7,58 +7,67 @@
 Err - the pluggable chatbot
 ===========================
 
-Err is a plugin based chatbot designed to be easily deployable, extensible and maintainable.
-It allows you to start scripts interactively from your chatrooms for any reason: random humour, starting a build, monitoring commits, triggering alerts ...
+Err is a plugin based chatbot designed to be easily deployable, extensible and
+maintainable. It allows you to start scripts interactively from your chatrooms
+for any reason: random humour, starting a build, monitoring commits, triggering
+alerts... The possibilities are endless.
 
-It is available as open source software under the GPL3 license.
-
-Err is written and extensible in python, it's based on yapsy_ with an heavily adapted jabberbot_ for the XMPP backend.
+It is written and extensible in Python, based on yapsy_ with a heavily adapted
+jabberbot_ for the XMPP backend. It is available as open source software under
+the GPL3 license.
 
 Community behind the project
 ----------------------------
-Err has a `google plus community`_, please feel free to mention it with +err if you need support, have any questions or wish to share some of your creations. If you have a bug to report or wish to request a feature, please log these on it's github_ page.
 
-We strongly encourage you to share your creations, as you will see, a git url is all that you need to share so other people can try out your plugin from err.
-If your feature could be interesting as a part of an existing plugin, feel free to fork it on github_ too.
+Err has a `google plus community`_, please feel free to mention it with +err if
+you need support, have any questions or wish to share some of your creations. If
+you have a bug to report or wish to request a feature, please log these on it's
+github_ page.
+
+We strongly encourage you to share your creations and as you will see, a Git url
+is all that you need to share it so that other people may use your plugin from
+err. Or, if instead your feature could be interesting as part of an existing
+plugin, please feel free to fork it on github_ too.
 
 Features
 --------
 
-Backends and main features :
+Main features:
 
 - XMPP support: Tested with hipchat_, openfire_ and Jabber but should be compatible with any standard XMPP server
 - CampFire support
 - Basic IRC support
-- Supports MUCs (chatrooms)
-- Local graphical console (for testing/development)
-- Local text console (for testing/development)
+- Multi User Chatroom (MUC) support
+- A dynamic plugin architecture: Bot admins can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot
+- Advanced security/access control features (see below)
 
-Included : 
+Included:
 
-- A !help command that generates documentation dynamically from the python docstrings of the commands
-- A command history system where users can recall previous commands
-- Can proxy and route one 2 one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the jira XMPP notifier)
+- A !help command that dynamically generates documentation for commands using the docstrings in the plugin source code
+- A per-user command history system where users can recall previous commands
+- The ability to proxy and route one-to-one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the Jira XMPP notifier)
+- Local text and graphical consoles for testing and development
 
-Administration and Security :
+Administration and Security:
 
-- Can be setup so a restricted list of people have administrative rights (You can even limit specific commands to specific users and rooms)
-- Dynamic plugin architecture : Bot admins can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot
-- Plugins can be hosted publicly or privately on git
+- Can be setup so a restricted list of people have administrative rights
+- Fine-grained access controls may be defined which allow all or just specific commands to be limited to specific users and/or rooms
+- Plugins may be hosted publicly or privately and dynamically installed (by admins) via their Git url
 - Plugins can be configured directly from chat (no need to change setup files for every plugin)
 - Configs can be exported and imported again with two commands (!export and !import respectively)
-- Technical logs can be inspected from the chat or `logged to Sentry`_
+- Technical logs can be logged to file and inspected from the chat or optionally be `logged to Sentry`_
 
-Provides for Extensibility :  
+An extensive framework for writing custom plugins:
 
-- A really low learning curve for writing plugins (see example below)
-- Graphical and text development consoles for superfast development roundtrips
-- Out of the box support for subcommands in plugins
-- An automatic persistence store per plugin
-- Really simple webhooks integration
-- A polling framework for plugins
+- Writing new plugins has a really low learning curve (see below)
+- Graphical and text development consoles allow for fast development roundtrips
+- Plugins get out of the box support for subcommands
+- We provide an automatic persistence store per plugin
+- There's really simple webhooks integration
+- As well as a polling framework for plugins
 - An easy configuration framework
-- A templating framework to display fancy HTML messages
-- Automatic conversion from HTML to plaintext when the backend doesn't support HTML (so you don't have to make text and HTML versions of your command output)
+- A test backend for unittests for plugins which can make assertions about issued commands and their responses
+- And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make seperate text and HTML versions of your command output yourself
 
 
 .. _hipchat: http://www.hipchat.org/
@@ -71,108 +80,146 @@ Provides for Extensibility :
 
 Prerequisites
 -------------
-It runs under Python 2.7.x or Python 3.2+ under Linux / Windows and Mac.
 
-Create a user for the bot on your private XMPP server or on a public server like jabber.org.
-Optionally you can create a MUC (also called conference room or chatroom) in which you can interact with the bot. 
-Requires a user account on your private XMPP server or on a public server like jabber.org.
-You can optionally create a MUC (also called conference room or chatroom) as well in which you can interact with the bot. 
+Err runs under Python 2.7 as well as Python 3.2+ on Linux, Windows and Mac.
 
-Installation from source
-------------------------
+You need to have registered a user for the bot to use on the XMPP or IRC server that you wish to run Err on. A lot of plugins use multi user chatrooms (MUC) as well, so it is recommended (but not required) to have a least one MUC for Err to use as well.
 
-**Dependencies**
+Installation
+------------
 
-Python 2.7.x or Python 3.2+
-And those python modules. The copy-paste for the lazy pip users but if you can have them from your standard distro it is better::
+Err may be installed directly from PyPi using pip (easy_install works too) by issuing::
 
-    pip install -r requirements.txt
+    pip install err
 
-Create a user for the bot in your XMPP server admin.
+Or if you wish to try out the latest, bleeding edge version::
 
-From the installation directory copy::
+    pip install https://github.com/gbin/err/archive/master.zip
 
-    cp errbot/config-template.py config.py
+However, in these cases, installing into a dedicated `virtualenv`_ is recommended.
 
-Read the inline documentation of the file and edit the values so the bot can connect to your XMPP server
+On some distributions, Err is available as a package via your usual package manager.
+In these cases, it is generally recommended to use your distribution's package instead
+of installing from PyPi.
+
+**Extra dependencies**
+
+requirements.txt lists only the bare minimum list of dependencies needed to run Err.
+Depending on the backend you choose, additional requirements need to be installed.
+
+For the XMPP based backends you must also install::
+
+    sleekxmpp
+    pyasn1
+    pyasn1-modules
+    dnspython3  # dnspython for Python 2.7
+
+For the IRC backend, you must install::
+
+    irc
+
+**Configuration**
+
+After installing Err, you must create a data directory somewhere on your system where
+config and data may be stored. Find the installation directory of Err, then copy the
+file <install_directory>/errbot/config-template.py to your data directory as config.py
+
+(If you installed Err via pip, the installation directory will most likely be
+/usr/lib64/python<python_version_number>/site-packages/errbot)
+
+Read the documentation within this file and edit the values as needed so the bot can
+connect to your chosen XMPP or IRC server.
 
 **Starting the daemon**
 
-For a one shot try, I would recommend to use::
+The first time you start Err, it is recommended to run it in foreground mode. This can
+be done with::
 
-    ./scripts/err.py
+    <path_to_install_directory>/scripts/err.py
 
-Then you can use the -d (or --daemon) parameter to run it in a detached mode.::
+In many cases, just typing err.py will be enough as it is generally added to the PATH
+automatically. Please pass -h or --help to err.py to get a list of supported parameters.
+Depending on your situation, you may need to pass --config or --backend when starting
+Err.
 
-    ./script/err.py -d
+If all that worked, you can now use the -d (or --daemon) parameter to run it in a
+detached mode::
 
-so you can inspect the logs for an immediate feedback
+    <path_to_install_directory>/scripts/err.py --daemon
 
-Note that config.py needs to be at the root of the working directory of the bot by default.
+If you are going to run your bot all the time then using some process control system
+such as `supervisor`_ is highly recommended. Installing and configuring such a system
+is outside the scope of this document however.
 
-You can override this behaviour with -c specifying the directory where your config.py is, for example::
+**Hacking on Err's code directly**
 
-    ./script/err.py -c /etc/err
+It's important to know that as of version 2.0, Err is written for Python 3. In order
+to run under Python 2.7 the code is run through 3to2 at install time. This means that
+while it is possible to run Err under Python 3.2+ directly from a source checkout, it
+is not possible to do so with Python 2.7. If you wish to develop or test with Err's
+code under 2.7, you must run::
 
-More details on the bot admin features can be found on the wiki : https://github.com/gbin/err/wiki
+    python setup.py install
 
-Installation from pypi
-----------------------
+Alternatively, you can also look into the --editable parameter of pip install.
 
-Pip will take care of installing err and the basic dependencies for you:
-pip install err
-
-Go to or create a working directory for it then copy there and adapt the configuration template::
-
-    cp /usr/lib64/python2.7/site-packages/errbot/config-template.py config.py
-
-(Replace 2.7 by you python version)
-
-Then you can start and try your bot::
-
-    err.py
-
-Installation from gentoo
-------------------------
-
-It has been merged to the main tree.
-
-So the standard way: ::
-
-    emerge net-im/err
+.. _virtualenv: https://pypi.python.org/pypi/virtualenv
+.. _supervisor: http://supervisord.org/
 
 Interacting with the Bot
 ------------------------
 
-- Invite the bot directly from your chat client.
-- Send commands directly to the bot, or in a MUC the bot has joined. (Try sending "!help", without the quotes)
-- If you wish to know more about a specific command you can send "!help command"
+After starting Err, you should add the bot to your buddy list if you haven't already.
+You can now send commands directly to the bot, or issue commands in a chatroom that
+the bot has also joined.
 
-More documentation is available on the wiki : https://github.com/gbin/err/wiki
+To get a list of all available commands, you can issue::
 
-Install/uninstalling public plugins
------------------------------------
+    !help full
 
-To get a list of public plugin repos you can do::
+If you just wish to know more about a specific command you can issue::
+
+    !help command
+
+**Managing plugins**
+
+To get a list of public plugin repos you can issue::
 
     !repos
 
-Then pick one that you fancy, for example::
+To install a plugin from this list, issue::
 
-    !install err-pollbot
-
-You should then instantly have a new poll service you can use to vote for where to go for lunch with your colleagues :)
+    !repos install <name of plugin>
 
 You can always uninstall a plugin again with::
 
-    !uninstall err-pollbot
+    !repos uninstall <plugin>
 
-Note: Please pay attention when you install a plugin, it may have additional dependencies
+You will probably want to update your plugins periodically. This can be done with::
 
-Tutorial to write a simple plugin
----------------------------------
+    !repos update all
 
-Try it! It's super simple!
+Note: Please pay attention when you install a plugin, it may have additional
+dependencies. If the plugin contains a requirements.txt then Err wil automatically
+check them and warn you when you are missing dependencies.
 
-You can find a tutorial here : https://github.com/gbin/err/wiki/plugin-dev
+Writing plugins
+---------------
+
+Writing your own plugins is extremely simple. As an example, this is all it takes
+to create a "Hello, world!" plugin for Err::
+
+    from errbot import BotPlugin, botcmd
+
+    class Hello(BotPlugin):
+        """Example 'Hello, world!' plugin for Err"""
+
+        @botcmd
+        def hello(self, msg, args):
+            """Return the phrase "Hello, world!" to you"""
+            return "Hello, world!"
+
+This plugin will create the command "!hello" which, when issued, returns "Hello, world!"
+to you. For more info on everything you can do with plugins, see the documentation at
+https://github.com/gbin/err/wiki/plugin-dev
 

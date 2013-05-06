@@ -1,91 +1,156 @@
-# NOTICE : adapt this file and rename it to config.py
+##########################################################################
+#                                                                        #
+#  This is the config-template for Err. This file should be copied and   #
+#  renamed to config.py, then modified as you see fit to run Err the way #
+#  you like it.                                                          #
+#                                                                        #
+#  As this is a regular Python file, note that you can do variable       #
+#  assignments and the likes as usual. This can be useful for example if #
+#  you use the same values in multiple places.                           #
+#                                                                        #
+#  Note: Various config options require a tuple to be specified, even    #
+#  when you are configuring only a single value. An example of this is   #
+#  the BOT_ADMINS option. Make sure you use a valid tuple here, even if  #
+#  you are only configuring a single item, else you will get errors.     #
+#  (So don't forget the trailing ',' in these cases)                     #
+#                                                                        #
+##########################################################################
+
 import logging
 
-# the verbosity of the log, they are the standard python ones : DEBUG, INFO, ERROR ...
-# Before reporting a problem, please try capture your logs with BOT_LOG_LEVEL = logging.DEBUG
-BOT_LOG_LEVEL = logging.INFO
+##########################################################################
+# Core Err configuration                                                 #
+##########################################################################
 
-# set the log file, None = console only, be sure the user of the bot can write there
+# The location where all of Err's data should be stored. Make sure to set
+# this to a directory that is writable by the user running the bot.
+BOT_DATA_DIR = '/var/lib/err'
+
+# Set this to a directory on your system where you want to load extra
+# plugins from, which is useful mostly if you want to develop a plugin
+# locally before publishing it. Note that you can specify only a single
+# directory, however you are free to create subdirectories with multiple
+# plugins inside this directory.
+BOT_EXTRA_PLUGIN_DIR = None 
+
+# The location of the log file. If you set this to None, then logging will
+# happen to console only.
 BOT_LOG_FILE = '/var/log/err/err.log'
 
+# The verbosity level of logging that is done to the above logfile, and to
+# the console. This takes the standard Python logging levels, DEBUG, INFO,
+# WARN, ERROR. For more info, see http://docs.python.org/library/logging.html
+#
+# If you encounter any issues with Err, please set your log level to
+# logging.DEBUG and attach a log with your bug report to aid the developers
+# in debugging the issue.
+BOT_LOG_LEVEL = logging.INFO
+
 # Enable logging to sentry (find out more about sentry at www.getsentry.com).
+# This is optional and disabled by default.
 BOT_LOG_SENTRY = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 
-# Base configuration (Jabber mode)
+# Execute commands in asynchronous mode. In this mode, Err will spawn 3 
+# seperate threads to handle commands, instead of blocking on each 
+# single command.
+BOT_ASYNC = True
+
+##########################################################################
+# Account and chatroom (MUC) configuration                               #
+##########################################################################
+
+# The identity, or credentials, used to connect to a server
 BOT_IDENTITY = {
-    'username': 'err@localhost',  # JID of the user you have created for the bot
-    'password': 'changeme'  # password of the bot user
+    # XMPP (Jabber) mode
+    'username': 'err@localhost',  # The JID of the user you have created for the bot
+    'password': 'changeme',       # The corresponding password for this user
+
+    ## HipChat mode (Comment the above if using this mode)
+    # 'username' : '12345_123456@chat.hipchat.com',
+    # 'password' : 'changeme',
+	## Group admins can create/view tokens on the settings page after logging
+    ## in on HipChat's website
+    # 'token' : 'ed4b74d62833267d98aa99f312ff04',
+
+    ## Campfire mode (Comment the others above if using this mode)
+    # 'subdomain': 'yatta',
+    # 'username' : 'errbot',
+    # 'password' : 'changeme',
+
+
+    ## IRC mode (Comment the others above if using this mode)
+    # 'nickname' : 'err-chatbot',
+    # 'password' : None,             # optional
+    # 'server' : 'irc.freenode.net',
+    # 'port': 6667,                  # optional
+    # 'ssl': False,                  # optional
 }
 
-BOT_ASYNC = False  # If true, the bot will handle the commands asynchronously [EXPERIMENTAL]
+# Set the admins of your bot. Only these users will have access
+# to the admin-only commands.
+#
+# Note: With campfire this should be the full name of a person, like so: 
+# BOT_ADMINS = ('Guillaume Binet',)
+#
+BOT_ADMINS = ('gbin@localhost',)
 
-# Influence the security methods used on connection with XMPP-based backends.
-# Default is to try anything:
-# XMPP_FEATURE_MECHANISMS = {}
-# To use only unencrypted plain auth:
-# XMPP_FEATURE_MECHANISMS =  {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
+# Chatrooms your bot should join on startup. For the IRC backend you 
+# should include the # sign here. For XMPP rooms that are password
+# protected, you can specify another tuple here instead of a string,
+# using the format (RoomName, Password).
+CHATROOM_PRESENCE = ('err@conference.server.tld',)
 
-# HIPCHAT template
-#BOT_IDENTITY = {
-#    'username' : '12345_123456@chat.hipchat.com',
-#    'password' : 'changeme',
-#    'token' : 'ed4b74d62833267d98aa99f312ff04'
-#}
+# The FullName, or nickname, your bot should use. What you set here will
+# be the nickname that Err shows in chatrooms. Note that some XMPP
+# implementations, notably HipChat, are very picky about what name you
+# use. In the case of HipChat, make sure this matches exactly with the
+# name you gave the user.
+CHATROOM_FN = 'Err'
 
-# CAMPFIRE template
-#BOT_IDENTITY = {
-#    'subdomain': 'yatta',
-#    'username' : 'errbot',
-#    'password' : 'changeme'
-#}
+##########################################################################
+# Prefix configuration                                                   #
+##########################################################################
 
-# IRC template
-# BOT_IDENTITY = {
-#    'nickname' : 'err-chatbot',
-#    'password' : None, # optional
-#    'server' : 'irc.freenode.net',
-#    'port': 6667, # optional
-#    'ssl': False,  # optional
-#}
-
-# Extra optional parameters for IRC
-# IRC_CHANNEL_RATE = 1 # Rate limiter in seconds between 2 messages in a channel, put None for no limit
-# IRC_PRIVATE_RATE = 1 # Rate limiter in seconds between 2 private messages, put None for no limit
-
-BOT_ADMINS = ('gbin@localhost',)  # only those JIDs will have access to admin commands
-
-# CAMPFIRE it should be the full name
-# BOT_ADMINS = ('Guillaume Binet',) # only those JIDs will have access to admin commands
-
-BOT_DATA_DIR = '/var/lib/err'  # Point this to a writeable directory by the system user running the bot
-BOT_EXTRA_PLUGIN_DIR = None  # Add this directory to the plugin discovery (useful to develop a new plugin locally)
-
-# Prefix used for commands. Note that in help strings, you should still use the
-# default '!'. If the prefix is changed from the default, the help strings will
-# be automatically adjusted.
+# Command prefix, the prefix that is expected in front of commands directed
+# at the bot.
+#
+# Note: When writing plugins,you should always use the default '!'.
+# If the prefix is changed from the default, the help strings will be
+# automatically adjusted for you.
+#
 BOT_PREFIX = '!'
 
-# Uncomment the following and set it to True if you want the prefix to be optional for normal chat
+# Uncomment the following and set it to True if you want the prefix to be
+# optional for normal chat.
 # (Meaning messages sent directly to the bot as opposed to within a MUC)
 #BOT_PREFIX_OPTIONAL_ON_CHAT = False
 
-# You might wish to have your bot respond by being called with certain names, rather
-# than the BOT_PREFIX above. This option allows you to specify alternative prefixes
-# the bot will respond to in addition to the prefix above.
+# You might wish to have your bot respond by being called with certain
+# names, rather than the BOT_PREFIX above. This option allows you to
+# specify alternative prefixes the bot will respond to in addition to
+# the prefix above.
 #BOT_ALT_PREFIXES = ('Err',)
 
-# If you use alternative prefixes, you might want to allow users to insert separators
-# like , and ; between the prefix and the command itself. This allows users to refer
-# to your bot like this (Assuming 'Err' is in your BOT_ALT_PREFIXES):
+# If you use alternative prefixes, you might want to allow users to insert
+# separators like , and ; between the prefix and the command itself. This
+# allows users to refer to your bot like this (Assuming 'Err' is in your
+# BOT_ALT_PREFIXES):
 # "Err, status" or "Err: status"
+#
 # Note: There's no need to add spaces to the separators here
+#
 #BOT_ALT_PREFIX_SEPARATORS = (':', ',', ';')
 
-# Continuing on this theme, you might want to permit your users to be lazy and not
-# require correct capitalization, so they can do 'Err', 'err' or even 'ERR'.
+# Continuing on this theme, you might want to permit your users to be
+# lazy and not require correct capitalization, so they can do 'Err',
+# 'err' or even 'ERR'.
 #BOT_ALT_PREFIX_CASEINSENSITIVE = True
+
+##########################################################################
+# Access controls and message diversion                                  #
+##########################################################################
 
 # Access controls, allowing commands to be restricted to specific users/rooms.
 # Available filters (you can omit a filter or set it to None to disable it):
@@ -106,39 +171,44 @@ BOT_PREFIX = '!'
 #                   'help': {'allowmuc': False},
 #                  }
 
-# HIDE_RESTRICTED_COMMANDS
-# set to True to hide the restricted commands from the help output
-# HIDE_RESTRICTED_COMMANDS = True
+# Uncomment and set this to True to hide the restricted commands from
+# the help output.
+#HIDE_RESTRICTED_COMMANDS = False
 
-# ---- Chatrooms configuration (used by the chatroom plugin)
-# it is a standard python file so you can reuse variables...
-# For example: _TEST_ROOM = 'test@conference.localhost
+# A list of commands which should be responded to in private, even if
+# the command was given in a MUC. For example:
+# DIVERT_TO_PRIVATE = ('help', 'about', 'status')
+DIVERT_TO_PRIVATE = ()
 
-# CHATROOM_ PRESENCE
-# it must be an iterable of names of rooms you want the bot to join at startup
-# for example : CHATROOM_PRESENCE = (_TEST_ROOM,)
-# for IRC you can name them with their # like #err_chatroom
-# for XMPP MUC with passwords you can add tuples in the form (ROOM, PASSWORD)
-CHATROOM_PRESENCE = ()
-
-# CHATROOM_RELAY
-# can be used to relay one to one message from specific users to the bot to MUCs
-# it can be useful when XMPP notifiers like the standard Altassian Jira one doesn't support MUC
-# for example : CHATROOM_RELAY = {'gbin@localhost' : (_TEST_ROOM,)}
+# Chat relay
+# Can be used to relay one to one message from specific users to the bot
+# to MUCs. This can be useful with XMPP notifiers like for example  the
+# standard Altassian Jira which don't have native support for MUC.
+# For example: CHATROOM_RELAY = {'gbin@localhost' : (_TEST_ROOM,)}
 CHATROOM_RELAY = {}
 
-# REVERSE_CHATROOM_RELAY
-# this feature forward whatever is said to a specific JID
-# it can be useful if you client like gtalk doesn't support MUC correctly !
-# for example REVERSE_CHATROOM_RELAY = {_TEST_ROOM : ('gbin@localhost',)}
+# Reverse chat relay
+# This feature forwards whatever is said to a specific user.
+# It can be useful if you client like gtalk doesn't support MUC correctly
+# For example: REVERSE_CHATROOM_RELAY = {_TEST_ROOM : ('gbin@localhost',)}
 REVERSE_CHATROOM_RELAY = {}
 
-# CHATROOM_FN
-# Some XMPP implementations like HipChat are super picky on the fullname you join with for a MUC
-# If you use HipChat, make sure to exactly match the fullname you set for the bot user
-CHATROOM_FN = 'bot'
+##########################################################################
+# Miscellaneous configuration options                                    #
+##########################################################################
 
-# DIVERT_TO_PRIVATE
-# An iterable of commands which should be responded to in private, even if the command was given
-# in a MUC. For example: DIVERT_TO_PRIVATE = ('help', 'about', 'status')
-DIVERT_TO_PRIVATE = ()
+# Influence the security methods used on connection with XMPP-based
+# backends. You can use this to work around authentication issues with
+# some buggy XMPP servers.
+#
+# The default is to try anything:
+#XMPP_FEATURE_MECHANISMS = {}
+# To use only unencrypted plain auth:
+#XMPP_FEATURE_MECHANISMS =  {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
+
+# Message rate limiting for the IRC backend.
+# Rate limiter for regular channel messages, set to None to disable limits.
+#IRC_CHANNEL_RATE = 1
+# Rate limiter for private messages, set to None to disable limits.
+#IRC_PRIVATE_RATE = 1
+

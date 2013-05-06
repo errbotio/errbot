@@ -12,8 +12,13 @@ maintainable. It allows you to start scripts interactively from your chatrooms
 for any reason: random humour, starting a build, monitoring commits, triggering
 alerts... The possibilities are endless.
 
-It is written and extensible in Python, based on yapsy_. 
-It is available as open source software under the GPL3 license.
+It is written and extensible in Python, and, where possible, uses external
+libraries instead of reinventing the wheel. We use yapsy_ for plugin management,
+jinja2_ for templating and bottle_ as a micro web framework with rocket_
+providing the built-in webserver to power it. Additionally, sleekxmpp_ and irc_
+are used for the XMPP and IRC backends and six_ is used for Python 2.7 compatibility.
+
+Err is available as open source software under the GPL3 license.
 
 Community behind the project
 ----------------------------
@@ -73,6 +78,12 @@ An extensive framework for writing custom plugins:
 .. _Openfire: http://www.igniterealtime.org/projects/openfire/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _yapsy: http://yapsy.sourceforge.net/
+.. _jinja2: http://jinja.pocoo.org/
+.. _bottle: http://bottlepy.org/
+.. _rocket: https://pypi.python.org/pypi/rocket
+.. _sleekxmpp: http://sleekxmpp.com/
+.. _irc: https://pypi.python.org/pypi/irc/
+.. _six: https://pypi.python.org/pypi/six/
 .. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _github: http://github.com/gbin/err/
 .. _`logged to Sentry`: https://github.com/gbin/err/wiki/Logging-with-Sentry

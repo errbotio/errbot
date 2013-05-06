@@ -70,7 +70,7 @@ BOT_IDENTITY = {
     ## HipChat mode (Comment the above if using this mode)
     # 'username' : '12345_123456@chat.hipchat.com',
     # 'password' : 'changeme',
-	## Group admins can create/view tokens on the settings page after logging
+    ## Group admins can create/view tokens on the settings page after logging
     ## in on HipChat's website
     # 'token' : 'ed4b74d62833267d98aa99f312ff04',
 

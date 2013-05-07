@@ -31,5 +31,6 @@ KNOWN_PUBLIC_REPOS = {
     'err-insult': ('git://github.com/xnaveira/err-insult.git', 'Hubot insult plugin clone for Err bot'),
     'err-markovbot': ('git://github.com/MaxWagner/err-markovbot.git', 'Markov chain bot that supports db generation from url, file or string'),
     'err-faustbot': ('git://github.com/Scaatis/err-faustbot.git', "Output a random line of Goethe's \"Faust\" in sentence context (in German)."),
-    'err-sedbot': ('git://github.com/gbin/err-sedbot.git', "errbot plugin for executing simple sed substitute commands")
+    'err-sedbot': ('git://github.com/gbin/err-sedbot.git', "errbot plugin for executing simple sed substitute commands"),
+    'err-agressive-keepalive': ('git://github.com/zoni/err-agressive-keepalive.git', "A plugin which sends additional keep-alive messages every 30 seconds."),
 }

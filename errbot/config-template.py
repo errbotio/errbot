@@ -206,6 +206,19 @@ REVERSE_CHATROOM_RELAY = {}
 # To use only unencrypted plain auth:
 #XMPP_FEATURE_MECHANISMS =  {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
 
+# Modify the default keep-alive interval. By default, Err will send
+# some whitespace to the XMPP server every 300 seconds to keep the TCP
+# connection alive. On some servers, or when running Err from behind
+# a NAT router, the default might not be fast enough and you will need
+# to set it to a lower value. 
+#
+# It has been reported that HipChat also times out without setting this
+# to a lower value (60 seems to work well with HipChat)
+#
+# If you're having issues with your bot getting constantly disconnected,
+# try to gradually lower this value until it no longer happens.
+#XMPP_KEEP_ALIVE_INTERVAL = 300
+
 # Message rate limiting for the IRC backend.
 # Rate limiter for regular channel messages, set to None to disable limits.
 #IRC_CHANNEL_RATE = 1

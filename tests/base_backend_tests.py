@@ -1,12 +1,13 @@
 # coding=utf-8
 import unittest
 import os
-from queue import Queue
+from queue import Queue, Empty
 from errbot.backends.base import Identifier, Backend, Message
 from errbot.backends.base import build_message, build_text_html_message_pair
 from errbot import botcmd, templating
 from errbot.utils import mess_2_embeddablehtml
 
+LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
@@ -21,14 +22,57 @@ class DummyBackend(Backend):
     def pop_message(self, timeout=3, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
 
+    @botcmd
+    def return_args_as_str(self, mess, args):
+        return "".join(args)
+
+    @botcmd(template='args_as_html')
+    def return_args_as_html(self, mess, args):
+        return {'args': args}
+
+    @botcmd
+    def raises_exception(self, mess, args):
+        raise Exception("Kaboom!")
+
+    @botcmd
+    def yield_args_as_str(self, mess, args):
+        for arg in args:
+            yield arg
+
+    @botcmd(template='args_as_html')
+    def yield_args_as_html(self, mess, args):
+        for arg in args:
+            yield {'args': [arg]}
+
+    @botcmd
+    def yields_str_then_raises_exception(self, mess, args):
+        yield "foobar"
+        raise Exception("Kaboom!")
+
+    @botcmd
+    def return_long_output(self, mess, args):
+        return LONG_TEXT_STRING * 3
+
+    @botcmd
+    def yield_long_output(self, mess, args):
+        for i in range(2):
+            yield LONG_TEXT_STRING * 3
+
+    def __init__(self):
+        super(DummyBackend, self).__init__()
+        self.commands['return_args_as_str'] = self.return_args_as_str
+        self.commands['return_args_as_html'] = self.return_args_as_html
+        self.commands['raises_exception'] = self.raises_exception
+        self.commands['yield_args_as_str'] = self.yield_args_as_str
+        self.commands['yield_args_as_html'] = self.yield_args_as_html
+        self.commands['yields_str_then_raises_exception'] = self.yields_str_then_raises_exception
+        self.commands['return_long_output'] = self.return_long_output
+        self.commands['yield_long_output'] = self.yield_long_output
+
 
 class TestBase(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
-
-        assets_path = os.path.dirname(__file__) + os.sep + "assets"
-        templating.template_path.append(templating.make_templates_path(assets_path))
-        templating.env = templating.Environment(loader=templating.FileSystemLoader(templating.template_path))
 
     def test_identifier_parsing(self):
         id1 = Identifier(jid="gbin@gootz.net/toto")
@@ -84,64 +128,60 @@ class TestBase(unittest.TestCase):
         self.assertEqual(str(resp.getFrom()), "err@localhost/err")
         self.assertEqual(str(resp.getBody()), "Response")
 
-    def test_execute_and_send(self):
-        @botcmd
-        def return_args_as_str(mess, args):
-            return "".join(args)
 
-        @botcmd(template='args_as_html')
-        def return_args_as_html(mess, args):
-            return {'args': args}
+class TestExecuteAndSend(unittest.TestCase):
+    def setUp(self):
+        self.dummy = DummyBackend()
+        self.example_message = self.dummy.build_message("some_message")
+        self.example_message.setFrom("noterr@localhost/resource")
+        self.example_message.setTo("err@localhost/resource")
 
-        @botcmd
-        def raises_exception(mess, args):
-            raise Exception("Kaboom!")
+        assets_path = os.path.dirname(__file__) + os.sep + "assets"
+        templating.template_path.append(templating.make_templates_path(assets_path))
+        templating.env = templating.Environment(loader=templating.FileSystemLoader(templating.template_path))
 
-        @botcmd
-        def yield_args_as_str(mess, args):
-            for arg in args:
-                yield arg
-
-        @botcmd(template='args_as_html')
-        def yield_args_as_html(mess, args):
-            for arg in args:
-                yield {'args': [arg]}
-
-        @botcmd
-        def yields_str_then_raises_exception(mess, args):
-            yield "foobar"
-            raise Exception("Kaboom!")
-
+    def test_commands_can_return_string(self):
         dummy = self.dummy
-        dummy.commands['return_args_as_str'] = return_args_as_str
-        dummy.commands['return_args_as_html'] = return_args_as_html
-        dummy.commands['raises_exception'] = raises_exception
-        dummy.commands['yield_args_as_str'] = yield_args_as_str
-        dummy.commands['yield_args_as_html'] = yield_args_as_html
-        dummy.commands['yields_str_then_raises_exception'] = yields_str_then_raises_exception
+        m = self.example_message
 
-        m = dummy.build_message("some_message")
-        m.setFrom("noterr@localhost/resource")
-        m.setTo("err@localhost/resource")
-
-        dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=return_args_as_str._err_command_template)
+        dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.return_args_as_str._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().getBody())
 
-        dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=return_args_as_html._err_command_template)
+    def test_commands_can_return_html(self):
+        dummy = self.dummy
+        m = self.example_message
+
+        dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.return_args_as_html._err_command_template)
         response = dummy.pop_message()
         self.assertEqual("foobar", response.getBody())
         self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>'
                          '<em xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</em>\n\n',
                          mess_2_embeddablehtml(response)[0])
 
-        dummy._execute_and_send(cmd='raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=raises_exception._err_command_template)
+    def test_exception_is_caught_and_shows_error_message(self):
+        dummy = self.dummy
+        m = self.example_message
+
+        dummy._execute_and_send(cmd='raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=dummy.raises_exception._err_command_template)
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
 
-        dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=yield_args_as_str._err_command_template)
+        dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=dummy.yields_str_then_raises_exception._err_command_template)
+        self.assertEqual("foobar", dummy.pop_message().getBody())
+        self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
+
+    def test_commands_can_yield_strings(self):
+        dummy = self.dummy
+        m = self.example_message
+
+        dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.yield_args_as_str._err_command_template)
         self.assertEqual("foo", dummy.pop_message().getBody())
         self.assertEqual("bar", dummy.pop_message().getBody())
 
-        dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=yield_args_as_html._err_command_template)
+    def test_commands_can_yield_html(self):
+        dummy = self.dummy
+        m = self.example_message
+
+        dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.yield_args_as_html._err_command_template)
         response1 = dummy.pop_message()
         response2 = dummy.pop_message()
         self.assertEqual("foo", response1.getBody())
@@ -151,6 +191,22 @@ class TestBase(unittest.TestCase):
         self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</strong>\n\n',
                          mess_2_embeddablehtml(response2)[0])
 
-        dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=yields_str_then_raises_exception._err_command_template)
-        self.assertEqual("foobar", dummy.pop_message().getBody())
-        self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
+    def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_returned(self):
+        dummy = self.dummy
+        m = self.example_message
+        self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
+
+        dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.return_long_output._err_command_template)
+        for i in range(3):  # return_long_output outputs a string that's 3x longer than the size limit
+            self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().getBody())
+        self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
+
+    def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_yielded(self):
+        dummy = self.dummy
+        m = self.example_message
+        self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
+
+        dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.yield_long_output._err_command_template)
+        for i in range(6):  # yields_long_output yields 2 strings that are 3x longer than the size limit
+            self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().getBody())
+        self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})

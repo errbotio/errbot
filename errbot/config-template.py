@@ -197,6 +197,11 @@ REVERSE_CHATROOM_RELAY = {}
 # Miscellaneous configuration options                                    #
 ##########################################################################
 
+# Define the maximum length a single message may be. If a plugin tries to
+# send a message longer than this length, it will be broken up into multiple
+# shorter messages that do fit.
+#MESSAGE_SIZE_LIMIT = 10000
+
 # Influence the security methods used on connection with XMPP-based
 # backends. You can use this to work around authentication issues with
 # some buggy XMPP servers.
@@ -211,4 +216,3 @@ REVERSE_CHATROOM_RELAY = {}
 #IRC_CHANNEL_RATE = 1
 # Rate limiter for private messages, set to None to disable limits.
 #IRC_PRIVATE_RATE = 1
-

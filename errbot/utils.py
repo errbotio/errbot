@@ -252,3 +252,9 @@ def RateLimited(minInterval):
         return rateLimitedFunction
 
     return decorate
+
+
+def split_string_after(str_, n):
+    """Yield chunks of length `n` from the given string"""
+    for start in range(0, len(str_), n):
+        yield str_[start:start+n]

@@ -5,7 +5,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 from errbot import botcmd, PY2
 import difflib
-from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid
+from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid, split_string_after
 from errbot.templating import tenv
 import traceback
 
@@ -212,7 +212,6 @@ class Backend(object):
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
                          'An unexpected error occurred.'
     MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
-    MESSAGE_SIZE_ERROR_MESSAGE = '|<- SNIP ! Message too long.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '\
                           'Type "' + BOT_PREFIX + 'help" for available commands.'
     MSG_HELP_TAIL = 'Type help <command name> to get more info '\
@@ -416,9 +415,8 @@ class Backend(object):
             return str(reply)
 
         def send_reply(reply):
-            if len(reply) > self.MESSAGE_SIZE_LIMIT:
-                reply = reply[:self.MESSAGE_SIZE_LIMIT - len(self.MESSAGE_SIZE_ERROR_MESSAGE)] + self.MESSAGE_SIZE_ERROR_MESSAGE
-            self.send_simple_reply(mess, reply, cmd in DIVERT_TO_PRIVATE)
+            for part in split_string_after(reply, self.MESSAGE_SIZE_LIMIT):
+                self.send_simple_reply(mess, part, cmd in DIVERT_TO_PRIVATE)
 
         try:
             if inspect.isgeneratorfunction(self.commands[cmd]):

@@ -61,13 +61,6 @@ class DummyBackend(Backend):
 class TestBase(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
-        self.example_message = self.dummy.build_message("some_message")
-        self.example_message.setFrom("noterr@localhost/resource")
-        self.example_message.setTo("err@localhost/resource")
-
-        assets_path = os.path.dirname(__file__) + os.sep + "assets"
-        templating.template_path.append(templating.make_templates_path(assets_path))
-        templating.env = templating.Environment(loader=templating.FileSystemLoader(templating.template_path))
 
     def test_identifier_parsing(self):
         id1 = Identifier(jid="gbin@gootz.net/toto")
@@ -123,14 +116,26 @@ class TestBase(unittest.TestCase):
         self.assertEqual(str(resp.getFrom()), "err@localhost/err")
         self.assertEqual(str(resp.getBody()), "Response")
 
-    def test_execute_and_send_commands_can_return_string(self):
+
+class TestExecuteAndSend(unittest.TestCase):
+    def setUp(self):
+        self.dummy = DummyBackend()
+        self.example_message = self.dummy.build_message("some_message")
+        self.example_message.setFrom("noterr@localhost/resource")
+        self.example_message.setTo("err@localhost/resource")
+
+        assets_path = os.path.dirname(__file__) + os.sep + "assets"
+        templating.template_path.append(templating.make_templates_path(assets_path))
+        templating.env = templating.Environment(loader=templating.FileSystemLoader(templating.template_path))
+
+    def test_commands_can_return_string(self):
         dummy = self.dummy
         m = self.example_message
 
         dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.return_args_as_str._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().getBody())
 
-    def test_execute_and_send_commands_can_return_html(self):
+    def test_commands_can_return_html(self):
         dummy = self.dummy
         m = self.example_message
 
@@ -141,7 +146,7 @@ class TestBase(unittest.TestCase):
                          '<em xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</em>\n\n',
                          mess_2_embeddablehtml(response)[0])
 
-    def test_execute_and_send_exception_is_caught_and_shows_error_message(self):
+    def test_exception_is_caught_and_shows_error_message(self):
         dummy = self.dummy
         m = self.example_message
 
@@ -152,7 +157,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual("foobar", dummy.pop_message().getBody())
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
 
-    def test_execute_and_send_commands_can_yield_strings(self):
+    def test_commands_can_yield_strings(self):
         dummy = self.dummy
         m = self.example_message
 
@@ -160,7 +165,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual("foo", dummy.pop_message().getBody())
         self.assertEqual("bar", dummy.pop_message().getBody())
 
-    def test_execute_and_send_commands_can_yield_html(self):
+    def test_commands_can_yield_html(self):
         dummy = self.dummy
         m = self.example_message
 
@@ -173,4 +178,3 @@ class TestBase(unittest.TestCase):
         self.assertEqual("bar", response2.getBody())
         self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</strong>\n\n',
                          mess_2_embeddablehtml(response2)[0])
-

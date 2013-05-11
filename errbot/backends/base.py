@@ -53,6 +53,11 @@ except ImportError:
     logging.warning("DIVERT_TO_PRIVATE is missing in config")
     pass
 
+try:
+    from config import MESSAGE_SIZE_LIMIT
+except ImportError:
+    MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
+
 if BOT_ASYNC:
     from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
@@ -211,7 +216,7 @@ class Backend(object):
 
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
                          'An unexpected error occurred.'
-    MESSAGE_SIZE_LIMIT = 10000 # the default one from hipchat
+    MESSAGE_SIZE_LIMIT = MESSAGE_SIZE_LIMIT
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '\
                           'Type "' + BOT_PREFIX + 'help" for available commands.'
     MSG_HELP_TAIL = 'Type help <command name> to get more info '\

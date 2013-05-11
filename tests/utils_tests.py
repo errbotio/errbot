@@ -115,3 +115,26 @@ class TestUtils(unittest.TestCase):
         to_check = dict(string="Foobar", list=["Foo", "Bar"], dict=["Foo", "Bar"], none=None, true=True, false=False)
         recurse_check_structure(sample, to_check)
 
+    def test_split_string_after_returns_original_string_when_chunksize_equals_string_size(self):
+        str_ = 'foobar2000' * 2
+        splitter = split_string_after(str_, len(str_))
+        split = [chunk for chunk in splitter]
+        self.assertEqual([str_], split)
+
+    def test_split_string_after_returns_original_string_when_chunksize_equals_string_size_plus_one(self):
+        str_ = 'foobar2000' * 2
+        splitter = split_string_after(str_, len(str_) + 1)
+        split = [chunk for chunk in splitter]
+        self.assertEqual([str_], split)
+
+    def test_split_string_after_returns_two_chunks_when_chunksize_equals_string_size_minus_one(self):
+        str_ = 'foobar2000' * 2
+        splitter = split_string_after(str_, len(str_) - 1)
+        split = [chunk for chunk in splitter]
+        self.assertEqual(['foobar2000foobar200', '0'], split)
+
+    def test_split_string_after_returns_two_chunks_when_chunksize_equals_half_length_of_string(self):
+        str_ = 'foobar2000' * 2
+        splitter = split_string_after(str_, int(len(str_) / 2))
+        split = [chunk for chunk in splitter]
+        self.assertEqual(['foobar2000', 'foobar2000'], split)

@@ -58,6 +58,9 @@ class WebView(object):
                 name, func = matching_members[0]
                 if self.form_param:
                     content = request.forms.get(self.form_param)
+                    if content is None:
+                        raise Exception("Received a request on a webhook with a form_param defined, "
+                                        "but that key ({}) is missing from the request.".format(self.form_param))
                     try:
                         content = loads(content)
                     except ValueError:

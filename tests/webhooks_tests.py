@@ -1,4 +1,5 @@
 import requests
+import socket
 import os
 import logging
 import json
@@ -9,6 +10,16 @@ from time import sleep
 PYTHONOBJECT = ['foo', {'bar': ('baz', None, 1.0, 2)}]
 JSONOBJECT = json.dumps(PYTHONOBJECT)
 
+def webserver_ready(host, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((host, port))
+        s.shutdown(socket.SHUT_RDWR)
+        s.close()
+        return True
+    except:
+        return False
+
 
 class TestWebhooks(FullStackTest):
     @classmethod
@@ -18,6 +29,9 @@ class TestWebhooks(FullStackTest):
 
         pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         popMessage()
+        while not webserver_ready('localhost', 3141):
+            logging.debug("Webserver not ready yet, sleeping 0.1 second")
+            sleep(0.1)
 
     def test_webserver_plugin_ok(self):
         pushMessage("!webstatus")

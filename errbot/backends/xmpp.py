@@ -28,6 +28,10 @@ try:
     from config import XMPP_FEATURE_MECHANISMS
 except ImportError:
     XMPP_FEATURE_MECHANISMS = {}
+try:
+    from config import XMPP_KEEPALIVE_INTERVAL
+except ImportError:
+    XMPP_KEEPALIVE_INTERVAL = None
 
 
 def verify_gtalk_cert(xmpp_client):
@@ -66,6 +70,10 @@ class XMPPConnection(Connection):
         self.client.register_plugin('xep_0199')  # XMPP Ping
         self.client.register_plugin('xep_0203')  # XMPP Delayed messages
         self.client.register_plugin('xep_0249')  # XMPP direct MUC invites
+
+        if XMPP_KEEPALIVE_INTERVAL is not None:
+            self.client.whitespace_keepalive = True  # Just in case SleekXMPP's default changes to False in the future
+            self.client.whitespace_keepalive_interval = XMPP_KEEPALIVE_INTERVAL
 
         self.client.add_event_handler("session_start", self.session_start)
         self.client.add_event_handler("ssl_invalid_cert", self.ssl_invalid_cert)

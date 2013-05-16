@@ -1,0 +1,3 @@
+[Core]
+Name = Test hooks for webhooks testing
+Module = webtest

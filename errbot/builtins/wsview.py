@@ -7,7 +7,7 @@ from bottle import Bottle, request
 from bottle import jinja2_view as view
 # noinspection PyUnresolvedReferences
 from bottle import jinja2_template as template
-
+from errbot import PY2
 from errbot.plugin_manager import get_all_active_plugin_objects
 
 
@@ -58,6 +58,9 @@ class WebView(object):
                 name, func = matching_members[0]
                 if self.form_param:
                     content = request.forms.get(self.form_param)
+                    if content is None:
+                        raise Exception("Received a request on a webhook with a form_param defined, "
+                                        "but that key ({}) is missing from the request.".format(self.form_param))
                     try:
                         content = loads(content)
                     except ValueError:
@@ -88,6 +91,6 @@ def webhook(*args, **kwargs):
             bottle_app.route(uri_rule, verb, callback=WebView(method, form_param), name=method.__name__ + '_' + verb)
         return method
 
-    if isinstance(args[0], str):
+    if isinstance(args[0], str) or (PY2 and isinstance(args[0], basestring)):
         return lambda method: decorate(method, args[0], **kwargs)
     return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)

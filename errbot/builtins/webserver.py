@@ -27,32 +27,11 @@ class Webserver(BotPlugin):
     max_err_version = VERSION
 
     def __init__(self):
-        self.webserver_thread = None
+        self.webserver = None
         self.webchat_mode = False
         self.ssl_context = None
         self.test_app = TestApp(bottle_app)
         super(Webserver, self).__init__()
-
-    def run_webserver(self):
-        #noinspection PyBroadException
-        try:
-            host = self.config['HOST']
-            port = self.config['PORT']
-            ssl = self.config['SSL']
-            interfaces = [(host, port)]
-            if ssl['enabled']:
-                interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
-            logging.info('Firing up the Rocket')
-            rocket = Rocket(interfaces=interfaces,
-                            app_info={'wsgi_app': bottle_app}, )
-            rocket.start()
-            logging.debug('Rocket has landed')
-        except KeyboardInterrupt as _:
-            logging.exception('Keyboard interrupt, request a global shutdown.')
-            holder.bot.shutdown()
-        except Exception as _:
-            logging.exception('The Rocket has exploded.')
-            self.warn_admins("There's an issue with the Rocket: %s" % _)
 
     def get_configuration_template(self):
         return {'HOST': '0.0.0.0',
@@ -74,15 +53,25 @@ class Webserver(BotPlugin):
             logging.info('Webserver is not configured. Forbid activation')
             return
 
-        if not self.webserver_thread:
-            self.webserver_thread = Thread(target=self.run_webserver, name='Webserver Thread')
-            self.webserver_thread.setDaemon(True)
-            self.webserver_thread.start()
+        host = self.config['HOST']
+        port = self.config['PORT']
+        ssl = self.config['SSL']
+        interfaces = [(host, port)]
+        if ssl['enabled']:
+            interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
+        logging.info('Firing up the Rocket')
+        self.webserver = Rocket(interfaces=interfaces,
+                                app_info={'wsgi_app': bottle_app}, )
+        self.webserver.start(background=True)
+        logging.debug('Liftoff!')
+
         super(Webserver, self).activate()
         logging.info('Webserver activated')
 
     def deactivate(self):
-        logging.debug('Sending signal to stop the webserver')
+        if self.webserver is not None:
+            logging.debug('Sending signal to stop the webserver')
+            self.webserver.stop()
         super(Webserver, self).deactivate()
 
     #noinspection PyUnusedLocal

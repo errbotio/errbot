@@ -16,6 +16,10 @@ class StoreMixin(MutableMapping):
         logging.debug('Opened shelf of %s' % self.__class__.__name__)
 
     def close_storage(self):
+        if not hasattr(self, 'shelf'):
+            # One possible cause for this is a plugin's activate method triggering an exception
+            logging.debug("Cannot close storage of %s because the shelf doesn't exist." % self.__class__.__name__)
+            return
         self.shelf.close()
         logging.debug('Closed shelf of %s' % self.__class__.__name__)
 

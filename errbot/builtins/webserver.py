@@ -87,10 +87,8 @@ class Webserver(BotPlugin):
         """
         A simple test webhook
         """
-        logging.debug(str(incoming_request))
+        logging.debug("Your incoming request is :" + str(incoming_request))
         return str(incoming_request)
-
-        #noinspection PyUnusedLocal
 
     @botcmd(split_args_with=' ')
     def webhook_test(self, _, args):

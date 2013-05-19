@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 import logging
 import sys
 import config
 from errbot.backends.base import Message, build_message, build_text_html_message_pair
 from errbot.errBot import ErrBot
-from utils import RateLimited
+from errbot.utils import RateLimited
 
 try:
     from irc.bot import SingleServerIRCBot
@@ -66,6 +67,7 @@ class IRCConnection(SingleServerIRCBot):
     @RateLimited(config.__dict__.get('IRC_CHANNEL_RATE', 1))
     def send_public_message(self, to, line):
         self.connection.privmsg(to, line)
+
 
 class IRCBackend(ErrBot):
     def __init__(self, nickname, server, port=6667, password=None, ssl=False):

@@ -1,7 +1,7 @@
 import logging
 import sys
 import config
-from errbot.backends.base import Message, build_message
+from errbot.backends.base import Message, build_message, build_text_html_message_pair
 from errbot.errBot import ErrBot
 from utils import RateLimited
 
@@ -56,7 +56,7 @@ class IRCConnection(SingleServerIRCBot):
             to = mess.getTo().resource
         else:
             to = mess.getTo().node
-        for line in mess.getBody().split('\n'):
+        for line in build_text_html_message_pair(mess.getBody())[0].split('\n'):
             msg_func(to, line)
 
     @RateLimited(config.__dict__.get('IRC_PRIVATE_RATE', 1))

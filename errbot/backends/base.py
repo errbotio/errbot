@@ -27,6 +27,11 @@ except ImportError:
     HIDE_RESTRICTED_COMMANDS = False
 
 try:
+    from config import HIDE_RESTRICTED_ACCESS
+except ImportError:
+    HIDE_RESTRICTED_ACCESS = False
+
+try:
     from config import BOT_PREFIX_OPTIONAL_ON_CHAT
 except ImportError:
     BOT_PREFIX_OPTIONAL_ON_CHAT = False
@@ -357,12 +362,13 @@ class Backend(object):
 
         logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
-        if cmd:
-            access, accessError = self.checkCommandAccess(mess, cmd)
-            if not access:
+        access, accessError = self.checkCommandAccess(mess, cmd)
+        if not access:
+            if not HIDE_RESTRICTED_ACCESS:
                 self.send_simple_reply(mess, accessError)
-                return False                           
+            return False
 
+        if cmd:
             f = self.commands[cmd]
 
             if f._err_command_admin_only and BOT_ASYNC:

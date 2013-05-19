@@ -8,19 +8,31 @@ from utils import RateLimited
 try:
     from irc.bot import SingleServerIRCBot
 except ImportError as _:
-    logging.exception("Could not start the IRC backend")
-    logging.fatal("""
-    If you intend to use the IRC backend please install the python irc package:
-    -> On debian-like systems
-    sudo apt-get install python-software-properties
-    sudo apt-get update
-    sudo apt-get install python-irc
-    -> On Gentoo
-    sudo emerge -av dev-python/irc
-    -> Generic
-    pip install irc
-    """)
-    sys.exit(-1)
+    SingleServerIRCBot = None
+    if sys.version_info.major < 3:
+        try:
+            import imp
+            args = imp.find_module('irc')
+            mod = imp.load_module('irc', *args)
+            args = imp.find_module('bot', mod.__path__)
+            mod = imp.load_module('irc.bot', *args)
+            SingleServerIRCBot = mod.SingleServerIRCBot
+        except ImportError:
+            pass
+    if not SingleServerIRCBot:
+        logging.exception("Could not start the IRC backend")
+        logging.fatal("""
+        If you intend to use the IRC backend please install the python irc package:
+        -> On debian-like systems
+        sudo apt-get install python-software-properties
+        sudo apt-get update
+        sudo apt-get install python-irc
+        -> On Gentoo
+        sudo emerge -av dev-python/irc
+        -> Generic
+        pip install irc
+        """)
+        sys.exit(-1)
 
 
 class IRCConnection(SingleServerIRCBot):

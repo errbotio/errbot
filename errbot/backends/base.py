@@ -170,7 +170,6 @@ class Message(object):
         return self.body
 
 
-
 class Connection(object):
     def send_message(self, mess):
         raise NotImplementedError("It should be implemented specifically for your backend")
@@ -188,6 +187,7 @@ def build_text_html_message_pair(source):
             logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
             text_plain = source
     return text_plain, node
+
 
 def build_message(text, message_class, conversion_function=None):
     """Builds an xhtml message without attributes.
@@ -228,7 +228,6 @@ class Backend(object):
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
-
     def __init__(self, *args, **kwargs):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
@@ -241,7 +240,6 @@ class Backend(object):
             self.bot_alt_prefixes = tuple(prefix.lower() for prefix in BOT_ALT_PREFIXES)
         else:
             self.bot_alt_prefixes = BOT_ALT_PREFIXES
-
 
     def send_message(self, mess):
         """Send a message"""
@@ -363,7 +361,7 @@ class Backend(object):
         if cmd:
             logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
 
-            access, accessError = self.checkCommandAccess(mess, cmd)
+            access, accessError = self.check_command_access(mess, cmd)
             if not access:
                 if not HIDE_RESTRICTED_ACCESS:
                     self.send_simple_reply(mess, accessError)
@@ -444,7 +442,7 @@ class Backend(object):
                               (mess.getBody(), jid, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
-    def checkCommandAccess(self, mess, cmd):        
+    def check_command_access(self, mess, cmd):
         usr = str(get_jid_from_message(mess))
         typ = mess.getType()
 
@@ -615,6 +613,7 @@ class Backend(object):
     @property
     def mode(self):
         raise NotImplementedError("It should be implemented specifically for your backend")
+
 
 def get_jid_from_message(mess):
     if mess.getType() == 'chat':

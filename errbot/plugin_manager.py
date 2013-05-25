@@ -16,12 +16,14 @@ BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
 if PY2:  # keys needs to be byte strings en shelves under python 2
     BUILTIN = BUILTIN.encode()
 
+
 class IncompatiblePluginException(Exception):
     pass
 
 
 class PluginConfigurationException(Exception):
     pass
+
 
 def get_builtins(extra):
     # adds the extra plugin dir from the setup for developpers convenience
@@ -31,6 +33,7 @@ def get_builtins(extra):
         return [BUILTIN, extra]
     else:
         return [BUILTIN]
+
 
 def init_plugin_manager():
     global simplePluginManager
@@ -97,7 +100,7 @@ def activate_plugin_with_version_check(name, config):
         raise
 
 
-def deactivatePluginByName(name):
+def deactivate_plugin_by_name(name):
     pta_item = simplePluginManager.getPluginByName(name, 'bots')
     remove_plugin_templates_path(pta_item.path)
     try:

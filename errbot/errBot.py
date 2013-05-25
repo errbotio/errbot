@@ -31,7 +31,7 @@ from errbot import botcmd, PY2
 from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS
 
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,\
-    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name,\
+    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivate_plugin_by_name, get_plugin_obj_by_name,\
     PluginConfigurationException, check_dependencies
 
 from errbot.storage import StoreMixin
@@ -292,7 +292,7 @@ class ErrBot(Backend, StoreMixin):
     def deactivate_plugin(self, name):
         if name not in get_all_active_plugin_names():
             return "Plugin %s not in active list" % name
-        deactivatePluginByName(name)
+        deactivate_plugin_by_name(name)
         return "Plugin %s deactivated" % name
 
     #noinspection PyUnusedLocal

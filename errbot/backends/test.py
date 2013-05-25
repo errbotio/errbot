@@ -88,6 +88,7 @@ def popMessage(timeout=5, block=True):
     return outgoing_message_queue.get(timeout=timeout, block=block)
 
 
+
 def pushMessage(msg):
     incoming_message_queue.put(msg, timeout=5)
 

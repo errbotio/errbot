@@ -27,6 +27,11 @@ except ImportError:
     HIDE_RESTRICTED_COMMANDS = False
 
 try:
+    from config import HIDE_RESTRICTED_ACCESS
+except ImportError:
+    HIDE_RESTRICTED_ACCESS = False
+
+try:
     from config import BOT_PREFIX_OPTIONAL_ON_CHAT
 except ImportError:
     BOT_PREFIX_OPTIONAL_ON_CHAT = False
@@ -355,21 +360,22 @@ class Backend(object):
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # we readd it below
 
-        logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
-
         if cmd:
+            logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
+
             access, accessError = self.checkCommandAccess(mess, cmd)
             if not access:
-                self.send_simple_reply(mess, accessError)
-                return False                           
+                if not HIDE_RESTRICTED_ACCESS:
+                    self.send_simple_reply(mess, accessError)
+                return False
 
             f = self.commands[cmd]
 
             if f._err_command_admin_only and BOT_ASYNC:
-                    self.thread_pool.wait() # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
+                    self.thread_pool.wait()  # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
 
             if f._err_command_historize:
-                user_cmd_history.append((cmd, args)) # add it to the history only if it is authorized to be so
+                user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
 
             # Don't check for None here as None can be a valid argument to split.
             # '' was chosen as default argument because this isn't a valid argument to split()

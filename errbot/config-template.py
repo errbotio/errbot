@@ -175,6 +175,10 @@ BOT_PREFIX = '!'
 # the help output.
 #HIDE_RESTRICTED_COMMANDS = False
 
+# Uncomment and set this to True to ignore commands from users that have no
+# access for these instead of replying with error message.
+#HIDE_RESTRICTED_ACCESS = False
+
 # A list of commands which should be responded to in private, even if
 # the command was given in a MUC. For example:
 # DIVERT_TO_PRIVATE = ('help', 'about', 'status')

@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 import logging
 import sys
 import config
-from errbot.backends.base import Message, build_message
+from errbot.backends.base import Message, build_message, build_text_html_message_pair
 from errbot.errBot import ErrBot
-from utils import RateLimited
+from errbot.utils import RateLimited
 
 try:
     from irc.bot import SingleServerIRCBot
@@ -24,9 +25,9 @@ except ImportError as _:
 
 
 class IRCConnection(SingleServerIRCBot):
-    def __init__(self, callback, nickname, server, port=6667, ssl=False):
+    def __init__(self, callback, nickname, server, port=6667, ssl=False, password=None):
         self.callback = callback
-        super().__init__([(server, port)], nickname, nickname)
+        super().__init__([(server, port, password)], nickname, nickname)
 
     def _dispatcher(self, c, e):
         super()._dispatcher(c, e)
@@ -56,7 +57,7 @@ class IRCConnection(SingleServerIRCBot):
             to = mess.getTo().resource
         else:
             to = mess.getTo().node
-        for line in mess.getBody().split('\n'):
+        for line in build_text_html_message_pair(mess.getBody())[0].split('\n'):
             msg_func(to, line)
 
     @RateLimited(config.__dict__.get('IRC_PRIVATE_RATE', 1))
@@ -67,11 +68,12 @@ class IRCConnection(SingleServerIRCBot):
     def send_public_message(self, to, line):
         self.connection.privmsg(to, line)
 
+
 class IRCBackend(ErrBot):
     def __init__(self, nickname, server, port=6667, password=None, ssl=False):
         self.jid = nickname + '@' + server
         super(IRCBackend, self).__init__()
-        self.conn = IRCConnection(self, nickname, server, port, ssl)
+        self.conn = IRCConnection(self, nickname, server, port, ssl, password)
 
     def serve_forever(self):
         try:

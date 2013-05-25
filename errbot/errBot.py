@@ -31,7 +31,7 @@ from errbot import botcmd, PY2
 from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS
 
 from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,\
-    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivatePluginByName, get_plugin_obj_by_name,\
+    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivate_plugin_by_name, get_plugin_obj_by_name,\
     PluginConfigurationException, check_dependencies
 
 from errbot.storage import StoreMixin
@@ -292,7 +292,7 @@ class ErrBot(Backend, StoreMixin):
     def deactivate_plugin(self, name):
         if name not in get_all_active_plugin_names():
             return "Plugin %s not in active list" % name
-        deactivatePluginByName(name)
+        deactivate_plugin_by_name(name)
         return "Plugin %s deactivated" % name
 
     #noinspection PyUnusedLocal
@@ -421,7 +421,7 @@ class ErrBot(Backend, StoreMixin):
             for (name, command) in self.commands.items():
                 clazz = get_class_that_defined_method(command)
                 commands = clazz_commands.get(clazz, [])
-                if not HIDE_RESTRICTED_COMMANDS or self.checkCommandAccess(mess, name)[0]:
+                if not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
                     commands.append((name, command))
                     clazz_commands[clazz] = commands
 
@@ -433,7 +433,7 @@ class ErrBot(Backend, StoreMixin):
                 for (name, command) in clazz_commands[clazz] 
                     if name != 'help' 
                     and not command._err_command_hidden 
-                    and (not HIDE_RESTRICTED_COMMANDS or self.checkCommandAccess(mess, name)[0])
+                    and (not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0])
                 ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self.get_command_classes()):
@@ -445,7 +445,7 @@ class ErrBot(Backend, StoreMixin):
                                              (self.get_doc(command).strip()).split('\n', 1)[0])
             for (name, command) in commands 
                 if not command._err_command_hidden  
-                and (not HIDE_RESTRICTED_COMMANDS or self.checkCommandAccess(mess, name)[0])
+                and (not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0])
             ]))
         else:
             return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))
@@ -491,7 +491,7 @@ class ErrBot(Backend, StoreMixin):
             clazz = get_class_that_defined_method(command)
             clazz = str.__module__ + '.' + clazz.__name__  # makes the fuul qualified name
             commands = clazz_commands.get(clazz, [])
-            if not HIDE_RESTRICTED_COMMANDS or self.checkCommandAccess(mess, name)[0]:
+            if not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
                 commands.append((name, command))
                 clazz_commands[clazz] = commands
 

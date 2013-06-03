@@ -226,7 +226,7 @@ REVERSE_CHATROOM_RELAY = {}
 #
 # If you're having issues with your bot getting constantly disconnected,
 # try to gradually lower this value until it no longer happens.
-#XMPP_KEEP_ALIVE_INTERVAL = 300
+#XMPP_KEEPALIVE_INTERVAL = 300
 
 # Message rate limiting for the IRC backend.
 # Rate limiter for regular channel messages, set to None to disable limits.

@@ -4,3 +4,6 @@ Module = chatRoom
 
 [Documentation]
 Description = This is a basic implementation of a chatroom
+
+[Python]
+Version = 2+

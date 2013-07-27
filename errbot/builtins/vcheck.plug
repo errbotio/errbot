@@ -4,3 +4,6 @@ Module = vcheck
 
 [Documentation]
 Description = This is calling home to check if err has a new version available
+
+[Python]
+Version = 2+

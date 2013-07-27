@@ -1,10 +1,11 @@
+from configparser import NoSectionError
 from itertools import chain
 import logging
 import sys
 import os
 from errbot import PY2
 from errbot.botplugin import BotPlugin
-from errbot.utils import version2array
+from errbot.utils import version2array, PY3
 from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
 from errbot.version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -65,7 +66,27 @@ def populate_doc(plugin):
 def activate_plugin_with_version_check(name, config):
     pta_item = simplePluginManager.getPluginByName(name, 'bots')
     if pta_item is None:
-        logging.warning('Could not activate %s')
+        logging.warning('Could not activate %s' % name)
+        return None
+
+    try:
+        python_version = pta_item.details.get("Python", "Version")
+    except NoSectionError:
+        logging.warning('Plugin %s has no section [Python]. Assuming this plugin is runnning only under python 2.' % name)
+        python_version = '2'
+
+    if python_version not in ('2', '2+', '3'):
+        logging.warning('Plugin %s has no an invalid section [Python]. The Version can only be 2, 2+ and 3' % name)
+        return None
+
+    if python_version == '2' and PY3:
+        logging.error('\nPlugin %s is made for python 2 only and you are running err under python 3.\n\n'
+                      'If the plugin can be run on python 2 and 3 please add this section to its .plug descriptor :\n[Python]\nVersion=2+\n\n'
+                      'Or if the plugin is Python 3 only:\n[Python]\nVersion=3\n\n' % name)
+        return None
+
+    if python_version == '3' and PY2:
+        logging.error('\nPlugin %s is made for python 3 and you are running err under python 2.')
         return None
 
     obj = pta_item.plugin_object

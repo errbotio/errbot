@@ -16,7 +16,6 @@
 
 import logging
 from os import path, sep, getcwd
-import os
 from platform import system
 
 

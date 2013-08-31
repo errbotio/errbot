@@ -64,7 +64,7 @@ class TestCommands(FullStackTest):
 
     def test_logtail(self):
         pushMessage('!log tail')
-        self.assertIn('INFO', popMessage())
+        self.assertIn('DEBUG', popMessage())
 
     def test_history(self):
         from errbot.holder import bot

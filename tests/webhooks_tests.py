@@ -22,10 +22,10 @@ def webserver_ready(host, port):
 
 
 class TestWebhooks(FullStackTest):
-    @classmethod
-    def setUpClass(cls, extra_test_file=None):
+
+    def setUp(self, extra_test_file=None):
         plugin_dir = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'webhooks_tests'
-        super(TestWebhooks, cls).setUpClass(extra_test_file=plugin_dir)
+        super(TestWebhooks, TestWebhooks).setUp(self, extra_test_file=plugin_dir)
 
         pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         popMessage()

@@ -206,6 +206,15 @@ REVERSE_CHATROOM_RELAY = {}
 # shorter messages that do fit.
 #MESSAGE_SIZE_LIMIT = 10000
 
+# XMPP TLS certificate verification. In order to validate offered certificates,
+# you must supply a path to a file containing certificate authorities. By
+# default, "/etc/ssl/certs/ca-certificates.crt" is used, which on most Linux
+# systems holds the default system trusted CA certificates. You might need to
+# change this depending on your environment. Setting this to None disables
+# certificate validation, which can be useful if you have a self-signed
+# certificate for example.
+#XMPP_CA_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"
+
 # Influence the security methods used on connection with XMPP-based
 # backends. You can use this to work around authentication issues with
 # some buggy XMPP servers.

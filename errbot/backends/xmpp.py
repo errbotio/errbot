@@ -1,5 +1,6 @@
 import logging
 import sys
+import os.path
 
 from errbot.backends.base import Message, build_message, Connection
 from errbot.errBot import ErrBot
@@ -32,6 +33,17 @@ try:
     from config import XMPP_KEEPALIVE_INTERVAL
 except ImportError:
     XMPP_KEEPALIVE_INTERVAL = None
+try:
+    from config import XMPP_CA_CERT_FILE
+except ImportError:
+    XMPP_CA_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"
+
+if XMPP_CA_CERT_FILE is not None and not os.path.exists(XMPP_CA_CERT_FILE):
+    logging.fatal("The CA certificate path set by XMPP_CA_CERT_FILE does not exist. "
+                  "Please set XMPP_CA_CERT_FILE to a valid file, or disable certificate"
+                  "validation by setting it to None (not recommended!).")
+    sys.exit(-1)
+
 
 
 def verify_gtalk_cert(xmpp_client):
@@ -74,6 +86,8 @@ class XMPPConnection(Connection):
         if XMPP_KEEPALIVE_INTERVAL is not None:
             self.client.whitespace_keepalive = True  # Just in case SleekXMPP's default changes to False in the future
             self.client.whitespace_keepalive_interval = XMPP_KEEPALIVE_INTERVAL
+
+        self.client.ca_certs = XMPP_CA_CERT_FILE  # Used for TLS certificate validation
 
         self.client.add_event_handler("session_start", self.session_start)
         self.client.add_event_handler("ssl_invalid_cert", self.ssl_invalid_cert)

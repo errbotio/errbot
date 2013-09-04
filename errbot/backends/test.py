@@ -108,15 +108,7 @@ class FullStackTest(unittest.TestCase):
     """
     bot_thread = None
 
-    def setUp(self):
-        zapQueues()
-
-    def tearDown(self):
-        zapQueues()
-
-    #noinspection PyTypeChecker
-    @classmethod
-    def setUpClass(cls, extra_test_file=None):
+    def setUp(self, extra_test_file=None):
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
         console = logging.StreamHandler()
@@ -127,16 +119,16 @@ class FullStackTest(unittest.TestCase):
         if extra_test_file:
             import config
             config.BOT_EXTRA_PLUGIN_DIR = sep.join(abspath(extra_test_file).split(sep)[:-2])
-        cls.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
-        cls.bot_thread.setDaemon(True)
-        cls.bot_thread.start()
+        self.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
+        self.bot_thread.setDaemon(True)
+        self.bot_thread.start()
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         pushMessage(QUIT_MESSAGE)
-        cls.bot_thread.join()
+        self.bot_thread.join()
         reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")
+        zapQueues()
 
     def assertCommand(self, command, response, timeout=5):
         pushMessage(command)

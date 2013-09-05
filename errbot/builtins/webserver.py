@@ -7,7 +7,7 @@ from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
 from errbot.builtins.wsview import bottle_app, webhook
-from rocket import Rocket
+from errbot.bundled.rocket import Rocket
 from webtest import TestApp
 
 if PY3:

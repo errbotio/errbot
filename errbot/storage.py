@@ -5,18 +5,35 @@ import shelve
 from errbot import PY2
 
 
+class StoreException(Exception):
+    pass
+
+
+class StoreAlreadyOpenError(StoreException):
+    pass
+
+
+class StoreNotOpenError(StoreException):
+    pass
+
+
 class StoreMixin(MutableMapping):
     """
      This class handle the basic needs of bot plugins and core like loading, unloading and creating a storage
     """
 
     def open_storage(self, path):
+        if hasattr(self, 'shelf') and self.shelf is not None:
+            raise StoreAlreadyOpenError("Storage appears to be opened already")
         logging.info("Try to open db file %s" % path)
         self.shelf = shelve.DbfilenameShelf(path, protocol=2)
         logging.debug('Opened shelf of %s' % self.__class__.__name__)
 
     def close_storage(self):
+        if not hasattr(self, 'shelf') or self.shelf is None:
+            raise StoreNotOpenError("Storage does not appear to have been opened yet")
         self.shelf.close()
+        self.shelf = None
         logging.debug('Closed shelf of %s' % self.__class__.__name__)
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin

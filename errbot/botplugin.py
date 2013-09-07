@@ -44,7 +44,8 @@ class BotPluginBase(StoreMixin):
             for timer in self.current_timers:
                 timer.cancel()
 
-        self.close_storage()
+        if self.shelf is not None:
+            self.close_storage()
         holder.bot.remove_commands_from(self)
         self.is_activated = False
 

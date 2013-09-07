@@ -10,13 +10,20 @@ class StoreMixin(MutableMapping):
      This class handle the basic needs of bot plugins and core like loading, unloading and creating a storage
     """
 
+    shelf = None
+
     def open_storage(self, path):
+        if self.shelf is not None:
+            raise Exception("Storage is already open")
         logging.info("Try to open db file %s" % path)
         self.shelf = shelve.DbfilenameShelf(path, protocol=2)
         logging.debug('Opened shelf of %s' % self.__class__.__name__)
 
     def close_storage(self):
+        if self.shelf is None:
+            raise Exception("Cannot close storage when it isn't open")
         self.shelf.close()
+        self.shelf = None
         logging.debug('Closed shelf of %s' % self.__class__.__name__)
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin

@@ -2,7 +2,7 @@ import logging
 import os
 from threading import Timer, current_thread
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
-from errbot.storage import StoreMixin
+from errbot.storage import StoreMixin, StoreNotOpenError
 from errbot import holder
 
 
@@ -44,7 +44,10 @@ class BotPluginBase(StoreMixin):
             for timer in self.current_timers:
                 timer.cancel()
 
-        self.close_storage()
+        try:
+            self.close_storage()
+        except StoreNotOpenError:
+            pass
         holder.bot.remove_commands_from(self)
         self.is_activated = False
 

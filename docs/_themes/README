@@ -1,0 +1,6 @@
+The "err" theme is a heavily modified version of the Flask Sphinx Themes
+(https://github.com/mitsuhiko/flask-sphinx-themes).
+
+You're free to modify and use this version (or the original), per the
+LICENSE of the original Flask Sphinx Themes license, which is provided
+alongside this readme.

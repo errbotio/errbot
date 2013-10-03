@@ -14,7 +14,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from os import getcwd
+import os
 from sys import maxsize
 from random import random
 from OpenSSL import crypto
@@ -38,7 +38,7 @@ pkey.generate_key(crypto.TYPE_RSA, 4096)
 cert.set_pubkey(pkey)
 cert.sign(pkey, 'sha256')
 
-cwd = getcwd()
+cwd = os.getcwd()
 certfile = "/".join([cwd, "err-selfsigned.crt"])
 keyfile = "/".join([cwd, "err-selfsigned.key"])
 

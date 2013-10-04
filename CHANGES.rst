@@ -1,6 +1,33 @@
 Release history
 ===============
 
+Version 2.0.0-rc1 (2013-10-03)
+------------------------------
+
+Features:
+- Added err-faustbot to the official repo list
+- Added the !room create command for adhoc room creation (google talk)
+- Added sedbot to the official repos
+- Added support for plugin based webviews
+- Add err-agressive-keepalive to the official repos
+- Allow botcmd's to yield values
+- Allow configuration of MESSAGE_SIZE_LIMIT
+
+Bugs:
+- Properly close shelf upon restart (thx Max Wagner)
+- Fix inverted display of repo status (private/official) (thx Max Wagner)
+- Include jid resource in Message.from/to (Thx Kha)
+- Fix messed up display of status and repos commands (thx Max Wagner)
+- fixed the standalone execution with -c parameter
+- corrected the QT backend under python 3
+- hipchat fix
+- missing dependencies for SRV records (google compatibility)
+- bug in the apropos while adding a command to chatroom
+- XMPP: forward HTML of incoming messages (Thx Kha)
+- corrected the linkyfier in the graphic interface
+- corrected the status display of a plugin that failed at activation stage
+- Handle disconnect events correctly
+
 
 Version 2.0.0-beta (2013-03-31)
 -------------------------------

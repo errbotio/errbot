@@ -5,7 +5,7 @@
 {% block body %}
 <div style="font-family: monospace">
 <p style='margin-top: 0; margin-bottom: 0;'><span style='font-weight:bold;'>Yes I am alive...</span><br/>
-With those plugins ({{status('L')}}=Loaded, {{status('E')}}=Error, {{status('B')}}=Blacklisted/Unloaded), {{status('C')}}=Needs to be configured) :<br/>
+With these plugins ({{status('L')}}=Loaded, {{status('E')}}=Error, {{status('B')}}=Blacklisted/Unloaded), {{status('C')}}=Needs to be configured) :<br/>
 {% for state, name in plugins_statuses %}
 [{{status(state)}}] {{ name }}<br/>
 {% endfor %}</p>

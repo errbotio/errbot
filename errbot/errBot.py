@@ -229,7 +229,7 @@ class ErrBot(Backend, StoreMixin):
     def uptime(self, mess, args):
         """ Return the uptime of the bot
         """
-        return 'I up for %s %s (since %s)' % (args, format_timedelta(datetime.now() - self.startup_time), datetime.strftime(self.startup_time, '%A, %b %d at %H:%M'))
+        return "I've been up for %s %s (since %s)" % (args, format_timedelta(datetime.now() - self.startup_time), datetime.strftime(self.startup_time, '%A, %b %d at %H:%M'))
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)

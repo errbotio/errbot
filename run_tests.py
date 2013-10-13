@@ -4,7 +4,7 @@ import os
 from glob import glob
 from setup import PY3, py2_root
 
-TRAVIS_INCOMPATIBLE = ['tests/webhooks_tests.py']
+TRAVIS_INCOMPATIBLE = ['tests/webhooks_tests.py', '/home/travis/build/gbin/err/build/py2_src/tests/webhooks_tests.py']
 
 # Set nose verbosity level to verbose by default
 os.environ['NOSE_VERBOSE'] = os.environ.get('NOSE_VERBOSE', "2")

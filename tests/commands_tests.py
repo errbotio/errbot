@@ -26,7 +26,7 @@ class TestCommands(FullStackTest):
 
     def test_uptime(self):
         pushMessage('!uptime')
-        self.assertIn('I up for', popMessage())
+        self.assertIn('I\'ve been up for', popMessage())
 
     def test_status(self):
         pushMessage('!status')

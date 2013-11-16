@@ -1,6 +1,15 @@
 Release history
 ===============
 
+Version 2.0.0-rc2 (2013-11-28)
+------------------------------
+
+Migrated the version checker to github.io
+
+Bugs:
+- Fix MUC login: Support tuple & add username
+- Language correction (thx daenney)
+
 Version 2.0.0-rc1 (2013-10-03)
 ------------------------------
 

@@ -1,6 +1,11 @@
 Release history
 ===============
 
+Version 1.7.2 (2013-11-16)
+--------------------------
+
+Migrated the old version checker url to gootz.net to github.io (see gh-pages branch)
+
 Version 1.7.1 (2012-12-25)
 --------------------------
 

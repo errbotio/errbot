@@ -4,7 +4,7 @@ from errbot.version import VERSION
 from urllib.request import urlopen
 from errbot.utils import version2array
 
-HOME = 'http://www.gootz.net/err/version'
+HOME = 'http://gbin.github.io/err/version'
 
 installed_version = version2array(VERSION)
 

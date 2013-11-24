@@ -27,7 +27,7 @@ class PluginConfigurationException(Exception):
 
 
 def get_builtins(extra):
-    # adds the extra plugin dir from the setup for developpers convenience
+    # adds the extra plugin dir from the setup for developers convenience
     if extra:
         if isinstance(extra, list):
             return [BUILTIN] + extra

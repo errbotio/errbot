@@ -76,7 +76,7 @@ def activate_plugin_with_version_check(name, config):
         python_version = '2'
 
     if python_version not in ('2', '2+', '3'):
-        logging.warning('Plugin %s has no an invalid section [Python]. The Version can only be 2, 2+ and 3' % name)
+        logging.warning('Plugin %s has an invalid Version specified in section [Python]. The Version can only be 2, 2+ and 3' % name)
         return None
 
     if python_version == '2' and PY3:

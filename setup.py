@@ -25,9 +25,9 @@ ON_WINDOWS = system() == 'Windows'
 
 if PY3:
     deps = ['webtest', 'setuptools', 'yapsy', 'bottle', 'requests', 'jinja2', 'dnspython3']  # requests are for the unittests, dnspython for SRV records
-    if py_version < (3, 2):
+    if py_version < (3, 3):
         raise RuntimeError(
-            'On Python 3, Err requires Python 3.2 or later')
+            'On Python 3, Err requires Python 3.3 or later')
 else:
     deps = ['webtest', 'setuptools', 'yapsy', 'config', 'bottle', 'requests', 'jinja2', 'dnspython']  # dnspython for SRV records
     if not ON_WINDOWS:
@@ -149,7 +149,7 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 2",
             "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.2",
+            "Programming Language :: Python :: 3.3",
         ],
         src_root=src_root,
         platforms='any',

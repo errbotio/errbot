@@ -4,7 +4,7 @@ import os
 from glob import glob
 from setup import PY3, py2_root
 
-TRAVIS_INCOMPATIBLE = ['tests/webhooks_tests.py', '/home/travis/build/gbin/err/build/py2_src/tests/webhooks_tests.py']
+TRAVIS_INCOMPATIBLE = ('webhooks_tests.py',)
 
 # Set nose verbosity level to verbose by default
 os.environ['NOSE_VERBOSE'] = os.environ.get('NOSE_VERBOSE', "2")
@@ -27,7 +27,7 @@ testsuites = glob(os.sep.join(segments))
 testresults = []
 
 for testsuite in testsuites:
-    if testsuite in TRAVIS_INCOMPATIBLE:
+    if os.environ.get("TRAVIS", "False") == "true" and os.path.basename(testsuite) in TRAVIS_INCOMPATIBLE:
         print("Incompatible test {} skipped".format(testsuite))
         continue
     print("\nRunning tests from {}\n".format(testsuite))

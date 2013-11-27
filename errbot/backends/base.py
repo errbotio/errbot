@@ -8,6 +8,7 @@ import difflib
 from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid, split_string_after
 from errbot.templating import tenv
 import traceback
+from six import string_types
 
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
 
@@ -570,7 +571,7 @@ class Backend(object):
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
         mess = self.build_message(text)
-        if isinstance(user, str):
+        if isinstance(user, string_types):
             mess.setTo(user)
         else:
             mess.setTo(user.getStripped())

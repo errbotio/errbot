@@ -8,3 +8,4 @@ requests
 jinja2
 dnspython3
 webtest
+six

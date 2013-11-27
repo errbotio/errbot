@@ -17,6 +17,7 @@
 import os
 from setuptools import setup, find_packages
 import sys
+from platform import system
 
 py_version = sys.version_info[:2]
 PY3 = py_version[0] == 3

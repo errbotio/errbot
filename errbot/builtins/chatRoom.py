@@ -29,7 +29,7 @@ class ChatRoom(BotPlugin):
                     logging.info('Join room ' + room +' as user '+ CHATROOM_FN)
                     self.join_room(room, CHATROOM_FN)
                 else:
-                    logging.info(u'Join room ' + room[0] +' as user '+ CHATROOM_FN)
+                    logging.info('Join room ' + room[0] +' as user '+ CHATROOM_FN)
                     self.join_room(room[0], username=CHATROOM_FN, password=room[1])
 
     def deactivate(self):

@@ -570,10 +570,10 @@ class Backend(object):
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
         mess = self.build_message(text)
-        if isinstance(user, str):
-            mess.setTo(user)
-        else:
+        if hasattr(user, 'getStripped'):
             mess.setTo(user.getStripped())
+        else:
+            mess.setTo(user)
 
         if in_reply_to:
             mess.setType(in_reply_to.getType())

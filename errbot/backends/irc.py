@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import logging
 import sys
 import config
+import irc.connection
 from errbot.backends.base import Message, build_message, build_text_html_message_pair
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
@@ -26,11 +27,20 @@ except ImportError as _:
 
 class IRCConnection(SingleServerIRCBot):
     def __init__(self, callback, nickname, server, port=6667, ssl=False, password=None):
+        self.use_ssl = ssl
         self.callback = callback
         super().__init__([(server, port, password)], nickname, nickname)
 
     def _dispatcher(self, c, e):
         super()._dispatcher(c, e)
+
+    def connect(self, *args, **kwargs):
+        if self.use_ssl:
+            import ssl
+            ssl_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
+            self.connection.connect(*args, connect_factory=ssl_factory, **kwargs)
+        else:
+            self.connection.connect(*args, **kwargs)
 
     def on_welcome(self, c, e):
         logging.info("IRC welcome %s" % e)

@@ -135,3 +135,19 @@ class TestCommands(FullStackTest):
 
     def test_webserver_webhook_test(self):
         self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
+
+    def test_reload(self):
+        pushMessage('!reload')
+        m = popMessage()
+        self.assertIn('Please tell me which of the following plugins to reload', m)
+        self.assertIn('ChatRoom', m)
+
+        pushMessage('!reload nosuchplugin')
+        m = popMessage()
+        self.assertIn("nosuchplugin isn't a valid plugin name. Currently loaded plugins are", m)
+        self.assertIn('ChatRoom', m)
+
+        self.assertCommand(
+            '!reload ChatRoom',
+            'Plugin ChatRoom deactivated / Plugin ChatRoom activated'
+        )

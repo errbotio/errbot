@@ -315,6 +315,13 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def reload(self, mess, args):
         """reload a plugin"""
+        all_plugins = get_all_plugin_names()
+        if args == "":
+            return ("Please tell me which of the following plugins to reload:\n"
+                    "- {}".format("\n- ".join(all_plugins)))
+        if args not in all_plugins:
+            return ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
+                    "- {}".format(args, "\n- ".join(all_plugins)))
         if self.is_plugin_blacklisted(args):
             self.unblacklist_plugin(args)
         result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))

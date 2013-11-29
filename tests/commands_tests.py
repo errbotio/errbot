@@ -105,7 +105,8 @@ class TestCommands(FullStackTest):
         self.assertEqual('Hello World !', popMessage())
 
         pushMessage('!reload HelloWorld')
-        self.assertEqual('Plugin HelloWorld deactivated / Plugin HelloWorld activated', popMessage())
+        self.assertEqual('Plugin HelloWorld deactivated', popMessage())
+        self.assertEqual('Plugin HelloWorld activated', popMessage())
 
         pushMessage('!hello')  # should still respond
         self.assertEqual('Hello World !', popMessage())

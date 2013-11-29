@@ -158,3 +158,26 @@ class TestCommands(FullStackTest):
         self.assertEqual('Removed ChatRoom from the blacklist', popMessage())
         self.assertEqual('Plugin ChatRoom not in active list', popMessage())
         self.assertEqual('Plugin ChatRoom activated', popMessage())
+
+    def test_unload_and_load(self):
+        pushMessage('!unload nosuchplugin')
+        m = popMessage()
+        self.assertIn("nosuchplugin isn't a valid plugin name. Currently loaded plugins are", m)
+        self.assertIn('ChatRoom', m)
+
+        pushMessage('!load nosuchplugin')
+        m = popMessage()
+        self.assertIn("nosuchplugin isn't a valid plugin name. Currently loaded plugins are", m)
+        self.assertIn('ChatRoom', m)
+
+        pushMessage('!load ChatRoom')
+        self.assertEqual('ChatRoom is already active', popMessage())
+
+        pushMessage('!unload ChatRoom')
+        self.assertEqual('Plugin ChatRoom deactivated', popMessage())
+
+        pushMessage('!unload ChatRoom')
+        self.assertEqual('ChatRoom is not an active plugin', popMessage())
+
+        pushMessage('!load ChatRoom')
+        self.assertEqual('Plugin ChatRoom activated', popMessage())

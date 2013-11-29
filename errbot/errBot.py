@@ -189,6 +189,14 @@ class ErrBot(Backend, StoreMixin):
         self.close_storage()
         logging.info('Bye.')
 
+    @staticmethod
+    def formatted_plugin_list(active_only=True):
+        if active_only:
+            all_plugins = get_all_active_plugin_names()
+        else:
+            all_plugins = get_all_plugin_names()
+        return "- {}".format("\n- ".join(all_plugins))
+
     #noinspection PyUnusedLocal
     @botcmd(template='status')
     def status(self, mess, args):
@@ -299,6 +307,12 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def load(self, mess, args):
         """load a plugin"""
+        if args not in get_all_plugin_names():
+            return ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+        if args in get_all_active_plugin_names():
+            return "{} is already active".format(args)
+
         self.unblacklist_plugin(args)
         return self.activate_plugin(args)
 
@@ -306,8 +320,12 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def unload(self, mess, args):
         """unload a plugin"""
+        if args not in get_all_plugin_names():
+            return ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args not in get_all_active_plugin_names():
-            return '%s in not active' % args
+            return "{} is not an active plugin".format(args)
+
         self.blacklist_plugin(args)
         return self.deactivate_plugin(args)
 
@@ -315,15 +333,15 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def reload(self, mess, args):
         """reload a plugin"""
-        all_plugins = get_all_plugin_names()
         if args == "":
             yield ("Please tell me which of the following plugins to reload:\n"
-                    "- {}".format("\n- ".join(all_plugins)))
+                    "{}".format(self.formatted_plugin_list(active_only=False)))
             return
-        if args not in all_plugins:
+        if args not in get_all_plugin_names():
             yield ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
-                    "- {}".format(args, "\n- ".join(all_plugins)))
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
             return
+
         if self.is_plugin_blacklisted(args):
             self.unblacklist_plugin(args)
             yield "Removed {} from the blacklist".format(args)

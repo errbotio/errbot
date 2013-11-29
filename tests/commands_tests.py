@@ -145,7 +145,7 @@ class TestCommands(FullStackTest):
 
         pushMessage('!reload nosuchplugin')
         m = popMessage()
-        self.assertIn("nosuchplugin isn't a valid plugin name. Currently loaded plugins are", m)
+        self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
         self.assertIn('ChatRoom', m)
 
         pushMessage('!reload ChatRoom')
@@ -162,12 +162,12 @@ class TestCommands(FullStackTest):
     def test_unload_and_load(self):
         pushMessage('!unload nosuchplugin')
         m = popMessage()
-        self.assertIn("nosuchplugin isn't a valid plugin name. Currently loaded plugins are", m)
+        self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
         self.assertIn('ChatRoom', m)
 
         pushMessage('!load nosuchplugin')
         m = popMessage()
-        self.assertIn("nosuchplugin isn't a valid plugin name. Currently loaded plugins are", m)
+        self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
         self.assertIn('ChatRoom', m)
 
         pushMessage('!load ChatRoom')

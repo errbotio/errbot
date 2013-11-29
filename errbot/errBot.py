@@ -308,7 +308,7 @@ class ErrBot(Backend, StoreMixin):
     def load(self, mess, args):
         """load a plugin"""
         if args not in get_all_plugin_names():
-            return ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
+            return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args in get_all_active_plugin_names():
             return "{} is already active".format(args)
@@ -321,7 +321,7 @@ class ErrBot(Backend, StoreMixin):
     def unload(self, mess, args):
         """unload a plugin"""
         if args not in get_all_plugin_names():
-            return ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
+            return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args not in get_all_active_plugin_names():
             return "{} is not an active plugin".format(args)
@@ -338,7 +338,7 @@ class ErrBot(Backend, StoreMixin):
                     "{}".format(self.formatted_plugin_list(active_only=False)))
             return
         if args not in get_all_plugin_names():
-            yield ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
+            yield ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
             return
 

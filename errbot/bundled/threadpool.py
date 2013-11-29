@@ -54,7 +54,7 @@ __license__ = "MIT license"
 # standard library modules
 import sys
 import threading
-from queue import Queue, Empty
+from six.moves import queue
 import traceback
 
 
@@ -149,7 +149,7 @@ class WorkerThread(threading.Thread):
             # the while loop again, to give the thread a chance to exit.
             try:
                 request = self._requests_queue.get(True, self._poll_timeout)
-            except Empty:
+            except queue.Empty:
                 continue
             else:
                 if self._dismissed.isSet():
@@ -254,8 +254,8 @@ class ThreadPool:
             ``ThreadPool.putRequest()`` and catch ``Queue.Full`` exceptions.
 
         """
-        self._requests_queue = Queue(q_size)
-        self._results_queue = Queue(resq_size)
+        self._requests_queue = queue.Queue(q_size)
+        self._results_queue = queue.Queue(resq_size)
         self.workers = []
         self.dismissedWorkers = []
         self.workRequests = {}
@@ -321,7 +321,7 @@ class ThreadPool:
                 if request.callback and not (request.exception and request.exc_callback):
                     request.callback(request, result)
                 del self.workRequests[request.requestID]
-            except Empty:
+            except queue.Empty:
                 break
 
     def wait(self):

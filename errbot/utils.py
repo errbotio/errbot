@@ -3,7 +3,7 @@ import logging
 import inspect
 import os
 import re
-from html import entities
+from six.moves import html_entities
 import sys
 import time
 from xml.etree.ElementTree import tostring

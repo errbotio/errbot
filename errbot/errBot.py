@@ -202,7 +202,7 @@ class ErrBot(Backend, StoreMixin):
             all_plugins = get_all_active_plugin_names()
         else:
             all_plugins = get_all_plugin_names()
-        return "- {}".format("\n- ".join(all_plugins))
+        return "• {}".format("\n• ".join(all_plugins))
 
     #noinspection PyUnusedLocal
     @botcmd(template='status')

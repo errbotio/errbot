@@ -317,16 +317,19 @@ class ErrBot(Backend, StoreMixin):
         """reload a plugin"""
         all_plugins = get_all_plugin_names()
         if args == "":
-            return ("Please tell me which of the following plugins to reload:\n"
+            yield ("Please tell me which of the following plugins to reload:\n"
                     "- {}".format("\n- ".join(all_plugins)))
+            return
         if args not in all_plugins:
-            return ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
+            yield ("{} isn't a valid plugin name. Currently loaded plugins are:\n"
                     "- {}".format(args, "\n- ".join(all_plugins)))
+            return
         if self.is_plugin_blacklisted(args):
             self.unblacklist_plugin(args)
-        result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))
+            yield "Removed {} from the blacklist".format(args)
+        yield self.deactivate_plugin(args)
+        yield self.activate_plugin(args)
         get_plugin_obj_by_name(args).callback_connect()
-        return result
 
     @botcmd(admin_only=True)
     def repos_install(self, mess, args):

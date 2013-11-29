@@ -108,13 +108,13 @@ class FullStackTest(unittest.TestCase):
     """
     bot_thread = None
 
-    def setUp(self, extra_test_file=None):
+    def setUp(self, extra_test_file=None, loglevel=logging.DEBUG):
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
         console = logging.StreamHandler()
         file = logging.FileHandler(config_module.BOT_LOG_FILE, encoding='utf-8')
         logger = logging.getLogger('')
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(loglevel)
         logger.addHandler(file)
         if extra_test_file:
             import config

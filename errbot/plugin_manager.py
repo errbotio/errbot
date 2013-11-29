@@ -1,4 +1,4 @@
-from configparser import NoSectionError
+from six.moves import configparser
 from itertools import chain
 import logging
 import sys

@@ -25,7 +25,7 @@ import subprocess
 from imp import reload
 
 from tarfile import TarFile
-from urllib.request import urlopen
+from six.moves.urllib import request
 
 from errbot import botcmd, PY2
 from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS

@@ -191,6 +191,13 @@ class ErrBot(Backend, StoreMixin):
 
     @staticmethod
     def formatted_plugin_list(active_only=True):
+        """
+        Return a formatted, plain-text list of loaded plugins.
+
+        When active_only=True, this will only return plugins which
+        are actually active. Otherwise, it will also include inactive
+        (blacklisted) plugins.
+        """
         if active_only:
             all_plugins = get_all_active_plugin_names()
         else:

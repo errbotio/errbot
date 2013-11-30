@@ -340,7 +340,8 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def reload(self, mess, args):
         """reload a plugin"""
-        if args == "":
+        args = args.strip()
+        if not args:
             yield ("Please tell me which of the following plugins to reload:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
             return

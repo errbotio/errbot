@@ -6,3 +6,4 @@ include errbot/builtins/templates/*.html
 include errbot/builtins/web-static/*.html
 include errbot/builtins/web-static/*.js
 include errbot/builtins/web-static/stylesheets/*.css
+recursive-include tests *.py

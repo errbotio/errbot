@@ -2,7 +2,7 @@ from flask.views import View
 from flask import Flask, request, send_file, redirect, Response
 import logging
 from errbot import holder
-from errbot.plugin_manager import get_all_ative_plugin_objects
+from errbot.plugin_manager import get_all_active_plugin_objects
 from inspect import getmembers, ismethod
 
 OK = Response()

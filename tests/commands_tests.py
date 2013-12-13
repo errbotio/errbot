@@ -39,6 +39,13 @@ logger.setLevel(logging.DEBUG)
 class TestCommands(unittest.TestCase):
     bot_thread = None
 
+    def assertInPython2Safe(self, value, items):
+        try:
+            self.assertIn(value, items)
+        except AttributeError:
+            # assertIn wasn't added until Python 3.1
+            pass
+
     def setUp(self):
         zapQueues()
 
@@ -59,73 +66,73 @@ class TestCommands(unittest.TestCase):
 
     def test_root_help(self):
         pushMessage('!help')
-        self.assertIn('Available help', popMessage())
+        self.assertInPython2Safe('Available help', popMessage())
 
     def test_help(self):
         pushMessage('!help ErrBot')
         response = popMessage()
-        self.assertIn('Available commands for ErrBot', response)
-        self.assertIn('!about', response)
+        self.assertInPython2Safe('Available commands for ErrBot', response)
+        self.assertInPython2Safe('!about', response)
 
         pushMessage('!help beurk')
         self.assertEqual('That command is not defined.', popMessage())
 
     def test_about(self):
         pushMessage('!about')
-        self.assertIn('Err version', popMessage())
+        self.assertInPython2Safe('Err version', popMessage())
 
     def test_uptime(self):
         pushMessage('!uptime')
-        self.assertIn('I up for', popMessage())
+        self.assertInPython2Safe('I up for', popMessage())
 
     def test_status(self):
         pushMessage('!status')
-        self.assertIn('Yes I am alive', popMessage())
+        self.assertInPython2Safe('Yes I am alive', popMessage())
 
     def test_config_cycle(self):
         # test the full configuration cycle help, get set and export, import
         pushMessage('!zap configs')
-        self.assertIn('Done', popMessage())
+        self.assertInPython2Safe('Done', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('Copy paste and adapt', popMessage())
+        self.assertInPython2Safe('Copy paste and adapt', popMessage())
 
         pushMessage("!config Webserver {'EXTRA_FLASK_CONFIG': None, 'HOST': '127.0.3.4', 'PORT': 3141, 'WEBCHAT': False}")
-        self.assertIn('Plugin configuration done.', popMessage())
+        self.assertInPython2Safe('Plugin configuration done.', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('127.0.3.4', popMessage())
+        self.assertInPython2Safe('127.0.3.4', popMessage())
 
         pushMessage('!export configs')
         configs = popMessage()
-        self.assertIn('127.0.3.4', configs)
+        self.assertInPython2Safe('127.0.3.4', configs)
         obj = literal_eval(configs)  # be sure it is parseable
         obj['Webserver']['HOST'] = '127.0.3.5'
 
         pushMessage('!import configs ' + repr(obj))
-        self.assertIn('Import is done correctly', popMessage())
+        self.assertInPython2Safe('Import is done correctly', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('127.0.3.5', popMessage())
+        self.assertInPython2Safe('127.0.3.5', popMessage())
 
     def test_apropos(self):
         pushMessage('!apropos about')
-        self.assertIn('!about: Returns some', popMessage())
+        self.assertInPython2Safe('!about: Returns some', popMessage())
 
     def test_logtail(self):
         pushMessage('!log tail')
-        self.assertIn('INFO', popMessage())
+        self.assertInPython2Safe('INFO', popMessage())
 
     def test_history(self):
         pushMessage('!uptime')
         popMessage()
         pushMessage('!history')
-        self.assertIn('uptime', popMessage())
+        self.assertInPython2Safe('uptime', popMessage())
 
     def test_plugin_cycle(self):
         pushMessage('!repos install git://github.com/gbin/err-helloworld.git')
-        self.assertIn('err-helloworld', popMessage())
-        self.assertIn('reload', popMessage())
+        self.assertInPython2Safe('err-helloworld', popMessage())
+        self.assertInPython2Safe('reload', popMessage())
 
         pushMessage('!repos export')  # should appear in the export
         self.assertEqual("{'err-helloworld': u'git://github.com/gbin/err-helloworld.git'}", popMessage())
@@ -146,7 +153,7 @@ class TestCommands(unittest.TestCase):
         self.assertEqual('Plugin HelloWorld deactivated', popMessage())
 
         pushMessage('!hello')  # should not respond
-        self.assertIn('Command "hello" not found', popMessage())
+        self.assertInPython2Safe('Command "hello" not found', popMessage())
 
         pushMessage('!load HelloWorld')
         self.assertEqual('Plugin HelloWorld activated', popMessage())
@@ -159,7 +166,7 @@ class TestCommands(unittest.TestCase):
         self.assertEqual('Plugins unloaded and repo err-helloworld removed', popMessage())
 
         pushMessage('!hello')  # should not respond
-        self.assertIn('Command "hello" not found', popMessage())
+        self.assertInPython2Safe('Command "hello" not found', popMessage())
 
     def test_encoding_preservation(self):
         pushMessage(u'!echo へようこそ')

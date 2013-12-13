@@ -13,7 +13,11 @@ class TestBase(unittest.TestCase):
         id2 = Identifier(jid="gbin@gootz.net")
         self.assertEqual(id2.getNode(), "gbin")
         self.assertEqual(id2.getDomain(), "gootz.net")
-        self.assertIsNone(id2.getResource())
+        try:
+            self.assertIsNone(id2.getResource())
+        except AttributeError:
+            # assertIsNone didn't exist until python 3.1, don't fail if we're operating earlier than that
+            pass
 
     def test_identifier_matching(self):
         id1 = Identifier(jid="gbin@gootz.net/toto")

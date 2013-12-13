@@ -2,6 +2,8 @@ from flask.views import View
 from flask import Flask, request, send_file, redirect, Response
 import logging
 from errbot import holder
+from errbot.plugin_manager import get_all_active_plugin_objects
+from inspect import getmembers, ismethod
 
 OK = Response()
 
@@ -30,7 +32,7 @@ class WebView(View):
                     response = func(data if data else request.form, **kwargs)  # or it will magically parse a form so adapt for our users
                 return response if response else OK  # assume None as an OK response (simplifies the client side)
 
-        raise Exception('Problem finding back the correct Handler for func %s', name_to_find)
+        raise Exception('Problem finding back the correct Handler for func %s' % (name_to_find))
 
 
 def webhook(*args, **kwargs):

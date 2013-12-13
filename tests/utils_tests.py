@@ -52,9 +52,18 @@ class TestUtils(unittest.TestCase):
         persistent_object.open_storage(BOT_DATA_DIR + os.path.sep + 'test.db')
         persistent_object['tést'] = 'à value'
         self.assertEquals(persistent_object['tést'], 'à value')
-        self.assertIn('tést', persistent_object)
+        try:
+            self.assertIn('tést', persistent_object)
+        except AttributeError:
+            # assertIn wasn't added until Python 3.1
+            pass
+
         del persistent_object['tést']
-        self.assertNotIn('tést', persistent_object)
+        try:
+            self.assertNotIn('tést', persistent_object)
+        except AttributeError:
+            # assertNotIn wasn't added until Python 3.1
+            pass
         self.assertEquals(len(persistent_object), 0)
 
     @raises(SystemExit)

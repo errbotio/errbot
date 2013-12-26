@@ -189,6 +189,21 @@ class ErrBot(Backend, StoreMixin):
         self.close_storage()
         logging.info('Bye.')
 
+    @staticmethod
+    def formatted_plugin_list(active_only=True):
+        """
+        Return a formatted, plain-text list of loaded plugins.
+
+        When active_only=True, this will only return plugins which
+        are actually active. Otherwise, it will also include inactive
+        (blacklisted) plugins.
+        """
+        if active_only:
+            all_plugins = get_all_active_plugin_names()
+        else:
+            all_plugins = get_all_plugin_names()
+        return "\n".join(("• " + plugin for plugin in all_plugins))
+
     #noinspection PyUnusedLocal
     @botcmd(template='status')
     def status(self, mess, args):
@@ -299,6 +314,12 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def load(self, mess, args):
         """load a plugin"""
+        if args not in get_all_plugin_names():
+            return ("{} isn't a valid plugin name. The current plugins are:\n"
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+        if args in get_all_active_plugin_names():
+            return "{} is already active".format(args)
+
         self.unblacklist_plugin(args)
         return self.activate_plugin(args)
 
@@ -306,8 +327,12 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def unload(self, mess, args):
         """unload a plugin"""
+        if args not in get_all_plugin_names():
+            return ("{} isn't a valid plugin name. The current plugins are:\n"
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args not in get_all_active_plugin_names():
-            return '%s in not active' % args
+            return "{} is not an active plugin".format(args)
+
         self.blacklist_plugin(args)
         return self.deactivate_plugin(args)
 
@@ -315,11 +340,22 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def reload(self, mess, args):
         """reload a plugin"""
+        args = args.strip()
+        if not args:
+            yield ("Please tell me which of the following plugins to reload:\n"
+                    "{}".format(self.formatted_plugin_list(active_only=False)))
+            return
+        if args not in get_all_plugin_names():
+            yield ("{} isn't a valid plugin name. The current plugins are:\n"
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+            return
+
         if self.is_plugin_blacklisted(args):
             self.unblacklist_plugin(args)
-        result = "%s / %s" % (self.deactivate_plugin(args), self.activate_plugin(args))
+            yield "Removed {} from the blacklist".format(args)
+        yield self.deactivate_plugin(args)
+        yield self.activate_plugin(args)
         get_plugin_obj_by_name(args).callback_connect()
-        return result
 
     @botcmd(admin_only=True)
     def repos_install(self, mess, args):

@@ -105,7 +105,8 @@ class TestCommands(FullStackTest):
         self.assertEqual('Hello World !', popMessage())
 
         pushMessage('!reload HelloWorld')
-        self.assertEqual('Plugin HelloWorld deactivated / Plugin HelloWorld activated', popMessage())
+        self.assertEqual('Plugin HelloWorld deactivated', popMessage())
+        self.assertEqual('Plugin HelloWorld activated', popMessage())
 
         pushMessage('!hello')  # should still respond
         self.assertEqual('Hello World !', popMessage())
@@ -135,3 +136,48 @@ class TestCommands(FullStackTest):
 
     def test_webserver_webhook_test(self):
         self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
+
+    def test_reload(self):
+        pushMessage('!reload')
+        m = popMessage()
+        self.assertIn('Please tell me which of the following plugins to reload', m)
+        self.assertIn('ChatRoom', m)
+
+        pushMessage('!reload nosuchplugin')
+        m = popMessage()
+        self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
+        self.assertIn('ChatRoom', m)
+
+        pushMessage('!reload ChatRoom')
+        self.assertEqual('Plugin ChatRoom deactivated', popMessage())
+        self.assertEqual('Plugin ChatRoom activated', popMessage())
+
+        pushMessage('!unload ChatRoom')
+        self.assertEqual("Plugin ChatRoom deactivated", popMessage())
+        pushMessage('!reload ChatRoom')
+        self.assertEqual('Removed ChatRoom from the blacklist', popMessage())
+        self.assertEqual('Plugin ChatRoom not in active list', popMessage())
+        self.assertEqual('Plugin ChatRoom activated', popMessage())
+
+    def test_unload_and_load(self):
+        pushMessage('!unload nosuchplugin')
+        m = popMessage()
+        self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
+        self.assertIn('ChatRoom', m)
+
+        pushMessage('!load nosuchplugin')
+        m = popMessage()
+        self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
+        self.assertIn('ChatRoom', m)
+
+        pushMessage('!load ChatRoom')
+        self.assertEqual('ChatRoom is already active', popMessage())
+
+        pushMessage('!unload ChatRoom')
+        self.assertEqual('Plugin ChatRoom deactivated', popMessage())
+
+        pushMessage('!unload ChatRoom')
+        self.assertEqual('ChatRoom is not an active plugin', popMessage())
+
+        pushMessage('!load ChatRoom')
+        self.assertEqual('Plugin ChatRoom activated', popMessage())

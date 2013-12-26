@@ -71,7 +71,7 @@ def need_to_regenerate():
 
 def setup_python2():
     from pip import main as mainpip
-    mainpip(['install', '3to2'])
+    mainpip(['install', '3to2', '--no-clean'])
     from lib3to2 import main as three2two
     import shutil
     import shlex

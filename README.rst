@@ -91,7 +91,7 @@ An extensive framework for writing custom plugins:
 Prerequisites
 -------------
 
-Err runs under Python 2.7 as well as Python 3.2+ on Linux, Windows and Mac.
+Err runs under Python 2.7 as well as Python 3.3+ on Linux, Windows and Mac.
 
 You need to have registered a user for the bot to use on the XMPP or IRC server that you wish to run Err on. A lot of plugins use multi user chatrooms (MUC) as well, so it is recommended (but not required) to have a least one MUC for Err to use as well.
 
@@ -165,7 +165,7 @@ is outside the scope of this document however.
 
 It's important to know that as of version 2.0, Err is written for Python 3. In order
 to run under Python 2.7 the code is run through 3to2 at install time. This means that
-while it is possible to run Err under Python 3.2+ directly from a source checkout, it
+while it is possible to run Err under Python 3.3+ directly from a source checkout, it
 is not possible to do so with Python 2.7. If you wish to develop or test with Err's
 code under 2.7, you must run::
 

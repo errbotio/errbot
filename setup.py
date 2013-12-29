@@ -70,9 +70,15 @@ def need_to_regenerate():
     return False
 
 def setup_python2():
-    from pip import main as mainpip
-    mainpip(['install', '3to2', '--no-clean'])
-    from lib3to2 import main as three2two
+    try:
+        from lib3to2 import main as three2two
+    except ImportError:
+        print("Installing Err under Python 2, which requires 3to2 to be installed, but it was not found")
+        print("I will now attempt to install it automatically, but this requires at least pip 1.4 to be installed")
+        print("If you get the error 'no such option: --no-clean', please `pip install 3to2` manually and then `pip install err` again.")
+        from pip import main as mainpip
+        mainpip(['install', '3to2', '--no-clean'])
+        from lib3to2 import main as three2two
     import shutil
     import shlex
 

@@ -89,18 +89,20 @@ class ErrBot(Backend, StoreMixin):
     def blacklist_plugin(self, name):
         if self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is already blacklisted' % name)
-            return
+            return 'Plugin %s is already blacklisted' % name
         self[BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
         logging.info('Plugin %s is now blacklisted' % name)
+        return 'Plugin %s is now blacklisted' % name
 
     def unblacklist_plugin(self, name):
         if not self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is not blacklisted' % name)
-            return
+            return 'Plugin %s is not blacklisted' % name
         l = self.get_blacklisted_plugin()
         l.remove(name)
         self[BL_PLUGINS] = l
-        logging.info('Plugin %s is now unblacklisted' % name)
+        logging.info('Plugin %s removed from blacklist' % name)
+        return 'Plugin %s removed from blacklist' % name
 
     # configurations management
     def get_plugin_configuration(self, name):
@@ -312,29 +314,29 @@ class ErrBot(Backend, StoreMixin):
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def load(self, mess, args):
-        """load a plugin"""
+    def blacklist(self, mess, args):
+        """Blacklist a plugin"""
         if args not in get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args in get_all_active_plugin_names():
-            return "{} is already active".format(args)
+            yield ("{} isn't a valid plugin name. The current plugins are:\n"
+                   "{}".format(args, self.formatted_plugin_list(active_only=False)))
+            return
 
-        self.unblacklist_plugin(args)
-        return self.activate_plugin(args)
+        if args in get_all_active_plugin_names():
+            yield self.deactivate_plugin(args)
+        yield self.blacklist_plugin(args)
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def unload(self, mess, args):
-        """unload a plugin"""
+    def unblacklist(self, mess, args):
+        """Remove a plugin from the blacklist"""
         if args not in get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args not in get_all_active_plugin_names():
-            return "{} is not an active plugin".format(args)
+            yield ("{} isn't a valid plugin name. The current plugins are:\n"
+                   "{}".format(args, self.formatted_plugin_list(active_only=False)))
+            return
 
-        self.blacklist_plugin(args)
-        return self.deactivate_plugin(args)
+        yield self.unblacklist_plugin(args)
+        if args not in get_all_active_plugin_names():
+            yield self.activate_plugin(args)
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)

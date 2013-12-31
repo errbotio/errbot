@@ -22,7 +22,6 @@ import os
 
 import shutil
 import subprocess
-from imp import reload
 
 from tarfile import TarFile
 from urllib.request import urlopen
@@ -30,9 +29,11 @@ from urllib.request import urlopen
 from errbot import botcmd, PY2
 from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS
 
-from errbot.plugin_manager import get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,\
-    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivate_plugin_by_name, get_plugin_obj_by_name,\
-    PluginConfigurationException, check_dependencies
+from errbot.plugin_manager import (
+    get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,
+    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check, deactivate_plugin_by_name,
+    get_plugin_obj_by_name, PluginConfigurationException, check_dependencies, reload_plugin_by_name
+)
 
 from errbot.storage import StoreMixin
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_sender_username
@@ -89,18 +90,20 @@ class ErrBot(Backend, StoreMixin):
     def blacklist_plugin(self, name):
         if self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is already blacklisted' % name)
-            return
+            return 'Plugin %s is already blacklisted' % name
         self[BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
         logging.info('Plugin %s is now blacklisted' % name)
+        return 'Plugin %s is now blacklisted' % name
 
     def unblacklist_plugin(self, name):
         if not self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is not blacklisted' % name)
-            return
+            return 'Plugin %s is not blacklisted' % name
         l = self.get_blacklisted_plugin()
         l.remove(name)
         self[BL_PLUGINS] = l
-        logging.info('Plugin %s is now unblacklisted' % name)
+        logging.info('Plugin %s removed from blacklist' % name)
+        return 'Plugin %s removed from blacklist' % name
 
     # configurations management
     def get_plugin_configuration(self, name):
@@ -215,13 +218,16 @@ class ErrBot(Backend, StoreMixin):
         plugins_statuses = []
         for name in all_attempted:
             if name in all_blacklisted:
-                plugins_statuses.append(('B', name))
+                if name in all_loaded:
+                    plugins_statuses.append(('BL', name))
+                else:
+                    plugins_statuses.append(('BU', name))
             elif name in all_loaded:
                 plugins_statuses.append(('L', name))
             elif get_plugin_obj_by_name(name) is not None and get_plugin_obj_by_name(name).get_configuration_template() is not None and self.get_plugin_configuration(name) is None:
                 plugins_statuses.append(('C', name))
             else:
-                plugins_statuses.append(('E', name))
+                plugins_statuses.append(('U', name))
 
         #noinspection PyBroadException
         try:
@@ -302,6 +308,7 @@ class ErrBot(Backend, StoreMixin):
         except Exception as e:
             logging.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)
+        get_plugin_obj_by_name(name).callback_connect()
         return "Plugin %s activated" % name
 
     def deactivate_plugin(self, name):
@@ -312,28 +319,54 @@ class ErrBot(Backend, StoreMixin):
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
+    def blacklist(self, mess, args):
+        """Blacklist a plugin so that it will not be loaded automatically during bot startup"""
+        if args not in get_all_plugin_names():
+            return ("{} isn't a valid plugin name. The current plugins are:\n"
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+        return self.blacklist_plugin(args)
+
+    #noinspection PyUnusedLocal
+    @botcmd(admin_only=True)
+    def unblacklist(self, mess, args):
+        """Remove a plugin from the blacklist"""
+        if args not in get_all_plugin_names():
+            return ("{} isn't a valid plugin name. The current plugins are:\n"
+                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+        return self.unblacklist_plugin(args)
+
+    #noinspection PyUnusedLocal
+    @botcmd(admin_only=True)
     def load(self, mess, args):
         """load a plugin"""
+        args = args.strip()
+        if not args:
+            return ("Please tell me which of the following plugins to reload:\n"
+                    "{}".format(self.formatted_plugin_list(active_only=False)))
         if args not in get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args in get_all_active_plugin_names():
-            return "{} is already active".format(args)
+            return "{} is already loaded".format(args)
 
-        self.unblacklist_plugin(args)
-        return self.activate_plugin(args)
+        reload_plugin_by_name(args)
+        r = self.activate_plugin(args)
+        return r
 
     #noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def unload(self, mess, args):
         """unload a plugin"""
+        args = args.strip()
+        if not args:
+            return ("Please tell me which of the following plugins to reload:\n"
+                    "{}".format(self.formatted_plugin_list(active_only=False)))
         if args not in get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args not in get_all_active_plugin_names():
-            return "{} is not an active plugin".format(args)
+            return "{} is not currently loaded".format(args)
 
-        self.blacklist_plugin(args)
         return self.deactivate_plugin(args)
 
     #noinspection PyUnusedLocal
@@ -350,12 +383,9 @@ class ErrBot(Backend, StoreMixin):
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
             return
 
-        if self.is_plugin_blacklisted(args):
-            self.unblacklist_plugin(args)
-            yield "Removed {} from the blacklist".format(args)
-        yield self.deactivate_plugin(args)
+        yield self.deactivate_plugin(args)  # Not needed but keeps the feedback to user consistent
+        reload_plugin_by_name(args)
         yield self.activate_plugin(args)
-        get_plugin_obj_by_name(args).callback_connect()
 
     @botcmd(admin_only=True)
     def repos_install(self, mess, args):
@@ -588,13 +618,9 @@ class ErrBot(Backend, StoreMixin):
                         if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                             name = plugin.name
                             self.send(mess.getFrom(), '/me is reloading plugin %s' % name)
-                            self.deactivate_plugin(plugin.name)                 # calm the plugin down
-                            module = __import__(plugin.path.split(os.sep)[-1])  # find back the main module of the plugin
-                            reload(module)                                      # reload it
-                            class_name = type(plugin.plugin_object).__name__    # find the original name of the class
-                            newclass = getattr(module, class_name)              # retreive the corresponding new class
-                            plugin.plugin_object.__class__ = newclass           # BAM, declare the instance of the new type
-                            self.activate_plugin(plugin.name)                   # wake the plugin up
+                            reload_plugin_by_name(plugin.name)
+                            self.activate_plugin(plugin.name)
+                            self.send(mess.getFrom(), '%s reloaded and reactivated' % name)
         if core_to_update:
             self.restart(mess, '')
             return "You have updated the core, I need to restart."

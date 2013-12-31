@@ -9,6 +9,7 @@ from errbot.utils import version2array, PY3
 from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
 from errbot.version import VERSION
 from yapsy.PluginManager import PluginManager
+from imp import reload
 
 # hardcoded directory for the system plugins
 from errbot import holder
@@ -51,11 +52,16 @@ def init_plugin_manager():
 init_plugin_manager()
 
 
-def get_plugin_obj_by_name(name):
+def get_plugin_by_name(name):
     pta_item = simplePluginManager.getPluginByName(name, 'bots')
     if pta_item is None:
         return None
-    return pta_item.plugin_object
+    return pta_item
+
+
+def get_plugin_obj_by_name(name):
+    plugin = get_plugin_by_name(name)
+    return None if plugin is None else plugin.plugin_object
 
 
 def populate_doc(plugin):
@@ -129,6 +135,24 @@ def deactivate_plugin_by_name(name):
     except Exception as _:
         add_plugin_templates_path(pta_item.path)
         raise
+
+
+def reload_plugin_by_name(name):
+    """
+    Completely reload the given plugin, including reloading of the module's code
+    """
+    if name in get_all_active_plugin_names():
+        deactivate_plugin_by_name(name)
+
+    plugin = get_plugin_by_name(name)
+    logging.critical(dir(plugin))
+    module = __import__(plugin.path.split(os.sep)[-1])
+    reload(module)
+
+    class_name = type(plugin.plugin_object).__name__
+    new_class = getattr(module, class_name)
+    plugin.plugin_object.__class__ = new_class
+
 
 
 def update_plugin_places(list):

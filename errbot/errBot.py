@@ -308,6 +308,7 @@ class ErrBot(Backend, StoreMixin):
         except Exception as e:
             logging.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)
+        get_plugin_obj_by_name(name).callback_connect()
         return "Plugin %s activated" % name
 
     def deactivate_plugin(self, name):
@@ -385,7 +386,6 @@ class ErrBot(Backend, StoreMixin):
         yield self.deactivate_plugin(args)  # Not needed but keeps the feedback to user consistent
         reload_plugin_by_name(args)
         yield self.activate_plugin(args)
-        get_plugin_obj_by_name(args).callback_connect()
 
     @botcmd(admin_only=True)
     def repos_install(self, mess, args):

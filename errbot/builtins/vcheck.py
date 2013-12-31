@@ -38,8 +38,8 @@ class VersionChecker(BotPlugin):
             if installed_version < current_version:
                 logging.debug('A new version %s has been found, notify the admins !' % current_version)
                 self.warn_admins(
-                    'Version %s of err is available. http://pypi.python.org/pypi/err/%s. You can disable this '
-                    'check by doing !blacklist VersionChecker' % (current_version_txt, current_version_txt)
+                    'Version {0} of err is available. http://pypi.python.org/pypi/err/{0}. You can disable this check '
+                    'by doing !unload VersionChecker followed by !blacklist VersionChecker'.format(current_version_txt)
                 )
         except Exception as e:
             logging.exception('Could not version check')

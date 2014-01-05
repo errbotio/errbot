@@ -1,6 +1,27 @@
 Release history
 ===============
 
+Version 2.0.0 (2014-01-05)
+--------------------------
+
+Features:
+- split load/unload from blacklist/unblacklist
+- provides a better feedback for 3to2 conversion
+- better formatting for plugin list with unicode bullets
+- better formatting for !reload
+- better feedback on case of !reload problems
+- made loglevel configuration (Thx Daniele Sluijters)
+- added err-dnsnative to the plugin list.
+
+Bugs:
+- Fixed a missing callback_connect on plugin activation
+- Forced Python 3.3 as a minimal req for the py3 version as deps break with 3.2
+- Fixed pip installs during setup.py
+- warn_admin breakage on python2
+- SSL IRC backend fix
+- Various typos.
+
+
 Version 2.0.0-rc2 (2013-11-28)
 ------------------------------
 

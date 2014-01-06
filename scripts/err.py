@@ -37,8 +37,8 @@ ON_WINDOWS = system() == 'Windows'
 import sys
 import argparse
 
-if not ON_WINDOWS and sys.version_info[0] < 3:
-    import daemon
+if not ON_WINDOWS:
+    from daemonize import Daemonize
     from pwd import getpwnam
     from grp import getgrnam
     import code
@@ -110,8 +110,6 @@ if __name__ == "__main__":
         option_group = parser.add_argument_group('arguments to run it as a Daemon')
         option_group.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
         option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
-        option_group.add_argument('-u', '--user', default=None, help='Specify the user id you want the daemon to run under')
-        option_group.add_argument('-g', '--group', default=None, help='Specify the group id you want the daemon to run under')
 
     args = vars(parser.parse_args())  # create a dictionary of args
     config_path = args['config']
@@ -173,15 +171,13 @@ if __name__ == "__main__":
 
         pidfile = PidFile(pid)
 
-        uid = getpwnam(args['user']).pw_uid if args['user'] else None
-        gid = getgrnam(args['group']).gr_gid if args['group'] else None
-
         #noinspection PyBroadException
         try:
-            with daemon.DaemonContext(detach_process=True, working_directory=getcwd(), pidfile=pidfile, uid=uid,
-                                      gid=gid):  # put the initial working directory to be sure not to lost it after daemonization
+            def action():
                 from errbot.main import main
                 main(bot_class, logger)
+            daemon = Daemonize(app="err", pid=pid, action=action)
+            daemon.start()
         except Exception as _:
             logging.exception('Failed to daemonize the process')
     from errbot.main import main

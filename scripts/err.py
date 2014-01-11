@@ -15,7 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import logging
-from os import path, sep, getcwd
+from os import path, sep, getcwd, access, W_OK
 from platform import system
 
 
@@ -155,6 +155,14 @@ if __name__ == "__main__":
         return NullBackend
 
     bot_class = locals()[mode]()
+    # Check if at least we can start to log something before trying to start
+    # the bot (esp. daemonize it).
+    from config import BOT_DATA_DIR
+    logging.info("Checking for '%s'..." % BOT_DATA_DIR)
+    if not path.exists(BOT_DATA_DIR):
+        raise Exception("The data directory '%s' for the bot does not exist" % BOT_DATA_DIR)
+    if not access(BOT_DATA_DIR, W_OK):
+        raise Exception("The data directory '%s' should be writable for the bot" % BOT_DATA_DIR)
 
     if (not ON_WINDOWS) and args['daemon']:
         if args['text']:
@@ -163,8 +171,6 @@ if __name__ == "__main__":
         if args['pidfile']:
             pid = args['pidfile']
         else:
-            from config import BOT_DATA_DIR
-
             pid = BOT_DATA_DIR + sep + 'err.pid'
 
         from errbot.pid import PidFile
@@ -180,6 +186,7 @@ if __name__ == "__main__":
             daemon.start()
         except Exception as _:
             logging.exception('Failed to daemonize the process')
+        exit(0)
     from errbot.main import main
     main(bot_class, logger)
     logging.info('Process exiting')

@@ -1,4 +1,4 @@
-from os import path, access, makedirs, sep, getcwd, W_OK
+from os import path, makedirs, sep, getcwd
 import logging
 
 
@@ -29,12 +29,6 @@ def main(bot_class, logger):
 
         sentryhandler = SentryHandler(SENTRY_DSN, level=SENTRY_LOGLEVEL)
         logger.addHandler(sentryhandler)
-
-    d = path.dirname(BOT_DATA_DIR)
-    if not path.exists(d):
-        raise Exception('The data directory %s for the bot does not exist' % BOT_DATA_DIR)
-    if not access(BOT_DATA_DIR, W_OK):
-        raise Exception('The data directory %s should be writable for the bot' % BOT_DATA_DIR)
 
     # make the plugins subdir to store the plugin shelves
     d = BOT_DATA_DIR + sep + str(PLUGINS_SUBDIR)

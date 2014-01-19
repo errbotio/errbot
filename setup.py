@@ -31,7 +31,7 @@ if PY3:
 else:
     deps = ['webtest', 'setuptools', 'yapsy', 'config', 'bottle', 'requests', 'jinja2', 'dnspython']  # dnspython for SRV records
     if not ON_WINDOWS:
-        deps += ['python-daemon']
+        deps += ['daemonize']
     if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')

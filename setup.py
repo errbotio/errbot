@@ -30,46 +30,15 @@ if PY3:
             'On Python 3, Err requires Python 3.3 or later')
 else:
     deps = ['webtest', 'setuptools', 'yapsy', 'config', 'bottle', 'requests', 'jinja2', 'dnspython']  # dnspython for SRV records
-   if py_version < (2, 7):
+    if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')
 if not ON_WINDOWS:
     deps += ['daemonize']
 
-py2_root = os.path.abspath(os.path.join("build", "py2_src"))
 src_dirs = ("errbot", "scripts", "tests")
 
-def all_files_in_rep(rootfolder, extension=".py"):
-    return (os.path.join(dirname, filename)
-            for dirname, dirnames, filenames in os.walk(rootfolder)
-            for filename in filenames
-            if filename.endswith(extension))
-
-
-def newest_file_in_tree(rootfolder, extension=".py"):
-    return max(all_files_in_rep(rootfolder, extension),
-               key=lambda fn: os.stat(fn).st_mtime)
-
-
-def oldest_file_in_tree(rootfolder, extension=".py"):
-    return min(all_files_in_rep(rootfolder, extension),
-               key=lambda fn: os.stat(fn).st_mtime)
-
-
-def need_to_regenerate():
-    for d in src_dirs:
-        oldest_file = oldest_file_in_tree(os.path.join(py2_root, d))
-        newest_file = newest_file_in_tree(d)
-        oldest = os.stat(oldest_file).st_mtime
-        newest = os.stat(newest_file).st_mtime
-        print('dir ' + d)
-        print('oldest ' + oldest_file + ': ' + str(oldest))
-        print('newest ' + newest_file + ': ' + str(newest))
-        if newest > oldest:
-            return True
-    return False
-
-def setup_python2():
+def convert_to_python2():
     try:
         from lib3to2 import main as three2two
     except ImportError:
@@ -82,42 +51,15 @@ def setup_python2():
     import shutil
     import shlex
 
-    try:
-        regenerate = need_to_regenerate()
-    except Exception as _:
-        regenerate = True  # we need to do it if the dir doesn't exist
+    for d in src_dirs:
+        three2two.main("lib3to2.fixes", shlex.split("-n --no-diffs -w {0}".format(d)))
 
-    if regenerate:
-        for d in src_dirs:
-            tmp_src = os.path.join(py2_root, d)
-            try:
-                shutil.rmtree(tmp_src)
-            except OSError:
-                pass  # ignore if the directory doesn't exist.
-
-            shutil.copytree(d, tmp_src)
-            for fname in all_files_in_rep(tmp_src):
-                os.utime(fname, None)
-
-        three2two.main("lib3to2.fixes", shlex.split("-n --no-diffs -w {0}".format(py2_root)))
-    else:
-        print('Sources already uptodate for python 2')
-
-    return py2_root
-
-
-if PY3:
-    src_root = os.curdir
-else:
-    src_root = setup_python2()
-    sys.path.insert(0, src_root)
-
-sys.path.insert(0, src_root + os.path.sep + 'errbot')  # hack to avoid loading err machinery from the errbot package
+src_root = os.curdir
+sys.path.insert(0, os.path.join(src_root, 'errbot'))  # hack to avoid loading err machinery from the errbot package
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
 
 if __name__ == "__main__":
     from version import VERSION
@@ -126,6 +68,9 @@ if __name__ == "__main__":
 
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
+
+    if not PY3:
+        convert_to_python2()
 
     setup(
         name="err",
@@ -162,4 +107,4 @@ if __name__ == "__main__":
     )
 
 # restore the paths
-sys.path.remove(src_root + os.path.sep + 'errbot')
+sys.path.remove(os.path.join(src_root, 'errbot'))

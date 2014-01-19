@@ -30,7 +30,7 @@ if PY3:
             'On Python 3, Err requires Python 3.3 or later')
 else:
     deps = ['webtest', 'setuptools', 'yapsy', 'config', 'bottle', 'requests', 'jinja2', 'dnspython']  # dnspython for SRV records
-   if py_version < (2, 7):
+    if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')
 if not ON_WINDOWS:

@@ -94,9 +94,6 @@ if __name__ == "__main__":
                            'bdist_msi')):
         raise Exception("err doesn't support binary distributions")
 
-    if PY2 and 'develop' in sys.argv:
-        raise Exception("err needs to be developed under python 3.")
-
     # under python2 if we want to make a source distribution,
     # don't pre-convert the sources, leave them as py3.
     if PY2 and 'sdist' not in sys.argv:

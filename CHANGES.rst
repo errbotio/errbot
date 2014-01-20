@@ -5,6 +5,7 @@ Version 2.0.0 (2014-01-05)
 --------------------------
 
 Features:
+
 - split load/unload from blacklist/unblacklist
 - provides a better feedback for 3to2 conversion
 - better formatting for plugin list with unicode bullets
@@ -14,6 +15,7 @@ Features:
 - added err-dnsnative to the plugin list.
 
 Bugs:
+
 - Fixed a missing callback_connect on plugin activation
 - Forced Python 3.3 as a minimal req for the py3 version as deps break with 3.2
 - Fixed pip installs during setup.py
@@ -28,6 +30,7 @@ Version 2.0.0-rc2 (2013-11-28)
 Migrated the version checker to github.io
 
 Bugs:
+
 - Fix MUC login: Support tuple & add username
 - Language correction (thx daenney)
 
@@ -35,6 +38,7 @@ Version 2.0.0-rc1 (2013-10-03)
 ------------------------------
 
 Features:
+
 - Added err-faustbot to the official repo list
 - Added the !room create command for adhoc room creation (google talk)
 - Added sedbot to the official repos
@@ -44,6 +48,7 @@ Features:
 - Allow configuration of MESSAGE_SIZE_LIMIT
 
 Bugs:
+
 - Properly close shelf upon restart (thx Max Wagner)
 - Fix inverted display of repo status (private/official) (thx Max Wagner)
 - Include jid resource in Message.from/to (Thx Kha)

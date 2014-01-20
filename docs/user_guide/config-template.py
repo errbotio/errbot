@@ -1,0 +1,1 @@
+../../errbot/config-template.py

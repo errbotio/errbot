@@ -77,6 +77,7 @@ exclude_patterns = [
     'error_pages/*',
     'errbot.backends.campfire.rst',  # Broken on Python 3
     'errbot.backends.graphic.rst',  # Quite a pain to build, not worth it
+    '_gh-pages',
 ]
 
 # The reST default role (used for this markup: `text`) to use for all documents.

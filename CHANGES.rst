@@ -1,7 +1,7 @@
 Release history
 ===============
 
-Version 2.0.0 (2014-01-05)
+Version 2.0.0 (2014-01-20)
 --------------------------
 
 Features:
@@ -20,7 +20,9 @@ Bugs:
 - warn_admin breakage on python2
 - SSL IRC backend fix
 - Various typos.
-
+- fixed the py2 conversion for sdist packages
+- fixed dependencies for tests
+- fixed daemon feature under linux (still broken under osx)
 
 Version 2.0.0-rc2 (2013-11-28)
 ------------------------------

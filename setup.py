@@ -34,6 +34,7 @@ if PY2:
             'bottle',
             'requests',
             'jinja2',
+            'pyOpenSSL',
             'dnspython',  # dnspython for SRV records
             'config']
 else:
@@ -47,6 +48,7 @@ else:
             'bottle',
             'requests',
             'jinja2',
+            'pyOpenSSL',
             'dnspython3']  # requests are for the unittests, dnspython for SRV records
 
 if not ON_WINDOWS:
@@ -107,7 +109,7 @@ if __name__ == "__main__":
         scripts=['scripts/err.py'],
 
         install_requires=deps,
-
+        tests_require=['nose', 'webtest', 'requests'],
         package_data={
             '': ['*.txt', '*.rst', '*.plug', '*.html', '*.js', '*.css'],
         },

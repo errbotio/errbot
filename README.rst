@@ -1,4 +1,4 @@
-.. image:: http://gbin.github.com/err/images/err.png
+.. image:: http://gbin.github.io/err/_static/err_speech.png
     :align: right
 
 .. image:: https://secure.travis-ci.org/gbin/err.png

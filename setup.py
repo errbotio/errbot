@@ -69,7 +69,16 @@ if __name__ == "__main__":
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
 
-    if not PY3:
+    if set(sys.argv) & set(('bdist',
+                           'bdist_dumb',
+                           'bdist_rpm',
+                           'bdist_wininst',
+                           'bdist_msi')):
+        raise Exception("err doesn't support binary distributions")
+
+    # under python2 if we want to make a source distribution,
+    # don't pre-convert the sources, leave them as py3.
+    if not PY3 and 'sdist' not in sys.argv:
         convert_to_python2()
 
     setup(

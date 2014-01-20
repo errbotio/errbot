@@ -53,12 +53,12 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-gh-pages: apidoc dirhtml
+gh-pages: clean apidoc dirhtml
 	test -e $(PAGESDIR) && (cd $(PAGESDIR) && git pull) || git clone $(PAGESURL) $(PAGESDIR)
 	cd $(PAGESDIR) && git checkout gh-pages
 	rm -r $(PAGESDIR)/*
 	cp -r $(BUILDDIR)/dirhtml/* $(PAGESDIR)/
-	cp -r $(EXTRADIR)/* $(PAGESDIR)/
+	cp -r $(EXTRADIR)/* $(EXTRADIR)/.nojekyll $(PAGESDIR)/
 	cd $(PAGESDIR) && git add --all . && git commit --message "Sphinx autobuild"
 	@echo
 	@echo "GitHub pages are built and ready, just waiting to be pushed from the $(PAGESDIR) directory"

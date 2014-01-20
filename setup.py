@@ -20,19 +20,35 @@ import sys
 from platform import system
 
 py_version = sys.version_info[:2]
-PY3 = py_version[0] == 3
+PY2 = py_version[0] == 2
 ON_WINDOWS = system() == 'Windows'
 
-if PY3:
-    deps = ['webtest', 'setuptools', 'yapsy', 'bottle', 'requests', 'jinja2', 'dnspython3']  # requests are for the unittests, dnspython for SRV records
-    if py_version < (3, 3):
-        raise RuntimeError(
-            'On Python 3, Err requires Python 3.3 or later')
-else:
-    deps = ['webtest', 'setuptools', 'yapsy', 'config', 'bottle', 'requests', 'jinja2', 'dnspython']  # dnspython for SRV records
+if PY2:
     if py_version < (2, 7):
         raise RuntimeError(
             'On Python 2, Err requires Python 2.7 or later')
+
+    deps = ['webtest',
+            'setuptools',
+            'yapsy',
+            'bottle',
+            'requests',
+            'jinja2',
+            'dnspython',  # dnspython for SRV records
+            'config']
+else:
+    if py_version < (3, 3):
+        raise RuntimeError(
+            'On Python 3, Err requires Python 3.3 or later')
+
+    deps = ['webtest',
+            'setuptools',
+            'yapsy',
+            'bottle',
+            'requests',
+            'jinja2',
+            'dnspython3']  # requests are for the unittests, dnspython for SRV records
+
 if not ON_WINDOWS:
     deps += ['daemonize']
 
@@ -76,9 +92,12 @@ if __name__ == "__main__":
                            'bdist_msi')):
         raise Exception("err doesn't support binary distributions")
 
+    if PY2 and 'develop' in sys.argv:
+        raise Exception("err needs to be developed under python 3.")
+
     # under python2 if we want to make a source distribution,
     # don't pre-convert the sources, leave them as py3.
-    if not PY3 and 'sdist' not in sys.argv:
+    if PY2 and 'sdist' not in sys.argv:
         convert_to_python2()
 
     setup(

@@ -9,7 +9,7 @@ from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid, split_
 from errbot.templating import tenv
 import traceback
 
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY
 
 try:
     from config import ACCESS_CONTROLS_DEFAULT
@@ -253,14 +253,25 @@ class Backend(object):
         """Build a message for responding to another message.
         Message is NOT sent"""
         response = self.build_message(text)
-        if private:
-            response.setTo(get_jid_from_message(mess))
-            response.setType('chat')
-            response.setFrom(self.jid)
-        else:
+        msg_type = mess.getType()
+
+        response.setFrom(self.jid)
+        if msg_type == 'groupchat' and not private:
+            # getStripped() returns the full bot@conference.domain.tld/chat_username
+            # but in case of a groupchat, we should only try to send to the MUC address
+            # itself (bot@conference.domain.tld)
+            response.setTo(mess.getFrom().getStripped().split('/')[0])
+        elif str(mess.getTo()) == BOT_IDENTITY['username']:
+            # This is a direct private message, not initiated through a MUC. Use
+            # getStripped() to remove the resource so that the response goes to the
+            # client with the highest priority
             response.setTo(mess.getFrom().getStripped())
-            response.setType(mess.getType())
-            response.setFrom(self.jid)
+        else:
+            # This is a private message that was initiated through a MUC. Don't use
+            # getStripped() here to retain the resource, else the XMPP server doesn't
+            # know which user we're actually responding to.
+            response.setTo(mess.getFrom())
+        response.setType('chat' if private else msg_type)
         return response
 
     def callback_message(self, conn, mess):
@@ -619,9 +630,6 @@ def get_jid_from_message(mess):
     if mess.getType() == 'chat':
         # strip the resource for direct chats
         return str(mess.getFrom().getStripped())
-
-    # this is a standard private XMPP reply in MUC
     fr = mess.getFrom()
-    jid = Identifier(node=fr.node, domain=fr.domain, resource=mess.getMuckNick())
-    logging.debug('Message from MUC. Replying to: %s' % jid)
+    jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
     return jid

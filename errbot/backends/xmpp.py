@@ -122,6 +122,9 @@ class XMPPConnection(Connection):
     def add_event_handler(self, name, cb):
         self.client.add_event_handler(name, cb)
 
+    def del_event_handler(self, name, cb):
+        self.client.del_event_handler(name, cb)
+
     def join_room(self, room, username, password):
         muc = self.client.plugin['xep_0045']
         muc.joinMUC(room,

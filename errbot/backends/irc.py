@@ -2,12 +2,12 @@ from __future__ import absolute_import
 import logging
 import sys
 import config
-import irc.connection
 from errbot.backends.base import Message, build_message, build_text_html_message_pair
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 
 try:
+    import irc.connection
     from irc.bot import SingleServerIRCBot
 except ImportError as _:
     logging.exception("Could not start the IRC backend")

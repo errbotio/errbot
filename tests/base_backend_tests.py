@@ -124,7 +124,7 @@ class TestBase(unittest.TestCase):
         m.setTo("to@todomain.net/toresource")
         resp = dummy.build_reply(m, "Response")
 
-        self.assertEqual(str(resp.getTo()), "from@fromdomain.net")
+        self.assertEqual(str(resp.getTo()), "from@fromdomain.net/fromresource")
         self.assertEqual(str(resp.getFrom()), "err@localhost/err")
         self.assertEqual(str(resp.getBody()), "Response")
 

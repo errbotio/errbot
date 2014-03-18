@@ -4,6 +4,8 @@ import os.path
 
 from errbot.backends.base import Message, build_message, Connection
 from errbot.errBot import ErrBot
+from threading import Thread
+from time import sleep
 
 try:
     from sleekxmpp import ClientXMPP
@@ -123,23 +125,50 @@ class XMPPConnection(Connection):
         self.client.add_event_handler(name, cb)
 
     def join_room(self, room, username, password):
+        """Attempt to join the given MUC"""
         muc = self.client.plugin['xep_0045']
         muc.joinMUC(room,
                     username,
                     password=password,
                     wait=True)
-        form = muc.getRoomConfig(room)
-        if form:
+        # Room configuration can only be done once a MUC presence stanza
+        # has been received from the server. This HAS to take place in a
+        # separate thread because of how SleekXMPP processes these stanzas.
+        t = Thread(target=self.configure_room, args=[room])
+        t.setDaemon(True)
+        t.start()
+
+    def configure_room(self, room):
+        """
+        Configure the given MUC
+
+        Currently this simply sets the default room configuration as
+        received by the server. May be extended in the future to set
+        a custom room configuration instead.
+        """
+        muc = self.client.plugin['xep_0045']
+        affiliation = None
+        while affiliation is None:
+            sleep(0.5)
+            affiliation = muc.getJidProperty(
+                room=room,
+                nick=muc.ourNicks[room],
+                jidProperty='affiliation'
+            )
+
+        if affiliation == "owner":
+            logging.debug("Configuring room {} because we have owner affiliation".format(room))
+            form = muc.getRoomConfig(room)
             muc.configureRoom(room, form)
         else:
-            logging.error("Error configuring the MUC Room %s" % room)
+            logging.debug("Not configuring room {} because we don't have owner affiliation (affiliation={})"
+                          .format(room, affiliation))
 
     def invite_in_room(self, room, jids_to_invite):
         muc = self.client.plugin['xep_0045']
         for jid in jids_to_invite:
             logging.debug("Inviting %s to %s..." % (jid, room))
             muc.invite(room, jid)
-
 
 
 class XMPPBackend(ErrBot):

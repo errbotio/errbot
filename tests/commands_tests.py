@@ -38,13 +38,17 @@ class TestCommands(FullStackTest):
         self.assertIn('Done', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('Copy paste and adapt', popMessage())
+        m = popMessage()
+        self.assertIn('Default configuration for this plugin (you can copy and paste this directly as a command)', m)
+        self.assertNotIn('Current configuration', m)
 
         pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', popMessage())
 
         pushMessage('!config Webserver')
-        self.assertIn('localhost', popMessage())
+        m = popMessage()
+        self.assertIn('Current configuration', m)
+        self.assertIn('localhost', m)
 
         pushMessage('!export configs')
         configs = popMessage()

@@ -25,6 +25,7 @@ import subprocess
 
 from tarfile import TarFile
 from urllib.request import urlopen
+from pprint import pformat
 
 from errbot import botcmd, PY2
 from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS
@@ -654,10 +655,13 @@ class ErrBot(Backend, StoreMixin):
 
         if len(args) == 1:
             current_config = self.get_plugin_configuration(plugin_name)
+            response = ("Default configuration for this plugin (you can copy and paste "
+                        "this directly as a command):\n{prefix}config {plugin_name} \n{config}").format(
+                        prefix=self.prefix, plugin_name=plugin_name, config=pformat(template_obj))
             if current_config:
-                return 'Copy paste and adapt one of the following:\nDefault Config: ' + self.prefix + 'config %s %s\nCurrent Config: !config %s %s' % (
-                    plugin_name, repr(template_obj), plugin_name, repr(current_config))
-            return 'Copy paste and adapt of the following:\n' + self.prefix + 'config %s %s' % (plugin_name, repr(template_obj))
+                response += "\n\nCurrent configuration:\n{prefix}config {plugin_name} \n{config}".format(
+                            prefix=self.prefix, plugin_name=plugin_name, config=pformat(current_config))
+            return response
 
         #noinspection PyBroadException
         try:

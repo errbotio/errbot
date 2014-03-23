@@ -9,7 +9,7 @@ from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid, split_
 from errbot.templating import tenv
 import traceback
 
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY
+from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY, CHATROOM_FN
 
 try:
     from config import ACCESS_CONTROLS_DEFAULT
@@ -291,6 +291,17 @@ class Backend(object):
 
         if type not in ("groupchat", "chat"):
             logging.debug("unhandled message type %s" % mess)
+            return False
+
+        # Ignore messages from ourselves. Because it isn't always possible to get the
+        # real JID from a MUC participant (including ourself), matching the JID against
+        # ourselves isn't enough (see https://github.com/gbin/err/issues/90 for
+        # background discussion on this). Matching against CHATROOM_FN isn't technically
+        # correct in all cases because a MUC could give us another nickname, but it
+        # covers 99% of the MUC cases, so it should suffice for the time being.
+        if (jid.bareMatch(Identifier(self.jid)) or
+            type == "groupchat" and mess.getMuckNick() == CHATROOM_FN):
+            logging.debug("Ignoring message from self")
             return False
 
         logging.debug("*** jid = %s" % jid)

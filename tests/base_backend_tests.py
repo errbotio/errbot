@@ -58,16 +58,13 @@ class DummyBackend(Backend):
         for i in range(2):
             yield LONG_TEXT_STRING * 3
 
+    @property
+    def mode(self):
+        return "Dummy"
+
     def __init__(self):
         super(DummyBackend, self).__init__()
-        self.commands['return_args_as_str'] = self.return_args_as_str
-        self.commands['return_args_as_html'] = self.return_args_as_html
-        self.commands['raises_exception'] = self.raises_exception
-        self.commands['yield_args_as_str'] = self.yield_args_as_str
-        self.commands['yield_args_as_html'] = self.yield_args_as_html
-        self.commands['yields_str_then_raises_exception'] = self.yields_str_then_raises_exception
-        self.commands['return_long_output'] = self.return_long_output
-        self.commands['yield_long_output'] = self.yield_long_output
+        self.inject_commands_from(self)
 
 
 class TestBase(unittest.TestCase):

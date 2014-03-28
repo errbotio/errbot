@@ -4,7 +4,7 @@ import os
 from queue import Queue, Empty
 from errbot.backends.base import Identifier, Backend, Message
 from errbot.backends.base import build_message, build_text_html_message_pair
-from errbot import botcmd, templating
+from errbot import botcmd, re_botcmd, templating
 from errbot.utils import mess_2_embeddablehtml
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
@@ -21,6 +21,10 @@ class DummyBackend(Backend):
 
     def pop_message(self, timeout=3, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
+
+    @re_botcmd(pattern=r'^regex$')
+    def regex_command(self, mess, match):
+        return "Regex command"
 
     @botcmd
     def return_args_as_str(self, mess, args):
@@ -207,3 +211,22 @@ class TestExecuteAndSend(unittest.TestCase):
         for i in range(6):  # yields_long_output yields 2 strings that are 3x longer than the size limit
             self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().getBody())
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
+
+
+class BotCmds(unittest.TestCase):
+    def setUp(self):
+        self.dummy = DummyBackend()
+
+    def test_inject_skips_methods_without_botcmd_decorator(self):
+        self.assertTrue('build_message' not in self.dummy.commands)
+
+    def test_inject_and_remove_botcmd(self):
+        self.assertTrue('return_args_as_str' in self.dummy.commands)
+        self.dummy.remove_commands_from(self.dummy)
+        self.assertFalse(len(self.dummy.commands))
+
+    def test_inject_and_remove_re_botcmd(self):
+        self.assertTrue('regex_command' in self.dummy.re_commands)
+        self.dummy.remove_commands_from(self.dummy)
+        self.assertFalse(len(self.dummy.re_commands))
+

@@ -235,6 +235,7 @@ class Backend(object):
             self.thread_pool = ThreadPool(3)
             logging.debug('created the thread pool' + str(self.thread_pool))
         self.commands = {}  # the dynamically populated list of commands available on the bot
+        self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
 
         if BOT_ALT_PREFIX_CASEINSENSITIVE:
             self.bot_alt_prefixes = tuple(prefix.lower() for prefix in BOT_ALT_PREFIXES)
@@ -519,21 +520,30 @@ class Backend(object):
         classname = instance_to_inject.__class__.__name__
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
+                commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
                 name = getattr(value, '_err_command_name')
 
-                if name in self.commands:
-                    f = self.commands[name]
+                if name in commands:
+                    f = commands[name]
                     new_name = (classname + '-' + name).lower()
                     self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, type(f.__self__).__name__, f.__name__, new_name ))
                     name = new_name
-                logging.debug('Adding command : %s -> %s' % (name, value.__name__))
-                self.commands[name] = value
+                commands[name] = value
+
+                if getattr(value, '_err_re_command'):
+                    logging.debug('Adding regex command : %s -> %s' % (name, value.__name__))
+                    self.re_commands = commands
+                else:
+                    logging.debug('Adding command : %s -> %s' % (name, value.__name__))
+                    self.commands = commands
 
     def remove_commands_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
                 name = getattr(value, '_err_command_name')
-                if name in self.commands:  # this could happen in premature shutdown
+                if getattr(value, '_err_re_command') and name in self.re_commands:
+                    del (self.re_commands[name])
+                elif not getattr(value, '_err_re_command') and name in self.commands:
                     del (self.commands[name])
 
     def warn_admins(self, warning):

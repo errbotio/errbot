@@ -1,7 +1,23 @@
 # coding=utf-8
+import sys
+import logging
+from tempfile import mkdtemp
+from os.path import sep
+
+__import__('errbot.config-template')
+config_module = sys.modules['errbot.config-template']
+sys.modules['config'] = config_module
+
+tempdir = mkdtemp()
+config_module.BOT_DATA_DIR = tempdir
+config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+config_module.BOT_EXTRA_PLUGIN_DIR = []
+config_module.BOT_LOG_LEVEL = logging.DEBUG
+
 import unittest
 import os
 from queue import Queue, Empty
+from mock import patch
 from errbot.backends.base import Identifier, Backend, Message
 from errbot.backends.base import build_message, build_text_html_message_pair
 from errbot import botcmd, re_botcmd, templating
@@ -11,7 +27,7 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
-    jid = Identifier('err@localhost/err')
+    jid = 'err@localhost/err'
 
     def build_message(self, text):
         return build_message(text, Message)
@@ -217,6 +233,13 @@ class BotCmds(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
 
+    def makemessage(self, message, from_="noterr@localhost/resource", to="noterr@localhost/resource", type="chat"):
+        m = self.dummy.build_message(message)
+        m.setFrom(from_)
+        m.setTo(to)
+        m.setType(type)
+        return m
+
     def test_inject_skips_methods_without_botcmd_decorator(self):
         self.assertTrue('build_message' not in self.dummy.commands)
 
@@ -230,3 +253,30 @@ class BotCmds(unittest.TestCase):
         self.dummy.remove_commands_from(self.dummy)
         self.assertFalse(len(self.dummy.re_commands))
 
+    def test_callback_message(self):
+        self.dummy.callback_message(None, self.makemessage("!return_args_as_str one two"))
+        self.assertEquals("one two", self.dummy.pop_message().getBody())
+
+    @patch('errbot.backends.base.BOT_PREFIX_OPTIONAL_ON_CHAT', new=True)
+    def test_callback_message_with_prefix_optional(self):
+        m = self.makemessage("return_args_as_str one two")
+        self.dummy.callback_message(None, m)
+        self.assertEquals("one two", self.dummy.pop_message().getBody())
+
+        # Groupchat should still require the prefix
+        m.setType("groupchat")
+        self.dummy.callback_message(None, m)
+        self.assertRaises(Empty, self.dummy.pop_message, *[], **{'block': False})
+
+        m = self.makemessage("!return_args_as_str one two", type="groupchat")
+        self.dummy.callback_message(None, m)
+        self.assertEquals("one two", self.dummy.pop_message().getBody())
+
+    @patch('errbot.backends.base.BOT_ALT_PREFIXES', new=('Err',))
+    @patch('errbot.backends.base.BOT_ALT_PREFIX_SEPARATORS', new=(',', ';'))
+    def test_callback_message_with_bot_alt_prefixes(self):
+        self.dummy = DummyBackend()
+        self.dummy.callback_message(None, self.makemessage("Err return_args_as_str one two"))
+        self.assertEquals("one two", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("Err, return_args_as_str one two"))
+        self.assertEquals("one two", self.dummy.pop_message().getBody())

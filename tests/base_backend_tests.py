@@ -38,6 +38,10 @@ class DummyBackend(Backend):
     def pop_message(self, timeout=3, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
 
+    @botcmd
+    def command(self, mess, args):
+        return "Regular command"
+
     @re_botcmd(pattern=r'^regex$')
     def regex_command(self, mess, match):
         return "Regex command"
@@ -244,7 +248,7 @@ class BotCmds(unittest.TestCase):
         self.assertTrue('build_message' not in self.dummy.commands)
 
     def test_inject_and_remove_botcmd(self):
-        self.assertTrue('return_args_as_str' in self.dummy.commands)
+        self.assertTrue('command' in self.dummy.commands)
         self.dummy.remove_commands_from(self.dummy)
         self.assertFalse(len(self.dummy.commands))
 
@@ -280,3 +284,77 @@ class BotCmds(unittest.TestCase):
         self.assertEquals("one two", self.dummy.pop_message().getBody())
         self.dummy.callback_message(None, self.makemessage("Err, return_args_as_str one two"))
         self.assertEquals("one two", self.dummy.pop_message().getBody())
+
+    def test_access_controls(self):
+        tests = [
+            dict(
+                message=self.makemessage("!command"),
+                acl={},
+                acl_default={},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={},
+                acl_default={'allowmuc': False, 'allowprivate': False},
+                expected_response="You're not allowed to access this command via private message to me"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={},
+                acl_default={'allowmuc': True, 'allowprivate': False},
+                expected_response="You're not allowed to access this command via private message to me"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={},
+                acl_default={'allowmuc': False, 'allowprivate': True},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'allowprivate': True}},
+                acl_default={'allowmuc': False, 'allowprivate': False},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
+                acl={'command': {'allowrooms': ('room@localhost',)}},
+                acl_default={},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
+                acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
+                acl_default={},
+                expected_response="You're not allowed to access this command from this room",
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
+                acl={'command': {'denyrooms': ('room@localhost',)}},
+                acl_default={},
+                expected_response="You're not allowed to access this command from this room",
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
+                acl={'command': {'denyrooms': ('anotherroom@localhost',)}},
+                acl_default={},
+                expected_response="Regular command"
+            ),
+        ]
+
+        for test in tests:
+            with patch.multiple(
+                'errbot.backends.base',
+                ACCESS_CONTROLS_DEFAULT=test['acl_default'],
+                ACCESS_CONTROLS=test['acl']
+            ):
+                logger = logging.getLogger(__name__)
+                logger.info("** message: {}".format(test['message'].getBody()))
+                logger.info("** acl: {!r}".format(test['acl']))
+                logger.info("** acl_default: {!r}".format(test['acl_default']))
+                self.dummy.callback_message(None, test['message'])
+                self.assertEqual(
+                    test['expected_response'],
+                    self.dummy.pop_message().getBody()
+                )

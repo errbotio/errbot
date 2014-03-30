@@ -8,7 +8,8 @@ from errbot import holder, PY3
 from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
-from errbot.builtins.wsview import bottle_app, webhook
+from errbot.builtins.wsview import bottle_app
+from errbot.decorators import webhook
 from errbot.bundled.rocket import Rocket
 from webtest import TestApp
 from config import BOT_DATA_DIR

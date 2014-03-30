@@ -2,7 +2,6 @@ import inspect
 import logging
 import difflib
 import traceback
-import re
 from collections import deque, defaultdict
 from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError

@@ -44,17 +44,19 @@ def re_botcmd(*args, **kwargs):
     """
     Decorator for bot regex-based command functions
 
-    Pattern should be a regex pattern to match on.
+    Pattern is the regular expression pattern to match on
+    Flags corresponds with the flags parameter on re.compile()
+
     Use prefixed=False when this bot command does not require a prefix in
     order to trigger.
     Other parameters are the same as with :func:`errbot.botcmd`
     """
 
-    def decorate(func, pattern, prefixed=True, hidden=False, name=None, admin_only=False, historize=True, template=None):
+    def decorate(func, pattern, flags=0, prefixed=True, hidden=False, name=None, admin_only=False, historize=True, template=None):
         if not hasattr(func, '_err_command'):  # don't override generated functions
             setattr(func, '_err_command', True)
             setattr(func, '_err_re_command', True)
-            setattr(func, '_err_command_re_pattern', re.compile(pattern))
+            setattr(func, '_err_command_re_pattern', re.compile(pattern, flags=flags))
             setattr(func, '_err_command_prefix_required', prefixed)
             setattr(func, '_err_command_hidden', hidden)
             setattr(func, '_err_command_name', name or func.__name__)

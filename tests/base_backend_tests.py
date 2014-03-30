@@ -16,6 +16,7 @@ config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 import unittest
 import os
+import re
 from queue import Queue, Empty
 from mock import patch
 from errbot.backends.base import Identifier, Backend, Message
@@ -58,7 +59,7 @@ class DummyBackend(Backend):
     def double_regex_command_one(self, mess, match):
         return "one"
 
-    @re_botcmd(pattern=r'matched by two commands')
+    @re_botcmd(pattern=r'matched by two commands', flags=re.IGNORECASE)
     def double_regex_command_two(self, mess, match):
         return "two"
 
@@ -340,6 +341,11 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(None, self.makemessage("!matched by two commands"))
         response = (self.dummy.pop_message().getBody(), self.dummy.pop_message().getBody())
         self.assertTrue(response == ("one", "two") or response == ("two", "one"))
+
+    def test_regex_commands_allow_passing_re_flags(self):
+        self.dummy.callback_message(None, self.makemessage("!MaTcHeD By TwO cOmMaNdS"))
+        self.assertEquals("two", self.dummy.pop_message().getBody())
+        self.assertRaises(Empty, self.dummy.pop_message, **{'timeout': 1})
 
     def test_access_controls(self):
         tests = [

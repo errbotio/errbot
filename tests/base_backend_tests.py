@@ -54,6 +54,14 @@ class DummyBackend(Backend):
     def regex_command_with_capture_group(self, mess, match):
         return match.group('capture')
 
+    @re_botcmd(pattern=r'matched by two commands')
+    def double_regex_command_one(self, mess, match):
+        return "one"
+
+    @re_botcmd(pattern=r'matched by two commands')
+    def double_regex_command_two(self, mess, match):
+        return "two"
+
     @botcmd
     def return_args_as_str(self, mess, args):
         return "".join(args)
@@ -327,6 +335,11 @@ class BotCmds(unittest.TestCase):
         self.assertEquals("Captured text", self.dummy.pop_message().getBody())
         self.dummy.callback_message(None, self.makemessage("Err This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+
+    def test_regex_commands_can_overlap(self):
+        self.dummy.callback_message(None, self.makemessage("!matched by two commands"))
+        response = (self.dummy.pop_message().getBody(), self.dummy.pop_message().getBody())
+        self.assertTrue(response == ("one", "two") or response == ("two", "one"))
 
     def test_access_controls(self):
         tests = [

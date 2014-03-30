@@ -67,6 +67,11 @@ if BOT_ASYNC:
     from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
 
+class ACLViolation(Exception):
+    """Exceptions raised when user is not allowed to execute given command due to ACLs"""
+    pass
+
+
 class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends are identifying a person on their system
@@ -284,7 +289,7 @@ class Backend(object):
         jid = mess.getFrom()
         text = mess.getBody()
         username = get_sender_username(mess)
-        user_cmd_history = self.cmd_history[username];
+        user_cmd_history = self.cmd_history[username]
 
         if mess.isDelayed():
             logging.debug("Message from history, ignore it")
@@ -358,7 +363,6 @@ class Backend(object):
         cmd = None
         command = None
         args = ''
-        match = None  # Used to store re match for regex commands
         if not only_check_re_command:
             if len(text_split) > 1:
                 command = (text_split[0] + '_' + text_split[1]).lower()
@@ -387,6 +391,7 @@ class Backend(object):
                     return False  # no command in history
 
         # Try to match one of the regex commands if the regular commands produced no match
+        matched_on_re_command = False
         if not cmd:
             if prefixed:
                 commands = self.re_commands
@@ -399,49 +404,16 @@ class Backend(object):
                 if match:
                     logging.debug("Matching '{}' against '{}' produced a match"
                                   .format(text, func._err_command_re_pattern.pattern))
-                    cmd = name
-                    args = text
-                    break
+                    matched_on_re_command = True
+                    self._process_command(mess, name, text, match)
                 else:
                     logging.debug("Matching '{}' against '{}' produced no match"
                                   .format(text, func._err_command_re_pattern.pattern))
-
-
-        if (cmd, args) in user_cmd_history:
-            user_cmd_history.remove((cmd, args))  # we readd it below
+        if matched_on_re_command:
+            return True
 
         if cmd:
-            logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
-
-            access, accessError = self.check_command_access(mess, cmd)
-            if not access:
-                if not HIDE_RESTRICTED_ACCESS:
-                    self.send_simple_reply(mess, accessError)
-                return False
-
-            f = self.re_commands[cmd] if match else self.commands[cmd]
-
-            if f._err_command_admin_only and BOT_ASYNC:
-                    self.thread_pool.wait()  # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
-
-            if f._err_command_historize:
-                user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
-
-            # Don't check for None here as None can be a valid argument to split.
-            # '' was chosen as default argument because this isn't a valid argument to split()
-            if not match and f._err_command_split_args_with != '':
-                args = args.split(f._err_command_split_args_with)
-            if BOT_ASYNC:
-                wr = WorkRequest(self._execute_and_send,
-                                 [], {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
-                                      'template_name': f._err_command_template})
-                self.thread_pool.putRequest(wr)
-                if f._err_command_admin_only:
-                    self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
-            else:
-                self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess, jid=jid,
-                                       template_name=f._err_command_template)
-
+            self._process_command(mess, cmd, args, match=None)
         elif not only_check_re_command:
             logging.debug("Command not found")
             if surpress_cmd_not_found:
@@ -452,8 +424,48 @@ class Backend(object):
                     reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
                 if reply:
                     self.send_simple_reply(mess, reply)
-
         return True
+
+    def _process_command(self, mess, cmd, args, match):
+        """Process and execute a bot command"""
+        logging.info("Processing command {} with parameters '{}'".format(cmd, args))
+
+        jid = mess.getFrom()
+        username = get_sender_username(mess)
+        user_cmd_history = self.cmd_history[username]
+
+        if (cmd, args) in user_cmd_history:
+            user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
+
+        try:
+            self.check_command_access(mess, cmd)
+        except ACLViolation as e:
+            if not HIDE_RESTRICTED_ACCESS:
+                self.send_simple_reply(mess, str(e))
+            return
+
+        f = self.re_commands[cmd] if match else self.commands[cmd]
+
+        if f._err_command_admin_only and BOT_ASYNC:
+            self.thread_pool.wait()  # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
+
+        if f._err_command_historize:
+            user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
+
+        # Don't check for None here as None can be a valid argument to split.
+        # '' was chosen as default argument because this isn't a valid argument to split()
+        if not match and f._err_command_split_args_with != '':
+            args = args.split(f._err_command_split_args_with)
+        if BOT_ASYNC:
+            wr = WorkRequest(self._execute_and_send,
+                [], {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
+                     'template_name': f._err_command_template})
+            self.thread_pool.putRequest(wr)
+            if f._err_command_admin_only:
+                self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
+        else:
+            self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess, jid=jid,
+                                   template_name=f._err_command_template)
 
     def _execute_and_send(self, cmd, args, match, mess, jid, template_name=None):
         """Execute a bot command and send output back to the caller
@@ -497,6 +509,11 @@ class Backend(object):
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
     def check_command_access(self, mess, cmd):
+        """
+        Check command against ACL rules
+
+        Raises ACLViolation() if the command may not be executed in the given context
+        """
         usr = str(get_jid_from_message(mess))
         typ = mess.getType()
 
@@ -504,30 +521,28 @@ class Backend(object):
             ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
 
         if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
-            return False, "You're not allowed to access this command from this user"
+            raise ACLViolation("You're not allowed to access this command from this user")
         if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
-            return False, "You're not allowed to access this command from this user"
+            raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
             stripped = mess.getFrom().getStripped()
             if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
-                return False, "You're not allowed to access this command from a chatroom"
+                raise ACLViolation("You're not allowed to access this command from a chatroom")
             if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
-                return False, "You're not allowed to access this command from this room"
+                raise ACLViolation("You're not allowed to access this command from this room")
             if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
-                return False, "You're not allowed to access this command from this room"
+                raise ACLViolation("You're not allowed to access this command from this room")
         else:
             if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
-                return False, "You're not allowed to access this command via private message to me"
+                raise ACLViolation("You're not allowed to access this command via private message to me")
 
         f = self.commands[cmd] if cmd in self.commands else self.re_commands[cmd]
 
         if f._err_command_admin_only:
             if typ == 'groupchat':
-                return False, 'You cannot administer the bot from a chatroom, message the bot directly'
+                raise ACLViolation("You cannot administer the bot from a chatroom, message the bot directly")
             if usr not in BOT_ADMINS:
-                return False, 'You cannot administer the bot from this user %s.' % usr
-        
-        return True, ""
+                raise ACLViolation("You cannot administer the bot from this user %s.' % usr")
 
     def unknown_command(self, mess, cmd, args):
         """ Override the default unknown command behavior

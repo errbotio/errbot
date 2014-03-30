@@ -1,5 +1,6 @@
 import logging
 import sys
+import re
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
@@ -42,16 +43,23 @@ def botcmd(*args, **kwargs):
 def re_botcmd(*args, **kwargs):
     """
     Decorator for bot regex-based command functions
+
+    Pattern should be a regex pattern to match on.
+    Use prefixed=False when this bot command does not require a prefix in
+    order to trigger.
+    Other parameters are the same as with :func:`errbot.botcmd`
     """
 
-    def decorate(func, pattern, hidden=False, name=None, admin_only=False, template=None):
+    def decorate(func, pattern, prefixed=True, hidden=False, name=None, admin_only=False, historize=True, template=None):
         if not hasattr(func, '_err_command'):  # don't override generated functions
             setattr(func, '_err_command', True)
             setattr(func, '_err_re_command', True)
-            setattr(func, '_err_command_re_pattern', pattern)
+            setattr(func, '_err_command_re_pattern', re.compile(pattern))
+            setattr(func, '_err_command_prefix_required', prefixed)
             setattr(func, '_err_command_hidden', hidden)
             setattr(func, '_err_command_name', name or func.__name__)
             setattr(func, '_err_command_admin_only', admin_only)
+            setattr(func, '_err_command_historize', historize)
             setattr(func, '_err_command_template', template)
         return func
 

@@ -1,14 +1,15 @@
-from collections import deque, defaultdict
 import inspect
 import logging
+import difflib
+import traceback
+import re
+from collections import deque, defaultdict
 from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
-from errbot import botcmd, PY2
-import difflib
-from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid, split_string_after
-from errbot.templating import tenv
-import traceback
 
+from errbot import botcmd, PY2
+from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after
+from errbot.templating import tenv
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY, CHATROOM_FN
 
 try:
@@ -317,17 +318,21 @@ class Backend(object):
 
         surpress_cmd_not_found = False
 
+        prefixed = False  # Keeps track whether text was prefixed with a bot prefix
+        only_check_re_command = False  # Becomes true if text is determed to not be a regular command
         tomatch = text.lower() if BOT_ALT_PREFIX_CASEINSENSITIVE else text
         if len(BOT_ALT_PREFIXES) > 0 and tomatch.startswith(self.bot_alt_prefixes):
             # Yay! We were called by one of our alternate prefixes. Now we just have to find out
             # which one... (And find the longest matching, in case you have 'err' and 'errbot' and
             # someone uses 'errbot', which also matches 'err' but would leave 'bot' to be taken as
             # part of the called command in that case)
+            prefixed = True
             longest = 0
             for prefix in self.bot_alt_prefixes:
                 l = len(prefix)
                 if tomatch.startswith(prefix) and l > longest:
                     longest = l
+            logging.debug("Called with alternate prefix '{}'".format(text[:longest]))
             text = text[longest:]
 
             # Now also remove the separator from the text
@@ -344,39 +349,64 @@ class Backend(object):
             # was said with trigger_message.
             surpress_cmd_not_found = True
         elif not text.startswith(BOT_PREFIX):
-            return True
+            only_check_re_command = True
         if text.startswith(BOT_PREFIX):
             text = text[len(BOT_PREFIX):]
+            prefixed = True
 
-        text_split = text.strip().split(' ')
+        text = text.strip()
+        text_split = text.split(' ')
         cmd = None
         command = None
         args = ''
-        if len(text_split) > 1:
-            command = (text_split[0] + '_' + text_split[1]).lower()
-            if command in self.commands:
-                cmd = command
-                args = ' '.join(text_split[2:])
+        match = None  # Used to store re match for regex commands
+        if not only_check_re_command:
+            if len(text_split) > 1:
+                command = (text_split[0] + '_' + text_split[1]).lower()
+                if command in self.commands:
+                    cmd = command
+                    args = ' '.join(text_split[2:])
 
+            if not cmd:
+                command = text_split[0].lower()
+                args = ' '.join(text_split[1:])
+                if command in self.commands:
+                    cmd = command
+                    if len(text_split) > 1:
+                        args = ' '.join(text_split[1:])
+
+            if command == BOT_PREFIX:  # we did "!!" so recall the last command
+                if len(user_cmd_history):
+                    cmd, args = user_cmd_history[-1]
+                else:
+                    return False  # no command in history
+            elif command.isdigit():  # we did "!#" so we recall the specified command
+                index = int(command)
+                if len(user_cmd_history) >= index:
+                    cmd, args = user_cmd_history[-index]
+                else:
+                    return False  # no command in history
+
+        # Try to match one of the regex commands if the regular commands produced no match
         if not cmd:
-            command = text_split[0].lower()
-            args = ' '.join(text_split[1:])
-            if command in self.commands:
-                cmd = command
-                if len(text_split) > 1:
-                    args = ' '.join(text_split[1:])
+            if prefixed:
+                commands = self.re_commands
+            else:
+                commands = {k: self.re_commands[k] for k in self.re_commands
+                           if not self.re_commands[k]._err_command_prefix_required}
 
-        if command == BOT_PREFIX:  # we did "!!" so recall the last command
-            if len(user_cmd_history):
-                cmd, args = user_cmd_history[-1]
-            else:
-                return False  # no command in history
-        elif command.isdigit():  # we did "!#" so we recall the specified command
-            index = int(command)
-            if len(user_cmd_history) >= index:
-                cmd, args = user_cmd_history[-index]
-            else:
-                return False  # no command in history
+            for name,func in commands.items():
+                match = func._err_command_re_pattern.search(text)
+                if match:
+                    logging.debug("Matching '{}' against '{}' produced a match"
+                                  .format(text, func._err_command_re_pattern.pattern))
+                    cmd = name
+                    args = text
+                    break
+                else:
+                    logging.debug("Matching '{}' against '{}' produced no match"
+                                  .format(text, func._err_command_re_pattern.pattern))
+
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # we readd it below
@@ -390,7 +420,7 @@ class Backend(object):
                     self.send_simple_reply(mess, accessError)
                 return False
 
-            f = self.commands[cmd]
+            f = self.re_commands[cmd] if match else self.commands[cmd]
 
             if f._err_command_admin_only and BOT_ASYNC:
                     self.thread_pool.wait()  # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
@@ -400,20 +430,20 @@ class Backend(object):
 
             # Don't check for None here as None can be a valid argument to split.
             # '' was chosen as default argument because this isn't a valid argument to split()
-            if f._err_command_split_args_with != '':
+            if not match and f._err_command_split_args_with != '':
                 args = args.split(f._err_command_split_args_with)
             if BOT_ASYNC:
                 wr = WorkRequest(self._execute_and_send,
-                                 [], {'cmd': cmd, 'args': args, 'mess': mess, 'jid': jid,
+                                 [], {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
                                       'template_name': f._err_command_template})
                 self.thread_pool.putRequest(wr)
                 if f._err_command_admin_only:
                     self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
             else:
-                self._execute_and_send(cmd=cmd, args=args, mess=mess, jid=jid,
+                self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess, jid=jid,
                                        template_name=f._err_command_template)
 
-        else:
+        elif not only_check_re_command:
             logging.debug("Command not found")
             if surpress_cmd_not_found:
                 logging.debug("Surpressing command not found feedback")
@@ -426,11 +456,12 @@ class Backend(object):
 
         return True
 
-    def _execute_and_send(self, cmd, args, mess, jid, template_name=None):
+    def _execute_and_send(self, cmd, args, match, mess, jid, template_name=None):
         """Execute a bot command and send output back to the caller
 
         cmd: The command that was given to the bot (after being expanded)
         args: Arguments given along with cmd
+        match: A re.MatchObject if command is coming from a regex-based command, else None
         mess: The message object
         jid: The jid of the person executing the command
         template_name: The name of the template which should be used to render
@@ -450,13 +481,14 @@ class Backend(object):
             for part in split_string_after(reply, self.MESSAGE_SIZE_LIMIT):
                 self.send_simple_reply(mess, part, cmd in DIVERT_TO_PRIVATE)
 
+        commands = self.re_commands if match else self.commands
         try:
-            if inspect.isgeneratorfunction(self.commands[cmd]):
-                replies = self.commands[cmd](mess, args)
+            if inspect.isgeneratorfunction(commands[cmd]):
+                replies = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 for reply in replies:
                     if reply: send_reply(process_reply(reply))
             else:
-                reply = self.commands[cmd](mess, args)
+                reply = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 if reply: send_reply(process_reply(reply))
         except Exception as e:
             tb = traceback.format_exc()
@@ -488,7 +520,7 @@ class Backend(object):
             if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
                 return False, "You're not allowed to access this command via private message to me"
 
-        f = self.commands[cmd]
+        f = self.commands[cmd] if cmd in self.commands else self.re_commands[cmd]
 
         if f._err_command_admin_only:
             if typ == 'groupchat':

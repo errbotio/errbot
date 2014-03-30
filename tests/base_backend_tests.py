@@ -42,9 +42,17 @@ class DummyBackend(Backend):
     def command(self, mess, args):
         return "Regular command"
 
-    @re_botcmd(pattern=r'^regex$')
-    def regex_command(self, mess, match):
+    @re_botcmd(pattern=r'^regex command with prefix$', prefixed=True)
+    def regex_command_with_prefix(self, mess, match):
         return "Regex command"
+
+    @re_botcmd(pattern=r'^regex command without prefix$', prefixed=False)
+    def regex_command_without_prefix(self, mess, match):
+        return "Regex command"
+
+    @re_botcmd(pattern=r'regex command with capture group: (?P<capture>.*)', prefixed=False)
+    def regex_command_with_capture_group(self, mess, match):
+        return match.group('capture')
 
     @botcmd
     def return_args_as_str(self, mess, args):
@@ -165,14 +173,14 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.return_args_as_str._err_command_template)
+        dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], match=None, mess=m, jid='noterr@localhost', template_name=dummy.return_args_as_str._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().getBody())
 
     def test_commands_can_return_html(self):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.return_args_as_html._err_command_template)
+        dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], match=None, mess=m, jid='noterr@localhost', template_name=dummy.return_args_as_html._err_command_template)
         response = dummy.pop_message()
         self.assertEqual("foobar", response.getBody())
         self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>'
@@ -183,10 +191,10 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=dummy.raises_exception._err_command_template)
+        dummy._execute_and_send(cmd='raises_exception', args=[], match=None, mess=m, jid='noterr@localhost', template_name=dummy.raises_exception._err_command_template)
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
 
-        dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], mess=m, jid='noterr@localhost', template_name=dummy.yields_str_then_raises_exception._err_command_template)
+        dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], match=None, mess=m, jid='noterr@localhost', template_name=dummy.yields_str_then_raises_exception._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().getBody())
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().getBody())
 
@@ -194,7 +202,7 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.yield_args_as_str._err_command_template)
+        dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], match=None, mess=m, jid='noterr@localhost', template_name=dummy.yield_args_as_str._err_command_template)
         self.assertEqual("foo", dummy.pop_message().getBody())
         self.assertEqual("bar", dummy.pop_message().getBody())
 
@@ -202,7 +210,7 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.yield_args_as_html._err_command_template)
+        dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], match=None, mess=m, jid='noterr@localhost', template_name=dummy.yield_args_as_html._err_command_template)
         response1 = dummy.pop_message()
         response2 = dummy.pop_message()
         self.assertEqual("foo", response1.getBody())
@@ -217,7 +225,7 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
         self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
-        dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.return_long_output._err_command_template)
+        dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, mess=m, jid='noterr@localhost', template_name=dummy.return_long_output._err_command_template)
         for i in range(3):  # return_long_output outputs a string that's 3x longer than the size limit
             self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().getBody())
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
@@ -227,7 +235,7 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
         self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
-        dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], mess=m, jid='noterr@localhost', template_name=dummy.yield_long_output._err_command_template)
+        dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, mess=m, jid='noterr@localhost', template_name=dummy.yield_long_output._err_command_template)
         for i in range(6):  # yields_long_output yields 2 strings that are 3x longer than the size limit
             self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().getBody())
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
@@ -253,7 +261,7 @@ class BotCmds(unittest.TestCase):
         self.assertFalse(len(self.dummy.commands))
 
     def test_inject_and_remove_re_botcmd(self):
-        self.assertTrue('regex_command' in self.dummy.re_commands)
+        self.assertTrue('regex_command_with_prefix' in self.dummy.re_commands)
         self.dummy.remove_commands_from(self.dummy)
         self.assertFalse(len(self.dummy.re_commands))
 
@@ -285,6 +293,41 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(None, self.makemessage("Err, return_args_as_str one two"))
         self.assertEquals("one two", self.dummy.pop_message().getBody())
 
+    def test_callback_message_with_re_botcmd(self):
+        self.dummy.callback_message(None, self.makemessage("!regex command with prefix"))
+        self.assertEquals("Regex command", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("regex command without prefix"))
+        self.assertEquals("Regex command", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("!regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("This command also allows extra text in front - regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+
+    @patch('errbot.backends.base.BOT_ALT_PREFIXES', new=('Err',))
+    @patch('errbot.backends.base.BOT_ALT_PREFIX_SEPARATORS', new=(',', ';'))
+    def test_callback_message_with_re_botcmd_and_alt_prefixes(self):
+        self.dummy = DummyBackend()
+        self.dummy.callback_message(None, self.makemessage("!regex command with prefix"))
+        self.assertEquals("Regex command", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("Err regex command with prefix"))
+        self.assertEquals("Regex command", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("Err, regex command with prefix"))
+        self.assertEquals("Regex command", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("regex command without prefix"))
+        self.assertEquals("Regex command", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("!regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("This command also allows extra text in front - regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("Err, regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+        self.dummy.callback_message(None, self.makemessage("Err This command also allows extra text in front - regex command with capture group: Captured text"))
+        self.assertEquals("Captured text", self.dummy.pop_message().getBody())
+
     def test_access_controls(self):
         tests = [
             dict(
@@ -294,7 +337,19 @@ class BotCmds(unittest.TestCase):
                 expected_response="Regular command"
             ),
             dict(
+                message=self.makemessage("!regex command with prefix"),
+                acl={},
+                acl_default={},
+                expected_response="Regex command"
+            ),
+            dict(
                 message=self.makemessage("!command"),
+                acl={},
+                acl_default={'allowmuc': False, 'allowprivate': False},
+                expected_response="You're not allowed to access this command via private message to me"
+            ),
+            dict(
+                message=self.makemessage("regex command without prefix"),
                 acl={},
                 acl_default={'allowmuc': False, 'allowprivate': False},
                 expected_response="You're not allowed to access this command via private message to me"

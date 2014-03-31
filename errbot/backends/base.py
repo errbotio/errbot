@@ -610,6 +610,18 @@ class Backend(object):
     def disconnect_callback(self):
         pass
 
+    def callback_contact_online(self, conn, pres):
+        pass
+
+    def callback_contact_offline(self, conn, pres):
+        pass
+
+    def callback_user_joined_chat(self, conn, pres):
+        pass
+
+    def callback_user_left_chat(self, conn, pres):
+        pass
+
     @property
     def mode(self):
         raise NotImplementedError("It should be implemented specifically for your backend")

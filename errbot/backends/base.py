@@ -542,7 +542,7 @@ class Backend(object):
             if typ == 'groupchat':
                 raise ACLViolation("You cannot administer the bot from a chatroom, message the bot directly")
             if usr not in BOT_ADMINS:
-                raise ACLViolation("You cannot administer the bot from this user %s.' % usr")
+                raise ACLViolation("This command requires bot-admin privileges")
 
     def unknown_command(self, mess, cmd, args):
         """ Override the default unknown command behavior

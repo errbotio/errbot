@@ -170,6 +170,30 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
+    def callback_contact_online(self, conn, pres):
+        """
+            Override to get a notification when a contact becomes online.
+        """
+        pass
+
+    def callback_contact_offline(self, conn, pres):
+        """
+            Override to get notified when a contact becomes offline.
+        """
+        pass
+
+    def callback_user_joined_chat(self, conn, pres):
+        """
+            Override to get notified when any user joins a chatroom or an equivalent.
+        """
+        pass
+
+    def callback_user_left_chat(self, conn, pres):
+        """
+            Override to get notified when any user leaves a chatroom or an equivalent.
+        """
+        pass
+
     # Proxyfy some useful tools from the motherbot
     # this is basically the contract between the plugins and the main bot
 

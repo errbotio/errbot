@@ -107,6 +107,26 @@ class Identifier(object):
         return str(self.__str__())
 
 
+class Presence(object):
+    """
+        An universal class representing protocol agnostic concept
+        of presence.
+    """
+    def __init__(self, nick, room, real_id=None):
+        self.nick = nick
+        self.room = room
+        self.real_id = real_id
+
+    def get_room(self):
+        return self.room
+
+    def get_resource(self):
+        return self.room
+
+    def get_real_name(self):
+        return self.real_id
+
+
 class Message(object):
     fr = Identifier('unknown@localhost')
 

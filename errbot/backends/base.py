@@ -120,8 +120,8 @@ class Presence(object):
     def get_room(self):
         return self.room
 
-    def get_resource(self):
-        return self.room
+    def get_nick(self):
+        return self.nick
 
     def get_real_name(self):
         return self.real_id

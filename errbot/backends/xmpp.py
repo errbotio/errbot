@@ -2,7 +2,7 @@ import logging
 import sys
 import os.path
 
-from errbot.backends.base import Message, build_message, Connection
+from errbot.backends.base import Message, Presence, build_message, Connection
 from errbot.errBot import ErrBot
 
 try:
@@ -43,7 +43,10 @@ if XMPP_CA_CERT_FILE is not None and not os.path.exists(XMPP_CA_CERT_FILE):
                   "Please set XMPP_CA_CERT_FILE to a valid file, or disable certificate"
                   "validation by setting it to None (not recommended!).")
     sys.exit(-1)
-
+try:
+    from config import CHATROOM_PRESENCE
+except ImportError:
+    CHATROOM_PRESENCE = ()
 
 
 def verify_gtalk_cert(xmpp_client):
@@ -154,6 +157,19 @@ class XMPPBackend(ErrBot):
         self.conn.add_event_handler("message", self.incoming_message)
         self.conn.add_event_handler("session_start", self.connected)
         self.conn.add_event_handler("disconnected", self.disconnected)
+        # presence related handlers
+        self.conn.add_event_handler("got_online", self.contact_online)
+        self.conn.add_event_handler("got_offline", self.contact_offline)
+        # NOTE: for now we will register the handlers this way
+        e_muc_online = "muc::{}::got_online"
+        e_muc_offline = "muc::{}::got_offline"
+        for room in CHATROOM_PRESENCE:
+            # using string or first element of (room, passwd) tuple
+            room = room if isinstance(room, str) else room[0]
+            self.conn.add_event_handler(e_muc_online.format(room),
+                                        self.user_joined_chat)
+            self.conn.add_event_handler(e_muc_offline.format(room),
+                                        self.user_left_chat)
 
     def create_connection(self):
         return XMPPConnection(self.jid, self.password)
@@ -169,6 +185,18 @@ class XMPPBackend(ErrBot):
         msg.setMuckNick(xmppmsg['mucnick'])
         msg.setDelayed(bool(xmppmsg['delay']._get_attr('stamp')))  # this is a bug in sleekxmpp it should be ['from']
         self.callback_message(self.conn, msg)
+
+    def contact_online(self, stanza):
+        pass
+
+    def contact_offline(self, stanza):
+        pass
+
+    def user_joined_chat(self, stanza):
+        pass
+
+    def user_left_chat(self, stanza):
+        pass
 
     def connected(self, data):
         """Callback for connection events"""

@@ -112,6 +112,26 @@ class Identifier(object):
         return str(self.__str__())
 
 
+class Presence(object):
+    """
+        An universal class representing protocol agnostic concept
+        of presence.
+    """
+    def __init__(self, nick, room, real_id=None):
+        self.nick = nick
+        self.room = room
+        self.real_id = real_id
+
+    def get_room(self):
+        return self.room
+
+    def get_nick(self):
+        return self.nick
+
+    def get_real_name(self):
+        return self.real_id
+
+
 class Message(object):
     fr = Identifier('unknown@localhost')
 
@@ -686,6 +706,18 @@ class Backend(object):
         pass
 
     def disconnect_callback(self):
+        pass
+
+    def callback_contact_online(self, conn, pres):
+        pass
+
+    def callback_contact_offline(self, conn, pres):
+        pass
+
+    def callback_user_joined_chat(self, conn, pres):
+        pass
+
+    def callback_user_left_chat(self, conn, pres):
         pass
 
     @property

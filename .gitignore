@@ -16,3 +16,9 @@ config_xmpp.py
 /docs/_gh-pages
 /docs/errbot.rst
 /docs/errbot.*.rst
+
+*.log
+*.crt
+
+# OS X
+.DS_Store

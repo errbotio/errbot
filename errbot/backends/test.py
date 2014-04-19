@@ -21,11 +21,14 @@ from errbot.backends.base import Message, build_message
 from errbot.errBot import ErrBot
 from errbot.builtins.wsview import reset_app
 
-incoming_message_queue = Queue()
+incoming_stanza_queue = Queue()
 outgoing_message_queue = Queue()
 
 QUIT_MESSAGE = '$STOP$'
 
+STZ_MSG = 1
+STZ_PRE = 2
+STZ_IQ = 3
 
 class ConnectionMock():
     def send(self, mess):
@@ -47,14 +50,22 @@ class TestBackend(ErrBot):
         self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
         try:
             while True:
-                entry = incoming_message_queue.get()
+                stanza_type, entry = incoming_stanza_queue.get()
                 if entry == QUIT_MESSAGE:
                     logging.info("Stop magic message received, quitting...")
                     break
-                msg = Message(entry)
-                msg.setFrom(self.sender)
-                msg.setTo(self.jid)  # To me only
-                self.callback_message(self.conn, msg)
+                if stanza_type is STZ_MSG:
+                    msg = Message(entry)
+                    msg.setFrom(self.sender)
+                    msg.setTo(self.jid)  # To me only
+                    self.callback_message(self.conn, msg)
+                elif stanza_type is STZ_PRE:
+                    logging.info("Presence stanza received.")
+                elif stanza_type is STZ_IQ:
+                    logging.info("IQ stanza received.")
+                else:
+                    logging.error("Unknown stanza type.")
+
         except EOFError as _:
             pass
         except KeyboardInterrupt as _:
@@ -87,15 +98,18 @@ class TestBackend(ErrBot):
 def popMessage(timeout=5, block=True):
     return outgoing_message_queue.get(timeout=timeout, block=block)
 
-
-
 def pushMessage(msg):
-    incoming_message_queue.put(msg, timeout=5)
+    incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
 
+def pushPresence(stanza):
+    pass
+
+#def pushIQ(stanza):
+#    pass
 
 def zapQueues():
-    while not incoming_message_queue.empty():
-        msg = incoming_message_queue.get(block=False)
+    while not incoming_stanza_queue.empty():
+        msg = incoming_stanza_queue.get(block=False)
         logging.error('Message left in the incoming queue during a test : %s' % msg)
 
     while not outgoing_message_queue.empty():

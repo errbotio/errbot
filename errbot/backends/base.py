@@ -1,14 +1,14 @@
-from collections import deque, defaultdict
 import inspect
 import logging
+import difflib
+import traceback
+from collections import deque, defaultdict
 from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
-from errbot import botcmd, PY2
-import difflib
-from errbot.utils import get_sender_username, xhtml2txt, utf8, parse_jid, split_string_after
-from errbot.templating import tenv
-import traceback
 
+from errbot import botcmd, PY2
+from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after
+from errbot.templating import tenv
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY, CHATROOM_FN
 
 try:
@@ -65,6 +65,11 @@ except ImportError:
 
 if BOT_ASYNC:
     from errbot.bundled.threadpool import ThreadPool, WorkRequest
+
+
+class ACLViolation(Exception):
+    """Exceptions raised when user is not allowed to execute given command due to ACLs"""
+    pass
 
 
 class Identifier(object):
@@ -235,6 +240,7 @@ class Backend(object):
             self.thread_pool = ThreadPool(3)
             logging.debug('created the thread pool' + str(self.thread_pool))
         self.commands = {}  # the dynamically populated list of commands available on the bot
+        self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
 
         if BOT_ALT_PREFIX_CASEINSENSITIVE:
             self.bot_alt_prefixes = tuple(prefix.lower() for prefix in BOT_ALT_PREFIXES)
@@ -283,7 +289,7 @@ class Backend(object):
         jid = mess.getFrom()
         text = mess.getBody()
         username = get_sender_username(mess)
-        user_cmd_history = self.cmd_history[username];
+        user_cmd_history = self.cmd_history[username]
 
         if mess.isDelayed():
             logging.debug("Message from history, ignore it")
@@ -316,17 +322,21 @@ class Backend(object):
 
         surpress_cmd_not_found = False
 
+        prefixed = False  # Keeps track whether text was prefixed with a bot prefix
+        only_check_re_command = False  # Becomes true if text is determed to not be a regular command
         tomatch = text.lower() if BOT_ALT_PREFIX_CASEINSENSITIVE else text
         if len(BOT_ALT_PREFIXES) > 0 and tomatch.startswith(self.bot_alt_prefixes):
             # Yay! We were called by one of our alternate prefixes. Now we just have to find out
             # which one... (And find the longest matching, in case you have 'err' and 'errbot' and
             # someone uses 'errbot', which also matches 'err' but would leave 'bot' to be taken as
             # part of the called command in that case)
+            prefixed = True
             longest = 0
             for prefix in self.bot_alt_prefixes:
                 l = len(prefix)
                 if tomatch.startswith(prefix) and l > longest:
                     longest = l
+            logging.debug("Called with alternate prefix '{}'".format(text[:longest]))
             text = text[longest:]
 
             # Now also remove the separator from the text
@@ -343,76 +353,68 @@ class Backend(object):
             # was said with trigger_message.
             surpress_cmd_not_found = True
         elif not text.startswith(BOT_PREFIX):
-            return True
+            only_check_re_command = True
         if text.startswith(BOT_PREFIX):
             text = text[len(BOT_PREFIX):]
+            prefixed = True
 
-        text_split = text.strip().split(' ')
+        text = text.strip()
+        text_split = text.split(' ')
         cmd = None
         command = None
         args = ''
-        if len(text_split) > 1:
-            command = (text_split[0] + '_' + text_split[1]).lower()
-            if command in self.commands:
-                cmd = command
-                args = ' '.join(text_split[2:])
+        if not only_check_re_command:
+            if len(text_split) > 1:
+                command = (text_split[0] + '_' + text_split[1]).lower()
+                if command in self.commands:
+                    cmd = command
+                    args = ' '.join(text_split[2:])
 
+            if not cmd:
+                command = text_split[0].lower()
+                args = ' '.join(text_split[1:])
+                if command in self.commands:
+                    cmd = command
+                    if len(text_split) > 1:
+                        args = ' '.join(text_split[1:])
+
+            if command == BOT_PREFIX:  # we did "!!" so recall the last command
+                if len(user_cmd_history):
+                    cmd, args = user_cmd_history[-1]
+                else:
+                    return False  # no command in history
+            elif command.isdigit():  # we did "!#" so we recall the specified command
+                index = int(command)
+                if len(user_cmd_history) >= index:
+                    cmd, args = user_cmd_history[-index]
+                else:
+                    return False  # no command in history
+
+        # Try to match one of the regex commands if the regular commands produced no match
+        matched_on_re_command = False
         if not cmd:
-            command = text_split[0].lower()
-            args = ' '.join(text_split[1:])
-            if command in self.commands:
-                cmd = command
-                if len(text_split) > 1:
-                    args = ' '.join(text_split[1:])
-
-        if command == BOT_PREFIX:  # we did "!!" so recall the last command
-            if len(user_cmd_history):
-                cmd, args = user_cmd_history[-1]
+            if prefixed:
+                commands = self.re_commands
             else:
-                return False  # no command in history
-        elif command.isdigit():  # we did "!#" so we recall the specified command
-            index = int(command)
-            if len(user_cmd_history) >= index:
-                cmd, args = user_cmd_history[-index]
-            else:
-                return False  # no command in history
+                commands = {k: self.re_commands[k] for k in self.re_commands
+                           if not self.re_commands[k]._err_command_prefix_required}
 
-        if (cmd, args) in user_cmd_history:
-            user_cmd_history.remove((cmd, args))  # we readd it below
+            for name,func in commands.items():
+                match = func._err_command_re_pattern.search(text)
+                if match:
+                    logging.debug("Matching '{}' against '{}' produced a match"
+                                  .format(text, func._err_command_re_pattern.pattern))
+                    matched_on_re_command = True
+                    self._process_command(mess, name, text, match)
+                else:
+                    logging.debug("Matching '{}' against '{}' produced no match"
+                                  .format(text, func._err_command_re_pattern.pattern))
+        if matched_on_re_command:
+            return True
 
         if cmd:
-            logging.info("received command = %s matching [%s] with parameters [%s]" % (command, cmd, args))
-
-            access, accessError = self.check_command_access(mess, cmd)
-            if not access:
-                if not HIDE_RESTRICTED_ACCESS:
-                    self.send_simple_reply(mess, accessError)
-                return False
-
-            f = self.commands[cmd]
-
-            if f._err_command_admin_only and BOT_ASYNC:
-                    self.thread_pool.wait()  # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
-
-            if f._err_command_historize:
-                user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
-
-            # Don't check for None here as None can be a valid argument to split.
-            # '' was chosen as default argument because this isn't a valid argument to split()
-            if f._err_command_split_args_with != '':
-                args = args.split(f._err_command_split_args_with)
-            if BOT_ASYNC:
-                wr = WorkRequest(self._execute_and_send,
-                                 [], {'cmd': cmd, 'args': args, 'mess': mess, 'jid': jid,
-                                      'template_name': f._err_command_template})
-                self.thread_pool.putRequest(wr)
-                if f._err_command_admin_only:
-                    self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
-            else:
-                self._execute_and_send(cmd=cmd, args=args, mess=mess, jid=jid,
-                                       template_name=f._err_command_template)
-
-        else:
+            self._process_command(mess, cmd, args, match=None)
+        elif not only_check_re_command:
             logging.debug("Command not found")
             if surpress_cmd_not_found:
                 logging.debug("Surpressing command not found feedback")
@@ -422,14 +424,55 @@ class Backend(object):
                     reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
                 if reply:
                     self.send_simple_reply(mess, reply)
-
         return True
 
-    def _execute_and_send(self, cmd, args, mess, jid, template_name=None):
+    def _process_command(self, mess, cmd, args, match):
+        """Process and execute a bot command"""
+        logging.info("Processing command {} with parameters '{}'".format(cmd, args))
+
+        jid = mess.getFrom()
+        username = get_sender_username(mess)
+        user_cmd_history = self.cmd_history[username]
+
+        if (cmd, args) in user_cmd_history:
+            user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
+
+        try:
+            self.check_command_access(mess, cmd)
+        except ACLViolation as e:
+            if not HIDE_RESTRICTED_ACCESS:
+                self.send_simple_reply(mess, str(e))
+            return
+
+        f = self.re_commands[cmd] if match else self.commands[cmd]
+
+        if f._err_command_admin_only and BOT_ASYNC:
+            self.thread_pool.wait()  # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
+
+        if f._err_command_historize:
+            user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
+
+        # Don't check for None here as None can be a valid argument to split.
+        # '' was chosen as default argument because this isn't a valid argument to split()
+        if not match and f._err_command_split_args_with != '':
+            args = args.split(f._err_command_split_args_with)
+        if BOT_ASYNC:
+            wr = WorkRequest(self._execute_and_send,
+                [], {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
+                     'template_name': f._err_command_template})
+            self.thread_pool.putRequest(wr)
+            if f._err_command_admin_only:
+                self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
+        else:
+            self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess, jid=jid,
+                                   template_name=f._err_command_template)
+
+    def _execute_and_send(self, cmd, args, match, mess, jid, template_name=None):
         """Execute a bot command and send output back to the caller
 
         cmd: The command that was given to the bot (after being expanded)
         args: Arguments given along with cmd
+        match: A re.MatchObject if command is coming from a regex-based command, else None
         mess: The message object
         jid: The jid of the person executing the command
         template_name: The name of the template which should be used to render
@@ -449,13 +492,14 @@ class Backend(object):
             for part in split_string_after(reply, self.MESSAGE_SIZE_LIMIT):
                 self.send_simple_reply(mess, part, cmd in DIVERT_TO_PRIVATE)
 
+        commands = self.re_commands if match else self.commands
         try:
-            if inspect.isgeneratorfunction(self.commands[cmd]):
-                replies = self.commands[cmd](mess, args)
+            if inspect.isgeneratorfunction(commands[cmd]):
+                replies = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 for reply in replies:
                     if reply: send_reply(process_reply(reply))
             else:
-                reply = self.commands[cmd](mess, args)
+                reply = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 if reply: send_reply(process_reply(reply))
         except Exception as e:
             tb = traceback.format_exc()
@@ -465,6 +509,11 @@ class Backend(object):
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
     def check_command_access(self, mess, cmd):
+        """
+        Check command against ACL rules
+
+        Raises ACLViolation() if the command may not be executed in the given context
+        """
         usr = str(get_jid_from_message(mess))
         typ = mess.getType()
 
@@ -472,30 +521,28 @@ class Backend(object):
             ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
 
         if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
-            return False, "You're not allowed to access this command from this user"
+            raise ACLViolation("You're not allowed to access this command from this user")
         if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
-            return False, "You're not allowed to access this command from this user"
+            raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
             stripped = mess.getFrom().getStripped()
             if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
-                return False, "You're not allowed to access this command from a chatroom"
+                raise ACLViolation("You're not allowed to access this command from a chatroom")
             if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
-                return False, "You're not allowed to access this command from this room"
+                raise ACLViolation("You're not allowed to access this command from this room")
             if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
-                return False, "You're not allowed to access this command from this room"
+                raise ACLViolation("You're not allowed to access this command from this room")
         else:
             if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
-                return False, "You're not allowed to access this command via private message to me"
+                raise ACLViolation("You're not allowed to access this command via private message to me")
 
-        f = self.commands[cmd]
+        f = self.commands[cmd] if cmd in self.commands else self.re_commands[cmd]
 
         if f._err_command_admin_only:
             if typ == 'groupchat':
-                return False, 'You cannot administer the bot from a chatroom, message the bot directly'
+                raise ACLViolation("You cannot administer the bot from a chatroom, message the bot directly")
             if usr not in BOT_ADMINS:
-                return False, 'You cannot administer the bot from this user %s.' % usr
-        
-        return True, ""
+                raise ACLViolation("This command requires bot-admin privileges")
 
     def unknown_command(self, mess, cmd, args):
         """ Override the default unknown command behavior
@@ -519,21 +566,30 @@ class Backend(object):
         classname = instance_to_inject.__class__.__name__
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
+                commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
                 name = getattr(value, '_err_command_name')
 
-                if name in self.commands:
-                    f = self.commands[name]
+                if name in commands:
+                    f = commands[name]
                     new_name = (classname + '-' + name).lower()
                     self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, type(f.__self__).__name__, f.__name__, new_name ))
                     name = new_name
-                logging.debug('Adding command : %s -> %s' % (name, value.__name__))
-                self.commands[name] = value
+                commands[name] = value
+
+                if getattr(value, '_err_re_command'):
+                    logging.debug('Adding regex command : %s -> %s' % (name, value.__name__))
+                    self.re_commands = commands
+                else:
+                    logging.debug('Adding command : %s -> %s' % (name, value.__name__))
+                    self.commands = commands
 
     def remove_commands_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
                 name = getattr(value, '_err_command_name')
-                if name in self.commands:  # this could happen in premature shutdown
+                if getattr(value, '_err_re_command') and name in self.re_commands:
+                    del (self.re_commands[name])
+                elif not getattr(value, '_err_re_command') and name in self.commands:
                     del (self.commands[name])
 
     def warn_admins(self, warning):

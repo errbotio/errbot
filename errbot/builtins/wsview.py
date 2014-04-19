@@ -7,7 +7,6 @@ from bottle import Bottle, request
 from bottle import jinja2_view as view
 # noinspection PyUnresolvedReferences
 from bottle import jinja2_template as template
-from errbot import PY2
 from errbot.plugin_manager import get_all_active_plugin_objects
 
 
@@ -79,18 +78,3 @@ class WebView(object):
         raise Exception('Problem finding back the correct Handler for func %s' % name_to_find)
 
 
-def webhook(*args, **kwargs):
-    """
-        Simple shortcut for the plugins to be notified on webhooks
-    """
-
-    def decorate(method, uri_rule, methods=('POST', 'GET'), form_param=None):
-        logging.info("webhooks:  Bind %s to %s" % (uri_rule, method.__name__))
-
-        for verb in methods:
-            bottle_app.route(uri_rule, verb, callback=WebView(method, form_param), name=method.__name__ + '_' + verb)
-        return method
-
-    if isinstance(args[0], str) or (PY2 and isinstance(args[0], basestring)):
-        return lambda method: decorate(method, args[0], **kwargs)
-    return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)

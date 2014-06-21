@@ -61,6 +61,10 @@ class TestWebhooks(FullStackTest):
         form = {'form': JSONOBJECT}
         self.assertEquals(requests.post('http://localhost:3141/custom_form/', data=form).text, repr(json.loads(JSONOBJECT)))
 
+    def test_webhooks_with_raw_request(self):
+        form = {'form': JSONOBJECT}
+        self.assertEquals(requests.post('http://localhost:3141/raw/', data=form).text, "<class 'bottle.LocalRequest'>")
+
     def test_generate_certificate_creates_usable_cert(self):
         key_path = os.sep.join((BOT_DATA_DIR, "webserver_key.pem"))
         cert_path = os.sep.join((BOT_DATA_DIR, "webserver_certificate.pem"))

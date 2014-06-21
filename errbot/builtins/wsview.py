@@ -42,8 +42,11 @@ def reset_app():
     bottle_app = DynamicBottle()
 
 class WebView(object):
-    def __init__(self, func, form_param):
+    def __init__(self, func, form_param, raw):
+        if form_param is not None and raw:
+            raise Exception("Incompatible parameters: form_param cannot be set if raw is True")
         self.func = func
+        self.raw = raw
         self.form_param = form_param
         self.method_filter = lambda object: ismethod(object) and self.func.__name__ == object.__name__
 
@@ -55,7 +58,9 @@ class WebView(object):
             logging.debug('Matching members %s -> %s' % (obj, matching_members))
             if matching_members:
                 name, func = matching_members[0]
-                if self.form_param:
+                if self.raw: # override and gives the request directly
+                    response = func(request, **kwargs)
+                elif self.form_param:
                     content = request.forms.get(self.form_param)
                     if content is None:
                         raise Exception("Received a request on a webhook with a form_param defined, "

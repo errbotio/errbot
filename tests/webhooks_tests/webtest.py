@@ -24,3 +24,8 @@ class WebTest(BotPlugin):
     def webhook4(self, payload):
         logging.debug(str(payload))
         return str(payload)
+
+    @webhook(r'/raw/', raw=True)
+    def webhook5(self, payload):
+        logging.debug(str(payload))
+        return str(type(payload))

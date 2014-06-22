@@ -111,6 +111,10 @@ def webhook(*args, **kwargs):
     :param form_param: The key who's contents will be passed to your method's `payload`
         parameter. This is used for example when using the `application/x-www-form-urlencoded`
         mimetype.
+    :param raw: Boolean to overrides the request decoding (including form_param) and
+        passes the raw http request to your method's `payload`.
+        The passed type in payload will provide the BaseRequest interface as defined here : 
+        http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into webhooks which can be reached on Err's built-in webserver.
@@ -123,11 +127,11 @@ def webhook(*args, **kwargs):
             pass
     """
 
-    def decorate(func, uri_rule, methods=('POST', 'GET'), form_param=None):
+    def decorate(func, uri_rule, methods=('POST', 'GET'), form_param=None, raw=False):
         logging.info("webhooks:  Bind %s to %s" % (uri_rule, func.__name__))
 
         for verb in methods:
-            bottle_app.route(uri_rule, verb, callback=WebView(func, form_param), name=func.__name__ + '_' + verb)
+            bottle_app.route(uri_rule, verb, callback=WebView(func, form_param, raw), name=func.__name__ + '_' + verb)
         return func
 
     if isinstance(args[0], str) or (PY2 and isinstance(args[0], basestring)):

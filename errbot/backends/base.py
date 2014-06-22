@@ -211,6 +211,8 @@ def build_text_html_message_pair(source):
         if source.strip():  # avoids keep alive pollution
             logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
             text_plain = source
+    except UnicodeEncodeError:
+        text_plain = source
     return text_plain, node
 
 

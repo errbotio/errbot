@@ -26,10 +26,12 @@ except ImportError as _:
 
 
 class IRCConnection(SingleServerIRCBot):
-    def __init__(self, callback, nickname, server, port=6667, ssl=False, password=None):
+    def __init__(self, callback, nickname, server, port=6667, ssl=False, password=None, username=None):
         self.use_ssl = ssl
         self.callback = callback
-        super().__init__([(server, port, password)], nickname, nickname)
+        if not username:
+            username = nickname
+        super().__init__([(server, port, password)], nickname, username)
 
     def _dispatcher(self, c, e):
         super()._dispatcher(c, e)
@@ -80,10 +82,10 @@ class IRCConnection(SingleServerIRCBot):
 
 
 class IRCBackend(ErrBot):
-    def __init__(self, nickname, server, port=6667, password=None, ssl=False):
+    def __init__(self, nickname, server, port=6667, password=None, ssl=False, username=None):
         self.jid = nickname + '@' + server
         super(IRCBackend, self).__init__()
-        self.conn = IRCConnection(self, nickname, server, port, ssl, password)
+        self.conn = IRCConnection(self, nickname, server, port, ssl, password, username)
 
     def serve_forever(self):
         try:

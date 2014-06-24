@@ -79,9 +79,9 @@ BOT_IDENTITY = {
     # 'username' : 'errbot',
     # 'password' : 'changeme',
 
-
     ## IRC mode (Comment the others above if using this mode)
     # 'nickname' : 'err-chatbot',
+    # 'username' : 'err-chatbot',    # optional, defaults to nickname if omitted
     # 'password' : None,             # optional
     # 'server' : 'irc.freenode.net',
     # 'port': 6667,                  # optional

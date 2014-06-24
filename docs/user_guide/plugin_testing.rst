@@ -33,7 +33,7 @@ Our test, *test_myplugin.py*::
             super(MyPluginTests, self).setUp(extra_test_file=plugin_dir)
 
         def test_command(self):
-            pushMessage('!command')
+            pushMessage('!mycommand')
             self.assertIn('This is my awesome command', popMessage())
 
 Lets walk through this line for line. First of all, we import :class:`~errbot.backends.test.FullStackTest`, :func:`~errbot.backends.test.pushMessage` and :func:`~errbot.backends.test.popMessage` from the backends tests, there allow us to spin up a bot for testing purposes and interact with the message queue.
@@ -52,7 +52,7 @@ Such helper methods can be either instance methods, methods that take `self` as 
     class MyPlugin(BotPlugin):
         @botcmd
         def mycommand(self, message, args):
-            return mycommand_helper()
+            return self.mycommand_helper()
 
         @staticmethod
         def mycommand_helper():
@@ -79,7 +79,7 @@ Sometimes however a helper method needs information stored on the bot or manipul
     class MyPlugin(BotPlugin):
         @botcmd
         def mycommand(self, message, args):
-            return mycommand_helper()
+            return self.mycommand_helper()
 
         def mycommand_helper(self):
             return "This is my awesome command"
@@ -131,11 +131,11 @@ All together now
     class MyPlugin(BotPlugin):
         @botcmd
         def mycommand(self, message, args):
-            return mycommand_helper()
+            return self.mycommand_helper()
 
         @botcmd
         def mycommand_another(self, message, args):
-            return mycommand_another_helper()
+            return self.mycommand_another_helper()
 
         @staticmethod
         def mycommand_helper();
@@ -161,11 +161,11 @@ All together now
             super(MyPluginBotTests, self).setUp(extra_test_file=plugin_dir)
 
         def test_mycommand(self):
-            pushMessage('!command')
+            pushMessage('!mycommand')
             self.assertIn('This is my awesome command', popMessage())
 
         def test_mycommand_another(self):
-            pushMessage('!command another')
+            pushMessage('!mycommand another')
             self.assertIn('This is another awesome command', popMessage())
 
 

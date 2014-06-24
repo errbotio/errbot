@@ -309,7 +309,7 @@ like this:
 
     [Core]
     Name = HelloWorld
-    Module = helloWorld
+    Module = helloworld
 
     [Documentation]
     Description = let's say hello !

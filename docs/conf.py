@@ -124,7 +124,10 @@ html_static_path = ['_static']
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+#
+# Note: Best leave this off until Sphinx issue #1496 gets resolved
+# (https://bitbucket.org/birkenfeld/sphinx/issue/1496/smartypants-should-not-convert-text-in-a)
+html_use_smartypants = False
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

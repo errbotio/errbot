@@ -263,11 +263,12 @@ In order to do that you'll need a `.travis.yml` similar to this:
 
 .. code-block:: yaml
 
+    language: python
     python:
-      - 3.3
+      - "3.3"
     install:
-      - pip install -q yapsy==1.10.2-pythons2n3 err==2.0.0rc2 --use-wheel
-      - pip install -q pep8 coverage coveralls --use-wheel
+      - "pip install -q yapsy==1.10.2-pythons2n3 err==2.0.0 --use-wheel"
+      - "pip install -q pep8 coverage coveralls --use-wheel"
     script:
       - coverage run --source=myplugin.py test_myplugin.py
     after_success:

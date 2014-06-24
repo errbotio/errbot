@@ -17,7 +17,19 @@ Lets go for an example, *myplugin.py*::
         def mycommand(self, message, args):
             return "This is my awesome command"
 
-This does absolutely nothing shocking, but how do you test it? We need to interact with the bot somehow, send it `!command` and validate the reply. Fortunatly Err provides some help.
+And *myplugin.plug*:
+
+.. code-block:: ini
+
+    [Core]
+    Name = MyPlugin
+    Module = myplugin
+
+    [Documentation]
+    Description = my plugin
+
+
+This does absolutely nothing shocking, but how do you test it? We need to interact with the bot somehow, send it `!mycommand` and validate the reply. Fortunatly Err provides some help.
 
 Our test, *test_myplugin.py*::
 
@@ -33,7 +45,7 @@ Our test, *test_myplugin.py*::
             super(MyPluginTests, self).setUp(extra_test_file=plugin_dir)
 
         def test_command(self):
-            pushMessage('!command')
+            pushMessage('!mycommand')
             self.assertIn('This is my awesome command', popMessage())
 
 Lets walk through this line for line. First of all, we import :class:`~errbot.backends.test.FullStackTest`, :func:`~errbot.backends.test.pushMessage` and :func:`~errbot.backends.test.popMessage` from the backends tests, there allow us to spin up a bot for testing purposes and interact with the message queue.
@@ -52,7 +64,7 @@ Such helper methods can be either instance methods, methods that take `self` as 
     class MyPlugin(BotPlugin):
         @botcmd
         def mycommand(self, message, args):
-            return mycommand_helper()
+            return self.mycommand_helper()
 
         @staticmethod
         def mycommand_helper():
@@ -79,7 +91,7 @@ Sometimes however a helper method needs information stored on the bot or manipul
     class MyPlugin(BotPlugin):
         @botcmd
         def mycommand(self, message, args):
-            return mycommand_helper()
+            return self.mycommand_helper()
 
         def mycommand_helper(self):
             return "This is my awesome command"
@@ -131,11 +143,11 @@ All together now
     class MyPlugin(BotPlugin):
         @botcmd
         def mycommand(self, message, args):
-            return mycommand_helper()
+            return self.mycommand_helper()
 
         @botcmd
         def mycommand_another(self, message, args):
-            return mycommand_another_helper()
+            return self.mycommand_another_helper()
 
         @staticmethod
         def mycommand_helper();
@@ -143,6 +155,17 @@ All together now
 
         def mycommand_another_helper(self);
             return "This is another awesome command"
+
+*myplugin.plug*:
+
+.. code-block:: ini
+
+    [Core]
+    Name = MyPlugin
+    Module = myplugin
+
+    [Documentation]
+    Description = my plugin
 
 *test_myplugin.py*::
 
@@ -161,11 +184,11 @@ All together now
             super(MyPluginBotTests, self).setUp(extra_test_file=plugin_dir)
 
         def test_mycommand(self):
-            pushMessage('!command')
+            pushMessage('!mycommand')
             self.assertIn('This is my awesome command', popMessage())
 
         def test_mycommand_another(self):
-            pushMessage('!command another')
+            pushMessage('!mycommand another')
             self.assertIn('This is another awesome command', popMessage())
 
 
@@ -240,11 +263,12 @@ In order to do that you'll need a `.travis.yml` similar to this:
 
 .. code-block:: yaml
 
+    language: python
     python:
-      - 3.3
+      - "3.3"
     install:
-      - pip install -q yapsy==1.10.2-pythons2n3 err==2.0.0rc2 --use-wheel
-      - pip install -q pep8 coverage coveralls --use-wheel
+      - "pip install -q yapsy==1.10.2-pythons2n3 err==2.0.0 --use-wheel"
+      - "pip install -q pep8 coverage coveralls --use-wheel"
     script:
       - coverage run --source=myplugin.py test_myplugin.py
     after_success:

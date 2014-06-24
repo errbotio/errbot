@@ -28,7 +28,7 @@ from urllib.request import urlopen
 from pprint import pformat
 
 from errbot import botcmd, PY2
-from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS
+from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS, ACLViolation
 
 from errbot.plugin_manager import (
     get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,
@@ -512,6 +512,14 @@ class ErrBot(Backend, StoreMixin):
         """   Returns a help string listing available options.
 
         Automatically assigned to the "help" command."""
+
+        def may_access_command(cmd):
+            try:
+                self.check_command_access(mess, cmd)
+                return True
+            except ACLViolation:
+                return False
+
         usage = ''
         if not args:
             description = 'Available help:\n'
@@ -524,7 +532,7 @@ class ErrBot(Backend, StoreMixin):
             for (name, command) in self.commands.items():
                 clazz = get_class_that_defined_method(command)
                 commands = clazz_commands.get(clazz, [])
-                if not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
+                if not HIDE_RESTRICTED_COMMANDS or may_access_command(name):
                     commands.append((name, command))
                     clazz_commands[clazz] = commands
 
@@ -536,7 +544,7 @@ class ErrBot(Backend, StoreMixin):
                 for (name, command) in clazz_commands[clazz] 
                     if name != 'help' 
                     and not command._err_command_hidden 
-                    and (not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0])
+                    and (not HIDE_RESTRICTED_COMMANDS or may_access_command(name))
                 ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self.get_command_classes()):
@@ -548,7 +556,7 @@ class ErrBot(Backend, StoreMixin):
                                              (self.get_doc(command).strip()).split('\n', 1)[0])
             for (name, command) in commands 
                 if not command._err_command_hidden  
-                and (not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0])
+                and (not HIDE_RESTRICTED_COMMANDS or may_access_command(name))
             ]))
         else:
             return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))

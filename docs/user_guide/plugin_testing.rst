@@ -17,7 +17,19 @@ Lets go for an example, *myplugin.py*::
         def mycommand(self, message, args):
             return "This is my awesome command"
 
-This does absolutely nothing shocking, but how do you test it? We need to interact with the bot somehow, send it `!command` and validate the reply. Fortunatly Err provides some help.
+And *myplugin.plug*:
+
+.. code-block:: ini
+
+    [Core]
+    Name = MyPlugin
+    Module = myplugin
+
+    [Documentation]
+    Description = my plugin
+
+
+This does absolutely nothing shocking, but how do you test it? We need to interact with the bot somehow, send it `!mycommand` and validate the reply. Fortunatly Err provides some help.
 
 Our test, *test_myplugin.py*::
 
@@ -143,6 +155,17 @@ All together now
 
         def mycommand_another_helper(self);
             return "This is another awesome command"
+
+*myplugin.plug*:
+
+.. code-block:: ini
+
+    [Core]
+    Name = MyPlugin
+    Module = myplugin
+
+    [Documentation]
+    Description = my plugin
 
 *test_myplugin.py*::
 

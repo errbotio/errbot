@@ -3,6 +3,14 @@
 <!doctype html>
 {% endblock %}
 {%- block extrahead %}
+  <script type="text/javascript">
+      // GitHub pages offers no way to redirect to a canonical location, so we
+      // have to make do with hacky javascript redirection :(
+      if(document.location.protocol != "file:" && document.location.host != "errbot.net") {
+         var path = document.location.pathname.replace('/err/', '/');
+         document.location = "http://errbot.net" + path;
+      }
+  </script>
   <link rel="icon" type="image/png" href="{{ pathto('_static/err.png', 1) }}" />
   <link rel="apple-touch-icon" href="{{ pathto('_static/err.png', 1) }}" />
   <link rel="stylesheet" href="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.css", 1) }}" type="text/css" media="screen" />

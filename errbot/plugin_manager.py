@@ -181,7 +181,7 @@ def update_plugin_places(list):
 
 
 def get_all_plugins():
-    logging.debug("All plugins: %s" % simplePluginManager.getAllPlugins())
+    logging.debug("All plugins: %s" % ', '.join([plug.name for plug in simplePluginManager.getAllPlugins()]))
     return simplePluginManager.getAllPlugins()
 
 

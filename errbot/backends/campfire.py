@@ -29,7 +29,8 @@ class CampfireConnection(Connection, pyfire.Campfire):
             room = self.rooms[room_name][0]
             room.speak(mess.getBody())  # Basic text support for the moment
         else:
-            logging.info("Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.getBody()))
+            logging.info(
+                "Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.getBody()))
 
     def join_room(self, name, msg_callback, error_callback):
         room = self.get_room_by_name(name)
@@ -73,7 +74,7 @@ class CampfireBackend(ErrBot):
             if not CHATROOM_PRESENCE:
                 raise Exception('Your bot needs to join at least one room, please set CHATROOM_PRESENCE in your config')
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = self.username + '@' + self.conn.get_room_by_name(CHATROOM_PRESENCE[0]).name  + '/' + self.username
+            self.jid = self.username + '@' + self.conn.get_room_by_name(CHATROOM_PRESENCE[0]).name + '/' + self.username
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms
         return self.conn

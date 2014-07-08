@@ -21,11 +21,12 @@ def test_version_check():
 
 
 def test_version_check_negative():
-    raises(ValueError)(version2array)('1.2.3.4',)
-    raises(ValueError)(version2array)('1.2',)
-    raises(ValueError)(version2array)('1.2.-beta',)
-    raises(ValueError)(version2array)('1.2.3-toto',)
-    raises(ValueError)(version2array)('1.2.3-rc',)
+    raises(ValueError)(version2array)('1.2.3.4', )
+    raises(ValueError)(version2array)('1.2', )
+    raises(ValueError)(version2array)('1.2.-beta', )
+    raises(ValueError)(version2array)('1.2.3-toto', )
+    raises(ValueError)(version2array)('1.2.3-rc', )
+
 
 class TestUtils(unittest.TestCase):
     def test_formattimedelta(self):
@@ -45,6 +46,7 @@ class TestUtils(unittest.TestCase):
             pass
 
         from config import BOT_DATA_DIR
+
         key = b'test' if PY2 else 'test'
 
         persistent_object = MyPersistentClass()
@@ -76,7 +78,8 @@ class TestUtils(unittest.TestCase):
 
     def test_recurse_check_structure_valid(self):
         sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-        to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar"}, none=None, true=True,
+                        false=False)
         recurse_check_structure(sample, to_check)
 
     @raises(ValidationException)
@@ -88,7 +91,8 @@ class TestUtils(unittest.TestCase):
     @raises(ValidationException)
     def test_recurse_check_structure_extrasubitem(self):
         sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-        to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar", 'Bar': "Foo"}, none=None, true=True, false=False)
+        to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar", 'Bar': "Foo"}, none=None,
+                        true=True, false=False)
         recurse_check_structure(sample, to_check)
 
     @raises(ValidationException)

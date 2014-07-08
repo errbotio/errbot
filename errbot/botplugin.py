@@ -6,7 +6,6 @@ from errbot.storage import StoreMixin, StoreNotOpenError
 from errbot import holder
 
 
-
 class BotPluginBase(StoreMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
@@ -22,7 +21,8 @@ class BotPluginBase(StoreMixin):
 
     def activate(self):
         """
-            Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
+            Override if you want to do something at initialization phase (don't forget to
+            super(Gnagna, self).activate())
         """
         from config import BOT_DATA_DIR
 
@@ -57,8 +57,10 @@ class BotPluginBase(StoreMixin):
         if not args:
             args = []
 
-        logging.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (method.__name__, interval, str(args), str(kwargs)))
-        #noinspection PyBroadException
+        logging.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (
+            method.__name__, interval, str(args), str(kwargs))
+        )
+        # noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
             self.program_next_poll(interval, method, args, kwargs)
@@ -74,7 +76,8 @@ class BotPluginBase(StoreMixin):
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self, interval, method, args, kwargs):
-        t = Timer(interval=interval, function=self.poller, kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
+        t = Timer(interval=interval, function=self.poller,
+                  kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t)  # save the timer to be able to kill it
         t.setName('Poller thread for %s' % type(method.__self__).__name__)
         t.setDaemon(True)  # so it is not locking on exit
@@ -87,7 +90,7 @@ class BotPluginBase(StoreMixin):
             self.current_timers.remove(previous_timer)
 
         if (method, args, kwargs) in self.current_pollers:
-            #noinspection PyBroadException
+            # noinspection PyBroadException
             try:
                 method(*args, **kwargs)
             except Exception as _:
@@ -98,56 +101,77 @@ class BotPluginBase(StoreMixin):
 class BotPlugin(BotPluginBase):
     @property
     def min_err_version(self):
-        """ If your plugin has a minimum version of err it needs to be on in order to run, please override accordingly this method.
-        returning a string with the dotted minimum version. it MUST be in a 3 dotted numbers format or None
-        for example: "1.2.2"
+        """
+        If your plugin has a minimum version of err it needs to be on in order to run,
+        please override accordingly this method, returning a string with the dotted
+        minimum version. It MUST be in a 3 dotted numbers format or None
+
+        For example: "1.2.2"
         """
         return None
 
     @property
     def max_err_version(self):
-        """ If your plugin has a maximal version of err it needs to be on in order to run, please override accordingly this method.
-        returning a string with the dotted maximal version. it MUST be in a 3 dotted numbers format or None
-        for example: "1.2.2"
+        """
+        If your plugin has a maximal version of err it needs to be on in order to run,
+        please override accordingly this method, returning a string with the dotted
+        maximal version. It MUST be in a 3 dotted numbers format or None
+
+        For example: "1.2.2"
         """
         return None
 
     def get_configuration_template(self):
-        """ If your plugin needs a configuration, override this method and return a configuration template.
-        for example a dictionary like:
+        """
+        If your plugin needs a configuration, override this method and return
+        a configuration template.
+
+        For example a dictionary like:
         return {'LOGIN' : 'example@example.com', 'PASSWORD' : 'password'}
-        Note : if this method returns None, the plugin won't be configured
+
+        Note: if this method returns None, the plugin won't be configured
         """
         return None
 
     def check_configuration(self, configuration):
-        """ By default, this method will do only a BASIC check. You need to override it if you want to do more complex checks.
-        It will be called before the configure callback. Note if the config_template is None, it will never be called
+        """
+        By default, this method will do only a BASIC check. You need to override
+        it if you want to do more complex checks. It will be called before the
+        configure callback. Note if the config_template is None, it will never
+        be called.
+
         It means recusively:
-        1. in case of a dictionary, it will check if all the entries and from the same type are there and not more
-        2. in case of an array or tuple, it will assume array members of the same type of first element of the template (no mix typed is supported)
+        1. in case of a dictionary, it will check if all the entries and from
+           the same type are there and not more.
+        2. in case of an array or tuple, it will assume array members of the
+           same type of first element of the template (no mix typed is supported)
 
         In case of validation error it should raise a errbot.utils.ValidationException
-
         """
         recurse_check_structure(self.get_configuration_template(), configuration)  # default behavior
 
     def configure(self, configuration):
-        """ By default, it will just store the current configuation in the self.config field of your plugin
-        If this plugin has no configuration yet, the framework will call this function anyway with None
-        This method will be called before activation so don't expect to be activated at that point
+        """
+        By default, it will just store the current configuation in the self.config
+        field of your plugin. If this plugin has no configuration yet, the framework
+        will call this function anyway with None.
+
+        This method will be called before activation so don't expect to be activated
+        at that point.
         """
         self.config = configuration
 
     def activate(self):
         """
-            Override if you want to do something at initialization phase (don't forget to super(Gnagna, self).activate())
+            Override if you want to do something at initialization phase (don't forget
+            to super(Gnagna, self).activate())
         """
         super(BotPlugin, self).activate()
 
     def deactivate(self):
         """
-            Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
+            Override if you want to do something at tear down phase (don't forget to
+            super(Gnagna, self).deactivate())
         """
         super(BotPlugin, self).deactivate()
 
@@ -160,13 +184,16 @@ class BotPlugin(BotPluginBase):
     def callback_message(self, conn, mess):
         """
             Override to get a notified on *ANY* message.
-            If you are interested only by chatting message you can filter for example mess.getType() in ('groupchat', 'chat')
+
+            If you are interested only by chatting message you can filter for example
+            mess.getType() in ('groupchat', 'chat')
         """
         pass
 
     def callback_botmessage(self, mess):
         """
-            Override to get a notified on messages from the bot itself (emitted from your plugin sisters and brothers for example).
+            Override to get a notified on messages from the bot itself (emitted from
+            your plugin sisters and brothers for example).
         """
         pass
 
@@ -233,7 +260,6 @@ class BotPlugin(BotPluginBase):
         """
         return holder.bot.invite_in_room(room, jids_to_invite)
 
-
     def get_installed_plugin_repos(self):
         """
             Get the current installed plugin repos in a dictionary of name / url
@@ -243,7 +269,8 @@ class BotPlugin(BotPluginBase):
     def start_poller(self, interval, method, args=None, kwargs=None):
         """
             Start to poll a method at specific interval in seconds.
-            Note : it will call the method with the initial interval delay for the first time
+
+            Note: it will call the method with the initial interval delay for the first time
             Also, you can program
             for example : self.program_poller(self,30, fetch_stuff)
             where you have def fetch_stuff(self) in your plugin
@@ -253,7 +280,8 @@ class BotPlugin(BotPluginBase):
     def stop_poller(self, method=None, args=None, kwargs=None):
         """
             stop poller(s).
-            if the method equals None -> it stops all the pollers
+
+            If the method equals None -> it stops all the pollers
             you need to regive the same parameters as the original start_poller to match a specific poller to stop
         """
         super(BotPlugin, self).stop_poller(method, args, kwargs)

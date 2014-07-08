@@ -4,12 +4,15 @@ python:
   - "2.7"
   - "3.3"
 
-before_script: 
+before_script:
   - cp errbot/config-travisci.py config.py
 
-install: 
+install:
   - python setup.py install
-  - pip install PyOpenSSL
+  - pip install PyOpenSSL pep8
   - pip freeze
 
-script: python run_tests.py 
+script: python run_tests.py
+
+after_script:
+  - pep8 --statistics --show-source

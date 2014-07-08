@@ -11,7 +11,10 @@ os.environ['NOSE_VERBOSE'] = os.environ.get('NOSE_VERBOSE', "2")
 try:
     import nose
 except ImportError:
-    sys.stderr.write("Tests require the 'nose' package which you are currently missing.\nYou can install nose with `pip install nose`.\n")
+    sys.stderr.write(
+        "Tests require the 'nose' package which you are currently missing.\n"
+        "You can install nose with `pip install nose`.\n"
+    )
     sys.exit(1)
 
 # Webhooks tests fail when run together with the other tests, but pass correctly
@@ -30,7 +33,7 @@ for testsuite in testsuites:
 
 if False in testresults:
     print("\nSome tests failed to pass!")
-    exit(-99)   # a test did not pass
+    exit(-99)  # a test did not pass
 else:
     print("\nAll tests have successfully passed")
     exit(0)  # no error

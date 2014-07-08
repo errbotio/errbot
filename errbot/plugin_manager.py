@@ -78,17 +78,27 @@ def activate_plugin_with_version_check(name, config):
     try:
         python_version = pta_item.details.get("Python", "Version")
     except NoSectionError:
-        logging.warning('Plugin %s has no section [Python]. Assuming this plugin is runnning only under python 2.' % name)
+        logging.warning(
+            'Plugin %s has no section [Python]. Assuming this '
+            'plugin is runnning only under python 2.' % name
+        )
         python_version = '2'
 
     if python_version not in ('2', '2+', '3'):
-        logging.warning('Plugin %s has an invalid Version specified in section [Python]. The Version can only be 2, 2+ and 3' % name)
+        logging.warning(
+            'Plugin %s has an invalid Version specified in section [Python]. '
+            'The Version can only be 2, 2+ and 3' % name
+        )
         return None
 
     if python_version == '2' and PY3:
-        logging.error('\nPlugin %s is made for python 2 only and you are running err under python 3.\n\n'
-                      'If the plugin can be run on python 2 and 3 please add this section to its .plug descriptor :\n[Python]\nVersion=2+\n\n'
-                      'Or if the plugin is Python 3 only:\n[Python]\nVersion=3\n\n' % name)
+        logging.error(
+            '\nPlugin %s is made for python 2 only and you are running '
+            'err under python 3.\n\n'
+            'If the plugin can be run on python 2 and 3 please add this '
+            'section to its .plug descriptor :\n[Python]\nVersion=2+\n\n'
+            'Or if the plugin is Python 3 only:\n[Python]\nVersion=3\n\n' % name
+        )
         return None
 
     if python_version == '3' and PY2:
@@ -100,10 +110,16 @@ def activate_plugin_with_version_check(name, config):
     logging.info('Activating %s with min_err_version = %s and max_version = %s' % (name, min_version, max_version))
     current_version = version2array(VERSION)
     if min_version and version2array(min_version) > current_version:
-        raise IncompatiblePluginException('The plugin %s asks for err with a minimal version of %s while err is version %s' % (name, min_version, VERSION))
+        raise IncompatiblePluginException(
+            'The plugin %s asks for err with a minimal version of %s while err is version %s' % (
+                name, min_version, VERSION)
+        )
 
     if max_version and version2array(max_version) < current_version:
-        raise IncompatiblePluginException('The plugin %s asks for err with a maximal version of %s while err is version %s' % (name, max_version, VERSION))
+        raise IncompatiblePluginException(
+            'The plugin %s asks for err with a maximal version of %s while err is version %s' % (
+                name, max_version, VERSION)
+        )
 
     try:
         if obj.get_configuration_template() is not None and config is not None:
@@ -154,9 +170,9 @@ def reload_plugin_by_name(name):
     plugin.plugin_object.__class__ = new_class
 
 
-
 def update_plugin_places(list):
     from config import BOT_EXTRA_PLUGIN_DIR
+
     builtins = get_builtins(BOT_EXTRA_PLUGIN_DIR)
     for entry in chain(builtins, list):
         if entry not in sys.path:
@@ -171,7 +187,7 @@ def update_plugin_places(list):
         all_candidates.append(candidate)
 
     simplePluginManager.locatePlugins()
-    #noinspection PyBroadException
+    # noinspection PyBroadException
     try:
         simplePluginManager.loadPlugins(add_candidate)
     except Exception as _:
@@ -208,7 +224,7 @@ def global_restart():
 
 
 def check_dependencies(path):
-    #noinspection PyBroadException
+    # noinspection PyBroadException
     try:
         from pkg_resources import get_distribution
 
@@ -220,7 +236,7 @@ def check_dependencies(path):
         with open(req_path) as f:
             for line in f:
                 stripped = line.strip()
-                #noinspection PyBroadException
+                # noinspection PyBroadException
                 try:
                     get_distribution(stripped)
                 except Exception as _:

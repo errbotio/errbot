@@ -14,5 +14,3 @@ from errbot.builtins.wsview import route, view
 
 webroute = route  # this allows plugins to expose dynamic webpages on err embedded webserver
 webview = view  # this allows to use the templating system
-
-

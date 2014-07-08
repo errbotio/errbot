@@ -65,7 +65,9 @@ class IRCConnection(SingleServerIRCBot):
 
     def send_message(self, mess):
         msg_func = self.send_private_message if mess.typ == 'chat' else self.send_public_message
-        if mess.typ == 'chat' and mess.getTo().resource:  # if this is a response in private of a public message take the recipient in the resource instead of the incoming chatroom
+        # If this is a response in private of a public message take the recipient in
+        # the resource instead of the incoming chatroom
+        if mess.typ == 'chat' and mess.getTo().resource:
             to = mess.getTo().resource
         else:
             to = mess.getTo().node

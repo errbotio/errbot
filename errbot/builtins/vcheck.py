@@ -31,7 +31,7 @@ class VersionChecker(BotPlugin):
             logging.debug('Version check disabled')
             return
         logging.debug('Checking version')
-        #noinspection PyBroadException
+        # noinspection PyBroadException
         try:
             current_version_txt = urlopen(HOME).read().decode("utf-8").strip()
             current_version = version2array(current_version_txt)

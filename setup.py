@@ -56,14 +56,17 @@ if not ON_WINDOWS:
 
 src_dirs = ("errbot", "scripts", "tests")
 
+
 def convert_to_python2():
     try:
         from lib3to2 import main as three2two
     except ImportError:
         print("Installing Err under Python 2, which requires 3to2 to be installed, but it was not found")
         print("I will now attempt to install it automatically, but this requires at least pip 1.4 to be installed")
-        print("If you get the error 'no such option: --no-clean', please `pip install 3to2` manually and then `pip install err` again.")
+        print("If you get the error 'no such option: --no-clean', please `pip install 3to2` manually and "
+              "then `pip install err` again.")
         from pip import main as mainpip
+
         mainpip(['install', '3to2', '--no-clean'])
         from lib3to2 import main as three2two
     import shutil
@@ -72,12 +75,14 @@ def convert_to_python2():
     for d in src_dirs:
         three2two.main("lib3to2.fixes", shlex.split("-n --no-diffs -w {0}".format(d)))
 
+
 src_root = os.curdir
 sys.path.insert(0, os.path.join(src_root, 'errbot'))  # hack to avoid loading err machinery from the errbot package
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 if __name__ == "__main__":
     from version import VERSION
@@ -88,10 +93,10 @@ if __name__ == "__main__":
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
 
     if set(sys.argv) & set(('bdist',
-                           'bdist_dumb',
-                           'bdist_rpm',
-                           'bdist_wininst',
-                           'bdist_msi')):
+                            'bdist_dumb',
+                            'bdist_rpm',
+                            'bdist_wininst',
+                            'bdist_msi')):
         raise Exception("err doesn't support binary distributions")
 
     # under python2 if we want to make a source distribution,

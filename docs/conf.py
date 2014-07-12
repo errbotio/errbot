@@ -103,6 +103,12 @@ exclude_patterns = [
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+# -- Autodoc configuration -----------------------------------------------------
+
+def autodoc_skip_member(app, what, name, obj, skip, options):
+    if name == "__init__":
+        return False
+    return skip
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -292,6 +298,9 @@ epub_copyright = '2013, Guillaume Binet, Tali Davidovich Petrover and Nick Groen
 # If false, no index is generated.
 #epub_use_index = True
 
+# -- Misc options -------------------------------------------------------------
 
-# Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+def setup(app):
+    app.connect("autodoc-skip-member", autodoc_skip_member)

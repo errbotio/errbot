@@ -1,11 +1,12 @@
-from queue import Queue
 import logging
-from os.path import sep, abspath
 import sys
+
+import unittest
+
+from os.path import sep, abspath
+from queue import Queue
 from tempfile import mkdtemp
 from threading import Thread
-import unittest
-from errbot.main import main
 
 __import__('errbot.config-template')
 config_module = sys.modules['errbot.config-template']
@@ -17,9 +18,12 @@ config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 config_module.BOT_EXTRA_PLUGIN_DIR = []
 config_module.BOT_LOG_LEVEL = logging.DEBUG
 
+# Errbot machinery must not be imported before this point
+# because of the import hackery above.
 from errbot.backends.base import Message, build_message
-from errbot.errBot import ErrBot
 from errbot.builtins.wsview import reset_app
+from errbot.errBot import ErrBot
+from errbot.main import main
 
 incoming_stanza_queue = Queue()
 outgoing_message_queue = Queue()

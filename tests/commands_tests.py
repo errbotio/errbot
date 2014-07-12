@@ -143,6 +143,8 @@ class TestCommands(FullStackTest):
         self.assertEquals('へようこそ', popMessage())
 
     def test_webserver_webhook_test(self):
+        pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
+        self.assertIn('Plugin configuration done.', popMessage())
         self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
 
     def test_load_reload_and_unload(self):

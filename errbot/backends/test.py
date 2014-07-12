@@ -183,7 +183,19 @@ class TestBot(object):
 
 
 class FullStackTest(unittest.TestCase, TestBot):
-    """ This class starts a full bot with a test backend so you can add unit tests on an almost complete bot
+    """
+    Test class for use with Python's unittest module to write tests
+    against a fully functioning bot.
+
+    For example, if you wanted to test the builtin `!about` command,
+    you could write a test file with the following::
+
+        from errbot.backends.test import FullStackTest, pushMessage, popMessage
+
+        class TestCommands(FullStackTest):
+            def test_about(self):
+                pushMessage('!about')
+                self.assertIn('Err version', popMessage())
     """
 
     def setUp(self, extra_test_file=None, loglevel=logging.DEBUG):
@@ -198,9 +210,11 @@ class FullStackTest(unittest.TestCase, TestBot):
         self.stop()
 
     def assertCommand(self, command, response, timeout=5):
+        """Assert the given command returns the given response"""
         pushMessage(command)
         self.assertIn(response, popMessage(), timeout)
 
     def assertCommandFound(self, command, timeout=5):
+        """Assert the given command does not exist"""
         pushMessage(command)
         self.assertNotIn('not found', popMessage(), timeout)

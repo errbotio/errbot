@@ -56,7 +56,7 @@ def make_ssl_certificate(key_path, cert_path):
     pkey = crypto.PKey()
     pkey.generate_key(crypto.TYPE_RSA, 4096)
     cert.set_pubkey(pkey)
-    cert.sign(pkey, 'sha256')
+    cert.sign(pkey, 'sha256' if PY3 else b'sha256')
 
     f = open(cert_path, 'w')
     f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8'))

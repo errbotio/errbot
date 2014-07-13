@@ -2,6 +2,7 @@ import logging
 import sys
 
 import unittest
+import pytest
 
 from os.path import sep, abspath
 from queue import Queue
@@ -129,8 +130,9 @@ class TestBot(object):
     time.
 
     End-users should not use this class directly. Use
-    :class:`~errbot.backends.test.FullStackTest` instead, which uses this class
-    under the hood.
+    :func:`~errbot.backends.test.testbot` or
+    :class:`~errbot.backends.test.FullStackTest` instead, which use this
+    class under the hood.
     """
     bot_thread = None
 
@@ -218,3 +220,73 @@ class FullStackTest(unittest.TestCase, TestBot):
         """Assert the given command does not exist"""
         pushMessage(command)
         self.assertNotIn('not found', popMessage(), timeout)
+
+
+@pytest.fixture
+def testbot(request):
+    """
+    Pytest fixture to write tests against a fully functioning bot.
+
+    For example, if you wanted to test the builtin `!about` command,
+    you could write a test file with the following::
+
+        from errbot.backends.test import testbot, pushMessage, popMessage
+
+        def test_about(testbot):
+            pushMessage('!about')
+            assert "Err version" in popMessage()
+
+    It's possible to provide additional configuration to this fixture,
+    by setting variables at module level or as class attributes (the
+    latter taking precedence over the former). For example::
+
+        from errbot.backends.test import testbot, pushMessage, popMessage
+
+        extra_plugin_dir = '/foo/bar'
+
+        def test_about(testbot):
+            pushMessage('!about')
+            assert "Err version" in popMessage()
+
+    ..or::
+
+        from errbot.backends.test import testbot, pushMessage, popMessage
+
+        extra_plugin_dir = '/foo/bar'
+
+        class Tests(object):
+            # Wins over `extra_plugin_dir = '/foo/bar'` above
+            extra_plugin_dir = '/foo/baz'
+
+            def test_about(self, testbot):
+                pushMessage('!about')
+                assert "Err version" in popMessage()
+
+    ..to load additional plugins from the directory `/foo/bar` or
+    `/foo/baz` respectively. This works for the following items, which are
+    passed to the constructor of :class:`~errbot.backends.test.TestBot`:
+
+    * `extra_plugin_dir`
+    * `loglevel`
+    """
+
+    def on_finish():
+        bot.stop()
+
+    kwargs = {}
+    for attr, default in (
+        ('extra_plugin_dir', None),
+        ('loglevel', logging.DEBUG),
+    ):
+            if hasattr(request, 'instance'):
+                kwargs[attr] = getattr(request.instance, attr, None)
+            if kwargs[attr] is None:
+                kwargs[attr] = getattr(request.module, attr, default)
+
+    bot = TestBot(**kwargs)
+    bot.start()
+    # Exposed to save typing in tests and to have more similarity with
+    # the FullStackTest class above.
+    bot_thread = bot.bot_thread
+
+    request.addfinalizer(on_finish)

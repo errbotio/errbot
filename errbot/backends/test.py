@@ -285,8 +285,6 @@ def testbot(request):
 
     bot = TestBot(**kwargs)
     bot.start()
-    # Exposed to save typing in tests and to have more similarity with
-    # the FullStackTest class above.
-    bot_thread = bot.bot_thread
 
     request.addfinalizer(on_finish)
+    return bot

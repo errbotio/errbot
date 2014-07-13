@@ -151,9 +151,10 @@ class TestBot(object):
         self.logger = logging.getLogger('')
         self.logger.setLevel(loglevel)
         self.logger.addHandler(file)
-        if extra_plugin_dir:
-            import config
-            config.BOT_EXTRA_PLUGIN_DIR = extra_plugin_dir
+
+        import config
+        config.BOT_EXTRA_PLUGIN_DIR = extra_plugin_dir
+        config.BOT_LOG_LEVEL = loglevel
 
     def start(self):
         """

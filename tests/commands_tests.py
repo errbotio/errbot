@@ -96,7 +96,7 @@ class TestCommands(FullStackTest):
 
     def test_plugin_cycle(self):
         pushMessage('!repos install git://github.com/gbin/err-helloworld.git')
-        self.assertIn('err-helloworld', popMessage())
+        self.assertIn('err-helloworld', popMessage(timeout=60))
         self.assertIn('reload', popMessage())
 
         pushMessage('!repos export')  # should appear in the export

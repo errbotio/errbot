@@ -147,7 +147,6 @@ class TestBot(object):
         """
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
-        console = logging.StreamHandler()
         file = logging.FileHandler(config_module.BOT_LOG_FILE, encoding='utf-8')
         self.logger = logging.getLogger('')
         self.logger.setLevel(loglevel)

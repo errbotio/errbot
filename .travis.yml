@@ -3,6 +3,7 @@ language: python
 python:
   - "2.7"
   - "3.3"
+  - "3.4"
 
 before_script:
   - cp errbot/config-travisci.py config.py

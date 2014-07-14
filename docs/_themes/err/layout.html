@@ -62,6 +62,9 @@
 {%- block footer %}
     <div class="footer">
         &copy; Copyright {{ copyright }}.
+        {%- if last_updated %}
+          Last updated on {{ last_updated }}.
+        {%- endif %}
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
     </div>
     {% if pagename == 'index' %}

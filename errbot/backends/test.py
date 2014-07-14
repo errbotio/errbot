@@ -101,22 +101,22 @@ class TestBackend(ErrBot):
         return 'text'
 
 
-def popMessage(timeout=5, block=True):
+def pop_message(timeout=5, block=True):
     return outgoing_message_queue.get(timeout=timeout, block=block)
 
 
-def pushMessage(msg):
+def push_message(msg):
     incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
 
 
-def pushPresence(stanza):
+def push_presence(stanza):
     pass
 
 
 # def pushIQ(stanza):
 #    pass
 
-def zapQueues():
+def zap_queues():
     while not incoming_stanza_queue.empty():
         msg = incoming_stanza_queue.get(block=False)
         logging.error('Message left in the incoming queue during a test : %s' % msg)
@@ -180,11 +180,11 @@ class TestBot(object):
         """
         if self.bot_thread is None:
             raise Exception("Bot has not yet been started")
-        pushMessage(QUIT_MESSAGE)
+        push_message(QUIT_MESSAGE)
         self.bot_thread.join()
         reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")
-        zapQueues()
+        zap_queues()
         self.bot_thread = None
 
 
@@ -217,12 +217,12 @@ class FullStackTest(unittest.TestCase, TestBot):
 
     def assertCommand(self, command, response, timeout=5):
         """Assert the given command returns the given response"""
-        pushMessage(command)
+        push_message(command)
         self.assertIn(response, popMessage(), timeout)
 
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command does not exist"""
-        pushMessage(command)
+        push_message(command)
         self.assertNotIn('not found', popMessage(), timeout)
 
 
@@ -292,3 +292,10 @@ def testbot(request):
 
     request.addfinalizer(on_finish)
     return bot
+
+
+# Backward compatibility
+popMessage = pop_message
+pushMessage = push_message
+pushPresence = push_presence
+zapQueues = zap_queues

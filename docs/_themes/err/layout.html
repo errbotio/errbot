@@ -1,76 +1,82 @@
 {%- extends "basic/layout.html" %}
 {%- block doctype %}
-<!doctype html>
+    <!doctype html>
 {% endblock %}
 {%- block extrahead %}
-  <script type="text/javascript">
-      // GitHub pages offers no way to redirect to a canonical location, so we
-      // have to make do with hacky javascript redirection :(
-      if(document.location.protocol != "file:" && document.location.host != "errbot.net") {
-         var path = document.location.pathname.replace('/err/', '/');
-         document.location = "http://errbot.net" + path;
-      }
-  </script>
-  <link rel="icon" type="image/png" href="{{ pathto('_static/err.png', 1) }}" />
-  <link rel="apple-touch-icon" href="{{ pathto('_static/err.png', 1) }}" />
-  <link rel="stylesheet" href="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.css", 1) }}" type="text/css" media="screen" />
-  <script type="text/javascript" src="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.pack.js", 1) }}"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-32534172-1']);
-    _gaq.push(['_trackPageview']);
+    <script type="text/javascript">
+        // GitHub pages offers no way to redirect to a canonical location, so we
+        // have to make do with hacky javascript redirection :(
+        if (document.location.protocol != "file:" && document.location.host != "errbot.net") {
+            var path = document.location.pathname.replace('/err/', '/');
+            document.location = "http://errbot.net" + path;
+        }
+    </script>
+    <link rel="icon" type="image/png" href="{{ pathto('_static/err.png', 1) }}"/>
+    <link rel="apple-touch-icon" href="{{ pathto('_static/err.png', 1) }}"/>
+    <link rel="stylesheet" href="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.css", 1) }}" type="text/css"
+          media="screen"/>
+    <script type="text/javascript" src="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.pack.js", 1) }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9"/>
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-32534172-1']);
+        _gaq.push(['_trackPageview']);
 
-    (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
 {% endblock %}
 
 {%- block sidebarlogo %}
     <a class="logo" href="{{ pathto(master_doc) }}" title="Back to home page">
-        <img class="logo" src="{{  pathto('_static/err_speech.png', 1) }}" width="220" height="135" alt="Logo of Err" />
+        <img class="logo" src="{{ pathto('_static/err_speech.png', 1) }}" width="220" height="135" alt="Logo of Err"/>
     </a>
     <div class="ghbuttons">
-        <iframe src="http://ghbtns.com/github-btn.html?user=gbin&repo=err&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="95" height="20"></iframe>
-        <iframe src="http://ghbtns.com/github-btn.html?user=gbin&repo=err&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="95" height="20"></iframe>
+        <iframe src="http://ghbtns.com/github-btn.html?user=gbin&repo=err&type=watch&count=true"
+                allowtransparency="true" frameborder="0" scrolling="0" width="95" height="20"></iframe>
+        <iframe src="http://ghbtns.com/github-btn.html?user=gbin&repo=err&type=fork&count=true" allowtransparency="true"
+                frameborder="0" scrolling="0" width="95" height="20"></iframe>
     </div>
 {%- endblock %}
 
 {%- block relbar1 %}{{ super() }}{% endblock %}
 {%- block relbar2 %}
- <div class="relbar2">
-    {{ super() }}
- </div>
+    <div class="relbar2">
+        {{ super() }}
+    </div>
 {%- endblock %}
 
 {% block header %}
-  {{ super() }}
-  {% if pagename == 'index' %}
-  <div class=indexwrapper>
-  {% endif %}
+    {{ super() }}
+    {% if pagename == 'index' %}
+        <div class=indexwrapper>
+    {% endif %}
 {% endblock %}
 
 {%- block footer %}
-  <div class="footer">
-    &copy; Copyright {{ copyright }}.
-    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
-  </div>
-  {% if pagename == 'index' %}
-  </div>
-  {% endif %}
+    <div class="footer">
+        &copy; Copyright {{ copyright }}.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+    </div>
+    {% if pagename == 'index' %}
+        </div>
+    {% endif %}
 {%- endblock %}
 
 {%- block content %}
-  {{ super() }}
-  <script>
-    $(document).ready(function() {
-        $('.fancybox').fancybox({
-            padding : 0,
-            openEffect  : 'elastic'
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            $('.fancybox').fancybox({
+                padding: 0,
+                openEffect: 'elastic'
+            });
         });
-    });
-  </script>
+    </script>
 {%- endblock %}

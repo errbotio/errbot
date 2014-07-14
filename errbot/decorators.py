@@ -3,6 +3,7 @@ import logging
 from errbot import PY2
 from errbot.builtins.wsview import bottle_app, WebView
 
+
 def botcmd(*args, **kwargs):
     """
     Decorator for bot command functions
@@ -80,7 +81,8 @@ def re_botcmd(*args, **kwargs):
     user's input.
     """
 
-    def decorate(func, pattern, flags=0, prefixed=True, hidden=False, name=None, admin_only=False, historize=True, template=None):
+    def decorate(func, pattern, flags=0, prefixed=True, hidden=False, name=None, admin_only=False, historize=True,
+                 template=None):
         if not hasattr(func, '_err_command'):  # don't override generated functions
             setattr(func, '_err_command', True)
             setattr(func, '_err_re_command', True)
@@ -113,7 +115,7 @@ def webhook(*args, **kwargs):
         mimetype.
     :param raw: Boolean to overrides the request decoding (including form_param) and
         passes the raw http request to your method's `payload`.
-        The passed type in payload will provide the BaseRequest interface as defined here : 
+        The passed type in payload will provide the BaseRequest interface as defined here:
         http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`

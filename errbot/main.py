@@ -20,10 +20,12 @@ def main(bot_class, logger):
         try:
             from raven.handlers.logging import SentryHandler
         except ImportError as _:
-            logging.exception("""You have BOT_LOG_SENTRY enabled, but I couldn't import modules needed for Sentry integration.
-            Did you install raven? (See http://raven.readthedocs.org/en/latest/install/index.html for installation instructions)
-
-            """)
+            logging.exception(
+                "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
+                "needed for Sentry integration. Did you install raven? "
+                "(See http://raven.readthedocs.org/en/latest/install/index.html "
+                "for installation instructions)"
+            )
             exit(-1)
         from config import SENTRY_DSN, SENTRY_LOGLEVEL
 

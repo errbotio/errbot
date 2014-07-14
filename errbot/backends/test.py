@@ -30,6 +30,7 @@ STZ_MSG = 1
 STZ_PRE = 2
 STZ_IQ = 3
 
+
 class ConnectionMock():
     def send(self, mess):
         outgoing_message_queue.put(mess.getBody())
@@ -98,13 +99,16 @@ class TestBackend(ErrBot):
 def popMessage(timeout=5, block=True):
     return outgoing_message_queue.get(timeout=timeout, block=block)
 
+
 def pushMessage(msg):
     incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
+
 
 def pushPresence(stanza):
     pass
 
-#def pushIQ(stanza):
+
+# def pushIQ(stanza):
 #    pass
 
 def zapQueues():
@@ -132,6 +136,7 @@ class FullStackTest(unittest.TestCase):
         logger.addHandler(file)
         if extra_test_file:
             import config
+
             config.BOT_EXTRA_PLUGIN_DIR = sep.join(abspath(extra_test_file).split(sep)[:-2])
         self.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
         self.bot_thread.setDaemon(True)

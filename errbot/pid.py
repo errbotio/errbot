@@ -25,7 +25,7 @@ class PidFile(object):
         self.pidfile.seek(0)
         return self.pidfile
 
-    #noinspection PyUnusedLocal
+    # noinspection PyUnusedLocal
     def __exit__(self, exc_type=None, exc_value=None, exc_tb=None):
         try:
             self.pidfile.close()

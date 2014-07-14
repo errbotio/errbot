@@ -26,10 +26,10 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in CHATROOM_PRESENCE:
                 if isinstance(room, basestring):
-                    logging.info('Join room ' + room +' as user '+ CHATROOM_FN)
+                    logging.info('Join room ' + room + ' as user ' + CHATROOM_FN)
                     self.join_room(room, CHATROOM_FN)
                 else:
-                    logging.info('Join room ' + room[0] +' as user '+ CHATROOM_FN)
+                    logging.info('Join room ' + room[0] + ' as user ' + CHATROOM_FN)
                     self.join_room(room[0], username=CHATROOM_FN, password=room[1])
 
     def deactivate(self):
@@ -51,7 +51,6 @@ class ChatRoom(BotPlugin):
         self.invite_in_room(room_name, to_invite)
         return "Room created (%s)" % room_name
 
-
     def callback_message(self, conn, mess):
         if bot.mode != 'campfire':  # no relay support in campfire
             try:
@@ -66,7 +65,7 @@ class ChatRoom(BotPlugin):
                             self.send(room, body, message_type='groupchat')
                 elif mess_type == 'groupchat':
                     fr = mess.getFrom()
-                    chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node  # some backends has no domain notion
+                    chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node
                     if chat_room in REVERSE_CHATROOM_RELAY:
                         users_to_relay_to = REVERSE_CHATROOM_RELAY[chat_room]
                         logging.debug('Message to relay to %s.' % users_to_relay_to)

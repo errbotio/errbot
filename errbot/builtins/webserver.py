@@ -21,6 +21,7 @@ else:
 
 try:
     from OpenSSL import crypto
+
     has_crypto = True
 except ImportError:
     has_crypto = False
@@ -30,6 +31,7 @@ URL : %s
 Detected your post as : %s
 Status code : %i
 """
+
 
 def make_ssl_certificate(key_path, cert_path):
     """
@@ -117,7 +119,7 @@ class Webserver(BotPlugin):
             self.webserver.stop()
         super(Webserver, self).deactivate()
 
-    #noinspection PyUnusedLocal
+    # noinspection PyUnusedLocal
     @botcmd(template='webstatus')
     def webstatus(self, mess, args):
         """
@@ -154,7 +156,7 @@ class Webserver(BotPlugin):
         except ValueError:
             # try if it is a form
             splitted = content.split('=')
-            #noinspection PyBroadException
+            # noinspection PyBroadException
             try:
                 payload = '='.join(splitted[1:])
                 loads(unquote(payload))

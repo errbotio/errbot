@@ -4,7 +4,6 @@ from errbot.builtins.webserver import webhook
 
 
 class WebTest(BotPlugin):
-
     @webhook
     def webhook1(self, payload):
         logging.debug(str(payload))

@@ -35,6 +35,7 @@ STZ_MSG = 1
 STZ_PRE = 2
 STZ_IQ = 3
 
+
 class ConnectionMock():
     def send(self, mess):
         outgoing_message_queue.put(mess.getBody())
@@ -103,13 +104,16 @@ class TestBackend(ErrBot):
 def popMessage(timeout=5, block=True):
     return outgoing_message_queue.get(timeout=timeout, block=block)
 
+
 def pushMessage(msg):
     incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
+
 
 def pushPresence(stanza):
     pass
 
-#def pushIQ(stanza):
+
+# def pushIQ(stanza):
 #    pass
 
 def zapQueues():

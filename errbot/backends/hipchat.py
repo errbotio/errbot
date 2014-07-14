@@ -19,10 +19,14 @@ HIPCHAT_BOLS = re.compile(r'<p [^>]+>|<li [^>]+>', re.I)
 def xhtml2hipchat(xhtml):
     # Hipchat has a really limited html support
     retarded_hipchat_html_plain = REMOVE_EOL.sub('', xhtml)  # Ignore formatting
-    retarded_hipchat_html_plain = HIPCHAT_EOLS.sub('<br/>', retarded_hipchat_html_plain)  # readd the \n where they probably fit best
-    retarded_hipchat_html_plain = HIPCHAT_BOLS.sub('', retarded_hipchat_html_plain)  # zap every tag left
-    retarded_hipchat_html_plain = HIPCHAT_FORCE_PRE.sub('<body><pre>', retarded_hipchat_html_plain)  # fixor pre
-    retarded_hipchat_html_plain = HIPCHAT_FORCE_SLASH_PRE.sub('</pre></body>', retarded_hipchat_html_plain)  # fixor /pre
+    # Readd the \n where they probably fit best
+    retarded_hipchat_html_plain = HIPCHAT_EOLS.sub('<br/>', retarded_hipchat_html_plain)
+    # Zap every tag left
+    retarded_hipchat_html_plain = HIPCHAT_BOLS.sub('', retarded_hipchat_html_plain)
+    # Fix pre
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_PRE.sub('<body><pre>', retarded_hipchat_html_plain)
+    # Fix /pre
+    retarded_hipchat_html_plain = HIPCHAT_FORCE_SLASH_PRE.sub('</pre></body>', retarded_hipchat_html_plain)
     return retarded_hipchat_html_plain
 
 
@@ -47,6 +51,7 @@ class HipchatClient(XMPPConnection):
             self.send_api_message(room_jid.getNode().split('_')[1], CHATROOM_FN, content)
         else:
             super(HipchatClient, self).send_message(mess)
+
 
 # It is just a different mode for the moment
 class HipchatBackend(XMPPBackend):

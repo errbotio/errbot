@@ -3,8 +3,10 @@ import os
 from jinja2 import Environment, FileSystemLoader
 from bottle import TEMPLATE_PATH
 
+
 def make_templates_path(root):
     return root + os.sep + 'templates'
+
 
 system_templates_path = make_templates_path(os.path.dirname(__file__))
 template_path = [system_templates_path]
@@ -27,7 +29,8 @@ def add_plugin_templates_path(path):
         logging.debug("Templates directory found for this plugin [%s]" % tmpl_path)
         template_path.append(tmpl_path)  # for webhooks
         TEMPLATE_PATH.insert(0, tmpl_path)  # for webviews
-        env = Environment(loader=FileSystemLoader(template_path))  # ditch and recreate a new templating environment
+        # Ditch and recreate a new templating environment
+        env = Environment(loader=FileSystemLoader(template_path))
         return
     logging.debug("No templates directory found for this plugin [Looking for %s]" % tmpl_path)
 
@@ -38,4 +41,5 @@ def remove_plugin_templates_path(path):
     if tmpl_path in template_path:
         template_path.remove(tmpl_path)  # for webhooks
         TEMPLATE_PATH.remove(tmpl_path)  # for webviews
-        env = Environment(loader=FileSystemLoader(template_path))  # ditch and recreate a new templating environment
+        # Ditch and recreate a new templating environment
+        env = Environment(loader=FileSystemLoader(template_path))

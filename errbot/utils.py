@@ -90,6 +90,7 @@ def which(program):
 
     return None
 
+
 INVALID_VERSION_EXCEPTION = 'version %s in not in format "x.y.z" or "x.y.z-{beta,alpha,rc1,rc2...}" for example "1.2.2"'
 
 
@@ -113,7 +114,6 @@ def version2array(version):
     else:
         raise ValueError(INVALID_VERSION_EXCEPTION % version)
 
-
     response = [int(el) for el in main.split('.')]
     response.append(sub_int)
 
@@ -132,7 +132,7 @@ def recurse_check_structure(sample, to_check):
     to_check_type = type(to_check)
 
     if PY2 and to_check_type.__name__ == 'str':  # __name__ to avoid beeing touched by 3to2
-        #noinspection PyUnresolvedReferences
+        # noinspection PyUnresolvedReferences
         to_check_type = unicode
         to_check = to_check.decode()
 
@@ -141,7 +141,8 @@ def recurse_check_structure(sample, to_check):
     # would make no sense then because it would defeat the whole purpose of having
     # that key in the sample when it could only ever be None.
     if sample is not None and sample_type != to_check_type:
-        raise ValidationException('%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
+        raise ValidationException(
+            '%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
 
     if sample_type in (list, tuple):
         for element in to_check:
@@ -218,6 +219,7 @@ def mess_2_embeddablehtml(mess):
     else:
         return mess.getBody(), False
 
+
 def parse_jid(jid):
     if jid.find('@') != -1:
         split_jid = jid.split('@')
@@ -257,4 +259,4 @@ def RateLimited(minInterval):
 def split_string_after(str_, n):
     """Yield chunks of length `n` from the given string"""
     for start in range(0, len(str_), n):
-        yield str_[start:start+n]
+        yield str_[start:start + n]

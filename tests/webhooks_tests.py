@@ -51,67 +51,78 @@ class TestWebhooks(object):
             'http://localhost:3141/webhook1/',
             JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
-    
+
     def test_json_on_custom_url_is_automatically_decoded(self):
         assert requests.post(
             'http://localhost:3141/custom_webhook/',
             JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
-    
+
     def test_post_form_data_on_webhook_without_form_param_is_automatically_decoded(self):
         assert requests.post(
             'http://localhost:3141/webhook1/',
             data=JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
-    
+
     def test_post_form_data_on_webhook_with_custom_url_and_without_form_param_is_automatically_decoded(self):
         assert requests.post(
             'http://localhost:3141/custom_webhook/',
             data=JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
-    
+
     def test_webhooks_with_form_parameter_decode_json_automatically(self):
         form = {'form': JSONOBJECT}
         assert requests.post(
             'http://localhost:3141/form/',
             data=form
         ).text == repr(json.loads(JSONOBJECT))
-    
+
     def test_webhooks_with_form_parameter_on_custom_url_decode_json_automatically(self):
         form = {'form': JSONOBJECT}
         assert requests.post(
             'http://localhost:3141/custom_form/',
             data=form
         ).text, repr(json.loads(JSONOBJECT))
-    
+
     def test_webhooks_with_raw_request(self):
         form = {'form': JSONOBJECT}
         assert requests.post(
             'http://localhost:3141/raw/',
             data=form
         ).text == "<class 'bottle.LocalRequest'>"
-    
+
     def test_generate_certificate_creates_usable_cert(self):
         from config import BOT_DATA_DIR
         key_path = os.sep.join((BOT_DATA_DIR, "webserver_key.pem"))
         cert_path = os.sep.join((BOT_DATA_DIR, "webserver_certificate.pem"))
-    
+
         pushMessage("!generate_certificate")
         assert "Generating" in popMessage(timeout=1)
-    
+
         # Generating a certificate could be slow on weak hardware, so keep a safe
         # timeout on the first popMessage()
         assert "successfully generated" in popMessage(timeout=60)
         assert "is recommended" in popMessage(timeout=1)
         assert key_path in popMessage(timeout=1)
-    
-        pushMessage("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL': {'certificate': '%s', 'key': '%s', 'host': 'localhost', 'port': 3142, 'enabled': True}}" % (cert_path, key_path))
+
+        webserver_config = {
+            'HOST': 'localhost',
+            'PORT': 3141,
+            'SSL': {
+                'certificate': cert_path,
+                'key': key_path,
+                'host': 'localhost',
+                'port': 3142,
+                'enabled': True,
+            }
+        }
+        pushMessage("!config Webserver {!r}".format(webserver_config))
         popMessage()
-    
+
         while not webserver_ready('localhost', 3142):
             logging.debug("Webserver not ready yet, sleeping 0.1 second")
             sleep(0.1)
-    
+
         assert requests.post(
             'https://localhost:3142/webhook1/',
             JSONOBJECT,

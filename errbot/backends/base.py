@@ -74,7 +74,8 @@ class ACLViolation(Exception):
 
 class Identifier(object):
     """
-    This class is the parent and the basic contract of all the ways the backends are identifying a person on their system
+    This class is the parent and the basic contract of all the ways the backends
+    are identifying a person on their system.
     """
 
     def __init__(self, jid=None, node='', domain='', resource=''):
@@ -97,7 +98,7 @@ class Identifier(object):
     def getStripped(self):
         if self.domain:
             return self.node + '@' + self.domain
-        return self.node # if the backend has no domain notion
+        return self.node  # if the backend has no domain notion
 
     def getResource(self):
         return self.resource
@@ -117,6 +118,7 @@ class Presence(object):
         An universal class representing protocol agnostic concept
         of presence.
     """
+
     def __init__(self, nick, room, real_id=None):
         self.nick = nick
         self.room = room
@@ -240,16 +242,19 @@ def build_message(text, message_class, conversion_function=None):
 
 
 class Backend(object):
-    # Implements the basic Bot logic (logic independent from the backend) and leave to you to implement the missing parts
+    """
+    Implements the basic Bot logic (logic independent from the backend) and leaves
+    you to implement the missing parts
+    """
 
-    cmd_history = defaultdict(lambda: deque(maxlen=10)) #this will be a per user history
+    cmd_history = defaultdict(lambda: deque(maxlen=10))  # this will be a per user history
 
-    MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. '\
+    MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. ' \
                          'An unexpected error occurred.'
     MESSAGE_SIZE_LIMIT = MESSAGE_SIZE_LIMIT
-    MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '\
+    MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". ' \
                           'Type "' + BOT_PREFIX + 'help" for available commands.'
-    MSG_HELP_TAIL = 'Type help <command name> to get more info '\
+    MSG_HELP_TAIL = 'Type help <command name> to get more info ' \
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
@@ -326,9 +331,9 @@ class Backend(object):
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
         if (jid.bareMatch(Identifier(self.jid)) or
-            type == "groupchat" and mess.getMuckNick() == CHATROOM_FN):
-            logging.debug("Ignoring message from self")
-            return False
+            type == "groupchat" and mess.getMuckNick() == CHATROOM_FN):  # noqa
+                logging.debug("Ignoring message from self")
+                return False
 
         logging.debug("*** jid = %s" % jid)
         logging.debug("*** username = %s" % username)
@@ -417,9 +422,9 @@ class Backend(object):
                 commands = self.re_commands
             else:
                 commands = {k: self.re_commands[k] for k in self.re_commands
-                           if not self.re_commands[k]._err_command_prefix_required}
+                            if not self.re_commands[k]._err_command_prefix_required}
 
-            for name,func in commands.items():
+            for name, func in commands.items():
                 match = func._err_command_re_pattern.search(text)
                 if match:
                     logging.debug("Matching '{}' against '{}' produced a match"
@@ -467,7 +472,9 @@ class Backend(object):
         f = self.re_commands[cmd] if match else self.commands[cmd]
 
         if f._err_command_admin_only and BOT_ASYNC:
-            self.thread_pool.wait()  # If it is an admin command, wait that the queue is completely depleted so we don't have strange concurrency issues on load/unload/updates etc ...
+            # If it is an admin command, wait until the queue is completely depleted so
+            # we don't have strange concurrency issues on load/unload/updates etc...
+            self.thread_pool.wait()
 
         if f._err_command_historize:
             user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
@@ -477,12 +484,17 @@ class Backend(object):
         if not match and f._err_command_split_args_with != '':
             args = args.split(f._err_command_split_args_with)
         if BOT_ASYNC:
-            wr = WorkRequest(self._execute_and_send,
-                [], {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
-                     'template_name': f._err_command_template})
+            wr = WorkRequest(
+                self._execute_and_send,
+                [],
+                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
+                 'template_name': f._err_command_template}
+            )
             self.thread_pool.putRequest(wr)
             if f._err_command_admin_only:
-                self.thread_pool.wait()  # Again wait for the completion before accepting a new command that could generate weird concurrency issues
+                # Again, if it is an admin command, wait until the queue is completely
+                # depleted so we don't have strange concurrency issues.
+                self.thread_pool.wait()
         else:
             self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess, jid=jid,
                                    template_name=f._err_command_template)
@@ -517,10 +529,12 @@ class Backend(object):
             if inspect.isgeneratorfunction(commands[cmd]):
                 replies = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 for reply in replies:
-                    if reply: send_reply(process_reply(reply))
+                    if reply:
+                        send_reply(process_reply(reply))
             else:
                 reply = commands[cmd](mess, match) if match else commands[cmd](mess, args)
-                if reply: send_reply(process_reply(reply))
+                if reply:
+                    send_reply(process_reply(reply))
         except Exception as e:
             tb = traceback.format_exc()
             logging.exception('An error happened while processing '
@@ -592,7 +606,8 @@ class Backend(object):
                 if name in commands:
                     f = commands[name]
                     new_name = (classname + '-' + name).lower()
-                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (classname, name, type(f.__self__).__name__, f.__name__, new_name ))
+                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
+                        classname, name, type(f.__self__).__name__, f.__name__, new_name))
                     name = new_name
                 commands[name] = value
 
@@ -646,11 +661,11 @@ class Backend(object):
                 description = 'Available commands:'
 
             usage = '\n'.join(sorted([
-            BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
-                                            '(undocumented)').strip().split('\n', 1)[0])
-            for (name, command) in self.commands.iteritems()\
-            if name != 'help'\
-            and not command._err_command_hidden
+                BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
+                                                '(undocumented)').strip().split('\n', 1)[0])
+                for (name, command) in self.commands.iteritems()
+                if name != 'help'
+                and not command._err_command_hidden
             ]))
             usage = '\n\n' + '\n\n'.join(filter(None, [usage, self.MSG_HELP_TAIL]))
         else:
@@ -682,8 +697,7 @@ class Backend(object):
 
         self.send_message(mess)
 
-
-    ###### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
+    # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
     def build_message(self, text):
         raise NotImplementedError("It should be implemented specifically for your backend")

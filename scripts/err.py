@@ -19,11 +19,11 @@ from os import path, sep, getcwd, access, W_OK
 from platform import system
 
 
-#noinspection PyUnusedLocal
+# noinspection PyUnusedLocal
 def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
-    d = {'_frame': frame}         # Allow access to frame object.
+    d = {'_frame': frame}  # Allow access to frame object.
     d.update(frame.f_globals)  # Unless shadowed by global
     d.update(frame.f_locals)
 
@@ -31,6 +31,7 @@ def debug(sig, frame):
     message = "Signal received : entering python shell.\nTraceback:\n"
     message += ''.join(traceback.format_stack(frame))
     i.interact(message)
+
 
 ON_WINDOWS = system() == 'Windows'
 
@@ -54,18 +55,23 @@ logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one
 logger.setLevel(logging.INFO)
 
 
-
 def check_config(config_path, mode):
     __import__('errbot.config-template')  # - is on purpose, it should not be imported normally ;)
     template = sys.modules['errbot.config-template']
     config_fullpath = config_path + sep + 'config.py'
 
     if not path.exists(config_fullpath):
-        logging.error('I cannot find the file config.py in the directory %s \n(You can change this directory with the -c parameter see --help)' % config_path)
-        logging.info('You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (path.dirname(template.__file__) + sep + 'config-template.py', config_path + sep))
+        logging.error(
+            'I cannot find the file config.py in the directory %s \n'
+            '(You can change this directory with the -c parameter see --help)' % config_path
+        )
+        logging.info(
+            'You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (
+                path.dirname(template.__file__) + sep + 'config-template.py', config_path + sep)
+        )
         exit(-1)
 
-    #noinspection PyBroadException
+    # noinspection PyBroadException
     try:
         try:
             # gives the opportunity to have one config per mode to simplify the debugging
@@ -92,11 +98,13 @@ if __name__ == "__main__":
 
     execution_dir = getcwd()
 
-    # By default insert the execution path (useful to be able to execute err from the source tree directly without installing it
+    # By default insert the execution path (useful to be able to execute err from
+    # the source tree directly without installing it.
     sys.path.insert(0, execution_dir)
 
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
-    parser.add_argument('-c', '--config', default=None, help='Specify the directory where your config.py is (default: current working directory)')
+    parser.add_argument('-c', '--config', default=None,
+                        help='Specify the directory where your config.py is (default: current working directory)')
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
@@ -109,7 +117,8 @@ if __name__ == "__main__":
     if not ON_WINDOWS:
         option_group = parser.add_argument_group('arguments to run it as a Daemon')
         option_group.add_argument('-d', '--daemon', action='store_true', help='Detach the process from the console')
-        option_group.add_argument('-p', '--pidfile', default=None, help='Specify the pid file for the daemon (default: current bot data directory)')
+        option_group.add_argument('-p', '--pidfile', default=None,
+                                  help='Specify the pid file for the daemon (default: current bot data directory)')
 
     args = vars(parser.parse_args())  # create a dictionary of args
     config_path = args['config']
@@ -118,7 +127,8 @@ if __name__ == "__main__":
         sys.path.insert(0, config_path)  # appends the current config in order to find config.py
     else:
         config_path = execution_dir
-    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if args[mname]]
+    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if
+                     args[mname]]
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
     check_config(config_path, mode)  # check if everything is ok before attempting to start
@@ -136,8 +146,6 @@ if __name__ == "__main__":
         return CampfireBackend
 
     def hipchat():
-        #from errbot.backends.jabber import JabberBot
-        #return JabberBot
         from errbot.backends.hipchat import HipchatBackend
         return HipchatBackend
 
@@ -149,7 +157,6 @@ if __name__ == "__main__":
         from errbot.backends.xmpp import XMPPBackend
         return XMPPBackend
 
-
     def null():
         from errbot.backends.null import NullBackend
         return NullBackend
@@ -158,6 +165,7 @@ if __name__ == "__main__":
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).
     from config import BOT_DATA_DIR
+
     logging.info("Checking for '%s'..." % BOT_DATA_DIR)
     if not path.exists(BOT_DATA_DIR):
         raise Exception("The data directory '%s' for the bot does not exist" % BOT_DATA_DIR)
@@ -177,16 +185,19 @@ if __name__ == "__main__":
 
         pidfile = PidFile(pid)
 
-        #noinspection PyBroadException
+        # noinspection PyBroadException
         try:
             def action():
                 from errbot.main import main
+
                 main(bot_class, logger)
+
             daemon = Daemonize(app="err", pid=pid, action=action)
             daemon.start()
         except Exception as _:
             logging.exception('Failed to daemonize the process')
         exit(0)
     from errbot.main import main
+
     main(bot_class, logger)
     logging.info('Process exiting')

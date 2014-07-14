@@ -27,6 +27,7 @@ bottle_app = DynamicBottle()
 
 route = bottle_app.route  # make that the default
 
+
 def try_decode_json(request):
     data = request.body.read().decode()
     try:
@@ -41,6 +42,7 @@ def reset_app():
     global bottle_app
     bottle_app = DynamicBottle()
 
+
 class WebView(object):
     def __init__(self, func, form_param, raw):
         if form_param is not None and raw:
@@ -53,12 +55,14 @@ class WebView(object):
     def __call__(self, *args, **kwargs):
         name_to_find = self.func.__name__
         logging.debug('All active plugin objects %s ' % get_all_active_plugin_objects())
-        for obj in get_all_active_plugin_objects():  # horrible hack to find back the bound method from the unbound function the decorator was able to give us
+        # Horrible hack to find the bound method from the unbound function the decorator
+        # was able to give us:
+        for obj in get_all_active_plugin_objects():
             matching_members = getmembers(obj, self.method_filter)
             logging.debug('Matching members %s -> %s' % (obj, matching_members))
             if matching_members:
                 name, func = matching_members[0]
-                if self.raw: # override and gives the request directly
+                if self.raw:  # override and gives the request directly
                     response = func(request, **kwargs)
                 elif self.form_param:
                     content = request.forms.get(self.form_param)
@@ -81,5 +85,3 @@ class WebView(object):
                 return response if response else ''  # assume None as an OK response (simplifies the client side)
 
         raise Exception('Problem finding back the correct Handler for func %s' % name_to_find)
-
-

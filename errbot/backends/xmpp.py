@@ -26,7 +26,6 @@ except ImportError as _:
     """)
     sys.exit(-1)
 
-
 try:
     from config import XMPP_FEATURE_MECHANISMS
 except ImportError:

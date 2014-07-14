@@ -41,7 +41,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         self.reset_history()
         super(CommandBox, self).__init__()
 
-        #Autocompleter
+        # Autocompleter
         self.completer = QCompleter([BOT_PREFIX + name for name in commands], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setWidget(self)
@@ -49,14 +49,14 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         self.autocompleteStart = None
 
     def onAutoComplete(self, text):
-        #Select the text from autocompleteStart until the current cursor
+        # Select the text from autocompleteStart until the current cursor
         cursor = self.textCursor()
         cursor.setPosition(0, cursor.KeepAnchor)
-        #Replace it with the selected text
+        # Replace it with the selected text
         cursor.insertText(text)
         self.autocompleteStart = None
 
-    #noinspection PyStringFormat
+    # noinspection PyStringFormat
     def keyPressEvent(self, *args, **kwargs):
         event = args[0]
         key = event.key()
@@ -73,7 +73,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             self.autocompleteStart = None
 
         if key == Qt.Key_Space and ctrl:
-            #Pop-up the autocompleteList
+            # Pop-up the autocompleteList
             rect = self.cursorRect(self.textCursor())
             rect.setSize(QtCore.QSize(100, 150))
             self.autocompleteStart = self.textCursor().position()
@@ -85,7 +85,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             cur.setPosition(self.autocompleteStart)
 
             self.completer.setCompletionPrefix(prefix)
-            #Select the first one of the matches
+            # Select the first one of the matches
             self.completer.popup().setCurrentIndex(self.completer.completionModel().index(0, 0))
 
         if key == Qt.Key_Up and ctrl:
@@ -131,9 +131,11 @@ def linkify(text):
         imglink = ''
         for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
             if text.lower().endswith(a):
-                imglink = '<br /><img src="' + url + '" />'
+                imglink = '<br /><img src="{}" />'.format(url)
                 break
-        return '<a href="' + url + '" target="_blank" rel="nofollow">' + text + '<img class="imglink" src="/images/linkout.png"></a>' + imglink
+        return ('<a href="{url}" target="_blank" rel="nofollow">{text}'
+                '<img class="imglink" src="/images/linkout.png"></a>'
+                '{imglink}'.format(url=url, text=text, imglink=imglink))
 
     return urlfinder.sub(replacewithlink, text)
 
@@ -142,11 +144,18 @@ def htmlify(text, is_html, receiving):
     tag = 'div' if is_html else 'pre'
     if not is_html:
         text = linkify(text)
-    style = 'background-color : rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);' if receiving else 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
-    return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (tag, style, text, tag)
+    if receiving:
+        style = 'background-color: rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);'
+    else:
+        style = 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
+    return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (
+        tag, style, text, tag)
+
 
 INIT_PAGE = """<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head>
-<body style=" background-image: url('%s'); background-repeat: no-repeat; background-position:center center; background-attachment:fixed; background-size: contain; margin:0;">"""
+<body style="background-image: url('%s'); background-repeat: no-repeat;
+background-position: center center; background-attachment:fixed;
+background-size: contain; margin:0;">"""
 
 
 class ChatApplication(QtGui.QApplication):
@@ -198,7 +207,6 @@ class GraphicBackend(ErrBot):
         self.conn = None
         super().__init__(*args, **kwargs)
 
-
     def send_command(self, text):
         self.app.new_message(text, False)
         msg = Message(text)
@@ -206,7 +214,6 @@ class GraphicBackend(ErrBot):
         msg.setTo(self.jid)  # To me only
         self.callback_message(self.conn, msg)
         self.app.input.clear()
-
 
     def build_message(self, text):
         txt, node = build_text_html_message_pair(text)

@@ -5,8 +5,8 @@ from ast import literal_eval
 from errbot.backends.test import FullStackTest, pushMessage, popMessage
 from queue import Empty
 
-class TestCommands(FullStackTest):
 
+class TestCommands(FullStackTest):
     def test_root_help(self):
         pushMessage('!help')
         self.assertIn('Available help', popMessage())
@@ -229,4 +229,3 @@ class TestCommands(FullStackTest):
 
         pushMessage("!status")
         self.assertIn("[L] ChatRoom", popMessage())
-

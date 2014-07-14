@@ -1,0 +1,15 @@
+{%- extends "layout.html" %}
+{% block body %}
+  {{ body }}
+  <div id="prev_next_links">
+      {% if pagename != "index" %}
+          {% if prev %}
+              Previous: <a href="{{ prev.link|e }}">{{ prev.title }}</a>
+          {% endif %}
+          {% if next %}
+              {% if prev %} | {% endif %}
+              Next: <a href="{{ next.link|e }}">{{ next.title }}</a>
+          {% endif %}
+      {% endif %}
+  </div>
+{% endblock %}

@@ -1,7 +1,4 @@
 /*
- * flasky.css_t
- * ~~~~~~~~~~~~
- *
  * :copyright: Copyright 2010 by Armin Ronacher.
  * :license: Flask Design License, see LICENSE for details.
  */
@@ -622,4 +619,11 @@ div.screenshots a {
 
 .revsys-inline {
     display: none!important;
+}
+
+body #prev_next_links {
+    list-style-type: none;
+    margin: 40px 0 20px 0;
+    padding: 0;
+    text-align: center;
 }

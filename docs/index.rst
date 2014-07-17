@@ -14,7 +14,7 @@ is merely a Python module containing a class derived from
 
     from errbot import BotPlugin, botcmd
 
-    class Hello(BotPlugin):
+    class HelloWorld(BotPlugin):
         """Example 'Hello, world!' plugin for Err"""
 
         @botcmd
@@ -94,8 +94,7 @@ User guide
 
   user_guide/setup
   user_guide/interaction
-  user_guide/plugin_development
-  user_guide/plugin_testing
+  user_guide/plugin_development/index
   user_guide/sentry
 
 API documentation

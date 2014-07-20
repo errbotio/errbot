@@ -121,33 +121,81 @@ def zapQueues():
         logging.error('Message left in the outgoing queue during a test : %s' % msg)
 
 
-class FullStackTest(unittest.TestCase):
-    """ This class starts a full bot with a test backend so you can add unit tests on an almost complete bot
+class TestBot(object):
+    """
+    A minimal bot utilizing the TestBackend, for use with unit testing.
+
+    Only one instance of this class should globally be active at any one
+    time.
+
+    End-users should not use this class directly. Use
+    :class:`~errbot.backends.test.FullStackTest` instead, which uses this class
+    under the hood.
     """
     bot_thread = None
 
-    def setUp(self, extra_test_file=None, loglevel=logging.DEBUG):
+    def __init__(self, extra_plugin_dir=None, loglevel=logging.DEBUG):
+        """
+        :param extra_plugin_dir: Path to a directory from which additional
+            plugins should be loaded.
+        :param loglevel: Logging verbosity. Expects one of the constants
+            defined by the logging module.
+        """
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
         console = logging.StreamHandler()
         file = logging.FileHandler(config_module.BOT_LOG_FILE, encoding='utf-8')
-        logger = logging.getLogger('')
-        logger.setLevel(loglevel)
-        logger.addHandler(file)
-        if extra_test_file:
+        self.logger = logging.getLogger('')
+        self.logger.setLevel(loglevel)
+        self.logger.addHandler(file)
+        if extra_plugin_dir:
             import config
+            config.BOT_EXTRA_PLUGIN_DIR = extra_plugin_dir
 
-            config.BOT_EXTRA_PLUGIN_DIR = sep.join(abspath(extra_test_file).split(sep)[:-2])
-        self.bot_thread = Thread(target=main, name='Test Bot Thread', args=(TestBackend, logger))
+    def start(self):
+        """
+        Start the bot
+
+        Calling this method when the bot has already started will result
+        in an Exception being raised.
+        """
+        if self.bot_thread is not None:
+            raise Exception("Bot has already been started")
+        self.bot_thread = Thread(target=main, name='TestBot main thread', args=(TestBackend, self.logger))
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 
-    def tearDown(self):
+    def stop(self):
+        """
+        Stop the bot
+
+        Calling this method before the bot has started will result in an
+        Exception being raised.
+        """
+        if self.bot_thread is None:
+            raise Exception("Bot has not yet been started")
         pushMessage(QUIT_MESSAGE)
         self.bot_thread.join()
         reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")
         zapQueues()
+        self.bot_thread = None
+
+
+class FullStackTest(unittest.TestCase, TestBot):
+    """ This class starts a full bot with a test backend so you can add unit tests on an almost complete bot
+    """
+
+    def setUp(self, extra_test_file=None, loglevel=logging.DEBUG):
+        if extra_test_file:
+            extra_plugin_dir = sep.join(abspath(extra_test_file).split(sep)[:-2])
+        else:
+            extra_plugin_dir = None
+        TestBot.__init__(self, extra_plugin_dir=extra_plugin_dir, loglevel=loglevel)
+        self.start()
+
+    def tearDown(self):
+        self.stop()
 
     def assertCommand(self, command, response, timeout=5):
         pushMessage(command)

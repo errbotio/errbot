@@ -10,7 +10,7 @@ before_script:
 
 install:
   - python setup.py install
-  - pip install PyOpenSSL pep8
+  - pip install --requirement requirements-development.txt PyOpenSSL
   - pip freeze
 
 script: python run_tests.py

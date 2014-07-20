@@ -16,6 +16,10 @@ config_xmpp.py
 /docs/_gh-pages
 /docs/errbot.rst
 /docs/errbot.*.rst
+/.cache
+/.coverage
+/data
+/config.py.*
 
 *.log
 *.crt

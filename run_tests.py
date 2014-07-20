@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import sys
+import subprocess
 import os
 from glob import glob
 
+PY3 = sys.version_info[0] == 3
 TRAVIS_INCOMPATIBLE = ('webhooks_tests.py',)
 
 # Set nose verbosity level to verbose by default
@@ -31,7 +33,17 @@ for testsuite in testsuites:
     print("\nRunning tests from {}\n".format(testsuite))
     testresults.append(nose.run(defaultTest=testsuite))
 
-if False in testresults:
+# Skip pep8 checks on Python 2 because the code conversion done by
+# 3to2 tends to mess things up
+if PY3:
+    # py.test has a pep8 plugin, however it has considerably fewer options
+    # for configuration, hence the use of the stand-alone pep8 checker instead.
+    pep8_result = subprocess.call(["pep8", "--statistics", "--show-source"])
+else:
+    print("Running under Python 2, skipping pep8 style checks")
+    pep8_result = 0
+
+if False in testresults or pep8_result:
     print("\nSome tests failed to pass!")
     exit(-99)  # a test did not pass
 else:

@@ -14,6 +14,3 @@ install:
   - pip freeze
 
 script: python run_tests.py
-
-after_script:
-  - pep8 --statistics --show-source

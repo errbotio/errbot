@@ -171,6 +171,10 @@ class TestBot(object):
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 
+        # Ensure bot is fully started and plugins are loaded before returning
+        push_message("!echo ready")
+        assert pop_message(timeout=60) == "ready"
+
     def stop(self):
         """
         Stop the bot

@@ -208,11 +208,19 @@ class FullStackTest(unittest.TestCase, TestBot):
                 self.assertIn('Err version', pop_message())
     """
 
-    def setUp(self, extra_test_file=None, loglevel=logging.DEBUG):
-        if extra_test_file:
+    def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
+        """
+        :param extra_plugin_dir: Path to a directory from which additional
+            plugins should be loaded.
+        :param extra_test_file: [Deprecated but kept for backward-compatibility,
+            use extra_plugin_dir instead]
+            Path to an additional plugin which should be loaded.
+        :param loglevel: Logging verbosity. Expects one of the constants
+            defined by the logging module.
+        """
+        if extra_plugin_dir is None and extra_test_file is not None:
             extra_plugin_dir = sep.join(abspath(extra_test_file).split(sep)[:-2])
-        else:
-            extra_plugin_dir = None
+
         TestBot.__init__(self, extra_plugin_dir=extra_plugin_dir, loglevel=loglevel)
         self.start()
 

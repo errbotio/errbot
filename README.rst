@@ -230,6 +230,6 @@ to create a "Hello, world!" plugin for Err::
             return "Hello, world!"
 
 This plugin will create the command "!hello" which, when issued, returns "Hello, world!"
-to you. For more info on everything you can do with plugins, see the documentation at
-https://github.com/gbin/err/wiki/plugin-dev
+to you. For more info on everything you can do with plugins, see the
+`plugin development guide <http://errbot.net/user_guide/plugin_development/>`_.
 

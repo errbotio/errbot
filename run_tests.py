@@ -6,7 +6,7 @@ import sys
 
 PY3 = sys.version_info[0] == 3
 
-pytest_result = pytest.main()
+pytest_result = pytest.main("-n 4")
 
 # Skip pep8 checks on Python 2 because the code conversion done by
 # 3to2 tends to mess things up

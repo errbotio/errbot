@@ -1,6 +1,39 @@
 Release history
 ===============
 
+Version 2.1.0 (2014-07-24)
+--------------------------
+
+New features:
+
+- Various changes to the test backend:
+
+  - `setUp <http://errbot.net/errbot.backends.test/#errbot.backends.test.FullStackTest.setUp>`_
+    method of `FullStackTest` now takes an `extra_plugin_dir` argument, deprecating the
+    `extra_test_file` argument.
+  - `popMessage` and `pushMessage` are now more pythonically called `pop_message` and
+    `push_message`, though the old names continue to work.
+  - New `testbot <http://errbot.net/errbot.backends.test/#errbot.backends.test.testbot>`_ fixture
+    to write tests using `pytest <http://pytest.org/>`_.
+
+- Better display of active plugins in debug info (#262).
+- Allow optional username for IRC backend (#256).
+- *Raw* option for the webhook API.
+- `Regex-based <http://errbot.net/errbot.decorators/#errbot.decorators.re_botcmd>`_ bot commands.
+- Pretty-printed output of the !config command.
+
+Bugs fixed:
+
+- Fix make_ssl_certificate on Python 2.
+- Newer version of Rocket, fixing an issue with releasing ports on OSX (#268).
+- Only run 3to2 during actual install steps (#232).
+- Ignore messages from self (#247).
+- Import `irc.connection` within try/except block (#245).
+- Better message recipient setting in XMPP MUC responses.
+- Only configure XMPP MUC when having owner affiliation.
+- Use SleekXMPP plugin `xep_0004` instead of deprecated `old_0004` (#236).
+
+
 Version 2.0.0 (2014-01-05)
 --------------------------
 

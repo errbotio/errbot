@@ -122,7 +122,7 @@ if __name__ == "__main__":
         long_description=''.join([read('README.rst'), '\n\n', changes]),
         license="GPL",
         keywords="xmpp jabber chatbot bot plugin",
-        url="http://gbin.github.com/err/",
+        url="http://errbot.net/",
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Topic :: Communications :: Chat",

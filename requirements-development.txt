@@ -2,3 +2,4 @@
 mock
 nose
 pep8
+pytest

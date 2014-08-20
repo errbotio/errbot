@@ -4,7 +4,7 @@ from ast import literal_eval
 # create a mock configuration
 from errbot.backends.test import FullStackTest, push_message, pop_message
 from queue import Empty
-
+from unittest.mock import patch
 
 class TestCommands(FullStackTest):
     def test_root_help(self):
@@ -94,7 +94,9 @@ class TestCommands(FullStackTest):
         push_message('!history')
         self.assertIn('uptime', pop_message())
 
-    def test_plugin_cycle(self):
+    @patch('errbot.errBot.get_public_repos')
+    def test_plugin_cycle(self, get_public_repos_mock):
+        get_public_repos_mock.return_value = {}
         push_message('!repos install git://github.com/gbin/err-helloworld.git')
         self.assertIn('err-helloworld', pop_message(timeout=60))
         self.assertIn('reload', pop_message())

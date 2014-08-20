@@ -59,14 +59,18 @@ def get_class_for_method(meth):
             return cls
     return None
 
-
+GITHUB_PREFIX = "https://github.com/"
 def human_name_for_git_url(url):
-    # try to humanize the last part of the git url as much as we can
-    if url.find('/') > 0:
-        s = url.split('/')
+    # handle github urls to catch the full repo name
+    if url.startswith(GITHUB_PREFIX):
+        last_part = url[len(GITHUB_PREFIX)+1:]
     else:
-        s = url.split(':')
-    last_part = str(s[-1]) if s[-1] else str(s[-2])
+        # try to humanize the last part of the git url as much as we can
+        if url.find('/') > 0:
+            s = url.split('/')
+        else:
+            s = url.split(':')
+        last_part = str(s[-1]) if s[-1] else str(s[-2])
     return last_part[:-4] if last_part.endswith('.git') else last_part
 
 

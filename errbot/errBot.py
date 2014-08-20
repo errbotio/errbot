@@ -29,7 +29,7 @@ from pprint import pformat
 
 from errbot import botcmd, PY2
 from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS, ACLViolation
-
+from errbot.repos import get_public_repos
 from errbot.plugin_manager import (
     get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,
     get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check,
@@ -39,7 +39,6 @@ from errbot.plugin_manager import (
 
 from errbot.storage import StoreMixin
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_sender_username
-from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
 
 
@@ -441,8 +440,9 @@ class ErrBot(Backend, StoreMixin):
         """
         if not args.strip():
             return "You should have an urls/git repo argument"
-        if args in KNOWN_PUBLIC_REPOS:
-            args = KNOWN_PUBLIC_REPOS[args][0]  # replace it by the url
+        repos = get_public_repos()
+        if args in repos:
+            args = repos[args]['url']  # replace it by the url
         git_path = which('git')
 
         if not git_path:
@@ -503,13 +503,14 @@ class ErrBot(Backend, StoreMixin):
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
+        public_repos = get_public_repos()
         installed_repos = self.get_installed_plugin_repos()
-        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
+        all_names = sorted(set([name for name in public_repos] + [name for name in installed_repos]))
         max_width = max([len(name) for name in all_names])
         return {'repos': [
-            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width),
-             KNOWN_PUBLIC_REPOS[repo_name][1]
-             if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
+            (repo_name in installed_repos, repo_name in public_repos, repo_name.ljust(max_width),
+             public_repos[repo_name]['description']
+             if repo_name in public_repos else installed_repos[repo_name])
             for repo_name in all_names]}
 
     def get_doc(self, command):

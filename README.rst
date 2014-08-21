@@ -1,8 +1,14 @@
 .. image:: http://gbin.github.io/err/_static/err_speech.png
-    :align: right
+   :target: http://errbot.net
 
-.. image:: https://secure.travis-ci.org/gbin/err.png
-    :target: https://travis-ci.org/gbin/err/
+.. image:: https://travis-ci.org/gbin/err.png?branch=master
+   :target: https://travis-ci.org/gbin/err/
+   
+.. image:: https://pypip.in/v/err/badge.png
+   :target: https://pypi.python.org/pypi/err
+   
+.. image:: https://pypip.in/d/err/badge.png
+   :target: https://crate.io/packages/PyTox
 
 Err - the pluggable chatbot
 ===========================

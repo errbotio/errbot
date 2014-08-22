@@ -133,3 +133,12 @@ class TestWebhooks(object):
             JSONOBJECT,
             verify=False
         ).text == repr(json.loads(JSONOBJECT))
+
+    def test_custom_headers_and_status_codes(self):
+        assert requests.post(
+            'http://localhost:{}/webhook6/'.format(WEBSERVER_PORT)
+        ).headers['X-Powered-By'] == "Err"
+
+        assert requests.post(
+            'http://localhost:{}/webhook7/'.format(WEBSERVER_PORT)
+        ).status_code == 403

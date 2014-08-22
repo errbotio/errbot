@@ -1,6 +1,7 @@
 import logging
 from errbot import BotPlugin, botcmd
 from errbot.builtins.webserver import webhook
+from bottle import abort, response
 
 
 class WebTest(BotPlugin):
@@ -28,3 +29,13 @@ class WebTest(BotPlugin):
     def webhook5(self, payload):
         logging.debug(str(payload))
         return str(type(payload))
+
+    @webhook
+    def webhook6(self, payload):
+        logging.debug(str(payload))
+        response.set_header("X-Powered-By", "Err")
+        return str(payload)
+
+    @webhook
+    def webhook7(self, payload):
+        abort(403, "Forbidden")

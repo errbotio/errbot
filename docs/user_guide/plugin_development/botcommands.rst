@@ -10,16 +10,17 @@ array of strings instead of a string:
 
 .. code-block:: python
 
-    @botcmd(split_args_with=' ')
+    @botcmd(split_args_with=None)
     def action(self, mess, args):
         # if you send it !action one two three
         # args will be ['one', 'two', 'three']
 
 .. note::
-    `split_args_with` behaves exactly like :func:`str.split`, so you
-    can use the value `None` to split on any type of whitespace, such
+    `split_args_with` behaves exactly like :func:`str.split`, therefore
+    the value `None` can be used to split on any type of whitespace, such
     as multiple spaces, tabs, etc. This is recommended over `' '` for
-    general use cases.
+    general use cases but you're free to use whatever argument you see
+    fit.
 
 Subcommands
 -----------

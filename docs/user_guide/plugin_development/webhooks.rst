@@ -62,6 +62,7 @@ parameter::
     automatically be decoded so that `incoming_request` is a
     dictionary of the JSON data.
 
+
 Handling form-encoded requests
 ------------------------------
 
@@ -84,6 +85,27 @@ a *payload* parameter::
                     'Commit on %s!' % payload['repository']['name'],
                     message_type='groupchat'
                 )
+
+
+The raw request
+---------------
+
+The above webhooks are convenient for simple tasks, but sometimes
+you might wish to have more power and have access to the actual
+request itself. By setting the `raw` parameter of the
+:func:`~errbot.decorators.webhook` decorator to `True`, you will
+be able to get the
+`bottle.BaseRequest <http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest>`_
+which contains all the details about the actual request::
+
+    from errbot import BotPlugin, webhook
+
+    class PluginExample(BotPlugin):
+        @webhook(raw=True)
+        def test(self, request):
+            user_agent = request.get_header("user-agent", "Unknown")
+            return "Your user-agent is {}".format(user_agent)
+
 
 Testing a webhook through chat
 ------------------------------

@@ -48,6 +48,45 @@ Within your code, the config that is set will be in `self.config`:
     `None`.
 
 
+Supplying partial configuration
+-------------------------------
+
+Sometimes you want to allow users to only supply a part of the configuration
+they wish to override from the template instead of having to copy-paste and
+modify the complete entry.
+
+This can be achieved by overriding :meth:`~errbot.botplugin.BotPlugin.configure`:
+
+.. code-block:: python
+
+    from itertools import chain
+
+    CONFIG_TEMPLATE = {'ID_TOKEN': '00112233445566778899aabbccddeeff',
+                       'USERNAME':'changeme'}
+
+    def configure(self, configuration):
+        if configuration is not None:
+            config = dict(chain(CONFIG_TEMPLATE.items(),
+                                configuration.items()))
+        else:
+            config = CONFIG_TEMPLATE
+        super(PluginExample, self).configure(config)
+
+What this achieves is that it creates a Python dictionary object which
+contains all the values from our `CONFIG_TEMPLATE` and then updates
+that dictionary with the configuration received when calling the
+`!config` command. `!config` must be passed a dictionary for this to
+work.
+
+You'll now also need to override :meth:`~errbot.botplugin.BotPlugin.get_configuration_template`
+and return the `CONFIG_TEMPLATE` in that function:
+
+.. code-block:: python
+
+    def get_configuration_template(self):
+        return CONFIG_TEMPLATE
+
+
 Using custom configuration checks
 ---------------------------------
 
@@ -60,7 +99,18 @@ method if you wish do some other form of configuration validation.
 This method will be called automatically when an admin configures
 your plugin with the `!config` command.
 
-
 .. warning::
     If there is no configuration set yet, it will pass `None` as
     parameter. Be mindful of this situation.
+
+Using the partial configuration trick as shown above requires you to
+override :meth:`~errbot.botplugin.BotPlugin.check_configuration`, so
+at a minimum you'll need this:
+
+.. code-block:: python
+
+    def check_configuration(self, configuration):
+        pass
+
+We suggest that you at least do some validation instead of nothing but
+that is up to you.

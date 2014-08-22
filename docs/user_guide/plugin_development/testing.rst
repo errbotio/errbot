@@ -46,7 +46,7 @@ Our test, *test_myplugin.py*:
 
         def test_command(self, testbot):
             push_message('!mycommand')
-            assert 'THis is my awesome command' in pop_message()
+            assert 'This is my awesome command' in pop_message()
 
 Lets walk through this line for line. First of all, we import :class:`~errbot.backends.test.testbot`, :func:`~errbot.backends.test.push_message` and :func:`~errbot.backends.test.pop_message` from the backends tests, there allow us to spin up a bot for testing purposes and interact with the message queue.
 

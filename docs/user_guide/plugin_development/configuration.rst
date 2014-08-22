@@ -65,7 +65,7 @@ This can be achieved by overriding :meth:`~errbot.botplugin.BotPlugin.configure`
                        'USERNAME':'changeme'}
 
     def configure(self, configuration):
-        if configuration is not None:
+        if configuration is not None and configuration != {}:
             config = dict(chain(CONFIG_TEMPLATE.items(),
                                 configuration.items()))
         else:
@@ -77,6 +77,9 @@ contains all the values from our `CONFIG_TEMPLATE` and then updates
 that dictionary with the configuration received when calling the
 `!config` command. `!config` must be passed a dictionary for this to
 work.
+
+If you wish to reset the configuration to its defaults all you need to do is
+pass an empty dictionary to `!config`.
 
 You'll now also need to override :meth:`~errbot.botplugin.BotPlugin.get_configuration_template`
 and return the `CONFIG_TEMPLATE` in that function:

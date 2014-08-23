@@ -19,6 +19,13 @@ def test_version_check():
     yield vc, '2.0.0-rc2', '2.0.0'
     yield vc, '2.0.0-beta', '2.0.1'
 
+uc = lambda got, want: got == want
+
+def test_git_url_humanization():
+    yield uc, 'https://www.github.com/gbin/err-blah.git', 'gbin/err-blah'
+    yield uc, 'git://custom.com/gbin/toto.git', 'toto'
+    yield uc, 'git://custom.com/toto.git', 'toto'
+
 
 def test_version_check_negative():
     raises(ValueError)(version2array)('1.2.3.4', )

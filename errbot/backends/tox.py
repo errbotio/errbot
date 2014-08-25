@@ -4,7 +4,7 @@ from time import sleep
 from os.path import exists, join
 
 from errbot.errBot import ErrBot
-from config import BOT_DATA_DIR
+import config
 from errbot.backends.base import Message, Connection, Identifier
 from errbot.backends.base import Message, build_message, build_text_html_message_pair
 
@@ -18,17 +18,27 @@ except ImportError:
     """)
     sys.exit(-1)
 
-# TODO load that from a bootstrap address or a config
-SERVER = ["54.199.139.199", 33445, "7F9C31FE850E97CEFD4C4591DF93FC757C7C12549DDD55F8EEAECC34FE76C029"]
+try:
+   from config import TOX_BOOTSTRAP_SERVER
+except ImportError:
+    logging.fatal("""
+    You need to provide a server to bootstrap from in config.TOX_BOOTSTRAP_SERVER.
+    for example : 
+    TOX_BOOTSTRAP_SERVER = ["54.199.139.199", 33445, "7F9C31FE850E97CEFD4C4591DF93FC757C7C12549DDD55F8EEAECC34FE76C029"]
 
-# Tox mapping to Err Identifier :
+    You can find currently active public ones on :
+    https://wiki.tox.im/Nodes """)
+    sys.exit(-1)
 
-# TOX id -> node
+# Backend notes 
+# 
+# TOX mapping to Err Identifier :
+# TOX friend number -> node
 # TOX name -> resource
-# as the id is the real identifier
 
 
-TOX_STATEFILE = join(BOT_DATA_DIR, 'tox.state')
+TOX_STATEFILE = join(config.BOT_DATA_DIR, 'tox.state')
+TOX_MAX_MESS_LENGTH = 1368
 
 class ToxConnection(Tox, Connection):
     def __init__(self, callback, name):
@@ -44,18 +54,23 @@ class ToxConnection(Tox, Connection):
 
     def connect(self):
         logging.info('TOX: connecting...')
-        self.bootstrap_from_address(SERVER[0], SERVER[1], SERVER[2])
+        self.bootstrap_from_address(*TOX_BOOTSTRAP_SERVER)
 
     def send_message(self, mess):
         body = mess.getBody()
         number = int(mess.getTo().getNode())
+        subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
         if mess.getType() == 'groupchat':
            logging.debug('TOX: sending to group number %i', number)
-           super(ToxConnection, self).group_message_send(number, body)
+           for subpart in subparts:
+               super(ToxConnection, self).group_message_send(number, subpart)
+               sleep(0.5) # antiflood
         else:
            logging.debug('TOX: sending to friend number %i', number)
-           # yup this is an horrible clash on names !
-           super(ToxConnection, self).send_message(number, body)
+           for subpart in subparts:
+               # yup this is an horrible clash on names !
+               super(ToxConnection, self).send_message(number, subpart)
+               sleep(0.5) # antiflood
     
     def on_friend_request(self, friend_pk, message):
         logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
@@ -64,7 +79,9 @@ class ToxConnection(Tox, Connection):
     def on_group_invite(self, friend_number, group_pk):
         logging.info('TOX: Group invite from %s : %s' % (self.get_name(friend_number), group_pk))
 
-        # FIXME: block groups not from the admin users
+        if not self.callback.is_admin(friend_number):
+            super(ToxConnection, self).send_message(friend_number, "You are not recognized as an administrator of this bot")
+            return           
         self.join_groupchat(friend_number, group_pk)
 
     def on_friend_message(self, friend_number, message):
@@ -76,7 +93,11 @@ class ToxConnection(Tox, Connection):
         msg.setFrom(friend)
         msg.setTo(self.callback.jid)
         self.callback.callback_message(self, msg)
-    
+   
+
+    def on_user_status(self, friend_number, kind):
+        logging.debug("TOX: user %s changed state", friend_number)
+
     def on_group_message(self, group_number, friend_group_number, message):
         logging.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
         fr = Identifier(node=str(group_number), resource=str(friend_group_number))
@@ -92,6 +113,12 @@ class ToxBackend(ErrBot):
         super(ToxBackend, self).__init__()
         self.conn = ToxConnection(self, username)
         self.jid = Identifier(str(self.conn.get_address()), resource = username)
+
+
+    def is_admin(self, friend_number):
+        pk = self.conn.get_client_id(int(friend_number))
+        logging.debug("Check if %s is admin" % pk)
+        return any(pka.startswith(pk) for pka in config.BOT_ADMINS)
 
     def serve_forever(self):
         checked = False

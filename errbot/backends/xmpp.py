@@ -179,7 +179,7 @@ class XMPPConnection(Connection):
 class XMPPBackend(ErrBot):
     def __init__(self, username, password, *args, **kwargs):
         super(XMPPBackend, self).__init__(*args, **kwargs)
-        self.jid = username
+        self.jid = Identifier(username)
         self.password = password
         self.conn = self.create_connection()
         self.conn.add_event_handler("message", self.incoming_message)

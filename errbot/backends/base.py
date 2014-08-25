@@ -330,7 +330,7 @@ class Backend(object):
         # background discussion on this). Matching against CHATROOM_FN isn't technically
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
-        if (jid.bareMatch(Identifier(self.jid)) or
+        if (jid.bareMatch(self.jid) or
             type == "groupchat" and mess.getMuckNick() == CHATROOM_FN):  # noqa
                 logging.debug("Ignoring message from self")
                 return False
@@ -542,6 +542,12 @@ class Backend(object):
                               (mess.getBody(), jid, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
+    def is_admin(self, usr):
+        """
+        an overridable check to see if a user is an administrator
+        """
+        return usr in BOT_ADMINS
+
     def check_command_access(self, mess, cmd):
         """
         Check command against ACL rules
@@ -575,7 +581,7 @@ class Backend(object):
         if f._err_command_admin_only:
             if typ == 'groupchat':
                 raise ACLViolation("You cannot administer the bot from a chatroom, message the bot directly")
-            if usr not in BOT_ADMINS:
+            if not self.is_admin(usr):
                 raise ACLViolation("This command requires bot-admin privileges")
 
     def unknown_command(self, mess, cmd, args):

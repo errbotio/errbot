@@ -17,7 +17,7 @@ class NullBackend(ErrBot):
     running = True
 
     def serve_forever(self):
-        self.jid = 'Err@localhost'  # whatever
+        self.jid = Identifier('Err')  # whatever
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
         try:

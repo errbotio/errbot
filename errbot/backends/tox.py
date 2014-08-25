@@ -19,19 +19,19 @@ except ImportError:
     sys.exit(-1)
 
 try:
-   from config import TOX_BOOTSTRAP_SERVER
+    from config import TOX_BOOTSTRAP_SERVER
 except ImportError:
     logging.fatal("""
     You need to provide a server to bootstrap from in config.TOX_BOOTSTRAP_SERVER.
-    for example : 
+    for example :
     TOX_BOOTSTRAP_SERVER = ["54.199.139.199", 33445, "7F9C31FE850E97CEFD4C4591DF93FC757C7C12549DDD55F8EEAECC34FE76C029"]
 
     You can find currently active public ones on :
     https://wiki.tox.im/Nodes """)
     sys.exit(-1)
 
-# Backend notes 
-# 
+# Backend notes
+#
 # TOX mapping to Err Identifier :
 # TOX friend number -> node
 # TOX name -> resource
@@ -39,6 +39,9 @@ except ImportError:
 
 TOX_STATEFILE = join(config.BOT_DATA_DIR, 'tox.state')
 TOX_MAX_MESS_LENGTH = 1368
+
+NOT_ADMIN = "You are not recognized as an administrator of this bot"
+
 
 class ToxConnection(Tox, Connection):
     def __init__(self, callback, name):
@@ -61,27 +64,27 @@ class ToxConnection(Tox, Connection):
         number = int(mess.getTo().getNode())
         subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
         if mess.getType() == 'groupchat':
-           logging.debug('TOX: sending to group number %i', number)
-           for subpart in subparts:
-               super(ToxConnection, self).group_message_send(number, subpart)
-               sleep(0.5) # antiflood
+            logging.debug('TOX: sending to group number %i', number)
+            for subpart in subparts:
+                super(ToxConnection, self).group_message_send(number, subpart)
+                sleep(0.5)  # antiflood
         else:
-           logging.debug('TOX: sending to friend number %i', number)
-           for subpart in subparts:
-               # yup this is an horrible clash on names !
-               super(ToxConnection, self).send_message(number, subpart)
-               sleep(0.5) # antiflood
-    
+            logging.debug('TOX: sending to friend number %i', number)
+            for subpart in subparts:
+                # yup this is an horrible clash on names !
+                super(ToxConnection, self).send_message(number, subpart)
+                sleep(0.5)  # antiflood
+
     def on_friend_request(self, friend_pk, message):
         logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
         self.add_friend_norequest(friend_pk)
-    
+
     def on_group_invite(self, friend_number, group_pk):
         logging.info('TOX: Group invite from %s : %s' % (self.get_name(friend_number), group_pk))
 
         if not self.callback.is_admin(friend_number):
-            super(ToxConnection, self).send_message(friend_number, "You are not recognized as an administrator of this bot")
-            return           
+            super(ToxConnection, self).send_message(friend_number, NOT_ADMIN)
+            return
         self.join_groupchat(friend_number, group_pk)
 
     def on_friend_message(self, friend_number, message):
@@ -93,7 +96,6 @@ class ToxConnection(Tox, Connection):
         msg.setFrom(friend)
         msg.setTo(self.callback.jid)
         self.callback.callback_message(self, msg)
-   
 
     def on_user_status(self, friend_number, kind):
         logging.debug("TOX: user %s changed state", friend_number)
@@ -107,13 +109,13 @@ class ToxConnection(Tox, Connection):
         logging.debug('TOX: callback with type = %s' % msg.getType())
         self.callback.callback_message(self, msg)
 
+
 class ToxBackend(ErrBot):
 
     def __init__(self, username):
         super(ToxBackend, self).__init__()
         self.conn = ToxConnection(self, username)
-        self.jid = Identifier(str(self.conn.get_address()), resource = username)
-
+        self.jid = Identifier(str(self.conn.get_address()), resource=username)
 
     def is_admin(self, friend_number):
         pk = self.conn.get_client_id(int(friend_number))
@@ -122,7 +124,7 @@ class ToxBackend(ErrBot):
 
     def serve_forever(self):
         checked = False
- 
+
         try:
             while True:
                 status = self.conn.isconnected()

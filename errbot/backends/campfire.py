@@ -74,9 +74,9 @@ class CampfireBackend(ErrBot):
             if not CHATROOM_PRESENCE:
                 raise Exception('Your bot needs to join at least one room, please set CHATROOM_PRESENCE in your config')
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = Identifier(node = self.username,
-                                  domain = self.conn.get_room_by_name(CHATROOM_PRESENCE[0]).name,
-                                  resource = self.username)
+            self.jid = Identifier(node=self.username,
+                                  domain=self.conn.get_room_by_name(CHATROOM_PRESENCE[0]).name,
+                                  resource=self.username)
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms
         return self.conn

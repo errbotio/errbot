@@ -85,7 +85,7 @@ class IRCConnection(SingleServerIRCBot):
 
 class IRCBackend(ErrBot):
     def __init__(self, nickname, server, port=6667, password=None, ssl=False, username=None):
-        self.jid = Identifier(node = nickname, domain = server)
+        self.jid = Identifier(node=nickname, domain=server)
         super(IRCBackend, self).__init__()
         self.conn = IRCConnection(self, nickname, server, port, ssl, password, username)
 

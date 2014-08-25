@@ -541,7 +541,7 @@ class Backend(object):
                               'a message ("%s") from %s: %s"' %
                               (mess.getBody(), jid, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
-    
+
     def is_admin(self, usr):
         """
         an overridable check to see if a user is an administrator

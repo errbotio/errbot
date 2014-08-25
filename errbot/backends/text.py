@@ -20,7 +20,7 @@ class TextBackend(ErrBot):
     conn = ConnectionMock()
 
     def serve_forever(self):
-        self.jid = Identifier('Err') 
+        self.jid = Identifier('Err')
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
         try:

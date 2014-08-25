@@ -50,7 +50,7 @@ class TestBackend(ErrBot):
     def serve_forever(self):
         import config
 
-        self.jid = 'Err@localhost'  # whatever
+        self.jid = Identifier('Err') # whatever
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
         self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking

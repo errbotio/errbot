@@ -206,6 +206,7 @@ class GraphicBackend(ErrBot):
     def __init__(self, *args, **kwargs):
         self.conn = None
         super().__init__(*args, **kwargs)
+        self.jid = Identifier('Err')
 
     def send_command(self, text):
         self.app.new_message(text, False)
@@ -222,7 +223,6 @@ class GraphicBackend(ErrBot):
         return msg  # rebuild a pure html snippet to include directly in the console html
 
     def serve_forever(self):
-        self.jid = 'Err@localhost'
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
 

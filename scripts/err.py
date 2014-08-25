@@ -110,6 +110,7 @@ if __name__ == "__main__":
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
     backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
     backend_group.add_argument('-I', '--irc', action='store_true', help='IRC backend')
+    backend_group.add_argument('-O', '--tox', action='store_true', help='TOX backend')
     backend_group.add_argument('-T', '--text', action='store_true', help='locale text debug backend')
     backend_group.add_argument('-G', '--graphic', action='store_true', help='local graphical debug mode backend')
     backend_group.add_argument('-N', '--null', action='store_true', help='no backend')
@@ -127,7 +128,7 @@ if __name__ == "__main__":
         sys.path.insert(0, config_path)  # appends the current config in order to find config.py
     else:
         config_path = execution_dir
-    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'null') if
+    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'tox', 'null') if
                      args[mname]]
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
@@ -156,6 +157,10 @@ if __name__ == "__main__":
     def xmpp():
         from errbot.backends.xmpp import XMPPBackend
         return XMPPBackend
+
+    def tox():
+        from errbot.backends.tox import ToxBackend
+        return ToxBackend
 
     def null():
         from errbot.backends.null import NullBackend

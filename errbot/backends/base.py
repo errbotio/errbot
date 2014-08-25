@@ -330,7 +330,7 @@ class Backend(object):
         # background discussion on this). Matching against CHATROOM_FN isn't technically
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
-        if (jid.bareMatch(Identifier(self.jid)) or
+        if (jid.bareMatch(self.jid) or
             type == "groupchat" and mess.getMuckNick() == CHATROOM_FN):  # noqa
                 logging.debug("Ignoring message from self")
                 return False

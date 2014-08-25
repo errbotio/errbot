@@ -29,7 +29,7 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
-    jid = 'err@localhost/err'
+    jid = Identifier('err@localhost/err')
 
     def build_message(self, text):
         return build_message(text, Message)

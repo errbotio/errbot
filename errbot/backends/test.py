@@ -21,7 +21,7 @@ config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
-from errbot.backends.base import Message, build_message
+from errbot.backends.base import Message, build_message, Identifier
 from errbot.builtins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import main

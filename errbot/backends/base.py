@@ -114,9 +114,25 @@ class Identifier(object):
 
 
 class Message(object):
+    """
+    A chat message.
+
+    This class represents chat messages that are sent or received by
+    the bot. It is modeled after XMPP messages so not all methods
+    make sense in the context of other back-ends.
+    """
+
     fr = Identifier('unknown@localhost')
 
     def __init__(self, body, typ='chat', html=None):
+        """
+        :param body:
+            The plaintext body of the message.
+        :param typ:
+            The type of message (generally one of either 'chat' or 'groupchat').
+        :param html:
+            An optional HTML representation of the body.
+        """
         # it is either unicode or assume it is utf-8
         if isinstance(body, str):
             self.body = body
@@ -128,36 +144,97 @@ class Message(object):
         self.mucknick = None
 
     def setTo(self, to):
+        """
+        Set the recipient of the message.
+
+        :param to:
+            An :class:`~errbot.backends.base.Identifier`, or string which may
+            be parsed as one, identifying the recipient.
+        """
         if isinstance(to, Identifier):
             self.to = to
         else:
             self.to = Identifier(to)  # assume a parseable string
 
     def getTo(self):
+        """
+        Get the recipient of the message.
+
+        :returns:
+            An :class:`~errbot.backends.base.Identifier` identifying
+            the recipient.
+        """
         return self.to
 
     def setType(self, typ):
+        """
+        Set the type of the message.
+
+        :param typ:
+            The message type (generally one of either 'chat'
+            or 'groupchat').
+        """
         self.typ = typ
 
     def getType(self):
+        """
+        Get the type of the message.
+
+        :returns:
+            The message type as a string (generally one of either
+            'chat' or 'groupchat')
+        """
         return self.typ
 
     def getFrom(self):
+        """
+        Get the sender of the message.
+
+        :returns:
+            An :class:`~errbot.backends.base.Identifier` identifying
+            the sender.
+        """
         return self.fr
 
     def setFrom(self, fr):
+        """
+        Set the sender of the message.
+
+        :param fr:
+            An :class:`~errbot.backends.base.Identifier`, or string which may
+            be parsed as one, identifying the sender.
+        """
         if isinstance(fr, Identifier):
             self.fr = fr
         else:
             self.fr = Identifier(fr)  # assume a parseable string
 
     def getBody(self):
+        """
+        Get the plaintext body of the message.
+
+        :returns:
+            The body as a string.
+        """
         return self.body
 
     def getHTML(self):
+        """
+        Get the HTML representation of the message.
+
+        :returns:
+            A string containing the HTML message or `None` when there
+            is none.
+        """
         return self.html
 
     def setHTML(self, html):
+        """
+        Set the HTML representation of the message
+
+        :param html:
+            The HTML message.
+        """
         self.html = html
 
     def setDelayed(self, delayed):

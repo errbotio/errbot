@@ -1,7 +1,7 @@
 import logging
 import sys
 import config
-from errbot.backends.base import Message, build_message
+from errbot.backends.base import Message, build_message, Identifier
 from errbot.errBot import ErrBot
 
 

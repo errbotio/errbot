@@ -188,6 +188,7 @@ class XMPPBackend(ErrBot):
         # presence related handlers
         self.conn.add_event_handler("got_online", self.contact_online)
         self.conn.add_event_handler("got_offline", self.contact_offline)
+        self.conn.add_event_handler("changed_status", self.contact_status)
         # NOTE: for now we will register the handlers this way
         e_muc_online = "muc::{}::got_online"
         e_muc_offline = "muc::{}::got_offline"
@@ -214,18 +215,50 @@ class XMPPBackend(ErrBot):
         msg.setDelayed(bool(xmppmsg['delay']._get_attr('stamp')))  # this is a bug in sleekxmpp it should be ['from']
         self.callback_message(self.conn, msg)
 
-    def contact_online(self, stanza):
-        pass
+    def contact_online(self, event):
+        if event['type'] == 'groupchat':
+            p = Presence(chatroom=Identifier(event['jid']),
+                         nick=event['resource'],
+                         status=ONLINE)
+        else:
+            p = Presence(identifier=Identifier(event['jid']),
+                         status=ONLINE)
+        self.callback_presence(self.conn, p)
+           
 
-    def contact_offline(self, stanza):
-        pass
+    def contact_offline(self, event):
+        if event['type'] == 'groupchat':
+            p = Presence(chatroom=Identifier(event['jid']),
+                         nick=event['resource'],
+                         status=OFFLINE)
+        else:
+            p = Presence(identifier=Identifier(event['jid']),
+                         status=OFFLINE)
+        self.callback_presence(self.conn, p)
 
-    def user_joined_chat(self, stanza):
-        pass
+    def user_joined_chat(self, event):
+        if event['type'] == 'groupchat':
+            p = Presence(chatroom=Identifier(event['jid']),
+                         nick=event['resource'],
+                         status=ONLINE)
+        else:
+            p = Presence(identifier=Identifier(event['jid']),
+                         status=ONLINE)
+        self.callback_presence(self.conn, p)
 
-    def user_left_chat(self, stanza):
-        pass
+    def user_left_chat(self, event):
+        if event['type'] == 'groupchat':
+            p = Presence(chatroom=Identifier(event['jid']),
+                         nick=event['resource'],
+                         status=OFFLINE)
+        else:
+            p = Presence(identifier=Identifier(event['jid']),
+                         status=OFFLINE)
+        self.callback_presence(self.conn, p)
 
+    def contact_status(self, event):
+        pass # TODO implement
+    
     def connected(self, data):
         """Callback for connection events"""
         self.connect_callback()

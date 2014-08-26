@@ -50,6 +50,7 @@ this with :func:`~errbot.botplugin.BotPlugin.send`:
         message_type="groupchat"
     )
 
+
 Templating
 ----------
 
@@ -72,6 +73,11 @@ this *hello.html*:
     <p style='font-weight:bold'>Hello, {{name}}!</p>
     {% endblock %}
 
+.. note::
+    See the Jinja2 `Template Designer Documentation
+    <http://jinja.pocoo.org/docs/templates/>`_ for more information on
+    the available template syntax.
+
 Next, tell Err which template to use by specifying the `template`
 parameter to :func:`~errbot.decorators.botcmd` (leaving off the
 *.html* suffix).
@@ -90,13 +96,25 @@ template (`{{name}}` in the above template example):
             """Say hello to someone"""
             return {'name': args}
 
-See the Jinja2 `Template Designer Documentation
-<http://jinja.pocoo.org/docs/templates/>`_ for more information on
-the available template syntax.
+It's also possible to use templates when using `self.send()`, but in
+this case you will have to do the template rendering step yourself,
+like so:
+
+.. code-block:: python
+
+    from errbot import BotPlugin, botcmd
+    from errbot.templating import tenv
+
+    class Hello(BotPlugin):
+        @botcmd(template="hello")
+        def hello(self, msg, args):
+            """Say hello to someone"""
+            response = tenv().get_template('hello.html').render(name=args)
+            self.send(msg.getFrom(), response, message_type=msg.getType())
 
 .. note::
-    A plain-text version of your template is automatically generated
-    for clients and back-ends that do not support XHTML-IM.
+    In both cases a plain-text version of your template is automatically
+    generated for clients and back-ends that do not support XHTML-IM.
 
 
 Trigger a callback with every message received

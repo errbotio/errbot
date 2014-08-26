@@ -113,7 +113,6 @@ class Identifier(object):
         return str(self.__str__())
 
 
-
 class Message(object):
     fr = Identifier('unknown@localhost')
 
@@ -216,8 +215,8 @@ class Presence(object):
         return self.nick
 
     def get_identifier(self):
-        """ Returns the identifier of the event. 
-            Can be None *only* if chatroom is not None 
+        """ Returns the identifier of the event.
+            Can be None *only* if chatroom is not None
         """
         return self.identifier
 
@@ -231,20 +230,20 @@ class Presence(object):
 
     def get_message(self):
         """ Returns a human readable message associated with the status if any.
-            like : "BRB, washing the dishes" 
+            like : "BRB, washing the dishes"
             It can be None if it is only a general status update (see get_status)
         """
         return self.message
 
     def __str__(self):
-        return "%s(%s) is now %s in %s" %(self.nick, 
-                                          self.identifier, 
-                                          self.status,
-                                          self.chatroom)
+        return "Presence:\n nick %s\n idd %s\n status %s\n chatroom %s\n message %s\n" % (self.nick,
+                                                                                          self.identifier,
+                                                                                          self.status,
+                                                                                          self.chatroom,
+                                                                                          self.message)
 
     def __unicode__(self):
         return str(self.__str__())
-
 
 
 class Connection(object):

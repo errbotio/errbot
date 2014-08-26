@@ -44,16 +44,16 @@ TOX_MAX_MESS_LENGTH = 1368
 NOT_ADMIN = "You are not recognized as an administrator of this bot"
 
 TOX_TO_ERR_STATUS = {
-        Tox.USERSTATUS_NONE: ONLINE,
-        Tox.USERSTATUS_AWAY: AWAY,
-        Tox.USERSTATUS_BUSY: DND,
-        }
+    Tox.USERSTATUS_NONE: ONLINE,
+    Tox.USERSTATUS_AWAY: AWAY,
+    Tox.USERSTATUS_BUSY: DND,
+    }
 
 TOX_GROUP_TO_ERR_STATUS = {
-        Tox.CHAT_CHANGE_PEER_ADD: ONLINE,
-        Tox.CHAT_CHANGE_PEER_DEL: AWAY,
-        Tox.CHAT_CHANGE_PEER_NAME: None,
-        }
+    Tox.CHAT_CHANGE_PEER_ADD: ONLINE,
+    Tox.CHAT_CHANGE_PEER_DEL: AWAY,
+    Tox.CHAT_CHANGE_PEER_NAME: None,
+    }
 
 
 class ToxConnection(Tox, Connection):
@@ -109,35 +109,33 @@ class ToxConnection(Tox, Connection):
         msg.setFrom(friend)
         msg.setTo(self.callback.jid)
         self.callback.callback_message(self, msg)
-    
+
     def on_group_namelist_change(self, group_number, friend_group_number, change):
         logging.debug("TOX: user %s changed state in group %s" % (friend_group_number, group_number))
         newstatus = TOX_GROUP_TO_ERR_STATUS[change]
         if newstatus:
             chatroom = Identifier(node=str(group_number), resource=str(friend_group_number))
             pres = Presence(nick=self.group_peername(group_number, friend_group_number),
-                            status = newstatus,
-                            chatroom = chatroom)
+                            status=newstatus,
+                            chatroom=chatroom)
             self.callback.callback_presence(self, pres)
 
     def on_user_status(self, friend_number, kind):
         logging.debug("TOX: user %s changed state", friend_number)
-        pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)), 
+        pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)),
                         status=TOX_TO_ERR_STATUS[kind])
         self.callback.callback_presence(self, pres)
-   
 
     def on_status_message(self, friend_number, message):
-        pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)), 
+        pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)),
                         message=message)
         self.callback.callback_presence(self, pres)
- 
+
     def on_connection_status(self, friend_number, status):
         logging.debug("TOX: user %s changed connection status", friend_number)
-        pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)), 
+        pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)),
                         status=ONLINE if status else OFFLINE)
         self.callback.callback_presence(self, pres)
- 
 
     def on_group_message(self, group_number, friend_group_number, message):
         logging.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))

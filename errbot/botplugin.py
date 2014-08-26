@@ -205,7 +205,6 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-
     # Proxyfy some useful tools from the motherbot
     # this is basically the contract between the plugins and the main bot
 

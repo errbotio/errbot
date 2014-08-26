@@ -176,10 +176,11 @@ class XMPPConnection(Connection):
             logging.debug("Inviting %s to %s..." % (jid, room))
             muc.invite(room, jid)
 
-XMPP_TO_ERR_STATUS = { 'available': ONLINE,
-                       'away': AWAY,
-                       'dnd': DND,
-                       'unavailable': OFFLINE }
+XMPP_TO_ERR_STATUS = {'available': ONLINE,
+                      'away': AWAY,
+                      'dnd': DND,
+                      'unavailable': OFFLINE}
+
 
 class XMPPBackend(ErrBot):
     def __init__(self, username, password, *args, **kwargs):
@@ -225,7 +226,6 @@ class XMPPBackend(ErrBot):
         p = Presence(identifier=Identifier(str(event['from'])),
                      status=ONLINE)
         self.callback_presence(self.conn, p)
-           
 
     def contact_offline(self, event):
         logging.debug("contact_offline %s" % event)
@@ -255,7 +255,7 @@ class XMPPBackend(ErrBot):
         message = event['status']
         if not errstatus:
             errstatus = event['type']
-        
+
         p = Presence(identifier=Identifier(str(event['from'])),
                      status=errstatus, message=message)
         self.callback_presence(self.conn, p)

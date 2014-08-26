@@ -176,6 +176,10 @@ class XMPPConnection(Connection):
             logging.debug("Inviting %s to %s..." % (jid, room))
             muc.invite(room, jid)
 
+XMPP_TO_ERR_STATUS = { 'available': ONLINE,
+                       'away': AWAY,
+                       'dnd': DND,
+                       'unavailable': OFFLINE }
 
 class XMPPBackend(ErrBot):
     def __init__(self, username, password, *args, **kwargs):
@@ -189,6 +193,7 @@ class XMPPBackend(ErrBot):
         # presence related handlers
         self.conn.add_event_handler("got_online", self.contact_online)
         self.conn.add_event_handler("got_offline", self.contact_offline)
+        self.conn.add_event_handler("changed_status", self.user_changed_status)
         # NOTE: for now we will register the handlers this way
         e_muc_online = "muc::{}::got_online"
         e_muc_offline = "muc::{}::got_offline"
@@ -242,6 +247,17 @@ class XMPPBackend(ErrBot):
         p = Presence(chatroom=idd,
                      nick=idd.getResource(),
                      status=OFFLINE)
+        self.callback_presence(self.conn, p)
+
+    def user_changed_status(self, event):
+        logging.debug("user_changed_status %s" % event)
+        errstatus = XMPP_TO_ERR_STATUS.get(event['type'], None)
+        message = event['status']
+        if not errstatus:
+            errstatus = event['type']
+        
+        p = Presence(identifier=Identifier(str(event['from'])),
+                     status=errstatus, message=message)
         self.callback_presence(self.conn, p)
 
     def connected(self, data):

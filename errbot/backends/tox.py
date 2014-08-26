@@ -123,9 +123,15 @@ class ToxConnection(Tox, Connection):
     def on_user_status(self, friend_number, kind):
         logging.debug("TOX: user %s changed state", friend_number)
         pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)), 
-                     status=TOX_TO_ERR_STATUS[kind])
+                        status=TOX_TO_ERR_STATUS[kind])
         self.callback.callback_presence(self, pres)
-    
+   
+
+    def on_status_message(self, friend_number, message):
+        pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)), 
+                        message=message)
+        self.callback.callback_presence(self, pres)
+ 
     def on_connection_status(self, friend_number, status):
         logging.debug("TOX: user %s changed connection status", friend_number)
         pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)), 

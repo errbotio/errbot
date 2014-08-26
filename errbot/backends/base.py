@@ -188,15 +188,18 @@ class Presence(object):
        This class is passed to callback_presence.
     """
 
-    def __init__(self, nick=None, identifier=None, status=ONLINE, chatroom=None):
+    def __init__(self, nick=None, identifier=None, status=None, chatroom=None, message=None):
         if nick is None and identifier is None:
             raise ValueError('Presence: nick and identifiers are both None')
         if nick is None and chatroom is not None:
             raise ValueError('Presence: nick is None when chatroom is not')
+        if status is None and message is None:
+            raise ValueError('Presence: at least a new status or a new status message mustbe present')
         self.nick = nick
         self.identifier = identifier
         self.chatroom = chatroom
         self.status = status
+        self.message = message
 
     def get_chatroom(self):
         """ Returns the Identifier pointing the room in which the event occurred.
@@ -221,16 +224,23 @@ class Presence(object):
     def get_status(self):
         """ Returns the status of the presence change.
             It can be one of the constants ONLINE, OFFLINE, AWAY, DND, but
-            can also be custom messages.
+            can also be custom statuses depending on backends.
+            It can be None if it is just an update of the status message (see get_message)
         """
         return self.status
+
+    def get_message(self):
+        """ Returns a human readable message associated with the status if any.
+            like : "BRB, washing the dishes" 
+            It can be None if it is only a general status update (see get_status)
+        """
+        return self.message
 
     def __str__(self):
         return "%s(%s) is now %s in %s" %(self.nick, 
                                           self.identifier, 
                                           self.status,
                                           self.chatroom)
-        return answer
 
     def __unicode__(self):
         return str(self.__str__())

@@ -260,3 +260,35 @@ def split_string_after(str_, n):
     """Yield chunks of length `n` from the given string"""
     for start in range(0, len(str_), n):
         yield str_[start:start + n]
+
+"""
+Deprecated decorator.
+
+Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
+License: MIT
+"""
+
+import warnings
+from functools import wraps
+
+logging.captureWarnings(True)
+
+class deprecated(object):
+   def __init__(self, new = None):
+      self.new = new
+
+   def __call__(self, old):
+       msg = "%s is deprecated and will disappear" % old.__name__
+       if self.new is not None:
+            msg += "... use %s instead" % self.new.__name__
+       @wraps(old)
+       def wrapper(*args, **kwds):
+           warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
+           if self.new:
+              return self.new(*args, **kwds)
+           else:
+              return old(*args, **kwds)
+       wrapper.__name__ = old.__name__
+       wrapper.__doc__ = old.__doc__
+       wrapper.__dict__.update(old.__dict__)
+       return wrapper

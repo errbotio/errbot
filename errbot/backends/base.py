@@ -7,7 +7,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 
 from errbot import botcmd, PY2
-from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after
+from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after, deprecated
 from errbot.templating import tenv
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY, CHATROOM_FN
 
@@ -85,9 +85,13 @@ class Identifier(object):
             self.node = node
             self.domain = domain
             self.resource = resource
-
-    def getNode(self):
+    
+    def get_node(self):
         return self.node
+
+    @deprecated(get_node)
+    def getNode(self):
+        """ deprecated """
 
     def getDomain(self):
         return self.domain

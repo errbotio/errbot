@@ -210,7 +210,7 @@ class Presence(object):
             of a person in it).
             Can return None but then identifier won't be None.
         """
-        return self.buddy
+        return self.nick
 
     def get_identifier(self):
         """ Returns the identifier of the event. 

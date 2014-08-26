@@ -163,42 +163,59 @@ class BotPlugin(BotPluginBase):
 
     def activate(self):
         """
-            Override if you want to do something at initialization phase (don't forget
-            to super(Gnagna, self).activate())
+            Triggered on plugin activation.
+
+            Override this method if you want to do something at initialization phase
+            (don't forget to `super().activate()`).
         """
         super(BotPlugin, self).activate()
 
     def deactivate(self):
         """
-            Override if you want to do something at tear down phase (don't forget to
-            super(Gnagna, self).deactivate())
+            Triggered on plugin deactivation.
+
+            Override this method if you want to do something at tear-down phase
+            (don't forget to `super().deactivate()`).
         """
         super(BotPlugin, self).deactivate()
 
     def callback_connect(self):
         """
-            Override to get a notified when the bot is connected
+            Triggered when the bot has successfully connected to the chat network.
+
+            Override this method to get notified when the bot is connected.
         """
         pass
 
-    def callback_message(self, conn, mess):
+    def callback_message(self, conn, message):
         """
-            Override to get a notified on *ANY* message.
+            Triggered on every message not coming from the bot itself.
 
-            If you are interested only by chatting message you can filter for example
-            mess.getType() in ('groupchat', 'chat')
+            Override this method to get notified on *ANY* message.
+
+            :param message:
+                An instance of :class:`~errbot.backends.base.Message`
+                representing the message that was received.
         """
         pass
 
-    def callback_botmessage(self, mess):
+    def callback_botmessage(self, message):
         """
-            Override to get a notified on messages from the bot itself (emitted from
-            your plugin sisters and brothers for example).
+            Triggered on every message coming from the bot itself.
+
+            Override this method to get notified on all messages coming from
+            the bot itself (including those from other plugins).
+
+            :param message:
+                An instance of :class:`~errbot.backends.base.Message`
+                representing the message that was received.
         """
         pass
 
     def callback_presence(self, presence):
         """
+            Triggered on every presence change event.
+
             Override to get a notification when a contact changes its presence
             status.
 

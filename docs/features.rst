@@ -9,6 +9,7 @@ Currently, the following networks are supported:
   * CampFire_
   * Hipchat_
   * IRC
+  * Tox_
 
 Core features
 ^^^^^^^^^^^^^
@@ -50,6 +51,7 @@ Extensive plugin framework
 .. _Hipchat: https://www.hipchat.com/
 .. _Campfire: https://campfirenow.com/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
+.. _Tox: https://tox.im/
 .. _yapsy: http://yapsy.sourceforge.net/
 .. _jinja2: http://jinja.pocoo.org/
 .. _bottle: http://bottlepy.org/

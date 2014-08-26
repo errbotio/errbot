@@ -1,9 +1,9 @@
 Err - the pluggable chatbot
 ===========================
 
-*Err is a GPL3-licensed chat bot for XMPP and IRC networks, designed to be easily
-deployable, extensible and maintainable. Our goal is to make it easy for you to
-write your own plugins so you can make it do whatever you want.*
+*Err is a GPL3-licensed chat-bot designed to be easily deployable, extensible
+and maintainable. Our goal is to make it easy for you to write your own plugins
+so you can make it do whatever you want.*
 
 Simple to build upon
 --------------------

@@ -67,6 +67,7 @@ class TestBackend(ErrBot):
                     self.callback_message(self.conn, msg)
                 elif stanza_type is STZ_PRE:
                     logging.info("Presence stanza received.")
+                    self.callback_presence(entry)
                 elif stanza_type is STZ_IQ:
                     logging.info("IQ stanza received.")
                 else:
@@ -109,8 +110,10 @@ def push_message(msg):
     incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
 
 
-def push_presence(stanza):
-    pass
+def push_presence(presence):
+    """ presence must at least duck type base.Presence
+    """
+    incoming_stanza_queue.put((STZ_PRE, presence), timeout=5)
 
 
 # def pushIQ(stanza):

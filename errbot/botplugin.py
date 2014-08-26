@@ -197,27 +197,11 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_contact_online(self, conn, pres):
+    def callback_presence(self, presence):
         """
-            Override to get a notification when a contact becomes online.
-        """
-        pass
-
-    def callback_contact_offline(self, conn, pres):
-        """
-            Override to get notified when a contact becomes offline.
-        """
-        pass
-
-    def callback_user_joined_chat(self, conn, pres):
-        """
-            Override to get notified when any user joins a chatroom or an equivalent.
-        """
-        pass
-
-    def callback_user_left_chat(self, conn, pres):
-        """
-            Override to get notified when any user leaves a chatroom or an equivalent.
+            Override to get a notification when a contact changes its presence
+            status.
+            presence should be of type Presence.
         """
         pass
 

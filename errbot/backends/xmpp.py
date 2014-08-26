@@ -3,6 +3,7 @@ import sys
 import os.path
 
 from errbot.backends.base import Message, Presence, build_message, Connection, Identifier
+from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
 from time import sleep
@@ -175,6 +176,11 @@ class XMPPConnection(Connection):
             logging.debug("Inviting %s to %s..." % (jid, room))
             muc.invite(room, jid)
 
+XMPP_TO_ERR_STATUS = {'available': ONLINE,
+                      'away': AWAY,
+                      'dnd': DND,
+                      'unavailable': OFFLINE}
+
 
 class XMPPBackend(ErrBot):
     def __init__(self, username, password, *args, **kwargs):
@@ -188,6 +194,7 @@ class XMPPBackend(ErrBot):
         # presence related handlers
         self.conn.add_event_handler("got_online", self.contact_online)
         self.conn.add_event_handler("got_offline", self.contact_offline)
+        self.conn.add_event_handler("changed_status", self.user_changed_status)
         # NOTE: for now we will register the handlers this way
         e_muc_online = "muc::{}::got_online"
         e_muc_offline = "muc::{}::got_offline"
@@ -214,17 +221,44 @@ class XMPPBackend(ErrBot):
         msg.setDelayed(bool(xmppmsg['delay']._get_attr('stamp')))  # this is a bug in sleekxmpp it should be ['from']
         self.callback_message(self.conn, msg)
 
-    def contact_online(self, stanza):
-        pass
+    def contact_online(self, event):
+        logging.debug("contact_online %s" % event)
+        p = Presence(identifier=Identifier(str(event['from'])),
+                     status=ONLINE)
+        self.callback_presence(self.conn, p)
 
-    def contact_offline(self, stanza):
-        pass
+    def contact_offline(self, event):
+        logging.debug("contact_offline %s" % event)
+        p = Presence(identifier=Identifier(str(event['from'])),
+                     status=OFFLINE)
+        self.callback_presence(self.conn, p)
 
-    def user_joined_chat(self, stanza):
-        pass
+    def user_joined_chat(self, event):
+        logging.debug("user_join_chat %s" % event)
+        idd = Identifier(str(event['from']))
+        p = Presence(chatroom=idd,
+                     nick=idd.getResource(),
+                     status=ONLINE)
+        self.callback_presence(self.conn, p)
 
-    def user_left_chat(self, stanza):
-        pass
+    def user_left_chat(self, event):
+        logging.debug("user_left_chat %s" % event)
+        idd = Identifier(str(event['from']))
+        p = Presence(chatroom=idd,
+                     nick=idd.getResource(),
+                     status=OFFLINE)
+        self.callback_presence(self.conn, p)
+
+    def user_changed_status(self, event):
+        logging.debug("user_changed_status %s" % event)
+        errstatus = XMPP_TO_ERR_STATUS.get(event['type'], None)
+        message = event['status']
+        if not errstatus:
+            errstatus = event['type']
+
+        p = Presence(identifier=Identifier(str(event['from'])),
+                     status=errstatus, message=message)
+        self.callback_presence(self.conn, p)
 
     def connected(self, data):
         """Callback for connection events"""

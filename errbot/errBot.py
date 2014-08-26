@@ -150,41 +150,14 @@ class ErrBot(Backend, StoreMixin):
                 except Exception as _:
                     logging.exception("Crash in a callback_message handler")
 
-    def callback_contact_online(self, conn, pres):
+    def callback_presence(self, conn, pres):
         for bot in get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:
-                logging.debug('Callback %s' % bot)
-                bot.callback_contact_online(conn, pres)
+                logging.debug('Callback presence %s with %s' % (bot, pres))
+                bot.callback_presence(pres)
             except Exception as _:
-                logging.exception('Crash in the callback_contact_online handler.')
-
-    def callback_contact_offline(self, conn, pres):
-        for bot in get_all_active_plugin_objects():
-            # noinspection PyBroadException
-            try:
-                logging.debug('Callback %s' % bot)
-                bot.callback_contact_offline(conn, pres)
-            except Exception as _:
-                logging.exception('Crash in the callback_contact_offline handler.')
-
-    def callback_user_joined_chat(self, conn, pres):
-        for bot in get_all_active_plugin_objects():
-            # noinspection PyBroadException
-            try:
-                logging.debug('Callback %s' % bot)
-                bot.callback_user_joined_chat(conn, pres)
-            except Exception as _:
-                logging.exception('Crash in the callback_user_joined_chat handler.')
-
-    def callback_user_left_chat(self, conn, pres):
-        for bot in get_all_active_plugin_objects():
-            # noinspection PyBroadException
-            try:
-                logging.debug('Callback %s' % bot)
-                bot.callback_user_left_chat(conn, pres)
-            except Exception as _:
-                logging.exception('Crash in the callback_user_left_chat handler.')
+                logging.exception('Crash in the callback_presence handler.')
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')

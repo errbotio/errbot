@@ -113,27 +113,6 @@ class Identifier(object):
         return str(self.__str__())
 
 
-class Presence(object):
-    """
-        An universal class representing protocol agnostic concept
-        of presence.
-    """
-
-    def __init__(self, nick, room, real_id=None):
-        self.nick = nick
-        self.room = room
-        self.real_id = real_id
-
-    def get_room(self):
-        return self.room
-
-    def get_nick(self):
-        return self.nick
-
-    def get_real_name(self):
-        return self.real_id
-
-
 class Message(object):
     fr = Identifier('unknown@localhost')
 
@@ -195,6 +174,76 @@ class Message(object):
 
     def __str__(self):
         return self.body
+
+ONLINE = 'online'
+OFFLINE = 'offline'
+AWAY = 'away'
+DND = 'dnd'
+
+
+class Presence(object):
+    """
+       This class represents a presence change for a user or a user in a chatroom.
+       This class is passed to callback_presence.
+    """
+
+    def __init__(self, nick=None, identifier=None, status=None, chatroom=None, message=None):
+        if nick is None and identifier is None:
+            raise ValueError('Presence: nick and identifiers are both None')
+        if nick is None and chatroom is not None:
+            raise ValueError('Presence: nick is None when chatroom is not')
+        if status is None and message is None:
+            raise ValueError('Presence: at least a new status or a new status message mustbe present')
+        self.nick = nick
+        self.identifier = identifier
+        self.chatroom = chatroom
+        self.status = status
+        self.message = message
+
+    def get_chatroom(self):
+        """ Returns the Identifier pointing the room in which the event occurred.
+            If it returns None, the event occurred outside of a chatroom.
+        """
+        return self.chatroom
+
+    def get_nick(self):
+        """ Returns a plain string of the presence nick.
+            (In some chatroom implementations, you cannot know the real identifier
+            of a person in it).
+            Can return None but then identifier won't be None.
+        """
+        return self.nick
+
+    def get_identifier(self):
+        """ Returns the identifier of the event.
+            Can be None *only* if chatroom is not None
+        """
+        return self.identifier
+
+    def get_status(self):
+        """ Returns the status of the presence change.
+            It can be one of the constants ONLINE, OFFLINE, AWAY, DND, but
+            can also be custom statuses depending on backends.
+            It can be None if it is just an update of the status message (see get_message)
+        """
+        return self.status
+
+    def get_message(self):
+        """ Returns a human readable message associated with the status if any.
+            like : "BRB, washing the dishes"
+            It can be None if it is only a general status update (see get_status)
+        """
+        return self.message
+
+    def __str__(self):
+        return "Presence:\n nick %s\n idd %s\n status %s\n chatroom %s\n message %s\n" % (self.nick,
+                                                                                          self.identifier,
+                                                                                          self.status,
+                                                                                          self.chatroom,
+                                                                                          self.message)
+
+    def __unicode__(self):
+        return str(self.__str__())
 
 
 class Connection(object):
@@ -304,6 +353,12 @@ class Backend(object):
             response.setTo(mess.getFrom())
         response.setType('chat' if private else msg_type)
         return response
+
+    def callback_presence(self, conn, presence):
+        """
+           Implemented by errBot.
+        """
+        pass
 
     def callback_message(self, conn, mess):
         """
@@ -726,18 +781,6 @@ class Backend(object):
         pass
 
     def disconnect_callback(self):
-        pass
-
-    def callback_contact_online(self, conn, pres):
-        pass
-
-    def callback_contact_offline(self, conn, pres):
-        pass
-
-    def callback_user_joined_chat(self, conn, pres):
-        pass
-
-    def callback_user_left_chat(self, conn, pres):
         pass
 
     @property

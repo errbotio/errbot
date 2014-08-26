@@ -184,7 +184,9 @@ DND = 'dnd'
 class Presence(object):
     """
        This class represents a presence change for a user or a user in a chatroom.
-       This class is passed to callback_presence.
+
+       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_presence`
+       when the presence of people changes.
     """
 
     def __init__(self, nick=None, identifier=None, status=None, chatroom=None, message=None):

@@ -201,7 +201,10 @@ class BotPlugin(BotPluginBase):
         """
             Override to get a notification when a contact changes its presence
             status.
-            presence should be of type Presence.
+
+            :param presence:
+                An instance of :class:`~errbot.backends.base.Presence`
+                representing the presence that was received.
         """
         pass
 

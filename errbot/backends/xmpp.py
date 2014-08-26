@@ -2,7 +2,7 @@ import logging
 import sys
 import os.path
 
-from errbot.backends.base import Message, Presence, build_message, Connection
+from errbot.backends.base import Message, Presence, build_message, Connection, Identifier
 from errbot.errBot import ErrBot
 from threading import Thread
 from time import sleep
@@ -79,7 +79,7 @@ def verify_gtalk_cert(xmpp_client):
 class XMPPConnection(Connection):
     def __init__(self, jid, password):
         self.connected = False
-        self.client = ClientXMPP(jid, password, plugin_config={'feature_mechanisms': XMPP_FEATURE_MECHANISMS})
+        self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': XMPP_FEATURE_MECHANISMS})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
         self.client.register_plugin('xep_0004')  # Multi-User Chat backward compability (necessary for join room)

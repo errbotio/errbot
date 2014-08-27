@@ -129,7 +129,7 @@ in:
     from errbot import BotPlugin
 
     class PluginExample(BotPlugin):
-        def callback_message(self, conn, mess):
+        def callback_message(self, mess):
             if mess.body.find('cookie') != -1:
                 self.send(
                     mess.from,

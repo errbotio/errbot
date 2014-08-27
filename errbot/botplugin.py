@@ -187,7 +187,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_message(self, conn, message):
+    def callback_message(self, message):
         """
             Triggered on every message not coming from the bot itself.
 
@@ -196,6 +196,16 @@ class BotPlugin(BotPluginBase):
             :param message:
                 An instance of :class:`~errbot.backends.base.Message`
                 representing the message that was received.
+        """
+        pass
+
+    def callback_presence(self, presence):
+        """
+            Triggered on every presence change.
+
+            :param message:
+                An instance of :class:`~errbot.backends.base.Presence`
+                representing the new presence state that was received.
         """
         pass
 

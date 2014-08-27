@@ -2,7 +2,7 @@ import logging
 import sys
 import os.path
 
-from errbot.backends.base import Message, Presence, build_message, Connection, Identifier
+from errbot.backends.base import Message, Presence, build_message, Identifier
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
@@ -77,7 +77,7 @@ def verify_gtalk_cert(xmpp_client):
     logging.error("invalid cert received for %s", xmpp_client.boundjid.server)
 
 
-class XMPPConnection(Connection):
+class XMPPConnection(object):
     def __init__(self, jid, password):
         self.connected = False
         self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': XMPP_FEATURE_MECHANISMS})
@@ -96,12 +96,6 @@ class XMPPConnection(Connection):
 
         self.client.add_event_handler("session_start", self.session_start)
         self.client.add_event_handler("ssl_invalid_cert", self.ssl_invalid_cert)
-
-    def send_message(self, mess):
-        self.client.send_message(mto=mess.to,
-                                 mbody=mess.body,
-                                 mtype=mess.type,
-                                 mhtml=mess.html)
 
     def session_start(self, _):
         self.client.send_presence()
@@ -219,19 +213,19 @@ class XMPPBackend(ErrBot):
         msg.type = xmppmsg['type']
         msg.nick = xmppmsg['mucnick']
         msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
-        self.callback_message(self.conn, msg)
+        self.callback_message(msg)
 
     def contact_online(self, event):
         logging.debug("contact_online %s" % event)
         p = Presence(identifier=Identifier(str(event['from'])),
                      status=ONLINE)
-        self.callback_presence(self.conn, p)
+        self.callback_presence(p)
 
     def contact_offline(self, event):
         logging.debug("contact_offline %s" % event)
         p = Presence(identifier=Identifier(str(event['from'])),
                      status=OFFLINE)
-        self.callback_presence(self.conn, p)
+        self.callback_presence(p)
 
     def user_joined_chat(self, event):
         logging.debug("user_join_chat %s" % event)
@@ -239,7 +233,7 @@ class XMPPBackend(ErrBot):
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=ONLINE)
-        self.callback_presence(self.conn, p)
+        self.callback_presence(p)
 
     def user_left_chat(self, event):
         logging.debug("user_left_chat %s" % event)
@@ -247,7 +241,7 @@ class XMPPBackend(ErrBot):
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=OFFLINE)
-        self.callback_presence(self.conn, p)
+        self.callback_presence(p)
 
     def user_changed_status(self, event):
         logging.debug("user_changed_status %s" % event)
@@ -258,7 +252,7 @@ class XMPPBackend(ErrBot):
 
         p = Presence(identifier=Identifier(str(event['from'])),
                      status=errstatus, message=message)
-        self.callback_presence(self.conn, p)
+        self.callback_presence(p)
 
     def connected(self, data):
         """Callback for connection events"""
@@ -268,8 +262,15 @@ class XMPPBackend(ErrBot):
         """Callback for disconnection events"""
         self.disconnect_callback()
 
+    def send_message(self, mess):
+        super(XMPPBackend, self).send_message(mess)
+        self.conn.client.send_message(mto=mess.to,
+                                      mbody=mess.body,
+                                      mtype=mess.type,
+                                      mhtml=mess.html)
+
     def serve_forever(self):
-        self.connect()  # be sure we are "connected" before the first command
+        self.conn.connect()
 
         try:
             self.conn.serve_forever()
@@ -278,9 +279,6 @@ class XMPPBackend(ErrBot):
             self.disconnect_callback()
             logging.debug("Trigger shutdown")
             self.shutdown()
-
-    def connect(self):
-        return self.conn.connect()
 
     def build_message(self, text):
         return build_message(text, Message)

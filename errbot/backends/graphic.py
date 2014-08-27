@@ -213,7 +213,7 @@ class GraphicBackend(ErrBot):
         msg = Message(text)
         msg.frm = config.BOT_ADMINS[0]  # assume this is the admin talking
         msg.to = self.jid  # To me only
-        self.callback_message(self.conn, msg)
+        self.callback_message(msg)
         self.app.input.clear()
 
     def build_message(self, text):

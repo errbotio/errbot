@@ -72,22 +72,6 @@ class ToxConnection(Tox, Connection):
         logging.info('TOX: connecting...')
         self.bootstrap_from_address(*TOX_BOOTSTRAP_SERVER)
 
-    def send_message(self, mess):
-        body = mess.body
-        number = int(mess.to.node)
-        subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
-        if mess.type == 'groupchat':
-            logging.debug('TOX: sending to group number %i', number)
-            for subpart in subparts:
-                super(ToxConnection, self).group_message_send(number, subpart)
-                sleep(0.5)  # antiflood
-        else:
-            logging.debug('TOX: sending to friend number %i', number)
-            for subpart in subparts:
-                # yup this is an horrible clash on names !
-                super(ToxConnection, self).send_message(number, subpart)
-                sleep(0.5)  # antiflood
-
     def on_friend_request(self, friend_pk, message):
         logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
         self.add_friend_norequest(friend_pk)
@@ -108,7 +92,7 @@ class ToxConnection(Tox, Connection):
         msg = Message(message)
         msg.frm = friend
         msg.to = self.callback.jid
-        self.callback.callback_message(self, msg)
+        self.callback.callback_message(msg)
 
     def on_group_namelist_change(self, group_number, friend_group_number, change):
         logging.debug("TOX: user %s changed state in group %s" % (friend_group_number, group_number))
@@ -118,24 +102,24 @@ class ToxConnection(Tox, Connection):
             pres = Presence(nick=self.group_peername(group_number, friend_group_number),
                             status=newstatus,
                             chatroom=chatroom)
-            self.callback.callback_presence(self, pres)
+            self.callback.callback_presence(pres)
 
     def on_user_status(self, friend_number, kind):
         logging.debug("TOX: user %s changed state", friend_number)
         pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)),
                         status=TOX_TO_ERR_STATUS[kind])
-        self.callback.callback_presence(self, pres)
+        self.callback.callback_presence(pres)
 
     def on_status_message(self, friend_number, message):
         pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)),
                         message=message)
-        self.callback.callback_presence(self, pres)
+        self.callback.callback_presence(pres)
 
     def on_connection_status(self, friend_number, status):
         logging.debug("TOX: user %s changed connection status", friend_number)
         pres = Presence(identifier=Identifier(node=str(friend_number), resource=self.get_name(friend_number)),
                         status=ONLINE if status else OFFLINE)
-        self.callback.callback_presence(self, pres)
+        self.callback.callback_presence(pres)
 
     def on_group_message(self, group_number, friend_group_number, message):
         logging.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
@@ -143,7 +127,7 @@ class ToxConnection(Tox, Connection):
         msg.frm = Identifier(node=str(group_number), resource=str(friend_group_number))
         msg.to = self.callback.jid
         logging.debug('TOX: callback with type = %s' % msg.type)
-        self.callback.callback_message(self, msg)
+        self.callback.callback_message(msg)
 
 
 class ToxBackend(ErrBot):
@@ -157,6 +141,22 @@ class ToxBackend(ErrBot):
         pk = self.conn.get_client_id(int(friend_number))
         logging.debug("Check if %s is admin" % pk)
         return any(pka.startswith(pk) for pka in config.BOT_ADMINS)
+
+    def send_message(self, mess):
+        super(ToxBackend, self).send_message(mess)
+        body = mess.body
+        number = int(mess.to.node)
+        subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
+        if mess.type == 'groupchat':
+            logging.debug('TOX: sending to group number %i', number)
+            for subpart in subparts:
+                self.conn.group_message_send(number, subpart)
+                sleep(0.5)  # antiflood
+        else:
+            logging.debug('TOX: sending to friend number %i', number)
+            for subpart in subparts:
+                self.conn.send_message(number, subpart)
+                sleep(0.5)  # antiflood
 
     def serve_forever(self):
         checked = False

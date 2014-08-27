@@ -150,7 +150,8 @@ class ErrBot(Backend, StoreMixin):
 
                     # backward compatibility from the time we needed conn
                     if len(inspect.getargspec(bot.callback_message).args) == 3:
-                        logging.warn("Deprecation: Plugin %s uses the old callback_message convention, now the signature should be simply def callback_message(self, mess)"
+                        logging.warn('Deprecation: Plugin %s uses the old callback_message convention, '
+                                     'now the signature should be simply def callback_message(self, mess)'
                                      % bot.__class__.__name__)
                         bot.callback_message(None, mess)
                     else:

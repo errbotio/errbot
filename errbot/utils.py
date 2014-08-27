@@ -6,7 +6,10 @@ import re
 from html import entities
 import sys
 import time
+from functools import wraps
 from xml.etree.ElementTree import tostring
+import inspect
+
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
@@ -261,34 +264,36 @@ def split_string_after(str_, n):
     for start in range(0, len(str_), n):
         yield str_[start:start + n]
 
-"""
-Deprecated decorator.
-
-Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
-License: MIT
-"""
-
-import warnings
-from functools import wraps
-
-logging.captureWarnings(True)
 
 class deprecated(object):
-   def __init__(self, new = None):
-      self.new = new
+    """ deprecated decorator. emits a warning on a call on an old method and call the new method anyway """
+    def __init__(self, new=None):
+        self.new = new
 
-   def __call__(self, old):
-       msg = "%s is deprecated and will disappear" % old.__name__
-       if self.new is not None:
-            msg += "... use %s instead" % self.new.__name__
-       @wraps(old)
-       def wrapper(*args, **kwds):
-           warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
-           if self.new:
-              return self.new(*args, **kwds)
-           else:
-              return old(*args, **kwds)
-       wrapper.__name__ = old.__name__
-       wrapper.__doc__ = old.__doc__
-       wrapper.__dict__.update(old.__dict__)
-       return wrapper
+    def __call__(self, old):
+        @wraps(old)
+        def wrapper(*args, **kwds):
+            msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back.f_back))
+            if len(args):
+                pref = type(args[0]).__name__ + '.'  # TODO might break for individual methods
+            else:
+                pref = ''
+            msg += 'call to the deprecated %s%s' % (pref, old.__name__)
+            if self.new is not None:
+                if type(self.new) is property:
+                    msg += '... use the property %s%s instead' % (pref, self.new.fget.__name__)
+                else:
+                    msg += '... use %s%s instead' % (pref, self.new.__name__)
+            msg += '.'
+            logging.warn(msg)
+
+            if self.new:
+                if type(self.new) is property:
+                    return self.new.fget(*args, **kwds)
+                return self.new(*args, **kwds)
+            return old(*args, **kwds)
+
+        wrapper.__name__ = old.__name__
+        wrapper.__doc__ = old.__doc__
+        wrapper.__dict__.update(old.__dict__)
+        return wrapper

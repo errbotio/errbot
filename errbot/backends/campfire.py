@@ -22,15 +22,15 @@ class CampfireConnection(Connection, pyfire.Campfire):
 
     def send_message(self, mess):
         # we only reply to rooms in reality in campfire so we need to find one or a default one at least
-        room_name = mess.getTo().getDomain()
+        room_name = mess.to.domain
         if not room_name:
-            room_name = mess.getFrom().getDomain()
+            room_name = mess.frm.domain
         if room_name in self.rooms:
             room = self.rooms[room_name][0]
-            room.speak(mess.getBody())  # Basic text support for the moment
+            room.speak(mess.body)  # Basic text support for the moment
         else:
             logging.info(
-                "Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.getBody()))
+                "Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.body))
 
     def join_room(self, name, msg_callback, error_callback):
         room = self.get_room_by_name(name)
@@ -93,9 +93,9 @@ class CampfireBackend(ErrBot):
         if message.user:
             user = message.user.name
         if message.is_text():
-            msg = Message(message.body, typ='groupchat')  # it is always a groupchat in campfire
-            msg.setFrom(user + '@' + message.room.get_data()['name'] + '/' + user)
-            msg.setTo(self.jid)  # assume it is for me
+            msg = Message(message.body, type_='groupchat')  # it is always a groupchat in campfire
+            msg.frm = user + '@' + message.room.get_data()['name'] + '/' + user
+            msg.to = self.jid  # assume it is for me
             self.callback_message(self.conn, msg)
 
     def error_callback(self, error, room):

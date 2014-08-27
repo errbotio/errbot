@@ -113,7 +113,7 @@ class ConnectionMock(Connection, QtCore.QObject):
         self.send(mess)
 
     def send(self, mess):
-        if hasattr(mess, 'getBody') and mess.getBody() and not mess.getBody().isspace():
+        if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
             content, is_html = mess_2_embeddablehtml(mess)
             self.newAnswer.emit(content, is_html)
 
@@ -211,15 +211,15 @@ class GraphicBackend(ErrBot):
     def send_command(self, text):
         self.app.new_message(text, False)
         msg = Message(text)
-        msg.setFrom(config.BOT_ADMINS[0])  # assume this is the admin talking
-        msg.setTo(self.jid)  # To me only
+        msg.frm = config.BOT_ADMINS[0]  # assume this is the admin talking
+        msg.to = self.jid  # To me only
         self.callback_message(self.conn, msg)
         self.app.input.clear()
 
     def build_message(self, text):
         txt, node = build_text_html_message_pair(text)
         msg = Message(txt, html=node) if node else Message(txt)
-        msg.setFrom(self.jid)
+        msg.frm = self.jid
         return msg  # rebuild a pure html snippet to include directly in the console html
 
     def serve_forever(self):

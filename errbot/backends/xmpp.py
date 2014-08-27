@@ -98,10 +98,10 @@ class XMPPConnection(Connection):
         self.client.add_event_handler("ssl_invalid_cert", self.ssl_invalid_cert)
 
     def send_message(self, mess):
-        self.client.send_message(mto=mess.getTo(),
-                                 mbody=mess.getBody(),
-                                 mtype=mess.getType(),
-                                 mhtml=mess.getHTML())
+        self.client.send_message(mto=mess.to,
+                                 mbody=mess.body,
+                                 mtype=mess.type,
+                                 mhtml=mess.html)
 
     def session_start(self, _):
         self.client.send_presence()
@@ -213,12 +213,12 @@ class XMPPBackend(ErrBot):
         """Callback for message events"""
         msg = Message(xmppmsg['body'])
         if 'html' in xmppmsg.keys():
-            msg.setHTML(xmppmsg['html'])
-        msg.setFrom(xmppmsg['from'].full)
-        msg.setTo(xmppmsg['to'].full)
-        msg.setType(xmppmsg['type'])
-        msg.setMuckNick(xmppmsg['mucnick'])
-        msg.setDelayed(bool(xmppmsg['delay']._get_attr('stamp')))  # this is a bug in sleekxmpp it should be ['from']
+            msg.html = xmppmsg['html']
+        msg.frm = xmppmsg['from'].full
+        msg.to = xmppmsg['to'].full
+        msg.type = xmppmsg['type']
+        msg.nick = xmppmsg['mucnick']
+        msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
         self.callback_message(self.conn, msg)
 
     def contact_online(self, event):
@@ -237,7 +237,7 @@ class XMPPBackend(ErrBot):
         logging.debug("user_join_chat %s" % event)
         idd = Identifier(str(event['from']))
         p = Presence(chatroom=idd,
-                     nick=idd.getResource(),
+                     nick=idd.resource,
                      status=ONLINE)
         self.callback_presence(self.conn, p)
 
@@ -245,7 +245,7 @@ class XMPPBackend(ErrBot):
         logging.debug("user_left_chat %s" % event)
         idd = Identifier(str(event['from']))
         p = Presence(chatroom=idd,
-                     nick=idd.getResource(),
+                     nick=idd.resource,
                      status=OFFLINE)
         self.callback_presence(self.conn, p)
 

@@ -73,10 +73,10 @@ class ToxConnection(Tox, Connection):
         self.bootstrap_from_address(*TOX_BOOTSTRAP_SERVER)
 
     def send_message(self, mess):
-        body = mess.getBody()
-        number = int(mess.getTo().getNode())
+        body = mess.body
+        number = int(mess.to.node)
         subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
-        if mess.getType() == 'groupchat':
+        if mess.type == 'groupchat':
             logging.debug('TOX: sending to group number %i', number)
             for subpart in subparts:
                 super(ToxConnection, self).group_message_send(number, subpart)
@@ -106,8 +106,8 @@ class ToxConnection(Tox, Connection):
         friend = Identifier(node=str(friend_number), resource=name)
         logging.debug('TOX: %s: %s' % (name, message))
         msg = Message(message)
-        msg.setFrom(friend)
-        msg.setTo(self.callback.jid)
+        msg.frm = friend
+        msg.to = self.callback.jid
         self.callback.callback_message(self, msg)
 
     def on_group_namelist_change(self, group_number, friend_group_number, change):
@@ -139,11 +139,10 @@ class ToxConnection(Tox, Connection):
 
     def on_group_message(self, group_number, friend_group_number, message):
         logging.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
-        fr = Identifier(node=str(group_number), resource=str(friend_group_number))
         msg = Message(message, typ='groupchat')
-        msg.setFrom(fr)
-        msg.setTo(self.callback.jid)
-        logging.debug('TOX: callback with type = %s' % msg.getType())
+        msg.frm = Identifier(node=str(group_number), resource=str(friend_group_number))
+        msg.to = self.callback.jid
+        logging.debug('TOX: callback with type = %s' % msg.type)
         self.callback.callback_message(self, msg)
 
 

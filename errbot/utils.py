@@ -19,12 +19,12 @@ PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
 
 def get_sender_username(mess):
     """Extract the sender's user name from a message"""
-    type = mess.getType()
-    jid = mess.getFrom()
-    if type == "groupchat":
-        username = jid.getResource()
-    elif type == "chat":
-        username = jid.getNode()
+    type_ = mess.type
+    jid = mess.frm
+    if type_ == "groupchat":
+        username = jid.resource
+    elif type_ == "chat":
+        username = jid.node
     else:
         username = ""
     return username
@@ -212,7 +212,7 @@ def utf8(key):
 
 
 def mess_2_embeddablehtml(mess):
-    html_content = mess.getHTML()
+    html_content = mess.html
     if html_content is not None:
         body = html_content.find('{http://jabber.org/protocol/xhtml-im}body')
         result = ''
@@ -220,7 +220,7 @@ def mess_2_embeddablehtml(mess):
             result += tostring(child).decode().replace('ns0:', '')
         return result, True
     else:
-        return mess.getBody(), False
+        return mess.body, False
 
 
 def parse_jid(jid):
@@ -273,7 +273,7 @@ class deprecated(object):
     def __call__(self, old):
         @wraps(old)
         def wrapper(*args, **kwds):
-            msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back.f_back))
+            msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back))
             if len(args):
                 pref = type(args[0]).__name__ + '.'  # TODO might break for individual methods
             else:

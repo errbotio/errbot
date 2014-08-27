@@ -47,29 +47,29 @@ class ChatRoom(BotPlugin):
         """
         room_name = "private-chat-%s@groupchat.google.com" % uuid4()
         self.join_room(room_name)
-        to_invite = (mess.getFrom().getStripped(),) if not args else (jid.strip() for jid in args.split())
+        to_invite = (mess.frm.stripped,) if not args else (jid.strip() for jid in args.split())
         self.invite_in_room(room_name, to_invite)
         return "Room created (%s)" % room_name
 
     def callback_message(self, conn, mess):
         if bot.mode != 'campfire':  # no relay support in campfire
             try:
-                mess_type = mess.getType()
+                mess_type = mess.type
                 if mess_type == 'chat':
-                    username = mess.getFrom().node
+                    username = mess.frm.node
                     if username in CHATROOM_RELAY:
                         logging.debug('Message to relay from %s.' % username)
-                        body = mess.getBody()
+                        body = mess.body
                         rooms = CHATROOM_RELAY[username]
                         for room in rooms:
                             self.send(room, body, message_type='groupchat')
                 elif mess_type == 'groupchat':
-                    fr = mess.getFrom()
+                    fr = mess.from_
                     chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node
                     if chat_room in REVERSE_CHATROOM_RELAY:
                         users_to_relay_to = REVERSE_CHATROOM_RELAY[chat_room]
                         logging.debug('Message to relay to %s.' % users_to_relay_to)
-                        body = '[%s] %s' % (fr.resource, mess.getBody())
+                        body = '[%s] %s' % (fr.resource, mess.body)
                         for user in users_to_relay_to:
                             self.send(user, body)
             except Exception as e:

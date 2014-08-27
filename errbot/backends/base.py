@@ -7,7 +7,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 
 from errbot import botcmd, PY2
-from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after
+from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after, deprecated
 from errbot.templating import tenv
 from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY, CHATROOM_FN
 
@@ -80,37 +80,64 @@ class Identifier(object):
 
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
-            self.node, self.domain, self.resource = parse_jid(jid)
+            self._node, self._domain, self._resource = parse_jid(jid)
         else:
-            self.node = node
-            self.domain = domain
-            self.resource = resource
+            self._node = node
+            self._domain = domain
+            self._resource = resource
 
-    def getNode(self):
-        return self.node
+    @property
+    def node(self):
+        return self._node
 
-    def getDomain(self):
-        return self.domain
+    @property
+    def domain(self):
+        return self._domain
 
-    def bareMatch(self, other):
+    @property
+    def resource(self):
+        return self._resource
+
+    @property
+    def stripped(self):
+        if self._domain:
+            return self._node + '@' + self._domain
+        return self._node  # if the backend has no domain notion
+
+    def bare_match(self, other):
+        """ checks if 2 identifiers are equal, ignoring the resource """
         return other.getStripped() == self.getStripped()
-
-    def getStripped(self):
-        if self.domain:
-            return self.node + '@' + self.domain
-        return self.node  # if the backend has no domain notion
-
-    def getResource(self):
-        return self.resource
 
     def __str__(self):
         answer = self.getStripped()
-        if self.resource:
-            answer += '/' + self.resource
+        if self._resource:
+            answer += '/' + self._resource
         return answer
 
     def __unicode__(self):
         return str(self.__str__())
+
+    # deprecated stuff ...
+
+    @deprecated(node)
+    def getNode(self):
+        """ will be removed on the next version """
+
+    @deprecated(domain)
+    def getDomain(self):
+        """ will be removed on the next version """
+
+    @deprecated(bare_match)
+    def bareMatch(self, other):
+        """ will be removed on the next version """
+
+    @deprecated(stripped)
+    def getStripped(self):
+        """ will be removed on the next version """
+
+    @deprecated(resource)
+    def getResource(self):
+        """ will be removed on the next version """
 
 
 class Message(object):
@@ -124,26 +151,38 @@ class Message(object):
 
     fr = Identifier('unknown@localhost')
 
-    def __init__(self, body, typ='chat', html=None):
+    def __init__(self, body, type_='chat', html=None):
         """
         :param body:
             The plaintext body of the message.
-        :param typ:
+        :param type_:
             The type of message (generally one of either 'chat' or 'groupchat').
         :param html:
             An optional HTML representation of the body.
         """
         # it is either unicode or assume it is utf-8
         if isinstance(body, str):
-            self.body = body
+            self._body = body
         else:
-            self.body = body.decode('utf-8')
-        self.html = html
-        self.typ = typ
-        self.delayed = False
-        self.mucknick = None
+            self._body = body.decode('utf-8')
+        self._html = html
+        self._type = type_
+        self._delayed = False
+        self._nick = None
 
-    def setTo(self, to):
+    @property
+    def to(self):
+        """
+        Get the recipient of the message.
+
+        :returns:
+            An :class:`~errbot.backends.base.Identifier` identifying
+            the recipient.
+        """
+        return self._to
+
+    @to.setter
+    def to(self, to):
         """
         Set the recipient of the message.
 
@@ -152,31 +191,12 @@ class Message(object):
             be parsed as one, identifying the recipient.
         """
         if isinstance(to, Identifier):
-            self.to = to
+            self._to = to
         else:
-            self.to = Identifier(to)  # assume a parseable string
+            self._to = Identifier(to)  # assume a parseable string
 
-    def getTo(self):
-        """
-        Get the recipient of the message.
-
-        :returns:
-            An :class:`~errbot.backends.base.Identifier` identifying
-            the recipient.
-        """
-        return self.to
-
-    def setType(self, typ):
-        """
-        Set the type of the message.
-
-        :param typ:
-            The message type (generally one of either 'chat'
-            or 'groupchat').
-        """
-        self.typ = typ
-
-    def getType(self):
+    @property
+    def type_(self):
         """
         Get the type of the message.
 
@@ -184,9 +204,21 @@ class Message(object):
             The message type as a string (generally one of either
             'chat' or 'groupchat')
         """
-        return self.typ
+        return self._type
 
-    def getFrom(self):
+    @type_.setter
+    def type_(self, type_):
+        """
+        Set the type of the message.
+
+        :param type_:
+            The message type (generally one of either 'chat'
+            or 'groupchat').
+        """
+        self._type = type_
+
+    @property
+    def from_(self):
         """
         Get the sender of the message.
 
@@ -194,31 +226,34 @@ class Message(object):
             An :class:`~errbot.backends.base.Identifier` identifying
             the sender.
         """
-        return self.fr
+        return self._from
 
-    def setFrom(self, fr):
+    @from_.setter
+    def from_(self, from_):
         """
         Set the sender of the message.
 
-        :param fr:
+        :param from_:
             An :class:`~errbot.backends.base.Identifier`, or string which may
             be parsed as one, identifying the sender.
         """
-        if isinstance(fr, Identifier):
-            self.fr = fr
+        if isinstance(from_, Identifier):
+            self._from = from_
         else:
-            self.fr = Identifier(fr)  # assume a parseable string
+            self._from = Identifier(from_)  # assume a parseable string
 
-    def getBody(self):
+    @property
+    def body(self):
         """
         Get the plaintext body of the message.
 
         :returns:
             The body as a string.
         """
-        return self.body
+        return self._body
 
-    def getHTML(self):
+    @property
+    def html(self):
         """
         Get the HTML representation of the message.
 
@@ -226,31 +261,90 @@ class Message(object):
             A string containing the HTML message or `None` when there
             is none.
         """
-        return self.html
+        return self._html
 
-    def setHTML(self, html):
+    @html.setter
+    def html(self, html):
         """
         Set the HTML representation of the message
 
         :param html:
             The HTML message.
         """
-        self.html = html
+        self._html = html
 
-    def setDelayed(self, delayed):
-        self.delayed = delayed
+    @property
+    def delayed(self):
+        return self._delayed
 
-    def isDelayed(self):
-        return self.delayed
+    @delayed.setter
+    def delayed(self, delayed):
+        self._delayed = delayed
 
-    def setMuckNick(self, nick):
-        self.mucknick = nick
+    @property
+    def nick(self, nick):
+        self._nick = nick
 
-    def getMuckNick(self):
-        return self.mucknick
+    @nick.setter
+    def nick(self):
+        return self._nick
 
     def __str__(self):
-        return self.body
+        return self._body
+
+    # deprecated stuff ...
+
+    @deprecated(to)
+    def getTo(self):
+        """ will be removed on the next version """
+
+    @deprecated(to.fset)
+    def setTo(self, to):
+        """ will be removed on the next version """
+
+    @deprecated(type_)
+    def getType(self):
+        """ will be removed on the next version """
+
+    @deprecated(type_.fset)
+    def setType(self, type_):
+        """ will be removed on the next version """
+
+    @deprecated(from_)
+    def getFrom(self):
+        """ will be removed on the next version """
+
+    @deprecated(from_.fset)
+    def setFrom(self, from_):
+        """ will be removed on the next version """
+
+    @deprecated(body)
+    def getBody(self):
+        """ will be removed on the next version """
+
+    @deprecated(html)
+    def getHTML(self):
+        """ will be removed on the next version """
+
+    @deprecated(html.fset)
+    def setHTML(self, html):
+        """ will be removed on the next version """
+
+    @deprecated(delayed)
+    def isDelayed(self):
+        """ will be removed on the next version """
+
+    @deprecated(delayed.fset)
+    def setDelayed(self, delayed):
+        """ will be removed on the next version """
+
+    @deprecated(nick)
+    def setMuckNick(self, nick):
+        """ will be removed on the next version """
+
+    @deprecated(nick.fset)
+    def getMuckNick(self):
+        """ will be removed on the next version """
 
 ONLINE = 'online'
 OFFLINE = 'offline'
@@ -273,53 +367,58 @@ class Presence(object):
             raise ValueError('Presence: nick is None when chatroom is not')
         if status is None and message is None:
             raise ValueError('Presence: at least a new status or a new status message mustbe present')
-        self.nick = nick
-        self.identifier = identifier
-        self.chatroom = chatroom
-        self.status = status
-        self.message = message
+        self._nick = nick
+        self._identifier = identifier
+        self._chatroom = chatroom
+        self._status = status
+        self._message = message
 
-    def get_chatroom(self):
+    @property
+    def chatroom(self):
         """ Returns the Identifier pointing the room in which the event occurred.
             If it returns None, the event occurred outside of a chatroom.
         """
-        return self.chatroom
+        return self._chatroom
 
-    def get_nick(self):
+    @property
+    def nick(self):
         """ Returns a plain string of the presence nick.
             (In some chatroom implementations, you cannot know the real identifier
             of a person in it).
             Can return None but then identifier won't be None.
         """
-        return self.nick
+        return self._nick
 
-    def get_identifier(self):
+    @property
+    def identifier(self):
         """ Returns the identifier of the event.
             Can be None *only* if chatroom is not None
         """
-        return self.identifier
+        return self._identifier
 
-    def get_status(self):
+    @property
+    def status(self):
         """ Returns the status of the presence change.
             It can be one of the constants ONLINE, OFFLINE, AWAY, DND, but
             can also be custom statuses depending on backends.
             It can be None if it is just an update of the status message (see get_message)
         """
-        return self.status
+        return self._status
 
-    def get_message(self):
+    @property
+    def message(self):
         """ Returns a human readable message associated with the status if any.
             like : "BRB, washing the dishes"
             It can be None if it is only a general status update (see get_status)
         """
-        return self.message
+        return self._message
 
     def __str__(self):
-        return "Presence:\n nick %s\n idd %s\n status %s\n chatroom %s\n message %s\n" % (self.nick,
-                                                                                          self.identifier,
-                                                                                          self.status,
-                                                                                          self.chatroom,
-                                                                                          self.message)
+        return "Presence:\n nick %s\n idd %s\n status %s\n chatroom %s\n message %s\n" % (self._nick,
+                                                                                          self._identifier,
+                                                                                          self._status,
+                                                                                          self._chatroom,
+                                                                                          self._message)
 
     def __unicode__(self):
         return str(self.__str__())

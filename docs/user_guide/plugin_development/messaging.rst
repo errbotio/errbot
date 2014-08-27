@@ -110,7 +110,7 @@ like so:
         def hello(self, msg, args):
             """Say hello to someone"""
             response = tenv().get_template('hello.html').render(name=args)
-            self.send(msg.getFrom(), response, message_type=msg.getType())
+            self.send(msg.frm, response, message_type=msg.type)
 
 .. note::
     In both cases a plain-text version of your template is automatically
@@ -130,9 +130,9 @@ in:
 
     class PluginExample(BotPlugin):
         def callback_message(self, conn, mess):
-            if mess.getBody().find('cookie') != -1:
+            if mess.body.find('cookie') != -1:
                 self.send(
-                    mess.getFrom(),
+                    mess.from,
                     "What what somebody said cookie!?",
-                    message_type=mess.getType()
+                    message_type=mess.type
                 )

@@ -43,12 +43,12 @@ class HipchatClient(XMPPConnection):
         return json.load(urlopen(req))
 
     def send_message(self, mess):
-        if self.token and mess.getType() == 'groupchat':
+        if self.token and mess.type == 'groupchat':
 
             logging.debug('Message intercepted for Hipchat API')
             content, _ = mess_2_embeddablehtml(mess)
-            room_jid = mess.getTo()
-            self.send_api_message(room_jid.getNode().split('_')[1], CHATROOM_FN, content)
+            room_jid = mess.to
+            self.send_api_message(room_jid.node.split('_')[1], CHATROOM_FN, content)
         else:
             super(HipchatClient, self).send_message(mess)
 

@@ -106,10 +106,10 @@ class Identifier(object):
 
     def bare_match(self, other):
         """ checks if 2 identifiers are equal, ignoring the resource """
-        return other.getStripped() == self.getStripped()
+        return other.stripped == self.stripped
 
     def __str__(self):
-        answer = self.getStripped()
+        answer = self.stripped
         if self._resource:
             answer += '/' + self._resource
         return answer
@@ -167,6 +167,8 @@ class Message(object):
             self._body = body.decode('utf-8')
         self._html = html
         self._type = type_
+        self._from = None
+        self._to = None
         self._delayed = False
         self._nick = None
 
@@ -196,7 +198,7 @@ class Message(object):
             self._to = Identifier(to)  # assume a parseable string
 
     @property
-    def type_(self):
+    def type(self):
         """
         Get the type of the message.
 
@@ -206,8 +208,8 @@ class Message(object):
         """
         return self._type
 
-    @type_.setter
-    def type_(self, type_):
+    @type.setter
+    def type(self, type_):
         """
         Set the type of the message.
 
@@ -218,7 +220,7 @@ class Message(object):
         self._type = type_
 
     @property
-    def from_(self):
+    def frm(self):
         """
         Get the sender of the message.
 
@@ -228,8 +230,8 @@ class Message(object):
         """
         return self._from
 
-    @from_.setter
-    def from_(self, from_):
+    @frm.setter
+    def frm(self, from_):
         """
         Set the sender of the message.
 
@@ -282,12 +284,12 @@ class Message(object):
         self._delayed = delayed
 
     @property
-    def nick(self, nick):
-        self._nick = nick
-
-    @nick.setter
     def nick(self):
         return self._nick
+
+    @nick.setter
+    def nick(self, nick):
+        self._nick = nick
 
     def __str__(self):
         return self._body
@@ -302,19 +304,19 @@ class Message(object):
     def setTo(self, to):
         """ will be removed on the next version """
 
-    @deprecated(type_)
+    @deprecated(type)
     def getType(self):
         """ will be removed on the next version """
 
-    @deprecated(type_.fset)
+    @deprecated(type.fset)
     def setType(self, type_):
         """ will be removed on the next version """
 
-    @deprecated(from_)
+    @deprecated(frm)
     def getFrom(self):
         """ will be removed on the next version """
 
-    @deprecated(from_.fset)
+    @deprecated(frm.fset)
     def setFrom(self, from_):
         """ will be removed on the next version """
 
@@ -458,7 +460,7 @@ def build_message(text, message_class, conversion_function=None):
         try:
             text_plain, node = build_text_html_message_pair(edulcorated_html)
             message = message_class(body=text_plain)
-            message.setHTML(node)
+            message.html = node
         except ET.ParseError as ee:
             logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (edulcorated_html, ee))
     except ET.ParseError as ee:
@@ -510,26 +512,26 @@ class Backend(object):
     def build_reply(self, mess, text=None, private=False):
         """Build a message for responding to another message.
         Message is NOT sent"""
+        msg_type = mess.type
         response = self.build_message(text)
-        msg_type = mess.getType()
 
-        response.setFrom(self.jid)
+        response.frm = self.jid
         if msg_type == 'groupchat' and not private:
-            # getStripped() returns the full bot@conference.domain.tld/chat_username
+            # stripped returns the full bot@conference.domain.tld/chat_username
             # but in case of a groupchat, we should only try to send to the MUC address
             # itself (bot@conference.domain.tld)
-            response.setTo(mess.getFrom().getStripped().split('/')[0])
-        elif str(mess.getTo()) == BOT_IDENTITY['username']:
+            response.to = mess.frm.stripped.split('/')[0]
+        elif str(mess.to) == BOT_IDENTITY['username']:
             # This is a direct private message, not initiated through a MUC. Use
-            # getStripped() to remove the resource so that the response goes to the
+            # stripped to remove the resource so that the response goes to the
             # client with the highest priority
-            response.setTo(mess.getFrom().getStripped())
+            response.to = mess.frm.stripped
         else:
             # This is a private message that was initiated through a MUC. Don't use
-            # getStripped() here to retain the resource, else the XMPP server doesn't
+            # stripped here to retain the resource, else the XMPP server doesn't
             # know which user we're actually responding to.
-            response.setTo(mess.getFrom())
-        response.setType('chat' if private else msg_type)
+            response.to = mess.frm
+        response.type = 'chat' if private else msg_type
         return response
 
     def callback_presence(self, conn, presence):
@@ -543,17 +545,17 @@ class Backend(object):
         Needs to return False if we want to stop further treatment
         """
         # Prepare to handle either private chats or group chats
-        type = mess.getType()
-        jid = mess.getFrom()
-        text = mess.getBody()
+        type_ = mess.type
+        jid = mess.frm
+        text = mess.body
         username = get_sender_username(mess)
         user_cmd_history = self.cmd_history[username]
 
-        if mess.isDelayed():
+        if mess.delayed:
             logging.debug("Message from history, ignore it")
             return False
 
-        if type not in ("groupchat", "chat"):
+        if type_ not in ("groupchat", "chat"):
             logging.debug("unhandled message type %s" % mess)
             return False
 
@@ -563,14 +565,14 @@ class Backend(object):
         # background discussion on this). Matching against CHATROOM_FN isn't technically
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
-        if (jid.bareMatch(self.jid) or
-            type == "groupchat" and mess.getMuckNick() == CHATROOM_FN):  # noqa
+        if (jid.bare_match(self.jid) or
+            type_ == "groupchat" and mess.nick == CHATROOM_FN):  # noqa
                 logging.debug("Ignoring message from self")
                 return False
 
         logging.debug("*** jid = %s" % jid)
         logging.debug("*** username = %s" % username)
-        logging.debug("*** type = %s" % type)
+        logging.debug("*** type = %s" % type_)
         logging.debug("*** text = %s" % text)
 
         # If a message format is not supported (eg. encrypted),
@@ -604,7 +606,7 @@ class Backend(object):
                 l = len(sep)
                 if text[:l] == sep:
                     text = text[l:]
-        elif type == "chat" and BOT_PREFIX_OPTIONAL_ON_CHAT:
+        elif type_ == "chat" and BOT_PREFIX_OPTIONAL_ON_CHAT:
             logging.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
@@ -688,7 +690,7 @@ class Backend(object):
         """Process and execute a bot command"""
         logging.info("Processing command {} with parameters '{}'".format(cmd, args))
 
-        jid = mess.getFrom()
+        jid = mess.frm
         username = get_sender_username(mess)
         user_cmd_history = self.cmd_history[username]
 
@@ -772,7 +774,7 @@ class Backend(object):
             tb = traceback.format_exc()
             logging.exception('An error happened while processing '
                               'a message ("%s") from %s: %s"' %
-                              (mess.getBody(), jid, tb))
+                              (mess.body, jid, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
     def is_admin(self, usr):
@@ -788,7 +790,7 @@ class Backend(object):
         Raises ACLViolation() if the command may not be executed in the given context
         """
         usr = str(get_jid_from_message(mess))
-        typ = mess.getType()
+        typ = mess.type
 
         if cmd not in ACCESS_CONTROLS:
             ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
@@ -798,7 +800,7 @@ class Backend(object):
         if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
             raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
-            stripped = mess.getFrom().getStripped()
+            stripped = mess.frm.stripped
             if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
                 raise ACLViolation("You're not allowed to access this command from a chatroom")
             if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
@@ -922,17 +924,17 @@ class Backend(object):
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
         mess = self.build_message(text)
-        if hasattr(user, 'getStripped'):
-            mess.setTo(user.getStripped())
+        if hasattr(user, 'stripped'):
+            mess.to = user.stripped
         else:
-            mess.setTo(user)
+            mess.to = user
 
         if in_reply_to:
-            mess.setType(in_reply_to.getType())
-            mess.setFrom(in_reply_to.getTo().getStripped())
+            mess.type = in_reply_to.type
+            mess.frm = in_reply_to.to.stripped
         else:
-            mess.setType(message_type)
-            mess.setFrom(self.jid)
+            mess.type = message_type
+            mess.frm = self.jid
 
         self.send_message(mess)
 
@@ -967,9 +969,9 @@ class Backend(object):
 
 
 def get_jid_from_message(mess):
-    if mess.getType() == 'chat':
+    if mess.type == 'chat':
         # strip the resource for direct chats
-        return str(mess.getFrom().getStripped())
-    fr = mess.getFrom()
+        return mess.frm.stripped
+    fr = mess.frm
     jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
     return jid

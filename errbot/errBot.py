@@ -309,9 +309,9 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def restart(self, mess, args):
         """ restart the bot """
-        self.send(mess.getFrom(), "Deactivating all the plugins...")
+        self.send(mess.frm, "Deactivating all the plugins...")
         deactivate_all_plugins()
-        self.send(mess.getFrom(), "Restarting")
+        self.send(mess.frm, "Restarting")
         self.shutdown()
         global_restart()
         return "I'm restarting..."
@@ -437,14 +437,14 @@ class ErrBot(Backend, StoreMixin):
         self.add_plugin_repo(human_name, args)
         errors = self.update_dynamic_plugins()
         if errors:
-            self.send(mess.getFrom(), 'Some plugins are generating errors:\n' + '\n'.join(errors),
-                      message_type=mess.getType())
+            self.send(mess.frm, 'Some plugins are generating errors:\n' + '\n'.join(errors),
+                      message_type=mess.type)
         else:
             self.send(
-                mess.getFrom(),
+                mess.frm,
                 ("A new plugin repository named %s has been installed correctly from "
                  "%s. Refreshing the plugins commands..." % (human_name, args)),
-                message_type=mess.getType()
+                message_type=mess.type
             )
         self.activate_non_started_plugins()
         return "Plugin reload done."
@@ -462,7 +462,7 @@ class ErrBot(Backend, StoreMixin):
         plugin_path = self.plugin_dir + os.sep + args
         for plugin in get_all_plugins():
             if plugin.path.startswith(plugin_path) and hasattr(plugin, 'is_activated') and plugin.is_activated:
-                self.send(mess.getFrom(), '/me is unloading plugin %s' % plugin.name)
+                self.send(mess.frm, '/me is unloading plugin %s' % plugin.name)
                 self.deactivate_plugin(plugin.name)
 
         shutil.rmtree(plugin_path)
@@ -647,7 +647,7 @@ class ErrBot(Backend, StoreMixin):
             directories.update([self.plugin_dir + os.sep + name for name in set(args).intersection(set(repos))])
 
         for d in directories:
-            self.send(mess.getFrom(), "I am updating %s ..." % d, message_type=mess.getType())
+            self.send(mess.frm, "I am updating %s ..." % d, message_type=mess.type)
             p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             feedback = p.stdout.read().decode('utf-8') + '\n' + '-' * 50 + '\n'
             err = p.stderr.read().strip().decode('utf-8')
@@ -657,19 +657,19 @@ class ErrBot(Backend, StoreMixin):
             if dep_err:
                 feedback += dep_err + '\n'
             if p.wait():
-                self.send(mess.getFrom(), "Update of %s failed...\n\n%s\n\n resuming..." % (d, feedback),
-                          message_type=mess.getType())
+                self.send(mess.frm, "Update of %s failed...\n\n%s\n\n resuming..." % (d, feedback),
+                          message_type=mess.type)
             else:
-                self.send(mess.getFrom(), "Update of %s succeeded...\n\n%s\n\n" % (d, feedback),
-                          message_type=mess.getType())
+                self.send(mess.frm, "Update of %s succeeded...\n\n%s\n\n" % (d, feedback),
+                          message_type=mess.type)
                 if not core_to_update:
                     for plugin in get_all_plugins():
                         if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                             name = plugin.name
-                            self.send(mess.getFrom(), '/me is reloading plugin %s' % name)
+                            self.send(mess.frm, '/me is reloading plugin %s' % name)
                             reload_plugin_by_name(plugin.name)
                             self.activate_plugin(plugin.name)
-                            self.send(mess.getFrom(), '%s reloaded and reactivated' % name)
+                            self.send(mess.frm, '%s reloaded and reactivated' % name)
         if core_to_update:
             self.restart(mess, '')
             return "You have updated the core, I need to restart."

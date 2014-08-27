@@ -7,7 +7,7 @@ from errbot.errBot import ErrBot
 
 class ConnectionMock(object):
     def send(self, mess):
-        print(mess.getBody())
+        print(mess.body)
 
     def send_message(self, mess):
         self.send(mess)
@@ -27,8 +27,8 @@ class TextBackend(ErrBot):
             while True:
                 entry = input("Talk to  me >>")
                 msg = Message(entry)
-                msg.setFrom(config.BOT_ADMINS[0])  # assume this is the admin talking
-                msg.setTo(self.jid)  # To me only
+                msg.frm = config.BOT_ADMINS[0]  # assume this is the admin talking
+                msg.to = self.jid  # To me only
                 self.callback_message(self.conn, msg)
         except EOFError as eof:
             pass

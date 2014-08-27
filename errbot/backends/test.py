@@ -38,7 +38,7 @@ STZ_IQ = 3
 
 class ConnectionMock():
     def send(self, mess):
-        outgoing_message_queue.put(mess.getBody())
+        outgoing_message_queue.put(mess.body)
 
     def send_message(self, mess):
         self.send(mess)
@@ -62,8 +62,8 @@ class TestBackend(ErrBot):
                     break
                 if stanza_type is STZ_MSG:
                     msg = Message(entry)
-                    msg.setFrom(self.sender)
-                    msg.setTo(self.jid)  # To me only
+                    msg.frm = self.sender
+                    msg.to = self.jid  # To me only
                     self.callback_message(self.conn, msg)
                 elif stanza_type is STZ_PRE:
                     logging.info("Presence stanza received.")

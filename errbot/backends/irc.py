@@ -49,29 +49,27 @@ class IRCConnection(SingleServerIRCBot):
         self.callback.connect_callback()
 
     def on_pubmsg(self, c, e):
-        msg = Message(e.arguments[0])
-        msg.setFrom(e.target)
-        msg.setTo(self.callback.jid)
-        msg.setMuckNick(e.source.split('!')[0])  # FIXME find the real nick in the channel
-        msg.setType('groupchat')
+        msg = Message(e.arguments[0], type_='groupchat')
+        msg.frm = e.target
+        msg.to = self.callback.jid
+        msg.nick = e.source.split('!')[0]  # FIXME find the real nick in the channel
         self.callback.callback_message(self, msg)
 
     def on_privmsg(self, c, e):
         msg = Message(e.arguments[0])
-        msg.setFrom(e.source.split('!')[0])
-        msg.setTo(e.target)
-        msg.setType('chat')
+        msg.frm = e.source.split('!')[0]
+        msg.to = e.target
         self.callback.callback_message(self, msg)
 
     def send_message(self, mess):
         msg_func = self.send_private_message if mess.typ == 'chat' else self.send_public_message
         # If this is a response in private of a public message take the recipient in
         # the resource instead of the incoming chatroom
-        if mess.typ == 'chat' and mess.getTo().resource:
-            to = mess.getTo().resource
+        if mess.type == 'chat' and mess.to.resource:
+            to = mess.to.resource
         else:
-            to = mess.getTo().node
-        for line in build_text_html_message_pair(mess.getBody())[0].split('\n'):
+            to = mess.to.node
+        for line in build_text_html_message_pair(mess.body)[0].split('\n'):
             msg_func(to, line)
 
     @RateLimited(config.__dict__.get('IRC_PRIVATE_RATE', 1))

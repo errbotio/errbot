@@ -151,11 +151,11 @@ class Message(object):
 
     fr = Identifier('unknown@localhost')
 
-    def __init__(self, body, typ='chat', html=None):
+    def __init__(self, body, type_='chat', html=None):
         """
         :param body:
             The plaintext body of the message.
-        :param typ:
+        :param type_:
             The type of message (generally one of either 'chat' or 'groupchat').
         :param html:
             An optional HTML representation of the body.
@@ -166,7 +166,7 @@ class Message(object):
         else:
             self._body = body.decode('utf-8')
         self._html = html
-        self._type = typ
+        self._type = type_
         self._delayed = False
         self._nick = None
 
@@ -196,7 +196,7 @@ class Message(object):
             self._to = Identifier(to)  # assume a parseable string
 
     @property
-    def type(self):
+    def type_(self):
         """
         Get the type of the message.
 
@@ -206,19 +206,19 @@ class Message(object):
         """
         return self._type
 
-    @type.setter
-    def type(self, typ):
+    @type_.setter
+    def type_(self, type_):
         """
         Set the type of the message.
 
-        :param typ:
+        :param type_:
             The message type (generally one of either 'chat'
             or 'groupchat').
         """
-        self._type = typ
+        self._type = type_
 
     @property
-    def fr(self):
+    def from_(self):
         """
         Get the sender of the message.
 
@@ -228,19 +228,19 @@ class Message(object):
         """
         return self._from
 
-    @fr.setter
-    def fr(self, fr):
+    @from_.setter
+    def from_(self, from_):
         """
         Set the sender of the message.
 
-        :param fr:
+        :param from_:
             An :class:`~errbot.backends.base.Identifier`, or string which may
             be parsed as one, identifying the sender.
         """
-        if isinstance(fr, Identifier):
-            self._from = fr
+        if isinstance(from_, Identifier):
+            self._from = from_
         else:
-            self._from = Identifier(fr)  # assume a parseable string
+            self._from = Identifier(from_)  # assume a parseable string
 
     @property
     def body(self):
@@ -302,20 +302,20 @@ class Message(object):
     def setTo(self, to):
         """ will be removed on the next version """
 
-    @deprecated(type)
+    @deprecated(type_)
     def getType(self):
         """ will be removed on the next version """
 
-    @deprecated(type.fset)
-    def setType(self, typ):
+    @deprecated(type_.fset)
+    def setType(self, type_):
         """ will be removed on the next version """
 
-    @deprecated(fr)
+    @deprecated(from_)
     def getFrom(self):
         """ will be removed on the next version """
 
-    @deprecated(fr.fset)
-    def setFrom(self, fr):
+    @deprecated(from_.fset)
+    def setFrom(self, from_):
         """ will be removed on the next version """
 
     @deprecated(body)

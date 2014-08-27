@@ -80,41 +80,64 @@ class Identifier(object):
 
     def __init__(self, jid=None, node='', domain='', resource=''):
         if jid:
-            self.node, self.domain, self.resource = parse_jid(jid)
+            self._node, self._domain, self._resource = parse_jid(jid)
         else:
-            self.node = node
-            self.domain = domain
-            self.resource = resource
-    
-    def get_node(self):
-        return self.node
+            self._node = node
+            self._domain = domain
+            self._resource = resource
 
-    @deprecated(get_node)
-    def getNode(self):
-        """ deprecated """
+    @property
+    def node(self):
+        return self._node
 
-    def getDomain(self):
-        return self.domain
+    @property
+    def domain(self):
+        return self._domain
 
-    def bareMatch(self, other):
+    @property
+    def resource(self):
+        return self._resource
+
+    @property
+    def stripped(self):
+        if self._domain:
+            return self._node + '@' + self._domain
+        return self._node  # if the backend has no domain notion
+
+    def bare_match(self, other):
+        """ checks if 2 identifiers are equal, ignoring the resource """
         return other.getStripped() == self.getStripped()
-
-    def getStripped(self):
-        if self.domain:
-            return self.node + '@' + self.domain
-        return self.node  # if the backend has no domain notion
-
-    def getResource(self):
-        return self.resource
 
     def __str__(self):
         answer = self.getStripped()
-        if self.resource:
-            answer += '/' + self.resource
+        if self._resource:
+            answer += '/' + self._resource
         return answer
 
     def __unicode__(self):
         return str(self.__str__())
+
+    # deprecated stuff ...
+
+    @deprecated(node)
+    def getNode(self):
+        """ will be removed on the next version """
+
+    @deprecated(domain)
+    def getDomain(self):
+        """ will be removed on the next version """
+
+    @deprecated(bare_match)
+    def bareMatch(self, other):
+        """ will be removed on the next version """
+
+    @deprecated(stripped)
+    def getStripped(self):
+        """ will be removed on the next version """
+
+    @deprecated(resource)
+    def getResource(self):
+        """ will be removed on the next version """
 
 
 class Message(object):
@@ -139,15 +162,27 @@ class Message(object):
         """
         # it is either unicode or assume it is utf-8
         if isinstance(body, str):
-            self.body = body
+            self._body = body
         else:
-            self.body = body.decode('utf-8')
-        self.html = html
-        self.typ = typ
-        self.delayed = False
-        self.mucknick = None
+            self._body = body.decode('utf-8')
+        self._html = html
+        self._type = typ
+        self._delayed = False
+        self._nick = None
 
-    def setTo(self, to):
+    @property
+    def to(self):
+        """
+        Get the recipient of the message.
+
+        :returns:
+            An :class:`~errbot.backends.base.Identifier` identifying
+            the recipient.
+        """
+        return self._to
+
+    @to.setter
+    def to(self, to):
         """
         Set the recipient of the message.
 
@@ -156,31 +191,12 @@ class Message(object):
             be parsed as one, identifying the recipient.
         """
         if isinstance(to, Identifier):
-            self.to = to
+            self._to = to
         else:
-            self.to = Identifier(to)  # assume a parseable string
+            self._to = Identifier(to)  # assume a parseable string
 
-    def getTo(self):
-        """
-        Get the recipient of the message.
-
-        :returns:
-            An :class:`~errbot.backends.base.Identifier` identifying
-            the recipient.
-        """
-        return self.to
-
-    def setType(self, typ):
-        """
-        Set the type of the message.
-
-        :param typ:
-            The message type (generally one of either 'chat'
-            or 'groupchat').
-        """
-        self.typ = typ
-
-    def getType(self):
+    @property
+    def type(self):
         """
         Get the type of the message.
 
@@ -188,9 +204,21 @@ class Message(object):
             The message type as a string (generally one of either
             'chat' or 'groupchat')
         """
-        return self.typ
+        return self._type
 
-    def getFrom(self):
+    @type.setter
+    def type(self, typ):
+        """
+        Set the type of the message.
+
+        :param typ:
+            The message type (generally one of either 'chat'
+            or 'groupchat').
+        """
+        self._type = typ
+
+    @property
+    def fr(self):
         """
         Get the sender of the message.
 
@@ -198,9 +226,10 @@ class Message(object):
             An :class:`~errbot.backends.base.Identifier` identifying
             the sender.
         """
-        return self.fr
+        return self._from
 
-    def setFrom(self, fr):
+    @fr.setter
+    def fr(self, fr):
         """
         Set the sender of the message.
 
@@ -209,20 +238,22 @@ class Message(object):
             be parsed as one, identifying the sender.
         """
         if isinstance(fr, Identifier):
-            self.fr = fr
+            self._from = fr
         else:
-            self.fr = Identifier(fr)  # assume a parseable string
+            self._from = Identifier(fr)  # assume a parseable string
 
-    def getBody(self):
+    @property
+    def body(self):
         """
         Get the plaintext body of the message.
 
         :returns:
             The body as a string.
         """
-        return self.body
+        return self._body
 
-    def getHTML(self):
+    @property
+    def html(self):
         """
         Get the HTML representation of the message.
 
@@ -230,31 +261,90 @@ class Message(object):
             A string containing the HTML message or `None` when there
             is none.
         """
-        return self.html
+        return self._html
 
-    def setHTML(self, html):
+    @html.setter
+    def html(self, html):
         """
         Set the HTML representation of the message
 
         :param html:
             The HTML message.
         """
-        self.html = html
+        self._html = html
 
-    def setDelayed(self, delayed):
-        self.delayed = delayed
+    @property
+    def delayed(self):
+        return self._delayed
 
-    def isDelayed(self):
-        return self.delayed
+    @delayed.setter
+    def delayed(self, delayed):
+        self._delayed = delayed
 
-    def setMuckNick(self, nick):
-        self.mucknick = nick
+    @property
+    def nick(self, nick):
+        self._nick = nick
 
-    def getMuckNick(self):
-        return self.mucknick
+    @nick.setter
+    def nick(self):
+        return self._nick
 
     def __str__(self):
-        return self.body
+        return self._body
+
+    # deprecated stuff ...
+
+    @deprecated(to)
+    def getTo(self):
+        """ will be removed on the next version """
+
+    @deprecated(to.fset)
+    def setTo(self, to):
+        """ will be removed on the next version """
+
+    @deprecated(type)
+    def getType(self):
+        """ will be removed on the next version """
+
+    @deprecated(type.fset)
+    def setType(self, typ):
+        """ will be removed on the next version """
+
+    @deprecated(fr)
+    def getFrom(self):
+        """ will be removed on the next version """
+
+    @deprecated(fr.fset)
+    def setFrom(self, fr):
+        """ will be removed on the next version """
+
+    @deprecated(body)
+    def getBody(self):
+        """ will be removed on the next version """
+
+    @deprecated(html)
+    def getHTML(self):
+        """ will be removed on the next version """
+
+    @deprecated(html.fset)
+    def setHTML(self, html):
+        """ will be removed on the next version """
+
+    @deprecated(delayed)
+    def isDelayed(self):
+        """ will be removed on the next version """
+
+    @deprecated(delayed.fset)
+    def setDelayed(self, delayed):
+        """ will be removed on the next version """
+
+    @deprecated(nick)
+    def setMuckNick(self, nick):
+        """ will be removed on the next version """
+
+    @deprecated(nick.fset)
+    def getMuckNick(self):
+        """ will be removed on the next version """
 
 ONLINE = 'online'
 OFFLINE = 'offline'

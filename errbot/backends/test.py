@@ -36,22 +36,16 @@ STZ_PRE = 2
 STZ_IQ = 3
 
 
-class ConnectionMock():
-    def send(self, mess):
-        outgoing_message_queue.put(mess.body)
+class TestBackend(ErrBot):
 
     def send_message(self, mess):
-        self.send(mess)
-
-
-class TestBackend(ErrBot):
-    conn = ConnectionMock()
+        super(TestBackend, self).send_message(mess)
+        outgoing_message_queue.put(mess.body)
 
     def serve_forever(self):
         import config
 
         self.jid = Identifier('Err')  # whatever
-        self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
         self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
         try:
@@ -64,7 +58,7 @@ class TestBackend(ErrBot):
                     msg = Message(entry)
                     msg.frm = self.sender
                     msg.to = self.jid  # To me only
-                    self.callback_message(self.conn, msg)
+                    self.callback_message(msg)
                 elif stanza_type is STZ_PRE:
                     logging.info("Presence stanza received.")
                     self.callback_presence(entry)
@@ -84,9 +78,7 @@ class TestBackend(ErrBot):
             self.shutdown()
 
     def connect(self):
-        if not self.conn:
-            self.conn = ConnectionMock()
-        return self.conn
+        return
 
     def build_message(self, text):
         return build_message(text, Message)

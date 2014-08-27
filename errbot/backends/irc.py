@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import logging
 import sys
 import config
-from errbot.backends.base import Message, build_message, build_text_html_message_pair
+from errbot.backends.base import Message, build_message, build_text_html_message_pair, Identifier
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 
@@ -61,17 +61,6 @@ class IRCConnection(SingleServerIRCBot):
         msg.to = e.target
         self.callback.callback_message(self, msg)
 
-    def send_message(self, mess):
-        msg_func = self.send_private_message if mess.typ == 'chat' else self.send_public_message
-        # If this is a response in private of a public message take the recipient in
-        # the resource instead of the incoming chatroom
-        if mess.type == 'chat' and mess.to.resource:
-            to = mess.to.resource
-        else:
-            to = mess.to.node
-        for line in build_text_html_message_pair(mess.body)[0].split('\n'):
-            msg_func(to, line)
-
     @RateLimited(config.__dict__.get('IRC_PRIVATE_RATE', 1))
     def send_private_message(self, to, line):
         self.connection.privmsg(to, line)
@@ -86,6 +75,18 @@ class IRCBackend(ErrBot):
         self.jid = Identifier(node=nickname, domain=server)
         super(IRCBackend, self).__init__()
         self.conn = IRCConnection(self, nickname, server, port, ssl, password, username)
+
+    def send_message(self, mess):
+        super(IRCBackend, self).send_message(mess)
+        msg_func = self.conn.send_private_message if mess.typ == 'chat' else self.conn.send_public_message
+        # If this is a response in private of a public message take the recipient in
+        # the resource instead of the incoming chatroom
+        if mess.type == 'chat' and mess.to.resource:
+            to = mess.to.resource
+        else:
+            to = mess.to.node
+        for line in build_text_html_message_pair(mess.body)[0].split('\n'):
+            msg_func(to, line)
 
     def serve_forever(self):
         try:

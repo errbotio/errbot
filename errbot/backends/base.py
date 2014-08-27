@@ -426,11 +426,6 @@ class Presence(object):
         return str(self.__str__())
 
 
-class Connection(object):
-    def send_message(self, mess):
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-
 def build_text_html_message_pair(source):
     node = None
     text_plain = None
@@ -502,8 +497,7 @@ class Backend(object):
             self.bot_alt_prefixes = BOT_ALT_PREFIXES
 
     def send_message(self, mess):
-        """Send a message"""
-        self.connect().send_message(mess)
+        """Should be overridden by backends"""
 
     def send_simple_reply(self, mess, text, private=False):
         """Send a simple response to a message"""
@@ -534,13 +528,13 @@ class Backend(object):
         response.type = 'chat' if private else msg_type
         return response
 
-    def callback_presence(self, conn, presence):
+    def callback_presence(self, presence):
         """
            Implemented by errBot.
         """
         pass
 
-    def callback_message(self, conn, mess):
+    def callback_message(self, mess):
         """
         Needs to return False if we want to stop further treatment
         """

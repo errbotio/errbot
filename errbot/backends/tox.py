@@ -72,22 +72,6 @@ class ToxConnection(Tox, Connection):
         logging.info('TOX: connecting...')
         self.bootstrap_from_address(*TOX_BOOTSTRAP_SERVER)
 
-    def send_message(self, mess):
-        body = mess.body
-        number = int(mess.to.node)
-        subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
-        if mess.type == 'groupchat':
-            logging.debug('TOX: sending to group number %i', number)
-            for subpart in subparts:
-                super(ToxConnection, self).group_message_send(number, subpart)
-                sleep(0.5)  # antiflood
-        else:
-            logging.debug('TOX: sending to friend number %i', number)
-            for subpart in subparts:
-                # yup this is an horrible clash on names !
-                super(ToxConnection, self).send_message(number, subpart)
-                sleep(0.5)  # antiflood
-
     def on_friend_request(self, friend_pk, message):
         logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
         self.add_friend_norequest(friend_pk)
@@ -157,6 +141,22 @@ class ToxBackend(ErrBot):
         pk = self.conn.get_client_id(int(friend_number))
         logging.debug("Check if %s is admin" % pk)
         return any(pka.startswith(pk) for pka in config.BOT_ADMINS)
+
+    def send_message(self, mess):
+        super(ToxBackend, self).send_message(mess)
+        body = mess.body
+        number = int(mess.to.node)
+        subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
+        if mess.type == 'groupchat':
+            logging.debug('TOX: sending to group number %i', number)
+            for subpart in subparts:
+                self.conn.group_message_send(number, subpart)
+                sleep(0.5)  # antiflood
+        else:
+            logging.debug('TOX: sending to friend number %i', number)
+            for subpart in subparts:
+                self.conn.send_message(number, subpart)
+                sleep(0.5)  # antiflood
 
     def serve_forever(self):
         checked = False

@@ -56,6 +56,8 @@ BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
 
 class ErrBot(Backend, StoreMixin):
+    """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
+    """
     __errdoc__ = """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
@@ -131,7 +133,6 @@ class ErrBot(Backend, StoreMixin):
 
     def send_message(self, mess):
         super(ErrBot, self).send_message(mess)
-        # Act only in the backend tells us that this message is OK to broadcast
         for bot in get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:
@@ -139,18 +140,18 @@ class ErrBot(Backend, StoreMixin):
             except Exception as _:
                 logging.exception("Crash in a callback_botmessage handler")
 
-    def callback_message(self, conn, mess):
-        if super(ErrBot, self).callback_message(conn, mess):
+    def callback_message(self, mess):
+        if super(ErrBot, self).callback_message(mess):
             # Act only in the backend tells us that this message is OK to broadcast
             for bot in get_all_active_plugin_objects():
                 # noinspection PyBroadException
                 try:
                     logging.debug('callback_message for %s' % bot.__class__.__name__)
-                    bot.callback_message(conn, mess)
+                    bot.callback_message(None, mess)
                 except Exception as _:
                     logging.exception("Crash in a callback_message handler")
 
-    def callback_presence(self, conn, pres):
+    def callback_presence(self, pres):
         for bot in get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:

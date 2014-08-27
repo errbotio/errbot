@@ -20,18 +20,6 @@ from config import CHATROOM_PRESENCE
 class CampfireConnection(Connection, pyfire.Campfire):
     rooms = {}  # keep track of joined room so we can send messages directly to them
 
-    def send_message(self, mess):
-        # we only reply to rooms in reality in campfire so we need to find one or a default one at least
-        room_name = mess.to.domain
-        if not room_name:
-            room_name = mess.frm.domain
-        if room_name in self.rooms:
-            room = self.rooms[room_name][0]
-            room.speak(mess.body)  # Basic text support for the moment
-        else:
-            logging.info(
-                "Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.body))
-
     def join_room(self, name, msg_callback, error_callback):
         room = self.get_room_by_name(name)
         room.join()
@@ -54,6 +42,19 @@ class CampfireBackend(ErrBot):
         self.username = username
         self.password = password
         self.ssl = ssl
+
+    def send_message(self, mess):
+        super(CampfireBackend, self).send_message(mess)
+        # we only reply to rooms in reality in campfire so we need to find one or a default one at least
+        room_name = mess.to.domain
+        if not room_name:
+            room_name = mess.frm.domain
+        if room_name in self.conn.rooms:
+            room = self.conn.rooms[room_name][0]
+            room.speak(mess.body)  # Basic text support for the moment
+        else:
+            logging.info(
+                "Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.body))
 
     def serve_forever(self):
         self.exit_lock.acquire()
@@ -96,7 +97,7 @@ class CampfireBackend(ErrBot):
             msg = Message(message.body, type_='groupchat')  # it is always a groupchat in campfire
             msg.frm = user + '@' + message.room.get_data()['name'] + '/' + user
             msg.to = self.jid  # assume it is for me
-            self.callback_message(self.conn, msg)
+            self.callback_message(msg)
 
     def error_callback(self, error, room):
         logging.error("Stream STOPPED due to ERROR: %s in room %s" % (error, room))

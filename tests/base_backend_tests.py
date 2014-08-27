@@ -285,43 +285,43 @@ class BotCmds(unittest.TestCase):
         self.assertFalse(len(self.dummy.re_commands))
 
     def test_callback_message(self):
-        self.dummy.callback_message(None, self.makemessage("!return_args_as_str one two"))
+        self.dummy.callback_message(self.makemessage("!return_args_as_str one two"))
         self.assertEquals("one two", self.dummy.pop_message().body)
 
     @patch('errbot.backends.base.BOT_PREFIX_OPTIONAL_ON_CHAT', new=True)
     def test_callback_message_with_prefix_optional(self):
         m = self.makemessage("return_args_as_str one two")
-        self.dummy.callback_message(None, m)
+        self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
 
         # Groupchat should still require the prefix
         m.type = "groupchat"
-        self.dummy.callback_message(None, m)
+        self.dummy.callback_message(m)
         self.assertRaises(Empty, self.dummy.pop_message, *[], **{'block': False})
 
         m = self.makemessage("!return_args_as_str one two", type="groupchat")
-        self.dummy.callback_message(None, m)
+        self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
 
     @patch('errbot.backends.base.BOT_ALT_PREFIXES', new=('Err',))
     @patch('errbot.backends.base.BOT_ALT_PREFIX_SEPARATORS', new=(',', ';'))
     def test_callback_message_with_bot_alt_prefixes(self):
         self.dummy = DummyBackend()
-        self.dummy.callback_message(None, self.makemessage("Err return_args_as_str one two"))
+        self.dummy.callback_message(self.makemessage("Err return_args_as_str one two"))
         self.assertEquals("one two", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("Err, return_args_as_str one two"))
+        self.dummy.callback_message(self.makemessage("Err, return_args_as_str one two"))
         self.assertEquals("one two", self.dummy.pop_message().body)
 
     def test_callback_message_with_re_botcmd(self):
-        self.dummy.callback_message(None, self.makemessage("!regex command with prefix"))
+        self.dummy.callback_message(self.makemessage("!regex command with prefix"))
         self.assertEquals("Regex command", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("regex command without prefix"))
+        self.dummy.callback_message(self.makemessage("regex command without prefix"))
         self.assertEquals("Regex command", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("!regex command with capture group: Captured text"))
+        self.dummy.callback_message(self.makemessage("!regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("regex command with capture group: Captured text"))
+        self.dummy.callback_message(self.makemessage("regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage(
+        self.dummy.callback_message(self.makemessage(
             "This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
 
@@ -329,34 +329,34 @@ class BotCmds(unittest.TestCase):
     @patch('errbot.backends.base.BOT_ALT_PREFIX_SEPARATORS', new=(',', ';'))
     def test_callback_message_with_re_botcmd_and_alt_prefixes(self):
         self.dummy = DummyBackend()
-        self.dummy.callback_message(None, self.makemessage("!regex command with prefix"))
+        self.dummy.callback_message(self.makemessage("!regex command with prefix"))
         self.assertEquals("Regex command", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("Err regex command with prefix"))
+        self.dummy.callback_message(self.makemessage("Err regex command with prefix"))
         self.assertEquals("Regex command", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("Err, regex command with prefix"))
+        self.dummy.callback_message(self.makemessage("Err, regex command with prefix"))
         self.assertEquals("Regex command", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("regex command without prefix"))
+        self.dummy.callback_message(self.makemessage("regex command without prefix"))
         self.assertEquals("Regex command", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("!regex command with capture group: Captured text"))
+        self.dummy.callback_message(self.makemessage("!regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("regex command with capture group: Captured text"))
+        self.dummy.callback_message(self.makemessage("regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage(
+        self.dummy.callback_message(self.makemessage(
             "This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage("Err, regex command with capture group: Captured text"))
+        self.dummy.callback_message(self.makemessage("Err, regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
-        self.dummy.callback_message(None, self.makemessage(
+        self.dummy.callback_message(self.makemessage(
             "Err This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
 
     def test_regex_commands_can_overlap(self):
-        self.dummy.callback_message(None, self.makemessage("!matched by two commands"))
+        self.dummy.callback_message(self.makemessage("!matched by two commands"))
         response = (self.dummy.pop_message().body, self.dummy.pop_message().body)
         self.assertTrue(response == ("one", "two") or response == ("two", "one"))
 
     def test_regex_commands_allow_passing_re_flags(self):
-        self.dummy.callback_message(None, self.makemessage("!MaTcHeD By TwO cOmMaNdS"))
+        self.dummy.callback_message(self.makemessage("!MaTcHeD By TwO cOmMaNdS"))
         self.assertEquals("two", self.dummy.pop_message().body)
         self.assertRaises(Empty, self.dummy.pop_message, **{'timeout': 1})
 
@@ -440,7 +440,7 @@ class BotCmds(unittest.TestCase):
                 logger.info("** message: {}".format(test['message'].body))
                 logger.info("** acl: {!r}".format(test['acl']))
                 logger.info("** acl_default: {!r}".format(test['acl_default']))
-                self.dummy.callback_message(None, test['message'])
+                self.dummy.callback_message(test['message'])
                 self.assertEqual(
                     test['expected_response'],
                     self.dummy.pop_message().body

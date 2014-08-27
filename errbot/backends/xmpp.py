@@ -2,7 +2,7 @@ import logging
 import sys
 import os.path
 
-from errbot.backends.base import Message, Presence, build_message, Connection, Identifier
+from errbot.backends.base import Message, Presence, build_message, Identifier
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
@@ -77,7 +77,7 @@ def verify_gtalk_cert(xmpp_client):
     logging.error("invalid cert received for %s", xmpp_client.boundjid.server)
 
 
-class XMPPConnection(Connection):
+class XMPPConnection(object):
     def __init__(self, jid, password):
         self.connected = False
         self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': XMPP_FEATURE_MECHANISMS})

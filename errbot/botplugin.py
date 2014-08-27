@@ -187,7 +187,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_message(self, conn, message):
+    def callback_message(self, message):
         """
             Triggered on every message not coming from the bot itself.
 

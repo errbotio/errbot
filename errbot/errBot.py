@@ -147,7 +147,14 @@ class ErrBot(Backend, StoreMixin):
                 # noinspection PyBroadException
                 try:
                     logging.debug('callback_message for %s' % bot.__class__.__name__)
-                    bot.callback_message(None, mess)
+
+                    # backward compatibility from the time we needed conn
+                    if len(inspect.getargspec(bot.callback_message).args) == 3:
+                        logging.warn("Deprecation: Plugin %s uses the old callback_message convention, now the signature should be simply def callback_message(self, mess)"
+                                     % bot.__class__.__name__)
+                        bot.callback_message(None, mess)
+                    else:
+                        bot.callback_message(mess)
                 except Exception as _:
                     logging.exception("Crash in a callback_message handler")
 

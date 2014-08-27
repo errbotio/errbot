@@ -51,7 +51,7 @@ class ChatRoom(BotPlugin):
         self.invite_in_room(room_name, to_invite)
         return "Room created (%s)" % room_name
 
-    def callback_message(self, conn, mess):
+    def callback_message(self, mess):
         if bot.mode != 'campfire':  # no relay support in campfire
             try:
                 mess_type = mess.type

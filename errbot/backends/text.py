@@ -20,14 +20,14 @@ class TextBackend(ErrBot):
                 msg = Message(entry)
                 msg.frm = me
                 msg.to = self.jid
-                self.callback_message(self.conn, msg)
+                self.callback_message(msg)
         except EOFError as eof:
             pass
         except KeyboardInterrupt as ki:
             pass
         finally:
             # simulate some real presence
-            self.callback_presence(self.conn, Presence(identifier=me, status=OFFLINE))
+            self.callback_presence(Presence(identifier=me, status=OFFLINE))
             logging.debug("Trigger disconnect callback")
             self.disconnect_callback()
             logging.debug("Trigger shutdown")

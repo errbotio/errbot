@@ -12,6 +12,7 @@ config_campfire.py
 config_hipchat.py
 config_irc.py
 config_xmpp.py
+config_tox.py
 /docs/_build
 /docs/_gh-pages
 /docs/errbot.rst

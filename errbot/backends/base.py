@@ -367,53 +367,58 @@ class Presence(object):
             raise ValueError('Presence: nick is None when chatroom is not')
         if status is None and message is None:
             raise ValueError('Presence: at least a new status or a new status message mustbe present')
-        self.nick = nick
-        self.identifier = identifier
-        self.chatroom = chatroom
-        self.status = status
-        self.message = message
+        self._nick = nick
+        self._identifier = identifier
+        self._chatroom = chatroom
+        self._status = status
+        self._message = message
 
-    def get_chatroom(self):
+    @property
+    def chatroom(self):
         """ Returns the Identifier pointing the room in which the event occurred.
             If it returns None, the event occurred outside of a chatroom.
         """
-        return self.chatroom
+        return self._chatroom
 
-    def get_nick(self):
+    @property
+    def nick(self):
         """ Returns a plain string of the presence nick.
             (In some chatroom implementations, you cannot know the real identifier
             of a person in it).
             Can return None but then identifier won't be None.
         """
-        return self.nick
+        return self._nick
 
-    def get_identifier(self):
+    @property
+    def identifier(self):
         """ Returns the identifier of the event.
             Can be None *only* if chatroom is not None
         """
-        return self.identifier
+        return self._identifier
 
-    def get_status(self):
+    @property
+    def status(self):
         """ Returns the status of the presence change.
             It can be one of the constants ONLINE, OFFLINE, AWAY, DND, but
             can also be custom statuses depending on backends.
             It can be None if it is just an update of the status message (see get_message)
         """
-        return self.status
+        return self._status
 
-    def get_message(self):
+    @property
+    def message(self):
         """ Returns a human readable message associated with the status if any.
             like : "BRB, washing the dishes"
             It can be None if it is only a general status update (see get_status)
         """
-        return self.message
+        return self._message
 
     def __str__(self):
-        return "Presence:\n nick %s\n idd %s\n status %s\n chatroom %s\n message %s\n" % (self.nick,
-                                                                                          self.identifier,
-                                                                                          self.status,
-                                                                                          self.chatroom,
-                                                                                          self.message)
+        return "Presence:\n nick %s\n idd %s\n status %s\n chatroom %s\n message %s\n" % (self._nick,
+                                                                                          self._identifier,
+                                                                                          self._status,
+                                                                                          self._chatroom,
+                                                                                          self._message)
 
     def __unicode__(self):
         return str(self.__str__())

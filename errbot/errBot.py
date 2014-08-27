@@ -145,7 +145,7 @@ class ErrBot(Backend, StoreMixin):
             for bot in get_all_active_plugin_objects():
                 # noinspection PyBroadException
                 try:
-                    logging.debug('Callback %s' % bot)
+                    logging.debug('callback_message for %s' % bot.__class__.__name__)
                     bot.callback_message(conn, mess)
                 except Exception as _:
                     logging.exception("Crash in a callback_message handler")
@@ -154,7 +154,7 @@ class ErrBot(Backend, StoreMixin):
         for bot in get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:
-                logging.debug('Callback presence %s with %s' % (bot, pres))
+                logging.debug('callback_presence for %s with %s' % (bot.__class__.__name__, pres))
                 bot.callback_presence(pres)
             except Exception as _:
                 logging.exception('Crash in the callback_presence handler.')

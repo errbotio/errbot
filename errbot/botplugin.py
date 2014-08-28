@@ -209,6 +209,18 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
+    def callback_stream(frm, stream):
+        """
+            Triggered asynchronously (in a different thread context) on every incoming stream
+            request or file transfert requests.
+            You can block this call until you are done with the stream.
+            If you want to refuse this stream or stop receiving it, simply return.
+
+            :param stream:
+                the incoming stream request.
+        """
+        return False
+
     def callback_botmessage(self, message):
         """
             Triggered on every message coming from the bot itself.

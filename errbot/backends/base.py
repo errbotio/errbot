@@ -2,6 +2,8 @@ import inspect
 import logging
 import difflib
 import traceback
+import io
+
 from collections import deque, defaultdict
 from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
@@ -424,6 +426,58 @@ class Presence(object):
 
     def __unicode__(self):
         return str(self.__str__())
+
+
+class Stream(io.BufferedReader):
+    """
+       This class represents a stream request.
+
+       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_stream`
+       when an incoming stream is requested.
+    """
+
+    def __init__(self, identifier, fsource, name=None, size=None, stream_type=None):
+        super(Stream, self).__init__(fsource)
+        self._identifier = identifier
+        self._name = name
+        self._size = size
+        self._stream_type = stream_type
+
+    @property
+    def identifier(self):
+        """
+           The identity the stream is coming from if it is an incoming request
+           or to if it is an outgoing request.
+        """
+        return self._identifier
+
+    @property
+    def name(self):
+        """
+            The name of the stream/file if it has one or None otherwise.
+            !! Be carefull of injections if you are using this name directly as a filename.
+        """
+        return self._name
+
+    @property
+    def size(self):
+        """
+            The expected size in bytes of the stream if it is known or None.
+        """
+        return self._size
+
+    @property
+    def stream_type(self):
+        """
+            The mimetype of the stream if it is known or None.
+        """
+        return self._stream_type
+
+    def clone(self, new_fsource):
+        """
+            Creates a clone and with an alternative stream
+        """
+        return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
 
 
 def build_text_html_message_pair(source):

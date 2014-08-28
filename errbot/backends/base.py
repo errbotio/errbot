@@ -533,6 +533,66 @@ class Stream(io.BufferedReader):
         return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
 
 
+class MUCRoom(object):
+    """
+    This class represents a Multi-User Chatroom.
+    """
+    def __init__(self, jid, room_object=None):
+        """
+        :param jid:
+            The JID/identifier of this room.
+        :param room_object:
+            The backend-specific object that is returned when the
+            backend requests the list of rooms. A back-end is not
+            required to set this so this may be None.
+        """
+        self.jid = jid
+        self.room_object = room_object
+
+    @property
+    def topic(self):
+        """
+        The room topic.
+
+        :returns:
+            The topic (a string) if one is set, `None` if no topic
+            has been set at all (some back-ends may return an empty
+            string as not all networks differentiate between no topic
+            and an empty one).
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def occupants(self):
+        """
+        The room's occupants.
+
+        :returns:
+            A dictionary where the keys are all JID's of the occupants
+            and the values are :class:`~errbot.backends.base.MUCOccupant`
+            derived classes containing additional info about each occupant.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+
+class MUCOccupant(object):
+    """
+    This class represents a person inside a MUC.
+
+    This class exists to expose additional information about occupants
+    inside a MUC. For example, the XMPP back-end may expose backend-specific
+    information such as the real JID of the occupant and whether or not
+    that person is a moderator or owner of the room.
+    """
+
+    def __init__(self, jid):
+        """
+        :param jid:
+            The JID of the occupant.
+        """
+        self.jid = jid
+
+
 def build_text_html_message_pair(source):
     node = None
     text_plain = None
@@ -1053,6 +1113,50 @@ class Backend(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def join_room(self, room, username=None, password=None):
+        """
+        Join a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to join.
+        :param username:
+            An optional username to use.
+        :param password:
+            An optional password to use (for password-protected rooms).
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def leave_room(self, room):
+        """
+        Leave a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to leave.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def get_room_topic(self, room):
+        """
+        Return the topic set in a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to get the topic from.
+        :returns:
+            The topic (a string) if one is set, `None` if no topic
+            has been set at all (some back-ends may return an empty
+            string as not all networks differentiate between no topic
+            and an empty one).
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def set_room_topic(self, room, topic):
+        """
+        Set the topic for a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to set the topic for.
+        :param topic:
+            The topic to set.
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def stream(self, identifier, fsource, name=None, size=None, stream_type=None):
@@ -1069,6 +1173,17 @@ class Backend(object):
 
     @property
     def mode(self):
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def rooms(self):
+        """
+        Rooms the bot is currently in.
+
+        :returns:
+            A dictionary where the keys are JID's/identifiers of the joined MUCs
+            and the values are :class:`~errbot.backends.base.MUCRoom` instances.
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
 

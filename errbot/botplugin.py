@@ -264,9 +264,57 @@ class BotPlugin(BotPluginBase):
 
     def join_room(self, room, username=None, password=None):
         """
-            Make the bot join a room
+        Join a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to join.
+        :param username:
+            An optional username to use.
+        :param password:
+            An optional password to use (for password-protected rooms).
         """
         return holder.bot.join_room(room, username, password)
+
+    def leave_room(self, room):
+        """
+        Leave a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to leave.
+        """
+        return holder.bot.leave_room(room)
+
+    def get_room_topic(self, room):
+        """
+        Return the topic set in a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to get the topic from.
+        :returns:
+            The topic (a string) if one is set, `None` if no topic
+            has been set at all (some back-ends may return an empty
+            string as not all networks differentiate between no topic
+            and an empty one).
+        """
+        holder.bot.get_room_topic(room)
+
+    def set_room_topic(self, room, topic):
+        """
+        Set the topic for a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to set the topic for.
+        :param topic:
+            The topic to set.
+        """
+        holder.bot.set_room_topic(room, topic)
+
+    @property
+    def rooms(self):
+        """
+        The list of rooms the bot is currently in.
+        """
+        return holder.bot.rooms
 
     def invite_in_room(self, room, jids_to_invite):
         """

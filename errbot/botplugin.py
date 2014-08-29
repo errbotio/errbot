@@ -209,17 +209,17 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_stream(frm, stream):
+    def callback_stream(self, stream):
         """
             Triggered asynchronously (in a different thread context) on every incoming stream
             request or file transfert requests.
             You can block this call until you are done with the stream.
-            If you want to refuse this stream or stop receiving it, simply return.
-
+            To signal that you accept / reject the file, simply call stream.accept()
+            or stream.reject() and return.
             :param stream:
                 the incoming stream request.
         """
-        return False
+        stream.reject() # by default, reject the file as the plugin doesn't want it.
 
     def callback_botmessage(self, message):
         """

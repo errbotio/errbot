@@ -427,6 +427,12 @@ class Presence(object):
     def __unicode__(self):
         return str(self.__str__())
 
+STREAM_WAITING_TO_START = 'pending'
+STREAM_TRANSFER_IN_PROGRESS = 'in progress'
+STREAM_SUCCESSFULLY_TRANSFERED = 'success'
+STREAM_PAUSED = 'paused'
+STREAM_ERROR = 'error'
+STREAM_REJECTED = 'rejected'
 
 class Stream(io.BufferedReader):
     """
@@ -442,6 +448,7 @@ class Stream(io.BufferedReader):
         self._name = name
         self._size = size
         self._stream_type = stream_type
+        self._status = STREAM_WAITING_TO_START
 
     @property
     def identifier(self):
@@ -472,6 +479,46 @@ class Stream(io.BufferedReader):
             The mimetype of the stream if it is known or None.
         """
         return self._stream_type
+
+    @property
+    def status(self):
+        """
+            The status for this stream.
+        """
+        return self._status
+
+
+    def accept(self):
+        """
+            Signal that the stream has been accepted.
+        """
+        if self._status != STREAM_WAITING_TO_START:
+            raise ValueError("Invalid state, the stream is not pending.")
+        self._status = STREAM_TRANSFER_IN_PROGRESS
+
+    def reject(self):
+        """
+            Signal that the stream has been rejected.
+        """
+        if self._status != STREAM_WAITING_TO_START:
+            raise ValueError("Invalid state, the stream is not pending.")
+        self._status = STREAM_REJECTED
+
+    def error(self, reason="unknown"):
+        """
+            An internal plugin error prevented the transfer.
+        """
+        self._status = STREAM_ERROR
+        self._reason = reason
+
+    def success(self):
+        """
+            The streaming finished normally.
+        """
+        if self._status != STREAM_TRANSFER_IN_PROGRESS:
+            raise ValueError("Invalid state, the stream is not in progress.")
+        self._status = STREAM_SUCCESSFULLY_TRANSFERED
+
 
     def clone(self, new_fsource):
         """

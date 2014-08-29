@@ -434,6 +434,7 @@ STREAM_PAUSED = 'paused'
 STREAM_ERROR = 'error'
 STREAM_REJECTED = 'rejected'
 
+
 class Stream(io.BufferedReader):
     """
        This class represents a stream request.
@@ -487,7 +488,6 @@ class Stream(io.BufferedReader):
         """
         return self._status
 
-
     def accept(self):
         """
             Signal that the stream has been accepted.
@@ -518,7 +518,6 @@ class Stream(io.BufferedReader):
         if self._status != STREAM_TRANSFER_IN_PROGRESS:
             raise ValueError("Invalid state, the stream is not in progress.")
         self._status = STREAM_SUCCESSFULLY_TRANSFERED
-
 
     def clone(self, new_fsource):
         """
@@ -1047,6 +1046,9 @@ class Backend(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def join_room(self, room, username=None, password=None):
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def stream(self, identifier, fsource, name=None, size=None, stream_type=None):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def shutdown(self):

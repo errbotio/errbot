@@ -43,6 +43,7 @@ from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
 from errbot.streaming import Tee
 
+
 def get_class_that_defined_method(meth):
     for cls in inspect.getmro(type(meth.__self__)):
         if meth.__name__ in cls.__dict__:

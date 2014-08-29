@@ -258,10 +258,23 @@ class BotPlugin(BotPluginBase):
 
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """
-            Sends asynchronously a message a room or a user.
+            Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
         return holder.bot.send(user, text, in_reply_to, message_type)
+
+    def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):
+        """
+            Sends asynchronously a stream/file to a user.
+            user is the jid of the person you want to send it to.
+            fsource is a file object you want to send.
+            name is an optional filename for it.
+            size is optional and is the espected size for it.
+            stream_type is optional for the mime_type of the content.
+
+            It will return a Stream object on which you can monitor the progress of it.
+        """
+        return holder.bot.send_stream_request(user, fsource, name, size, stream_type)
 
     def bare_send(self, xmppy_msg):
         """

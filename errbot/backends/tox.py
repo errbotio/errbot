@@ -9,9 +9,16 @@ import config
 from errbot.backends.base import Message, Identifier, Presence, Stream
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.backends.base import build_message, build_text_html_message_pair
+from errbot.backends.base import (STREAM_WAITING_TO_START,
+                                  STREAM_TRANSFER_IN_PROGRESS,
+                                  STREAM_SUCCESSFULLY_TRANSFERED,
+                                  STREAM_ERROR,
+                                  STREAM_PAUSED,
+                                  STREAM_REJECTED,)
+from threading import Thread
 
 try:
-    from tox import Tox
+    from tox import Tox, OperationFailedError
 except ImportError:
     logging.exception("Could not start the tox")
     logging.fatal("""
@@ -56,6 +63,7 @@ TOX_GROUP_TO_ERR_STATUS = {
     Tox.CHAT_CHANGE_PEER_NAME: None,
     }
 
+
 class ToxStreamer(BufferedRWPair):
     def __init__(self):
         r, w = pipe()
@@ -68,6 +76,7 @@ class ToxConnection(Tox):
         super(ToxConnection, self).__init__()
         self.backend = backend
         self.incoming_streams = {}
+        self.outgoing_streams = {}
         if exists(TOX_STATEFILE):
             self.load_from_file(TOX_STATEFILE)
         self.set_name(name)
@@ -82,6 +91,9 @@ class ToxConnection(Tox):
 
     def friend_to_idd(self, friend_number):
         return Identifier(node=str(friend_number), resource=self.get_name(friend_number))
+
+    def idd_to_friend(self, identifier):
+        return int(identifier.node)
 
     def on_friend_request(self, friend_pk, message):
         logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
@@ -137,7 +149,7 @@ class ToxConnection(Tox):
         logging.debug('TOX: callback with type = %s' % msg.type)
         self.backend.callback_message(msg)
 
-    #### File transfers
+    # File transfers
     def on_file_send_request(self, friend_number, file_number, file_size, filename):
         logging.debug("TOX: incoming file transfer %s : %s", friend_number, filename)
         # make a pipe on which we will be able to write from tox
@@ -164,12 +176,57 @@ class ToxConnection(Tox):
                 stream.error("Other party killed the transfer")
                 pipe.w.close()
             elif control_type == Tox.FILECONTROL_FINISHED:
-                logging.debug("Other party signal the end of transfer on %s:%s"%(friend_number,file_number))
+                logging.debug("Other party signal the end of transfer on %s:%s" % (friend_number, file_number))
                 pipe.flush()
                 pipe.w.close()
             logging.debug("Receive file control %s", control_type)
         else:
-            logging.warn("Sending file is not supported yet")
+            stream = self.outgoing_streams[(friend_number, file_number)]
+            if control_type == Tox.FILECONTROL_ACCEPT:
+                logging.debug("TOX: file accepted by remote")
+                Thread(target=self.send_stream, args=(friend_number, file_number)).start()
+            elif control_type == Tox.FILECONTROL_KILL:
+                stream.reject()
+                stream.close()
+            elif control_type == Tox.FILECONTROL_FINISHED:
+                logging.debug("TOX: cool other party signals the good reception")
+                stream.success()
+                stream.close()
+            else:
+                logging.warning("This control_type is not supported yet %s" % control_type)
+
+    def send_stream(self, friend_number, file_number):
+        try:
+            stream = self.outgoing_streams[(friend_number, file_number)]
+            stream.accept()
+            chunk_size = self.file_data_size(friend_number)
+
+            while True and stream.status == STREAM_TRANSFER_IN_PROGRESS:
+                logging.debug("TOX: read data")
+                data = stream.read(chunk_size)
+                if not data:
+                    break
+                logging.debug("TOX: send %d bytes" % len(data))
+                self.file_send_data(friend_number, file_number, data)
+            logging.debug("TOX: file transfert done")
+            if stream.status == STREAM_TRANSFER_IN_PROGRESS:
+                logging.debug("TOX: send FILECONTROL_FINISHED")
+                self.file_send_control(friend_number, 0, file_number, Tox.FILECONTROL_FINISHED)
+        except Exception as e:
+            logging.exception("Error sending stream")
+            stream.error(str(e))
+            self.file_send_control(friend_number, 0, file_number, Tox.FILECONTROL_KILL)
+        finally:
+            stream.close()
+
+    def send_stream_request(self, stream):
+        friend_number = self.idd_to_friend(stream.identifier)
+        logging.debug("TOX: send file request %s %s %s" % (friend_number,
+                                                           stream.size if stream.size else -1,
+                                                           stream.name))
+        file_number = self.new_file_sender(friend_number, stream.size if stream.size else -1, stream.name)
+        self.outgoing_streams[(friend_number, file_number)] = stream
+
 
 class ToxBackend(ErrBot):
 
@@ -186,18 +243,31 @@ class ToxBackend(ErrBot):
     def send_message(self, mess):
         super(ToxBackend, self).send_message(mess)
         body = mess.body
-        number = int(mess.to.node)
+        try:
+            number = int(mess.to.node)
+        except ValueError as _:
+            # this might be directly a pk
+            number = self.conn.get_friend_id(mess.to.node)
+
         subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
-        if mess.type == 'groupchat':
-            logging.debug('TOX: sending to group number %i', number)
-            for subpart in subparts:
-                self.conn.group_message_send(number, subpart)
-                sleep(0.5)  # antiflood
-        else:
-            logging.debug('TOX: sending to friend number %i', number)
-            for subpart in subparts:
-                self.conn.send_message(number, subpart)
-                sleep(0.5)  # antiflood
+        try:
+            if mess.type == 'groupchat':
+                logging.debug('TOX: sending to group number %i', number)
+                for subpart in subparts:
+                    self.conn.group_message_send(number, subpart)
+                    sleep(0.5)  # antiflood
+            else:
+                logging.debug('TOX: sending to friend number %i', number)
+                for subpart in subparts:
+                    self.conn.send_message(number, subpart)
+                    sleep(0.5)  # antiflood
+        except OperationFailedError as _:
+            logging.exception("TOX error.")
+
+    def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
+        s = Stream(identifier, fsource, name, size, stream_type)
+        self.conn.send_stream_request(s)
+        return s
 
     def serve_forever(self):
         checked = False

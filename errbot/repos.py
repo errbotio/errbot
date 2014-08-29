@@ -126,4 +126,8 @@ KNOWN_PUBLIC_REPOS = {
         'https://github.com/daenney/err-dnsnative.git',
         "Provides common DNS utilities functionality using Python libraries"
     ),
+    'err-githubhook': (
+        'https://github.com/daenney/err-githubhook.git',
+        "Webhooks endpoint supporting the majority of Github Webhook Events"
+    ),
 }

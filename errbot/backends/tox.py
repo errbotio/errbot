@@ -3,7 +3,7 @@ import sys
 from time import sleep
 import os
 from os.path import exists, join
-from io import BufferedRWPair
+import io
 from errbot.errBot import ErrBot
 import config
 from errbot.backends.base import Message, Identifier, Presence, Stream
@@ -67,7 +67,7 @@ TOX_GROUP_TO_ERR_STATUS = {
 class ToxStreamer(BufferedRWPair):
     def __init__(self):
         r, w = os.pipe()
-        self.r, self.w = os.fdopen(r, 'rb'), os.fdopen(w, 'wb')
+        self.r, self.w = io.open(r, 'rb'), io.open(w, 'wb')
         super(ToxStreamer, self).__init__(self.r, self.w)
 
 

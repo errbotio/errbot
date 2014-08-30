@@ -41,6 +41,7 @@ from errbot.storage import StoreMixin
 from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_sender_username
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
+from errbot.streaming import Tee
 
 
 def get_class_that_defined_method(meth):
@@ -167,6 +168,10 @@ class ErrBot(Backend, StoreMixin):
                 bot.callback_presence(pres)
             except Exception as _:
                 logging.exception('Crash in the callback_presence handler.')
+
+    def callback_stream(self, stream):
+        logging.info("Initiated an incoming transfer %s" % stream)
+        Tee(stream, get_all_active_plugin_objects()).start()
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')

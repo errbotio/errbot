@@ -2,6 +2,8 @@ import inspect
 import logging
 import difflib
 import traceback
+import io
+
 from collections import deque, defaultdict
 from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
@@ -424,6 +426,104 @@ class Presence(object):
 
     def __unicode__(self):
         return str(self.__str__())
+
+STREAM_WAITING_TO_START = 'pending'
+STREAM_TRANSFER_IN_PROGRESS = 'in progress'
+STREAM_SUCCESSFULLY_TRANSFERED = 'success'
+STREAM_PAUSED = 'paused'
+STREAM_ERROR = 'error'
+STREAM_REJECTED = 'rejected'
+
+
+class Stream(io.BufferedReader):
+    """
+       This class represents a stream request.
+
+       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_stream`
+       when an incoming stream is requested.
+    """
+
+    def __init__(self, identifier, fsource, name=None, size=None, stream_type=None):
+        super(Stream, self).__init__(fsource)
+        self._identifier = identifier
+        self._name = name
+        self._size = size
+        self._stream_type = stream_type
+        self._status = STREAM_WAITING_TO_START
+
+    @property
+    def identifier(self):
+        """
+           The identity the stream is coming from if it is an incoming request
+           or to if it is an outgoing request.
+        """
+        return self._identifier
+
+    @property
+    def name(self):
+        """
+            The name of the stream/file if it has one or None otherwise.
+            !! Be carefull of injections if you are using this name directly as a filename.
+        """
+        return self._name
+
+    @property
+    def size(self):
+        """
+            The expected size in bytes of the stream if it is known or None.
+        """
+        return self._size
+
+    @property
+    def stream_type(self):
+        """
+            The mimetype of the stream if it is known or None.
+        """
+        return self._stream_type
+
+    @property
+    def status(self):
+        """
+            The status for this stream.
+        """
+        return self._status
+
+    def accept(self):
+        """
+            Signal that the stream has been accepted.
+        """
+        if self._status != STREAM_WAITING_TO_START:
+            raise ValueError("Invalid state, the stream is not pending.")
+        self._status = STREAM_TRANSFER_IN_PROGRESS
+
+    def reject(self):
+        """
+            Signal that the stream has been rejected.
+        """
+        if self._status != STREAM_WAITING_TO_START:
+            raise ValueError("Invalid state, the stream is not pending.")
+        self._status = STREAM_REJECTED
+
+    def error(self, reason="unknown"):
+        """
+            An internal plugin error prevented the transfer.
+        """
+        self._status = STREAM_ERROR
+        self._reason = reason
+
+    def success(self):
+        """
+            The streaming finished normally.
+        """
+        if self._status != STREAM_TRANSFER_IN_PROGRESS:
+            raise ValueError("Invalid state, the stream is not in progress.")
+        self._status = STREAM_SUCCESSFULLY_TRANSFERED
+
+    def clone(self, new_fsource):
+        """
+            Creates a clone and with an alternative stream
+        """
+        return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
 
 
 def build_text_html_message_pair(source):
@@ -946,6 +1046,9 @@ class Backend(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def join_room(self, room, username=None, password=None):
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def stream(self, identifier, fsource, name=None, size=None, stream_type=None):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def shutdown(self):

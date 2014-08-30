@@ -219,7 +219,7 @@ class BotPlugin(BotPluginBase):
             :param stream:
                 the incoming stream request.
         """
-        stream.reject() # by default, reject the file as the plugin doesn't want it.
+        stream.reject()  # by default, reject the file as the plugin doesn't want it.
 
     def callback_botmessage(self, message):
         """

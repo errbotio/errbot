@@ -1,5 +1,5 @@
 
-from os import pipe, fdopen
+import os
 from threading import Thread
 from errbot.backends.base import (STREAM_WAITING_TO_START,
                                   STREAM_TRANSFER_IN_PROGRESS,
@@ -28,8 +28,8 @@ class Tee(object):
     def run(self):
         """ streams to all the clients synchronously """
         nb_clients = len(self.clients)
-        pipes = [pipe() for i in range(nb_clients)]
-        pipes = [(fdopen(r, 'rb'), fdopen(w, 'wb')) for r, w in pipes]
+        pipes = [os.pipe() for i in range(nb_clients)]
+        pipes = [(os.fdopen(r, 'rb'), os.fdopen(w, 'wb')) for r, w in pipes]
         streams = [self.incoming_stream.clone(pipe[0]) for pipe in pipes]
 
         def streamer(index):

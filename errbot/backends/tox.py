@@ -64,7 +64,7 @@ TOX_GROUP_TO_ERR_STATUS = {
     }
 
 
-class ToxStreamer(BufferedRWPair):
+class ToxStreamer(io.BufferedRWPair):
     def __init__(self):
         r, w = os.pipe()
         self.r, self.w = io.open(r, 'rb'), io.open(w, 'wb')

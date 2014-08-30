@@ -21,13 +21,14 @@ config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
-from errbot.backends.base import Message, build_message, Identifier
+from errbot.backends.base import Message, build_message, Identifier, MUCRoom, MUCOccupant
 from errbot.builtins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import main
 
 incoming_stanza_queue = Queue()
 outgoing_message_queue = Queue()
+joined_rooms = {}  # {'room1_jid': MUCRoom_instance, 'room2_jid': MUCRoom_instance..}
 
 QUIT_MESSAGE = '$STOP$'
 
@@ -36,8 +37,34 @@ STZ_PRE = 2
 STZ_IQ = 3
 
 
-class TestBackend(ErrBot):
+class MUCRoom(MUCRoom):
+    def __init__(self, jid, occupants=None, topic=None):
+        """
+        :param jid: JID of the room
+        :param occupants: Occupants of the room
+        :param topic: The MUC's topic
+        """
+        if occupants is None:
+            occupants = []
 
+        self.jid = jid
+        self._occupants = occupants
+        self._topic = topic
+
+    @property
+    def occupants(self):
+        return {jid: MUCOccupant(jid) for jid in self._occupants}
+
+    @property
+    def topic(self):
+        return self._topic
+
+    @topic.setter
+    def topic(self, topic):
+        self._topic = topic
+
+
+class TestBackend(ErrBot):
     def send_message(self, mess):
         super(TestBackend, self).send_message(mess)
         outgoing_message_queue.put(mess.body)
@@ -87,11 +114,27 @@ class TestBackend(ErrBot):
         super(TestBackend, self).shutdown()
 
     def join_room(self, room, username=None, password=None):
-        pass  # just ignore that
+        import config
+        if room in joined_rooms:
+            logging.warning("Attempted to join room '{0}', but already in this room".format(room))
+        else:
+            bot_itself = config.BOT_IDENTITY['username']
+            joined_rooms[room] = MUCRoom(jid=room, occupants=[bot_itself])
+
+    def leave_room(self, room):
+        try:
+            joined_rooms.pop(room)
+            logging.info("Left room {0}".format(room))
+        except KeyError:
+            logging.warning("Attempted to leave room '{0}', but not in this room".format(room))
 
     @property
     def mode(self):
         return 'text'
+
+    @property
+    def rooms(self):
+        return joined_rooms
 
 
 def pop_message(timeout=5, block=True):
@@ -119,6 +162,14 @@ def zap_queues():
     while not outgoing_message_queue.empty():
         msg = outgoing_message_queue.get(block=False)
         logging.error('Message left in the outgoing queue during a test : %s' % msg)
+
+
+def leave_all_rooms():
+    """Leaves all joined rooms"""
+    global joined_rooms
+    for room in joined_rooms.keys():
+        logging.info("Left room {0}".format(room))
+    joined_rooms = {}
 
 
 class TestBot(object):
@@ -184,6 +235,7 @@ class TestBot(object):
         reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")
         zap_queues()
+        leave_all_rooms()
         self.bot_thread = None
 
 

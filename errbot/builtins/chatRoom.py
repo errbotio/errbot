@@ -27,10 +27,10 @@ class ChatRoom(BotPlugin):
             for room in CHATROOM_PRESENCE:
                 if isinstance(room, basestring):
                     logging.info('Join room ' + room + ' as user ' + CHATROOM_FN)
-                    self.join_room(room, CHATROOM_FN)
+                    self.query_room(room).join(username=CHATROOM_FN)
                 else:
                     logging.info('Join room ' + room[0] + ' as user ' + CHATROOM_FN)
-                    self.join_room(room[0], username=CHATROOM_FN, password=room[1])
+                    self.query_room(room[0]).join(username=CHATROOM_FN, password=room[1])
 
     def deactivate(self):
         self.connected = False

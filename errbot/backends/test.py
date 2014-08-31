@@ -21,14 +21,17 @@ config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
-from errbot.backends.base import Message, build_message, Identifier, MUCRoom, MUCOccupant
+from errbot.backends.base import (
+    Message, build_message, Identifier, MUCRoom, MUCOccupant,
+    RoomDoesNotExistError
+)
 from errbot.builtins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import main
 
 incoming_stanza_queue = Queue()
 outgoing_message_queue = Queue()
-joined_rooms = {}  # {'room1_jid': MUCRoom_instance, 'room2_jid': MUCRoom_instance..}
+rooms = []
 
 QUIT_MESSAGE = '$STOP$'
 
@@ -38,22 +41,87 @@ STZ_IQ = 3
 
 
 class MUCRoom(MUCRoom):
-    def __init__(self, jid, occupants=None, topic=None):
+    def __init__(self, jid=None, node='', domain='', resource='', occupants=None, topic=None):
         """
-        :param jid: JID of the room
+        :param jid: See parent class.
+        :param node: See parent class.
+        :param domain: See parent class.
+        :param resource: See parent class.
         :param occupants: Occupants of the room
         :param topic: The MUC's topic
         """
         if occupants is None:
             occupants = []
-
-        self.jid = jid
         self._occupants = occupants
         self._topic = topic
+        super(MUCRoom, self).__init__(jid=jid, node=node, domain=domain, resource=resource)
 
     @property
     def occupants(self):
-        return {jid: MUCOccupant(jid) for jid in self._occupants}
+        return self._occupants
+
+    @property
+    def joined(self):
+        global rooms
+        import config
+        bot_itself = config.BOT_IDENTITY['username']
+
+        room = [r for r in rooms if str(r) == str(self)]
+        if room:
+            return bot_itself in [str(o) for o in room[0].occupants]
+        else:
+            return False
+
+    def join(self, username=None, password=None):
+        global rooms
+        import config
+        bot_itself = config.BOT_IDENTITY['username']
+
+        if self.joined:
+            logging.warning("Attempted to join room '{!s}', but already in this room".format(self))
+            return
+
+        if not self.exists:
+            logging.debug("Room {!s} doesn't exist yet, creating it".format(self))
+            self.create()
+
+        room = [r for r in rooms if str(r) == str(self)][0]
+        room._occupants.append(MUCOccupant(bot_itself))
+        logging.info("Joined room {!s}".format(self))
+
+    def leave(self):
+        global rooms
+        import config
+        bot_itself = config.BOT_IDENTITY['username']
+
+        if not self.joined:
+            logging.warning("Attempted to leave room '{!s}', but not in this room".format(self))
+            return
+
+        room = [r for r in rooms if str(r) == str(self)][0]
+        room._occupants = [o for o in room._occupants if str(o) != bot_itself]
+        logging.info("Left room {!s}".format(self))
+
+    @property
+    def exists(self):
+        global rooms
+        return str(self) in [str(r) for r in rooms]
+
+    def create(self):
+        global rooms
+        if self.exists:
+            logging.warning("Room {!s} already created".format(self))
+        else:
+            rooms.append(self)
+            logging.info("Created room {!s}".format(self))
+
+    def destroy(self):
+        global rooms
+        if not self.exists:
+            logging.warning("Cannot destroy room {!s}, it doesn't exist".format(self))
+        else:
+            rooms = [r for r in rooms if str(r) != str(self)]
+            logging.info("Destroyed room {!s}".format(self))
 
     @property
     def topic(self):
@@ -62,6 +130,7 @@ class MUCRoom(MUCRoom):
     @topic.setter
     def topic(self, topic):
         self._topic = topic
+        logging.info("Topic for room {!s} set to '{}'".format(self, topic))
 
 
 class TestBackend(ErrBot):
@@ -113,28 +182,22 @@ class TestBackend(ErrBot):
     def shutdown(self):
         super(TestBackend, self).shutdown()
 
-    def join_room(self, room, username=None, password=None):
-        import config
-        if room in joined_rooms:
-            logging.warning("Attempted to join room '{0}', but already in this room".format(room))
-        else:
-            bot_itself = config.BOT_IDENTITY['username']
-            joined_rooms[room] = MUCRoom(jid=room, occupants=[bot_itself])
-
-    def leave_room(self, room):
-        try:
-            joined_rooms.pop(room)
-            logging.info("Left room {0}".format(room))
-        except KeyError:
-            logging.warning("Attempted to leave room '{0}', but not in this room".format(room))
-
     @property
     def mode(self):
         return 'text'
 
     @property
     def rooms(self):
-        return joined_rooms
+        global rooms
+        return rooms
+
+    def query_room(self, room):
+        global rooms
+        try:
+            return [r for r in rooms if str(r) == str(room)][0]
+        except IndexError:
+            r = MUCRoom(jid=room)
+            return r
 
 
 def pop_message(timeout=5, block=True):
@@ -164,12 +227,10 @@ def zap_queues():
         logging.error('Message left in the outgoing queue during a test : %s' % msg)
 
 
-def leave_all_rooms():
-    """Leaves all joined rooms"""
+def reset_rooms():
+    """Reset/clear all rooms"""
     global joined_rooms
-    for room in joined_rooms.keys():
-        logging.info("Left room {0}".format(room))
-    joined_rooms = {}
+    joined_rooms = []
 
 
 class TestBot(object):
@@ -235,7 +296,7 @@ class TestBot(object):
         reset_app()  # empty the bottle ... hips!
         logging.info("Main bot thread quits")
         zap_queues()
-        leave_all_rooms()
+        reset_rooms()
         self.bot_thread = None
 
 

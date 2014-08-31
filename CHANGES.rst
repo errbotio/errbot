@@ -1,6 +1,9 @@
 Release history
 ===============
 
+Version 2.2.0-beta (2014-08-??)
+-------------------------------
+
 Version 2.1.0 (2014-07-24)
 --------------------------
 
@@ -55,7 +58,6 @@ Bugs:
 - warn_admin breakage on python2
 - SSL IRC backend fix
 - Various typos.
-
 
 Version 2.0.0-rc2 (2013-11-28)
 ------------------------------

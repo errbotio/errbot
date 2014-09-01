@@ -538,6 +538,15 @@ class MUCRoom(Identifier):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
+    def invite(self, *args):
+        """
+        Invite one or more people into the room.
+
+        :*args:
+            One or more JID's to invite into the room.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
 
 class MUCOccupant(Identifier):
     """

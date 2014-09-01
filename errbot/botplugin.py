@@ -1,4 +1,5 @@
 import logging
+import warnings
 import os
 from threading import Timer, current_thread
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
@@ -301,7 +302,13 @@ class BotPlugin(BotPluginBase):
         """
             Make the bot invite a list of jids to a room
         """
-        return holder.bot.invite_in_room(room, jids_to_invite)
+        warnings.warn(
+            "Using invite_in_room is deprecated, use invite from the "
+            "MUCRoom class instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.query_room(room).invite(jids_to_invite)
 
     def get_installed_plugin_repos(self):
         """

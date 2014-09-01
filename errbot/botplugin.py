@@ -223,6 +223,36 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
+    def callback_room_joined(self, room):
+        """
+            Triggered when the bot has joined a MUC.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room that was joined.
+        """
+        pass
+
+    def callback_room_left(self, room):
+        """
+            Triggered when the bot has left a MUC.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room that was left.
+        """
+        pass
+
+    def callback_room_topic(self, room):
+        """
+            Triggered when the topic in a MUC changes.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room for which the topic changed.
+        """
+        pass
+
     def callback_presence(self, presence):
         """
             Triggered on every presence change event.

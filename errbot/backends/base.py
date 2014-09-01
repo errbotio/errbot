@@ -418,11 +418,18 @@ class Presence(object):
         return self._message
 
     def __str__(self):
-        return "Presence:\n nick %s\n idd %s\n status %s\n chatroom %s\n message %s\n" % (self._nick,
-                                                                                          self._identifier,
-                                                                                          self._status,
-                                                                                          self._chatroom,
-                                                                                          self._message)
+        response = ''
+        if self._nick:
+            response += 'Nick:%s ' % self._nick
+        if self._identifier:
+            response += 'Idd:%s ' % self._identifier
+        if self._status:
+            response += 'Status:%s ' % self._status
+        if self._chatroom:
+            response += 'Room:%s ' % self._chatroom
+        if self._message:
+            response += 'Msg:%s ' % self._message
+        return response
 
     def __unicode__(self):
         return str(self.__str__())

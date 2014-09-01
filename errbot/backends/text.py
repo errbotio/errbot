@@ -5,6 +5,10 @@ from errbot.backends.base import Message, build_message, Identifier, Presence, O
 from errbot.errBot import ErrBot
 
 ENCODING_INPUT = sys.stdin.encoding
+ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
+A_RESET = '\x1b[0m'
+A_CYAN = '\x1b[36m'
+A_BLUE = '\x1b[34m'
 
 
 class TextBackend(ErrBot):
@@ -16,7 +20,10 @@ class TextBackend(ErrBot):
         self.callback_presence(Presence(identifier=me, status=ONLINE))
         try:
             while True:
-                entry = input("Talk to  me >>")
+                if ANSI:
+                    entry = input('\n' + A_CYAN + ' >>> ' + A_RESET)
+                else:
+                    entry = input('\n>>> ')
                 msg = Message(entry)
                 msg.frm = me
                 msg.to = self.jid
@@ -35,7 +42,10 @@ class TextBackend(ErrBot):
 
     def send_message(self, mess):
         super(TextBackend, self).send_message(mess)
-        print(mess.body)
+        if ANSI:
+            print('\n\n' + A_BLUE + mess.body + A_RESET + '\n\n')
+        else:
+            print('\n\n' + mess.body + '\n\n')
 
     def build_message(self, text):
         return build_message(text, Message)

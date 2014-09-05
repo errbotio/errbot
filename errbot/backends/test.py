@@ -75,6 +75,7 @@ class MUCRoom(MUCRoom):
     def join(self, username=None, password=None):
         global rooms
         import config
+        from errbot.holder import bot
         bot_itself = config.BOT_IDENTITY['username']
 
         if self.joined:
@@ -88,10 +89,12 @@ class MUCRoom(MUCRoom):
         room = [r for r in rooms if str(r) == str(self)][0]
         room._occupants.append(MUCOccupant(bot_itself))
         logging.info("Joined room {!s}".format(self))
+        bot.callback_room_joined(room)
 
     def leave(self):
         global rooms
         import config
+        from errbot.holder import bot
         bot_itself = config.BOT_IDENTITY['username']
 
         if not self.joined:
@@ -101,6 +104,7 @@ class MUCRoom(MUCRoom):
         room = [r for r in rooms if str(r) == str(self)][0]
         room._occupants = [o for o in room._occupants if str(o) != bot_itself]
         logging.info("Left room {!s}".format(self))
+        bot.callback_room_left(room)
 
     @property
     def exists(self):
@@ -131,6 +135,8 @@ class MUCRoom(MUCRoom):
     def topic(self, topic):
         self._topic = topic
         logging.info("Topic for room {!s} set to '{}'".format(self, topic))
+        from errbot.holder import bot
+        bot.callback_room_topic(self)
 
 
 class TestBackend(ErrBot):

@@ -75,6 +75,26 @@ class ErrBot(Backend, StoreMixin):
             self[CONFIGS] = {}
         super(ErrBot, self).__init__(*args, **kwargs)
 
+    @staticmethod
+    def _dispatch_to_plugins(method, *args, **kwargs):
+        """
+        Dispatch the given method to all active plugins.
+
+        Will catch and log any exceptions that occur.
+
+        :param method: The name of the function to dispatch.
+        :param *args: Passed to the callback function.
+        :param **kwargs: Passed to the callback function.
+        """
+        for plugin in get_all_active_plugin_objects():
+            plugin_name = plugin.__class__.__name__
+            logging.debug("Triggering {} on {}".format(method, plugin_name))
+            # noinspection PyBroadException
+            try:
+                getattr(plugin, method)(*args, **kwargs)
+            except Exception as _:
+                logging.exception("{} on {} crashed".format(method, plugin_name))
+
     # Repo management
     def get_installed_plugin_repos(self):
         return self.get(REPOS, {})
@@ -160,13 +180,37 @@ class ErrBot(Backend, StoreMixin):
                     logging.exception("Crash in a callback_message handler")
 
     def callback_presence(self, pres):
-        for bot in get_all_active_plugin_objects():
-            # noinspection PyBroadException
-            try:
-                logging.debug('callback_presence for %s with %s' % (bot.__class__.__name__, pres))
-                bot.callback_presence(pres)
-            except Exception as _:
-                logging.exception('Crash in the callback_presence handler.')
+        self._dispatch_to_plugins('callback_presence', pres)
+
+    def callback_room_joined(self, room):
+        """
+            Triggered when the bot has joined a MUC.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room that was joined.
+        """
+        self._dispatch_to_plugins('callback_room_joined', room)
+
+    def callback_room_left(self, room):
+        """
+            Triggered when the bot has left a MUC.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room that was left.
+        """
+        self._dispatch_to_plugins('callback_room_left', room)
+
+    def callback_room_topic(self, room):
+        """
+            Triggered when the topic in a MUC changes.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room for which the topic changed.
+        """
+        self._dispatch_to_plugins('callback_room_topic', room)
 
     def activate_non_started_plugins(self):
         logging.info('Activating all the plugins...')

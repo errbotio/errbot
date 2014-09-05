@@ -1,10 +1,13 @@
-import pytest
+import os
+from queue import Empty
 import errbot.backends.base
-from errbot.backends.test import testbot
+from errbot.backends.test import testbot, push_message
 from errbot.plugin_manager import get_plugin_obj_by_name
 
 
 class TestMUC(object):
+    extra_plugin_dir = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'room_tests'
+
     def test_plugin_methods(self, testbot):
         p = get_plugin_obj_by_name('ChatRoom')
         assert p is not None
@@ -68,3 +71,24 @@ class TestMUC(object):
         room.topic = "Err rocks!"
         assert room.topic == "Err rocks!"
         assert holder.bot.rooms[0].topic == "Err rocks!"
+
+    def test_plugin_callbacks(self, testbot):
+        p = get_plugin_obj_by_name('RoomTest')
+        assert p is not None
+
+        # Drains the event queue. `p.events.empty()` is unreliable.
+        while True:
+            try:
+                p.events.get(timeout=5)
+            except Empty:
+                break
+
+        p.query_room('newroom@conference.server.tld').join()
+        assert p.events.get(timeout=5) == "callback_room_joined newroom@conference.server.tld"
+
+        p.query_room('newroom@conference.server.tld').topic = "Err rocks!"
+        assert p.events.get(timeout=5) == "callback_room_topic Err rocks!"
+
+        p.query_room('newroom@conference.server.tld').leave()
+        assert p.events.get(timeout=5) == "callback_room_left newroom@conference.server.tld"
+

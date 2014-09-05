@@ -670,6 +670,24 @@ class Backend(object):
         """
         pass
 
+    def callback_room_joined(self, room):
+        """
+            See :class:`~errbot.errBot.ErrBot`
+        """
+        pass
+
+    def callback_room_left(self, room):
+        """
+            See :class:`~errbot.errBot.ErrBot`
+        """
+        pass
+
+    def callback_room_topic(self, room):
+        """
+            See :class:`~errbot.errBot.ErrBot`
+        """
+        pass
+
     def callback_message(self, mess):
         """
         Needs to return False if we want to stop further treatment

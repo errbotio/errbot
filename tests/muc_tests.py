@@ -91,4 +91,3 @@ class TestMUC(object):
 
         p.query_room('newroom@conference.server.tld').leave()
         assert p.events.get(timeout=5) == "callback_room_left newroom@conference.server.tld"
-

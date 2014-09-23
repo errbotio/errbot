@@ -234,8 +234,8 @@ def zap_queues():
 
 def reset_rooms():
     """Reset/clear all rooms"""
-    global joined_rooms
-    joined_rooms = []
+    global rooms
+    rooms = []
 
 
 class TestBot(object):

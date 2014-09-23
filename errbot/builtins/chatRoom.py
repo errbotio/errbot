@@ -36,8 +36,92 @@ class ChatRoom(BotPlugin):
         self.connected = False
         super(ChatRoom, self).deactivate()
 
+    @botcmd(split_args_with=None)
+    def room_create(self, message, args):
+        """
+        Create a chatroom.
+
+        Usage:
+        !room create <room>
+
+        Examples (XMPP):
+        !room create example-room@chat.server.tld
+
+        Examples (IRC):
+        !room create #example-room
+        """
+        if len(args) < 1:
+            return "Please tell me which chatroom to create."
+        self.query_room(args[0]).create()
+        return "Created the room {}".format(args[0])
+
+    @botcmd()
+    def room_join(self, message, args):
+        """
+        Join (creating it first if needed) a chatroom.
+
+        Usage:
+        !room join <room> [<password>]
+
+        Examples (XMPP):
+        !room join example-room@chat.server.tld
+        !room join example-room@chat.server.tld super-secret-password
+
+        Examples (IRC):
+        !room join #example-room
+        !room join #example-room super-secret-password
+        """
+        # We must account for password with whitespace before, after or in the middle
+        args = args.split(sep=' ', maxsplit=1)
+        arglen = len(args)
+        if arglen < 1:
+            return "Please tell me which chatroom to join."
+        args[0].strip()
+
+        room, password = (args[0], None) if arglen == 1 else (args[0], args[1])
+        self.query_room(room).join(username=CHATROOM_FN, password=password)
+        return "Joined the room {}".format(room)
+
+    @botcmd(split_args_with=None)
+    def room_leave(self, message, args):
+        """
+        Leave a chatroom.
+
+        Usage:
+        !room leave <room>
+
+        Examples (XMPP):
+        !room leave example-room@chat.server.tld
+
+        Examples (IRC):
+        !room leave #example-room
+        """
+        if len(args) < 1:
+            return "Please tell me which chatroom to leave."
+        self.query_room(args[0]).leave()
+        return "Left the room {}".format(args[0])
+
+    @botcmd(split_args_with=None)
+    def room_destroy(self, message, args):
+        """
+        Destroy a chatroom.
+
+        Usage:
+        !room destroy <room>
+
+        Examples (XMPP):
+        !room destroy example-room@chat.server.tld
+
+        Examples (IRC):
+        !room destroy #example-room
+        """
+        if len(args) < 1:
+            return "Please tell me which chatroom to destroy."
+        self.query_room(args[0]).destroy()
+        return "Destroyed the room {}".format(args[0])
+
     @botcmd
-    def room_create(self, mess, args):
+    def gtalk_room_create(self, mess, args):
         """ Create an adhoc chatroom for Google talk and invite the listed persons.
             If no person is listed, only the requestor is invited.
 

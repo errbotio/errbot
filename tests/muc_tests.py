@@ -1,7 +1,7 @@
 import os
 from queue import Empty
 import errbot.backends.base
-from errbot.backends.test import testbot, push_message
+from errbot.backends.test import testbot, push_message, pop_message
 from errbot.plugin_manager import get_plugin_obj_by_name
 
 
@@ -91,3 +91,39 @@ class TestMUC(object):
 
         p.query_room('newroom@conference.server.tld').leave()
         assert p.events.get(timeout=5) == "callback_room_left newroom@conference.server.tld"
+
+    def test_botcommands(self, testbot):
+        from errbot import holder
+        rooms = holder.bot.rooms
+        room = holder.bot.query_room('err@conference.server.tld')
+        assert len(rooms) == 1
+        assert rooms[0] == room
+
+        assert room.joined
+        push_message("!room leave err@conference.server.tld")
+        assert pop_message() == "Left the room err@conference.server.tld"
+        room = holder.bot.query_room('err@conference.server.tld')
+        assert not room.joined
+
+        push_message("!room destroy err@conference.server.tld")
+        assert pop_message() == "Destroyed the room err@conference.server.tld"
+        rooms = holder.bot.rooms
+        room = holder.bot.query_room('err@conference.server.tld')
+        assert not room.exists
+        assert room not in rooms
+
+        push_message("!room create err@conference.server.tld")
+        assert pop_message() == "Created the room err@conference.server.tld"
+        rooms = holder.bot.rooms
+        room = holder.bot.query_room('err@conference.server.tld')
+        assert room.exists
+        assert room in rooms
+        assert not room.joined
+
+        push_message("!room join err@conference.server.tld")
+        assert pop_message() == "Joined the room err@conference.server.tld"
+        rooms = holder.bot.rooms
+        room = holder.bot.query_room('err@conference.server.tld')
+        assert room.exists
+        assert room.joined
+        assert room in rooms

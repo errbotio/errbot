@@ -131,8 +131,7 @@ class MUCRoom(MUCRoom):
     def topic(self):
         return self._topic
 
-    @topic.setter
-    def topic(self, topic):
+    def set_topic(self, topic):
         self._topic = topic
         logging.info("Topic for room {!s} set to '{}'".format(self, topic))
         from errbot.holder import bot

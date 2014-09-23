@@ -614,17 +614,13 @@ class MUCRoom(Identifier):
                 Back-ends may return an empty string rather than `None`
                 when no topic has been set as a network may not
                 differentiate between no topic and an empty topic.
-        :setter:
-            Set the room topic by assigning the topic to be set to this
-            property.
         :raises:
             :class:`~MUCNotJoinedError` if the room has not yet been joined.
 
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    @topic.setter
-    def topic(self, topic):
+    def set_topic(self, topic):
         """
         Set the room's topic.
 

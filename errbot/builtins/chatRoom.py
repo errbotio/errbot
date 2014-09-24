@@ -72,7 +72,7 @@ class ChatRoom(BotPlugin):
         !room join #example-room super-secret-password
         """
         # We must account for password with whitespace before, after or in the middle
-        args = args.split(sep=' ', maxsplit=1)
+        args = args.split(' ', 1)
         arglen = len(args)
         if arglen < 1:
             return "Please tell me which chatroom to join."

@@ -1256,10 +1256,9 @@ class Backend(object):
     def mode(self):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    @property
     def rooms(self):
         """
-        Rooms the bot is currently in.
+        Return a list of rooms the bot is currently in.
 
         :returns:
             A list of :class:`~errbot.backends.base.MUCRoom` instances.

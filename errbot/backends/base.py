@@ -561,8 +561,13 @@ class MUCRoom(Identifier):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def leave(self):
-        """Leave the room."""
+    def leave(self, reason=None):
+        """
+        Leave the room.
+
+        :param reason:
+            An optional string explaining the reason for leaving the room.
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def create(self):

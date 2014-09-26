@@ -91,7 +91,7 @@ class MUCRoom(MUCRoom):
         logging.info("Joined room {!s}".format(self))
         bot.callback_room_joined(room)
 
-    def leave(self):
+    def leave(self, reason=None):
         global rooms
         import config
         from errbot.holder import bot

@@ -1,8 +1,10 @@
 import logging
-from errbot import BotPlugin, PY3, botcmd
-from errbot.version import VERSION
-from errbot.holder import bot
 from uuid import uuid4
+
+from errbot import BotPlugin, PY3, botcmd
+from errbot.backends.base import RoomNotJoinedError
+from errbot.holder import bot
+from errbot.version import VERSION
 
 __author__ = 'gbin'
 from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, REVERSE_CHATROOM_RELAY
@@ -125,6 +127,49 @@ class ChatRoom(BotPlugin):
             return "Please tell me which chatroom to destroy."
         self.query_room(args[0]).destroy()
         return "Destroyed the room {}".format(args[0])
+
+    @botcmd(split_args_with=None)
+    def room_invite(self, message, args):
+        """
+        Invite one or more people into a chatroom.
+
+        Usage:
+        !room invite <room> <jid 1> [<jid2>, ..]
+
+        Examples (XMPP):
+        !room invite room@conference.server.tld bob@server.tld
+
+        Examples (IRC):
+        !room invite #example-room bob
+        """
+        if len(args) < 2:
+            return "Please tell me which person(s) to invite into which room."
+        self.query_room(args[0]).invite(*args[1:])
+        return "Invited {} into the room {}".format(", ".join(args[1:]), args[0])
+
+    @botcmd(split_args_with=None)
+    def room_occupants(self, message, args):
+        """
+        List the occupants in a given chatroom.
+
+        Usage:
+        !room occupants <room 1> [<room 2> ..]
+
+        Examples (XMPP):
+        !room occupants room@conference.server.tld
+
+        Examples (IRC):
+        !room occupants #example-room #another-example-room
+        """
+        if len(args) < 1:
+            yield "Please supply a room to list the occupants of."
+            return
+        for room in args:
+            try:
+                occupants = [str(o) for o in self.query_room(room).occupants]
+                yield "Occupants in {}:\n\t{}".format(room, "\n\t".join(occupants))
+            except RoomNotJoinedError as e:
+                yield "Cannot list occupants in {}: {}".format(room, e)
 
     @botcmd
     def gtalk_room_create(self, mess, args):

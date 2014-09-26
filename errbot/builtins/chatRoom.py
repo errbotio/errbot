@@ -26,11 +26,17 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in CHATROOM_PRESENCE:
                 if isinstance(room, basestring):
-                    logging.info('Join room ' + room + ' as user ' + CHATROOM_FN)
-                    self.query_room(room).join(username=CHATROOM_FN)
+                    room, username, password = (room, CHATROOM_FN, None)
                 else:
-                    logging.info('Join room ' + room[0] + ' as user ' + CHATROOM_FN)
-                    self.query_room(room[0]).join(username=CHATROOM_FN, password=room[1])
+                    room, username, password = (room[0], CHATROOM_FN, room[1])
+                logging.info("Joining room {} with username {}".format(room, username))
+                try:
+                    self.query_room(room).join(username=CHATROOM_FN, password=password)
+                except NotImplementedError:
+                    # Backward compatibility for backends which do not yet have a
+                    # query_room implementation and still have a join_room method.
+                    logging.warning("query_room not implemented on this backend, using legacy join_room instead")
+                    self.join_room(room, username=username, password=password)
 
     def deactivate(self):
         self.connected = False

@@ -127,3 +127,6 @@ class TestMUC(object):
         assert room.exists
         assert room.joined
         assert room in rooms
+
+        push_message("!room occupants err@conference.server.tld")
+        assert pop_message() == "Occupants in err@conference.server.tld:\n\terr@localhost"

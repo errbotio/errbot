@@ -1,0 +1,6 @@
+[Core]
+Name = RoomTest
+Module = roomtest
+
+[Python]
+Version = 2+

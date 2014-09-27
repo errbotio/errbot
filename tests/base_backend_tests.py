@@ -104,6 +104,10 @@ class DummyBackend(Backend):
     def mode(self):
         return "Dummy"
 
+    @property
+    def rooms(self):
+        return []
+
     def __init__(self):
         super(DummyBackend, self).__init__()
         self.inject_commands_from(self)

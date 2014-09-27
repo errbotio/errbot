@@ -1,4 +1,5 @@
 import logging
+import warnings
 import os
 from threading import Timer, current_thread
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
@@ -234,6 +235,36 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
+    def callback_room_joined(self, room):
+        """
+            Triggered when the bot has joined a MUC.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room that was joined.
+        """
+        pass
+
+    def callback_room_left(self, room):
+        """
+            Triggered when the bot has left a MUC.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room that was left.
+        """
+        pass
+
+    def callback_room_topic(self, room):
+        """
+            Triggered when the topic in a MUC changes.
+
+            :param room:
+                An instance of :class:`~errbot.backends.base.MUCRoom`
+                representing the room for which the topic changed.
+        """
+        pass
+
     def callback_presence(self, presence):
         """
             Triggered on every presence change event.
@@ -289,15 +320,50 @@ class BotPlugin(BotPluginBase):
 
     def join_room(self, room, username=None, password=None):
         """
-            Make the bot join a room
+        Join a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to join.
+        :param username:
+            An optional username to use.
+        :param password:
+            An optional password to use (for password-protected rooms).
         """
         return holder.bot.join_room(room, username, password)
+
+    @property
+    def rooms(self):
+        """
+        The list of rooms the bot is currently in.
+        """
+        return holder.bot.rooms
+
+    def query_room(self, room):
+        """
+        Query a room for information.
+
+        :param room:
+            The JID/identifier of the room to query for.
+        :param create:
+            Set to `True` to automatically create the room if it doesn't exist.
+        :returns:
+            An instance of :class:`~errbot.backends.base.MUCRoom`.
+        :raises:
+            :class:`~errbot.backends.base.RoomDoesNotExistError` if the room doesn't exist.
+        """
+        return holder.bot.query_room(room=room)
 
     def invite_in_room(self, room, jids_to_invite):
         """
             Make the bot invite a list of jids to a room
         """
-        return holder.bot.invite_in_room(room, jids_to_invite)
+        warnings.warn(
+            "Using invite_in_room is deprecated, use invite from the "
+            "MUCRoom class instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.query_room(room).invite(jids_to_invite)
 
     def get_installed_plugin_repos(self):
         """

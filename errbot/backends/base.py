@@ -1,8 +1,9 @@
-import inspect
-import logging
 import difflib
-import traceback
+import inspect
 import io
+import logging
+import traceback
+import warnings
 
 from collections import deque, defaultdict
 from xml.etree import cElementTree as ET
@@ -71,7 +72,20 @@ if BOT_ASYNC:
 
 class ACLViolation(Exception):
     """Exceptions raised when user is not allowed to execute given command due to ACLs"""
-    pass
+
+
+class RoomError(Exception):
+    """General exception class for MUC-related errors"""
+
+
+class RoomNotJoinedError(RoomError):
+    """Exception raised when performing MUC operations
+    that require the bot to have joined the room"""
+
+
+class RoomDoesNotExistError(RoomError):
+    """Exception that is raised when performing an operation
+    on a room that doesn't exist"""
 
 
 class Identifier(object):
@@ -533,6 +547,129 @@ class Stream(io.BufferedReader):
         return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
 
 
+class MUCRoom(Identifier):
+    """
+    This class represents a Multi-User Chatroom.
+    """
+
+    def join(self, username=None, password=None):
+        """
+        Join the room.
+
+        If the room does not exist yet, this will automatically call
+        :meth:`create` on it first.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def leave(self, reason=None):
+        """
+        Leave the room.
+
+        :param reason:
+            An optional string explaining the reason for leaving the room.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def create(self):
+        """
+        Create the room.
+
+        Calling this on an already existing room is a no-op.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def destroy(self):
+        """
+        Destroy the room.
+
+        Calling this on a non-existing room is a no-op.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def exists(self):
+        """
+        Boolean indicating whether this room already exists or not.
+
+        :getter:
+            Returns `True` if the room exists, `False` otherwise.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def joined(self):
+        """
+        Boolean indicating whether this room has already been joined.
+
+        :getter:
+            Returns `True` if the room has been joined, `False` otherwise.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def topic(self):
+        """
+        The room topic.
+
+        :getter:
+            Returns the topic (a string) if one is set, `None` if no
+            topic has been set at all.
+
+            .. note::
+                Back-ends may return an empty string rather than `None`
+                when no topic has been set as a network may not
+                differentiate between no topic and an empty topic.
+        :raises:
+            :class:`~MUCNotJoinedError` if the room has not yet been joined.
+
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def set_topic(self, topic):
+        """
+        Set the room's topic.
+
+        :param topic:
+            The topic to set.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def occupants(self):
+        """
+        The room's occupants.
+
+        :getter:
+            Returns a list of :class:`~errbot.backends.base.MUCOccupant` instances.
+        :raises:
+            :class:`~MUCNotJoinedError` if the room has not yet been joined.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def invite(self, *args):
+        """
+        Invite one or more people into the room.
+
+        :*args:
+            One or more JID's to invite into the room.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+
+class MUCOccupant(Identifier):
+    """
+    This class represents a person inside a MUC.
+
+    This class exists to expose additional information about occupants
+    inside a MUC. For example, the XMPP back-end may expose backend-specific
+    information such as the real JID of the occupant and whether or not
+    that person is a moderator or owner of the room.
+
+    See the parent class for additional details.
+    """
+    pass
+
+
 def build_text_html_message_pair(source):
     node = None
     text_plain = None
@@ -638,6 +775,24 @@ class Backend(object):
     def callback_presence(self, presence):
         """
            Implemented by errBot.
+        """
+        pass
+
+    def callback_room_joined(self, room):
+        """
+            See :class:`~errbot.errBot.ErrBot`
+        """
+        pass
+
+    def callback_room_left(self, room):
+        """
+            See :class:`~errbot.errBot.ErrBot`
+        """
+        pass
+
+    def callback_room_topic(self, room):
+        """
+            See :class:`~errbot.errBot.ErrBot`
         """
         pass
 
@@ -1053,9 +1208,46 @@ class Backend(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def join_room(self, room, username=None, password=None):
+        """
+        Join a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to join.
+        :param username:
+            An optional username to use.
+        :param password:
+            An optional password to use (for password-protected rooms).
+
+        .. deprecated:: 2.2.0
+            Use the methods on :class:`MUCRoom` instead.
+        """
+        warnings.warn(
+            "Using join_room is deprecated, use query_room and the join "
+            "method on the resulting response instead.",
+            DeprecationWarning
+        )
+        self.query_room(room).join(username=username, password=password)
+
+    def query_room(self, room):
+        """
+        Query a room for information.
+
+        :param room:
+            The JID/identifier of the room to query for.
+        :returns:
+            An instance of :class:`~MUCRoom`.
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def stream(self, identifier, fsource, name=None, size=None, stream_type=None):
+    def set_room_topic(self, room, topic):
+        """
+        Set the topic for a room (MUC).
+
+        :param room:
+            The JID/identifier of the room to set the topic for.
+        :param topic:
+            The topic to set.
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def shutdown(self):
@@ -1069,6 +1261,15 @@ class Backend(object):
 
     @property
     def mode(self):
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def rooms(self):
+        """
+        Return a list of rooms the bot is currently in.
+
+        :returns:
+            A list of :class:`~errbot.backends.base.MUCRoom` instances.
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
 

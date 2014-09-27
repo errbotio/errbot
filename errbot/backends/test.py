@@ -132,7 +132,10 @@ class MUCRoom(MUCRoom):
         return self._topic
 
     def set_topic(self, topic):
+        global rooms
         self._topic = topic
+        room = [r for r in rooms if str(r) == str(self)][0]
+        room._topic = self._topic
         logging.info("Topic for room {!s} set to '{}'".format(self, topic))
         from errbot.holder import bot
         bot.callback_room_topic(self)

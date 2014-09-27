@@ -111,6 +111,7 @@ class XMPPMUCRoom(MUCRoom):
         t = Thread(target=self.configure)
         t.setDaemon(True)
         t.start()
+        holder.bot.callback_room_joined(self)
         logging.info("Joined room {}".format(room))
 
     def leave(self, reason=None):
@@ -135,6 +136,7 @@ class XMPPMUCRoom(MUCRoom):
                 holder.bot.user_left_chat
             )
             logging.info("Left room {}".format(room))
+            holder.bot.callback_room_left(self)
         except KeyError:
             logging.debug("Trying to leave {} while not in this room".format(room))
 

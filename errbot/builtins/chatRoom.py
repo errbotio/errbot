@@ -171,6 +171,39 @@ class ChatRoom(BotPlugin):
             except RoomNotJoinedError as e:
                 yield "Cannot list occupants in {}: {}".format(room, e)
 
+    @botcmd()
+    def room_topic(self, message, args):
+        """
+        Get or set the topic for a room.
+
+        Usage:
+        !room topic <room> [<new topic>]
+
+        Examples (XMPP):
+        !room topic example-room@chat.server.tld
+        !room topic example-room@chat.server.tld Err rocks!
+
+        Examples (IRC):
+        !room topic #example-room
+        !room topic #example-room Err rocks!
+        """
+        # We must account for topic with whitespace before, after or in the middle
+        args = args.split(' ', 1)
+        arglen = len(args)
+        if arglen < 1:
+            return "Please tell me which chatroom you want to know the topic of."
+        args[0] = args[0].strip()
+
+        if arglen == 1:
+            topic = self.query_room(args[0]).topic
+            if topic is None:
+                return "No topic is set for {}".format(args[0])
+            else:
+                return "Topic for {}: {}".format(args[0], topic)
+        else:
+            self.query_room(args[0]).set_topic(args[1])
+            return "Topic for {} set.".format(args[0])
+
     @botcmd
     def gtalk_room_create(self, mess, args):
         """ Create an adhoc chatroom for Google talk and invite the listed persons.

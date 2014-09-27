@@ -193,8 +193,10 @@ class XMPPMUCRoom(MUCRoom):
             Returns the topic (a string) if one is set, `None` if no
             topic has been set at all.
         :raises:
-            :class:`~MUCNotJoinedError` if the room has not yet been joined.
+            :class:`~RoomNotJoinedError` if the room has not yet been joined.
         """
+        if not self.joined:
+            raise RoomNotJoinedError("Must be in a room in order to see the topic.")
         try:
             return holder.bot._room_topics[str(self)]
         except KeyError:

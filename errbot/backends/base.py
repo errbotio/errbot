@@ -1110,12 +1110,14 @@ class Backend(object):
             An optional username to use.
         :param password:
             An optional password to use (for password-protected rooms).
+
+        .. deprecated:: 2.2.0
+            Use the methods on :class:`MUCRoom` instead.
         """
         warnings.warn(
             "Using join_room is deprecated, use query_room and the join "
             "method on the resulting response instead.",
-            DeprecationWarning,
-            stacklevel=2
+            DeprecationWarning
         )
         self.query_room(room).join(username=username, password=password)
 

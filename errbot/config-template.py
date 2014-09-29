@@ -237,8 +237,8 @@ REVERSE_CHATROOM_RELAY = {}
 # try to gradually lower this value until it no longer happens.
 #XMPP_KEEPALIVE_INTERVAL = 300
 
-# Message rate limiting for the IRC backend.
-# Rate limiter for regular channel messages, set to None to disable limits.
-#IRC_CHANNEL_RATE = 1
-# Rate limiter for private messages, set to None to disable limits.
-#IRC_PRIVATE_RATE = 1
+# Message rate limiting for the IRC backend. This will delay subsequent
+# messages by this many seconds (floats are supported). Setting these
+# to a value of 0 effectively disables rate limiting.
+#IRC_CHANNEL_RATE = 1  # Regular channel messages
+#IRC_PRIVATE_RATE = 1  # Private messages

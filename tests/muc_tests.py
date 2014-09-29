@@ -17,7 +17,7 @@ class TestMUC(object):
 
     def test_create_join_leave_destroy_lifecycle(self, testbot):
         from errbot import holder
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         assert len(rooms) == 1
 
         r1 = rooms[0]
@@ -29,18 +29,18 @@ class TestMUC(object):
 
         r2.create()
         assert r2.exists
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         assert r2 in rooms
         assert not r2.joined
 
         r2.destroy()
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         assert r2 not in rooms
 
         r2.join()
         assert r2.exists
         assert r2.joined
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         assert r2 in rooms
 
         r2 = holder.bot.query_room('room@conference.server.tld')
@@ -49,12 +49,12 @@ class TestMUC(object):
         r2.leave()
         assert not r2.joined
         r2.destroy()
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         assert r2 not in rooms
 
     def test_occupants(self, testbot):
         from errbot import holder
-        room = holder.bot.rooms[0]
+        room = holder.bot.rooms()[0]
         assert len(room.occupants) == 1
         assert 'err@localhost' in [str(o) for o in room.occupants]
 
@@ -65,12 +65,12 @@ class TestMUC(object):
 
     def test_topic(self, testbot):
         from errbot import holder
-        room = holder.bot.rooms[0]
+        room = holder.bot.rooms()[0]
         assert room.topic is None
 
         room.set_topic("Err rocks!")
         assert room.topic == "Err rocks!"
-        assert holder.bot.rooms[0].topic == "Err rocks!"
+        assert holder.bot.rooms()[0].topic == "Err rocks!"
 
     def test_plugin_callbacks(self, testbot):
         p = get_plugin_obj_by_name('RoomTest')
@@ -94,7 +94,7 @@ class TestMUC(object):
 
     def test_botcommands(self, testbot):
         from errbot import holder
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         room = holder.bot.query_room('err@conference.server.tld')
         assert len(rooms) == 1
         assert rooms[0] == room
@@ -107,14 +107,14 @@ class TestMUC(object):
 
         push_message("!room destroy err@conference.server.tld")
         assert pop_message() == "Destroyed the room err@conference.server.tld"
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         room = holder.bot.query_room('err@conference.server.tld')
         assert not room.exists
         assert room not in rooms
 
         push_message("!room create err@conference.server.tld")
         assert pop_message() == "Created the room err@conference.server.tld"
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         room = holder.bot.query_room('err@conference.server.tld')
         assert room.exists
         assert room in rooms
@@ -122,7 +122,7 @@ class TestMUC(object):
 
         push_message("!room join err@conference.server.tld")
         assert pop_message() == "Joined the room err@conference.server.tld"
-        rooms = holder.bot.rooms
+        rooms = holder.bot.rooms()
         room = holder.bot.query_room('err@conference.server.tld')
         assert room.exists
         assert room.joined

@@ -194,7 +194,6 @@ class TestBackend(ErrBot):
     def mode(self):
         return 'text'
 
-    @property
     def rooms(self):
         global rooms
         return rooms

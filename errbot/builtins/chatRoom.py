@@ -147,6 +147,23 @@ class ChatRoom(BotPlugin):
         self.query_room(args[0]).invite(*args[1:])
         return "Invited {} into the room {}".format(", ".join(args[1:]), args[0])
 
+    @botcmd
+    def room_list(self, message, args):
+        """
+        List chatrooms the bot has joined.
+
+        Usage:
+        !room list
+
+        Examples:
+        !room list
+        """
+        rooms = [str(room) for room in self.rooms()]
+        if len(rooms):
+            return "I'm currently in these rooms:\n\t{}".format("\n\t".join(rooms))
+        else:
+            return "I'm not currently in any rooms."
+
     @botcmd(split_args_with=None)
     def room_occupants(self, message, args):
         """

@@ -105,6 +105,9 @@ class TestMUC(object):
         room = holder.bot.query_room('err@conference.server.tld')
         assert not room.joined
 
+        push_message("!room list")
+        assert pop_message() == "I'm not currently in any rooms."
+
         push_message("!room destroy err@conference.server.tld")
         assert pop_message() == "Destroyed the room err@conference.server.tld"
         rooms = holder.bot.rooms()
@@ -127,6 +130,9 @@ class TestMUC(object):
         assert room.exists
         assert room.joined
         assert room in rooms
+
+        push_message("!room list")
+        assert pop_message() == "I'm currently in these rooms:\n\terr@conference.server.tld"
 
         push_message("!room occupants err@conference.server.tld")
         assert pop_message() == "Occupants in err@conference.server.tld:\n\terr@localhost"

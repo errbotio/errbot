@@ -78,7 +78,7 @@ class IRCBackend(ErrBot):
 
     def send_message(self, mess):
         super(IRCBackend, self).send_message(mess)
-        msg_func = self.conn.send_private_message if mess.typ == 'chat' else self.conn.send_public_message
+        msg_func = self.conn.send_private_message if mess.type == 'chat' else self.conn.send_public_message
         # If this is a response in private of a public message take the recipient in
         # the resource instead of the incoming chatroom
         if mess.type == 'chat' and mess.to.resource:

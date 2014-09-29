@@ -1,8 +1,14 @@
 from __future__ import absolute_import
+import config
 import logging
 import sys
-import config
-from errbot.backends.base import Message, build_message, build_text_html_message_pair, Identifier
+import warnings
+
+from errbot import holder
+from errbot.backends.base import (
+    Identifier, Message, MUCOccupant, MUCRoom, RoomError, RoomNotJoinedError,
+    build_message, build_text_html_message_pair,
+)
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 
@@ -23,6 +29,134 @@ except ImportError as _:
     pip install irc
     """)
     sys.exit(-1)
+
+
+class IRCMUCRoom(MUCRoom):
+    def __init__(self, *args, **kwargs):
+        super(IRCMUCRoom, self).__init__(*args, **kwargs)
+        self.connection = holder.bot.conn.connection
+
+    def join(self, username=None, password=None):
+        """
+        Join the room.
+
+        If the room does not exist yet, this will automatically call
+        :meth:`create` on it first.
+        """
+        if username is not None:
+            logging.debug("Ignored username parameter on join(), it is unsupported on this back-end.")
+        if password is None:
+            password = ""
+        room = str(self)
+
+        self.connection.join(room, key=password)
+        holder.bot.callback_room_joined(self)
+        logging.info("Joined room {}".format(room))
+
+    def leave(self, reason=None):
+        """
+        Leave the room.
+
+        :param reason:
+            An optional string explaining the reason for leaving the room
+        """
+        if reason is None:
+            reason = ""
+        room = str(self)
+
+        self.connection.part(room, reason)
+        logging.info("Left room {}".format(room))
+        holder.bot.callback_room_left(self)
+
+    def create(self):
+        """
+        Not supported on this back-end. Will join the room to ensure it exists, instead.
+        """
+        logging.warning(
+            "IRC back-end does not support explicit creation, joining room "
+            "instead to ensure it exists."
+        )
+        self.join()
+
+    def destroy(self):
+        """
+        Not supported on IRC, will raise :class:`~errbot.backends.base.RoomError`.
+        """
+        raise RoomError("IRC back-end does not support destroying rooms.")
+
+    @property
+    def exists(self):
+        """
+        Boolean indicating whether this room already exists or not.
+
+        :getter:
+            Returns `True` if the room exists, `False` otherwise.
+        """
+        logging.warning(
+            "IRC back-end does not support determining if a room exists. "
+            "Returning the result of joined instead."
+        )
+        return self.joined
+
+    @property
+    def joined(self):
+        """
+        Boolean indicating whether this room has already been joined.
+
+        :getter:
+            Returns `True` if the room has been joined, `False` otherwise.
+        """
+        return str(self) in holder.bot.conn.channels.keys()
+
+    @property
+    def topic(self):
+        """
+        The room topic.
+
+        :getter:
+            Returns the topic (a string) if one is set, `None` if no
+            topic has been set at all.
+        """
+        return self.connection.topic(str(self))
+
+    def set_topic(self, topic):
+        """
+        Set the room's topic.
+
+        :param topic:
+            The topic to set.
+        """
+        self.connection.topic(str(self), topic)
+
+    @property
+    def occupants(self):
+        """
+        The room's occupants.
+
+        :getter:
+            Returns a list of :class:`~errbot.backends.base.MUCOccupant` instances.
+        :raises:
+            :class:`~MUCNotJoinedError` if the room has not yet been joined.
+        """
+        occupants = []
+        try:
+            for nick in holder.bot.conn.channels[str(self)].users():
+                occupants.append(MUCOccupant(node=nick))
+        except KeyError:
+            raise RoomNotJoinedError("Must be in a room in order to see occupants.")
+        return occupants
+
+    def invite(self, *args):
+        """
+        Invite one or more people into the room.
+
+        :*args:
+            One or more nicks to invite into the room.
+        """
+        room = str(self)
+        for nick in args:
+            self.connection.invite(nick, room)
+            logging.info("Invited {} to {}".format(nick, room))
 
 
 class IRCConnection(SingleServerIRCBot):
@@ -107,8 +241,39 @@ class IRCBackend(ErrBot):
         super().shutdown()
 
     def join_room(self, room, username=None, password=None):
-        self.conn.connection.join(room)
+        """
+        .. deprecated:: 2.2.0
+            Use the methods on :class:`IRCMUCRoom` instead.
+        """
+        warnings.warn(
+            "Using join_room is deprecated, use join from the "
+            "MUCRoom class instead.",
+            DeprecationWarning
+        )
+        self.query_room(room).join(username=username, password=password)
+
+    def query_room(self, room):
+        """
+        Query a room for information.
+
+        :param room:
+            The channel name to query for.
+        :returns:
+            An instance of :class:`~IRCMUCRoom`.
+        """
+        return IRCMUCRoom(node=room)
 
     @property
     def mode(self):
         return 'irc'
+
+    def rooms(self):
+        """
+        Return a list of rooms the bot is currently in.
+
+        :returns:
+            A list of :class:`~IRCMUCRoom` instances.
+        """
+
+        channels = self.conn.channels.keys()
+        return [IRCMUCRoom(node=channel) for channel in channels]

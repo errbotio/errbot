@@ -331,12 +331,11 @@ class BotPlugin(BotPluginBase):
         """
         return holder.bot.join_room(room, username, password)
 
-    @property
     def rooms(self):
         """
         The list of rooms the bot is currently in.
         """
-        return holder.bot.rooms
+        return holder.bot.rooms()
 
     def query_room(self, room):
         """

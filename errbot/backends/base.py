@@ -1239,17 +1239,6 @@ class Backend(object):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def set_room_topic(self, room, topic):
-        """
-        Set the topic for a room (MUC).
-
-        :param room:
-            The JID/identifier of the room to set the topic for.
-        :param topic:
-            The topic to set.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
     def shutdown(self):
         pass
 

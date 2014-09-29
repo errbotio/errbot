@@ -196,7 +196,7 @@ class TestBackend(ErrBot):
 
     def rooms(self):
         global rooms
-        return rooms
+        return [r for r in rooms if r.joined]
 
     def query_room(self, room):
         global rooms

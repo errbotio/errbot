@@ -30,7 +30,7 @@ class TestMUC(object):
         r2.create()
         assert r2.exists
         rooms = holder.bot.rooms()
-        assert r2 in rooms
+        assert r2 not in rooms
         assert not r2.joined
 
         r2.destroy()
@@ -117,7 +117,7 @@ class TestMUC(object):
         rooms = holder.bot.rooms()
         room = holder.bot.query_room('err@conference.server.tld')
         assert room.exists
-        assert room in rooms
+        assert room not in rooms
         assert not room.joined
 
         push_message("!room join err@conference.server.tld")

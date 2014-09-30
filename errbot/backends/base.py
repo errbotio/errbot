@@ -2,6 +2,7 @@ import difflib
 import inspect
 import io
 import logging
+import shlex
 import traceback
 import warnings
 
@@ -970,10 +971,20 @@ class Backend(object):
         if f._err_command_historize:
             user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
 
-        # Don't check for None here as None can be a valid argument to split.
-        # '' was chosen as default argument because this isn't a valid argument to split()
+        # Don't check for None here as None can be a valid argument to str.split.
+        # '' was chosen as default argument because this isn't a valid argument to str.split()
         if not match and f._err_command_split_args_with != '':
-            args = args.split(f._err_command_split_args_with)
+            if f._err_command_split_args_with == "shlex.split":
+                try:
+                    args = shlex.split(args)
+                except ValueError as e:
+                    self.send_simple_reply(
+                        mess,
+                        "Sorry, I couldn't parse that. {}".format(e)
+                    )
+                    return
+            else:
+                args = args.split(f._err_command_split_args_with)
         if BOT_ASYNC:
             wr = WorkRequest(
                 self._execute_and_send,

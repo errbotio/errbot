@@ -164,7 +164,7 @@ class ChatRoom(BotPlugin):
         else:
             return "I'm not currently in any rooms."
 
-    @botcmd(split_args_with=None)
+    @botcmd(split_args_with="shlex.split")
     def room_occupants(self, message, args):
         """
         List the occupants in a given chatroom.
@@ -188,7 +188,7 @@ class ChatRoom(BotPlugin):
             except RoomNotJoinedError as e:
                 yield "Cannot list occupants in {}: {}".format(room, e)
 
-    @botcmd()
+    @botcmd(split_args_with="shlex.split")
     def room_topic(self, message, args):
         """
         Get or set the topic for a room.
@@ -198,18 +198,15 @@ class ChatRoom(BotPlugin):
 
         Examples (XMPP):
         !room topic example-room@chat.server.tld
-        !room topic example-room@chat.server.tld Err rocks!
+        !room topic example-room@chat.server.tld "Err rocks!"
 
         Examples (IRC):
         !room topic #example-room
-        !room topic #example-room Err rocks!
+        !room topic #example-room "Err rocks!"
         """
-        # We must account for topic with whitespace before, after or in the middle
-        args = args.split(' ', 1)
         arglen = len(args)
         if arglen < 1:
             return "Please tell me which chatroom you want to know the topic of."
-        args[0] = args[0].strip()
 
         if arglen == 1:
             try:

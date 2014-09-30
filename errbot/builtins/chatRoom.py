@@ -1,7 +1,7 @@
 import logging
 from uuid import uuid4
 
-from errbot import BotPlugin, PY3, botcmd
+from errbot import BotPlugin, PY3, botcmd, SeparatorArgSplitter, ShlexArgSplitter
 from errbot.backends.base import RoomNotJoinedError
 from errbot.holder import bot
 from errbot.version import VERSION
@@ -44,7 +44,7 @@ class ChatRoom(BotPlugin):
         self.connected = False
         super(ChatRoom, self).deactivate()
 
-    @botcmd(split_args_with=None)
+    @botcmd(split_args_with=SeparatorArgSplitter())
     def room_create(self, message, args):
         """
         Create a chatroom.
@@ -90,7 +90,7 @@ class ChatRoom(BotPlugin):
         self.query_room(room).join(username=CHATROOM_FN, password=password)
         return "Joined the room {}".format(room)
 
-    @botcmd(split_args_with=None)
+    @botcmd(split_args_with=SeparatorArgSplitter())
     def room_leave(self, message, args):
         """
         Leave a chatroom.
@@ -109,7 +109,7 @@ class ChatRoom(BotPlugin):
         self.query_room(args[0]).leave()
         return "Left the room {}".format(args[0])
 
-    @botcmd(split_args_with=None)
+    @botcmd(split_args_with=SeparatorArgSplitter())
     def room_destroy(self, message, args):
         """
         Destroy a chatroom.
@@ -128,7 +128,7 @@ class ChatRoom(BotPlugin):
         self.query_room(args[0]).destroy()
         return "Destroyed the room {}".format(args[0])
 
-    @botcmd(split_args_with=None)
+    @botcmd(split_args_with=SeparatorArgSplitter())
     def room_invite(self, message, args):
         """
         Invite one or more people into a chatroom.
@@ -164,7 +164,7 @@ class ChatRoom(BotPlugin):
         else:
             return "I'm not currently in any rooms."
 
-    @botcmd(split_args_with="shlex.split")
+    @botcmd(split_args_with=ShlexArgSplitter())
     def room_occupants(self, message, args):
         """
         List the occupants in a given chatroom.
@@ -188,7 +188,7 @@ class ChatRoom(BotPlugin):
             except RoomNotJoinedError as e:
                 yield "Cannot list occupants in {}: {}".format(room, e)
 
-    @botcmd(split_args_with="shlex.split")
+    @botcmd(split_args_with=ShlexArgSplitter())
     def room_topic(self, message, args):
         """
         Get or set the topic for a room.

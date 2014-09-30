@@ -974,17 +974,22 @@ class Backend(object):
         # Don't check for None here as None can be a valid argument to str.split.
         # '' was chosen as default argument because this isn't a valid argument to str.split()
         if not match and f._err_command_split_args_with != '':
-            if f._err_command_split_args_with == "shlex.split":
+            if hasattr(f._err_command_split_args_with, "parse_args"):
                 try:
-                    args = shlex.split(args)
-                except ValueError as e:
+                    args = f._err_command_split_args_with.parse_args(args)
+                except Exception as e:
                     self.send_simple_reply(
                         mess,
-                        "Sorry, I couldn't parse that. {}".format(e)
+                        "Sorry, I couldn't parse your arguments. {}".format(e)
                     )
                     return
             else:
+                warnings.warn(
+                    "!{} is using the legacy split_args_with syntax".format(cmd),
+                    DeprecationWarning
+                )
                 args = args.split(f._err_command_split_args_with)
+
         if BOT_ASYNC:
             wr = WorkRequest(
                 self._execute_and_send,

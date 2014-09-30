@@ -394,7 +394,7 @@ class BotPlugin(BotPluginBase):
         super(BotPlugin, self).stop_poller(method, args, kwargs)
 
 
-class ArgSplitterBase(object):
+class ArgParserBase(object):
     """
     The `ArgSplitterBase` class defines the API which is used for argument
     splitting (used by the `split_args_with` parameter on
@@ -412,7 +412,7 @@ class ArgSplitterBase(object):
         raise NotImplementedError()
 
 
-class SeparatorArgSplitter(ArgSplitterBase):
+class SeparatorArgParser(ArgParserBase):
     """
     This argument splitter splits args on a given separator, like
     :func:`str.split` does.
@@ -434,7 +434,7 @@ class SeparatorArgSplitter(ArgSplitterBase):
         return args.split(self.separator, self.maxsplit)
 
 
-class ShlexArgSplitter(ArgSplitterBase):
+class ShlexArgParser(ArgParserBase):
     """
     This argument splitter splits args using posix shell quoting rules,
     like :func:`shlex.split` does.

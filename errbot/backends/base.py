@@ -974,21 +974,19 @@ class Backend(object):
         # Don't check for None here as None can be a valid argument to str.split.
         # '' was chosen as default argument because this isn't a valid argument to str.split()
         if not match and f._err_command_split_args_with != '':
-            if hasattr(f._err_command_split_args_with, "parse_args"):
-                try:
+            try:
+                if hasattr(f._err_command_split_args_with, "parse_args"):
                     args = f._err_command_split_args_with.parse_args(args)
-                except Exception as e:
-                    self.send_simple_reply(
-                        mess,
-                        "Sorry, I couldn't parse your arguments. {}".format(e)
-                    )
-                    return
-            else:
-                warnings.warn(
-                    "!{} is using the legacy split_args_with syntax".format(cmd),
-                    DeprecationWarning
+                elif callable(f._err_command_split_args_with):
+                    args = f._err_command_split_args_with(args)
+                else:
+                    args = args.split(f._err_command_split_args_with)
+            except Exception as e:
+                self.send_simple_reply(
+                    mess,
+                    "Sorry, I couldn't parse your arguments. {}".format(e)
                 )
-                args = args.split(f._err_command_split_args_with)
+                return
 
         if BOT_ASYNC:
             wr = WorkRequest(

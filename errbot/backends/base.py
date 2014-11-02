@@ -916,7 +916,10 @@ class Backend(object):
                             if not self.re_commands[k]._err_command_prefix_required}
 
             for name, func in commands.items():
-                match = func._err_command_re_pattern.search(text)
+                if func._err_command_matchall:
+                    match = list(func._err_command_re_pattern.finditer(text))
+                else:
+                    match = func._err_command_re_pattern.search(text)
                 if match:
                     logging.debug("Matching '{}' against '{}' produced a match"
                                   .format(text, func._err_command_re_pattern.pattern))

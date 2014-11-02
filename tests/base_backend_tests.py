@@ -64,6 +64,10 @@ class DummyBackend(Backend):
     def double_regex_command_two(self, mess, match):
         return "two"
 
+    @re_botcmd(pattern=r'match_here', matchall=True)
+    def regex_command_with_matchall(self, mess, matches):
+        return len(matches)
+
     @botcmd
     def return_args_as_str(self, mess, args):
         return "".join(args)
@@ -353,6 +357,10 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(self.makemessage(
             "Err This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
+        self.dummy.callback_message(self.makemessage("!match_here"))
+        self.assertEquals("1", self.dummy.pop_message().body)
+        self.dummy.callback_message(self.makemessage("!match_here match_here match_here"))
+        self.assertEquals("3", self.dummy.pop_message().body)
 
     def test_regex_commands_can_overlap(self):
         self.dummy.callback_message(self.makemessage("!matched by two commands"))

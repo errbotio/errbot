@@ -60,6 +60,12 @@ In both cases, your method will receive the message object same as with a regula
 :func:`~errbot.decorators.botcmd`, but instead of an `args` parameter, it takes
 a `match` parameter which will receive an :class:`re.MatchObject`.
 
+.. note::
+    By default, only the first occurrence of a match is returned, even if it can
+    match multiple parts of the message. If you specify `matchall=True`, you will
+    instead get a list of :class:`re.MatchObject` items, containing all the
+    non-overlapping matches that were found in the message.
+
 
 With a bot prefix
 ~~~~~~~~~~~~~~~~~

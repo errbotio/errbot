@@ -58,6 +58,9 @@ def re_botcmd(*args, **kwargs):
     :param flags: The `flags` parameter which should be passed to :func:`re.compile()`. This
         allows the expression's behaviour to be modified, such as making it case-insensitive
         for example.
+    :param matchall: By default, only the first match of the regular expression is returned
+        (as a `re.MatchObject`). When *matchall* is `True`, all non-overlapping matches are
+        returned (as a list of `re.MatchObject` items).
     :param prefixed: Requires user input to start with a bot prefix in order for the pattern
         to be applied when `True` (the default).
     :param hidden: Prevents the command from being shown by the built-in help command when `True`.
@@ -81,12 +84,13 @@ def re_botcmd(*args, **kwargs):
     user's input.
     """
 
-    def decorate(func, pattern, flags=0, prefixed=True, hidden=False, name=None, admin_only=False, historize=True,
-                 template=None):
+    def decorate(func, pattern, flags=0, matchall=False, prefixed=True, hidden=False, name=None, admin_only=False,
+                 historize=True, template=None):
         if not hasattr(func, '_err_command'):  # don't override generated functions
             setattr(func, '_err_command', True)
             setattr(func, '_err_re_command', True)
             setattr(func, '_err_command_re_pattern', re.compile(pattern, flags=flags))
+            setattr(func, '_err_command_matchall', matchall)
             setattr(func, '_err_command_prefix_required', prefixed)
             setattr(func, '_err_command_hidden', hidden)
             setattr(func, '_err_command_name', name or func.__name__)

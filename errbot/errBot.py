@@ -300,7 +300,7 @@ class ErrBot(Backend, StoreMixin):
             loads = getloadavg()
             results = 'Load {0}, {1}, {2}'.format(loads[0], loads[1], loads[2])
 
-        except Exception, _:
+        except Exception as _:
             results = 'Not available.'
 
         return results

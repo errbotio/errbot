@@ -163,13 +163,13 @@ class TestCommands(FullStackTest):
         self.assertEqual('Plugin ChatRoom deactivated', pop_message())
         self.assertEqual('Plugin ChatRoom activated', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[L] ChatRoom", pop_message())
 
         push_message('!unload ChatRoom')
         self.assertEqual('Plugin ChatRoom deactivated', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[U] ChatRoom", pop_message())
 
         push_message('!unload ChatRoom')
@@ -178,7 +178,7 @@ class TestCommands(FullStackTest):
         push_message('!load ChatRoom')
         self.assertEqual('Plugin ChatRoom activated', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[L] ChatRoom", pop_message())
 
         push_message('!load ChatRoom')
@@ -193,8 +193,8 @@ class TestCommands(FullStackTest):
         push_message('!blacklist ChatRoom')
         self.assertEqual("Plugin ChatRoom is now blacklisted", pop_message())
 
-        push_message("!status")
-        self.assertIn("[B,L] ChatRoom", pop_message())
+        push_message("!status plugins")
+        self.assertIn("[BL] ChatRoom", pop_message())
 
         # Needed else configuration for this plugin gets saved which screws up
         # other tests
@@ -218,8 +218,8 @@ class TestCommands(FullStackTest):
         push_message('!blacklist ChatRoom')
         self.assertEqual("Plugin ChatRoom is already blacklisted", pop_message())
 
-        push_message("!status")
-        self.assertIn("[B,L] ChatRoom", pop_message())
+        push_message("!status plugins")
+        self.assertIn("[BL] ChatRoom", pop_message())
 
         push_message('!unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom removed from blacklist', pop_message())
@@ -227,5 +227,5 @@ class TestCommands(FullStackTest):
         push_message('!unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom is not blacklisted', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[L] ChatRoom", pop_message())

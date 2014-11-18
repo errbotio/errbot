@@ -32,6 +32,18 @@ class TestCommands(FullStackTest):
         push_message('!status')
         self.assertIn('Yes I am alive', pop_message())
 
+    def test_status_plugins(self):
+        push_message('!status plugins')
+        self.assertIn('L=Loaded, U=Unloaded', pop_message())
+
+    def test_status_load(self):
+        push_message('!status load')
+        self.assertIn('Load ', pop_message())
+
+    def test_status_gc(self):
+        push_message('!status gc')
+        self.assertIn('GC 0->', pop_message())
+
     def test_config_cycle(self):
         # test the full configuration cycle help, get set and export, import
         push_message('!zap configs')

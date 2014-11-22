@@ -281,42 +281,40 @@ class ErrBot(Backend, StoreMixin):
             all_plugins = get_all_plugin_names()
         return "\n".join(("• " + plugin for plugin in all_plugins))
 
-    @botcmd
+    @botcmd(template='status')
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
         """
-        yield 'Yes I am alive...'
-        yield self.status_plugins(mess, args)
-        yield self.status_load(mess, args)
-        yield self.status_gc(mess, args)
+        plugins_statuses = self.status_plugins(mess, args)
+        loads = self.status_load(mess, args)
+        gc = self.status_gc(mess, args)
 
-    @botcmd
+        return {'plugins_statuses': plugins_statuses['plugins_statuses'],
+                'loads': loads['loads'],
+                'gc': gc['gc']}
+
+    @botcmd(template='status_load')
     def status_load(self, mess, args):
         """ shows the load status
         """
         try:
             from posix import getloadavg
-
             loads = getloadavg()
-            results = 'Load {0}, {1}, {2}'.format(loads[0], loads[1], loads[2])
-
         except Exception as _:
-            results = 'Not available.'
+            loads = None
 
-        return results
+        return {'loads': loads}
 
-    @botcmd
+    @botcmd(template='status_gc')
     def status_gc(self, mess, args):
         """ shows the garbage collection details
         """
-        counts = gc.get_count()
-        return 'GC 0->{0} 1->{1} 2->{2}'.format(counts[0], counts[1], counts[2])
+        return {'gc': gc.get_count()}
 
-    @botcmd
+    @botcmd(template='status_plugins')
     def status_plugins(self, mess, args):
         """ shows the plugin status
         """
-        results = []
         all_blacklisted = self.get_blacklisted_plugin()
         all_loaded = get_all_active_plugin_names()
         all_attempted = sorted([p.name for p in self.all_candidates])
@@ -335,10 +333,7 @@ class ErrBot(Backend, StoreMixin):
             else:
                 plugins_statuses.append(('U', name))
 
-        results.append('L=Loaded, U=Unloaded, B=Blacklisted, C=Needs to be configured')
-        for state, name in plugins_statuses:
-            results.append('[{0}] {1}'.format(state, name))
-        return '\n'.join(results)
+        return {'plugins_statuses': plugins_statuses}
 
     # noinspection PyUnusedLocal
     @botcmd

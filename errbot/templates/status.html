@@ -1,31 +1,11 @@
 {% extends "base.html" %}
-{% macro status(name) -%}
-    {% if name == 'L' -%}
-        <span style='font-weight:bold; color:green'>L</span>
-    {%- elif name == 'U' -%}
-        <span style='font-weight:bold'>U</span>
-    {%- elif name == 'C' -%}
-        <span style='font-weight:bold; color:red'>C</span>
-    {%- elif name == 'B' -%}
-        <span style='font-weight:bold'>B</span>
-    {%- elif name == 'BL' -%}
-        <span style='font-weight:bold'>B</span>,<span style='font-weight:bold; color:green'>L</span>
-    {%- elif name == 'BU' -%}
-        <span style='font-weight:bold'>B</span>,<span style='font-weight:bold'>U</span>
-    {%- endif %}
-{%- endmacro %}
 {% block body %}
     <div style="font-family: monospace">
-        <p style='margin-top: 0; margin-bottom: 0;'><span style='font-weight:bold;'>Yes I am alive...</span><br/>
-            With these plugins
-            ({{ status('L') }}=Loaded, {{ status('U') }}=Unloaded, {{ status('B') }}=Blacklisted, {{ status('C') }}=Needs
-            to be configured):<br/>
-            {% for state, name in plugins_statuses %}
-                [{{ status(state) }}] {{ name }}<br/>
-            {% endfor %}</p>
-
-        <p style='margin-top: 10px; margin-bottom: 0; margin-left:15px;'>
-            Load {{ loads[0] }}, {{ loads[1] }}, {{ loads[2] }}<br/>
-            GC 0->{{ gc[0] }} 1->{{ gc[1] }} 2->{{ gc[2] }}</p>
+        <p style='margin-top: 0; margin-bottom: 0;'>
+            <span style='font-weight:bold;'>Yes I am alive...</span>
+        </p>
     </div>
+    {% include 'status_plugins.html' %}
+    {% include 'status_load.html' %}
+    {% include 'status_gc.html' %}
 {% endblock %}

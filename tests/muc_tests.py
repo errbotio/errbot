@@ -139,7 +139,7 @@ class TestMUC(object):
 
         push_message("!room topic err@conference.server.tld")
         assert pop_message() == "No topic is set for err@conference.server.tld"
-        push_message("!room topic err@conference.server.tld Err rocks!")
+        push_message("!room topic err@conference.server.tld 'Err rocks!'")
         assert pop_message() == "Topic for err@conference.server.tld set."
         push_message("!room topic err@conference.server.tld")
         assert pop_message() == "Topic for err@conference.server.tld: Err rocks!"

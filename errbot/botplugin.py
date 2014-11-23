@@ -1,7 +1,10 @@
 import logging
-import warnings
 import os
+import shlex
+import warnings
+
 from threading import Timer, current_thread
+
 from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
 from errbot.storage import StoreMixin, StoreNotOpenError
 from errbot import holder
@@ -389,3 +392,53 @@ class BotPlugin(BotPluginBase):
             you need to regive the same parameters as the original start_poller to match a specific poller to stop
         """
         super(BotPlugin, self).stop_poller(method, args, kwargs)
+
+
+class ArgParserBase(object):
+    """
+    The `ArgSplitterBase` class defines the API which is used for argument
+    splitting (used by the `split_args_with` parameter on
+    :func:`~errbot.decorators.botcmd`).
+    """
+
+    def parse_args(self, args):
+        """
+        This method takes a string of un-split arguments and parses it,
+        returning a list that is the result of splitting.
+
+        If splitting fails for any reason it should return an exception
+        of some kind.
+        """
+        raise NotImplementedError()
+
+
+class SeparatorArgParser(ArgParserBase):
+    """
+    This argument splitter splits args on a given separator, like
+    :func:`str.split` does.
+    """
+
+    def __init__(self, separator=None, maxsplit=-1):
+        """
+        :param sep:
+            The separator on which arguments should be split. If sep is
+            None, any whitespace string is a separator and empty strings
+            are removed from the result.
+        :param maxsplit:
+            If given, do at most this many splits.
+        """
+        self.separator = separator
+        self.maxsplit = maxsplit
+
+    def parse_args(self, args):
+        return args.split(self.separator, self.maxsplit)
+
+
+class ShlexArgParser(ArgParserBase):
+    """
+    This argument splitter splits args using posix shell quoting rules,
+    like :func:`shlex.split` does.
+    """
+
+    def parse_args(self, args):
+        return shlex.split(args)

@@ -32,6 +32,18 @@ class TestCommands(FullStackTest):
         push_message('!status')
         self.assertIn('Yes I am alive', pop_message())
 
+    def test_status_plugins(self):
+        push_message('!status plugins')
+        self.assertIn('L=Loaded, U=Unloaded', pop_message())
+
+    def test_status_load(self):
+        push_message('!status load')
+        self.assertIn('Load ', pop_message())
+
+    def test_status_gc(self):
+        push_message('!status gc')
+        self.assertIn('GC 0->', pop_message())
+
     def test_config_cycle(self):
         # test the full configuration cycle help, get set and export, import
         push_message('!zap configs')
@@ -163,13 +175,13 @@ class TestCommands(FullStackTest):
         self.assertEqual('Plugin ChatRoom deactivated', pop_message())
         self.assertEqual('Plugin ChatRoom activated', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[L] ChatRoom", pop_message())
 
         push_message('!unload ChatRoom')
         self.assertEqual('Plugin ChatRoom deactivated', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[U] ChatRoom", pop_message())
 
         push_message('!unload ChatRoom')
@@ -178,7 +190,7 @@ class TestCommands(FullStackTest):
         push_message('!load ChatRoom')
         self.assertEqual('Plugin ChatRoom activated', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[L] ChatRoom", pop_message())
 
         push_message('!load ChatRoom')
@@ -193,8 +205,8 @@ class TestCommands(FullStackTest):
         push_message('!blacklist ChatRoom')
         self.assertEqual("Plugin ChatRoom is now blacklisted", pop_message())
 
-        push_message("!status")
-        self.assertIn("[B,L] ChatRoom", pop_message())
+        push_message("!status plugins")
+        self.assertIn("[BL] ChatRoom", pop_message())
 
         # Needed else configuration for this plugin gets saved which screws up
         # other tests
@@ -218,8 +230,8 @@ class TestCommands(FullStackTest):
         push_message('!blacklist ChatRoom')
         self.assertEqual("Plugin ChatRoom is already blacklisted", pop_message())
 
-        push_message("!status")
-        self.assertIn("[B,L] ChatRoom", pop_message())
+        push_message("!status plugins")
+        self.assertIn("[BL] ChatRoom", pop_message())
 
         push_message('!unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom removed from blacklist', pop_message())
@@ -227,5 +239,5 @@ class TestCommands(FullStackTest):
         push_message('!unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom is not blacklisted', pop_message())
 
-        push_message("!status")
+        push_message("!status plugins")
         self.assertIn("[L] ChatRoom", pop_message())

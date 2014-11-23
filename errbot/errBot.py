@@ -281,10 +281,39 @@ class ErrBot(Backend, StoreMixin):
             all_plugins = get_all_plugin_names()
         return "\n".join(("• " + plugin for plugin in all_plugins))
 
-    # noinspection PyUnusedLocal
     @botcmd(template='status')
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
+        """
+        plugins_statuses = self.status_plugins(mess, args)
+        loads = self.status_load(mess, args)
+        gc = self.status_gc(mess, args)
+
+        return {'plugins_statuses': plugins_statuses['plugins_statuses'],
+                'loads': loads['loads'],
+                'gc': gc['gc']}
+
+    @botcmd(template='status_load')
+    def status_load(self, mess, args):
+        """ shows the load status
+        """
+        try:
+            from posix import getloadavg
+            loads = getloadavg()
+        except Exception as _:
+            loads = None
+
+        return {'loads': loads}
+
+    @botcmd(template='status_gc')
+    def status_gc(self, mess, args):
+        """ shows the garbage collection details
+        """
+        return {'gc': gc.get_count()}
+
+    @botcmd(template='status_plugins')
+    def status_plugins(self, mess, args):
+        """ shows the plugin status
         """
         all_blacklisted = self.get_blacklisted_plugin()
         all_loaded = get_all_active_plugin_names()
@@ -304,14 +333,7 @@ class ErrBot(Backend, StoreMixin):
             else:
                 plugins_statuses.append(('U', name))
 
-        # noinspection PyBroadException
-        try:
-            from posix import getloadavg
-
-            loads = getloadavg()
-        except Exception as _:
-            loads = None
-        return {'plugins_statuses': plugins_statuses, 'loads': loads, 'gc': gc.get_count()}
+        return {'plugins_statuses': plugins_statuses}
 
     # noinspection PyUnusedLocal
     @botcmd

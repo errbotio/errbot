@@ -92,8 +92,8 @@ class DummyBackend(Backend):
 
     @botcmd
     def yields_str_then_raises_exception(self, mess, args):
-        yield "foobar"
-        raise Exception("Kaboom!")
+        yield 'foobar'
+        raise Exception('Kaboom!')
 
     @botcmd
     def return_long_output(self, mess, args):
@@ -122,26 +122,26 @@ class TestBase(unittest.TestCase):
         self.dummy = DummyBackend()
 
     def test_identifier_parsing(self):
-        id1 = Identifier(jid="gbin@gootz.net/toto")
-        self.assertEqual(id1.node, "gbin")
-        self.assertEqual(id1.domain, "gootz.net")
-        self.assertEqual(id1.resource, "toto")
+        id1 = Identifier(jid='gbin@gootz.net/toto')
+        self.assertEqual(id1.node, 'gbin')
+        self.assertEqual(id1.domain, 'gootz.net')
+        self.assertEqual(id1.resource, 'toto')
 
-        id2 = Identifier(jid="gbin@gootz.net")
-        self.assertEqual(id2.node, "gbin")
-        self.assertEqual(id2.domain, "gootz.net")
+        id2 = Identifier(jid='gbin@gootz.net')
+        self.assertEqual(id2.node, 'gbin')
+        self.assertEqual(id2.domain, 'gootz.net')
         self.assertIsNone(id2.resource)
 
     def test_identifier_matching(self):
-        id1 = Identifier(jid="gbin@gootz.net/toto")
-        id2 = Identifier(jid="gbin@gootz.net/titi")
-        id3 = Identifier(jid="gbin@giitz.net/titi")
+        id1 = Identifier(jid='gbin@gootz.net/toto')
+        id2 = Identifier(jid='gbin@gootz.net/titi')
+        id3 = Identifier(jid='gbin@giitz.net/titi')
         self.assertTrue(id1.bare_match(id2))
         self.assertFalse(id2.bare_match(id3))
 
     def test_identifier_stripping(self):
-        id1 = Identifier(jid="gbin@gootz.net/toto")
-        self.assertEqual(id1.stripped, "gbin@gootz.net")
+        id1 = Identifier(jid='gbin@gootz.net/toto')
+        self.assertEqual(id1.stripped, 'gbin@gootz.net')
 
     def test_identifier_str_rep(self):
         self.assertEqual(str(Identifier(jid="gbin@gootz.net/toto")), "gbin@gootz.net/toto")
@@ -151,39 +151,39 @@ class TestBase(unittest.TestCase):
         self.assertEqual(str(Identifier(jid="gbin@gootz.net/へようこそ")), "gbin@gootz.net/へようこそ")
 
     def test_xhtmlparsing_and_textify(self):
-        text_plain, node = build_text_html_message_pair("<html><body>Message</body></html>")
-        self.assertEqual(text_plain, "Message")
-        self.assertEqual(node.tag, "html")
-        self.assertEqual(node.getchildren()[0].tag, "body")
+        text_plain, node = build_text_html_message_pair('<html><body>Message</body></html>')
+        self.assertEqual(text_plain, 'Message')
+        self.assertEqual(node.tag, 'html')
+        self.assertEqual(node.getchildren()[0].tag, 'body')
         self.assertEqual(node.getchildren()[0].text, 'Message')
 
     def test_identifier_double_at_parsing(self):
-        id1 = Identifier(jid="gbin@titi.net@gootz.net/toto")
-        self.assertEqual(id1.node, "gbin@titi.net")
-        self.assertEqual(id1.domain, "gootz.net")
-        self.assertEqual(id1.resource, "toto")
+        id1 = Identifier(jid='gbin@titi.net@gootz.net/toto')
+        self.assertEqual(id1.node, 'gbin@titi.net')
+        self.assertEqual(id1.domain, 'gootz.net')
+        self.assertEqual(id1.resource, 'toto')
 
     def test_buildreply(self):
         dummy = self.dummy
 
-        m = dummy.build_message("Content")
-        m.frm = "from@fromdomain.net/fromresource"
-        m.to = "to@todomain.net/toresource"
-        resp = dummy.build_reply(m, "Response")
+        m = dummy.build_message('Content')
+        m.frm = 'from@fromdomain.net/fromresource'
+        m.to = 'to@todomain.net/toresource'
+        resp = dummy.build_reply(m, 'Response')
 
-        self.assertEqual(str(resp.to), "from@fromdomain.net/fromresource")
-        self.assertEqual(str(resp.frm), "err@localhost/err")
-        self.assertEqual(str(resp.body), "Response")
+        self.assertEqual(str(resp.to), 'from@fromdomain.net/fromresource')
+        self.assertEqual(str(resp.frm), 'err@localhost/err')
+        self.assertEqual(str(resp.body), 'Response')
 
 
 class TestExecuteAndSend(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
-        self.example_message = self.dummy.build_message("some_message")
-        self.example_message.frm = "noterr@localhost/resource"
-        self.example_message.to = "err@localhost/resource"
+        self.example_message = self.dummy.build_message('some_message')
+        self.example_message.frm = 'noterr@localhost/resource'
+        self.example_message.to = 'err@localhost/resource'
 
-        assets_path = os.path.dirname(__file__) + os.sep + "assets"
+        assets_path = os.path.join(os.path.dirname(__file__), 'assets')
         templating.template_path.append(templating.make_templates_path(assets_path))
         templating.env = templating.Environment(loader=templating.FileSystemLoader(templating.template_path))
 

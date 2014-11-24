@@ -69,7 +69,6 @@ def convert_to_python2():
 
         mainpip(['install', '3to2', '--no-clean'])
         from lib3to2 import main as three2two
-    import shutil
     import shlex
 
     for d in src_dirs:
@@ -92,11 +91,7 @@ if __name__ == "__main__":
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
 
-    if set(sys.argv) & set(('bdist',
-                            'bdist_dumb',
-                            'bdist_rpm',
-                            'bdist_wininst',
-                            'bdist_msi')):
+    if set(sys.argv) & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
         raise Exception("err doesn't support binary distributions")
 
     # under python2 if we want to make a source distribution,

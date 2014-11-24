@@ -25,7 +25,7 @@ import os
 import config
 from config import BOT_DATA_DIR, BOT_PREFIX
 import errbot
-from errbot.backends.base import Connection, Message, build_text_html_message_pair
+from errbot.backends.base import Message, build_text_html_message_pair, Identifier
 from errbot.errBot import ErrBot
 
 
@@ -106,7 +106,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super(CommandBox, self).keyPressEvent(*args, **kwargs)
 
 
-class ConnectionMock(Connection, QtCore.QObject):
+class ConnectionMock(QtCore.QObject):
     newAnswer = QtCore.Signal(str, bool)
 
     def send_message(self, mess):
@@ -126,16 +126,16 @@ urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 def linkify(text):
     def replacewithlink(matchobj):
         url = matchobj.group(0)
-        text = str(url)
+        txt = str(url)
 
         imglink = ''
         for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
-            if text.lower().endswith(a):
+            if txt.lower().endswith(a):
                 imglink = '<br /><img src="{}" />'.format(url)
                 break
         return ('<a href="{url}" target="_blank" rel="nofollow">{text}'
                 '<img class="imglink" src="/images/linkout.png"></a>'
-                '{imglink}'.format(url=url, text=text, imglink=imglink))
+                '{imglink}'.format(url=url, text=txt, imglink=imglink))
 
     return urlfinder.sub(replacewithlink, text)
 
@@ -207,6 +207,7 @@ class GraphicBackend(ErrBot):
         self.conn = None
         super().__init__(*args, **kwargs)
         self.jid = Identifier('Err')
+        self.app = None
 
     def send_command(self, text):
         self.app.new_message(text, False)

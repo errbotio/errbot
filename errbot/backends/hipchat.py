@@ -17,8 +17,6 @@ from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
 from errbot.backends.xmpp import XMPPBackend, XMPPConnection
 from errbot.utils import parse_jid
 
-from config import CHATROOM_FN
-
 
 class HipChatMUCOccupant(MUCOccupant):
     """
@@ -47,14 +45,16 @@ class HipChatMUCRoom(MUCRoom):
     """
     This class represents a Multi-User Chatroom.
     """
+
     def __init__(self, name):
         """
-        :param name:
-            The name of the room
-        """
+            :param name:
+                The name of the room
+            """
+        super().__init__()
         self.hypchat = holder.bot.conn.hypchat
         self.xep0045 = holder.bot.conn.client.plugin['xep_0045']
-        self.name = name
+        self._name = name
 
     @property
     def room(self):
@@ -98,7 +98,7 @@ class HipChatMUCRoom(MUCRoom):
         return "<HipChatMUCRoom('{}')>".format(self.name)
 
     def __str__(self):
-        return self.name
+        return self._name
 
     def join(self, username=None, password=None):
         """
@@ -286,11 +286,11 @@ class HipchatClient(XMPPConnection):
         """
         result = self.hypchat.users(expand='items')
         users = result['items']
-        next = 'next' in result['links']
-        while next:
+        next_link = 'next' in result['links']
+        while next_link:
             result = result.next()
             users += result['items']
-            next = 'next' in result['links']
+            next_link = 'next' in result['links']
         return users
 
 

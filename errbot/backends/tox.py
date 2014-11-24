@@ -8,13 +8,8 @@ from errbot.errBot import ErrBot
 import config
 from errbot.backends.base import Message, Identifier, Presence, Stream
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
-from errbot.backends.base import build_message, build_text_html_message_pair
-from errbot.backends.base import (STREAM_WAITING_TO_START,
-                                  STREAM_TRANSFER_IN_PROGRESS,
-                                  STREAM_SUCCESSFULLY_TRANSFERED,
-                                  STREAM_ERROR,
-                                  STREAM_PAUSED,
-                                  STREAM_REJECTED,)
+from errbot.backends.base import build_message
+from errbot.backends.base import STREAM_TRANSFER_IN_PROGRESS
 from threading import Thread
 
 try:
@@ -143,7 +138,7 @@ class ToxConnection(Tox):
 
     def on_group_message(self, group_number, friend_group_number, message):
         logging.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
-        msg = Message(message, typ='groupchat')
+        msg = Message(message, type_='groupchat')
         msg.frm = Identifier(node=str(group_number), resource=str(friend_group_number))
         msg.to = self.callback.jid
         logging.debug('TOX: callback with type = %s' % msg.type)
@@ -196,8 +191,8 @@ class ToxConnection(Tox):
                 logging.warning("This control_type is not supported yet %s" % control_type)
 
     def send_stream(self, friend_number, file_number):
+        stream = self.outgoing_streams[(friend_number, file_number)]
         try:
-            stream = self.outgoing_streams[(friend_number, file_number)]
             stream.accept()
             chunk_size = self.file_data_size(friend_number)
 

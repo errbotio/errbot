@@ -167,9 +167,6 @@ class IRCConnection(SingleServerIRCBot):
             username = nickname
         super().__init__([(server, port, password)], nickname, username)
 
-    def _dispatcher(self, c, e):
-        super()._dispatcher(c, e)
-
     def connect(self, *args, **kwargs):
         if self.use_ssl:
             import ssl
@@ -178,18 +175,18 @@ class IRCConnection(SingleServerIRCBot):
         else:
             self.connection.connect(*args, **kwargs)
 
-    def on_welcome(self, c, e):
+    def on_welcome(self, _, e):
         logging.info("IRC welcome %s" % e)
         self.callback.connect_callback()
 
-    def on_pubmsg(self, c, e):
+    def on_pubmsg(self, _, e):
         msg = Message(e.arguments[0], type_='groupchat')
         msg.frm = e.target
         msg.to = self.callback.jid
         msg.nick = e.source.split('!')[0]  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)
 
-    def on_privmsg(self, c, e):
+    def on_privmsg(self, _, e):
         msg = Message(e.arguments[0])
         msg.frm = e.source.split('!')[0]
         msg.to = e.target

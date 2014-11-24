@@ -207,7 +207,7 @@ class BotPlugin(BotPluginBase):
         """
             Triggered on every presence change.
 
-            :param message:
+            :param presence:
                 An instance of :class:`~errbot.backends.base.Presence`
                 representing the new presence state that was received.
         """
@@ -346,8 +346,6 @@ class BotPlugin(BotPluginBase):
 
         :param room:
             The JID/identifier of the room to query for.
-        :param create:
-            Set to `True` to automatically create the room if it doesn't exist.
         :returns:
             An instance of :class:`~errbot.backends.base.MUCRoom`.
         :raises:
@@ -420,7 +418,7 @@ class SeparatorArgParser(ArgParserBase):
 
     def __init__(self, separator=None, maxsplit=-1):
         """
-        :param sep:
+        :param separator:
             The separator on which arguments should be split. If sep is
             None, any whitespace string is a separator and empty strings
             are removed from the result.

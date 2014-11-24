@@ -19,7 +19,7 @@ BUF_SIZE = 16384
 SOCKET_TIMEOUT = 1 # in secs
 THREAD_STOP_CHECK_INTERVAL = 1 # in secs, How often should threads check for a server stop message?
 IS_JYTHON = platform.system() == 'Java' # Handle special cases for Jython
-IGNORE_ERRORS_ON_CLOSE = set([errno.ECONNABORTED, errno.ECONNRESET])
+IGNORE_ERRORS_ON_CLOSE = {errno.ECONNABORTED, errno.ECONNRESET}
 DEFAULT_LISTEN_QUEUE_SIZE = 5
 DEFAULT_MIN_THREADS = 10
 DEFAULT_MAX_THREADS = 0
@@ -30,7 +30,7 @@ DEFAULTS = dict(LISTEN_QUEUE_SIZE = DEFAULT_LISTEN_QUEUE_SIZE,
 PY3K = sys.version_info[0] > 2
 
 class NullHandler(logging.Handler):
-    "A Logging handler to prevent library errors."
+    """A Logging handler to prevent library errors."""
     def emit(self, record):
         pass
 
@@ -191,7 +191,7 @@ class FileLikeSocket(object):
                 exc = sys.exc_info()
                 e = exc[1]
                 # FIXME - Don't raise socket_errors_nonblocking or socket_error_eintr
-                if (e.args[0] not in set()):
+                if e.args[0] not in set():
                     raise
 
     def next(self):
@@ -299,8 +299,8 @@ except ImportError:
 
 
 class WSGIFuture(Future):
-    def __init__(self, f_dict, *args, **kwargs):
-        Future.__init__(self, *args, **kwargs)
+    def __init__(self, f_dict):
+        Future.__init__(self)
 
         self.timeout = None
 
@@ -377,7 +377,7 @@ class WSGIExecutor(ThreadPoolExecutor):
             return False
 
 class FuturesMiddleware(object):
-    "Futures middleware that adds a Futures Executor to the environment"
+    """Futures middleware that adds a Futures Executor to the environment"""
     def __init__(self, app, threads=5):
         self.app = app
         self.executor = WSGIExecutor(threads)
@@ -1100,7 +1100,7 @@ class ThreadPool:
             self.active_queue.put(None)
 
     def dynamic_resize(self):
-        if (self.max_threads > self.min_threads or self.max_threads == 0):
+        if self.max_threads > self.min_threads or self.max_threads == 0:
             if self.check_for_dead_threads > 0:
                 self.bring_out_your_dead()
 
@@ -1178,7 +1178,7 @@ Content-Type: %s
 %s
 '''
 if IS_JYTHON:
-    HTTP_METHODS = set(['OPTIONS', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'TRACE', 'CONNECT'])
+    HTTP_METHODS = {'OPTIONS', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'TRACE', 'CONNECT'}
 
 class Worker(Thread):
     """The Worker class is a base class responsible for receiving connections
@@ -1468,15 +1468,15 @@ class Worker(Thread):
         return headers
 
 class SocketTimeout(Exception):
-    "Exception for when a socket times out between requests."
+    """Exception for when a socket times out between requests."""
     pass
 
 class BadRequest(Exception):
-    "Exception for when a client sends an incomprehensible request."
+    """Exception for when a client sends an incomprehensible request."""
     pass
 
 class SocketClosed(Exception):
-    "Exception for when a socket is closed by the client."
+    """Exception for when a socket is closed by the client."""
     pass
 
 class ChunkedReader(object):
@@ -1620,7 +1620,7 @@ class FileSystemWorker(Worker):
                     self.data = FileWrapper(f, CHUNK_SIZE)
                 else:
                     f.seek(start)
-                    self.data = LimitingFileWrapper(f, CHUNK_SIZE, limit=end)
+                    self.data = LimitingFileWrapper(f, blksize=CHUNK_SIZE, limit=end)
                     self.status = "206 Partial Content"
             except:
                 self.data = FileWrapper(f, CHUNK_SIZE)

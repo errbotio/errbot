@@ -11,13 +11,13 @@ except ImportError:
     """)
     sys.exit(-1)
 
-from errbot.backends.base import Message, Connection, build_message
+from errbot.backends.base import Message, build_message, Identifier
 from errbot.errBot import ErrBot
 from threading import Condition
 from config import CHATROOM_PRESENCE
 
 
-class CampfireConnection(Connection, pyfire.Campfire):
+class CampfireConnection(pyfire.Campfire):
     rooms = {}  # keep track of joined room so we can send messages directly to them
 
     def join_room(self, name, msg_callback, error_callback):
@@ -42,6 +42,7 @@ class CampfireBackend(ErrBot):
         self.username = username
         self.password = password
         self.ssl = ssl
+        self.jid = None
 
     def send_message(self, mess):
         super(CampfireBackend, self).send_message(mess)
@@ -63,7 +64,7 @@ class CampfireBackend(ErrBot):
         try:
             logging.info("Campfire connected.")
             self.exit_lock.wait()
-        except KeyboardInterrupt as ki:
+        except KeyboardInterrupt:
             pass
         finally:
             self.exit_lock.release()
@@ -83,7 +84,7 @@ class CampfireBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        return Message(text, typ='groupchat')  # it is always a groupchat in campfire
+        return Message(text, type_='groupchat')  # it is always a groupchat in campfire
 
     def shutdown(self):
         super(CampfireBackend, self).shutdown()

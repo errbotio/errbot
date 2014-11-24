@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+from itertools import starmap, repeat
 import logging
-import inspect
 import os
 import re
 from html import entities
@@ -78,8 +78,8 @@ def tail(f, window=20):
 
 
 def which(program):
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+    def is_exe(file_path):
+        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
 
     fpath, fname = os.path.split(program)
     if fpath:
@@ -172,23 +172,23 @@ def unescape_xml(text):
     """
 
     def fixup(m):
-        text = m.group(0)
-        if text[:2] == "&#":
+        txt = m.group(0)
+        if txt[:2] == "&#":
             # character reference
             try:
-                if text[:3] == "&#x":
-                    return chr(int(text[3:-1], 16))
+                if txt[:3] == "&#x":
+                    return chr(int(txt[3:-1], 16))
                 else:
-                    return chr(int(text[2:-1]))
+                    return chr(int(txt[2:-1]))
             except ValueError:
                 pass
         else:
             # named entity
             try:
-                text = chr(entities.name2codepoint[text[1:-1]])
+                txt = chr(entities.name2codepoint[txt[1:-1]])
             except KeyError:
                 pass
-        return text  # leave as is
+        return txt  # leave as is
 
     return re.sub("&#?\w+;", fixup, text)
 
@@ -285,7 +285,7 @@ class deprecated(object):
                 else:
                     msg += '... use %s%s instead' % (pref, self.new.__name__)
             msg += '.'
-            logging.warn(msg)
+            logging.warning(msg)
 
             if self.new:
                 if type(self.new) is property:
@@ -297,3 +297,13 @@ class deprecated(object):
         wrapper.__doc__ = old.__doc__
         wrapper.__dict__.update(old.__dict__)
         return wrapper
+
+# From the itertools receipes
+def repeatfunc(func, times=None, *args):
+    """Repeat calls to func with specified arguments.
+
+    Example:  repeatfunc(random.random)
+    """
+    if times is None:
+        return starmap(func, repeat(args))
+    return starmap(func, repeat(args, times))

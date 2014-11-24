@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
             daemon = Daemonize(app="err", pid=pid, action=action)
             daemon.start()
-        except Exception as _:
+        except Exception:
             logging.exception('Failed to daemonize the process')
         exit(0)
     from errbot.main import main

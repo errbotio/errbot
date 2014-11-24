@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 3 of the License, or
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
 #    (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
@@ -15,8 +15,12 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import logging
+from colorlog import ColoredFormatter
+import sys
+import argparse
 from os import path, sep, getcwd, access, W_OK
 from platform import system
+import inspect
 
 
 # noinspection PyUnusedLocal
@@ -33,10 +37,13 @@ def debug(sig, frame):
     i.interact(message)
 
 
-ON_WINDOWS = system() == 'Windows'
+def ispydevd():
+    for frame in inspect.stack():
+        if frame[1].endswith("pydevd.py"):
+            return True
+    return False
 
-import sys
-import argparse
+ON_WINDOWS = system() == 'Windows'
 
 if not ON_WINDOWS:
     from daemonize import Daemonize
@@ -48,11 +55,33 @@ if not ON_WINDOWS:
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
-logging.basicConfig(format='%(levelname)s:%(name)s:%(message)s')
 logger = logging.getLogger('')
 logging.getLogger('yapsy').setLevel(logging.INFO)  # this one is way too verbose in debug
 logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one is way too verbose in debug
 logger.setLevel(logging.INFO)
+
+pydev = ispydevd()
+stream = sys.stdout if pydev else sys.stderr
+isatty = pydev or stream.isatty()  # force isatty if we are under pydev because it supports coloring anyway.
+console_hdlr = logging.StreamHandler(stream)
+
+if isatty:
+    formatter = ColoredFormatter(
+        "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(name)-25.25s%(reset)s %(white)s%(message)s%(reset)s",
+        datefmt=None,
+        reset=True,
+        log_colors={
+            'DEBUG': 'cyan',
+            'INFO': 'green',
+            'WARNING': 'yellow',
+            'ERROR': 'red',
+            'CRITICAL': 'red',
+        }
+    )
+    console_hdlr.setFormatter(formatter)
+else:
+    console_hdlr.setFormatter(logging.Formatter("%(levelname)-8s %(name)-25s %(message)s"))
+logger.addHandler(console_hdlr)
 
 
 def check_config(config_path, mode):
@@ -136,34 +165,42 @@ if __name__ == "__main__":
 
     def text():
         from errbot.backends.text import TextBackend
+
         return TextBackend
 
     def graphic():
         from errbot.backends.graphic import GraphicBackend
+
         return GraphicBackend
 
     def campfire():
         from errbot.backends.campfire import CampfireBackend
+
         return CampfireBackend
 
     def hipchat():
         from errbot.backends.hipchat import HipchatBackend
+
         return HipchatBackend
 
     def irc():
         from errbot.backends.irc import IRCBackend
+
         return IRCBackend
 
     def xmpp():
         from errbot.backends.xmpp import XMPPBackend
+
         return XMPPBackend
 
     def tox():
         from errbot.backends.tox import ToxBackend
+
         return ToxBackend
 
     def null():
         from errbot.backends.null import NullBackend
+
         return NullBackend
 
     bot_class = locals()[mode]()

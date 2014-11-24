@@ -298,8 +298,8 @@ class deprecated(object):
         wrapper.__dict__.update(old.__dict__)
         return wrapper
 
-# From the itertools receipes
-def repeatfunc(func, times=None, *args):
+
+def repeatfunc(func, times=None, *args):  # from the itertools receipes
     """Repeat calls to func with specified arguments.
 
     Example:  repeatfunc(random.random)

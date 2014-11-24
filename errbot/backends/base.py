@@ -457,6 +457,7 @@ STREAM_REJECTED = 'rejected'
 
 DEFAULT_REASON = 'unknown'
 
+
 class Stream(io.BufferedReader):
     """
        This class represents a stream request.
@@ -1287,3 +1288,4 @@ def get_jid_from_message(mess):
     fr = mess.frm
     jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
     return jid
+

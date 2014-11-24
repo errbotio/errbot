@@ -13,12 +13,12 @@ from yapsy.PluginManager import PluginManager
 # hardcoded directory for the system plugins
 from errbot import holder
 
-BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
-if PY2:  # keys needs to be byte strings en shelves under python 2
-    BUILTIN = BUILTIN.encode()
+BUILTIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'builtins')
+
+try:
+    from importlib import reload  # new in python 3.4
+except ImportError:
     from imp import reload
-else:
-    from importlib import reload
 
 
 class IncompatiblePluginException(Exception):

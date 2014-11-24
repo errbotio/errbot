@@ -36,8 +36,10 @@ def main(bot_class, logger):
     d = BOT_DATA_DIR + sep + str(PLUGINS_SUBDIR)
     if not path.exists(d):
         makedirs(d, mode=0o755)
-
-    holder.bot = bot_class(**BOT_IDENTITY)
+    try:
+        holder.bot = bot_class(**BOT_IDENTITY)
+    except Exception:
+        logging.exception("Unable to configure the backend, please check if your config.py is correct.")
     errors = holder.bot.update_dynamic_plugins()
     if errors:
         logging.error('Some plugins failed to load:\n' + '\n'.join(errors))

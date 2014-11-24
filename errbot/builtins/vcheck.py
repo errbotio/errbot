@@ -41,7 +41,7 @@ class VersionChecker(BotPlugin):
                     'Version {0} of err is available. http://pypi.python.org/pypi/err/{0}. You can disable this check '
                     'by doing !unload VersionChecker followed by !blacklist VersionChecker'.format(current_version_txt)
                 )
-        except Exception as e:
+        except Exception:
             logging.exception('Could not version check')
 
     def callback_connect(self):

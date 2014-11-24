@@ -1,13 +1,13 @@
 import logging
 import sys
-
 import unittest
-import pytest
-
 from os.path import sep, abspath
 from queue import Queue
 from tempfile import mkdtemp
 from threading import Thread
+
+import pytest
+
 
 __import__('errbot.config-template')
 config_module = sys.modules['errbot.config-template']
@@ -22,8 +22,7 @@ config_module.BOT_LOG_LEVEL = logging.DEBUG
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
 from errbot.backends.base import (
-    Message, build_message, Identifier, MUCRoom, MUCOccupant,
-    RoomDoesNotExistError
+    Message, build_message, Identifier, MUCRoom, MUCOccupant
 )
 from errbot.builtins.wsview import reset_app
 from errbot.errBot import ErrBot
@@ -142,16 +141,19 @@ class MUCRoom(MUCRoom):
 
 
 class TestBackend(ErrBot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.jid = Identifier('Err')  # whatever
+        import config
+        self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
+
     def send_message(self, mess):
         super(TestBackend, self).send_message(mess)
         outgoing_message_queue.put(mess.body)
 
     def serve_forever(self):
-        import config
 
-        self.jid = Identifier('Err')  # whatever
         self.connect_callback()  # notify that the connection occured
-        self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
         try:
             while True:
                 stanza_type, entry = incoming_stanza_queue.get()
@@ -171,9 +173,9 @@ class TestBackend(ErrBot):
                 else:
                     logging.error("Unknown stanza type.")
 
-        except EOFError as _:
+        except EOFError:
             pass
-        except KeyboardInterrupt as _:
+        except KeyboardInterrupt:
             pass
         finally:
             logging.debug("Trigger disconnect callback")

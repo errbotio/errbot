@@ -9,14 +9,16 @@ from errbot.utils import version2array, PY3
 from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
 from errbot.version import VERSION
 from yapsy.PluginManager import PluginManager
-from imp import reload
 
 # hardcoded directory for the system plugins
 from errbot import holder
 
-BUILTIN = str(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'builtins'
-if PY2:  # keys needs to be byte strings en shelves under python 2
-    BUILTIN = BUILTIN.encode()
+BUILTIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'builtins')
+
+try:
+    from importlib import reload  # new in python 3.4
+except ImportError:
+    from imp import reload
 
 
 class IncompatiblePluginException(Exception):
@@ -170,17 +172,17 @@ def reload_plugin_by_name(name):
     plugin.plugin_object.__class__ = new_class
 
 
-def update_plugin_places(list):
+def update_plugin_places(path_list):
     from config import BOT_EXTRA_PLUGIN_DIR
 
     builtins = get_builtins(BOT_EXTRA_PLUGIN_DIR)
-    for entry in chain(builtins, list):
+    for entry in chain(builtins, path_list):
         if entry not in sys.path:
             sys.path.append(entry)  # so the plugins can relatively import their submodules
 
-    errors = [check_dependencies(path) for path in list]
+    errors = [check_dependencies(path) for path in path_list]
     errors = [error for error in errors if error is not None]
-    simplePluginManager.setPluginPlaces(chain(builtins, list))
+    simplePluginManager.setPluginPlaces(chain(builtins, path_list))
     all_candidates = []
 
     def add_candidate(candidate):

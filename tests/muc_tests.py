@@ -6,7 +6,7 @@ from errbot.plugin_manager import get_plugin_obj_by_name
 
 
 class TestMUC(object):
-    extra_plugin_dir = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'room_tests'
+    extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_tests')
 
     def test_plugin_methods(self, testbot):
         p = get_plugin_obj_by_name('ChatRoom')

@@ -3,8 +3,7 @@ import logging
 import os
 from json import loads
 from random import random
-from threading import Thread
-from errbot import holder, PY3
+from errbot import PY3
 from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION

@@ -13,8 +13,11 @@ A_BLUE = '\x1b[34m'
 
 class TextBackend(ErrBot):
 
-    def serve_forever(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.jid = Identifier('Err')
+
+    def serve_forever(self):
         me = Identifier(config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=me, status=ONLINE))
@@ -28,9 +31,9 @@ class TextBackend(ErrBot):
                 msg.frm = me
                 msg.to = self.jid
                 self.callback_message(msg)
-        except EOFError as eof:
+        except EOFError:
             pass
-        except KeyboardInterrupt as ki:
+        except KeyboardInterrupt:
             pass
         finally:
             # simulate some real presence

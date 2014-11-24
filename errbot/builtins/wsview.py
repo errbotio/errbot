@@ -13,10 +13,10 @@ from errbot.plugin_manager import get_all_active_plugin_objects
 class DynamicBottle(Bottle):
     def del_route(self, route_name):
         deleted_route = None
-        for route in self.routes[:]:
-            if route.name == route_name:
-                self.routes.remove(route)
-                deleted_route = route
+        for route_ in self.routes[:]:
+            if route_.name == route_name:
+                self.routes.remove(route_)
+                deleted_route = route_
                 break
         if not deleted_route:
             raise ValueError('Cannot find the route %s to delete' % route_name)
@@ -28,8 +28,8 @@ bottle_app = DynamicBottle()
 route = bottle_app.route  # make that the default
 
 
-def try_decode_json(request):
-    data = request.body.read().decode()
+def try_decode_json(req):
+    data = req.body.read().decode()
     try:
         return loads(data)
     except Exception as _:
@@ -50,7 +50,7 @@ class WebView(object):
         self.func = func
         self.raw = raw
         self.form_param = form_param
-        self.method_filter = lambda object: ismethod(object) and self.func.__name__ == object.__name__
+        self.method_filter = lambda obj: ismethod(obj) and self.func.__name__ == obj.__name__
 
     def __call__(self, *args, **kwargs):
         name_to_find = self.func.__name__

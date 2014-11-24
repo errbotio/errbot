@@ -22,6 +22,9 @@ class StoreMixin(MutableMapping):
      This class handle the basic needs of bot plugins and core like loading, unloading and creating a storage
     """
 
+    def __init__(self):
+        self.shelf = None
+
     def open_storage(self, path):
         if hasattr(self, 'shelf') and self.shelf is not None:
             raise StoreAlreadyOpenError("Storage appears to be opened already")

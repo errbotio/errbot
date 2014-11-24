@@ -39,7 +39,7 @@ def webserver(testbot):
 
 
 class TestWebhooks(object):
-    extra_plugin_dir = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'webhooks_tests'
+    extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'webhooks_tests')
 
     def test_not_configured_url_returns_404(self, testbot):
         assert requests.post(

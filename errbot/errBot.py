@@ -171,9 +171,9 @@ class ErrBot(Backend, StoreMixin):
 
                     # backward compatibility from the time we needed conn
                     if len(inspect.getargspec(bot.callback_message).args) == 3:
-                        logging.warn('Deprecation: Plugin %s uses the old callback_message convention, '
-                                     'now the signature should be simply def callback_message(self, mess)'
-                                     % bot.__class__.__name__)
+                        logging.warning('Deprecation: Plugin %s uses the old callback_message convention, '
+                                        'now the signature should be simply def callback_message(self, mess)'
+                                        % bot.__class__.__name__)
                         bot.callback_message(None, mess)
                     else:
                         bot.callback_message(mess)
@@ -348,7 +348,7 @@ class ErrBot(Backend, StoreMixin):
         """ Return the uptime of the bot
         """
         return "I've been up for %s %s (since %s)" % (args, format_timedelta(datetime.now() - self.startup_time),
-                                                      datetime.strftime(self.startup_time, '%A, %b %d at %H:%M'))
+                                                      self.startup_time.strftime('%A, %b %d at %H:%M'))
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)

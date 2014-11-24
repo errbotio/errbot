@@ -1,4 +1,4 @@
-from os import path, makedirs, sep, getcwd
+from os import path, makedirs, sep
 import logging
 
 

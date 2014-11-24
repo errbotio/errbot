@@ -3,12 +3,9 @@ import os
 import io
 from threading import Thread
 from errbot.backends.base import (STREAM_WAITING_TO_START,
-                                  STREAM_TRANSFER_IN_PROGRESS,
-                                  STREAM_SUCCESSFULLY_TRANSFERED,
-                                  STREAM_ERROR,
-                                  STREAM_PAUSED,
-                                  STREAM_REJECTED,)
+                                  STREAM_TRANSFER_IN_PROGRESS)
 import logging
+from errbot.utils import repeatfunc
 
 CHUNK_SIZE = 4096
 
@@ -29,8 +26,7 @@ class Tee(object):
     def run(self):
         """ streams to all the clients synchronously """
         nb_clients = len(self.clients)
-        pipes = [os.pipe() for i in range(nb_clients)]
-        pipes = [(io.open(r, 'rb'), io.open(w, 'wb')) for r, w in pipes]
+        pipes = [(io.open(r, 'rb'), io.open(w, 'wb')) for r, w in repeatfunc(os.pipe, nb_clients)]
         streams = [self.incoming_stream.clone(pipe[0]) for pipe in pipes]
 
         def streamer(index):
@@ -49,10 +45,10 @@ class Tee(object):
                     # if the plugin didn't do it by itself, mark the transfer as a success.
                     streams[index].success()
             # stop the stream if the callback_stream returns
-            r, w = pipes[index]
+            read, write = pipes[index]
             pipes[index] = (None, None)  # signal the main thread to stop streaming
-            r.close()
-            w.close()
+            read.close()
+            write.close()
 
         threads = [Thread(target=streamer, args=(i,)) for i in range(nb_clients)]
 

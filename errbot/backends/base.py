@@ -2,7 +2,6 @@ import difflib
 import inspect
 import io
 import logging
-import shlex
 import traceback
 import warnings
 
@@ -456,6 +455,8 @@ STREAM_PAUSED = 'paused'
 STREAM_ERROR = 'error'
 STREAM_REJECTED = 'rejected'
 
+DEFAULT_REASON = 'unknown'
+
 
 class Stream(io.BufferedReader):
     """
@@ -472,6 +473,7 @@ class Stream(io.BufferedReader):
         self._size = size
         self._stream_type = stream_type
         self._status = STREAM_WAITING_TO_START
+        self._reason = DEFAULT_REASON
 
     @property
     def identifier(self):
@@ -526,7 +528,7 @@ class Stream(io.BufferedReader):
             raise ValueError("Invalid state, the stream is not pending.")
         self._status = STREAM_REJECTED
 
-    def error(self, reason="unknown"):
+    def error(self, reason=DEFAULT_REASON):
         """
             An internal plugin error prevented the transfer.
         """
@@ -1020,16 +1022,16 @@ class Backend(object):
 
         """
 
-        def process_reply(reply):
+        def process_reply(reply_):
             # integrated templating
             if template_name:
-                reply = tenv().get_template(template_name + '.html').render(**reply)
+                reply_ = tenv().get_template(template_name + '.html').render(**reply_)
 
             # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
-            return str(reply)
+            return str(reply_)
 
-        def send_reply(reply):
-            for part in split_string_after(reply, self.MESSAGE_SIZE_LIMIT):
+        def send_reply(reply_):
+            for part in split_string_after(reply_, self.MESSAGE_SIZE_LIMIT):
                 self.send_simple_reply(mess, part, cmd in DIVERT_TO_PRIVATE)
 
         commands = self.re_commands if match else self.commands
@@ -1092,7 +1094,7 @@ class Backend(object):
             if not self.is_admin(usr):
                 raise ACLViolation("This command requires bot-admin privileges")
 
-    def unknown_command(self, mess, cmd, args):
+    def unknown_command(self, _, cmd, args):
         """ Override the default unknown command behavior
         """
         full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
@@ -1177,7 +1179,7 @@ class Backend(object):
             usage = '\n'.join(sorted([
                 BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
                                                 '(undocumented)').strip().split('\n', 1)[0])
-                for (name, command) in self.commands.iteritems()
+                for (name, command) in self.commands.items()
                 if name != 'help'
                 and not command._err_command_hidden
             ]))

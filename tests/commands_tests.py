@@ -206,7 +206,7 @@ class TestCommands(FullStackTest):
         self.assertEqual("Plugin ChatRoom is now blacklisted", pop_message())
 
         push_message("!status plugins")
-        self.assertIn("[BL] ChatRoom", pop_message())
+        self.assertIn("[B,L] ChatRoom", pop_message())
 
         # Needed else configuration for this plugin gets saved which screws up
         # other tests
@@ -231,7 +231,7 @@ class TestCommands(FullStackTest):
         self.assertEqual("Plugin ChatRoom is already blacklisted", pop_message())
 
         push_message("!status plugins")
-        self.assertIn("[BL] ChatRoom", pop_message())
+        self.assertIn("[B,L] ChatRoom", pop_message())
 
         push_message('!unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom removed from blacklist', pop_message())

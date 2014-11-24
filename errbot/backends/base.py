@@ -1288,4 +1288,3 @@ def get_jid_from_message(mess):
     fr = mess.frm
     jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
     return jid
-

@@ -21,35 +21,28 @@ from platform import system
 
 py_version = sys.version_info[:2]
 PY2 = py_version[0] == 2
+PY3 = not PY2
 ON_WINDOWS = system() == 'Windows'
 
+if py_version < (2, 7):
+    raise RuntimeError('Err requires Python 2.7 or later')
+
+if PY3 and py_version < (3, 3):
+    raise RuntimeError('On Python 3, Err requires Python 3.3 or later')
+
+deps = ['webtest',
+        'setuptools',
+        'yapsy',
+        'bottle',
+        'requests',
+        'jinja2',
+        'pyOpenSSL',
+        'colorlog']
+
 if PY2:
-    if py_version < (2, 7):
-        raise RuntimeError(
-            'On Python 2, Err requires Python 2.7 or later')
-
-    deps = ['webtest',
-            'setuptools',
-            'yapsy',
-            'bottle',
-            'requests',
-            'jinja2',
-            'pyOpenSSL',
-            'dnspython',  # dnspython for SRV records
-            'config']
+    deps += ['dnspython', 'config']  # dnspython for SRV records
 else:
-    if py_version < (3, 3):
-        raise RuntimeError(
-            'On Python 3, Err requires Python 3.3 or later')
-
-    deps = ['webtest',
-            'setuptools',
-            'yapsy',
-            'bottle',
-            'requests',
-            'jinja2',
-            'pyOpenSSL',
-            'dnspython3']  # requests are for the unittests, dnspython for SRV records
+    deps += ['dnspython3']  # requests are for the unittests, dnspython for SRV records
 
 if not ON_WINDOWS:
     deps += ['daemonize']

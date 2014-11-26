@@ -25,10 +25,10 @@ PY3 = not PY2
 ON_WINDOWS = system() == 'Windows'
 
 if py_version < (2, 7):
-      raise RuntimeError('Err requires Python 2.7 or later')
+    raise RuntimeError('Err requires Python 2.7 or later')
 
 if PY3 and py_version < (3, 3):
-      raise RuntimeError('On Python 3, Err requires Python 3.3 or later')
+    raise RuntimeError('On Python 3, Err requires Python 3.3 or later')
 
 deps = ['webtest',
         'setuptools',
@@ -40,7 +40,7 @@ deps = ['webtest',
         'colorlog']
 
 if PY2:
-    deps += ['dnspython', 'config'] # dnspython for SRV records
+    deps += ['dnspython', 'config']  # dnspython for SRV records
 else:
     deps += ['dnspython3']  # requests are for the unittests, dnspython for SRV records
 

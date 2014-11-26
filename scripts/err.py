@@ -67,7 +67,8 @@ console_hdlr = logging.StreamHandler(stream)
 
 if isatty:
     formatter = ColoredFormatter(
-        "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s %(blue)s%(name)-25.25s%(reset)s %(white)s%(message)s%(reset)s",
+        "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s "
+        "%(blue)s%(name)-25.25s%(reset)s %(white)s%(message)s%(reset)s",
         datefmt="%H:%M:%S",
         reset=True,
         log_colors={

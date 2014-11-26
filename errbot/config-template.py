@@ -79,6 +79,9 @@ BOT_IDENTITY = {
     # 'username' : 'errbot',
     # 'password' : 'changeme',
 
+    ## TOX Mode (comment the others above if using this mode)
+    # BOT_IDENTITY = {'username': 'errbot',}
+
     ## IRC mode (Comment the others above if using this mode)
     # 'nickname' : 'err-chatbot',
     # 'username' : 'err-chatbot',    # optional, defaults to nickname if omitted
@@ -88,12 +91,17 @@ BOT_IDENTITY = {
     # 'ssl': False,                  # optional
 }
 
+## TOX Mode
+# TOX_BOOTSTRAP_SERVER = ["54.199.139.199", 33445, "7F9C31FE850E97CEFD4C4591DF93FC757C7C12549DDD55F8EEAECC34FE76C029"]
+
 # Set the admins of your bot. Only these users will have access
 # to the admin-only commands.
 #
-# Note: With campfire this should be the full name of a person, like so: 
+# Campfire syntax is the full name:
 # BOT_ADMINS = ('Guillaume Binet',)
 #
+# TOX syntax is a hash.
+# BOT_ADMINS = ['F9886B47503FB80E6347CC0907D8000144305796DE54693253AA5E574E5E8106C7D002557189', ]
 BOT_ADMINS = ('gbin@localhost',)
 
 # Chatrooms your bot should join on startup. For the IRC backend you 

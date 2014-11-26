@@ -13,7 +13,7 @@ from errbot.backends.base import STREAM_TRANSFER_IN_PROGRESS
 from threading import Thread
 
 try:
-    from tox import Tox, OperationFailedError
+    from pytox import Tox, OperationFailedError
 except ImportError:
     logging.exception("Could not start the tox")
     logging.fatal("""
@@ -94,13 +94,13 @@ class ToxConnection(Tox):
         logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
         self.add_friend_norequest(friend_pk)
 
-    def on_group_invite(self, friend_number, group_pk):
-        logging.info('TOX: Group invite from %s : %s' % (self.get_name(friend_number), group_pk))
+    def on_group_invite(self, friend_number, type_, data):
+        logging.info('TOX: Group invite from %s : %s' % (self.get_name(friend_number), data))
 
         if not self.backend.is_admin(friend_number):
             super(ToxConnection, self).send_message(friend_number, NOT_ADMIN)
             return
-        self.join_groupchat(friend_number, group_pk)
+        self.join_groupchat(friend_number, data)
 
     def on_friend_message(self, friend_number, message):
         msg = Message(message)
@@ -140,7 +140,7 @@ class ToxConnection(Tox):
         logging.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
         msg = Message(message, type_='groupchat')
         msg.frm = Identifier(node=str(group_number), resource=str(friend_group_number))
-        msg.to = self.callback.jid
+        msg.to = self.backend.jid
         logging.debug('TOX: callback with type = %s' % msg.type)
         self.backend.callback_message(msg)
 

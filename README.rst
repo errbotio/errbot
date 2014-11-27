@@ -130,6 +130,10 @@ For the XMPP based backends you must also install::
     pyasn1-modules
     dnspython3  # dnspython for Python 2.7
 
+For the TOX backend, you must install::
+
+    PyTox
+
 For the IRC backend, you must install::
 
     irc

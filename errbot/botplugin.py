@@ -23,6 +23,15 @@ class BotPluginBase(StoreMixin):
         self.current_timers = []
         super(BotPluginBase, self).__init__()
 
+    @property
+    def mode(self):
+        """
+        Get the current active backend.
+
+        :return: the mode like 'tox', 'xmpp' etc...
+        """
+        return holder.bot.mode
+
     def activate(self):
         """
             Override if you want to do something at initialization phase (don't forget to
@@ -265,19 +274,6 @@ class BotPlugin(BotPluginBase):
             :param room:
                 An instance of :class:`~errbot.backends.base.MUCRoom`
                 representing the room for which the topic changed.
-        """
-        pass
-
-    def callback_presence(self, presence):
-        """
-            Triggered on every presence change event.
-
-            Override to get a notification when a contact changes its presence
-            status.
-
-            :param presence:
-                An instance of :class:`~errbot.backends.base.Presence`
-                representing the presence that was received.
         """
         pass
 

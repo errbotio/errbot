@@ -1,12 +1,14 @@
+import codecs
 import logging
 import sys
 from time import sleep
 import os
 from os.path import exists, join
 import io
+from errbot.backends import base
 from errbot.errBot import ErrBot
 import config
-from errbot.backends.base import Message, Identifier, Presence, Stream
+from errbot.backends.base import Message, Identifier, Presence, Stream, MUCRoom
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.backends.base import build_message
 from errbot.backends.base import STREAM_TRANSFER_IN_PROGRESS
@@ -50,13 +52,13 @@ TOX_TO_ERR_STATUS = {
     Tox.USERSTATUS_NONE: ONLINE,
     Tox.USERSTATUS_AWAY: AWAY,
     Tox.USERSTATUS_BUSY: DND,
-    }
+}
 
 TOX_GROUP_TO_ERR_STATUS = {
     Tox.CHAT_CHANGE_PEER_ADD: ONLINE,
     Tox.CHAT_CHANGE_PEER_DEL: AWAY,
     Tox.CHAT_CHANGE_PEER_NAME: None,
-    }
+}
 
 
 class ToxStreamer(io.BufferedRWPair):
@@ -75,10 +77,9 @@ class ToxConnection(Tox):
         if exists(TOX_STATEFILE):
             self.load_from_file(TOX_STATEFILE)
         self.set_name(name)
+        self.rooms = set()  # keep track of joined room
 
         logging.info('TOX: ID %s' % self.get_address())
-
-    rooms = {}  # keep track of joined room so we can send messages directly to them
 
     def connect(self):
         logging.info('TOX: connecting...')
@@ -95,12 +96,20 @@ class ToxConnection(Tox):
         self.add_friend_norequest(friend_pk)
 
     def on_group_invite(self, friend_number, type_, data):
-        logging.info('TOX: Group invite from %s : %s' % (self.get_name(friend_number), data))
+        data_hex = codecs.encode(data, 'hex_codec')
+        logging.info('TOX: Group invite from %s : %s' % (self.get_name(friend_number), data_hex))
 
         if not self.backend.is_admin(friend_number):
             super(ToxConnection, self).send_message(friend_number, NOT_ADMIN)
             return
-        self.join_groupchat(friend_number, data)
+        try:
+            groupnumber = self.join_groupchat(friend_number, data)
+            if groupnumber >= 0:
+                self.rooms.add(TOXMUCRoom(self, groupnumber))
+            else:
+                logging.error("Error joining room %s", data_hex)
+        except OperationFailedError:
+            logging.exception("Error joining room %s", data_hex)
 
     def on_friend_message(self, friend_number, message):
         msg = Message(message)
@@ -223,8 +232,86 @@ class ToxConnection(Tox):
         self.outgoing_streams[(friend_number, file_number)] = stream
 
 
-class ToxBackend(ErrBot):
+class TOXMUCRoom(MUCRoom):
+    def __init__(self, conn, group_number=None):
+        if group_number is not None:
+            super().__init__(str(group_number))
+        else:
+            super().__init__(None)  # needed to properly initialize an identity.
 
+        self.conn = conn
+
+    @property
+    def group_number(self):
+        return int(self.node)
+
+    def join(self, username=None, password=None):
+        logging.warning("TOX: you need to be invited to be able to join a chatgroup.")
+
+    def leave(self, reason=None):
+        if reason:
+            self.conn.group_message_send(self.group_number, "/me is leaving: " + reason)
+        self.destroy()
+
+    def create(self):
+        if self.node:
+            raise ValueError("Cannot create an already created chatgroup.")
+        gid = self.conn.add_groupchat()
+        if gid < 0:
+            raise Exception("Error creating chatgroup")
+        self.conn.rooms.add(self)
+        self._node = str(gid)
+
+    def destroy(self):
+        if self.node is None:
+            logging.warning("TOX: this chatgroup is already gone.")
+            return
+        self.conn.del_groupchat(self.group_number)
+        self.conn.rooms.remove(self)
+        self._node = None
+
+    @property
+    def exists(self):
+        return self.node
+
+    @property
+    def joined(self):
+        return self.node
+
+    @property
+    def topic(self):
+        if self.joined:
+            return self.conn.group_get_title(self.group_number)
+        return "[Not Joined]"
+
+    def set_topic(self, topic):
+        if self.joined:
+            self.conn.group_set_title(self.group_number, topic)
+
+    @property
+    def occupants(self):
+        if self.joined:
+            return [base.MUCOccupant(name) for name in self.conn.group_get_names(self.group_number)]
+        return []
+
+    def invite(self, *jids):
+        if self.joined:
+            for friend_id in jids:
+                logging.debug("Invite friend %i in group %i", int(friend_id), self.group_number)
+                self.conn.invite_friend(int(friend_id), self.group_number)
+        raise ValueError("This chatgroup is not joined, you cannot invite anybody.")
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        if self.joined:
+            return "ChatRoom #%s: %s" % (self.node, self.topic)
+        else:
+            return "Unjoined Room"
+
+
+class ToxBackend(ErrBot):
     def __init__(self, username):
         super(ToxBackend, self).__init__()
         self.conn = ToxConnection(self, username)
@@ -244,7 +331,7 @@ class ToxBackend(ErrBot):
             # this might be directly a pk
             number = self.conn.get_friend_id(mess.to.node)
 
-        subparts = [body[i:i+TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
+        subparts = [body[i:i + TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
         try:
             if mess.type == 'groupchat':
                 logging.debug('TOX: sending to group number %i', number)
@@ -305,3 +392,14 @@ class ToxBackend(ErrBot):
     @property
     def mode(self):
         return 'tox'
+
+    def rooms(self):
+        return list(self.conn.rooms)
+
+    def query_room(self, room):
+        if room is None:
+            return TOXMUCRoom(self.conn)  # either it is a new room
+        for gc in self.conn.rooms:  # or it must exist here.
+            if gc.node == room:
+                return gc
+        return None

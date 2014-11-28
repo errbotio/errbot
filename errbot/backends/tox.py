@@ -39,8 +39,7 @@ except ImportError:
 # Backend notes
 #
 # TOX mapping to Err Identifier :
-# TOX friend number -> node
-# TOX name -> resource
+# TOX client_id as hash string -> node
 
 
 TOX_STATEFILE = join(config.BOT_DATA_DIR, 'tox.state')
@@ -85,11 +84,28 @@ class ToxConnection(Tox):
         logging.info('TOX: connecting...')
         self.bootstrap_from_address(*TOX_BOOTSTRAP_SERVER)
 
-    def friend_to_idd(self, friend_number):
-        return Identifier(node=str(friend_number), resource=self.get_name(friend_number))
 
-    def idd_to_friend(self, identifier):
-        return int(identifier.node)
+    def friend_to_idd(self, friend_number):
+        return Identifier(node=self.get_client_id(friend_number))
+
+    def idd_to_friend(self, identifier, autoinvite=True, autoinvite_message='I am just a bot.'):
+        """
+        Returns the Tox friend number from the roster.
+
+        :exception ValueError if the identifier is not a Tox one.
+        :param identifier: an err Identifier
+        :param autoinvite: set to True if you want to invite this identifier if it is not in your roster.
+        :return: the tox friend number from the roster, None if it could not be found.
+        """
+        if len(identifier.node) > 76 or len(identifier.node) < 64:
+            raise ValueError("%s is not a valid Tox Identifier.")
+        try:
+            self.get_friend_id(identifier.node)
+            return self.get_friend_id(identifier.node)
+        except OperationFailedError:
+            if autoinvite:
+                return self.add_friend(identifier.node, autoinvite_message)
+            return None
 
     def on_friend_request(self, friend_pk, message):
         logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
@@ -97,10 +113,12 @@ class ToxConnection(Tox):
 
     def on_group_invite(self, friend_number, type_, data):
         data_hex = codecs.encode(data, 'hex_codec')
-        logging.info('TOX: Group invite from %s : %s' % (self.get_name(friend_number), data_hex))
-
+        logging.info('TOX: Group invite [type %s] from %s : %s' % (type_, self.get_name(friend_number), data_hex))
+        #if type_ == 1:
+        #    super().send_message(friend_number, "Err tox backend doesn't support audio groupchat yet.")
+        #    return
         if not self.backend.is_admin(friend_number):
-            super(ToxConnection, self).send_message(friend_number, NOT_ADMIN)
+            super().send_message(friend_number, NOT_ADMIN)
             return
         try:
             groupnumber = self.join_groupchat(friend_number, data)
@@ -325,20 +343,17 @@ class ToxBackend(ErrBot):
     def send_message(self, mess):
         super(ToxBackend, self).send_message(mess)
         body = mess.body
-        try:
-            number = int(mess.to.node)
-        except ValueError as _:
-            # this might be directly a pk
-            number = self.conn.get_friend_id(mess.to.node)
 
         subparts = [body[i:i + TOX_MAX_MESS_LENGTH] for i in range(0, len(body), TOX_MAX_MESS_LENGTH)]
         try:
             if mess.type == 'groupchat':
+                number = int(mess.to.node)
                 logging.debug('TOX: sending to group number %i', number)
                 for subpart in subparts:
                     self.conn.group_message_send(number, subpart)
                     sleep(0.5)  # antiflood
             else:
+                number = self.conn.idd_to_friend(mess.to)
                 logging.debug('TOX: sending to friend number %i', number)
                 for subpart in subparts:
                     self.conn.send_message(number, subpart)

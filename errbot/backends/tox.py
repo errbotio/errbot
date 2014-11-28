@@ -114,9 +114,9 @@ class ToxConnection(Tox):
     def on_group_invite(self, friend_number, type_, data):
         data_hex = codecs.encode(data, 'hex_codec')
         logging.info('TOX: Group invite [type %s] from %s : %s' % (type_, self.get_name(friend_number), data_hex))
-        #if type_ == 1:
-        #    super().send_message(friend_number, "Err tox backend doesn't support audio groupchat yet.")
-        #    return
+        if type_ == 1:
+            super().send_message(friend_number, "Err tox backend doesn't support audio groupchat yet.")
+            return
         if not self.backend.is_admin(friend_number):
             super().send_message(friend_number, NOT_ADMIN)
             return

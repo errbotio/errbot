@@ -84,7 +84,6 @@ class ToxConnection(Tox):
         logging.info('TOX: connecting...')
         self.bootstrap_from_address(*TOX_BOOTSTRAP_SERVER)
 
-
     def friend_to_idd(self, friend_number):
         return Identifier(node=self.get_client_id(friend_number))
 

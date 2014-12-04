@@ -8,7 +8,7 @@
    :target: https://pypi.python.org/pypi/err
    
 .. image:: https://pypip.in/d/err/badge.png
-   :target: https://crate.io/packages/PyTox
+   :target: https://crate.io/packages/err
 
 Err - the pluggable chatbot
 ===========================

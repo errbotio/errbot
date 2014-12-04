@@ -297,3 +297,22 @@ class IRCBackend(ErrBot):
 
         channels = self.conn.channels.keys()
         return [IRCMUCRoom(node=channel) for channel in channels]
+
+    def send(self, user, text, in_reply_to=None, message_type='chat'):
+        """Sends a simple message to the specified user."""
+
+        if in_reply_to:
+            if message_type == 'groupchat':
+                text = '{0}: {1}'.format(in_reply_to, text)
+
+        mess = self.build_message(text)
+
+        if hasattr(user, 'stripped'):
+            mess.to = user.stripped
+        else:
+            mess.to = user
+
+        mess.type = message_type
+        mess.frm = mess.to
+
+        self.send_message(mess)

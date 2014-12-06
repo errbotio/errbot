@@ -1,8 +1,9 @@
 import logging
 import sys
 import config
-from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE
+from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE, MUCRoom, MUCOccupant
 from errbot.errBot import ErrBot
+from errbot.utils import deprecated
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
@@ -12,10 +13,10 @@ A_BLUE = '\x1b[34m'
 
 
 class TextBackend(ErrBot):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.jid = Identifier('Err')
+        self.rooms = set()
 
     def serve_forever(self):
         me = Identifier(config.BOT_ADMINS[0])
@@ -56,9 +57,59 @@ class TextBackend(ErrBot):
     def shutdown(self):
         super(TextBackend, self).shutdown()
 
+    @deprecated
     def join_room(self, room, username=None, password=None):
-        pass  # just ignore that
+        return self.query_room(room)
 
     @property
     def mode(self):
         return 'text'
+
+    def query_room(self, room):
+        room = TextMUCRoom(room)
+        self.rooms.add(room)
+        return room
+
+    def rooms(self):
+        return self.rooms
+
+
+class TextMUCRoom(MUCRoom):
+    def __init__(self, jid=None, node='', domain='', resource=''):
+        super().__init__(jid, node, domain, resource)
+        self.topic_ = ''
+        self.joined_ = False
+
+    def join(self, username=None, password=None):
+        self.joined_ = True
+
+    def leave(self, reason=None):
+        self.joined_ = False
+
+    def create(self):
+        self.joined_ = True
+
+    def destroy(self):
+        self.joined_ = False
+
+    @property
+    def exists(self):
+        return True
+
+    @property
+    def joined(self):
+        return self.joined_
+
+    @property
+    def topic(self):
+        return self.topic_
+
+    def set_topic(self, topic):
+        self.topic_ = topic
+
+    @property
+    def occupants(self):
+        return [MUCOccupant("Somebody")]
+
+    def invite(self, *args):
+        pass

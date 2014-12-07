@@ -26,7 +26,7 @@ import config
 from config import BOT_DATA_DIR, BOT_PREFIX
 import errbot
 from errbot.backends.base import Message, build_text_html_message_pair, Identifier
-from errbot.errBot import ErrBot
+from errbot.backed.text import TextBackend   # we use that as we emulate MUC there already
 
 
 class CommandBox(QtGui.QPlainTextEdit, object):
@@ -202,7 +202,7 @@ class ChatApplication(QtGui.QApplication):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
 
 
-class GraphicBackend(ErrBot):
+class GraphicBackend(TextBackend):
     def __init__(self, *args, **kwargs):
         self.conn = None
         super().__init__(*args, **kwargs)
@@ -240,9 +240,6 @@ class GraphicBackend(ErrBot):
         if not self.conn:
             self.conn = ConnectionMock()
         return self.conn
-
-    def join_room(self, room, username=None, password=None):
-        pass  # just ignore that
 
     @property
     def mode(self):

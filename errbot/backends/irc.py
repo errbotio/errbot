@@ -301,18 +301,12 @@ class IRCBackend(ErrBot):
     def send(self, user, text, in_reply_to=None, message_type='chat'):
         """Sends a simple message to the specified user."""
 
-        if in_reply_to:
-            if message_type == 'groupchat':
-                text = '{0}: {1}'.format(in_reply_to, text)
+        nick_reply = config.__dict__.get('IRC_NICK_PREFIX_REPLY', False)
 
-        mess = self.build_message(text)
-
-        if hasattr(user, 'stripped'):
-            mess.to = user.stripped
+        if in_reply_to and message_type == 'groupchat' and nick_reply:
+            super().send(user,
+                        '{}: {}'.format(in_reply_to.nick, text),
+                        in_reply_to,
+                        message_type)
         else:
-            mess.to = user
-
-        mess.type = message_type
-        mess.frm = mess.to
-
-        self.send_message(mess)
+            super().send(user, text, in_reply_to, message_type)

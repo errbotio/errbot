@@ -12,17 +12,29 @@
 ### END INIT INFO
 
 CONFIG_DIR=/etc/errbot/
-PIDFILE=$CONFIG_DIR/err/err.pid
+
+# get BOT_DATA_DIR
+pushd . 2>&1 > /dev/null
+cd $CONFIG_DIR
+BOT_DATA_DIR=`python -c "from config import BOT_DATA_DIR ; print BOT_DATA_DIR"`
+popd 2>&1 > /dev/null
+
+PIDFILE=$BOT_DATA_DIR/err.pid
 ERR=/usr/local/bin/err.py
 BACKEND="--irc"
 
 case "$1" in
 start)  echo "Enabling errbot:"
-
+        pushd . 2>&1 > /dev/null
+        cd $CONFIG_DIR
         $ERR --config $CONFIG_DIR --daemon $BACKEND
+        popd  2>&1 > /dev/null
         ;;
 stop)   echo "Disabling errbot"
+        pushd . 2>&1 > /dev/null
+        cd $CONFIG_DIR
         kill -9 `cat $PIDFILE`
+        popd  2>&1 > /dev/null
         ;;
 restart) echo "Restarting errbot"
         /etc/init.d/errbot stop

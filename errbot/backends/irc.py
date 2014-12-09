@@ -305,8 +305,8 @@ class IRCBackend(ErrBot):
 
         if in_reply_to and message_type == 'groupchat' and nick_reply:
             super().send(user,
-                        '{}: {}'.format(in_reply_to.nick, text),
-                        in_reply_to,
-                        message_type)
+                         '{}: {}'.format(in_reply_to.nick, text),
+                         in_reply_to,
+                         message_type)
         else:
             super().send(user, text, in_reply_to, message_type)

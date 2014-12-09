@@ -1,0 +1,37 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          errbot
+# Required-Start:    networking
+# Required-Stop:     
+# Should-Start:      
+# Should-Stop:       
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: start errbot
+# Description:       errbot.py a cool multi-protocol bot
+### END INIT INFO
+
+CONFIG_DIR=/etc/errbot/
+PIDFILE=$CONFIG_DIR/err/err.pid
+ERR=/usr/local/bin/err.py
+BACKEND="--irc"
+
+case "$1" in
+start)  echo "Enabling errbot:"
+
+        $ERR --config $CONFIG_DIR --daemon $BACKEND
+        ;;
+stop)   echo "Disabling errbot"
+        kill -9 `cat $PIDFILE`
+        ;;
+restart) echo "Restarting errbot"
+        /etc/init.d/errbot stop
+        /etc/init.d/errbot start
+        ;;
+reload|force-reload) echo "Not implemented yet."
+        ;;
+*)      echo "Usage: /etc/init.d/errbot {start|stop|restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
+exit 0

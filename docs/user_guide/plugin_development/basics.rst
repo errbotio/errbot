@@ -77,6 +77,13 @@ name of the command. That means this method creates the `!hello`
 command.
 
 .. note::
+    The method name must comply with the usual Python naming
+    conventions for `identifiers <https://docs.python.org/release/2.7.8/reference/lexical_analysis.html#identifiers>`_ 
+    , that is, they may not begin with a digit (like ``911`` but only with a letter or underscore, so ``_911`` would work)
+    and cannot be any of the `reserved keywords <https://docs.python.org/release/2.7.8/reference/lexical_analysis.html#keywords>`_
+    such as ``pass`` (instead use ``password``) etc.
+
+.. note::
     Should multiple plugins define the same command, they will be
     dynamically renamed (by prefixing them with the plugin name) so
     that they no longer clash with each other.

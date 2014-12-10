@@ -269,6 +269,21 @@ class HipChatMUCRoom(MUCRoom):
                 room.invite(user, "No reason given.")
                 logging.info("Invited {} to {}".format(person, self))
 
+    def notify(self, message, color=None, notify=False, message_format=None):
+        """
+        Send a notification to a room.
+
+        See the
+        `HipChat API documentation <https://www.hipchat.com/docs/apiv2/method/send_room_notification>`_
+        for more info.
+        """
+        self.room.notification(
+            message=message,
+            color=color,
+            notify=notify,
+            format=message_format
+        )
+
 
 class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):

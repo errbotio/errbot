@@ -85,7 +85,7 @@ else:
 logger.addHandler(console_hdlr)
 
 
-def check_config(config_path, mode):
+def get_config(config_path, mode):
     __import__('errbot.config-template')  # - is on purpose, it should not be imported normally ;)
     template = sys.modules['errbot.config-template']
     config_fullpath = config_path + sep + 'config.py'
@@ -106,11 +106,10 @@ def check_config(config_path, mode):
         try:
             # gives the opportunity to have one config per mode to simplify the debugging
             config = __import__('config_' + mode)
-            sys.modules['config'] = config
         except ImportError as ie:
             if not str(ie).startswith('No module named'):
                 logging.exception('Error while trying to load %s' % 'config_' + mode)
-            import config
+            config = __import__('config')
 
         diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
         if diffs:
@@ -122,6 +121,7 @@ def check_config(config_path, mode):
         logging.exception('I could not import your config from %s, please check the error below...' % config_fullpath)
         exit(-1)
     logging.info('Config check passed...')
+    return config
 
 
 if __name__ == "__main__":
@@ -162,7 +162,7 @@ if __name__ == "__main__":
                      args[mname]]
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
-    check_config(config_path, mode)  # check if everything is ok before attempting to start
+    config = get_config(config_path, mode)  # will exit if load fails
 
     def text():
         from errbot.backends.text import TextBackend
@@ -207,13 +207,12 @@ if __name__ == "__main__":
     bot_class = locals()[mode]()
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).
-    from config import BOT_DATA_DIR
 
-    logging.info("Checking for '%s'..." % BOT_DATA_DIR)
-    if not path.exists(BOT_DATA_DIR):
-        raise Exception("The data directory '%s' for the bot does not exist" % BOT_DATA_DIR)
-    if not access(BOT_DATA_DIR, W_OK):
-        raise Exception("The data directory '%s' should be writable for the bot" % BOT_DATA_DIR)
+    logging.info("Checking for '%s'..." % config.BOT_DATA_DIR)
+    if not path.exists(config.BOT_DATA_DIR):
+        raise Exception("The data directory '%s' for the bot does not exist" % config.BOT_DATA_DIR)
+    if not access(config.BOT_DATA_DIR, W_OK):
+        raise Exception("The data directory '%s' should be writable for the bot" % config.BOT_DATA_DIR)
 
     if (not ON_WINDOWS) and args['daemon']:
         if args['text']:
@@ -222,7 +221,7 @@ if __name__ == "__main__":
         if args['pidfile']:
             pid = args['pidfile']
         else:
-            pid = BOT_DATA_DIR + sep + 'err.pid'
+            pid = config.BOT_DATA_DIR + sep + 'err.pid'
 
         from errbot.pid import PidFile
 
@@ -233,7 +232,7 @@ if __name__ == "__main__":
             def action():
                 from errbot.main import main
 
-                main(bot_class, logger)
+                main(bot_class, logger, config)
 
             daemon = Daemonize(app="err", pid=pid, action=action)
             daemon.start()
@@ -242,5 +241,5 @@ if __name__ == "__main__":
         exit(0)
     from errbot.main import main
 
-    main(bot_class, logger)
+    main(bot_class, logger, config)
     logging.info('Process exiting')

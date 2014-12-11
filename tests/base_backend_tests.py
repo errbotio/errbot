@@ -3,6 +3,7 @@ import sys
 import logging
 from tempfile import mkdtemp
 from os.path import sep
+from errbot.errBot import main_config_defaults
 
 __import__('errbot.config-template')
 config_module = sys.modules['errbot.config-template']
@@ -30,6 +31,17 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
     jid = Identifier('err@localhost/err')
+
+    def __init__(self):
+        class Config:
+            BOT_IDENTITY = {'username': 'err@localhost'}
+            BOT_ASYNC = False
+            BOT_PREFIX = '!'
+            CHATROOM_FN = 'blah'
+        self.main_config = Config()
+        main_config_defaults(self.main_config)
+        super(DummyBackend, self).__init__(self.main_config)
+        self.inject_commands_from(self)
 
     def build_message(self, text):
         return build_message(text, Message)
@@ -111,10 +123,6 @@ class DummyBackend(Backend):
     @property
     def rooms(self):
         return []
-
-    def __init__(self):
-        super(DummyBackend, self).__init__()
-        self.inject_commands_from(self)
 
 
 class TestBase(unittest.TestCase):
@@ -248,7 +256,7 @@ class TestExecuteAndSend(unittest.TestCase):
     def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_returned(self):
         dummy = self.dummy
         m = self.example_message
-        self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
+        self.dummy.main_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, mess=m,
                                 jid='noterr@localhost', template_name=dummy.return_long_output._err_command_template)
@@ -259,7 +267,7 @@ class TestExecuteAndSend(unittest.TestCase):
     def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_yielded(self):
         dummy = self.dummy
         m = self.example_message
-        self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
+        self.dummy.main_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, mess=m,
                                 jid='noterr@localhost', template_name=dummy.yield_long_output._err_command_template)
@@ -443,17 +451,14 @@ class BotCmds(unittest.TestCase):
         ]
 
         for test in tests:
-            with patch.multiple(
-                    'errbot.backends.base',
-                    ACCESS_CONTROLS_DEFAULT=test['acl_default'],
-                    ACCESS_CONTROLS=test['acl']
-            ):
-                logger = logging.getLogger(__name__)
-                logger.info("** message: {}".format(test['message'].body))
-                logger.info("** acl: {!r}".format(test['acl']))
-                logger.info("** acl_default: {!r}".format(test['acl_default']))
-                self.dummy.callback_message(test['message'])
-                self.assertEqual(
-                    test['expected_response'],
-                    self.dummy.pop_message().body
-                )
+            self.dummy.main_config.ACCESS_CONTROLS_DEFAULT = test['acl_default']
+            self.dummy.main_config.ACCESS_CONTROLS = test['acl']
+            logger = logging.getLogger(__name__)
+            logger.info("** message: {}".format(test['message'].body))
+            logger.info("** acl: {!r}".format(test['acl']))
+            logger.info("** acl_default: {!r}".format(test['acl_default']))
+            self.dummy.callback_message(test['message'])
+            self.assertEqual(
+                test['expected_response'],
+                self.dummy.pop_message().body
+            )

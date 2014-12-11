@@ -7,7 +7,6 @@ from os.path import exists, join
 import io
 from errbot.backends import base
 from errbot.errBot import ErrBot
-import config
 from errbot.backends.base import Message, Identifier, Presence, Stream, MUCRoom
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.backends.base import build_message
@@ -24,17 +23,6 @@ except ImportError:
     """)
     sys.exit(-1)
 
-try:
-    from config import TOX_BOOTSTRAP_SERVER
-except ImportError:
-    logging.fatal("""
-    You need to provide a server to bootstrap from in config.TOX_BOOTSTRAP_SERVER.
-    for example :
-    TOX_BOOTSTRAP_SERVER = ["54.199.139.199", 33445, "7F9C31FE850E97CEFD4C4591DF93FC757C7C12549DDD55F8EEAECC34FE76C029"]
-
-    You can find currently active public ones on :
-    https://wiki.tox.im/Nodes """)
-    sys.exit(-1)
 
 # Backend notes
 #
@@ -42,7 +30,6 @@ except ImportError:
 # TOX client_id as hash string -> node
 
 
-TOX_STATEFILE = join(config.BOT_DATA_DIR, 'tox.state')
 TOX_MAX_MESS_LENGTH = 1368
 
 NOT_ADMIN = "You are not recognized as an administrator of this bot"
@@ -73,16 +60,17 @@ class ToxConnection(Tox):
         self.backend = backend
         self.incoming_streams = {}
         self.outgoing_streams = {}
-        if exists(TOX_STATEFILE):
-            self.load_from_file(TOX_STATEFILE)
+        state_file = join(backend.main_config.BOT_DATA_DIR, 'tox.state')
+        if exists(state_file):
+            self.load_from_file(state_file)
         self.set_name(name)
         self.rooms = set()  # keep track of joined room
 
         logging.info('TOX: ID %s' % self.get_address())
 
-    def connect(self):
+    def connect(self, bootstrap_servers):
         logging.info('TOX: connecting...')
-        self.bootstrap_from_address(*TOX_BOOTSTRAP_SERVER)
+        self.bootstrap_from_address(*bootstrap_servers)
 
     def friend_to_idd(self, friend_number):
         return Identifier(node=self.get_client_id(friend_number))
@@ -329,15 +317,27 @@ class TOXMUCRoom(MUCRoom):
 
 
 class ToxBackend(ErrBot):
-    def __init__(self, username):
-        super(ToxBackend, self).__init__()
+    def __init__(self, config):
+        if not hasattr(config, 'TOX_BOOTSTRAP_SERVER'):
+            logging.fatal("""
+            You need to provide a server to bootstrap from in config.TOX_BOOTSTRAP_SERVER.
+            for example :
+            TOX_BOOTSTRAP_SERVER = ["54.199.139.199", 33445,
+                                    "7F9C31FE850E97CEFD4C4591DF93FC757C7C12549DDD55F8EEAECC34FE76C029"]
+
+            You can find currently active public ones on :
+            https://wiki.tox.im/Nodes """)
+            sys.exit(-1)
+
+        username = config.BOT_IDENTITY['username']
+        super(ToxBackend, self).__init__(config)
         self.conn = ToxConnection(self, username)
         self.jid = Identifier(str(self.conn.get_address()), resource=username)
 
     def is_admin(self, friend_number):
         pk = self.conn.get_client_id(int(friend_number))
         logging.debug("Check if %s is admin" % pk)
-        return any(pka.startswith(pk) for pka in config.BOT_ADMINS)
+        return any(pka.startswith(pk) for pka in self.main_config.BOT_ADMINS)
 
     def send_message(self, mess):
         super(ToxBackend, self).send_message(mess)
@@ -379,7 +379,7 @@ class ToxBackend(ErrBot):
 
                 if checked and not status:
                     logging.info('TOX: Disconnected from DHT.')
-                    self.conn.connect()
+                    self.conn.connect(self.main_config.TOX_BOOTSTRAP_SERVER)
                     checked = False
 
                 self.conn.do()

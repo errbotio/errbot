@@ -14,7 +14,6 @@ except ImportError:
 from errbot.backends.base import Message, build_message, Identifier
 from errbot.errBot import ErrBot
 from threading import Condition
-from config import CHATROOM_PRESENCE
 
 
 class CampfireConnection(pyfire.Campfire):
@@ -34,14 +33,18 @@ ENCODING_INPUT = sys.stdin.encoding
 class CampfireBackend(ErrBot):
     exit_lock = Condition()
 
-    def __init__(self, subdomain, username, password, ssl=True):
-        super(CampfireBackend, self).__init__()
-
+    def __init__(self, config):
+        super(CampfireBackend, self).__init__(config)
+        identity = config.BOT_IDENTITY
         self.conn = None
-        self.subdomain = subdomain
-        self.username = username
-        self.password = password
-        self.ssl = ssl
+        self.subdomain = identity['subdomain']
+        self.username = identity['username']
+        self.password = identity['password']
+        if not hasattr(config, 'CHATROOM_PRESENCE') or len(config['CHATROOM_PRESENCE']) < 1:
+            raise Exception('Your bot needs to join at least one room, please set'
+                            ' CHATROOM_PRESENCE with at least a room in your config')
+        self.chatroom = CHATROOM_PRESENCE[0]
+        self.ssl = identity['ssl'] if 'ssl' in identity else True
         self.jid = None
 
     def send_message(self, mess):
@@ -73,11 +76,9 @@ class CampfireBackend(ErrBot):
 
     def connect(self):
         if not self.conn:
-            if not CHATROOM_PRESENCE:
-                raise Exception('Your bot needs to join at least one room, please set CHATROOM_PRESENCE in your config')
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
             self.jid = Identifier(node=self.username,
-                                  domain=self.conn.get_room_by_name(CHATROOM_PRESENCE[0]).name,
+                                  domain=self.conn.get_room_by_name(self.chatroom).name,
                                   resource=self.username)
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms

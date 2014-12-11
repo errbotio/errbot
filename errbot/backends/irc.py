@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import config
 import logging
 import sys
 import warnings
@@ -160,9 +159,13 @@ class IRCMUCRoom(MUCRoom):
 
 
 class IRCConnection(SingleServerIRCBot):
-    def __init__(self, callback, nickname, server, port=6667, ssl=False, password=None, username=None):
+    def __init__(self, callback, nickname, server, port=6667, ssl=False, password=None, username=None, private_rate = 1, channel_rate = 1):
         self.use_ssl = ssl
         self.callback = callback
+        # manually decorate functions
+        self.send_private_message = RateLimited(private_rate)(self.send_private_message)
+        self.send_public_message = RateLimited(channel_rate)(self.send_private_message)
+
         if username is None:
             username = nickname
         super().__init__([(server, port, password)], nickname, username)
@@ -192,20 +195,30 @@ class IRCConnection(SingleServerIRCBot):
         msg.to = e.target
         self.callback.callback_message(msg)
 
-    @RateLimited(config.__dict__.get('IRC_PRIVATE_RATE', 1))
     def send_private_message(self, to, line):
         self.connection.privmsg(to, line)
 
-    @RateLimited(config.__dict__.get('IRC_CHANNEL_RATE', 1))
     def send_public_message(self, to, line):
         self.connection.privmsg(to, line)
 
 
 class IRCBackend(ErrBot):
-    def __init__(self, nickname, server, port=6667, password=None, ssl=False, username=None):
+    def __init__(self, config):
+
+        identity = config.BOT_IDENTITY
+        nickname = identity['nickname']
+        server = identity['server']
+        port = identity.get('port', 6667)
+        password = identity.get('password', None)
+        ssl = identity.get('ssl', False)
+        username = identity.get('username', None)
+
+        private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
+        channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)
+
         self.jid = Identifier(node=nickname, domain=server)
-        super(IRCBackend, self).__init__()
-        self.conn = IRCConnection(self, nickname, server, port, ssl, password, username)
+        super(IRCBackend, self).__init__(config)
+        self.conn = IRCConnection(self, nickname, server, port, ssl, password, username, private_rate, channel_rate)
 
     def send_message(self, mess):
         super(IRCBackend, self).send_message(mess)

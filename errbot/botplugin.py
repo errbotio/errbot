@@ -32,16 +32,18 @@ class BotPluginBase(StoreMixin):
         """
         return holder.bot.mode
 
+    @property
+    def bot_configuration(self):
+        return holder.bot.main_config
+
     def activate(self):
         """
             Override if you want to do something at initialization phase (don't forget to
             super(Gnagna, self).activate())
         """
-        from config import BOT_DATA_DIR
-
         classname = self.__class__.__name__
         logging.debug('Init storage for %s' % classname)
-        filename = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR + os.sep + classname + '.db'
+        filename = os.path.join(self.bot_configuration.BOT_DATA_DIR, PLUGINS_SUBDIR, classname + '.db')
         logging.debug('Loading %s' % filename)
         self.open_storage(filename)
         holder.bot.inject_commands_from(self)

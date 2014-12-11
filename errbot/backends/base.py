@@ -12,62 +12,9 @@ from xml.etree.cElementTree import ParseError
 from errbot import botcmd, PY2
 from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after, deprecated
 from errbot.templating import tenv
-from config import BOT_ADMINS, BOT_ASYNC, BOT_PREFIX, BOT_IDENTITY, CHATROOM_FN
+from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
-try:
-    from config import ACCESS_CONTROLS_DEFAULT
-except ImportError:
-    ACCESS_CONTROLS_DEFAULT = {}
 
-try:
-    from config import ACCESS_CONTROLS
-except ImportError:
-    ACCESS_CONTROLS = {}
-
-try:
-    from config import HIDE_RESTRICTED_COMMANDS
-except ImportError:
-    HIDE_RESTRICTED_COMMANDS = False
-
-try:
-    from config import HIDE_RESTRICTED_ACCESS
-except ImportError:
-    HIDE_RESTRICTED_ACCESS = False
-
-try:
-    from config import BOT_PREFIX_OPTIONAL_ON_CHAT
-except ImportError:
-    BOT_PREFIX_OPTIONAL_ON_CHAT = False
-
-try:
-    from config import BOT_ALT_PREFIXES
-except ImportError:
-    BOT_ALT_PREFIXES = ()
-
-try:
-    from config import BOT_ALT_PREFIX_SEPARATORS
-except ImportError:
-    BOT_ALT_PREFIX_SEPARATORS = ()
-
-try:
-    from config import BOT_ALT_PREFIX_CASEINSENSITIVE
-except ImportError:
-    BOT_ALT_PREFIX_CASEINSENSITIVE = False
-
-try:
-    from config import DIVERT_TO_PRIVATE
-except ImportError:
-    DIVERT_TO_PRIVATE = ()
-    logging.warning("DIVERT_TO_PRIVATE is missing in config")
-    pass
-
-try:
-    from config import MESSAGE_SIZE_LIMIT
-except ImportError:
-    MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
-
-if BOT_ASYNC:
-    from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
 
 class ACLViolation(Exception):
@@ -722,26 +669,26 @@ class Backend(object):
 
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. ' \
                          'An unexpected error occurred.'
-    MESSAGE_SIZE_LIMIT = MESSAGE_SIZE_LIMIT
-    MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". ' \
-                          'Type "' + BOT_PREFIX + 'help" for available commands.'
+
     MSG_HELP_TAIL = 'Type help <command name> to get more info ' \
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, config):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
-        if BOT_ASYNC:
+
+        if config.BOT_ASYNC:
             self.thread_pool = ThreadPool(3)
             logging.debug('created the thread pool' + str(self.thread_pool))
         self.commands = {}  # the dynamically populated list of commands available on the bot
         self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
-
-        if BOT_ALT_PREFIX_CASEINSENSITIVE:
-            self.bot_alt_prefixes = tuple(prefix.lower() for prefix in BOT_ALT_PREFIXES)
+        self.MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". ' \
+                                   'Type "' + config.BOT_PREFIX + 'help" for available commands.'
+        if config.BOT_ALT_PREFIX_CASEINSENSITIVE:
+            self.bot_alt_prefixes = tuple(prefix.lower() for prefix in config.BOT_ALT_PREFIXES)
         else:
-            self.bot_alt_prefixes = BOT_ALT_PREFIXES
+            self.bot_alt_prefixes = config.BOT_ALT_PREFIXES
 
     def send_message(self, mess):
         """Should be overridden by backends"""
@@ -762,7 +709,7 @@ class Backend(object):
             # but in case of a groupchat, we should only try to send to the MUC address
             # itself (bot@conference.domain.tld)
             response.to = mess.frm.stripped.split('/')[0]
-        elif str(mess.to) == BOT_IDENTITY['username']:
+        elif str(mess.to) == self.main_config.BOT_IDENTITY['username']:
             # This is a direct private message, not initiated through a MUC. Use
             # stripped to remove the resource so that the response goes to the
             # client with the highest priority
@@ -825,7 +772,7 @@ class Backend(object):
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
         if (jid.bare_match(self.jid) or
-            type_ == "groupchat" and mess.nick == CHATROOM_FN):  # noqa
+            type_ == "groupchat" and mess.nick == self.main_config.CHATROOM_FN):  # noqa
                 logging.debug("Ignoring message from self")
                 return False
 
@@ -843,8 +790,8 @@ class Backend(object):
 
         prefixed = False  # Keeps track whether text was prefixed with a bot prefix
         only_check_re_command = False  # Becomes true if text is determed to not be a regular command
-        tomatch = text.lower() if BOT_ALT_PREFIX_CASEINSENSITIVE else text
-        if len(BOT_ALT_PREFIXES) > 0 and tomatch.startswith(self.bot_alt_prefixes):
+        tomatch = text.lower() if self.main_config.BOT_ALT_PREFIX_CASEINSENSITIVE else text
+        if len(self.main_config.BOT_ALT_PREFIXES) > 0 and tomatch.startswith(self.bot_alt_prefixes):
             # Yay! We were called by one of our alternate prefixes. Now we just have to find out
             # which one... (And find the longest matching, in case you have 'err' and 'errbot' and
             # someone uses 'errbot', which also matches 'err' but would leave 'bot' to be taken as
@@ -859,22 +806,22 @@ class Backend(object):
             text = text[longest:]
 
             # Now also remove the separator from the text
-            for sep in BOT_ALT_PREFIX_SEPARATORS:
+            for sep in self.main_config.BOT_ALT_PREFIX_SEPARATORS:
                 # While unlikely, one may have separators consisting of
                 # more than one character
                 l = len(sep)
                 if text[:l] == sep:
                     text = text[l:]
-        elif type_ == "chat" and BOT_PREFIX_OPTIONAL_ON_CHAT:
+        elif type_ == "chat" and self.main_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
             logging.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
             # was said with trigger_message.
             surpress_cmd_not_found = True
-        elif not text.startswith(BOT_PREFIX):
+        elif not text.startswith(self.main_config.BOT_PREFIX):
             only_check_re_command = True
-        if text.startswith(BOT_PREFIX):
-            text = text[len(BOT_PREFIX):]
+        if text.startswith(self.main_config.BOT_PREFIX):
+            text = text[len(self.main_config.BOT_PREFIX):]
             prefixed = True
 
         text = text.strip()
@@ -897,7 +844,7 @@ class Backend(object):
                     if len(text_split) > 1:
                         args = ' '.join(text_split[1:])
 
-            if command == BOT_PREFIX:  # we did "!!" so recall the last command
+            if command == self.main_config.BOT_PREFIX:  # we did "!!" so recall the last command
                 if len(user_cmd_history):
                     cmd, args = user_cmd_history[-1]
                 else:
@@ -962,13 +909,13 @@ class Backend(object):
         try:
             self.check_command_access(mess, cmd)
         except ACLViolation as e:
-            if not HIDE_RESTRICTED_ACCESS:
+            if not self.main_config.HIDE_RESTRICTED_ACCESS:
                 self.send_simple_reply(mess, str(e))
             return
 
         f = self.re_commands[cmd] if match else self.commands[cmd]
 
-        if f._err_command_admin_only and BOT_ASYNC:
+        if f._err_command_admin_only and self.main_config.BOT_ASYNC:
             # If it is an admin command, wait until the queue is completely depleted so
             # we don't have strange concurrency issues on load/unload/updates etc...
             self.thread_pool.wait()
@@ -993,7 +940,7 @@ class Backend(object):
                 )
                 return
 
-        if BOT_ASYNC:
+        if self.main_config.BOT_ASYNC:
             wr = WorkRequest(
                 self._execute_and_send,
                 [],
@@ -1031,8 +978,8 @@ class Backend(object):
             return str(reply_)
 
         def send_reply(reply_):
-            for part in split_string_after(reply_, self.MESSAGE_SIZE_LIMIT):
-                self.send_simple_reply(mess, part, cmd in DIVERT_TO_PRIVATE)
+            for part in split_string_after(reply_, self.main_config.MESSAGE_SIZE_LIMIT):
+                self.send_simple_reply(mess, part, cmd in self.main_config.DIVERT_TO_PRIVATE)
 
         commands = self.re_commands if match else self.commands
         try:
@@ -1056,7 +1003,7 @@ class Backend(object):
         """
         an overridable check to see if a user is an administrator
         """
-        return usr in BOT_ADMINS
+        return usr in self.main_config.BOT_ADMINS
 
     def check_command_access(self, mess, cmd):
         """
@@ -1067,23 +1014,23 @@ class Backend(object):
         usr = str(get_jid_from_message(mess))
         typ = mess.type
 
-        if cmd not in ACCESS_CONTROLS:
-            ACCESS_CONTROLS[cmd] = ACCESS_CONTROLS_DEFAULT
+        if cmd not in self.main_config.ACCESS_CONTROLS:
+            self.main_config.ACCESS_CONTROLS[cmd] = self.main_config.ACCESS_CONTROLS_DEFAULT
 
-        if 'allowusers' in ACCESS_CONTROLS[cmd] and usr not in ACCESS_CONTROLS[cmd]['allowusers']:
+        if 'allowusers' in self.main_config.ACCESS_CONTROLS[cmd] and usr not in self.main_config.ACCESS_CONTROLS[cmd]['allowusers']:
             raise ACLViolation("You're not allowed to access this command from this user")
-        if 'denyusers' in ACCESS_CONTROLS[cmd] and usr in ACCESS_CONTROLS[cmd]['denyusers']:
+        if 'denyusers' in self.main_config.ACCESS_CONTROLS[cmd] and usr in self.main_config.ACCESS_CONTROLS[cmd]['denyusers']:
             raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
             stripped = mess.frm.stripped
-            if 'allowmuc' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowmuc'] is False:
+            if 'allowmuc' in self.main_config.ACCESS_CONTROLS[cmd] and self.main_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False:
                 raise ACLViolation("You're not allowed to access this command from a chatroom")
-            if 'allowrooms' in ACCESS_CONTROLS[cmd] and stripped not in ACCESS_CONTROLS[cmd]['allowrooms']:
+            if 'allowrooms' in self.main_config.ACCESS_CONTROLS[cmd] and stripped not in self.main_config.ACCESS_CONTROLS[cmd]['allowrooms']:
                 raise ACLViolation("You're not allowed to access this command from this room")
-            if 'denyrooms' in ACCESS_CONTROLS[cmd] and stripped in ACCESS_CONTROLS[cmd]['denyrooms']:
+            if 'denyrooms' in self.main_config.ACCESS_CONTROLS[cmd] and stripped in self.main_config.ACCESS_CONTROLS[cmd]['denyrooms']:
                 raise ACLViolation("You're not allowed to access this command from this room")
         else:
-            if 'allowprivate' in ACCESS_CONTROLS[cmd] and ACCESS_CONTROLS[cmd]['allowprivate'] is False:
+            if 'allowprivate' in self.main_config.ACCESS_CONTROLS[cmd] and self.main_config.ACCESS_CONTROLS[cmd]['allowprivate'] is False:
                 raise ACLViolation("You're not allowed to access this command via private message to me")
 
         f = self.commands[cmd] if cmd in self.commands else self.re_commands[cmd]
@@ -1108,7 +1055,7 @@ class Backend(object):
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            return part1 + '\n\nDid you mean "' + BOT_PREFIX + ('" or "' + BOT_PREFIX).join(matches) + '" ?'
+            return part1 + '\n\nDid you mean "' + self.main_config.BOT_PREFIX + ('" or "' + self.main_config.BOT_PREFIX).join(matches) + '" ?'
         else:
             return part1
 
@@ -1144,7 +1091,7 @@ class Backend(object):
                     del (self.commands[name])
 
     def warn_admins(self, warning):
-        for admin in BOT_ADMINS:
+        for admin in self.main_config.BOT_ADMINS:
             self.send(admin, warning)
 
     def top_of_help_message(self):
@@ -1177,7 +1124,7 @@ class Backend(object):
                 description = 'Available commands:'
 
             usage = '\n'.join(sorted([
-                BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
+                self.main_config.BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
                                                 '(undocumented)').strip().split('\n', 1)[0])
                 for (name, command) in self.commands.items()
                 if name != 'help'

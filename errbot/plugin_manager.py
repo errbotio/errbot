@@ -172,10 +172,8 @@ def reload_plugin_by_name(name):
     plugin.plugin_object.__class__ = new_class
 
 
-def update_plugin_places(path_list):
-    from config import BOT_EXTRA_PLUGIN_DIR
-
-    builtins = get_builtins(BOT_EXTRA_PLUGIN_DIR)
+def update_plugin_places(path_list, extra_plugin_dir):
+    builtins = get_builtins(extra_plugin_dir)
     for entry in chain(builtins, path_list):
         if entry not in sys.path:
             sys.path.append(entry)  # so the plugins can relatively import their submodules

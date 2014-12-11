@@ -7,7 +7,6 @@ from errbot.holder import bot
 from errbot.version import VERSION
 
 __author__ = 'gbin'
-from config import CHATROOM_PRESENCE, CHATROOM_FN, CHATROOM_RELAY, REVERSE_CHATROOM_RELAY
 
 # 2to3 hack
 # thanks to https://github.com/oxplot/fysom/issues/1
@@ -26,14 +25,14 @@ class ChatRoom(BotPlugin):
         logging.info('Callback_connect')
         if not self.connected:
             self.connected = True
-            for room in CHATROOM_PRESENCE:
+            for room in self.bot_configuration.CHATROOM_PRESENCE:
                 if isinstance(room, basestring):
-                    room, username, password = (room, CHATROOM_FN, None)
+                    room, username, password = (room, self.bot_configuration.CHATROOM_FN, None)
                 else:
-                    room, username, password = (room[0], CHATROOM_FN, room[1])
+                    room, username, password = (room[0], self.bot_configuration.CHATROOM_FN, room[1])
                 logging.info("Joining room {} with username {}".format(room, username))
                 try:
-                    self.query_room(room).join(username=CHATROOM_FN, password=password)
+                    self.query_room(room).join(username=self.bot_configuration.CHATROOM_FN, password=password)
                 except NotImplementedError:
                     # Backward compatibility for backends which do not yet have a
                     # query_room implementation and still have a join_room method.
@@ -96,7 +95,7 @@ class ChatRoom(BotPlugin):
         args[0].strip()
 
         room, password = (args[0], None) if arglen == 1 else (args[0], args[1])
-        self.query_room(room).join(username=CHATROOM_FN, password=password)
+        self.query_room(room).join(username=self.bot_configuration.CHATROOM_FN, password=password)
         return "Joined the room {}".format(room)
 
     @botcmd(split_args_with=SeparatorArgParser())
@@ -254,17 +253,17 @@ class ChatRoom(BotPlugin):
                 mess_type = mess.type
                 if mess_type == 'chat':
                     username = mess.frm.node
-                    if username in CHATROOM_RELAY:
+                    if username in self.bot_configuration.CHATROOM_RELAY:
                         logging.debug('Message to relay from %s.' % username)
                         body = mess.body
-                        rooms = CHATROOM_RELAY[username]
+                        rooms = self.bot_configuration.CHATROOM_RELAY[username]
                         for room in rooms:
                             self.send(room, body, message_type='groupchat')
                 elif mess_type == 'groupchat':
                     fr = mess.frm
                     chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node
-                    if chat_room in REVERSE_CHATROOM_RELAY:
-                        users_to_relay_to = REVERSE_CHATROOM_RELAY[chat_room]
+                    if chat_room in self.bot_configuration.REVERSE_CHATROOM_RELAY:
+                        users_to_relay_to = self.bot_configuration.REVERSE_CHATROOM_RELAY[chat_room]
                         logging.debug('Message to relay to %s.' % users_to_relay_to)
                         body = '[%s] %s' % (fr.resource, mess.body)
                         for user in users_to_relay_to:

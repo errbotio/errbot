@@ -1,6 +1,5 @@
 import logging
 import sys
-import config
 from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE
 from errbot.errBot import ErrBot
 
@@ -13,12 +12,12 @@ A_BLUE = '\x1b[34m'
 
 class TextBackend(ErrBot):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, config):
+        super().__init__(config)
         self.jid = Identifier('Err')
 
     def serve_forever(self):
-        me = Identifier(config.BOT_ADMINS[0])
+        me = Identifier(self.main_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=me, status=ONLINE))
         try:

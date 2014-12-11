@@ -141,10 +141,9 @@ class MUCRoom(MUCRoom):
 
 
 class TestBackend(ErrBot):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, config):
+        super().__init__(config)
         self.jid = Identifier('Err')  # whatever
-        import config
         self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
 
     def send_message(self, mess):

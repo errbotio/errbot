@@ -130,7 +130,8 @@ class MUCRoom(MUCRoom):
     def topic(self):
         return self._topic
 
-    def set_topic(self, topic):
+    @topic.setter
+    def topic(self, topic):
         global rooms
         self._topic = topic
         room = [r for r in rooms if str(r) == str(self)][0]

@@ -119,7 +119,8 @@ class IRCMUCRoom(MUCRoom):
         """
         return self.connection.topic(str(self))
 
-    def set_topic(self, topic):
+    @topic.setter
+    def topic(self, topic):
         """
         Set the room's topic.
 

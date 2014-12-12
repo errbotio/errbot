@@ -628,7 +628,8 @@ class MUCRoom(Identifier):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def set_topic(self, topic):
+    @topic.setter
+    def topic(self, topic):
         """
         Set the room's topic.
 

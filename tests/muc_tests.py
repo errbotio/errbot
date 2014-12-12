@@ -68,7 +68,7 @@ class TestMUC(object):
         room = holder.bot.rooms()[0]
         assert room.topic is None
 
-        room.set_topic("Err rocks!")
+        room.topic = "Err rocks!"
         assert room.topic == "Err rocks!"
         assert holder.bot.rooms()[0].topic == "Err rocks!"
 

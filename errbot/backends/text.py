@@ -104,7 +104,8 @@ class TextMUCRoom(MUCRoom):
     def topic(self):
         return self.topic_
 
-    def set_topic(self, topic):
+    @topic.setter
+    def topic(self, topic):
         self.topic_ = topic
 
     @property

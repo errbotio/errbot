@@ -301,7 +301,8 @@ class TOXMUCRoom(MUCRoom):
             return self.conn.group_get_title(self.group_number)
         return "[Not Joined]"
 
-    def set_topic(self, topic):
+    @topic.setter
+    def topic(self, topic):
         if self.joined:
             self.conn.group_set_title(self.group_number, topic)
 

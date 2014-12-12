@@ -218,7 +218,8 @@ class HipChatMUCRoom(MUCRoom):
         """
         return self.room['topic']
 
-    def set_topic(self, topic):
+    @topic.setter
+    def topic(self, topic):
         """
         Set the room's topic.
 

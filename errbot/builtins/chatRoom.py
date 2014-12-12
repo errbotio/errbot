@@ -228,7 +228,7 @@ class ChatRoom(BotPlugin):
                 return "Topic for {}: {}".format(args[0], topic)
         else:
             try:
-                self.query_room(args[0]).set_topic(args[1])
+                self.query_room(args[0]).topic = args[1]
             except RoomNotJoinedError as e:
                 return "Cannot set the topic for {}: {}".format(args[0], e)
             return "Topic for {} set.".format(args[0])

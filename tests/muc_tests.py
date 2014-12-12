@@ -68,7 +68,7 @@ class TestMUC(object):
         room = holder.bot.rooms()[0]
         assert room.topic is None
 
-        room.set_topic("Err rocks!")
+        room.topic = "Err rocks!"
         assert room.topic == "Err rocks!"
         assert holder.bot.rooms()[0].topic == "Err rocks!"
 
@@ -86,7 +86,7 @@ class TestMUC(object):
         p.query_room('newroom@conference.server.tld').join()
         assert p.events.get(timeout=5) == "callback_room_joined newroom@conference.server.tld"
 
-        p.query_room('newroom@conference.server.tld').set_topic("Err rocks!")
+        p.query_room('newroom@conference.server.tld').topic = "Err rocks!"
         assert p.events.get(timeout=5) == "callback_room_topic Err rocks!"
 
         p.query_room('newroom@conference.server.tld').leave()

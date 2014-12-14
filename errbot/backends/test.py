@@ -282,7 +282,8 @@ class TestBot(object):
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
-        self.bot_thread = Thread(target=main, name='TestBot main thread', args=(TestBackend, self.logger, self.bot_config))
+        self.bot_thread = Thread(target=main, name='TestBot main thread', 
+                                 args=(TestBackend, self.logger, self.bot_config))
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 

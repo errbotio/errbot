@@ -116,18 +116,22 @@ KNOWN_PUBLIC_REPOS = {
     ),
     'err-faustbot': (
         'https://github.com/Scaatis/err-faustbot.git',
-        "Output a random line of Goethe's \"Faust\" in sentence context (in German)."
+        'Output a random line of Goethe\'s "Faust" in sentence context (in German).'
     ),
     'err-sedbot': (
         'https://github.com/gbin/err-sedbot.git',
-        "errbot plugin for executing simple sed substitute commands"
+        'errbot plugin for executing simple sed substitute commands'
     ),
     'err-dnsnative': (
         'https://github.com/daenney/err-dnsnative.git',
-        "Provides common DNS utilities functionality using Python libraries"
+        'Provides common DNS utilities functionality using Python libraries'
     ),
     'err-githubhook': (
         'https://github.com/daenney/err-githubhook.git',
-        "Webhooks endpoint supporting the majority of Github Webhook Events"
+        'Webhooks endpoint supporting the majority of Github Webhook Events'
+    ),
+    'err-linksBot': (
+        'https://github.com/vaz-ar/err-linksBot.git',
+        'Plugin to handle links posted in chatrooms'
     ),
 }

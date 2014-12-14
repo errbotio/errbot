@@ -8,8 +8,8 @@ def main(bot_class, logger, config):
 
     from errbot.utils import PLUGINS_SUBDIR
     from errbot import holder
-    from errbot.errBot import main_config_defaults
-    main_config_defaults(config)
+    from errbot.errBot import bot_config_defaults
+    bot_config_defaults(config)
 
     if config.BOT_LOG_FILE:
         hdlr = logging.FileHandler(config.BOT_LOG_FILE)

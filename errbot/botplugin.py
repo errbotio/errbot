@@ -33,8 +33,8 @@ class BotPluginBase(StoreMixin):
         return holder.bot.mode
 
     @property
-    def bot_configuration(self):
-        return holder.bot.main_config
+    def bot_config(self):
+        return holder.bot.bot_config
 
     def activate(self):
         """
@@ -43,7 +43,7 @@ class BotPluginBase(StoreMixin):
         """
         classname = self.__class__.__name__
         logging.debug('Init storage for %s' % classname)
-        filename = os.path.join(self.bot_configuration.BOT_DATA_DIR, PLUGINS_SUBDIR, classname + '.db')
+        filename = os.path.join(self.bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR, classname + '.db')
         logging.debug('Loading %s' % filename)
         self.open_storage(filename)
         holder.bot.inject_commands_from(self)

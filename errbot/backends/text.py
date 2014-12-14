@@ -17,7 +17,7 @@ class TextBackend(ErrBot):
         self.jid = Identifier('Err')
 
     def serve_forever(self):
-        me = Identifier(self.main_config.BOT_ADMINS[0])
+        me = Identifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=me, status=ONLINE))
         try:

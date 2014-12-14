@@ -51,7 +51,7 @@ CONFIGS = b'configs' if PY2 else 'configs'
 REPOS = b'repos' if PY2 else 'repos'
 BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
-def main_config_defaults(config):
+def bot_config_defaults(config):
     if not hasattr(config, 'ACCESS_CONTROLS_DEFAULT'):
         config.ACCESS_CONTROLS_DEFAULT = {}
     if not hasattr(config, 'ACCESS_CONTROLS'):
@@ -81,17 +81,17 @@ class ErrBot(Backend, StoreMixin):
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
 
-    def __init__(self, config):
-        self.main_config = config
+    def __init__(self, bot_config):
+        self.bot_config = bot_config
 
-        self.plugin_dir = os.path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
+        self.plugin_dir = os.path.join(bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR)
 
-        self.open_storage(os.path.join(config.BOT_DATA_DIR, 'core.db'))
-        self.prefix = config.BOT_PREFIX
+        self.open_storage(os.path.join(bot_config.BOT_DATA_DIR, 'core.db'))
+        self.prefix = bot_config.BOT_PREFIX
         # be sure we have a configs entry for the plugin configurations
         if CONFIGS not in self:
             self[CONFIGS] = {}
-        super(ErrBot, self).__init__(config)
+        super(ErrBot, self).__init__(bot_config)
 
     @staticmethod
     def _dispatch_to_plugins(method, *args, **kwargs):
@@ -166,7 +166,7 @@ class ErrBot(Backend, StoreMixin):
     def update_dynamic_plugins(self):
         all_candidates, errors = update_plugin_places(
             [self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()],
-            self.main_config.BOT_EXTRA_PLUGIN_DIR)
+            self.bot_config.BOT_EXTRA_PLUGIN_DIR)
         self.all_candidates = all_candidates
         return errors
 
@@ -622,7 +622,7 @@ class ErrBot(Backend, StoreMixin):
             for (name, command) in self.commands.items():
                 clazz = get_class_that_defined_method(command)
                 commands = clazz_commands.get(clazz, [])
-                if not self.main_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name):
+                if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name):
                     commands.append((name, command))
                     clazz_commands[clazz] = commands
 
@@ -634,7 +634,7 @@ class ErrBot(Backend, StoreMixin):
                     for (name, command) in clazz_commands[clazz]
                     if name != 'help'
                     and not command._err_command_hidden
-                    and (not self.main_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                    and (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
                 ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self.get_command_classes()):
@@ -647,7 +647,7 @@ class ErrBot(Backend, StoreMixin):
                                                  (self.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in commands
                 if not command._err_command_hidden
-                and (not self.main_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                and (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
             ]))
         else:
             return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))
@@ -694,7 +694,7 @@ class ErrBot(Backend, StoreMixin):
             clazz = get_class_that_defined_method(command)
             clazz = str.__module__ + '.' + clazz.__name__  # makes the fuul qualified name
             commands = clazz_commands.get(clazz, [])
-            if not self.main_config.HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
+            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
                 commands.append((name, command))
                 clazz_commands[clazz] = commands
 
@@ -839,7 +839,7 @@ class ErrBot(Backend, StoreMixin):
         if args.isdigit():
             n = int(args)
 
-        if self.main_config.BOT_LOG_FILE:
-            with open(self.main_config.BOT_LOG_FILE, 'r') as f:
+        if self.bot_config.BOT_LOG_FILE:
+            with open(self.bot_config.BOT_LOG_FILE, 'r') as f:
                 return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'

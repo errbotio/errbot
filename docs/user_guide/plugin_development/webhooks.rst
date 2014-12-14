@@ -78,7 +78,7 @@ a *payload* parameter::
     class Github(BotPlugin):
         @webhook(r'/github/', form_param = 'payload')
         def notification(self, payload):
-            for room in self.bot_configuration.CHATROOM_PRESENCE:
+            for room in self.bot_config.CHATROOM_PRESENCE:
                 self.send(
                     room,
                     'Commit on %s!' % payload['repository']['name'],

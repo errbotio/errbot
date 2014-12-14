@@ -212,7 +212,7 @@ class GraphicBackend(ErrBot):
     def send_command(self, text):
         self.app.new_message(text, False)
         msg = Message(text)
-        msg.frm = self.main_config.BOT_ADMINS[0]  # assume this is the admin talking
+        msg.frm = self.bot_config.BOT_ADMINS[0]  # assume this is the admin talking
         msg.to = self.jid  # To me only
         self.callback_message(msg)
         self.app.input.clear()
@@ -228,7 +228,7 @@ class GraphicBackend(ErrBot):
         self.connect_callback()  # notify that the connection occured
 
         # create window and components
-        self.app = ChatApplication(sys.argv, backend=self, config=self.main_config)
+        self.app = ChatApplication(sys.argv, backend=self, config=self.bot_config)
         try:
             self.app.exec_()
         finally:

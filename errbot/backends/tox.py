@@ -60,7 +60,7 @@ class ToxConnection(Tox):
         self.backend = backend
         self.incoming_streams = {}
         self.outgoing_streams = {}
-        state_file = join(backend.main_config.BOT_DATA_DIR, 'tox.state')
+        state_file = join(backend.bot_config.BOT_DATA_DIR, 'tox.state')
         if exists(state_file):
             self.load_from_file(state_file)
         self.set_name(name)
@@ -337,7 +337,7 @@ class ToxBackend(ErrBot):
     def is_admin(self, friend_number):
         pk = self.conn.get_client_id(int(friend_number))
         logging.debug("Check if %s is admin" % pk)
-        return any(pka.startswith(pk) for pka in self.main_config.BOT_ADMINS)
+        return any(pka.startswith(pk) for pka in self.bot_config.BOT_ADMINS)
 
     def send_message(self, mess):
         super(ToxBackend, self).send_message(mess)
@@ -379,7 +379,7 @@ class ToxBackend(ErrBot):
 
                 if checked and not status:
                     logging.info('TOX: Disconnected from DHT.')
-                    self.conn.connect(self.main_config.TOX_BOOTSTRAP_SERVER)
+                    self.conn.connect(self.bot_config.TOX_BOOTSTRAP_SERVER)
                     checked = False
 
                 self.conn.do()
@@ -387,7 +387,7 @@ class ToxBackend(ErrBot):
         except KeyboardInterrupt:
             pass
         finally:
-            self.conn.save_to_file(TOX_STATEFILE)
+            self.conn.save_to_file(self.bot_config.TOX_STATEFILE)
             self.disconnect_callback()
             self.shutdown()
 

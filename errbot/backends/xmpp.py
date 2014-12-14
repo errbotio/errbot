@@ -32,30 +32,6 @@ except ImportError as _:
     """)
     sys.exit(-1)
 
-from config import CHATROOM_FN
-try:
-    from config import XMPP_FEATURE_MECHANISMS
-except ImportError:
-    XMPP_FEATURE_MECHANISMS = {}
-try:
-    from config import XMPP_KEEPALIVE_INTERVAL
-except ImportError:
-    XMPP_KEEPALIVE_INTERVAL = None
-try:
-    from config import XMPP_CA_CERT_FILE
-except ImportError:
-    XMPP_CA_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"
-
-if XMPP_CA_CERT_FILE is not None and not os.path.exists(XMPP_CA_CERT_FILE):
-    logging.fatal("The CA certificate path set by XMPP_CA_CERT_FILE does not exist. "
-                  "Please set XMPP_CA_CERT_FILE to a valid file, or disable certificate"
-                  "validation by setting it to None (not recommended!).")
-    sys.exit(-1)
-try:
-    from config import CHATROOM_PRESENCE
-except ImportError:
-    CHATROOM_PRESENCE = ()
-
 
 def verify_gtalk_cert(xmpp_client):
     """
@@ -149,7 +125,7 @@ class XMPPMUCRoom(MUCRoom):
             "XMPP back-end does not support explicit creation, joining room "
             "instead to ensure it exists."
         )
-        self.join(username=CHATROOM_FN)
+        self.join(username=str(self))
 
     def destroy(self):
         """
@@ -285,9 +261,9 @@ class XMPPMUCOccupant(MUCOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password):
+    def __init__(self, jid, password, feature={}, keepalive=None, ca_cert=None):
         self.connected = False
-        self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': XMPP_FEATURE_MECHANISMS})
+        self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': feature})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
         self.client.register_plugin('xep_0004')  # Multi-User Chat backward compability (necessary for join room)
@@ -295,11 +271,11 @@ class XMPPConnection(object):
         self.client.register_plugin('xep_0203')  # XMPP Delayed messages
         self.client.register_plugin('xep_0249')  # XMPP direct MUC invites
 
-        if XMPP_KEEPALIVE_INTERVAL is not None:
+        if keepalive is not None:
             self.client.whitespace_keepalive = True  # Just in case SleekXMPP's default changes to False in the future
-            self.client.whitespace_keepalive_interval = XMPP_KEEPALIVE_INTERVAL
+            self.client.whitespace_keepalive_interval = keepalive
 
-        self.client.ca_certs = XMPP_CA_CERT_FILE  # Used for TLS certificate validation
+        self.client.ca_certs = ca_cert  # Used for TLS certificate validation
 
         self.client.add_event_handler("session_start", self.session_start)
         self.client.add_event_handler("ssl_invalid_cert", self.ssl_invalid_cert)
@@ -382,10 +358,17 @@ XMPP_TO_ERR_STATUS = {'available': ONLINE,
 
 
 class XMPPBackend(ErrBot):
-    def __init__(self, username, password, *args, **kwargs):
-        super(XMPPBackend, self).__init__(*args, **kwargs)
-        self.jid = Identifier(username)
-        self.password = password
+
+    def __init__(self, config):
+        super(XMPPBackend, self).__init__(config)
+        identity = config.BOT_IDENTITY
+
+        self.jid = Identifier(identity['username'])
+        self.password = identity['password']
+        self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', '{}')
+        self.keepalive = config.__dict__.get('XMPP_KEEPALIVE_INTERVAL', None)
+        self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
+
         self.conn = self.create_connection()
         self.conn.add_event_handler("message", self.incoming_message)
         self.conn.add_event_handler("session_start", self.connected)
@@ -399,7 +382,7 @@ class XMPPBackend(ErrBot):
         self._room_topics = {}
 
     def create_connection(self):
-        return XMPPConnection(self.jid, self.password)
+        return XMPPConnection(self.jid, self.password, self.feature, self.keepalive, self.ca_cert)
 
     def incoming_message(self, xmppmsg):
         """Callback for message events"""

@@ -291,7 +291,7 @@ class HipchatClient(XMPPConnection):
         self.token = kwargs.pop('token')
         self.debug = kwargs.pop('debug')
         self.hypchat = hypchat.HypChat(self.token)
-        super(HipchatClient, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def users(self):
@@ -311,10 +311,10 @@ class HipchatClient(XMPPConnection):
 
 
 class HipchatBackend(XMPPBackend):
-    def __init__(self, username, password, token=None):
-        self.api_token = token
-        self.password = password
-        super(HipchatBackend, self).__init__(username, password)
+    def __init__(self, config):
+        self.api_token = config.BOT_IDENTITY['token']
+        self.password = config.BOT_IDENTITY['password']
+        super(HipchatBackend, self).__init__(config)
 
     def create_connection(self):
         return HipchatClient(self.jid, password=self.password, debug=[], token=self.api_token)

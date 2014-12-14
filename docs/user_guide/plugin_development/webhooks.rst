@@ -73,13 +73,12 @@ handle as well, you just need to specify the `form_param` parameter.
 A good example for this is the GitHub format that posts a form with
 a *payload* parameter::
 
-    from config import CHATROOM_PRESENCE
     from errbot import BotPlugin, webhook
 
     class Github(BotPlugin):
         @webhook(r'/github/', form_param = 'payload')
         def notification(self, payload):
-            for room in CHATROOM_PRESENCE:
+            for room in self.bot_config.CHATROOM_PRESENCE:
                 self.send(
                     room,
                     'Commit on %s!' % payload['repository']['name'],

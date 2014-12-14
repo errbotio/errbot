@@ -11,7 +11,6 @@ from errbot.builtins.wsview import bottle_app
 from errbot.decorators import webhook
 from errbot.bundled.rocket import Rocket
 from webtest import TestApp
-from config import BOT_DATA_DIR
 
 if PY3:
     from urllib.request import unquote
@@ -180,10 +179,10 @@ class Webserver(BotPlugin):
 
         yield ("Generating a new private key and certificate. This could take a "
                "while if your system is slow or low on entropy")
-        key_path = os.sep.join((BOT_DATA_DIR, "webserver_key.pem"))
-        cert_path = os.sep.join((BOT_DATA_DIR, "webserver_certificate.pem"))
+        key_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_key.pem"))
+        cert_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_certificate.pem"))
         make_ssl_certificate(key_path=key_path, cert_path=cert_path)
-        yield "Certificate successfully generated and saved in {}".format(BOT_DATA_DIR)
+        yield "Certificate successfully generated and saved in {}".format(self.bot_config.BOT_DATA_DIR)
 
         suggested_config = self.config
         suggested_config['SSL']['enabled'] = True

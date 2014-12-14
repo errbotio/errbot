@@ -2,20 +2,21 @@ from os import path, makedirs, sep
 import logging
 
 
-def main(bot_class, logger):
+def main(bot_class, logger, config):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
-    from config import BOT_IDENTITY, BOT_LOG_LEVEL, BOT_DATA_DIR, BOT_LOG_FILE, BOT_LOG_SENTRY
     from errbot.utils import PLUGINS_SUBDIR
     from errbot import holder
+    from errbot.errBot import bot_config_defaults
+    bot_config_defaults(config)
 
-    if BOT_LOG_FILE:
-        hdlr = logging.FileHandler(BOT_LOG_FILE)
+    if config.BOT_LOG_FILE:
+        hdlr = logging.FileHandler(config.BOT_LOG_FILE)
         hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
         logger.addHandler(hdlr)
 
-    if BOT_LOG_SENTRY:
+    if config.BOT_LOG_SENTRY:
         try:
             from raven.handlers.logging import SentryHandler
         except ImportError as _:
@@ -26,21 +27,21 @@ def main(bot_class, logger):
                 "for installation instructions)"
             )
             exit(-1)
-        from config import SENTRY_DSN, SENTRY_LOGLEVEL
 
-        sentryhandler = SentryHandler(SENTRY_DSN, level=SENTRY_LOGLEVEL)
+        sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
         logger.addHandler(sentryhandler)
 
-    logger.setLevel(BOT_LOG_LEVEL)
+    logger.setLevel(config.BOT_LOG_LEVEL)
 
     # make the plugins subdir to store the plugin shelves
-    d = BOT_DATA_DIR + sep + str(PLUGINS_SUBDIR)
+    d = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
     if not path.exists(d):
         makedirs(d, mode=0o755)
     try:
-        holder.bot = bot_class(**BOT_IDENTITY)
+        holder.bot = bot_class(config)
     except Exception:
         logging.exception("Unable to configure the backend, please check if your config.py is correct.")
+        exit(-1)
     errors = holder.bot.update_dynamic_plugins()
     if errors:
         logging.error('Some plugins failed to load:\n' + '\n'.join(errors))

@@ -19,26 +19,22 @@ import inspect
 import gc
 import logging
 import os
-
 import shutil
 import subprocess
-
 from tarfile import TarFile
 from urllib.request import urlopen
 from pprint import pformat
 
 from errbot import botcmd, PY2
-from errbot.backends.base import Backend, HIDE_RESTRICTED_COMMANDS, ACLViolation
-
+from errbot.backends.base import Backend, ACLViolation
 from errbot.plugin_manager import (
     get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,
     get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check,
     deactivate_plugin_by_name,
     get_plugin_obj_by_name, PluginConfigurationException, check_dependencies, reload_plugin_by_name
 )
-
 from errbot.storage import StoreMixin
-from errbot.utils import PLUGINS_SUBDIR, human_name_for_git_url, tail, format_timedelta, which, get_sender_username
+from errbot.utils import human_name_for_git_url, tail, format_timedelta, which, get_sender_username, PLUGINS_SUBDIR
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.version import VERSION
 from errbot.streaming import Tee
@@ -56,6 +52,29 @@ REPOS = b'repos' if PY2 else 'repos'
 BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
 
+def bot_config_defaults(config):
+    if not hasattr(config, 'ACCESS_CONTROLS_DEFAULT'):
+        config.ACCESS_CONTROLS_DEFAULT = {}
+    if not hasattr(config, 'ACCESS_CONTROLS'):
+        config.ACCESS_CONTROLS = {}
+    if not hasattr(config, 'HIDE_RESTRICTED_COMMANDS'):
+        config.HIDE_RESTRICTED_COMMANDS = False
+    if not hasattr(config, 'HIDE_RESTRICTED_ACCESS'):
+        config.HIDE_RESTRICTED_ACCESS = False
+    if not hasattr(config, 'BOT_PREFIX_OPTIONAL_ON_CHAT'):
+        config.BOT_PREFIX_OPTIONAL_ON_CHAT = False
+    if not hasattr(config, 'BOT_ALT_PREFIXES'):
+        config.BOT_ALT_PREFIXES = ()
+    if not hasattr(config, 'BOT_ALT_PREFIX_SEPARATORS'):
+        config.BOT_ALT_PREFIX_SEPARATORS = ()
+    if not hasattr(config, 'BOT_ALT_PREFIX_CASEINSENSITIVE'):
+        config.BOT_ALT_PREFIX_CASEINSENSITIVE = False
+    if not hasattr(config, 'DIVERT_TO_PRIVATE'):
+        config.DIVERT_TO_PRIVATE = ()
+    if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
+        config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
+
+
 class ErrBot(Backend, StoreMixin):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
@@ -64,17 +83,17 @@ class ErrBot(Backend, StoreMixin):
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
 
-    def __init__(self, *args, **kwargs):
-        from config import BOT_DATA_DIR, BOT_PREFIX
+    def __init__(self, bot_config):
+        self.bot_config = bot_config
 
-        self.plugin_dir = BOT_DATA_DIR + os.sep + PLUGINS_SUBDIR
+        self.plugin_dir = os.path.join(bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR)
 
-        self.open_storage(BOT_DATA_DIR + os.sep + 'core.db')
-        self.prefix = BOT_PREFIX
+        self.open_storage(os.path.join(bot_config.BOT_DATA_DIR, 'core.db'))
+        self.prefix = bot_config.BOT_PREFIX
         # be sure we have a configs entry for the plugin configurations
         if CONFIGS not in self:
             self[CONFIGS] = {}
-        super(ErrBot, self).__init__(*args, **kwargs)
+        super(ErrBot, self).__init__(bot_config)
 
     @staticmethod
     def _dispatch_to_plugins(method, *args, **kwargs):
@@ -148,7 +167,8 @@ class ErrBot(Backend, StoreMixin):
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
         all_candidates, errors = update_plugin_places(
-            [self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()])
+            [self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()],
+            self.bot_config.BOT_EXTRA_PLUGIN_DIR)
         self.all_candidates = all_candidates
         return errors
 
@@ -604,7 +624,7 @@ class ErrBot(Backend, StoreMixin):
             for (name, command) in self.commands.items():
                 clazz = get_class_that_defined_method(command)
                 commands = clazz_commands.get(clazz, [])
-                if not HIDE_RESTRICTED_COMMANDS or may_access_command(name):
+                if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name):
                     commands.append((name, command))
                     clazz_commands[clazz] = commands
 
@@ -616,7 +636,7 @@ class ErrBot(Backend, StoreMixin):
                     for (name, command) in clazz_commands[clazz]
                     if name != 'help'
                     and not command._err_command_hidden
-                    and (not HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                    and (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
                 ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self.get_command_classes()):
@@ -629,7 +649,7 @@ class ErrBot(Backend, StoreMixin):
                                                  (self.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in commands
                 if not command._err_command_hidden
-                and (not HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                and (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
             ]))
         else:
             return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))
@@ -676,7 +696,7 @@ class ErrBot(Backend, StoreMixin):
             clazz = get_class_that_defined_method(command)
             clazz = str.__module__ + '.' + clazz.__name__  # makes the fuul qualified name
             commands = clazz_commands.get(clazz, [])
-            if not HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
+            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
                 commands.append((name, command))
                 clazz_commands[clazz] = commands
 
@@ -820,9 +840,8 @@ class ErrBot(Backend, StoreMixin):
         n = 40
         if args.isdigit():
             n = int(args)
-        from config import BOT_LOG_FILE
 
-        if BOT_LOG_FILE:
-            with open(BOT_LOG_FILE, 'r') as f:
+        if self.bot_config.BOT_LOG_FILE:
+            with open(self.bot_config.BOT_LOG_FILE, 'r') as f:
                 return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'

@@ -3,6 +3,7 @@ import sys
 import logging
 from tempfile import mkdtemp
 from os.path import sep
+from errbot.errBot import bot_config_defaults
 
 __import__('errbot.config-template')
 config_module = sys.modules['errbot.config-template']
@@ -30,6 +31,19 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
     jid = Identifier('err@localhost/err')
+
+    def __init__(self, extra_config={}):
+        class Config:
+            BOT_IDENTITY = {'username': 'err@localhost'}
+            BOT_ASYNC = False
+            BOT_PREFIX = '!'
+            CHATROOM_FN = 'blah'
+        self.bot_config = Config()
+        for key in extra_config:
+            setattr(self.bot_config, key, extra_config[key])
+        bot_config_defaults(self.bot_config)
+        super(DummyBackend, self).__init__(self.bot_config)
+        self.inject_commands_from(self)
 
     def build_message(self, text):
         return build_message(text, Message)
@@ -111,10 +125,6 @@ class DummyBackend(Backend):
     @property
     def rooms(self):
         return []
-
-    def __init__(self):
-        super(DummyBackend, self).__init__()
-        self.inject_commands_from(self)
 
 
 class TestBase(unittest.TestCase):
@@ -248,7 +258,7 @@ class TestExecuteAndSend(unittest.TestCase):
     def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_returned(self):
         dummy = self.dummy
         m = self.example_message
-        self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
+        self.dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, mess=m,
                                 jid='noterr@localhost', template_name=dummy.return_long_output._err_command_template)
@@ -259,7 +269,7 @@ class TestExecuteAndSend(unittest.TestCase):
     def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_yielded(self):
         dummy = self.dummy
         m = self.example_message
-        self.dummy.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
+        self.dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, mess=m,
                                 jid='noterr@localhost', template_name=dummy.yield_long_output._err_command_template)
@@ -296,8 +306,8 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(self.makemessage("!return_args_as_str one two"))
         self.assertEquals("one two", self.dummy.pop_message().body)
 
-    @patch('errbot.backends.base.BOT_PREFIX_OPTIONAL_ON_CHAT', new=True)
     def test_callback_message_with_prefix_optional(self):
+        self.dummy = DummyBackend({'BOT_PREFIX_OPTIONAL_ON_CHAT': True})
         m = self.makemessage("return_args_as_str one two")
         self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
@@ -311,10 +321,8 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
 
-    @patch('errbot.backends.base.BOT_ALT_PREFIXES', new=('Err',))
-    @patch('errbot.backends.base.BOT_ALT_PREFIX_SEPARATORS', new=(',', ';'))
     def test_callback_message_with_bot_alt_prefixes(self):
-        self.dummy = DummyBackend()
+        self.dummy = DummyBackend({'BOT_ALT_PREFIXES': ('Err',), 'BOT_ALT_PREFIX_SEPARATORS': (',', ';')})
         self.dummy.callback_message(self.makemessage("Err return_args_as_str one two"))
         self.assertEquals("one two", self.dummy.pop_message().body)
         self.dummy.callback_message(self.makemessage("Err, return_args_as_str one two"))
@@ -333,10 +341,8 @@ class BotCmds(unittest.TestCase):
             "This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
 
-    @patch('errbot.backends.base.BOT_ALT_PREFIXES', new=('Err',))
-    @patch('errbot.backends.base.BOT_ALT_PREFIX_SEPARATORS', new=(',', ';'))
     def test_callback_message_with_re_botcmd_and_alt_prefixes(self):
-        self.dummy = DummyBackend()
+        self.dummy = DummyBackend({'BOT_ALT_PREFIXES': ('Err',), 'BOT_ALT_PREFIX_SEPARATORS': (',', ';')})
         self.dummy.callback_message(self.makemessage("!regex command with prefix"))
         self.assertEquals("Regex command", self.dummy.pop_message().body)
         self.dummy.callback_message(self.makemessage("Err regex command with prefix"))
@@ -443,17 +449,14 @@ class BotCmds(unittest.TestCase):
         ]
 
         for test in tests:
-            with patch.multiple(
-                    'errbot.backends.base',
-                    ACCESS_CONTROLS_DEFAULT=test['acl_default'],
-                    ACCESS_CONTROLS=test['acl']
-            ):
-                logger = logging.getLogger(__name__)
-                logger.info("** message: {}".format(test['message'].body))
-                logger.info("** acl: {!r}".format(test['acl']))
-                logger.info("** acl_default: {!r}".format(test['acl_default']))
-                self.dummy.callback_message(test['message'])
-                self.assertEqual(
-                    test['expected_response'],
-                    self.dummy.pop_message().body
-                )
+            self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT = test['acl_default']
+            self.dummy.bot_config.ACCESS_CONTROLS = test['acl']
+            logger = logging.getLogger(__name__)
+            logger.info("** message: {}".format(test['message'].body))
+            logger.info("** acl: {!r}".format(test['acl']))
+            logger.info("** acl_default: {!r}".format(test['acl_default']))
+            self.dummy.callback_message(test['message'])
+            self.assertEqual(
+                test['expected_response'],
+                self.dummy.pop_message().body
+            )

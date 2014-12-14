@@ -269,9 +269,9 @@ class TestBot(object):
         self.logger.setLevel(loglevel)
         self.logger.addHandler(file)
 
-        import config
-        config.BOT_EXTRA_PLUGIN_DIR = extra_plugin_dir
-        config.BOT_LOG_LEVEL = loglevel
+        config_module.BOT_EXTRA_PLUGIN_DIR = extra_plugin_dir
+        config_module.BOT_LOG_LEVEL = loglevel
+        self.bot_config = config_module
 
     def start(self):
         """
@@ -282,7 +282,7 @@ class TestBot(object):
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
-        self.bot_thread = Thread(target=main, name='TestBot main thread', args=(TestBackend, self.logger))
+        self.bot_thread = Thread(target=main, name='TestBot main thread', args=(TestBackend, self.logger, self.bot_config))
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 

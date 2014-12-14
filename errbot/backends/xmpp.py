@@ -33,7 +33,6 @@ except ImportError as _:
     sys.exit(-1)
 
 
-
 def verify_gtalk_cert(xmpp_client):
     """
         Hack specific for google apps domains with SRV entries.
@@ -356,7 +355,9 @@ XMPP_TO_ERR_STATUS = {'available': ONLINE,
                       'dnd': DND,
                       'unavailable': OFFLINE}
 
+
 class XMPPBackend(ErrBot):
+
     def __init__(self, config):
         super(XMPPBackend, self).__init__(config)
         identity = config.BOT_IDENTITY

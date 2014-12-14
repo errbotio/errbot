@@ -159,7 +159,16 @@ class IRCMUCRoom(MUCRoom):
 
 
 class IRCConnection(SingleServerIRCBot):
-    def __init__(self, callback, nickname, server, port=6667, ssl=False, password=None, username=None, private_rate = 1, channel_rate = 1):
+    def __init__(self,
+                 callback,
+                 nickname,
+                 server,
+                 port=6667,
+                 ssl=False,
+                 password=None,
+                 username=None,
+                 private_rate=1,
+                 channel_rate=1):
         self.use_ssl = ssl
         self.callback = callback
         # manually decorate functions

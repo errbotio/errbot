@@ -15,8 +15,6 @@ from errbot.templating import tenv
 from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
 
-
-
 class ACLViolation(Exception):
     """Exceptions raised when user is not allowed to execute given command due to ACLs"""
 
@@ -1017,20 +1015,26 @@ class Backend(object):
         if cmd not in self.bot_config.ACCESS_CONTROLS:
             self.bot_config.ACCESS_CONTROLS[cmd] = self.bot_config.ACCESS_CONTROLS_DEFAULT
 
-        if 'allowusers' in self.bot_config.ACCESS_CONTROLS[cmd] and usr not in self.bot_config.ACCESS_CONTROLS[cmd]['allowusers']:
+        if ('allowusers' in self.bot_config.ACCESS_CONTROLS[cmd] and
+           usr not in self.bot_config.ACCESS_CONTROLS[cmd]['allowusers']):
             raise ACLViolation("You're not allowed to access this command from this user")
-        if 'denyusers' in self.bot_config.ACCESS_CONTROLS[cmd] and usr in self.bot_config.ACCESS_CONTROLS[cmd]['denyusers']:
+        if ('denyusers' in self.bot_config.ACCESS_CONTROLS[cmd] and
+           usr in self.bot_config.ACCESS_CONTROLS[cmd]['denyusers']):
             raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
             stripped = mess.frm.stripped
-            if 'allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False:
+            if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
+               self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):
                 raise ACLViolation("You're not allowed to access this command from a chatroom")
-            if 'allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and stripped not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']:
+            if ('allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
+               stripped not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']):
                 raise ACLViolation("You're not allowed to access this command from this room")
-            if 'denyrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and stripped in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']:
+            if ('denyrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
+               stripped in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']):
                 raise ACLViolation("You're not allowed to access this command from this room")
         else:
-            if 'allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and self.bot_config.ACCESS_CONTROLS[cmd]['allowprivate'] is False:
+            if ('allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and
+               self.bot_config.ACCESS_CONTROLS[cmd]['allowprivate'] is False):
                 raise ACLViolation("You're not allowed to access this command via private message to me")
 
         f = self.commands[cmd] if cmd in self.commands else self.re_commands[cmd]
@@ -1055,7 +1059,8 @@ class Backend(object):
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            return part1 + '\n\nDid you mean "' + self.bot_config.BOT_PREFIX + ('" or "' + self.bot_config.BOT_PREFIX).join(matches) + '" ?'
+            return (part1 + '\n\nDid you mean "' + self.bot_config.BOT_PREFIX +
+                    ('" or "' + self.bot_config.BOT_PREFIX).join(matches) + '" ?')
         else:
             return part1
 
@@ -1125,7 +1130,7 @@ class Backend(object):
 
             usage = '\n'.join(sorted([
                 self.bot_config.BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
-                                                '(undocumented)').strip().split('\n', 1)[0])
+                                                         '(undocumented)').strip().split('\n', 1)[0])
                 for (name, command) in self.commands.items()
                 if name != 'help'
                 and not command._err_command_hidden

@@ -51,6 +51,7 @@ CONFIGS = b'configs' if PY2 else 'configs'
 REPOS = b'repos' if PY2 else 'repos'
 BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
+
 def bot_config_defaults(config):
     if not hasattr(config, 'ACCESS_CONTROLS_DEFAULT'):
         config.ACCESS_CONTROLS_DEFAULT = {}
@@ -72,6 +73,7 @@ def bot_config_defaults(config):
         config.DIVERT_TO_PRIVATE = ()
     if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
         config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
+
 
 class ErrBot(Backend, StoreMixin):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching

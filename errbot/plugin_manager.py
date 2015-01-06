@@ -3,11 +3,11 @@ from itertools import chain
 import logging
 import sys
 import os
-from errbot import PY2
-from errbot.botplugin import BotPlugin
-from errbot.utils import version2array, PY3
-from errbot.templating import remove_plugin_templates_path, add_plugin_templates_path
-from errbot.version import VERSION
+from . import PY2
+from .botplugin import BotPlugin
+from .utils import version2array, PY3
+from .templating import remove_plugin_templates_path, add_plugin_templates_path
+from .version import VERSION
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins

@@ -5,9 +5,9 @@ import warnings
 
 from threading import Timer, current_thread
 
-from errbot.utils import PLUGINS_SUBDIR, recurse_check_structure
-from errbot.storage import StoreMixin, StoreNotOpenError
-from errbot import holder
+from .utils import PLUGINS_SUBDIR, recurse_check_structure
+from .storage import StoreMixin, StoreNotOpenError
+from . import holder
 
 
 class BotPluginBase(StoreMixin):

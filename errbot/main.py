@@ -6,9 +6,9 @@ def main(bot_class, logger, config):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
-    from errbot.utils import PLUGINS_SUBDIR
-    from errbot import holder
-    from errbot.errBot import bot_config_defaults
+    from .utils import PLUGINS_SUBDIR
+    from . import holder
+    from .errBot import bot_config_defaults
     bot_config_defaults(config)
 
     if config.BOT_LOG_FILE:

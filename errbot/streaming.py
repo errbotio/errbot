@@ -2,10 +2,10 @@
 import os
 import io
 from threading import Thread
-from errbot.backends.base import (STREAM_WAITING_TO_START,
-                                  STREAM_TRANSFER_IN_PROGRESS)
+from .backends.base import (STREAM_WAITING_TO_START,
+                            STREAM_TRANSFER_IN_PROGRESS)
 import logging
-from errbot.utils import repeatfunc
+from .utils import repeatfunc
 
 CHUNK_SIZE = 4096
 

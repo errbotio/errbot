@@ -1,7 +1,7 @@
 import re
 import logging
-from errbot import PY2
-from errbot.builtins.wsview import bottle_app, WebView
+from . import PY2
+from .builtins.wsview import bottle_app, WebView
 
 
 def botcmd(*args, **kwargs):

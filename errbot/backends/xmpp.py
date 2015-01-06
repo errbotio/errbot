@@ -365,7 +365,7 @@ class XMPPBackend(ErrBot):
 
         self.jid = Identifier(identity['username'])
         self.password = identity['password']
-        self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', '{}')
+        self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', {})
         self.keepalive = config.__dict__.get('XMPP_KEEPALIVE_INTERVAL', None)
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
 

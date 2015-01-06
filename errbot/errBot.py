@@ -25,19 +25,19 @@ from tarfile import TarFile
 from urllib.request import urlopen
 from pprint import pformat
 
-from errbot import botcmd, PY2
-from errbot.backends.base import Backend, ACLViolation
-from errbot.plugin_manager import (
+from . import botcmd, PY2
+from .backends.base import Backend, ACLViolation
+from .plugin_manager import (
     get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,
     get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check,
     deactivate_plugin_by_name,
     get_plugin_obj_by_name, PluginConfigurationException, check_dependencies, reload_plugin_by_name
 )
-from errbot.storage import StoreMixin
-from errbot.utils import human_name_for_git_url, tail, format_timedelta, which, get_sender_username, PLUGINS_SUBDIR
-from errbot.repos import KNOWN_PUBLIC_REPOS
-from errbot.version import VERSION
-from errbot.streaming import Tee
+from .storage import StoreMixin
+from .utils import human_name_for_git_url, tail, format_timedelta, which, get_sender_username, PLUGINS_SUBDIR
+from .repos import KNOWN_PUBLIC_REPOS
+from .version import VERSION
+from .streaming import Tee
 
 
 def get_class_that_defined_method(meth):

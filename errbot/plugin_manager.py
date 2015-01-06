@@ -11,7 +11,7 @@ from .version import VERSION
 from yapsy.PluginManager import PluginManager
 
 # hardcoded directory for the system plugins
-from errbot import holder
+from . import holder
 
 BUILTIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'builtins')
 

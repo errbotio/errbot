@@ -253,4 +253,3 @@ REVERSE_CHATROOM_RELAY = {}
 
 # Allow messages sent in a chatroom to be directed at requester.
 #GROUPCHAT_NICK_PREFIXED = False
-

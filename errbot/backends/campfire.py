@@ -120,3 +120,6 @@ class CampfireBackend(ErrBot):
     @property
     def mode(self):
         return 'campfire'
+
+    def groupchat_reply_format(self):
+        return '@{0} {1}'

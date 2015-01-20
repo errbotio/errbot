@@ -252,5 +252,5 @@ REVERSE_CHATROOM_RELAY = {}
 #IRC_PRIVATE_RATE = 1  # Private messages
 
 # Allow messages sent in a chatroom to be directed at requester.
-#IRC_NICK_PREFIX_REPLY = False
+#GROUPCHAT_NICK_PREFIXED = False
 

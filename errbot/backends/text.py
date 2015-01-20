@@ -73,6 +73,9 @@ class TextBackend(ErrBot):
     def rooms(self):
         return self.rooms
 
+    def groupchat_reply_format(self):
+        return '{0} {1}'
+
 
 class TextMUCRoom(MUCRoom):
     def __init__(self, jid=None, node='', domain='', resource=''):

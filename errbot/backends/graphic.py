@@ -244,3 +244,6 @@ class GraphicBackend(TextBackend):
     @property
     def mode(self):
         return 'graphic'
+
+    def groupchat_reply_format(self):
+        return '{0} {1}'

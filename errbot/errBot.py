@@ -73,6 +73,8 @@ def bot_config_defaults(config):
         config.DIVERT_TO_PRIVATE = ()
     if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
         config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
+    if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):
+        config.GROUPCHAT_NICK_PREFIXED = False
 
 
 class ErrBot(Backend, StoreMixin):

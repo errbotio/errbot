@@ -298,15 +298,5 @@ class IRCBackend(ErrBot):
         channels = self.conn.channels.keys()
         return [IRCMUCRoom(node=channel) for channel in channels]
 
-    def send(self, user, text, in_reply_to=None, message_type='chat'):
-        """Sends a simple message to the specified user."""
-
-        nick_reply = config.__dict__.get('IRC_NICK_PREFIX_REPLY', False)
-
-        if in_reply_to and message_type == 'groupchat' and nick_reply:
-            super().send(user,
-                         '{}: {}'.format(in_reply_to.nick, text),
-                         in_reply_to,
-                         message_type)
-        else:
-            super().send(user, text, in_reply_to, message_type)
+    def groupchat_reply_format(self):
+        return '{0}: {1}'

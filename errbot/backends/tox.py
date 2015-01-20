@@ -418,3 +418,6 @@ class ToxBackend(ErrBot):
             if gc.node == room:
                 return gc
         return None
+
+    def groupchat_reply_format(self):
+        return '@{0} {1}'

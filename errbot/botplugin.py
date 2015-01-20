@@ -288,12 +288,12 @@ class BotPlugin(BotPluginBase):
         """
         return holder.bot.warn_admins(warning)
 
-    def send(self, user, text, in_reply_to=None, message_type='chat'):
+    def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """
             Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
-        return holder.bot.send(user, text, in_reply_to, message_type)
+        return holder.bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
     def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):
         """

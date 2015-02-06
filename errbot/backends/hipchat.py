@@ -362,3 +362,6 @@ class HipchatBackend(XMPPBackend):
             name = room
 
         return HipChatMUCRoom(name)
+
+    def groupchat_reply_format(self):
+        return '@{0} {1}'

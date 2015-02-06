@@ -1149,9 +1149,20 @@ class Backend(object):
         bottom = self.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
 
-    def send(self, user, text, in_reply_to=None, message_type='chat'):
+    def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """Sends a simple message to the specified user."""
-        mess = self.build_message(text)
+
+        nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
+
+        if (message_type == 'groupchat'
+                and in_reply_to
+                and nick_reply
+                and groupchat_nick_reply):
+            reply_text = self.groupchat_reply_format().format(in_reply_to.nick, text)
+        else:
+            reply_text = text
+
+        mess = self.build_message(reply_text)
         if hasattr(user, 'stripped'):
             mess.to = user.stripped
         else:
@@ -1167,6 +1178,9 @@ class Backend(object):
         self.send_message(mess)
 
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
+
+    def groupchat_reply_format(self):
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def build_message(self, text):
         raise NotImplementedError("It should be implemented specifically for your backend")

@@ -250,3 +250,6 @@ REVERSE_CHATROOM_RELAY = {}
 # to a value of 0 effectively disables rate limiting.
 #IRC_CHANNEL_RATE = 1  # Regular channel messages
 #IRC_PRIVATE_RATE = 1  # Private messages
+
+# Allow messages sent in a chatroom to be directed at requester.
+#GROUPCHAT_NICK_PREFIXED = False

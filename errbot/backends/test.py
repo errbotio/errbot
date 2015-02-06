@@ -208,6 +208,9 @@ class TestBackend(ErrBot):
             r = MUCRoom(jid=room)
             return r
 
+    def groupchat_reply_format(self):
+        return '{0} {1}'
+
 
 def pop_message(timeout=5, block=True):
     return outgoing_message_queue.get(timeout=timeout, block=block)

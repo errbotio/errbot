@@ -510,3 +510,6 @@ class XMPPBackend(ErrBot):
             An instance of :class:`~XMPPMUCRoom`.
         """
         return XMPPMUCRoom(room)
+
+    def groupchat_reply_format(self):
+        return '@{0} {1}'

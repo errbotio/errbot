@@ -137,5 +137,5 @@ KNOWN_PUBLIC_REPOS = {
     'err-stash': (
         'https://github.com/charlesrg/err-stash.git',
         'Plugin to notify commits to Atlassian Stash Git repo to user or chatrooms.'
-    ),    
+    ),
 }

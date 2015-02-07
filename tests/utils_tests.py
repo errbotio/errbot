@@ -5,7 +5,9 @@ from nose.tools import raises
 from errbot.utils import *
 from errbot.storage import StoreMixin
 
-vc = lambda v1, v2: version2array(v1) < version2array(v2)
+
+def vc(v1, v2):
+    return version2array(v1) < version2array(v2)
 
 
 def test_version_check():

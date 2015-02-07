@@ -1,5 +1,6 @@
 import logging
 import sys
+import re
 from errbot.utils import mess_2_embeddablehtml
 
 try:
@@ -116,8 +117,6 @@ class ConnectionMock(QtCore.QObject):
             content, is_html = mess_2_embeddablehtml(mess)
             self.newAnswer.emit(content, is_html)
 
-
-import re
 
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 

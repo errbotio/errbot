@@ -15,15 +15,15 @@ config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 config_module.BOT_EXTRA_PLUGIN_DIR = []
 config_module.BOT_LOG_LEVEL = logging.DEBUG
 
-import unittest
-import os
-import re
-from queue import Queue, Empty
-from mock import patch
-from errbot.backends.base import Identifier, Backend, Message
-from errbot.backends.base import build_message, build_text_html_message_pair
-from errbot import botcmd, re_botcmd, templating
-from errbot.utils import mess_2_embeddablehtml
+import unittest  # noqa
+import os  # noqa
+import re  # noqa
+from queue import Queue, Empty  # noqa
+from mock import patch  # noqa
+from errbot.backends.base import Identifier, Backend, Message  # noqa
+from errbot.backends.base import build_message, build_text_html_message_pair  # noqa
+from errbot import botcmd, re_botcmd, templating  # noqa
+from errbot.utils import mess_2_embeddablehtml  # noqa
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 

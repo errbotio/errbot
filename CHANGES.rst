@@ -1,8 +1,31 @@
 Release history
 ===============
 
-Version 2.2.0-beta (2014-08-??)
+Version 2.2.0-beta (2015-02-16)
 -------------------------------
+
+New features:
+
+- New serverless tox backend (see http://tox.im for more info)
+- New Presence callbacks with status messages etc.
+- New file transfert support (upload and downloads) for selected backends
+- New MUC management API
+- added err-githubhook to the official repo list (thx Daniele Sluijters)
+- added err-linksBot to the official repo list (thx Arnaud Vazard)
+- added err-stash to the official repo list (thx Charles Gomes)
+- shlex.split on split_args_with
+- improved !status command (Thx Sijis Aviles)
+- colorized log output
+- configuration access improvements, it is now a property accessible from the plugins (self.bot_configuration) and the backends.
+- bot can optionally name people it replies to in mucs with local conventions toto: or @toto etc... (thx Sijis Aviles)
+
+Bug fixed:
+- complete pass & fixes with a static analyser
+- better feedback when config.py is borken
+- hipchat has been rewritten and goes through the API
+- more consistency on properties versus setters/getters
+- mac osx fixes (thx Andrii Kostenko)
+- unicode fix on irc backend (thx Sijis Aviles)
 
 Version 2.1.0 (2014-07-24)
 --------------------------

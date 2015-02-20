@@ -636,9 +636,8 @@ class ErrBot(Backend, StoreMixin):
                     '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
                                                      (self.get_doc(command).strip()).split('\n', 1)[0])
                     for (name, command) in clazz_commands[clazz]
-                    if name != 'help'
-                    and not command._err_command_hidden
-                    and (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                    if name != 'help' and not command._err_command_hidden and
+                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
                 ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self.get_command_classes()):
@@ -650,8 +649,8 @@ class ErrBot(Backend, StoreMixin):
                 '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
                                                  (self.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in commands
-                if not command._err_command_hidden
-                and (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                if not command._err_command_hidden and
+                (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
             ]))
         else:
             return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))
@@ -710,11 +709,10 @@ class ErrBot(Backend, StoreMixin):
                     (command.__doc__ or '(undocumented)').strip().split('\n', 1)[0]
                 )
                 for (name, command) in clazz_commands[clazz]
-                if args is not None
-                and command.__doc__ is not None
-                and args.lower() in command.__doc__.lower()
-                and name != 'help'
-                and not command._err_command_hidden
+                if args is not None and
+                command.__doc__ is not None and
+                args.lower() in command.__doc__.lower() and
+                name != 'help' and not command._err_command_hidden
             ]))
         usage += '\n\n'
 

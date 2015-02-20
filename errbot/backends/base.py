@@ -1135,8 +1135,7 @@ class Backend(object):
                 self.bot_config.BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
                                                          '(undocumented)').strip().split('\n', 1)[0])
                 for (name, command) in self.commands.items()
-                if name != 'help'
-                and not command._err_command_hidden
+                if name != 'help' and not command._err_command_hidden
             ]))
             usage = '\n\n' + '\n\n'.join(filter(None, [usage, self.MSG_HELP_TAIL]))
         else:
@@ -1156,10 +1155,7 @@ class Backend(object):
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
 
-        if (message_type == 'groupchat'
-                and in_reply_to
-                and nick_reply
-                and groupchat_nick_reply):
+        if (message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply):
             reply_text = self.groupchat_reply_format().format(in_reply_to.nick, text)
         else:
             reply_text = text

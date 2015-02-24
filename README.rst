@@ -1,24 +1,25 @@
 .. image:: http://gbin.github.io/err/_static/err_speech.png
    :target: http://errbot.net
 
+
 .. image:: https://travis-ci.org/gbin/err.png?branch=master
    :target: https://travis-ci.org/gbin/err/
 
-.. image:: https://pypip.in/version/err/badge.png
+.. image:: https://pypip.in/version/err/badge.png?style=flat
    :target: https://pypi.python.org/pypi/err
    :alt: Latest Version
 
-.. image:: https://pypip.in/download/err/badge.png
+.. image:: https://pypip.in/download/err/badge.png?style=flat
    :target: https://pypi.python.org/pypi/err
    :alt: Downloads
 
-.. image:: https://pypip.in/py_versions/err/badge.png
+.. image:: https://pypip.in/py_versions/err/badge.png?style=flat
    :target: https://pypi.python.org/pypi/err
-   :alt: Downloads
+   :alt: Python Version
 
-.. image:: https://pypip.in/license/err/badge.png
+.. image:: https://pypip.in/license/err/badge.png?style=flat
    :target: https://pypi.python.org/pypi/err
-   :alt: Downloads
+   :alt: License
 
 
 Err - the pluggable chatbot

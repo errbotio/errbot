@@ -1,7 +1,3 @@
-.. image:: http://gbin.github.io/err/_static/err_speech.png
-   :target: http://errbot.net
- 
-=
 
 .. image:: https://travis-ci.org/gbin/err.png?branch=master
    :target: https://travis-ci.org/gbin/err/
@@ -21,6 +17,12 @@
 .. image:: https://pypip.in/license/err/badge.png?style=flat
    :target: https://pypi.python.org/pypi/err
    :alt: License
+
+|
+|
+
+.. image:: http://gbin.github.io/err/_static/err_speech.png
+   :target: http://errbot.net
 
 
 Err - the pluggable chatbot

@@ -1,6 +1,6 @@
 .. image:: http://gbin.github.io/err/_static/err_speech.png
    :target: http://errbot.net
-
+ 
 =
 
 .. image:: https://travis-ci.org/gbin/err.png?branch=master

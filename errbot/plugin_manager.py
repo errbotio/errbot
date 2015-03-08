@@ -31,16 +31,18 @@ class IncompatiblePluginException(Exception):
 class PluginConfigurationException(Exception):
     pass
 
+
 def find_plugin_roots(path):
     """ Recursively find the plugins from the given path.
     It is usefull so you can give a root directory of checked out plugins and
     it will discover them automatically.
     """
-    plugin_roots = []
+    plugin_roots = set()  # you can have several .plug per directory.
     for root, dirnames, filenames in os.walk(path):
         for filename in fnmatch.filter(filenames, '*.plug'):
-            plugin_roots.append(os.path.dirname(os.path.join(root, filename)))
+            plugin_roots.add(os.path.dirname(os.path.join(root, filename)))
     return plugin_roots
+
 
 def get_preloaded_plugins(extra):
     # adds the extra plugin dir from the setup for developers convenience
@@ -186,6 +188,7 @@ def reload_plugin_by_name(name):
     new_class = getattr(module, class_name)
     plugin.plugin_object.__class__ = new_class
 
+
 def install_package(package):
     if hasattr(sys, 'real_prefix'):
         # this is a virtualenv, so we can use it directly
@@ -194,6 +197,7 @@ def install_package(package):
         # otherwise only install it as a user package
         pip.main(['install', '--user', package])
     globals()[package] = importlib.import_module(package)
+
 
 def update_plugin_places(path_list, extra_plugin_dir, autoinstall_deps=True):
     builtins = get_preloaded_plugins(extra_plugin_dir)
@@ -211,10 +215,9 @@ def update_plugin_places(path_list, extra_plugin_dir, autoinstall_deps=True):
             for dep in deps_to_install:
                 logging.info("Trying to install an unmet dependency: %s" % dep)
                 install_package(dep)
-        errors =[]
+        errors = []
     else:
-        errors = [dependencies_result[0] for result in dependencies_result]
-    errors = [error for error in errors if error is not None]
+        errors = [result[0] for result in dependencies_result if result is not None]
     simplePluginManager.setPluginPlaces(chain(builtins, path_list))
     all_candidates = []
 

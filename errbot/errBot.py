@@ -79,7 +79,6 @@ def bot_config_defaults(config):
         config.AUTOINSTALL_DEPS = False
 
 
-
 class ErrBot(Backend, StoreMixin):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """

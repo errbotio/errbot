@@ -898,11 +898,12 @@ class Backend(object):
 
     def _process_command(self, mess, cmd, args, match):
         """Process and execute a bot command"""
-        logging.info("Processing command {} with parameters '{}'".format(cmd, args))
 
         jid = mess.frm
         username = get_sender_username(mess)
         user_cmd_history = self.cmd_history[username]
+
+        logging.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items

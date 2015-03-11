@@ -1,14 +1,44 @@
 import os
 import unittest
-from errbot.plugin_manager import check_dependencies, get_builtins, BUILTIN
+import tempfile
+from errbot.plugin_manager import check_dependencies, get_preloaded_plugins, BUILTIN, find_plugin_roots
+
+
+def touch(name):
+    with open(name, 'a'):
+        os.utime(name, None)
 
 
 class TestPluginManagement(unittest.TestCase):
     def test_check_dependencies(self):
-        response = check_dependencies(str(os.path.dirname(__file__)) + os.path.sep + 'assets')
+        response, deps = check_dependencies(str(os.path.dirname(__file__)) + os.path.sep + 'assets')
         self.assertIn('impossible_requirement', response)
+        self.assertEqual(['impossible_requirement'], deps)
+
+    def test_find_plugin_roots(self):
+        root = tempfile.mkdtemp()
+        a = os.path.join(root, 'a')
+        b = os.path.join(a, 'b')
+        c = os.path.join(root, 'c')
+        os.mkdir(a)
+        os.mkdir(b)
+        os.mkdir(c)
+        touch(os.path.join(a, 'toto.plug'))
+        touch(os.path.join(b, 'titi.plug'))
+        touch(os.path.join(root, 'tutu.plug'))
+        roots = find_plugin_roots(root)
+        self.assertIn(root, roots)
+        self.assertIn(a, roots)
+        self.assertIn(b, roots)
+        self.assertNotIn(c, roots)
 
     def test_builtin(self):
-        self.assertEquals(get_builtins(None), [BUILTIN])
-        self.assertEquals(get_builtins('toto'), [BUILTIN, 'toto'])
-        self.assertEquals(get_builtins(['titi', 'tutu']), [BUILTIN, 'titi', 'tutu'])
+        toto = tempfile.mkdtemp()
+        touch(os.path.join(toto, 'toto.plug'))
+        touch(os.path.join(toto, 'titi.plug'))
+        titi = tempfile.mkdtemp()
+        touch(os.path.join(titi, 'tata.plug'))
+        self.assertEquals(get_preloaded_plugins(None), [BUILTIN])
+        self.assertEquals(get_preloaded_plugins(toto), [BUILTIN, toto])
+        self.assertEquals(get_preloaded_plugins([toto, titi]), [BUILTIN, toto, titi])
+        self.assertEquals(get_preloaded_plugins([toto, titi, 'nothing']), [BUILTIN, toto, titi])

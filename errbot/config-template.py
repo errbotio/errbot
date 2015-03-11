@@ -33,14 +33,16 @@ BOT_DATA_DIR = '/var/lib/err'
 # plugins inside this directory.
 BOT_EXTRA_PLUGIN_DIR = None
 
-# If True, when you err wants to start a plugin and a dependency from
-# requirements.txt of the plugin is missing, it will automatically invoke
-# pip install --user for the missing dependencies.
-# It will detect if the bot is running in a virtualenv and if yes, it
-# will install it in the virtualenv instead of on the user.
+
+# Should plugin dependencies be installed automatically? If this is true
+# then Err will use pip to install any missing dependencies automatically.
 #
-# Note: be sure to give the proper autorizations to the user running the bot.
-AUTOINSTALL_DEPS = True
+# If you have installed Err in a virtualenv, this will run the equivalent
+# of `pip install -r requirements.txt`.
+# If no virtualenv is detected, the equivalent of `pip install --user -r
+# requirements.txt` is used to ensure the package(s) is/are only installed for
+# the user running Err.
+#AUTOINSTALL_DEPS = True
 
 # The location of the log file. If you set this to None, then logging will
 # happen to console only.

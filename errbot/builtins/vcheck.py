@@ -2,6 +2,7 @@ import logging
 from errbot import BotPlugin
 from errbot.version import VERSION
 from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
 from errbot.utils import version2array
 
 HOME = 'http://gbin.github.io/err/version'
@@ -33,7 +34,7 @@ class VersionChecker(BotPlugin):
         logging.debug('Checking version')
         # noinspection PyBroadException
         try:
-            current_version_txt = urlopen(HOME).read().decode("utf-8").strip()
+            current_version_txt = urlopen(url=HOME, timeout=10).read().decode("utf-8").strip()
             current_version = version2array(current_version_txt)
             if installed_version < current_version:
                 logging.debug('A new version %s has been found, notify the admins !' % current_version)
@@ -41,8 +42,8 @@ class VersionChecker(BotPlugin):
                     'Version {0} of err is available. http://pypi.python.org/pypi/err/{0}. You can disable this check '
                     'by doing !unload VersionChecker followed by !blacklist VersionChecker'.format(current_version_txt)
                 )
-        except Exception:
-            logging.exception('Could not version check')
+        except (HTTPError, URLError):
+            logging.info('Could not establish connection to retrieve latest version.')
 
     def callback_connect(self):
         if not self.connected:

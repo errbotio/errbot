@@ -31,7 +31,18 @@ BOT_DATA_DIR = '/var/lib/err'
 # locally before publishing it. Note that you can specify only a single
 # directory, however you are free to create subdirectories with multiple
 # plugins inside this directory.
-BOT_EXTRA_PLUGIN_DIR = None 
+BOT_EXTRA_PLUGIN_DIR = None
+
+
+# Should plugin dependencies be installed automatically? If this is true
+# then Err will use pip to install any missing dependencies automatically.
+#
+# If you have installed Err in a virtualenv, this will run the equivalent
+# of `pip install -r requirements.txt`.
+# If no virtualenv is detected, the equivalent of `pip install --user -r
+# requirements.txt` is used to ensure the package(s) is/are only installed for
+# the user running Err.
+#AUTOINSTALL_DEPS = True
 
 # The location of the log file. If you set this to None, then logging will
 # happen to console only.

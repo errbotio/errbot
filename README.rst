@@ -34,10 +34,7 @@ for any reason: random humour, starting a build, monitoring commits, triggering
 alerts... The possibilities are endless.
 
 It is written and extensible in Python, and, where possible, uses external
-libraries instead of reinventing the wheel. We use yapsy_ for plugin management,
-jinja2_ for templating and bottle_ as a micro web framework with rocket_
-providing the built-in webserver to power it. Additionally, sleekxmpp_ and irc_
-are used for the XMPP and IRC backends and six_ is used for Python 2.7 compatibility.
+libraries instead of reinventing the wheel.
 
 Err is available as open source software under the GPL3 license.
 
@@ -57,13 +54,18 @@ plugin, please feel free to open a pull request for it on github_.
 Features
 --------
 
+Chatting server support:
+
+- XMPP: Tested with Google Talk, Hipchat_, Openfire_ and Jabber but should be compatible with any standard XMPP server
+- CampFire_
+- TOX_ (Peer to peer encrypted network)
+- IRC
+
 Main features:
 
-- XMPP support: Tested with Google Talk, Hipchat_, Openfire_ and Jabber but should be compatible with any standard XMPP server
-- CampFire support
-- Basic IRC support
+- Powerful plugin architecture: Bot admins can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot
 - Multi User Chatroom (MUC) support
-- A dynamic plugin architecture: Bot admins can install/uninstall/update/enable/disable plugins dynamically just by chatting with the bot
+- Webhook callbacks
 - Advanced security/access control features (see below)
 
 Included:
@@ -75,7 +77,7 @@ Included:
 
 Administration and Security:
 
-- Can be setup so a restricted list of people have administrative rights
+- Can be setup to a restricted list of people have administrative rights
 - Fine-grained access controls may be defined which allow all or just specific commands to be limited to specific users and/or rooms
 - Plugins may be hosted publicly or privately and dynamically installed (by admins) via their Git url
 - Plugins can be configured directly from chat (no need to change setup files for every plugin)
@@ -89,11 +91,10 @@ An extensive framework for writing custom plugins:
 - Plugins get out of the box support for subcommands
 - We provide an automatic persistence store per plugin
 - There's really simple webhooks integration
-- As well as a polling framework for plugins
-- An easy configuration framework
-- A test backend for unittests for plugins which can make assertions about issued commands and their responses
-- And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make seperate text and HTML versions of your command output yourself
-
+- polling support for plugins
+- custom configuration support per plugin
+- end to end test backend for plugins
+- templating framework for html responses
 
 .. _Hipchat: http://www.hipchat.org/
 .. _Openfire: http://www.igniterealtime.org/projects/openfire/
@@ -104,7 +105,8 @@ An extensive framework for writing custom plugins:
 .. _rocket: https://pypi.python.org/pypi/rocket
 .. _sleekxmpp: http://sleekxmpp.com/
 .. _irc: https://pypi.python.org/pypi/irc/
-.. _six: https://pypi.python.org/pypi/six/
+.. _campfire: https://campfirenow.com/
+.. _TOX: https://tox.im/
 .. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _github: http://github.com/gbin/err/
 .. _`logged to Sentry`: https://github.com/gbin/err/wiki/Logging-with-Sentry
@@ -112,7 +114,7 @@ An extensive framework for writing custom plugins:
 Prerequisites
 -------------
 
-Err runs under Python 2.7 as well as Python 3.3+ on Linux, Windows and Mac.
+Err runs under Python 3.3+ and Python 2.7 on Linux, Windows and Mac.
 
 You need to have registered a user for the bot to use on the XMPP or IRC server that you wish to run Err on. A lot of plugins use multi user chatrooms (MUC) as well, so it is recommended (but not required) to have a least one MUC for Err to use as well.
 

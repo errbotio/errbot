@@ -1,6 +1,6 @@
 bottle
 setuptools
-yapsy
+yapsy<=1.10.423
 config
 pyasn1
 pyasn1-modules

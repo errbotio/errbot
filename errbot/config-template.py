@@ -96,7 +96,10 @@ BOT_IDENTITY = {
     # 'password' : 'changeme',
 
     ## TOX Mode (comment the others above if using this mode)
-    # BOT_IDENTITY = {'username': 'errbot',}
+    # 'username': 'errbot',
+
+    ## Slack Mode (comment the others above if using this mode)
+    # 'token': 'xoxb-4426949411-aEM7...',
 
     ## IRC mode (Comment the others above if using this mode)
     # 'nickname' : 'err-chatbot',

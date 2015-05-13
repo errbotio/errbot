@@ -260,3 +260,8 @@ This plugin will create the command "!hello" which, when issued, returns "Hello,
 to you. For more info on everything you can do with plugins, see the
 `plugin development guide <http://errbot.net/user_guide/plugin_development/>`_.
 
+
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/gbin/err
+   :target: https://gitter.im/gbin/err?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge

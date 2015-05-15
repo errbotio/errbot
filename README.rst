@@ -1,22 +1,22 @@
 
-.. image:: https://travis-ci.org/gbin/err.png?branch=master
+.. image:: https://img.shields.io/travis/gbin/err.svg
    :target: https://travis-ci.org/gbin/err/
 
-.. image:: https://pypip.in/version/err/badge.png?style=flat
+.. image:: https://img.shields.io/pypi/v/err.svg
    :target: https://pypi.python.org/pypi/err
    :alt: Latest Version
 
-.. image:: https://pypip.in/download/err/badge.png?style=flat
+.. image:: https://img.shields.io/pypi/dm/err.svg
    :target: https://pypi.python.org/pypi/err
    :alt: Downloads
 
-.. image:: https://pypip.in/py_versions/err/badge.png?style=flat
-   :target: https://pypi.python.org/pypi/err
-   :alt: Python Version
-
-.. image:: https://pypip.in/license/err/badge.png?style=flat
+.. image:: https://img.shields.io/github/license/gbin/err.svg
    :target: https://pypi.python.org/pypi/err
    :alt: License
+
+.. image:: https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg
+   :target: https://gitter.im/gbin/err?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge 
+   :alt: Join the chat at https://gitter.im/gbin/err
 
 |
 |
@@ -41,10 +41,9 @@ Err is available as open source software under the GPL3 license.
 Community behind the project
 ----------------------------
 
-Err has a `google plus community`_, please feel free to mention it with +err if
-you need support, have any questions or wish to share some of your creations. If
-you have a bug to report or wish to request a feature, please log these on it's
-github_ page.
+If you have a question, feel free to join the chat on gitter_.
+Err has also a `google plus community`_. If you have a bug to report or wish to request a feature, 
+please log these on it's github_ page.
 
 We strongly encourage you to share your creations. The only thing you have to do
 to make your new plugin available to Err installations is to provide a Git url pointing to it.
@@ -110,6 +109,7 @@ An extensive framework for writing custom plugins:
 .. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _github: http://github.com/gbin/err/
 .. _`logged to Sentry`: https://github.com/gbin/err/wiki/Logging-with-Sentry
+.. _gitter: https://gitter.im/gbin/err
 
 Prerequisites
 -------------

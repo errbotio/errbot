@@ -46,6 +46,7 @@ class Identifier(object):
             self._node = node
             self._domain = domain
             self._resource = resource
+        logging.debug('Identifier: node={}, domain={}, resource={}'.format(self._node, self._domain, self._resource))
 
     @property
     def node(self):

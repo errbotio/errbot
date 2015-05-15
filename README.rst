@@ -1,20 +1,16 @@
 
-.. image:: https://travis-ci.org/gbin/err.png?branch=master
+.. image:: https://img.shields.io/travis/gbin/err.svg
    :target: https://travis-ci.org/gbin/err/
 
-.. image:: https://pypip.in/version/err/badge.png?style=flat
+.. image:: https://img.shields.io/pypi/v/err.svg
    :target: https://pypi.python.org/pypi/err
    :alt: Latest Version
 
-.. image:: https://pypip.in/download/err/badge.png?style=flat
+.. image:: https://img.shields.io/pypi/dm/err.svg
    :target: https://pypi.python.org/pypi/err
    :alt: Downloads
 
-.. image:: https://pypip.in/py_versions/err/badge.png?style=flat
-   :target: https://pypi.python.org/pypi/err
-   :alt: Python Version
-
-.. image:: https://pypip.in/license/err/badge.png?style=flat
+.. image:: https://img.shields.io/github/license/gbin/err.svg
    :target: https://pypi.python.org/pypi/err
    :alt: License
 

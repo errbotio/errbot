@@ -316,6 +316,12 @@ class HipchatBackend(XMPPBackend):
         super(HipchatBackend, self).__init__(config)
 
     def create_connection(self):
+        # HipChat connections time out with the default keepalive interval
+        # so use a lower value that is known to work, but only if the user
+        # does not specify their own value in their config.
+        if self.keepalive is None:
+            self.keepalive = 60
+
         return HipchatClient(
             jid=self.jid,
             password=self.password,

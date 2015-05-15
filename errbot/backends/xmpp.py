@@ -385,7 +385,13 @@ class XMPPBackend(ErrBot):
         self._room_topics = {}
 
     def create_connection(self):
-        return XMPPConnection(self.jid, self.password, self.feature, self.keepalive, self.ca_cert)
+        return XMPPConnection(
+            jid=self.jid,
+            password=self.password,
+            feature=self.feature,
+            keepalive=self.keepalive,
+            ca_cert=self.ca_cert
+        )
 
     def incoming_message(self, xmppmsg):
         """Callback for message events"""

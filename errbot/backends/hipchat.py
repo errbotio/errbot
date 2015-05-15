@@ -289,7 +289,6 @@ class HipChatMUCRoom(MUCRoom):
 class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
-        self.debug = kwargs.pop('debug')
         self.hypchat = hypchat.HypChat(self.token)
         super().__init__(*args, **kwargs)
 
@@ -317,7 +316,14 @@ class HipchatBackend(XMPPBackend):
         super(HipchatBackend, self).__init__(config)
 
     def create_connection(self):
-        return HipchatClient(self.jid, password=self.password, debug=[], token=self.api_token)
+        return HipchatClient(
+            jid=self.jid,
+            password=self.password,
+            feature=self.feature,
+            keepalive=self.keepalive,
+            ca_cert=self.ca_cert,
+            token=self.api_token,
+        )
 
     @property
     def mode(self):

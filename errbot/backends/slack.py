@@ -53,7 +53,7 @@ class SlackBackend(ErrBot):
                         elif t == 'message':
                             channel = event['channel']
                             channel_info = api_resp(self.sc.api_call("channels.info", channel=channel))
-                            logging.debug(channel_info)
+                            logging.debug('Slack channel: {}'.format(channel_info))
                             is_channel = channel_info['channel']['is_channel']
                             msg = Message(event['text'], type_= 'groupchat' if is_channel else 'chat')
                             msg.frm = Identifier(node=event['channel'], resource=event['user'])

@@ -109,11 +109,15 @@ def re_botcmd(*args, **kwargs):
         return lambda func: decorate(func, **kwargs)
 
 
-
 def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
                historize=True, template=None, **kwargs):
     """
     Decorator for argparse-based bot command functions
+
+    This decorator creates an argparse.ArgumentParser and uses it to parse the commands arguments.
+    This decorator can be used multiple times to specify multiple arguments.
+    Any valid argparse add_options() *args and **kwargs can be passed into the decorator.
+    Each time this decorator is invoked the *args and **kwargs are passed to parser.add_argument(*args, **kwargs).
 
     :param hidden: Prevents the command from being shown by the built-in help command when `True`.
     :param name: The name to give to the command. Defaults to name of the function itself.
@@ -121,12 +125,17 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
     :param template: The template to use when using XHTML-IM output
+
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
-    classes to turn them into commands that can be given to the bot. These methods are
-    expected to have a signature like the following::
-        @botcmd
-        def some_command(self, msg, args):
-            pass
+    classes to turn them into commands that can be given to the bot. The methods will be called
+    with the original msg and the argparse parsed arguments. These methods are
+    expected to have a signature like the following:
+
+        @arg_botcmd('value', type=str)
+        @arg_botcmd('--repeat-count', dest='repeat_count', type=int, default=2)
+        def repeat_the_value(self, msg, value=None, repeat=None):
+            return value * repeat
+
     The given `msg` will be the full message object that was received, which includes data
     like sender, receiver, the plain-text and html body (if applicable), etc. `args` will
     be a string or list (depending on your value of `split_args_with`) of parameters that

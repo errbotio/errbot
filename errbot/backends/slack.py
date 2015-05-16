@@ -44,29 +44,7 @@ class SlackBackend(ErrBot):
                 while True:
                     events = self.sc.rtm_read()
                     for event in events:
-                        logging.debug("Slack event: %s" % event)
-                        t = event.get('type', None)
-                        if t == 'hello':
-                            self.connect_callback()
-                            self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
-                        elif t == 'presence_change':
-                            idd = Identifier(node=event['user'])
-                            sstatus = event['presence']
-                            if sstatus == 'active':
-                                status = ONLINE
-                            else:
-                                status = OFFLINE # TODO: all the cases
-
-                            self.callback_presence(Presence(identifier=idd, status=status))
-                        elif t == 'message':
-                            channel = event['channel']
-                            channel_info = api_resp(self.sc.api_call("channels.info", channel=channel))
-                            logging.debug(channel_info)
-                            is_channel = channel_info['channel']['is_channel']
-                            msg = Message(event['text'], type_= 'groupchat' if is_channel else 'chat')
-                            msg.frm = Identifier(node=event['channel'], resource=event['user'])
-                            msg.to = Identifier(node=event['channel'], resource=self.jid.node)
-                            self.callback_message(msg)
+                        self._handle_slack_event(event)
 
                     time.sleep(1)
             finally:
@@ -77,6 +55,44 @@ class SlackBackend(ErrBot):
 
         else:
             raise Exception('Connection failed, invalid token ?')
+
+    def _handle_slack_event(self, event):
+        """
+        Act on a Slack event from the RTM stream
+        """
+        logging.debug("Slack event: %s" % event)
+        t = event.get('type', None)
+        if t == 'hello':
+            self.connect_callback()
+            self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
+        elif t == 'presence_change':
+            idd = Identifier(node=event['user'])
+            sstatus = event['presence']
+            if sstatus == 'active':
+                status = ONLINE
+            else:
+                status = OFFLINE # TODO: all the cases
+
+            self.callback_presence(Presence(identifier=idd, status=status))
+        elif t == 'message':
+            channel = event['channel']
+            if channel.startswith('C'):
+                logging.debug("Handling message from a public channel")
+                message_type = 'groupchat'
+            elif channel.startswith('G'):
+                logging.debug("Handling message from a private group")
+                message_type = 'groupchat'
+            elif channel.startswith('D'):
+                logging.debug("Handling message from a user")
+                message_type = 'chat'
+            else:
+                logging.warning("Unknown message type! Unable to handle")
+                return
+
+            msg = Message(event['text'], type_=message_type)
+            msg.frm = Identifier(node=event['channel'], resource=event['user'])
+            msg.to = Identifier(node=event['channel'], resource=self.jid.node)
+            self.callback_message(msg)
 
     def send_message(self, mess):
         super().send_message(mess)
@@ -95,7 +111,19 @@ class SlackBackend(ErrBot):
         return build_message(text, Message)
 
     def build_reply(self, mess, text=None, private=False):
-        return super(SlackBackend, self).build_reply(mess, text, False)
+        msg_type = mess.type
+        response = self.build_message(text)
+
+        response.frm = self.jid
+        if msg_type == "groupchat" and private:
+            # FIXME: Make these go to actual user instead
+            # FIXME: This will make DIVERT_TO_PRIVATE work for Slack
+            response.to = mess.frm
+        else:
+            response.to = mess.frm
+        response.type = 'chat' if private else msg_type
+
+        return response
 
 
     def shutdown(self):

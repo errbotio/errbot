@@ -26,12 +26,20 @@ class SlackBackend(ErrBot):
             # TODO make that properly
             raise Exception('You need a slack token from the "Bot Integration"')
         self.sc = SlackClient(self.token)
+
+        logging.debug("Verifying authentication token")
         self.auth = api_resp(self.sc.api_call("auth.test"))
+        if not self.auth['ok']:
+            logging.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
+            sys.exit(1)
+        logging.debug("Token accepted")
         self.jid = Identifier(node=self.auth["user_id"], resource=self.auth["user_id"])
 
 
     def serve_forever(self):
+        logging.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
+            logging.info("Connected")
             try:
                 while True:
                     events = self.sc.rtm_read()

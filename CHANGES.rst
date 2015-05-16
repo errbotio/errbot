@@ -1,6 +1,19 @@
 Release history
 ===============
 
+Version 2.2.0 (2015-05-16)
+--------------------------
+
+New features:
+
+- New AUTOINSTALL_DEPS config to autoinstall the dependencies required for plugins
+
+Bug fixed:
+
+- Don't 3to2 the config template
+- version pinned yapsy because of an incompatibility with the last version
+- added timeout to the version check builtin
+
 Version 2.2.0-beta (2015-02-16)
 -------------------------------
 

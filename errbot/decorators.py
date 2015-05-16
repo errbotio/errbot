@@ -1,5 +1,9 @@
-import re
+import argparse
+from functools import wraps
 import logging
+import re
+import shlex
+
 from . import PY2
 from .builtins.wsview import bottle_app, WebView
 
@@ -103,6 +107,69 @@ def re_botcmd(*args, **kwargs):
         return decorate(args[0], **kwargs)
     else:
         return lambda func: decorate(func, **kwargs)
+
+
+
+def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
+               historize=True, template=None, **kwargs):
+    """
+    Decorator for argparse-based bot command functions
+
+    :param hidden: Prevents the command from being shown by the built-in help command when `True`.
+    :param name: The name to give to the command. Defaults to name of the function itself.
+    :param admin_only: Only allow the command to be executed by admins when `True`.
+    :param historize: Store the command in the history list (`!history`). This is enabled
+        by default.
+    :param template: The template to use when using XHTML-IM output
+    This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
+    classes to turn them into commands that can be given to the bot. These methods are
+    expected to have a signature like the following::
+        @botcmd
+        def some_command(self, msg, args):
+            pass
+    The given `msg` will be the full message object that was received, which includes data
+    like sender, receiver, the plain-text and html body (if applicable), etc. `args` will
+    be a string or list (depending on your value of `split_args_with`) of parameters that
+    were given to the command by the user.
+    """
+
+    def decorator(func):
+
+        if not hasattr(func, '_err_command'):
+
+            err_command_parser = argparse.ArgumentParser(description=func.__doc__)
+
+            @wraps(func)
+            def wrapper(self, mess, args):
+
+                args = shlex.split(args)
+                parsed_args = err_command_parser.parse_args(args)
+                parsed_kwargs = vars(parsed_args)
+
+                return func(self, mess, **parsed_kwargs)
+
+            setattr(wrapper, '_err_command', True)
+            setattr(wrapper, '_err_re_command', False)
+            setattr(wrapper, '_err_arg_command', True)
+            setattr(wrapper, '_err_command_hidden', hidden)
+            setattr(wrapper, '_err_command_name', name or wrapper.__name__)
+            setattr(wrapper, '_err_command_split_args_with', '')
+            setattr(wrapper, '_err_command_admin_only', admin_only)
+            setattr(wrapper, '_err_command_historize', historize)
+            setattr(wrapper, '_err_command_template', template)
+            setattr(wrapper, '_err_command_parser', err_command_parser)
+
+        else:
+            # the function has already been wrapped
+            # alias it so we can update it's arguments below
+            wrapper = func
+
+        wrapper._err_command_parser.add_argument(*args, **kwargs)
+        wrapper.__doc__ = wrapper._err_command_parser.format_help()
+
+        return wrapper
+
+    return decorator
 
 
 def webhook(*args, **kwargs):

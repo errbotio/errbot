@@ -33,6 +33,7 @@ New features:
 - bot can optionally name people it replies to in mucs with local conventions toto: or @toto etc... (thx Sijis Aviles)
 
 Bug fixed:
+
 - complete pass & fixes with a static analyser
 - better feedback when config.py is borken
 - hipchat has been rewritten and goes through the API

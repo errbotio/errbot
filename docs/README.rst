@@ -1,34 +1,20 @@
 Website and documentation
 =========================
 
-Err's website and documentation are built using `Sphinx`_. Useful references
-when contributing to the docs are the `reStructuredText Primer`_ and 
-`Inline markup`_ documents.
+Err's website and documentation are built using `Sphinx`_. Please see the
+section `Contributing documentation & making changes to the website <http://errbot.net/contributing/#contributing-documentation-making-changes-to-the-website>`_
+on http://errbot.net for more information on how to contribute. The
+information that follows here is relevant only to the project maintainers.
 
-Requirements
-------------
-
-Documentation *must* be built using Python 3. Additionally, extra requirements
-must be installed, which may be done through `pip install -r requirements.txt`.
-
-You must also have make installed in order to use the supplied Makefile.
-
-Building and viewing locally
-----------------------------
-
-With the necessary requirements installed, the documentation can be built using
-the command `make html`. Once generated, the resulting pages can be viewed by
-opening `_build/html/index.html` in your webbrowser of choice.
 
 Publishing to GitHub pages
 --------------------------
-
-*Note: This is only relevant to project maintainers*
 
 The `make gh-pages` command can be used to build output for GitHub pages. This
 will pull down a copy of the repository and auto-commit to the gh-pages branch.
 
 The results of this can then be reviewed before being pushed.
+
 
 Including extra files with GitHub pages
 ---------------------------------------

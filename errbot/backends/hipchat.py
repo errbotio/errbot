@@ -289,7 +289,6 @@ class HipChatMUCRoom(MUCRoom):
 class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
-        self.debug = kwargs.pop('debug')
         self.hypchat = hypchat.HypChat(self.token)
         super().__init__(*args, **kwargs)
 
@@ -317,7 +316,20 @@ class HipchatBackend(XMPPBackend):
         super(HipchatBackend, self).__init__(config)
 
     def create_connection(self):
-        return HipchatClient(self.jid, password=self.password, debug=[], token=self.api_token)
+        # HipChat connections time out with the default keepalive interval
+        # so use a lower value that is known to work, but only if the user
+        # does not specify their own value in their config.
+        if self.keepalive is None:
+            self.keepalive = 60
+
+        return HipchatClient(
+            jid=self.jid,
+            password=self.password,
+            feature=self.feature,
+            keepalive=self.keepalive,
+            ca_cert=self.ca_cert,
+            token=self.api_token,
+        )
 
     @property
     def mode(self):

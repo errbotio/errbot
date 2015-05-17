@@ -170,7 +170,13 @@ a:hover {
     color: {{ normal_link_hover_color }};
     text-decoration: underline;
 }
- 
+
+a span.pre {
+	font-family: {{ code_font }};
+	font-size: 0.9em;
+	color: #222;
+}
+
 div.body h1,
 div.body h2,
 div.body h3,

@@ -29,8 +29,12 @@ class SlackBackend(ErrBot):
         identity = config.BOT_IDENTITY
         self.token = identity.get('token', None)
         if not self.token:
-            # TODO make that properly
-            raise Exception('You need a slack token from the "Bot Integration"')
+            logging.fatal(
+                'You need to set your token (found under "Bot Integration" on Slack) in '
+                'the BOT_IDENTITY setting in your configuration. Without this token I '
+                'cannot connect to Slack.'
+            )
+            sys.exit(1)
         self.sc = SlackClient(self.token)
 
         logging.debug("Verifying authentication token")

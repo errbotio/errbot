@@ -68,7 +68,6 @@ class SlackBackend(ErrBot):
                     events = self.sc.rtm_read()
                     for event in events:
                         self._handle_slack_event(event)
-
                     time.sleep(1)
             finally:
                 logging.debug("Trigger disconnect callback")
@@ -113,21 +112,58 @@ class SlackBackend(ErrBot):
                 return
 
             msg = Message(event['text'], type_=message_type)
-            msg.frm = Identifier(node=event['channel'], resource=event['user'])
-            msg.to = Identifier(node=event['channel'], resource=self.jid.node)
+            msg.frm = Identifier(
+                node=self.userid_to_username(event['user']),
+                domain=self.channelid_to_channelname(event['channel'])
+            )
+            msg.to = Identifier(
+                node=self.sc.server.username,
+                domain=self.channelid_to_channelname(event['channel'])
+            )
             self.callback_message(msg)
+
+    def userid_to_username(self, id):
+        """Convert a Slack user ID to their user name"""
+        return self.sc.server.users.find(id).name
+
+    def username_to_userid(self, name):
+        """Convert a Slack user name to their user ID"""
+        return self.sc.server.users.find(name).id
+
+    def channelid_to_channelname(self, id):
+        """Convert a Slack channel ID to its channel name"""
+        return self.sc.server.channels.find(id).name
+
+    def channelname_to_channelid(self, name):
+        """Convert a Slack channel name to its channel ID"""
+        return self.sc.server.channels.find(name).id
 
     def send_message(self, mess):
         super().send_message(mess)
-        logging.debug("trying to send to node %s" % mess.to.node)
-        logging.debug("trying to send to resource %s" % mess.to.resource)
-        logging.debug("trying to type %s" % mess.type)
-        if mess.type == 'groupchat':
-            logging.debug('send grouchat message to %s' % mess.to.resource)
-            self.sc.rtm_send_message(mess.to.node, mess.body)
-        else:
-            logging.debug('send chat message to %s' % mess.to.resource)
-            self.sc.rtm_send_message(mess.to.node, mess.body)
+        to_humanreadable = "<unknown>"
+        try:
+            if mess.type == 'groupchat':
+                to_humanreadable = mess.to.domain
+                to_id = self.channelname_to_channelid(to_humanreadable)
+            else:
+                to_humanreadable = mess.to.node
+                api_data = api_resp(
+                    self.sc.api_call(
+                        'im.open',
+                        user=self.username_to_userid(to_humanreadable)
+                    )
+                )
+                if not api_data['ok']:
+                    raise RuntimeError("Couldn't open direct message channel with user")
+                to_id = api_data['channel']['id']
+
+            logging.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
+            self.sc.rtm_send_message(to_id, mess.body)
+        except Exception:
+            logging.exception(
+                "An exception occurred while trying to send the following message "
+                "to %s: %s" % (to_humanreadable, mess.body)
+            )
 
     def build_message(self, text):
         return build_message(text, Message)
@@ -138,9 +174,7 @@ class SlackBackend(ErrBot):
 
         response.frm = self.jid
         if msg_type == "groupchat" and private:
-            # FIXME: Make these go to actual user instead
-            # FIXME: This will make DIVERT_TO_PRIVATE work for Slack
-            response.to = mess.frm
+            response.to = mess.frm.node
         else:
             response.to = mess.frm
         response.type = 'chat' if private else msg_type

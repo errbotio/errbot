@@ -161,8 +161,9 @@ if __name__ == "__main__":
         sys.path.insert(0, config_path)  # appends the current config in order to find config.py
     else:
         config_path = execution_dir
-    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc', 'xmpp', 'tox', 'slack', 'null') if
-                     args[mname]]
+    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc',
+                                         'xmpp', 'tox', 'slack', 'null')
+                     if args[mname]]
     mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
 
     config = get_config(config_path, mode)  # will exit if load fails
@@ -206,7 +207,6 @@ if __name__ == "__main__":
         from errbot.backends.slack import SlackBackend
 
         return SlackBackend
-
 
     def null():
         from errbot.backends.null import NullBackend

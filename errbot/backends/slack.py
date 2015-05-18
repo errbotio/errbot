@@ -9,9 +9,13 @@ from errbot.utils import deprecated
 try:
     from slackclient import SlackClient
 except ImportError:
-    # TODO make that properly
-    logging.Error("SlackClient needs to be installed : pip install slackclient")
-    raise
+    logging.exception("Could not start the Slack back-end")
+    logging.fatal(
+        "You need to install the slackclient package in order to use the Slack "
+        "back-end. You should be able to install this package using: "
+        "pip install slackclient"
+    )
+    sys.exit(1)
 
 
 def api_resp(b):

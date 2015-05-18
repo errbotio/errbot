@@ -83,7 +83,11 @@ BOT_IDENTITY = {
     # 'password' : 'changeme',
     ## Group admins can create/view tokens on the settings page after logging
     ## in on HipChat's website
-    # 'token' : 'ed4b74d62833267d98aa99f312ff04',
+    # 'token'    : 'ed4b74d62833267d98aa99f312ff04',
+    ## If you're using HipChat server (self-hosted HipChat) then you should set
+    ## the endpoint below. If you don't use HipChat server but use the hosted version
+    ## of HipChat then you may leave this commented out.
+    # 'endpoint' : 'https://api.hipchat.com'
 
     ## Campfire mode (Comment the others above if using this mode)
     # 'subdomain': 'yatta',

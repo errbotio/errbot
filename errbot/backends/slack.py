@@ -72,7 +72,7 @@ class SlackBackend(ErrBot):
             if sstatus == 'active':
                 status = ONLINE
             else:
-                status = OFFLINE # TODO: all the cases
+                status = OFFLINE  # TODO: all the cases
 
             self.callback_presence(Presence(identifier=idd, status=status))
         elif t == 'message':

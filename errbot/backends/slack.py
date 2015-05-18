@@ -2,6 +2,7 @@ import json
 import logging
 import time
 import sys
+from errbot import PY3
 from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE, MUCRoom, MUCOccupant
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -14,6 +15,19 @@ except ImportError:
         "You need to install the slackclient package in order to use the Slack "
         "back-end. You should be able to install this package using: "
         "pip install slackclient"
+    )
+    sys.exit(1)
+except SyntaxError:
+    if not PY3:
+        raise
+    logging.exception("Could not start the Slack back-end")
+    logging.fatal(
+        "I cannot start the Slack back-end because I cannot import the SlackClient. "
+        "Python 3 compatibility on SlackClient is still quite young, you may be "
+        "running an old version or perhaps they released a version with a Python "
+        "3 regression. As a last resort to fix this, you could try installing the "
+        "latest master version from them using: "
+        "pip install --upgrade https://github.com/slackhq/python-slackclient/archive/master.zip"
     )
     sys.exit(1)
 

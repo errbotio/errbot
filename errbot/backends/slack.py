@@ -69,6 +69,8 @@ class SlackBackend(ErrBot):
                     for event in events:
                         self._handle_slack_event(event)
                     time.sleep(1)
+            except KeyboardInterrupt:
+                logging.info("Caught KeyboardInterrupt, shutting down..")
             finally:
                 logging.debug("Trigger disconnect callback")
                 self.disconnect_callback()

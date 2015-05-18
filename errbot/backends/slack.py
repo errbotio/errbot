@@ -13,8 +13,10 @@ except ImportError:
     logging.Error("SlackClient needs to be installed : pip install slackclient")
     raise
 
+
 def api_resp(b):
     return json.loads(b.decode('utf-8'))
+
 
 class SlackBackend(ErrBot):
 
@@ -34,7 +36,6 @@ class SlackBackend(ErrBot):
             sys.exit(1)
         logging.debug("Token accepted")
         self.jid = Identifier(node=self.auth["user_id"], resource=self.auth["user_id"])
-
 
     def serve_forever(self):
         logging.info("Connecting to Slack real-time-messaging API")
@@ -71,7 +72,7 @@ class SlackBackend(ErrBot):
             if sstatus == 'active':
                 status = ONLINE
             else:
-                status = OFFLINE # TODO: all the cases
+                status = OFFLINE  # TODO: all the cases
 
             self.callback_presence(Presence(identifier=idd, status=status))
         elif t == 'message':
@@ -106,7 +107,6 @@ class SlackBackend(ErrBot):
             logging.debug('send chat message to %s' % mess.to.resource)
             self.sc.rtm_send_message(mess.to.node, mess.body)
 
-
     def build_message(self, text):
         return build_message(text, Message)
 
@@ -124,7 +124,6 @@ class SlackBackend(ErrBot):
         response.type = 'chat' if private else msg_type
 
         return response
-
 
     def shutdown(self):
         super().shutdown()

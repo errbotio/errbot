@@ -261,8 +261,11 @@ class XMPPMUCOccupant(MUCOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password, feature={}, keepalive=None, ca_cert=None):
+    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None):
+        if feature is not None:
+            feature = {}
         self.connected = False
+
         self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': feature})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
@@ -382,7 +385,13 @@ class XMPPBackend(ErrBot):
         self._room_topics = {}
 
     def create_connection(self):
-        return XMPPConnection(self.jid, self.password, self.feature, self.keepalive, self.ca_cert)
+        return XMPPConnection(
+            jid=self.jid,
+            password=self.password,
+            feature=self.feature,
+            keepalive=self.keepalive,
+            ca_cert=self.ca_cert
+        )
 
     def incoming_message(self, xmppmsg):
         """Callback for message events"""

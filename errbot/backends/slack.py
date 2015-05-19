@@ -2,6 +2,7 @@ import json
 import logging
 import time
 import sys
+from errbot import PY3
 from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE, MUCRoom, MUCOccupant
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -9,9 +10,27 @@ from errbot.utils import deprecated
 try:
     from slackclient import SlackClient
 except ImportError:
-    # TODO make that properly
-    logging.Error("SlackClient needs to be installed : pip install slackclient")
-    raise
+    logging.exception("Could not start the Slack back-end")
+    logging.fatal(
+        "You need to install the slackclient package in order to use the Slack "
+        "back-end. You should be able to install this package using: "
+        "pip install slackclient"
+    )
+    sys.exit(1)
+except SyntaxError:
+    if not PY3:
+        raise
+    logging.exception("Could not start the Slack back-end")
+    logging.fatal(
+        "I cannot start the Slack back-end because I cannot import the SlackClient. "
+        "Python 3 compatibility on SlackClient is still quite young, you may be "
+        "running an old version or perhaps they released a version with a Python "
+        "3 regression. As a last resort to fix this, you could try installing the "
+        "latest master version from them using: "
+        "pip install --upgrade https://github.com/slackhq/python-slackclient/archive/master.zip"
+    )
+    sys.exit(1)
+
 
 
 def api_resp(b):
@@ -25,8 +44,12 @@ class SlackBackend(ErrBot):
         identity = config.BOT_IDENTITY
         self.token = identity.get('token', None)
         if not self.token:
-            # TODO make that properly
-            raise Exception('You need a slack token from the "Bot Integration"')
+            logging.fatal(
+                'You need to set your token (found under "Bot Integration" on Slack) in '
+                'the BOT_IDENTITY setting in your configuration. Without this token I '
+                'cannot connect to Slack.'
+            )
+            sys.exit(1)
         self.sc = SlackClient(self.token)
 
         logging.debug("Verifying authentication token")
@@ -46,8 +69,9 @@ class SlackBackend(ErrBot):
                     events = self.sc.rtm_read()
                     for event in events:
                         self._handle_slack_event(event)
-
                     time.sleep(1)
+            except KeyboardInterrupt:
+                logging.info("Caught KeyboardInterrupt, shutting down..")
             finally:
                 logging.debug("Trigger disconnect callback")
                 self.disconnect_callback()
@@ -72,7 +96,7 @@ class SlackBackend(ErrBot):
             if sstatus == 'active':
                 status = ONLINE
             else:
-                status = OFFLINE # TODO: all the cases
+                status = OFFLINE  # TODO: all the cases
 
             self.callback_presence(Presence(identifier=idd, status=status))
         elif t == 'message':
@@ -91,21 +115,58 @@ class SlackBackend(ErrBot):
                 return
 
             msg = Message(event['text'], type_=message_type)
-            msg.frm = Identifier(node=event['channel'], resource=event['user'])
-            msg.to = Identifier(node=event['channel'], resource=self.jid.node)
+            msg.frm = Identifier(
+                node=self.userid_to_username(event['user']),
+                domain=self.channelid_to_channelname(event['channel'])
+            )
+            msg.to = Identifier(
+                node=self.sc.server.username,
+                domain=self.channelid_to_channelname(event['channel'])
+            )
             self.callback_message(msg)
+
+    def userid_to_username(self, id):
+        """Convert a Slack user ID to their user name"""
+        return self.sc.server.users.find(id).name
+
+    def username_to_userid(self, name):
+        """Convert a Slack user name to their user ID"""
+        return self.sc.server.users.find(name).id
+
+    def channelid_to_channelname(self, id):
+        """Convert a Slack channel ID to its channel name"""
+        return self.sc.server.channels.find(id).name
+
+    def channelname_to_channelid(self, name):
+        """Convert a Slack channel name to its channel ID"""
+        return self.sc.server.channels.find(name).id
 
     def send_message(self, mess):
         super().send_message(mess)
-        logging.debug("trying to send to node %s" % mess.to.node)
-        logging.debug("trying to send to resource %s" % mess.to.resource)
-        logging.debug("trying to type %s" % mess.type)
-        if mess.type == 'groupchat':
-            logging.debug('send grouchat message to %s' % mess.to.resource)
-            self.sc.rtm_send_message(mess.to.node, mess.body)
-        else:
-            logging.debug('send chat message to %s' % mess.to.resource)
-            self.sc.rtm_send_message(mess.to.node, mess.body)
+        to_humanreadable = "<unknown>"
+        try:
+            if mess.type == 'groupchat':
+                to_humanreadable = mess.to.domain
+                to_id = self.channelname_to_channelid(to_humanreadable)
+            else:
+                to_humanreadable = mess.to.node
+                api_data = api_resp(
+                    self.sc.api_call(
+                        'im.open',
+                        user=self.username_to_userid(to_humanreadable)
+                    )
+                )
+                if not api_data['ok']:
+                    raise RuntimeError("Couldn't open direct message channel with user")
+                to_id = api_data['channel']['id']
+
+            logging.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
+            self.sc.rtm_send_message(to_id, mess.body)
+        except Exception:
+            logging.exception(
+                "An exception occurred while trying to send the following message "
+                "to %s: %s" % (to_humanreadable, mess.body)
+            )
 
     def build_message(self, text):
         return build_message(text, Message)
@@ -116,9 +177,7 @@ class SlackBackend(ErrBot):
 
         response.frm = self.jid
         if msg_type == "groupchat" and private:
-            # FIXME: Make these go to actual user instead
-            # FIXME: This will make DIVERT_TO_PRIVATE work for Slack
-            response.to = mess.frm
+            response.to = mess.frm.node
         else:
             response.to = mess.frm
         response.type = 'chat' if private else msg_type

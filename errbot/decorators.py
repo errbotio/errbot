@@ -1,5 +1,9 @@
-import re
+import argparse
+from functools import wraps
 import logging
+import re
+import shlex
+
 from . import PY2
 from .builtins.wsview import bottle_app, WebView
 
@@ -103,6 +107,82 @@ def re_botcmd(*args, **kwargs):
         return decorate(args[0], **kwargs)
     else:
         return lambda func: decorate(func, **kwargs)
+
+
+def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
+               historize=True, template=None, **kwargs):
+    """
+    Decorator for argparse-based bot command functions
+
+    https://docs.python.org/3/library/argparse.html
+
+    This decorator creates an argparse.ArgumentParser and uses it to parse the commands arguments.
+
+    This decorator can be used multiple times to specify multiple arguments.
+
+    Any valid argparse.add_argument() parameters can be passed into the decorator.
+    Each time this decorator is used it adds a new argparse argument to the command.
+
+    :param hidden: Prevents the command from being shown by the built-in help command when `True`.
+    :param name: The name to give to the command. Defaults to name of the function itself.
+    :param admin_only: Only allow the command to be executed by admins when `True`.
+    :param historize: Store the command in the history list (`!history`). This is enabled
+        by default.
+    :param template: The template to use when using XHTML-IM output
+
+    This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
+    classes to turn them into commands that can be given to the bot. The methods will be called
+    with the original msg and the argparse parsed arguments. These methods are
+    expected to have a signature like the following::
+
+        @arg_botcmd('value', type=str)
+        @arg_botcmd('--repeat-count', dest='repeat_count', type=int, default=2)
+        def repeat_the_value(self, msg, value=None, repeat=None):
+            return value * repeat
+
+    The given `msg` will be the full message object that was received, which includes data
+    like sender, receiver, the plain-text and html body (if applicable), etc. `args` will
+    be a string or list (depending on your value of `split_args_with`) of parameters that
+    were given to the command by the user.
+    """
+
+    def decorator(func):
+
+        if not hasattr(func, '_err_command'):
+
+            err_command_parser = argparse.ArgumentParser(description=func.__doc__)
+
+            @wraps(func)
+            def wrapper(self, mess, args):
+
+                args = shlex.split(args)
+                parsed_args = err_command_parser.parse_args(args)
+                parsed_kwargs = vars(parsed_args)
+
+                return func(self, mess, **parsed_kwargs)
+
+            setattr(wrapper, '_err_command', True)
+            setattr(wrapper, '_err_re_command', False)
+            setattr(wrapper, '_err_arg_command', True)
+            setattr(wrapper, '_err_command_hidden', hidden)
+            setattr(wrapper, '_err_command_name', name or wrapper.__name__)
+            setattr(wrapper, '_err_command_split_args_with', '')
+            setattr(wrapper, '_err_command_admin_only', admin_only)
+            setattr(wrapper, '_err_command_historize', historize)
+            setattr(wrapper, '_err_command_template', template)
+            setattr(wrapper, '_err_command_parser', err_command_parser)
+
+        else:
+            # the function has already been wrapped
+            # alias it so we can update it's arguments below
+            wrapper = func
+
+        wrapper._err_command_parser.add_argument(*args, **kwargs)
+        wrapper.__doc__ = wrapper._err_command_parser.format_help()
+
+        return wrapper
+
+    return decorator
 
 
 def webhook(*args, **kwargs):

@@ -47,6 +47,32 @@ that belong to each other together.
     It will still respond to !basket_add and !basket_remove as well.
 
 
+Argparse argument splitting
+----------------------------
+
+With the :func:`~errbot.decorators.arg_botcmd` decorator you can specify
+a command's arguments in `argparse format`_. The decorator can be used multiple times, and each use adds a new argument to the command. The decorator can be passed any valid `add_arguments()`_ parameters.
+
+.. _`argparse format`: https://docs.python.org/3/library/argparse.html
+.. _`add_arguments()`: https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argument
+
+.. code-block:: python
+
+    @arg_botcmd('first_name', type=str)
+    @arg_botcmd('--last-name', dest='last_name', type='str')
+    @arg_botcmd('--favorite', dest='favorite_number', type=int, default=42)
+    def hello(self, mess, first_name=None, last_name=None, favorite_number=None):
+        # if you send it !hello Err --last-name Bot
+        # first_name will be 'Err'
+        # last_name will be 'Bot'
+        # favorite_number will be 42
+
+.. note::
+    * An argument's `dest` parameter is used as its kwargs key when your command is called.
+    * `favorite_number` would be `None` if we removed `default=42` from the :func:`~errbot.decorators.arg_botcmd` call.
+
+
+
 Commands using regular expressions
 ----------------------------------
 

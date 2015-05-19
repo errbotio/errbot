@@ -22,7 +22,7 @@ from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
 from errbot.backends.base import Identifier, Backend, Message  # noqa
 from errbot.backends.base import build_message, build_text_html_message_pair  # noqa
-from errbot import botcmd, re_botcmd, templating  # noqa
+from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.utils import mess_2_embeddablehtml  # noqa
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
@@ -117,6 +117,21 @@ class DummyBackend(Backend):
     def yield_long_output(self, mess, args):
         for i in range(2):
             yield LONG_TEXT_STRING * 3
+
+    ##
+    # arg_botcmd test commands
+    ##
+
+    @arg_botcmd('--first-name', dest='first_name')
+    @arg_botcmd('--last-name', dest='last_name')
+    def returns_first_name_last_name(self, mess, first_name=None, last_name=None):
+        return "%s %s" % (first_name, last_name)
+
+    @arg_botcmd('value', type=str)
+    @arg_botcmd('--count', dest='count', type=int)
+    def returns_value_repeated_count_times(self, mess, value=None, count=None):
+        # str * int gives a repeated string
+        return value * count
 
     @property
     def mode(self):
@@ -377,6 +392,22 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(self.makemessage("!MaTcHeD By TwO cOmMaNdS"))
         self.assertEquals("two", self.dummy.pop_message().body)
         self.assertRaises(Empty, self.dummy.pop_message, **{'timeout': 1})
+
+    def test_arg_botcmd_returns_first_name_last_name(self):
+        first_name = 'Err'
+        last_name = 'Bot'
+        self.dummy.callback_message(
+            self.makemessage("!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name))
+        )
+        self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
+
+    def test_arg_botcmd_returns_value_repeated_count_times(self):
+        value = "Foo"
+        count = 5
+        self.dummy.callback_message(
+            self.makemessage("!returns_value_repeated_count_times %s --count %s" % (value, count))
+        )
+        self.assertEquals(value * count, self.dummy.pop_message().body)
 
     def test_access_controls(self):
         tests = [

@@ -102,6 +102,12 @@ class ErrBot(Backend, StoreMixin):
             self[CONFIGS] = {}
         super(ErrBot, self).__init__(bot_config)
 
+    def __hash__(self):
+        # Ensures this class (and subclasses) are hashable.
+        # Presumably the use of mixins causes __hash__ to be
+        # None otherwise.
+        return int(id(self))
+
     @staticmethod
     def _dispatch_to_plugins(method, *args, **kwargs):
         """

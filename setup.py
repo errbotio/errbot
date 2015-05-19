@@ -41,7 +41,7 @@ deps = ['webtest',
         'colorlog']
 
 if PY2:
-    deps += ['dnspython', 'config']  # dnspython for SRV records
+    deps += ['dnspython', 'config', 'backports.functools_lru_cache']  # dnspython for SRV records
 else:
     deps += ['dnspython3']  # requests are for the unittests, dnspython for SRV records
 

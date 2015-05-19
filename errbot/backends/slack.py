@@ -8,6 +8,10 @@ from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 
 try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+try:
     from slackclient import SlackClient
 except ImportError:
     logging.exception("Could not start the Slack back-end")
@@ -140,6 +144,15 @@ class SlackBackend(ErrBot):
         """Convert a Slack channel name to its channel ID"""
         return self.sc.server.channels.find(name).id
 
+    @lru_cache(50)
+    def get_im_channel(self, id):
+        """Open a direct message channel to a user"""
+        api_data = api_resp(self.sc.api_call('im.open', user=id))
+        if not api_data['ok']:
+            raise RuntimeError("Couldn't open direct message channel with user")
+        return api_data['channel']['id']
+
+
     def send_message(self, mess):
         super().send_message(mess)
         to_humanreadable = "<unknown>"
@@ -149,15 +162,7 @@ class SlackBackend(ErrBot):
                 to_id = self.channelname_to_channelid(to_humanreadable)
             else:
                 to_humanreadable = mess.to.node
-                api_data = api_resp(
-                    self.sc.api_call(
-                        'im.open',
-                        user=self.username_to_userid(to_humanreadable)
-                    )
-                )
-                if not api_data['ok']:
-                    raise RuntimeError("Couldn't open direct message channel with user")
-                to_id = api_data['channel']['id']
+                to_id = self.get_im_channel(self.username_to_userid(to_humanreadable))
 
             logging.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
             self.sc.rtm_send_message(to_id, mess.body)

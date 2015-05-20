@@ -261,10 +261,11 @@ class XMPPMUCOccupant(MUCOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None):
+    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None):
         if feature is not None:
             feature = {}
         self.connected = False
+        self.server = server
 
         self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': feature})
         self.client.register_plugin('xep_0030')  # Service Discovery
@@ -293,7 +294,10 @@ class XMPPConnection(object):
 
     def connect(self):
         if not self.connected:
-            self.client.connect()
+            if server:
+                self.client.connect(server)
+            else:
+                self.client.connect()
             self.connected = True
         return self
 
@@ -368,6 +372,7 @@ class XMPPBackend(ErrBot):
 
         self.jid = Identifier(identity['username'])
         self.password = identity['password']
+        self.server = identity.get(['server'], None)
         self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', {})
         self.keepalive = config.__dict__.get('XMPP_KEEPALIVE_INTERVAL', None)
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
@@ -390,7 +395,8 @@ class XMPPBackend(ErrBot):
             password=self.password,
             feature=self.feature,
             keepalive=self.keepalive,
-            ca_cert=self.ca_cert
+            ca_cert=self.ca_cert,
+            server=self.server
         )
 
     def incoming_message(self, xmppmsg):

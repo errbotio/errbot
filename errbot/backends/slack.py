@@ -436,7 +436,8 @@ class SlackRoom(MUCRoom):
 
     @property
     def occupants(self):
-        return [MUCOccupant("Somebody")]
+        members = self._channel_info['members']
+        return [MUCOccupant(node=holder.bot.userid_to_username(m), domain=self.name) for m in members]
 
     def invite(self, *args):
         users = {user['name']: user['id'] for user in holder.bot.api_call('users.list')['members']}

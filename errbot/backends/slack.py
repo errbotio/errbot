@@ -260,6 +260,9 @@ class SlackBackend(ErrBot):
 
         return response
 
+    def is_admin(self, usr):
+        return usr.split('@')[0] in self.bot_config.BOT_ADMINS
+
     def shutdown(self):
         super().shutdown()
 

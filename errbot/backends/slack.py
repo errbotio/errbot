@@ -321,12 +321,29 @@ class SlackRoom(MUCRoom):
 
     @property
     def _channel(self):
+        """
+        The channel object exposed by SlackClient
+        """
         id = holder.bot.sc.server.channels.find(self.name)
         if id is None:
             raise RoomDoesNotExistError(
                 "%s does not exist (or is a private group you don't have access to)" % str(self)
             )
         return id
+
+    @property
+    def _channel_info(self):
+        """
+        Channel info as returned by the Slack API.
+
+        See also:
+          * https://api.slack.com/methods/channels.list
+          * https://api.slack.com/methods/groups.list
+        """
+        if self.private:
+            return holder.bot.api_call('groups.info', data={'channel': self.id})["group"]
+        else:
+            return holder.bot.api_call('channels.info', data={'channel': self.id})["channel"]
 
     @property
     def private(self):
@@ -387,11 +404,35 @@ class SlackRoom(MUCRoom):
 
     @property
     def topic(self):
-        return "TODO"
+        if self._channel_info['topic']['value'] == '':
+            return None
+        else:
+            return self._channel_info['topic']['value']
 
     @topic.setter
     def topic(self, topic):
-        self.topic_ = topic
+        if self.private:
+            logging.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
+            holder.bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
+        else:
+            logging.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
+            holder.bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
+
+    @property
+    def purpose(self):
+        if self._channel_info['purpose']['value'] == '':
+            return None
+        else:
+            return self._channel_info['purpose']['value']
+
+    @purpose.setter
+    def purpose(self, purpose):
+        if self.private:
+            logging.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
+            holder.bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
+        else:
+            logging.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
+            holder.bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
 
     @property
     def occupants(self):

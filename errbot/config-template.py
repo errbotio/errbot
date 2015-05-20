@@ -77,6 +77,7 @@ BOT_IDENTITY = {
     # XMPP (Jabber) mode
     'username': 'err@localhost',  # The JID of the user you have created for the bot
     'password': 'changeme',       # The corresponding password for this user
+    # 'server': ('host.domain.tld',5222), # server override
 
     ## HipChat mode (Comment the above if using this mode)
     # 'username' : '12345_123456@chat.hipchat.com',

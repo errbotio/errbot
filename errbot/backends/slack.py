@@ -7,7 +7,7 @@ from errbot import holder
 from errbot import PY3
 from errbot.backends.base import (
     Message, build_message, Identifier, Presence, ONLINE, AWAY,
-    MUCRoom, MUCOccupant, RoomDoesNotExistError, UserDoesNotExistError
+    MUCRoom, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -51,6 +51,34 @@ class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
 
 
+class SlackIdentifier(Identifier):
+    def __init__(self, jid=None, node='', domain='', resource=''):
+        super().__init__(jid, node, domain, resource)
+
+    @property
+    def stripped(self):
+        # Slack back-end uses the resource to denote the user ID. In XMPP
+        # it can happen that this needs to be stripped, but not with Slack.
+        # We should *always* return the full triplet here.
+        return str(self)
+
+    def __str__(self):
+        return "%s@%s/%s" % (self.node, self.domain, self.resource)
+
+
+class SlackMUCOccupant(Identifier):
+    """
+    This class represents a person inside a MUC.
+
+    This class exists to expose additional information about occupants
+    inside a MUC. For example, the XMPP back-end may expose backend-specific
+    information such as the real JID of the occupant and whether or not
+    that person is a moderator or owner of the room.
+
+    See the parent class for additional details.
+    """
+
+
 class SlackBackend(ErrBot):
 
     def __init__(self, config):
@@ -72,7 +100,11 @@ class SlackBackend(ErrBot):
             logging.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
             sys.exit(1)
         logging.debug("Token accepted")
-        self.jid = Identifier(node=self.auth["user_id"], resource=self.auth["user_id"])
+        self.jid = SlackIdentifier(
+            node=self.auth["user_id"],
+            domain=self.sc.server.domain,
+            resource=self.auth["user_id"]
+        )
 
     def api_call(self, method, data=None, raise_errors=True):
         """
@@ -140,7 +172,7 @@ class SlackBackend(ErrBot):
     def _presence_change_event_handler(self, event):
         """Event handler for the 'presence_change' event"""
 
-        idd = Identifier(node=event['user'])
+        idd = SlackIdentifier(domain=self.sc.server.domain, resource=event['user'])
         presence = event['presence']
         # According to https://api.slack.com/docs/presence, presence can
         # only be one of 'active' and 'away'
@@ -172,15 +204,17 @@ class SlackBackend(ErrBot):
             return
 
         msg = Message(event['text'], type_=message_type)
-        msg.frm = Identifier(
-            node=self.userid_to_username(event['user']),
-            domain=self.channelid_to_channelname(event['channel'])
+        msg.frm = SlackIdentifier(
+            node=self.channelid_to_channelname(event['channel']),
+            domain=self.sc.server.domain,
+            resource=self.userid_to_username(event['user'])
         )
-        msg.to = Identifier(
-            node=self.sc.server.username,
-            domain=self.channelid_to_channelname(event['channel'])
+        msg.to = SlackIdentifier(
+            node=self.channelid_to_channelname(event['channel']),
+            domain=self.sc.server.domain,
+            resource=self.sc.server.username
         )
-        msg.nick = msg.frm.node
+        msg.nick = msg.frm.resource
         self.callback_message(msg)
 
     def userid_to_username(self, id):
@@ -246,10 +280,10 @@ class SlackBackend(ErrBot):
         to_humanreadable = "<unknown>"
         try:
             if mess.type == 'groupchat':
-                to_humanreadable = mess.to.domain
+                to_humanreadable = mess.to.node
                 to_id = self.channelname_to_channelid(to_humanreadable)
             else:
-                to_humanreadable = mess.to.node
+                to_humanreadable = mess.to.resource
                 to_id = self.get_im_channel(self.username_to_userid(to_humanreadable))
             logging.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
             self.sc.rtm_send_message(to_id, mess.body)
@@ -452,7 +486,11 @@ class SlackRoom(MUCRoom):
     @property
     def occupants(self):
         members = self._channel_info['members']
-        return [MUCOccupant(node=holder.bot.userid_to_username(m), domain=self.name) for m in members]
+        return [SlackMUCOccupant(
+                node=self.name,
+                domain=holder.bot.sc.server.domain,
+                resource=holder.bot.userid_to_username(m))
+                for m in members]
 
     def invite(self, *args):
         users = {user['name']: user['id'] for user in holder.bot.api_call('users.list')['members']}

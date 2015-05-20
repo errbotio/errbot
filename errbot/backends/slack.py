@@ -7,7 +7,7 @@ from errbot import holder
 from errbot import PY3
 from errbot.backends.base import (
     Message, build_message, Identifier, Presence, ONLINE, OFFLINE,
-    MUCRoom, MUCOccupant, RoomDoesNotExistError
+    MUCRoom, MUCOccupant, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -439,4 +439,16 @@ class SlackRoom(MUCRoom):
         return [MUCOccupant("Somebody")]
 
     def invite(self, *args):
-        pass
+        users = {user['name']: user['id'] for user in holder.bot.api_call('users.list')['members']}
+        for user in args:
+            if user not in users:
+                raise UserDoesNotExistError("User '%s' not found" % user)
+            logging.info("Inviting %s into %s (%s)" % (user, str(self), self.id))
+            method = 'groups.invite' if self.private else 'channels.invite'
+            response = holder.bot.api_call(
+                method,
+                data={'channel': self.id, 'user': users[user]},
+                raise_errors=False
+            )
+            if not response['ok'] and response['error'] != "already_in_channel":
+                raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))

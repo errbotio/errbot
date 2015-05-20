@@ -106,12 +106,21 @@ class SlackBackend(ErrBot):
             logging.info("Connected")
             try:
                 while True:
-                    events = self.sc.rtm_read()
-                    for event in events:
+                    for message in self.sc.rtm_read():
+                        if 'type' not in message:
+                            logging.debug("Ignoring non-event message: %s" % message)
+                            continue
+
+                        event_type = message['type']
+                        event_handler = getattr(self, '_%s_event_handler' % event_type, None)
+                        if event_handler is None:
+                            logging.debug("No event handler available for %s, ignoring this event" % event_type)
+                            continue
                         try:
-                            self._handle_slack_event(event)
+                            logging.debug("Processing slack event: %s" % message)
+                            event_handler(message)
                         except Exception:
-                            logging.exception("An exception occurred while handling a Slack event")
+                            logging.exception("%s event handler raised an exception" % event_type)
                     time.sleep(1)
             except KeyboardInterrupt:
                 logging.info("Caught KeyboardInterrupt, shutting down..")
@@ -120,59 +129,58 @@ class SlackBackend(ErrBot):
                 self.disconnect_callback()
                 logging.debug("Trigger shutdown")
                 self.shutdown()
-
         else:
             raise Exception('Connection failed, invalid token ?')
 
-    def _handle_slack_event(self, event):
-        """
-        Act on a Slack event from the RTM stream
-        """
-        logging.debug("Slack event: %s" % event)
-        t = event.get('type', None)
-        if t == 'hello':
-            self.connect_callback()
-            self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
-        elif t == 'presence_change':
-            idd = Identifier(node=event['user'])
-            presence = event['presence']
-            # According to https://api.slack.com/docs/presence, presence can
-            # only be one of 'active' and 'away'
-            if presence == 'active':
-                status = ONLINE
-            elif presence == 'away':
-                status = AWAY
-            else:
-                logging.error(
-                    "It appears the Slack API changed, I received an unknown presence type %s" % presence
-                )
-                status = ONLINE
-            self.callback_presence(Presence(identifier=idd, status=status))
-        elif t == 'message':
-            channel = event['channel']
-            if channel.startswith('C'):
-                logging.debug("Handling message from a public channel")
-                message_type = 'groupchat'
-            elif channel.startswith('G'):
-                logging.debug("Handling message from a private group")
-                message_type = 'groupchat'
-            elif channel.startswith('D'):
-                logging.debug("Handling message from a user")
-                message_type = 'chat'
-            else:
-                logging.warning("Unknown message type! Unable to handle")
-                return
+    def _hello_event_handler(self, event):
+        """Event handler for the 'hello' event"""
+        self.connect_callback()
+        self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
 
-            msg = Message(event['text'], type_=message_type)
-            msg.frm = Identifier(
-                node=self.userid_to_username(event['user']),
-                domain=self.channelid_to_channelname(event['channel'])
+    def _presence_change_event_handler(self, event):
+        """Event handler for the 'presence_change' event"""
+
+        idd = Identifier(node=event['user'])
+        presence = event['presence']
+        # According to https://api.slack.com/docs/presence, presence can
+        # only be one of 'active' and 'away'
+        if presence == 'active':
+            status = ONLINE
+        elif presence == 'away':
+            status = AWAY
+        else:
+            logging.error(
+                "It appears the Slack API changed, I received an unknown presence type %s" % presence
             )
-            msg.to = Identifier(
-                node=self.sc.server.username,
-                domain=self.channelid_to_channelname(event['channel'])
-            )
-            self.callback_message(msg)
+            status = ONLINE
+        self.callback_presence(Presence(identifier=idd, status=status))
+
+    def _message_event_handler(self, event):
+        """Event handler for the 'message' event"""
+        channel = event['channel']
+        if channel.startswith('C'):
+            logging.debug("Handling message from a public channel")
+            message_type = 'groupchat'
+        elif channel.startswith('G'):
+            logging.debug("Handling message from a private group")
+            message_type = 'groupchat'
+        elif channel.startswith('D'):
+            logging.debug("Handling message from a user")
+            message_type = 'chat'
+        else:
+            logging.warning("Unknown message type! Unable to handle")
+            return
+
+        msg = Message(event['text'], type_=message_type)
+        msg.frm = Identifier(
+            node=self.userid_to_username(event['user']),
+            domain=self.channelid_to_channelname(event['channel'])
+        )
+        msg.to = Identifier(
+            node=self.sc.server.username,
+            domain=self.channelid_to_channelname(event['channel'])
+        )
+        self.callback_message(msg)
 
     def userid_to_username(self, id):
         """Convert a Slack user ID to their user name"""

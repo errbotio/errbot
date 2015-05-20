@@ -6,7 +6,7 @@ import sys
 from errbot import holder
 from errbot import PY3
 from errbot.backends.base import (
-    Message, build_message, Identifier, Presence, ONLINE, OFFLINE,
+    Message, build_message, Identifier, Presence, ONLINE, AWAY,
     MUCRoom, MUCOccupant, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot
@@ -135,12 +135,18 @@ class SlackBackend(ErrBot):
             self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
         elif t == 'presence_change':
             idd = Identifier(node=event['user'])
-            sstatus = event['presence']
-            if sstatus == 'active':
+            presence = event['presence']
+            # According to https://api.slack.com/docs/presence, presence can
+            # only be one of 'active' and 'away'
+            if presence == 'active':
                 status = ONLINE
+            elif presence == 'away':
+                status = AWAY
             else:
-                status = OFFLINE  # TODO: all the cases
-
+                logging.error(
+                    "It appears the Slack API changed, I received an unknown presence type %s" % presence
+                )
+                status = ONLINE
             self.callback_presence(Presence(identifier=idd, status=status))
         elif t == 'message':
             channel = event['channel']

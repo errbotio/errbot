@@ -180,6 +180,7 @@ class SlackBackend(ErrBot):
             node=self.sc.server.username,
             domain=self.channelid_to_channelname(event['channel'])
         )
+        msg.nick = msg.frm.node
         self.callback_message(msg)
 
     def userid_to_username(self, id):
@@ -309,7 +310,7 @@ class SlackBackend(ErrBot):
         return [SlackRoom(domain=channel['id']) for channel in channels]
 
     def groupchat_reply_format(self):
-        return '{0} {1}'
+        return '@{0}: {1}'
 
 
 class SlackRoom(MUCRoom):

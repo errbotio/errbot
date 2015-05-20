@@ -909,7 +909,7 @@ class Backend(object):
         username = get_sender_username(mess)
         user_cmd_history = self.cmd_history[username]
 
-        logging.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
+        logging.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, jid))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items

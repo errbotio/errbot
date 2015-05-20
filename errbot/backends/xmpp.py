@@ -294,7 +294,7 @@ class XMPPConnection(object):
 
     def connect(self):
         if not self.connected:
-            if server:
+            if server is not None:
                 self.client.connect(server)
             else:
                 self.client.connect()

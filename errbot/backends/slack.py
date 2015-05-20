@@ -1,12 +1,21 @@
 import json
 import logging
+import re
 import time
 import sys
+from errbot import holder
 from errbot import PY3
-from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE, MUCRoom, MUCOccupant
+from errbot.backends.base import (
+    Message, build_message, Identifier, Presence, ONLINE, OFFLINE,
+    MUCRoom, MUCOccupant, RoomDoesNotExistError
+)
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 try:
     from slackclient import SlackClient
 except ImportError:
@@ -32,9 +41,14 @@ except SyntaxError:
     sys.exit(1)
 
 
+# The Slack client automatically turns a channel name into a clickable
+# link if you prefix it with a #. Other clients receive this link as a
+# token matching this regex.
+SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
 
-def api_resp(b):
-    return json.loads(b.decode('utf-8'))
+
+class SlackAPIResponseError(RuntimeError):
+    """Slack API returned a non-OK response"""
 
 
 class SlackBackend(ErrBot):
@@ -53,12 +67,38 @@ class SlackBackend(ErrBot):
         self.sc = SlackClient(self.token)
 
         logging.debug("Verifying authentication token")
-        self.auth = api_resp(self.sc.api_call("auth.test"))
+        self.auth = self.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:
             logging.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
             sys.exit(1)
         logging.debug("Token accepted")
         self.jid = Identifier(node=self.auth["user_id"], resource=self.auth["user_id"])
+
+    def api_call(self, method, data=None, raise_errors=True):
+        """
+        Make an API call to the Slack API and return response data.
+
+        This is a thin wrapper around `SlackClient.server.api_call`.
+
+        :param method:
+            The API method to invoke (see https://api.slack.com/methods/).
+        :param raise_errors:
+            Whether to raise :class:`~SlackAPIResponseError` if the API
+            returns an error
+        :param data:
+            A dictionary with data to pass along in the API request.
+        :returns:
+            The JSON-decoded API response
+        :raises:
+            :class:`~SlackAPIResponseError` if raise_errors is True and the
+            API responds with `{"ok": false}`
+        """
+        if data is None:
+            data = {}
+        response = json.loads(self.sc.server.api_call(method, **data).decode('utf-8'))
+        if raise_errors and not response['ok']:
+            raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
+        return response
 
     def serve_forever(self):
         logging.info("Connecting to Slack real-time-messaging API")
@@ -68,7 +108,10 @@ class SlackBackend(ErrBot):
                 while True:
                     events = self.sc.rtm_read()
                     for event in events:
-                        self._handle_slack_event(event)
+                        try:
+                            self._handle_slack_event(event)
+                        except Exception:
+                            logging.exception("An exception occurred while handling a Slack event")
                     time.sleep(1)
             except KeyboardInterrupt:
                 logging.info("Caught KeyboardInterrupt, shutting down..")
@@ -135,11 +178,53 @@ class SlackBackend(ErrBot):
 
     def channelid_to_channelname(self, id):
         """Convert a Slack channel ID to its channel name"""
-        return self.sc.server.channels.find(id).name
+        channel = self.sc.server.channels.find(id)
+        if channel is None:
+            raise RoomDoesNotExistError("No channel with ID %s exists" % id)
+        return channel.name
 
     def channelname_to_channelid(self, name):
         """Convert a Slack channel name to its channel ID"""
-        return self.sc.server.channels.find(name).id
+        if name.startswith('#'):
+            name = name[1:]
+        channel = self.sc.server.channels.find(name)
+        if channel is None:
+            raise RoomDoesNotExistError("No channel named %s exists" % name)
+        return channel.id
+
+    def channels(self, exclude_archived=True, joined_only=False):
+        """
+        Get all channels and groups and return information about them.
+
+        :param exclude_archived:
+            Exclude archived channels/groups
+        :param joined_only:
+            Filter out channels the bot hasn't joined
+        :returns:
+            A list of channel (https://api.slack.com/types/channel)
+            and group (https://api.slack.com/types/group) types.
+
+        See also:
+          * https://api.slack.com/methods/channels.list
+          * https://api.slack.com/methods/groups.list
+        """
+        response = self.api_call('channels.list', data={'exclude_archived': exclude_archived})
+        channels = [channel for channel in response['channels']
+                    if channel['is_member'] or not joined_only]
+
+        response = self.api_call('groups.list', data={'exclude_archived': exclude_archived})
+        # No need to filter for 'is_member' in this next call (it doesn't
+        # (even exist) because leaving a group means you have to get invited
+        # back again by somebody else.
+        groups = [group for group in response['groups']]
+
+        return channels + groups
+
+    @lru_cache(50)
+    def get_im_channel(self, id):
+        """Open a direct message channel to a user"""
+        response = self.api_call('im.open', data={'user': id})
+        return response['channel']['id']
 
     def send_message(self, mess):
         super().send_message(mess)
@@ -150,16 +235,7 @@ class SlackBackend(ErrBot):
                 to_id = self.channelname_to_channelid(to_humanreadable)
             else:
                 to_humanreadable = mess.to.node
-                api_data = api_resp(
-                    self.sc.api_call(
-                        'im.open',
-                        user=self.username_to_userid(to_humanreadable)
-                    )
-                )
-                if not api_data['ok']:
-                    raise RuntimeError("Couldn't open direct message channel with user")
-                to_id = api_data['channel']['id']
-
+                to_id = self.get_im_channel(self.username_to_userid(to_humanreadable))
             logging.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
             self.sc.rtm_send_message(to_id, mess.body)
         except Exception:
@@ -196,37 +272,115 @@ class SlackBackend(ErrBot):
         return 'slack'
 
     def query_room(self, room):
-        return SlackRoom(node=room, sc=self.sc)
+        if room.startswith('C') or room.startswith('G'):
+            return SlackRoom(domain=room)
+
+        m = SLACK_CLIENT_CHANNEL_HYPERLINK.match(room)
+        if m is not None:
+            return SlackRoom(domain=m.groupdict()['id'])
+
+        return SlackRoom(name=room)
+
+    def rooms(self):
+        """
+        Return a list of rooms the bot is currently in.
+
+        :returns:
+            A list of :class:`~SlackRoom` instances.
+        """
+        channels = self.channels(joined_only=True, exclude_archived=True)
+        return [SlackRoom(domain=channel['id']) for channel in channels]
 
     def groupchat_reply_format(self):
         return '{0} {1}'
 
 
 class SlackRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', sc=None):
-        super().__init__(jid, node, domain, resource)
-        self.channel = sc.server.channels.find(node)
-        self.joined_ = False
+    def __init__(self, jid=None, node='', domain='', resource='', name=None):
+        if jid is not None or node != '' or resource != '':
+            raise ValueError("SlackRoom() only supports construction using domain or name")
+        if domain != '' and name is not None:
+            raise ValueError("domain and name are mutually exclusive")
+
+        if name is not None:
+            if name.startswith('#'):
+                self._name = name[1:]
+            else:
+                self._name = name
+        else:
+            self._name = holder.bot.channelid_to_channelname(domain)
+
+        self._id = None
+        self.sc = holder.bot.sc
+
+    def __str__(self):
+        return "#%s" % self.name
+
+    @property
+    def _channel(self):
+        id = holder.bot.sc.server.channels.find(self.name)
+        if id is None:
+            raise RoomDoesNotExistError(
+                "%s does not exist (or is a private group you don't have access to)" % str(self)
+            )
+        return id
+
+    @property
+    def private(self):
+        """Return True if the room is a private group"""
+        return self._channel.id.startswith('G')
+
+    @property
+    def id(self):
+        """Return the ID of this room"""
+        if self._id is None:
+            self._id = self._channel.id
+        return self._id
+
+    @property
+    def name(self):
+        """Return the name of this room"""
+        return self._name
 
     def join(self, username=None, password=None):
-        self.joined_ = True
+        logging.info("Joining channel %s" % str(self))
+        holder.bot.api_call('channels.join', data={'name': self.name})
 
     def leave(self, reason=None):
-        self.joined_ = False
+        if self.id.startswith('C'):
+            logging.info("Leaving channel %s (%s)" % (str(self), self.id))
+            holder.bot.api_call('channels.leave', data={'channel': self.id})
+        else:
+            logging.info("Leaving group %s (%s)" % (str(self), self.id))
+            holder.bot.api_call('groups.leave', data={'channel': self.id})
+        self._id = None
 
-    def create(self):
-        self.joined_ = True
+    def create(self, private=False):
+        if private:
+            logging.info("Creating group %s" % str(self))
+            holder.bot.api_call('groups.create', data={'name': self.name})
+        else:
+            logging.info("Creating channel %s" % str(self))
+            holder.bot.api_call('channels.create', data={'name': self.name})
 
     def destroy(self):
-        self.joined_ = False
+        if self.id.startswith('C'):
+            logging.info("Archiving channel %s (%s)" % (str(self), self.id))
+            holder.bot.api_call('channels.archive', data={'channel': self.id})
+        else:
+            logging.info("Archiving group %s (%s)" % (str(self), self.id))
+            holder.bot.api_call('groups.archive', data={'channel': self.id})
+        self._id = None
 
     @property
     def exists(self):
-        return self.channel
+        channels = holder.bot.channels(joined_only=False, exclude_archived=False)
+        return len([c for c in channels if c['name'] == self.name]) > 0
 
     @property
     def joined(self):
-        return self.joined_
+        channels = holder.bot.channels(joined_only=True)
+        return len([c for c in channels if c['name'] == self.name]) > 0
 
     @property
     def topic(self):

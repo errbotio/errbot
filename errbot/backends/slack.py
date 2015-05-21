@@ -219,11 +219,17 @@ class SlackBackend(ErrBot):
 
     def userid_to_username(self, id):
         """Convert a Slack user ID to their user name"""
-        return self.sc.server.users.find(id).name
+        user = self.sc.server.users.find(id)
+        if user is None:
+            raise UserDoesNotExistError("Cannot find user with ID %s" % id)
+        return user.name
 
     def username_to_userid(self, name):
         """Convert a Slack user name to their user ID"""
-        return self.sc.server.users.find(name).id
+        user = self.sc.server.users.find(name)
+        if user is None:
+            raise UserDoesNotExistError("Cannot find user %s" % name)
+        return user.id
 
     def channelid_to_channelname(self, id):
         """Convert a Slack channel ID to its channel name"""

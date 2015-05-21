@@ -33,6 +33,11 @@ class RoomDoesNotExistError(RoomError):
     on a room that doesn't exist"""
 
 
+class UserDoesNotExistError(Exception):
+    """Exception that is raised when performing an operation
+    on a user that doesn't exist"""
+
+
 class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends
@@ -904,7 +909,7 @@ class Backend(object):
         username = get_sender_username(mess)
         user_cmd_history = self.cmd_history[username]
 
-        logging.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
+        logging.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, jid))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items

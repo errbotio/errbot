@@ -6,8 +6,8 @@ import sys
 from errbot import holder
 from errbot import PY3
 from errbot.backends.base import (
-    Message, build_message, Identifier, Presence, ONLINE, OFFLINE,
-    MUCRoom, MUCOccupant, RoomDoesNotExistError
+    Message, build_message, Identifier, Presence, ONLINE, AWAY,
+    MUCRoom, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -51,6 +51,34 @@ class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
 
 
+class SlackIdentifier(Identifier):
+    def __init__(self, jid=None, node='', domain='', resource=''):
+        super().__init__(jid, node, domain, resource)
+
+    @property
+    def stripped(self):
+        # Slack back-end uses the resource to denote the user ID. In XMPP
+        # it can happen that this needs to be stripped, but not with Slack.
+        # We should *always* return the full triplet here.
+        return str(self)
+
+    def __str__(self):
+        return "%s@%s/%s" % (self.node, self.domain, self.resource)
+
+
+class SlackMUCOccupant(Identifier):
+    """
+    This class represents a person inside a MUC.
+
+    This class exists to expose additional information about occupants
+    inside a MUC. For example, the XMPP back-end may expose backend-specific
+    information such as the real JID of the occupant and whether or not
+    that person is a moderator or owner of the room.
+
+    See the parent class for additional details.
+    """
+
+
 class SlackBackend(ErrBot):
 
     def __init__(self, config):
@@ -72,7 +100,11 @@ class SlackBackend(ErrBot):
             logging.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
             sys.exit(1)
         logging.debug("Token accepted")
-        self.jid = Identifier(node=self.auth["user_id"], resource=self.auth["user_id"])
+        self.jid = SlackIdentifier(
+            node=self.auth["user_id"],
+            domain=self.sc.server.domain,
+            resource=self.auth["user_id"]
+        )
 
     def api_call(self, method, data=None, raise_errors=True):
         """
@@ -106,12 +138,21 @@ class SlackBackend(ErrBot):
             logging.info("Connected")
             try:
                 while True:
-                    events = self.sc.rtm_read()
-                    for event in events:
+                    for message in self.sc.rtm_read():
+                        if 'type' not in message:
+                            logging.debug("Ignoring non-event message: %s" % message)
+                            continue
+
+                        event_type = message['type']
+                        event_handler = getattr(self, '_%s_event_handler' % event_type, None)
+                        if event_handler is None:
+                            logging.debug("No event handler available for %s, ignoring this event" % event_type)
+                            continue
                         try:
-                            self._handle_slack_event(event)
+                            logging.debug("Processing slack event: %s" % message)
+                            event_handler(message)
                         except Exception:
-                            logging.exception("An exception occurred while handling a Slack event")
+                            logging.exception("%s event handler raised an exception" % event_type)
                     time.sleep(1)
             except KeyboardInterrupt:
                 logging.info("Caught KeyboardInterrupt, shutting down..")
@@ -120,53 +161,61 @@ class SlackBackend(ErrBot):
                 self.disconnect_callback()
                 logging.debug("Trigger shutdown")
                 self.shutdown()
-
         else:
             raise Exception('Connection failed, invalid token ?')
 
-    def _handle_slack_event(self, event):
-        """
-        Act on a Slack event from the RTM stream
-        """
-        logging.debug("Slack event: %s" % event)
-        t = event.get('type', None)
-        if t == 'hello':
-            self.connect_callback()
-            self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
-        elif t == 'presence_change':
-            idd = Identifier(node=event['user'])
-            sstatus = event['presence']
-            if sstatus == 'active':
-                status = ONLINE
-            else:
-                status = OFFLINE  # TODO: all the cases
+    def _hello_event_handler(self, event):
+        """Event handler for the 'hello' event"""
+        self.connect_callback()
+        self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
 
-            self.callback_presence(Presence(identifier=idd, status=status))
-        elif t == 'message':
-            channel = event['channel']
-            if channel.startswith('C'):
-                logging.debug("Handling message from a public channel")
-                message_type = 'groupchat'
-            elif channel.startswith('G'):
-                logging.debug("Handling message from a private group")
-                message_type = 'groupchat'
-            elif channel.startswith('D'):
-                logging.debug("Handling message from a user")
-                message_type = 'chat'
-            else:
-                logging.warning("Unknown message type! Unable to handle")
-                return
+    def _presence_change_event_handler(self, event):
+        """Event handler for the 'presence_change' event"""
 
-            msg = Message(event['text'], type_=message_type)
-            msg.frm = Identifier(
-                node=self.userid_to_username(event['user']),
-                domain=self.channelid_to_channelname(event['channel'])
+        idd = SlackIdentifier(domain=self.sc.server.domain, resource=event['user'])
+        presence = event['presence']
+        # According to https://api.slack.com/docs/presence, presence can
+        # only be one of 'active' and 'away'
+        if presence == 'active':
+            status = ONLINE
+        elif presence == 'away':
+            status = AWAY
+        else:
+            logging.error(
+                "It appears the Slack API changed, I received an unknown presence type %s" % presence
             )
-            msg.to = Identifier(
-                node=self.sc.server.username,
-                domain=self.channelid_to_channelname(event['channel'])
-            )
-            self.callback_message(msg)
+            status = ONLINE
+        self.callback_presence(Presence(identifier=idd, status=status))
+
+    def _message_event_handler(self, event):
+        """Event handler for the 'message' event"""
+        channel = event['channel']
+        if channel.startswith('C'):
+            logging.debug("Handling message from a public channel")
+            message_type = 'groupchat'
+        elif channel.startswith('G'):
+            logging.debug("Handling message from a private group")
+            message_type = 'groupchat'
+        elif channel.startswith('D'):
+            logging.debug("Handling message from a user")
+            message_type = 'chat'
+        else:
+            logging.warning("Unknown message type! Unable to handle")
+            return
+
+        msg = Message(event['text'], type_=message_type)
+        msg.frm = SlackIdentifier(
+            node=self.channelid_to_channelname(event['channel']),
+            domain=self.sc.server.domain,
+            resource=self.userid_to_username(event['user'])
+        )
+        msg.to = SlackIdentifier(
+            node=self.channelid_to_channelname(event['channel']),
+            domain=self.sc.server.domain,
+            resource=self.sc.server.username
+        )
+        msg.nick = msg.frm.resource
+        self.callback_message(msg)
 
     def userid_to_username(self, id):
         """Convert a Slack user ID to their user name"""
@@ -231,10 +280,10 @@ class SlackBackend(ErrBot):
         to_humanreadable = "<unknown>"
         try:
             if mess.type == 'groupchat':
-                to_humanreadable = mess.to.domain
+                to_humanreadable = mess.to.node
                 to_id = self.channelname_to_channelid(to_humanreadable)
             else:
-                to_humanreadable = mess.to.node
+                to_humanreadable = mess.to.resource
                 to_id = self.get_im_channel(self.username_to_userid(to_humanreadable))
             logging.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
             self.sc.rtm_send_message(to_id, mess.body)
@@ -259,6 +308,9 @@ class SlackBackend(ErrBot):
         response.type = 'chat' if private else msg_type
 
         return response
+
+    def is_admin(self, usr):
+        return usr.split('@')[0] in self.bot_config.BOT_ADMINS
 
     def shutdown(self):
         super().shutdown()
@@ -292,7 +344,7 @@ class SlackBackend(ErrBot):
         return [SlackRoom(domain=channel['id']) for channel in channels]
 
     def groupchat_reply_format(self):
-        return '{0} {1}'
+        return '@{0}: {1}'
 
 
 class SlackRoom(MUCRoom):
@@ -318,12 +370,29 @@ class SlackRoom(MUCRoom):
 
     @property
     def _channel(self):
+        """
+        The channel object exposed by SlackClient
+        """
         id = holder.bot.sc.server.channels.find(self.name)
         if id is None:
             raise RoomDoesNotExistError(
                 "%s does not exist (or is a private group you don't have access to)" % str(self)
             )
         return id
+
+    @property
+    def _channel_info(self):
+        """
+        Channel info as returned by the Slack API.
+
+        See also:
+          * https://api.slack.com/methods/channels.list
+          * https://api.slack.com/methods/groups.list
+        """
+        if self.private:
+            return holder.bot.api_call('groups.info', data={'channel': self.id})["group"]
+        else:
+            return holder.bot.api_call('channels.info', data={'channel': self.id})["channel"]
 
     @property
     def private(self):
@@ -384,15 +453,56 @@ class SlackRoom(MUCRoom):
 
     @property
     def topic(self):
-        return "TODO"
+        if self._channel_info['topic']['value'] == '':
+            return None
+        else:
+            return self._channel_info['topic']['value']
 
     @topic.setter
     def topic(self, topic):
-        self.topic_ = topic
+        if self.private:
+            logging.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
+            holder.bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
+        else:
+            logging.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
+            holder.bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
+
+    @property
+    def purpose(self):
+        if self._channel_info['purpose']['value'] == '':
+            return None
+        else:
+            return self._channel_info['purpose']['value']
+
+    @purpose.setter
+    def purpose(self, purpose):
+        if self.private:
+            logging.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
+            holder.bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
+        else:
+            logging.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
+            holder.bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
 
     @property
     def occupants(self):
-        return [MUCOccupant("Somebody")]
+        members = self._channel_info['members']
+        return [SlackMUCOccupant(
+                node=self.name,
+                domain=holder.bot.sc.server.domain,
+                resource=holder.bot.userid_to_username(m))
+                for m in members]
 
     def invite(self, *args):
-        pass
+        users = {user['name']: user['id'] for user in holder.bot.api_call('users.list')['members']}
+        for user in args:
+            if user not in users:
+                raise UserDoesNotExistError("User '%s' not found" % user)
+            logging.info("Inviting %s into %s (%s)" % (user, str(self), self.id))
+            method = 'groups.invite' if self.private else 'channels.invite'
+            response = holder.bot.api_call(
+                method,
+                data={'channel': self.id, 'user': users[user]},
+                raise_errors=False
+            )
+            if not response['ok'] and response['error'] != "already_in_channel":
+                raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))

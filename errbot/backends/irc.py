@@ -194,7 +194,7 @@ class IRCConnection(SingleServerIRCBot):
 
     def on_pubmsg(self, _, e):
         msg = Message(e.arguments[0], type_='groupchat')
-        msg.frm = e.target
+        msg.frm = Identifier(node=e.target)
         msg.to = self.callback.jid
         msg.nick = e.source.split('!')[0]  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)

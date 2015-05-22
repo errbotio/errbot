@@ -709,7 +709,7 @@ class Backend(object):
             # stripped returns the full bot@conference.domain.tld/chat_username
             # but in case of a groupchat, we should only try to send to the MUC address
             # itself (bot@conference.domain.tld)
-            response.to = mess.frm.stripped.split('/')[0]
+            response.to = mess.frm.node
         elif str(mess.to) == self.bot_config.BOT_IDENTITY['username']:
             # This is a direct private message, not initiated through a MUC. Use
             # stripped to remove the resource so that the response goes to the

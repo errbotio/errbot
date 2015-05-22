@@ -9,7 +9,6 @@ Callbacks for presence changes
 ------------------------------
 
 .. versionadded:: 2.2.0
-    This is not yet available in a public release.
 
 Plugins may override :meth:`~errbot.botplugin.BotPlugin.callback_presence`
 in order to receive notifications of presence changes. You will receive

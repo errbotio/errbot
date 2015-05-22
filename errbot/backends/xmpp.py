@@ -294,8 +294,8 @@ class XMPPConnection(object):
 
     def connect(self):
         if not self.connected:
-            if server is not None:
-                self.client.connect(server)
+            if self.server is not None:
+                self.client.connect(self.server)
             else:
                 self.client.connect()
             self.connected = True
@@ -372,7 +372,7 @@ class XMPPBackend(ErrBot):
 
         self.jid = Identifier(identity['username'])
         self.password = identity['password']
-        self.server = identity.get(['server'], None)
+        self.server = identity.get('server', None)
         self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', {})
         self.keepalive = config.__dict__.get('XMPP_KEEPALIVE_INTERVAL', None)
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')

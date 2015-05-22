@@ -3,6 +3,7 @@ import sys
 from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE, MUCRoom, MUCOccupant
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
+log = logging.getLogger(__name__)
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
@@ -15,6 +16,7 @@ class TextBackend(ErrBot):
 
     def __init__(self, config):
         super().__init__(config)
+        log.debug("Text Backend Init.")
         self.jid = Identifier('Err')
         self.rooms = set()
 
@@ -39,9 +41,9 @@ class TextBackend(ErrBot):
         finally:
             # simulate some real presence
             self.callback_presence(Presence(identifier=me, status=OFFLINE))
-            logging.debug("Trigger disconnect callback")
+            log.debug("Trigger disconnect callback")
             self.disconnect_callback()
-            logging.debug("Trigger shutdown")
+            log.debug("Trigger shutdown")
             self.shutdown()
 
     def send_message(self, mess):

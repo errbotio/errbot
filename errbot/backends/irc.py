@@ -15,8 +15,8 @@ try:
     import irc.connection
     from irc.bot import SingleServerIRCBot
 except ImportError as _:
-    logging.exception("Could not start the IRC backend")
-    logging.fatal("""
+    log.exception("Could not start the IRC backend")
+    log.fatal("""
     If you intend to use the IRC backend please install the python irc package:
     -> On debian-like systems
     sudo apt-get install python-software-properties
@@ -43,14 +43,14 @@ class IRCMUCRoom(MUCRoom):
         :meth:`create` on it first.
         """
         if username is not None:
-            logging.debug("Ignored username parameter on join(), it is unsupported on this back-end.")
+            log.debug("Ignored username parameter on join(), it is unsupported on this back-end.")
         if password is None:
             password = ""
         room = str(self)
 
         self.connection.join(room, key=password)
         holder.bot.callback_room_joined(self)
-        logging.info("Joined room {}".format(room))
+        log.info("Joined room {}".format(room))
 
     def leave(self, reason=None):
         """
@@ -64,7 +64,7 @@ class IRCMUCRoom(MUCRoom):
         room = str(self)
 
         self.connection.part(room, reason)
-        logging.info("Left room {}".format(room))
+        log.info("Left room {}".format(room))
         holder.bot.callback_room_left(self)
 
     def create(self):
@@ -156,7 +156,7 @@ class IRCMUCRoom(MUCRoom):
         room = str(self)
         for nick in args:
             self.connection.invite(nick, room)
-            logging.info("Invited {} to {}".format(nick, room))
+            log.info("Invited {} to {}".format(nick, room))
 
 
 class IRCConnection(SingleServerIRCBot):
@@ -189,7 +189,7 @@ class IRCConnection(SingleServerIRCBot):
             self.connection.connect(*args, **kwargs)
 
     def on_welcome(self, _, e):
-        logging.info("IRC welcome %s" % e)
+        log.info("IRC welcome %s" % e)
         self.callback.connect_callback()
 
     def on_pubmsg(self, _, e):
@@ -246,9 +246,9 @@ class IRCBackend(ErrBot):
         try:
             self.conn.start()
         finally:
-            logging.debug("Trigger disconnect callback")
+            log.debug("Trigger disconnect callback")
             self.disconnect_callback()
-            logging.debug("Trigger shutdown")
+            log.debug("Trigger shutdown")
             self.shutdown()
 
     def connect(self):

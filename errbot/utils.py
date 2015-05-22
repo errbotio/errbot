@@ -245,10 +245,10 @@ def RateLimited(minInterval):
 
         def rateLimitedFunction(*args, **kargs):
             elapsed = time.time() - lastTimeCalled[0]
-            logging.debug('Elapsed %f since last call' % elapsed)
+            log.debug('Elapsed %f since last call' % elapsed)
             leftToWait = minInterval - elapsed
             if leftToWait > 0:
-                logging.debug('Wait %f due to rate limiting...' % leftToWait)
+                log.debug('Wait %f due to rate limiting...' % leftToWait)
                 time.sleep(leftToWait)
             ret = func(*args, **kargs)
             lastTimeCalled[0] = time.time()

@@ -8,6 +8,7 @@ from threading import Thread
 
 import pytest
 
+log = logging.getLogger(__name__)
 
 __import__('errbot.config-template')
 config_module = sys.modules['errbot.config-template']
@@ -82,12 +83,12 @@ class MUCRoom(MUCRoom):
             return
 
         if not self.exists:
-            logging.debug("Room {!s} doesn't exist yet, creating it".format(self))
+            log.debug("Room {!s} doesn't exist yet, creating it".format(self))
             self.create()
 
         room = [r for r in rooms if str(r) == str(self)][0]
         room._occupants.append(MUCOccupant(bot_itself))
-        logging.info("Joined room {!s}".format(self))
+        log.info("Joined room {!s}".format(self))
         bot.callback_room_joined(room)
 
     def leave(self, reason=None):
@@ -102,7 +103,7 @@ class MUCRoom(MUCRoom):
 
         room = [r for r in rooms if str(r) == str(self)][0]
         room._occupants = [o for o in room._occupants if str(o) != bot_itself]
-        logging.info("Left room {!s}".format(self))
+        log.info("Left room {!s}".format(self))
         bot.callback_room_left(room)
 
     @property
@@ -116,7 +117,7 @@ class MUCRoom(MUCRoom):
             logging.warning("Room {!s} already created".format(self))
         else:
             rooms.append(self)
-            logging.info("Created room {!s}".format(self))
+            log.info("Created room {!s}".format(self))
 
     def destroy(self):
         global rooms
@@ -124,7 +125,7 @@ class MUCRoom(MUCRoom):
             logging.warning("Cannot destroy room {!s}, it doesn't exist".format(self))
         else:
             rooms = [r for r in rooms if str(r) != str(self)]
-            logging.info("Destroyed room {!s}".format(self))
+            log.info("Destroyed room {!s}".format(self))
 
     @property
     def topic(self):
@@ -136,7 +137,7 @@ class MUCRoom(MUCRoom):
         self._topic = topic
         room = [r for r in rooms if str(r) == str(self)][0]
         room._topic = self._topic
-        logging.info("Topic for room {!s} set to '{}'".format(self, topic))
+        log.info("Topic for room {!s} set to '{}'".format(self, topic))
         from errbot.holder import bot
         bot.callback_room_topic(self)
 
@@ -158,7 +159,7 @@ class TestBackend(ErrBot):
             while True:
                 stanza_type, entry = incoming_stanza_queue.get()
                 if entry == QUIT_MESSAGE:
-                    logging.info("Stop magic message received, quitting...")
+                    log.info("Stop magic message received, quitting...")
                     break
                 if stanza_type is STZ_MSG:
                     msg = Message(entry)
@@ -166,21 +167,21 @@ class TestBackend(ErrBot):
                     msg.to = self.jid  # To me only
                     self.callback_message(msg)
                 elif stanza_type is STZ_PRE:
-                    logging.info("Presence stanza received.")
+                    log.info("Presence stanza received.")
                     self.callback_presence(entry)
                 elif stanza_type is STZ_IQ:
-                    logging.info("IQ stanza received.")
+                    log.info("IQ stanza received.")
                 else:
-                    logging.error("Unknown stanza type.")
+                    log.error("Unknown stanza type.")
 
         except EOFError:
             pass
         except KeyboardInterrupt:
             pass
         finally:
-            logging.debug("Trigger disconnect callback")
+            log.debug("Trigger disconnect callback")
             self.disconnect_callback()
-            logging.debug("Trigger shutdown")
+            log.debug("Trigger shutdown")
             self.shutdown()
 
     def connect(self):
@@ -232,11 +233,11 @@ def push_presence(presence):
 def zap_queues():
     while not incoming_stanza_queue.empty():
         msg = incoming_stanza_queue.get(block=False)
-        logging.error('Message left in the incoming queue during a test : %s' % msg)
+        log.error('Message left in the incoming queue during a test : %s' % msg)
 
     while not outgoing_message_queue.empty():
         msg = outgoing_message_queue.get(block=False)
-        logging.error('Message left in the outgoing queue during a test : %s' % msg)
+        log.error('Message left in the outgoing queue during a test : %s' % msg)
 
 
 def reset_rooms():
@@ -307,7 +308,7 @@ class TestBot(object):
         push_message(QUIT_MESSAGE)
         self.bot_thread.join()
         reset_app()  # empty the bottle ... hips!
-        logging.info("Main bot thread quits")
+        log.info("Main bot thread quits")
         zap_queues()
         reset_rooms()
         self.bot_thread = None

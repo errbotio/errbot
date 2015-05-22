@@ -34,7 +34,7 @@ def webserver(testbot):
     push_message("!config Webserver {{'HOST': 'localhost', 'PORT': {}, 'SSL':  None}}".format(WEBSERVER_PORT))
     pop_message()
     while not webserver_ready('localhost', WEBSERVER_PORT):
-        logging.debug("Webserver not ready yet, sleeping 0.1 second")
+        log.debug("Webserver not ready yet, sleeping 0.1 second")
         sleep(0.1)
 
 
@@ -125,7 +125,7 @@ class TestWebhooks(object):
         pop_message()
 
         while not webserver_ready('localhost', WEBSERVER_SSL_PORT):
-            logging.debug("Webserver not ready yet, sleeping 0.1 second")
+            log.debug("Webserver not ready yet, sleeping 0.1 second")
             sleep(0.1)
 
         assert requests.post(

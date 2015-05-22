@@ -1,6 +1,5 @@
 import logging
 import sys
-import os.path
 import warnings
 
 from errbot.backends.base import (
@@ -13,12 +12,14 @@ from errbot import holder
 from threading import Thread
 from time import sleep
 
+log = logging.getLogger(__name__)
+
 try:
     from sleekxmpp import ClientXMPP
     from sleekxmpp.xmlstream import resolver, cert
 except ImportError as _:
-    logging.exception("Could not start the XMPP backend")
-    logging.fatal("""
+    log.exception("Could not start the XMPP backend")
+    log.fatal("""
     If you intend to use the XMPP backend please install the python sleekxmpp package:
     -> On debian-like systems
     sudo apt-get install python-software-properties
@@ -51,12 +52,12 @@ def verify_gtalk_cert(xmpp_client):
         raw_cert = xmpp_client.socket.getpeercert(binary_form=True)
         try:
             if cert.verify('talk.google.com', raw_cert):
-                logging.info('google cert found for %s', xmpp_client.boundjid.server)
+                log.info('google cert found for %s', xmpp_client.boundjid.server)
                 return
         except cert.CertificateError:
             pass
 
-    logging.error("invalid cert received for %s", xmpp_client.boundjid.server)
+    log.error("invalid cert received for %s", xmpp_client.boundjid.server)
 
 
 class XMPPMUCRoom(MUCRoom):
@@ -88,7 +89,7 @@ class XMPPMUCRoom(MUCRoom):
         t.setDaemon(True)
         t.start()
         holder.bot.callback_room_joined(self)
-        logging.info("Joined room {}".format(room))
+        log.info("Joined room {}".format(room))
 
     def leave(self, reason=None):
         """
@@ -111,10 +112,10 @@ class XMPPMUCRoom(MUCRoom):
                 "muc::{}::got_offline".format(room),
                 holder.bot.user_left_chat
             )
-            logging.info("Left room {}".format(room))
+            log.info("Left room {}".format(room))
             holder.bot.callback_room_left(self)
         except KeyError:
-            logging.debug("Trying to leave {} while not in this room".format(room))
+            log.debug("Trying to leave {} while not in this room".format(room))
 
     def create(self):
         """
@@ -134,7 +135,7 @@ class XMPPMUCRoom(MUCRoom):
         Calling this on a non-existing room is a no-op.
         """
         self.xep0045.destroy(str(self))
-        logging.info("Destroyed room {!s}".format(self))
+        log.info("Destroyed room {!s}".format(self))
 
     @property
     def exists(self):
@@ -220,7 +221,7 @@ class XMPPMUCRoom(MUCRoom):
         room = str(self)
         for jid in args:
             self.xep0045.invite(room, jid)
-            logging.info("Invited {} to {}".format(jid, room))
+            log.info("Invited {} to {}".format(jid, room))
 
     def configure(self):
         """
@@ -241,12 +242,12 @@ class XMPPMUCRoom(MUCRoom):
             )
 
         if affiliation == "owner":
-            logging.debug("Configuring room {} because we have owner affiliation".format(room))
+            log.debug("Configuring room {} because we have owner affiliation".format(room))
             form = self.xep0045.getRoomConfig(room)
             self.xep0045.configureRoom(room, form)
         else:
-            logging.debug("Not configuring room {} because we don't have owner affiliation (affiliation={})"
-                          .format(room, affiliation))
+            log.debug("Not configuring room {} because we don't have owner affiliation (affiliation={})"
+                      .format(room, affiliation))
 
 
 class XMPPMUCOccupant(MUCOccupant):
@@ -412,19 +413,19 @@ class XMPPBackend(ErrBot):
         self.callback_message(msg)
 
     def contact_online(self, event):
-        logging.debug("contact_online %s" % event)
+        log.debug("contact_online %s" % event)
         p = Presence(identifier=Identifier(str(event['from'])),
                      status=ONLINE)
         self.callback_presence(p)
 
     def contact_offline(self, event):
-        logging.debug("contact_offline %s" % event)
+        log.debug("contact_offline %s" % event)
         p = Presence(identifier=Identifier(str(event['from'])),
                      status=OFFLINE)
         self.callback_presence(p)
 
     def user_joined_chat(self, event):
-        logging.debug("user_join_chat %s" % event)
+        log.debug("user_join_chat %s" % event)
         idd = Identifier(str(event['from']))
         p = Presence(chatroom=idd,
                      nick=idd.resource,
@@ -432,7 +433,7 @@ class XMPPBackend(ErrBot):
         self.callback_presence(p)
 
     def user_left_chat(self, event):
-        logging.debug("user_left_chat %s" % event)
+        log.debug("user_left_chat %s" % event)
         idd = Identifier(str(event['from']))
         p = Presence(chatroom=idd,
                      nick=idd.resource,
@@ -440,7 +441,7 @@ class XMPPBackend(ErrBot):
         self.callback_presence(p)
 
     def chat_topic(self, event):
-        logging.debug("chat_topic %s" % event)
+        log.debug("chat_topic %s" % event)
         room = event.values['mucroom']
         topic = event.values['subject']
         if topic == "":
@@ -450,7 +451,7 @@ class XMPPBackend(ErrBot):
         self.callback_room_topic(room)
 
     def user_changed_status(self, event):
-        logging.debug("user_changed_status %s" % event)
+        log.debug("user_changed_status %s" % event)
         errstatus = XMPP_TO_ERR_STATUS.get(event['type'], None)
         message = event['status']
         if not errstatus:
@@ -481,9 +482,9 @@ class XMPPBackend(ErrBot):
         try:
             self.conn.serve_forever()
         finally:
-            logging.debug("Trigger disconnect callback")
+            log.debug("Trigger disconnect callback")
             self.disconnect_callback()
-            logging.debug("Trigger shutdown")
+            log.debug("Trigger shutdown")
             self.shutdown()
 
     def build_message(self, text):

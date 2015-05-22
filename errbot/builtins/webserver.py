@@ -12,6 +12,8 @@ from errbot.decorators import webhook
 from errbot.bundled.rocket import Rocket
 from webtest import TestApp
 
+log = logging.getLogger(__name__)
+
 if PY3:
     from urllib.request import unquote
 else:
@@ -93,7 +95,7 @@ class Webserver(BotPlugin):
 
     def activate(self):
         if not self.config:
-            logging.info('Webserver is not configured. Forbid activation')
+            log.info('Webserver is not configured. Forbid activation')
             return
 
         host = self.config['HOST']
@@ -102,18 +104,18 @@ class Webserver(BotPlugin):
         interfaces = [(host, port)]
         if ssl['enabled']:
             interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
-        logging.info('Firing up the Rocket')
+        log.info('Firing up the Rocket')
         self.webserver = Rocket(interfaces=interfaces,
                                 app_info={'wsgi_app': bottle_app}, )
         self.webserver.start(background=True)
-        logging.debug('Liftoff!')
+        log.debug('Liftoff!')
 
         super(Webserver, self).activate()
-        logging.info('Webserver activated')
+        log.info('Webserver activated')
 
     def deactivate(self):
         if self.webserver is not None:
-            logging.debug('Sending signal to stop the webserver')
+            log.debug('Sending signal to stop the webserver')
             self.webserver.stop()
         super(Webserver, self).deactivate()
 
@@ -130,7 +132,7 @@ class Webserver(BotPlugin):
         """
         A simple test webhook
         """
-        logging.debug("Your incoming request is :" + str(incoming_request))
+        log.debug("Your incoming request is :" + str(incoming_request))
         return str(incoming_request)
 
     @botcmd(split_args_with=' ')
@@ -162,7 +164,7 @@ class Webserver(BotPlugin):
             except Exception as _:
                 contenttype = 'text/plain'  # dunno what it is
 
-        logging.debug('Detected your post as : %s' % contenttype)
+        log.debug('Detected your post as : %s' % contenttype)
 
         response = self.test_app.post(url, params=content, content_type=contenttype)
         return TEST_REPORT % (url, contenttype, response.status_code)

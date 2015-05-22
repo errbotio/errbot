@@ -39,6 +39,8 @@ from .repos import KNOWN_PUBLIC_REPOS
 from .version import VERSION
 from .streaming import Tee
 
+log = logging.getLogger(__name__)
+
 
 def get_class_that_defined_method(meth):
     for cls in inspect.getmro(type(meth.__self__)):
@@ -88,6 +90,7 @@ class ErrBot(Backend, StoreMixin):
     startup_time = datetime.now()
 
     def __init__(self, bot_config):
+        log.debug("ErrBot init.")
         self.bot_config = bot_config
 
         self.plugin_dir = os.path.join(bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR)
@@ -112,12 +115,12 @@ class ErrBot(Backend, StoreMixin):
         """
         for plugin in get_all_active_plugin_objects():
             plugin_name = plugin.__class__.__name__
-            logging.debug("Triggering {} on {}".format(method, plugin_name))
+            log.debug("Triggering {} on {}".format(method, plugin_name))
             # noinspection PyBroadException
             try:
                 getattr(plugin, method)(*args, **kwargs)
             except Exception as _:
-                logging.exception("{} on {} crashed".format(method, plugin_name))
+                log.exception("{} on {} crashed".format(method, plugin_name))
 
     # Repo management
     def get_installed_plugin_repos(self):
@@ -143,7 +146,7 @@ class ErrBot(Backend, StoreMixin):
             logging.warning('Plugin %s is already blacklisted' % name)
             return 'Plugin %s is already blacklisted' % name
         self[BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
-        logging.info('Plugin %s is now blacklisted' % name)
+        log.info('Plugin %s is now blacklisted' % name)
         return 'Plugin %s is now blacklisted' % name
 
     def unblacklist_plugin(self, name):
@@ -153,7 +156,7 @@ class ErrBot(Backend, StoreMixin):
         l = self.get_blacklisted_plugin()
         l.remove(name)
         self[BL_PLUGINS] = l
-        logging.info('Plugin %s removed from blacklist' % name)
+        log.info('Plugin %s removed from blacklist' % name)
         return 'Plugin %s removed from blacklist' % name
 
     # configurations management
@@ -183,7 +186,7 @@ class ErrBot(Backend, StoreMixin):
             try:
                 bot.callback_botmessage(mess)
             except Exception as _:
-                logging.exception("Crash in a callback_botmessage handler")
+                log.exception("Crash in a callback_botmessage handler")
 
     def callback_message(self, mess):
         if super(ErrBot, self).callback_message(mess):
@@ -191,7 +194,7 @@ class ErrBot(Backend, StoreMixin):
             for bot in get_all_active_plugin_objects():
                 # noinspection PyBroadException
                 try:
-                    logging.debug('callback_message for %s' % bot.__class__.__name__)
+                    log.debug('callback_message for %s' % bot.__class__.__name__)
 
                     # backward compatibility from the time we needed conn
                     if len(inspect.getargspec(bot.callback_message).args) == 3:
@@ -202,7 +205,7 @@ class ErrBot(Backend, StoreMixin):
                     else:
                         bot.callback_message(mess)
                 except Exception as _:
-                    logging.exception("Crash in a callback_message handler")
+                    log.exception("Crash in a callback_message handler")
 
     def callback_presence(self, pres):
         self._dispatch_to_plugins('callback_presence', pres)
@@ -238,11 +241,11 @@ class ErrBot(Backend, StoreMixin):
         self._dispatch_to_plugins('callback_room_topic', room)
 
     def callback_stream(self, stream):
-        logging.info("Initiated an incoming transfer %s" % stream)
+        log.info("Initiated an incoming transfer %s" % stream)
         Tee(stream, get_all_active_plugin_objects()).start()
 
     def activate_non_started_plugins(self):
-        logging.info('Activating all the plugins...')
+        log.info('Activating all the plugins...')
         configs = self[CONFIGS]
         errors = ''
         for pluginInfo in get_all_plugins():
@@ -252,10 +255,10 @@ class ErrBot(Backend, StoreMixin):
                         pluginInfo.name, pluginInfo.name)
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
-                    logging.info('Activate plugin: %s' % pluginInfo.name)
+                    log.info('Activate plugin: %s' % pluginInfo.name)
                     activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
             except Exception as e:
-                logging.exception("Error loading %s" % pluginInfo.name)
+                log.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
         if errors:
             self.warn_admins(errors)
@@ -266,29 +269,29 @@ class ErrBot(Backend, StoreMixin):
             if hasattr(bot, 'callback_connect'):
                 # noinspection PyBroadException
                 try:
-                    logging.debug('Callback %s' % bot)
+                    log.debug('Callback %s' % bot)
                     bot.callback_connect()
                 except Exception as _:
-                    logging.exception("callback_connect failed for %s" % bot)
+                    log.exception("callback_connect failed for %s" % bot)
 
     def connect_callback(self):
-        logging.info('Activate internal commands')
+        log.info('Activate internal commands')
         loading_errors = self.activate_non_started_plugins()
-        logging.info(loading_errors)
-        logging.info('Notifying connection to all the plugins...')
+        log.info(loading_errors)
+        log.info('Notifying connection to all the plugins...')
         self.signal_connect_to_all_plugins()
-        logging.info('Plugin activation done.')
+        log.info('Plugin activation done.')
         self.inject_commands_from(self)
 
     def disconnect_callback(self):
         self.remove_commands_from(self)
-        logging.info('Disconnect callback, deactivating all the plugins.')
+        log.info('Disconnect callback, deactivating all the plugins.')
         deactivate_all_plugins()
 
     def shutdown(self):
-        logging.info('Shutdown.')
+        log.info('Shutdown.')
         self.close_storage()
-        logging.info('Bye.')
+        log.info('Bye.')
 
     @staticmethod
     def formatted_plugin_list(active_only=True):
@@ -428,7 +431,7 @@ class ErrBot(Backend, StoreMixin):
                 return "I don't know this %s plugin" % name
             activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
         except Exception as e:
-            logging.exception("Error loading %s" % name)
+            log.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)
         get_plugin_obj_by_name(name).callback_connect()
         return "Plugin %s activated" % name
@@ -817,7 +820,7 @@ class ErrBot(Backend, StoreMixin):
         try:
             real_config_obj = literal_eval(' '.join(args[1:]))
         except Exception as _:
-            logging.exception('Invalid expression for the configuration of the plugin')
+            log.exception('Invalid expression for the configuration of the plugin')
             return 'Syntax error in the given configuration'
         if type(real_config_obj) != type(template_obj):
             return 'It looks fishy, your config type is not the same as the template !'
@@ -827,7 +830,7 @@ class ErrBot(Backend, StoreMixin):
         try:
             self.activate_plugin(plugin_name)
         except PluginConfigurationException as ce:
-            logging.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
+            log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
             self.set_plugin_configuration(plugin_name, None)
             return 'Incorrect plugin configuration: %s' % ce
         return 'Plugin configuration done.'

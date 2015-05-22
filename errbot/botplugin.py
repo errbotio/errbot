@@ -9,6 +9,8 @@ from .utils import PLUGINS_SUBDIR, recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
 from . import holder
 
+log = logging.getLogger(__name__)
+
 
 class BotPluginBase(StoreMixin):
     """
@@ -42,9 +44,9 @@ class BotPluginBase(StoreMixin):
             super(Gnagna, self).activate())
         """
         classname = self.__class__.__name__
-        logging.debug('Init storage for %s' % classname)
+        log.debug('Init storage for %s' % classname)
         filename = os.path.join(self.bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR, classname + '.db')
-        logging.debug('Loading %s' % filename)
+        log.debug('Loading %s' % filename)
         self.open_storage(filename)
         holder.bot.inject_commands_from(self)
         self.is_activated = True
@@ -54,7 +56,7 @@ class BotPluginBase(StoreMixin):
             Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
         """
         if self.current_pollers:
-            logging.debug('You still have active pollers at deactivation stage, I cleaned them up for you.')
+            log.debug('You still have active pollers at deactivation stage, I cleaned them up for you.')
             self.current_pollers = []
             for timer in self.current_timers:
                 timer.cancel()
@@ -72,7 +74,7 @@ class BotPluginBase(StoreMixin):
         if not args:
             args = []
 
-        logging.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (
+        log.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (
             method.__name__, interval, str(args), str(kwargs))
         )
         # noinspection PyBroadException
@@ -80,14 +82,14 @@ class BotPluginBase(StoreMixin):
             self.current_pollers.append((method, args, kwargs))
             self.program_next_poll(interval, method, args, kwargs)
         except Exception as _:
-            logging.exception('failed')
+            log.exception('failed')
 
     def stop_poller(self, method, args=None, kwargs=None):
         if not kwargs:
             kwargs = {}
         if not args:
             args = []
-        logging.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
+        log.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self, interval, method, args, kwargs):
@@ -101,7 +103,7 @@ class BotPluginBase(StoreMixin):
     def poller(self, interval, method, args, kwargs):
         previous_timer = current_thread()
         if previous_timer in self.current_timers:
-            logging.debug('Previous timer found and removed')
+            log.debug('Previous timer found and removed')
             self.current_timers.remove(previous_timer)
 
         if (method, args, kwargs) in self.current_pollers:
@@ -109,7 +111,7 @@ class BotPluginBase(StoreMixin):
             try:
                 method(*args, **kwargs)
             except Exception as _:
-                logging.exception('A poller crashed')
+                log.exception('A poller crashed')
             self.program_next_poll(interval, method, args, kwargs)
 
 

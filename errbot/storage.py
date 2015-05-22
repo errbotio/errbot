@@ -3,6 +3,7 @@ import logging
 import shelve
 
 from . import PY2
+log = logging.getLogger(__name__)
 
 
 class StoreException(Exception):
@@ -28,16 +29,16 @@ class StoreMixin(MutableMapping):
     def open_storage(self, path):
         if hasattr(self, 'shelf') and self.shelf is not None:
             raise StoreAlreadyOpenError("Storage appears to be opened already")
-        logging.info("Try to open db file %s" % path)
+        log.info("Try to open db file %s" % path)
         self.shelf = shelve.DbfilenameShelf(path, protocol=2)
-        logging.debug('Opened shelf of %s' % self.__class__.__name__)
+        log.debug('Opened shelf of %s' % self.__class__.__name__)
 
     def close_storage(self):
         if not hasattr(self, 'shelf') or self.shelf is None:
             raise StoreNotOpenError("Storage does not appear to have been opened yet")
         self.shelf.close()
         self.shelf = None
-        logging.debug('Closed shelf of %s' % self.__class__.__name__)
+        log.debug('Closed shelf of %s' % self.__class__.__name__)
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
     def __getitem__(self, key):

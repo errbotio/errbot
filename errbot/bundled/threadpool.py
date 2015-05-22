@@ -161,7 +161,7 @@ class WorkerThread(threading.Thread):
                     result = request.callable(*request.args, **request.kwds)
                     self._results_queue.put((request, result))
                 except Exception as _:
-                    logging.exception('Command failed')
+                    log.exception('Command failed')
                     request.exception = True
                     self._results_queue.put((request, sys.exc_info()))
 

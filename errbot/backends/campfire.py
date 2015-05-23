@@ -1,19 +1,21 @@
 import logging
 import sys
 
+from errbot.backends.base import Message, build_message, Identifier
+from errbot.errBot import ErrBot
+from threading import Condition
+
+log = logging.getLogger(__name__)
+
 try:
     import pyfire
 except ImportError:
-    logging.exception("Could not start the campfire backend")
-    logging.fatal("""
+    log.exception("Could not start the campfire backend")
+    log.fatal("""
     If you intend to use the campfire backend please install pyfire:
     pip install pyfire
     """)
     sys.exit(-1)
-
-from errbot.backends.base import Message, build_message, Identifier
-from errbot.errBot import ErrBot
-from threading import Condition
 
 
 class CampfireConnection(pyfire.Campfire):
@@ -57,7 +59,7 @@ class CampfireBackend(ErrBot):
             room = self.conn.rooms[room_name][0]
             room.speak(mess.body)  # Basic text support for the moment
         else:
-            logging.info(
+            log.info(
                 "Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.body))
 
     def serve_forever(self):
@@ -65,7 +67,7 @@ class CampfireBackend(ErrBot):
         self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
         try:
-            logging.info("Campfire connected.")
+            log.info("Campfire connected.")
             self.exit_lock.wait()
         except KeyboardInterrupt:
             pass
@@ -91,7 +93,7 @@ class CampfireBackend(ErrBot):
         super(CampfireBackend, self).shutdown()
 
     def msg_callback(self, message):
-        logging.debug('Incoming message [%s]' % message)
+        log.debug('Incoming message [%s]' % message)
         user = ""
         if message.user:
             user = message.user.name
@@ -102,7 +104,7 @@ class CampfireBackend(ErrBot):
             self.callback_message(msg)
 
     def error_callback(self, error, room):
-        logging.error("Stream STOPPED due to ERROR: %s in room %s" % (error, room))
+        log.error("Stream STOPPED due to ERROR: %s in room %s" % (error, room))
         self.exit_lock.acquire()
         self.exit_lock.notify()
         self.exit_lock.release()

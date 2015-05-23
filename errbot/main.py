@@ -1,6 +1,8 @@
 from os import path, makedirs, sep
 import logging
 
+log = logging.getLogger(__name__)
+
 
 def main(bot_class, logger, config):
     # from here the environment is supposed to be set (daemon / non daemon,
@@ -20,7 +22,7 @@ def main(bot_class, logger, config):
         try:
             from raven.handlers.logging import SentryHandler
         except ImportError as _:
-            logging.exception(
+            log.exception(
                 "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
                 "needed for Sentry integration. Did you install raven? "
                 "(See http://raven.readthedocs.org/en/latest/install/index.html "
@@ -40,10 +42,10 @@ def main(bot_class, logger, config):
     try:
         holder.bot = bot_class(config)
     except Exception:
-        logging.exception("Unable to configure the backend, please check if your config.py is correct.")
+        log.exception("Unable to configure the backend, please check if your config.py is correct.")
         exit(-1)
     errors = holder.bot.update_dynamic_plugins()
     if errors:
-        logging.error('Some plugins failed to load:\n' + '\n'.join(errors))
-    logging.debug('serve from %s' % holder.bot)
+        log.error('Some plugins failed to load:\n' + '\n'.join(errors))
+    log.debug('serve from %s' % holder.bot)
     holder.bot.serve_forever()

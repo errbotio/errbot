@@ -9,6 +9,8 @@ HOME = 'http://gbin.github.io/err/version'
 
 installed_version = version2array(VERSION)
 
+log = logging.getLogger(__name__)
+
 
 class VersionChecker(BotPlugin):
     min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
@@ -29,21 +31,21 @@ class VersionChecker(BotPlugin):
 
     def version_check(self):
         if not self.actived:
-            logging.debug('Version check disabled')
+            log.debug('Version check disabled')
             return
-        logging.debug('Checking version')
+        log.debug('Checking version')
         # noinspection PyBroadException
         try:
             current_version_txt = urlopen(url=HOME, timeout=10).read().decode("utf-8").strip()
             current_version = version2array(current_version_txt)
             if installed_version < current_version:
-                logging.debug('A new version %s has been found, notify the admins !' % current_version)
+                log.debug('A new version %s has been found, notify the admins !' % current_version)
                 self.warn_admins(
                     'Version {0} of err is available. http://pypi.python.org/pypi/err/{0}. You can disable this check '
                     'by doing !unload VersionChecker followed by !blacklist VersionChecker'.format(current_version_txt)
                 )
         except (HTTPError, URLError):
-            logging.info('Could not establish connection to retrieve latest version.')
+            log.info('Could not establish connection to retrieve latest version.')
 
     def callback_connect(self):
         if not self.connected:

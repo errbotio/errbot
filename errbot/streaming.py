@@ -9,6 +9,8 @@ from .utils import repeatfunc
 
 CHUNK_SIZE = 4096
 
+log = logging.getLogger(__name__)
+
 
 class Tee(object):
     """ Tee implements a multi reader / single writer """
@@ -59,13 +61,13 @@ class Tee(object):
             if self.incoming_stream.closed:
                 break
             chunk = self.incoming_stream.read(CHUNK_SIZE)
-            logging.debug("dispatch %d bytes", len(chunk))
+            log.debug("dispatch %d bytes", len(chunk))
             if not chunk:
                 break
             for (_, w) in pipes:
                 if w:
                     w.write(chunk)
-        logging.debug("EOF detected")
+        log.debug("EOF detected")
         for (r, w) in pipes:
             if w:
                 w.close()  # close should flush too

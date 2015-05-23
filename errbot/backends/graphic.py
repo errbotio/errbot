@@ -1,15 +1,22 @@
 import logging
-import sys
+import os
 import re
+import sys
+
+import errbot
+from errbot.backends.base import Message, build_text_html_message_pair, Identifier
+from errbot.backed.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.utils import mess_2_embeddablehtml
+
+log = logging.getLogger(__name__)
 
 try:
     from PySide import QtCore, QtGui, QtWebKit
     from PySide.QtGui import QCompleter
-    from PySide.QtCore import Qt, QUrl, QObject
+    from PySide.QtCore import Qt, QObject
 except ImportError:
-    logging.exception("Could not start the graphical backend")
-    logging.fatal("""
+    log.exception("Could not start the graphical backend")
+    log.fatal("""
     If you intend to use the graphical backend please install PySide:
     -> On debian-like systems
     sudo apt-get install python-software-properties
@@ -21,11 +28,6 @@ except ImportError:
     pip install PySide
     """)
     sys.exit(-1)
-
-import os
-import errbot
-from errbot.backends.base import Message, build_text_html_message_pair, Identifier
-from errbot.backed.text import TextBackend   # we use that as we emulate MUC there already
 
 
 class CommandBox(QtGui.QPlainTextEdit, object):
@@ -106,7 +108,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super(CommandBox, self).keyPressEvent(*args, **kwargs)
 
 
-class ConnectionMock(QtCore.QObject):
+class ConnectionMock(QObject):
     newAnswer = QtCore.Signal(str, bool)
 
     def send_message(self, mess):

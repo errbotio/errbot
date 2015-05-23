@@ -1,9 +1,12 @@
 # coding=utf-8
+import logging
 from datetime import timedelta
 import unittest
 from nose.tools import raises
 from errbot.utils import *
 from errbot.storage import StoreMixin
+
+log = logging.getLogger(__name__)
 
 
 def vc(v1, v2):
@@ -74,9 +77,9 @@ class TestUtils(unittest.TestCase):
             pidfile2 = PidFile(pid_path)
 
             with pidfile1:
-                logging.debug('ok locked the pid')
+                log.debug('ok locked the pid')
                 with pidfile2:
-                    logging.fatal('Should never execute')
+                    log.fatal('Should never execute')
 
     def test_recurse_check_structure_valid(self):
         sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)

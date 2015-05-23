@@ -1,21 +1,23 @@
 import logging
 import sys
 
+from errbot import holder
+from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
+from errbot.backends.xmpp import XMPPBackend, XMPPConnection
+from errbot.utils import parse_jid
+
+log = logging.getLogger(__name__)
+
 try:
     import hypchat
 except ImportError:
-    logging.exception("Could not start the HipChat backend")
-    logging.fatal(
+    log.exception("Could not start the HipChat backend")
+    log.fatal(
         "You need to install the hypchat package in order to use the HipChat "
         "back-end. You should be able to install this package using: "
         "pip install hypchat"
     )
     sys.exit(1)
-
-from errbot import holder
-from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
-from errbot.backends.xmpp import XMPPBackend, XMPPConnection
-from errbot.utils import parse_jid
 
 
 class HipChatMUCOccupant(MUCOccupant):
@@ -62,7 +64,7 @@ class HipChatMUCRoom(MUCRoom):
         Return room information from the HipChat API
         """
         try:
-            logging.debug("Querying HipChat API for room {}".format(self.name))
+            log.debug("Querying HipChat API for room {}".format(self.name))
             return self.hypchat.get_room(self.name)
         except hypchat.requests.HttpNotFound:
             raise RoomDoesNotExistError("The given room does not exist.")
@@ -122,7 +124,7 @@ class HipChatMUCRoom(MUCRoom):
         )
 
         holder.bot.callback_room_joined(self)
-        logging.info("Joined room {}".format(self.name))
+        log.info("Joined room {}".format(self.name))
 
     def leave(self, reason=None):
         """
@@ -144,10 +146,10 @@ class HipChatMUCRoom(MUCRoom):
                 "muc::{}::got_offline".format(room),
                 holder.bot.user_left_chat
             )
-            logging.info("Left room {}".format(self))
+            log.info("Left room {}".format(self))
             holder.bot.callback_room_left(self)
         except KeyError:
-            logging.debug("Trying to leave {} while not in this room".format(self))
+            log.debug("Trying to leave {} while not in this room".format(self))
 
     def create(self, privacy="public", guest_access=False):
         """
@@ -162,14 +164,14 @@ class HipChatMUCRoom(MUCRoom):
             Whether or not to enable guest access for this room.
         """
         if self.exists:
-            logging.debug("Tried to create the room {}, but it has already been created".format(self))
+            log.debug("Tried to create the room {}, but it has already been created".format(self))
         else:
             self.hypchat.create_room(
                 name=self.name,
                 privacy=privacy,
                 guest_access=guest_access
             )
-            logging.info("Created room {}".format(self))
+            log.info("Created room {}".format(self))
 
     def destroy(self):
         """
@@ -179,9 +181,9 @@ class HipChatMUCRoom(MUCRoom):
         """
         try:
             self.room.delete()
-            logging.info("Destroyed room {}".format(self))
+            log.info("Destroyed room {}".format(self))
         except RoomDoesNotExistError:
-            logging.debug("Can't destroy room {}, it doesn't exist".format(self))
+            log.debug("Can't destroy room {}, it doesn't exist".format(self))
 
     @property
     def exists(self):
@@ -227,7 +229,7 @@ class HipChatMUCRoom(MUCRoom):
             The topic to set.
         """
         self.room.topic(topic)
-        logging.debug("Changed topic of {} to {}".format(self, topic))
+        log.debug("Changed topic of {} to {}".format(self, topic))
 
     @property
     def occupants(self):
@@ -266,9 +268,9 @@ class HipChatMUCRoom(MUCRoom):
             else:
                 if room['privacy'] == "private":
                     room.members().add(user)
-                    logging.info("Added {} to private room {}".format(user['name'], self))
+                    log.info("Added {} to private room {}".format(user['name'], self))
                 room.invite(user, "No reason given.")
-                logging.info("Invited {} to {}".format(person, self))
+                log.info("Invited {} to {}".format(person, self))
 
     def notify(self, message, color=None, notify=False, message_format=None):
         """
@@ -370,13 +372,13 @@ class HipchatBackend(XMPPBackend):
             An instance of :class:`~HipChatMUCRoom`.
         """
         if room.endswith('@conf.hipchat.com'):
-            logging.debug("Room specified by JID, looking up room name")
+            log.debug("Room specified by JID, looking up room name")
             rooms = self.conn.hypchat.rooms(expand='items')
             try:
                 name = [r['name'] for r in rooms['items'] if r['xmpp_jid'] == room][0]
             except IndexError:
                 raise RoomDoesNotExistError("No room with JID {} found.".format(room))
-            logging.info("Found {} to be the room {}, consider specifying this directly.".format(room, name))
+            log.info("Found {} to be the room {}, consider specifying this directly.".format(room, name))
         else:
             name = room
 

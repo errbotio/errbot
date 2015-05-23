@@ -14,6 +14,8 @@ from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string
 from errbot.templating import tenv
 from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
+log = logging.getLogger(__name__)
+
 
 class ACLViolation(Exception):
     """Exceptions raised when user is not allowed to execute given command due to ACLs"""
@@ -628,7 +630,7 @@ def build_text_html_message_pair(source):
         text_plain = xhtml2txt(source)
     except ParseError as ee:
         if source.strip():  # avoids keep alive pollution
-            logging.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
+            log.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
             text_plain = source
     except UnicodeEncodeError:
         text_plain = source
@@ -652,10 +654,10 @@ def build_message(text, message_class, conversion_function=None):
             message = message_class(body=text_plain)
             message.html = node
         except ET.ParseError as ee:
-            logging.error('Error translating to hipchat [%s] Parsing error = [%s]' % (edulcorated_html, ee))
+            log.error('Error translating to hipchat [%s] Parsing error = [%s]' % (edulcorated_html, ee))
     except ET.ParseError as ee:
         if text.strip():  # avoids keep alive pollution
-            logging.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
+            log.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
         message = message_class(body=text)
     return message
 
@@ -681,7 +683,7 @@ class Backend(object):
 
         if config.BOT_ASYNC:
             self.thread_pool = ThreadPool(3)
-            logging.debug('created the thread pool' + str(self.thread_pool))
+            log.debug('created the thread pool' + str(self.thread_pool))
         self.commands = {}  # the dynamically populated list of commands available on the bot
         self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
         self.MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". ' \
@@ -759,11 +761,11 @@ class Backend(object):
         user_cmd_history = self.cmd_history[username]
 
         if mess.delayed:
-            logging.debug("Message from history, ignore it")
+            log.debug("Message from history, ignore it")
             return False
 
         if type_ not in ("groupchat", "chat"):
-            logging.debug("unhandled message type %s" % mess)
+            log.debug("unhandled message type %s" % mess)
             return False
 
         # Ignore messages from ourselves. Because it isn't always possible to get the
@@ -774,13 +776,13 @@ class Backend(object):
         # covers 99% of the MUC cases, so it should suffice for the time being.
         if (jid.bare_match(self.jid) or
             type_ == "groupchat" and mess.nick == self.bot_config.CHATROOM_FN):  # noqa
-                logging.debug("Ignoring message from self")
+                log.debug("Ignoring message from self")
                 return False
 
-        logging.debug("*** jid = %s" % jid)
-        logging.debug("*** username = %s" % username)
-        logging.debug("*** type = %s" % type_)
-        logging.debug("*** text = %s" % text)
+        log.debug("*** jid = %s" % jid)
+        log.debug("*** username = %s" % username)
+        log.debug("*** type = %s" % type_)
+        log.debug("*** text = %s" % text)
 
         # If a message format is not supported (eg. encrypted),
         # txt will be None
@@ -803,7 +805,7 @@ class Backend(object):
                 l = len(prefix)
                 if tomatch.startswith(prefix) and l > longest:
                     longest = l
-            logging.debug("Called with alternate prefix '{}'".format(text[:longest]))
+            log.debug("Called with alternate prefix '{}'".format(text[:longest]))
             text = text[longest:]
 
             # Now also remove the separator from the text
@@ -814,7 +816,7 @@ class Backend(object):
                 if text[:l] == sep:
                     text = text[l:]
         elif type_ == "chat" and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
-            logging.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
+            log.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
             # was said with trigger_message.
@@ -872,22 +874,22 @@ class Backend(object):
                 else:
                     match = func._err_command_re_pattern.search(text)
                 if match:
-                    logging.debug("Matching '{}' against '{}' produced a match"
-                                  .format(text, func._err_command_re_pattern.pattern))
+                    log.debug("Matching '{}' against '{}' produced a match"
+                              .format(text, func._err_command_re_pattern.pattern))
                     matched_on_re_command = True
                     self._process_command(mess, name, text, match)
                 else:
-                    logging.debug("Matching '{}' against '{}' produced no match"
-                                  .format(text, func._err_command_re_pattern.pattern))
+                    log.debug("Matching '{}' against '{}' produced no match"
+                              .format(text, func._err_command_re_pattern.pattern))
         if matched_on_re_command:
             return True
 
         if cmd:
             self._process_command(mess, cmd, args, match=None)
         elif not only_check_re_command:
-            logging.debug("Command not found")
+            log.debug("Command not found")
             if surpress_cmd_not_found:
-                logging.debug("Surpressing command not found feedback")
+                log.debug("Surpressing command not found feedback")
             else:
                 reply = self.unknown_command(mess, command, args)
                 if reply is None:
@@ -903,7 +905,7 @@ class Backend(object):
         username = get_sender_username(mess)
         user_cmd_history = self.cmd_history[username]
 
-        logging.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
+        log.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
@@ -996,9 +998,9 @@ class Backend(object):
                     send_reply(process_reply(reply))
         except Exception as e:
             tb = traceback.format_exc()
-            logging.exception('An error happened while processing '
-                              'a message ("%s") from %s: %s"' %
-                              (mess.body, jid, tb))
+            log.exception('An error happened while processing '
+                          'a message ("%s") from %s: %s"' %
+                          (mess.body, jid, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
     def is_admin(self, usr):
@@ -1084,10 +1086,10 @@ class Backend(object):
                 commands[name] = value
 
                 if getattr(value, '_err_re_command'):
-                    logging.debug('Adding regex command : %s -> %s' % (name, value.__name__))
+                    log.debug('Adding regex command : %s -> %s' % (name, value.__name__))
                     self.re_commands = commands
                 else:
-                    logging.debug('Adding command : %s -> %s' % (name, value.__name__))
+                    log.debug('Adding command : %s -> %s' % (name, value.__name__))
                     self.commands = commands
 
     def remove_commands_from(self, instance_to_inject):

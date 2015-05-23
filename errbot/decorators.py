@@ -7,6 +7,8 @@ import shlex
 from . import PY2
 from .builtins.wsview import bottle_app, WebView
 
+log = logging.getLogger(__name__)
+
 
 def botcmd(*args, **kwargs):
     """
@@ -214,7 +216,7 @@ def webhook(*args, **kwargs):
     """
 
     def decorate(func, uri_rule, methods=('POST', 'GET'), form_param=None, raw=False):
-        logging.info("webhooks:  Bind %s to %s" % (uri_rule, func.__name__))
+        log.info("webhooks:  Bind %s to %s" % (uri_rule, func.__name__))
 
         for verb in methods:
             bottle_app.route(uri_rule, verb, callback=WebView(func, form_param, raw), name=func.__name__ + '_' + verb)

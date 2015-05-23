@@ -1,13 +1,13 @@
 import json
 import logging
 import os
+import pytest
 import requests
 import socket
+from errbot.backends.test import testbot, push_message, pop_message
 from time import sleep
 
-import pytest
-
-from errbot.backends.test import testbot, push_message, pop_message
+log = logging.getLogger(__name__)
 
 PYTHONOBJECT = ['foo', {'bar': ('baz', None, 1.0, 2)}]
 JSONOBJECT = json.dumps(PYTHONOBJECT)
@@ -34,7 +34,7 @@ def webserver(testbot):
     push_message("!config Webserver {{'HOST': 'localhost', 'PORT': {}, 'SSL':  None}}".format(WEBSERVER_PORT))
     pop_message()
     while not webserver_ready('localhost', WEBSERVER_PORT):
-        logging.debug("Webserver not ready yet, sleeping 0.1 second")
+        log.debug("Webserver not ready yet, sleeping 0.1 second")
         sleep(0.1)
 
 
@@ -125,7 +125,7 @@ class TestWebhooks(object):
         pop_message()
 
         while not webserver_ready('localhost', WEBSERVER_SSL_PORT):
-            logging.debug("Webserver not ready yet, sleeping 0.1 second")
+            log.debug("Webserver not ready yet, sleeping 0.1 second")
             sleep(0.1)
 
         assert requests.post(

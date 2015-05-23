@@ -13,11 +13,13 @@ from errbot.backends.base import build_message
 from errbot.backends.base import STREAM_TRANSFER_IN_PROGRESS
 from threading import Thread
 
+log = logging.getLogger(__name__)
+
 try:
     from pytox import Tox, OperationFailedError
 except ImportError:
-    logging.exception("Could not start the tox")
-    logging.fatal("""
+    log.exception("Could not start the tox")
+    log.fatal("""
     If you intend to use the Tox backend please install tox:
     pip install PyTox
     """)
@@ -66,10 +68,10 @@ class ToxConnection(Tox):
         self.set_name(name)
         self.rooms = set()  # keep track of joined room
 
-        logging.info('TOX: ID %s' % self.get_address())
+        log.info('TOX: ID %s' % self.get_address())
 
     def connect(self, bootstrap_servers):
-        logging.info('TOX: connecting...')
+        log.info('TOX: connecting...')
         self.bootstrap_from_address(*bootstrap_servers)
 
     def friend_to_idd(self, friend_number):
@@ -95,12 +97,12 @@ class ToxConnection(Tox):
             return None
 
     def on_friend_request(self, friend_pk, message):
-        logging.info('TOX: Friend request from %s: %s' % (friend_pk, message))
+        log.info('TOX: Friend request from %s: %s' % (friend_pk, message))
         self.add_friend_norequest(friend_pk)
 
     def on_group_invite(self, friend_number, type_, data):
         data_hex = codecs.encode(data, 'hex_codec')
-        logging.info('TOX: Group invite [type %s] from %s : %s' % (type_, self.get_name(friend_number), data_hex))
+        log.info('TOX: Group invite [type %s] from %s : %s' % (type_, self.get_name(friend_number), data_hex))
         if type_ == 1:
             super().send_message(friend_number, "Err tox backend doesn't support audio groupchat yet.")
             return
@@ -112,19 +114,19 @@ class ToxConnection(Tox):
             if groupnumber >= 0:
                 self.rooms.add(TOXMUCRoom(self, groupnumber))
             else:
-                logging.error("Error joining room %s", data_hex)
+                log.error("Error joining room %s", data_hex)
         except OperationFailedError:
-            logging.exception("Error joining room %s", data_hex)
+            log.exception("Error joining room %s", data_hex)
 
     def on_friend_message(self, friend_number, message):
         msg = Message(message)
         msg.frm = self.friend_to_idd(friend_number)
-        logging.debug('TOX: %s: %s' % (msg.frm, message))
+        log.debug('TOX: %s: %s' % (msg.frm, message))
         msg.to = self.backend.jid
         self.backend.callback_message(msg)
 
     def on_group_namelist_change(self, group_number, friend_group_number, change):
-        logging.debug("TOX: user %s changed state in group %s" % (friend_group_number, group_number))
+        log.debug("TOX: user %s changed state in group %s" % (friend_group_number, group_number))
         newstatus = TOX_GROUP_TO_ERR_STATUS[change]
         if newstatus:
             chatroom = Identifier(node=str(group_number), resource=str(friend_group_number))
@@ -134,7 +136,7 @@ class ToxConnection(Tox):
             self.backend.callback_presence(pres)
 
     def on_user_status(self, friend_number, kind):
-        logging.debug("TOX: user %s changed state", friend_number)
+        log.debug("TOX: user %s changed state", friend_number)
         pres = Presence(identifier=self.friend_to_idd(friend_number),
                         status=TOX_TO_ERR_STATUS[kind])
         self.backend.callback_presence(pres)
@@ -145,22 +147,22 @@ class ToxConnection(Tox):
         self.backend.callback_presence(pres)
 
     def on_connection_status(self, friend_number, status):
-        logging.debug("TOX: user %s changed connection status", friend_number)
+        log.debug("TOX: user %s changed connection status", friend_number)
         pres = Presence(identifier=self.friend_to_idd(friend_number),
                         status=ONLINE if status else OFFLINE)
         self.backend.callback_presence(pres)
 
     def on_group_message(self, group_number, friend_group_number, message):
-        logging.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
+        log.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
         msg = Message(message, type_='groupchat')
         msg.frm = Identifier(node=str(group_number), resource=str(friend_group_number))
         msg.to = self.backend.jid
-        logging.debug('TOX: callback with type = %s' % msg.type)
+        log.debug('TOX: callback with type = %s' % msg.type)
         self.backend.callback_message(msg)
 
     # File transfers
     def on_file_send_request(self, friend_number, file_number, file_size, filename):
-        logging.debug("TOX: incoming file transfer %s : %s", friend_number, filename)
+        log.debug("TOX: incoming file transfer %s : %s", friend_number, filename)
         # make a pipe on which we will be able to write from tox
         pipe = ToxStreamer()
         # make the original stream with all the info
@@ -173,32 +175,32 @@ class ToxConnection(Tox):
         self.file_send_control(friend_number, 1, file_number, Tox.FILECONTROL_ACCEPT)
 
     def on_file_data(self, friend_number, file_number, data):
-        logging.debug("TOX: file data received : %s, size : %d", friend_number, len(data))
+        log.debug("TOX: file data received : %s, size : %d", friend_number, len(data))
         pipe, _ = self.incoming_streams[(friend_number, file_number)]
         pipe.write(data)
 
     def on_file_control(self, friend_number, receive_send, file_number, control_type, data):
-        logging.debug("TOX: file control received : %s, type : %d", friend_number, control_type)
+        log.debug("TOX: file control received : %s, type : %d", friend_number, control_type)
         if receive_send == 0:
             pipe, stream = self.incoming_streams[(friend_number, file_number)]
             if control_type == Tox.FILECONTROL_KILL:
                 stream.error("Other party killed the transfer")
                 pipe.w.close()
             elif control_type == Tox.FILECONTROL_FINISHED:
-                logging.debug("Other party signal the end of transfer on %s:%s" % (friend_number, file_number))
+                log.debug("Other party signal the end of transfer on %s:%s" % (friend_number, file_number))
                 pipe.flush()
                 pipe.w.close()
-            logging.debug("Receive file control %s", control_type)
+            log.debug("Receive file control %s", control_type)
         else:
             stream = self.outgoing_streams[(friend_number, file_number)]
             if control_type == Tox.FILECONTROL_ACCEPT:
-                logging.debug("TOX: file accepted by remote")
+                log.debug("TOX: file accepted by remote")
                 Thread(target=self.send_stream, args=(friend_number, file_number)).start()
             elif control_type == Tox.FILECONTROL_KILL:
                 stream.reject()
                 stream.close()
             elif control_type == Tox.FILECONTROL_FINISHED:
-                logging.debug("TOX: cool other party signals the good reception")
+                log.debug("TOX: cool other party signals the good reception")
                 stream.success()
                 stream.close()
             else:
@@ -211,18 +213,18 @@ class ToxConnection(Tox):
             chunk_size = self.file_data_size(friend_number)
 
             while True and stream.status == STREAM_TRANSFER_IN_PROGRESS:
-                logging.debug("TOX: read data")
+                log.debug("TOX: read data")
                 data = stream.read(chunk_size)
                 if not data:
                     break
-                logging.debug("TOX: send %d bytes" % len(data))
+                log.debug("TOX: send %d bytes" % len(data))
                 self.file_send_data(friend_number, file_number, data)
-            logging.debug("TOX: file transfert done")
+            log.debug("TOX: file transfert done")
             if stream.status == STREAM_TRANSFER_IN_PROGRESS:
-                logging.debug("TOX: send FILECONTROL_FINISHED")
+                log.debug("TOX: send FILECONTROL_FINISHED")
                 self.file_send_control(friend_number, 0, file_number, Tox.FILECONTROL_FINISHED)
         except Exception as e:
-            logging.exception("Error sending stream")
+            log.exception("Error sending stream")
             stream.error(str(e))
             self.file_send_control(friend_number, 0, file_number, Tox.FILECONTROL_KILL)
         finally:
@@ -230,9 +232,10 @@ class ToxConnection(Tox):
 
     def send_stream_request(self, stream):
         friend_number = self.idd_to_friend(stream.identifier)
-        logging.debug("TOX: send file request %s %s %s" % (friend_number,
-                                                           stream.size if stream.size else -1,
-                                                           stream.name))
+        log.debug("TOX: send file request %s %s %s",
+                  friend_number,
+                  stream.size if stream.size else -1,
+                  stream.name)
         file_number = self.new_file_sender(friend_number, stream.size if stream.size else -1, stream.name)
         self.outgoing_streams[(friend_number, file_number)] = stream
 
@@ -303,7 +306,7 @@ class TOXMUCRoom(MUCRoom):
     def invite(self, *jids):
         if self.joined:
             for friend_id in jids:
-                logging.debug("Invite friend %i in group %i", int(friend_id), self.group_number)
+                log.debug("Invite friend %i in group %i", int(friend_id), self.group_number)
                 self.conn.invite_friend(int(friend_id), self.group_number)
         raise ValueError("This chatgroup is not joined, you cannot invite anybody.")
 
@@ -320,7 +323,7 @@ class TOXMUCRoom(MUCRoom):
 class ToxBackend(ErrBot):
     def __init__(self, config):
         if not hasattr(config, 'TOX_BOOTSTRAP_SERVER'):
-            logging.fatal("""
+            log.fatal("""
             You need to provide a server to bootstrap from in config.TOX_BOOTSTRAP_SERVER.
             for example :
             TOX_BOOTSTRAP_SERVER = ["54.199.139.199", 33445,
@@ -337,7 +340,7 @@ class ToxBackend(ErrBot):
 
     def is_admin(self, friend_number):
         pk = self.conn.get_client_id(int(friend_number))
-        logging.debug("Check if %s is admin" % pk)
+        log.debug("Check if %s is admin" % pk)
         return any(pka.startswith(pk) for pka in self.bot_config.BOT_ADMINS)
 
     def send_message(self, mess):
@@ -348,18 +351,18 @@ class ToxBackend(ErrBot):
         try:
             if mess.type == 'groupchat':
                 number = int(mess.to.node)
-                logging.debug('TOX: sending to group number %i', number)
+                log.debug('TOX: sending to group number %i', number)
                 for subpart in subparts:
                     self.conn.group_message_send(number, subpart)
                     sleep(0.5)  # antiflood
             else:
                 number = self.conn.idd_to_friend(mess.to)
-                logging.debug('TOX: sending to friend number %i', number)
+                log.debug('TOX: sending to friend number %i', number)
                 for subpart in subparts:
                     self.conn.send_message(number, subpart)
                     sleep(0.5)  # antiflood
         except OperationFailedError as _:
-            logging.exception("TOX error.")
+            log.exception("TOX error.")
 
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         s = Stream(identifier, fsource, name, size, stream_type)
@@ -374,12 +377,12 @@ class ToxBackend(ErrBot):
                 status = self.conn.isconnected()
 
                 if not checked and status:
-                    logging.info('TOX: Connected to DHT.')
+                    log.info('TOX: Connected to DHT.')
                     checked = True
                     self.connect_callback()  # notify that the connection occured
 
                 if checked and not status:
-                    logging.info('TOX: Disconnected from DHT.')
+                    log.info('TOX: Disconnected from DHT.')
                     self.conn.connect(self.bot_config.TOX_BOOTSTRAP_SERVER)
                     checked = False
 

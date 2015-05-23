@@ -12,9 +12,9 @@ from .utils import version2array, PY3
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
+from . import holder  # hardcoded directory for the system plugins
 
-# hardcoded directory for the system plugins
-from . import holder
+log = logging.getLogger(__name__)
 
 BUILTIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'builtins')
 
@@ -60,7 +60,7 @@ def init_plugin_manager():
     global simplePluginManager
 
     if not holder.plugin_manager:
-        logging.debug('init plugin manager')
+        log.debug('init plugin manager')
         simplePluginManager = PluginManager(categories_filter={"bots": BotPlugin})
         simplePluginManager.setPluginInfoExtension('plug')
         holder.plugin_manager = simplePluginManager
@@ -111,7 +111,7 @@ def activate_plugin_with_version_check(name, config):
         return None
 
     if python_version == '2' and PY3:
-        logging.error(
+        log.error(
             '\nPlugin %s is made for python 2 only and you are running '
             'err under python 3.\n\n'
             'If the plugin can be run on python 2 and 3 please add this '
@@ -121,12 +121,12 @@ def activate_plugin_with_version_check(name, config):
         return None
 
     if python_version == '3' and PY2:
-        logging.error('\nPlugin %s is made for python 3 and you are running err under python 2.')
+        log.error('\nPlugin %s is made for python 3 and you are running err under python 2.')
         return None
 
     obj = pta_item.plugin_object
     min_version, max_version = obj.min_err_version, obj.max_err_version
-    logging.info('Activating %s with min_err_version = %s and max_version = %s' % (name, min_version, max_version))
+    log.info('Activating %s with min_err_version = %s and max_version = %s' % (name, min_version, max_version))
     current_version = version2array(VERSION)
     if min_version and version2array(min_version) > current_version:
         raise IncompatiblePluginException(
@@ -142,12 +142,12 @@ def activate_plugin_with_version_check(name, config):
 
     try:
         if obj.get_configuration_template() is not None and config is not None:
-            logging.debug('Checking configuration for %s...' % name)
+            log.debug('Checking configuration for %s...' % name)
             obj.check_configuration(config)
-            logging.debug('Configuration for %s checked OK.' % name)
+            log.debug('Configuration for %s checked OK.' % name)
         obj.configure(config)  # even if it is None we pass it on
     except Exception as e:
-        logging.exception('Something is wrong with the configuration of the plugin %s' % name)
+        log.exception('Something is wrong with the configuration of the plugin %s' % name)
         obj.config = None
         raise PluginConfigurationException(str(e))
     add_plugin_templates_path(pta_item.path)
@@ -157,7 +157,7 @@ def activate_plugin_with_version_check(name, config):
     except Exception as _:
         pta_item.activated = False  # Yapsy doesn't revert this in case of error
         remove_plugin_templates_path(pta_item.path)
-        logging.error("Plugin %s failed at activation stage, deactivating it..." % name)
+        log.error("Plugin %s failed at activation stage, deactivating it..." % name)
         simplePluginManager.deactivatePluginByName(name, "bots")
         raise
 
@@ -213,7 +213,7 @@ def update_plugin_places(path_list, extra_plugin_dir, autoinstall_deps=True):
                 deps_to_install.update(result[1])
         if deps_to_install:
             for dep in deps_to_install:
-                logging.info("Trying to install an unmet dependency: %s" % dep)
+                log.info("Trying to install an unmet dependency: %s" % dep)
                 install_package(dep)
         errors = []
     else:
@@ -229,13 +229,13 @@ def update_plugin_places(path_list, extra_plugin_dir, autoinstall_deps=True):
     try:
         simplePluginManager.loadPlugins(add_candidate)
     except Exception as _:
-        logging.exception("Error while loading plugins")
+        log.exception("Error while loading plugins")
 
     return all_candidates, errors
 
 
 def get_all_plugins():
-    logging.debug("All plugins: %s" % ', '.join([plug.name for plug in simplePluginManager.getAllPlugins()]))
+    log.debug("All plugins: %s" % ', '.join([plug.name for plug in simplePluginManager.getAllPlugins()]))
     return simplePluginManager.getAllPlugins()
 
 
@@ -265,14 +265,14 @@ def check_dependencies(path):
     """ This methods returns a pair of (message, packages missing).
     Or None if everything is OK.
     """
-    logging.debug("check dependencies of %s" % path)
+    log.debug("check dependencies of %s" % path)
     # noinspection PyBroadException
     try:
         from pkg_resources import get_distribution
 
         req_path = path + os.sep + 'requirements.txt'
         if not os.path.isfile(req_path):
-            logging.debug('%s has no requirements.txt file' % path)
+            log.debug('%s has no requirements.txt file' % path)
             return None
         missing_pkg = []
         with open(req_path) as f:

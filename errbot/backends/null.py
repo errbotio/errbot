@@ -3,6 +3,8 @@ from time import sleep
 from errbot.backends.base import Message, Identifier, build_text_html_message_pair
 from errbot.errBot import ErrBot
 
+log = logging.getLogger(__name__)
+
 
 class ConnectionMock():
     def send(self, mess):
@@ -32,9 +34,9 @@ class NullBackend(ErrBot):
         except KeyboardInterrupt:
             pass
         finally:
-            logging.debug("Trigger disconnect callback")
+            log.debug("Trigger disconnect callback")
             self.disconnect_callback()
-            logging.debug("Trigger shutdown")
+            log.debug("Trigger shutdown")
             self.shutdown()
 
     def connect(self):

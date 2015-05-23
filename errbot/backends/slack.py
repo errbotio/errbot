@@ -307,10 +307,7 @@ class SlackBackend(ErrBot):
         response = self.build_message(text)
 
         response.frm = self.jid
-        if msg_type == "groupchat" and private:
-            response.to = mess.frm.node
-        else:
-            response.to = mess.frm
+        response.to = mess.frm
         response.type = 'chat' if private else msg_type
 
         return response

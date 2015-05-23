@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-from itertools import starmap, repeat
+import inspect
 import logging
 import os
 import re
-from html import entities
 import sys
 import time
 from functools import wraps
+from html import entities
+from itertools import starmap, repeat
 from xml.etree.ElementTree import tostring
-import inspect
 
+log = logging.getLogger(__name__)
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3

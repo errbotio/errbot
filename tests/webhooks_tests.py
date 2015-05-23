@@ -1,13 +1,13 @@
 import json
 import logging
 import os
+import pytest
 import requests
 import socket
+from errbot.backends.test import testbot, push_message, pop_message
 from time import sleep
 
-import pytest
-
-from errbot.backends.test import testbot, push_message, pop_message
+log = logging.getLogger(__name__)
 
 PYTHONOBJECT = ['foo', {'bar': ('baz', None, 1.0, 2)}]
 JSONOBJECT = json.dumps(PYTHONOBJECT)

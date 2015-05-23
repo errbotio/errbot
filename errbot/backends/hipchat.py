@@ -1,6 +1,13 @@
 import logging
 import sys
 
+from errbot import holder
+from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
+from errbot.backends.xmpp import XMPPBackend, XMPPConnection
+from errbot.utils import parse_jid
+
+log = logging.getLogger(__name__)
+
 try:
     import hypchat
 except ImportError:
@@ -11,11 +18,6 @@ except ImportError:
         "pip install hypchat"
     )
     sys.exit(1)
-
-from errbot import holder
-from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
-from errbot.backends.xmpp import XMPPBackend, XMPPConnection
-from errbot.utils import parse_jid
 
 
 class HipChatMUCOccupant(MUCOccupant):

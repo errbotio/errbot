@@ -11,6 +11,8 @@ from errbot.backends.base import (
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 
+log = logging.getLogger(__name__)
+
 try:
     import irc.connection
     from irc.bot import SingleServerIRCBot

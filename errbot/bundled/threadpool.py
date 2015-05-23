@@ -32,6 +32,7 @@ Website : http://chrisarndt.de/projects/threadpool/
 
 """
 import logging
+log = logging.getLogger(__name__)
 
 __docformat__ = "restructuredtext en"
 

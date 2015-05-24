@@ -601,7 +601,7 @@ class MUCRoom(Identifier):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :args:
             One or more JID's to invite into the room.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")

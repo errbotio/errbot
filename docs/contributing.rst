@@ -68,7 +68,8 @@ easier for us to figure out what is going on, as well.
 Getting help
 ============
 
-For general help with Err, we'd prefer you post in our `Google Plus community`_.
+For general help with Err, you can post in our `Google Plus community`_ or
+visit our `Gitter`_ channel.
 
 .. _GitHub: https://github.com/gbin/err
 .. _fork: https://github.com/gbin/err/fork
@@ -79,3 +80,4 @@ For general help with Err, we'd prefer you post in our `Google Plus community`_.
 .. _repos.py: https://github.com/gbin/err/blob/master/errbot/repos.py
 .. _`issue tracker`: https://github.com/gbin/err/issues/
 .. _`Google Plus community`: https://plus.google.com/communities/117050256560830486288
+.. _`Gitter`: http://gitter.im/gbin/err/

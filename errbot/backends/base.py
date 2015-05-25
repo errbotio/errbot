@@ -35,6 +35,11 @@ class RoomDoesNotExistError(RoomError):
     on a room that doesn't exist"""
 
 
+class UserDoesNotExistError(Exception):
+    """Exception that is raised when performing an operation
+    on a user that doesn't exist"""
+
+
 class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends

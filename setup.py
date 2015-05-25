@@ -33,7 +33,6 @@ if PY3 and py_version < (3, 3):
 
 deps = ['webtest',
         'setuptools',
-        'yapsy',
         'bottle',
         'requests',
         'jinja2',
@@ -41,9 +40,12 @@ deps = ['webtest',
         'colorlog']
 
 if PY2:
-    deps += ['dnspython', 'config', 'backports.functools_lru_cache']  # dnspython for SRV records
+    deps += ['dnspython', # dnspython is needed for SRV records
+             'config',
+             'backports.functools_lru_cache',
+             'yapsy<1.11']  # 1.11+ breaks under python 2
 else:
-    deps += ['dnspython3']  # requests are for the unittests, dnspython for SRV records
+    deps += ['dnspython3', 'yapsy']  # dnspython3 for SRV records
 
 if not ON_WINDOWS:
     deps += ['daemonize']

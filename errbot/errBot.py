@@ -200,7 +200,7 @@ class ErrBot(Backend, StoreMixin):
             for bot in get_all_active_plugin_objects():
                 # noinspection PyBroadException
                 try:
-                    log.debug('callback_message for %s' % bot.__class__.__name__)
+                    log.debug('Trigger callback_message on %s' % bot.__class__.__name__)
 
                     # backward compatibility from the time we needed conn
                     if len(inspect.getargspec(bot.callback_message).args) == 3:
@@ -275,7 +275,7 @@ class ErrBot(Backend, StoreMixin):
             if hasattr(bot, 'callback_connect'):
                 # noinspection PyBroadException
                 try:
-                    log.debug('Callback %s' % bot)
+                    log.debug('Trigger callback_connect on %s' % bot.__class__.__name__)
                     bot.callback_connect()
                 except Exception as _:
                     log.exception("callback_connect failed for %s" % bot)

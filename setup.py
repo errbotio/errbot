@@ -47,6 +47,15 @@ if PY2:
 else:
     deps += ['dnspython3', 'yapsy']  # dnspython3 for SRV records
 
+# Extra dependencies for a development environment.
+if 'develop' in sys.argv:
+    deps += ['mock',
+             'nose',
+             'pep8',
+             'pytest',
+             'pytest-xdist',
+             'PyOpenSSL']
+
 if not ON_WINDOWS:
     deps += ['daemonize']
 

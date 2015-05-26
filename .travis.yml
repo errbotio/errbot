@@ -9,8 +9,7 @@ before_script:
   - cp errbot/config-travisci.py config.py
 
 install:
-  - python setup.py install
-  - pip install --requirement requirements-development.txt
+  - python setup.py develop
   - pip freeze
 
 script: python run_tests.py

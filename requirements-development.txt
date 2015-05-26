@@ -1,7 +1,0 @@
---requirement requirements.txt
-mock
-nose
-pep8
-pytest
-pytest-xdist
-PyOpenSSL

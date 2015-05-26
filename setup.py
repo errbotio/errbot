@@ -40,7 +40,7 @@ deps = ['webtest',
         'colorlog']
 
 if PY2:
-    deps += ['dnspython', # dnspython is needed for SRV records
+    deps += ['dnspython',  # dnspython is needed for SRV records
              'config',
              'backports.functools_lru_cache',
              'yapsy<1.11']  # 1.11+ breaks under python 2

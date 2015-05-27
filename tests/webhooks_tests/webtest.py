@@ -1,6 +1,6 @@
 import logging
 from errbot import BotPlugin
-from errbot.builtins.webserver import webhook
+from errbot.core_plugins.webserver import webhook
 from bottle import abort, response
 
 log = logging.getLogger(__name__)

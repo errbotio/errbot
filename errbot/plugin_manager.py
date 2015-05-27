@@ -16,7 +16,8 @@ from . import holder  # hardcoded directory for the system plugins
 
 log = logging.getLogger(__name__)
 
-BUILTIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'builtins')
+CORE_PLUGINS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'core_plugins')
 
 try:
     from importlib import reload  # new in python 3.4
@@ -46,7 +47,7 @@ def find_plugin_roots(path):
 
 def get_preloaded_plugins(extra):
     # adds the extra plugin dir from the setup for developers convenience
-    all_builtins_and_extra = [BUILTIN]
+    all_builtins_and_extra = [CORE_PLUGINS]
     if extra:
         if isinstance(extra, list):
             for path in extra:

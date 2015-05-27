@@ -1,7 +1,7 @@
 import os
 import unittest
 import tempfile
-from errbot.plugin_manager import check_dependencies, get_preloaded_plugins, BUILTIN, find_plugin_roots
+from errbot.plugin_manager import check_dependencies, get_preloaded_plugins, CORE_PLUGINS, find_plugin_roots
 
 
 def touch(name):
@@ -38,7 +38,7 @@ class TestPluginManagement(unittest.TestCase):
         touch(os.path.join(toto, 'titi.plug'))
         titi = tempfile.mkdtemp()
         touch(os.path.join(titi, 'tata.plug'))
-        self.assertEquals(get_preloaded_plugins(None), [BUILTIN])
-        self.assertEquals(get_preloaded_plugins(toto), [BUILTIN, toto])
-        self.assertEquals(get_preloaded_plugins([toto, titi]), [BUILTIN, toto, titi])
-        self.assertEquals(get_preloaded_plugins([toto, titi, 'nothing']), [BUILTIN, toto, titi])
+        self.assertEquals(get_preloaded_plugins(None), [CORE_PLUGINS])
+        self.assertEquals(get_preloaded_plugins(toto), [CORE_PLUGINS, toto])
+        self.assertEquals(get_preloaded_plugins([toto, titi]), [CORE_PLUGINS, toto, titi])
+        self.assertEquals(get_preloaded_plugins([toto, titi, 'nothing']), [CORE_PLUGINS, toto, titi])

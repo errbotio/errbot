@@ -5,7 +5,7 @@ import re
 import shlex
 
 from . import PY2
-from .builtins.wsview import bottle_app, WebView
+from .core_plugins.wsview import bottle_app, WebView
 
 log = logging.getLogger(__name__)
 

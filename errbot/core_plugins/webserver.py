@@ -7,7 +7,7 @@ from errbot import PY3
 from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
-from errbot.builtins.wsview import bottle_app
+from errbot.core_plugins.wsview import bottle_app
 from errbot.decorators import webhook
 from errbot.bundled.rocket import Rocket
 from webtest import TestApp

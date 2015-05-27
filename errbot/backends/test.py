@@ -25,7 +25,7 @@ config_module.BOT_LOG_LEVEL = logging.DEBUG
 from errbot.backends.base import (
     Message, build_message, Identifier, MUCRoom, MUCOccupant  # noqa
 )
-from errbot.builtins.wsview import reset_app  # noqa
+from errbot.core_plugins.wsview import reset_app  # noqa
 from errbot.errBot import ErrBot  # noqa
 from errbot.main import main  # noqa
 

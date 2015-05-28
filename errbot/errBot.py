@@ -381,41 +381,6 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def export_configs(self, mess, args):
-        """ Returns all the configs in form of a string you can backup
-        """
-        return repr(self.get(CONFIGS, {}))
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def import_configs(self, mess, args):
-        """ Restore the configs from an export from !export configs
-        It will merge with preexisting configurations.
-        """
-        orig = self.get(CONFIGS, {})
-        added = literal_eval(args)
-        if type(added) is not dict:
-            raise Exception('Weird, it should be a dictionary')
-        self[CONFIGS] = dict(list(orig.items()) + list(added.items()))
-        return "Import is done correctly, there are %i config entries now." % len(self[CONFIGS])
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def zap_configs(self, mess, args):
-        """ WARNING : Deletes all the configuration of all the plugins
-        """
-        self[CONFIGS] = {}
-        return "Done"
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def repos_export(self, mess, args):
-        """ Returns all the repos in form of a string you can backup
-        """
-        return str(self.get_installed_plugin_repos())
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
     def restart(self, mess, args):
         """ restart the bot """
         self.send(mess.frm, "Deactivating all the plugins...")

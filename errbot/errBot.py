@@ -514,6 +514,30 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         self.reload_plugin_by_name(args)
         yield self.activate_plugin(args)
 
+    def install(self, repo):
+        if repo in KNOWN_PUBLIC_REPOS:
+            repo = KNOWN_PUBLIC_REPOS[repo][0]  # replace it by the url
+        git_path = which('git')
+
+        if not git_path:
+            return ('git command not found: You need to have git installed on '
+                    'your system to be able to install git based plugins.', )
+
+        if repo.endswith('tar.gz'):
+            tar = TarFile(fileobj=urlopen(repo))
+            tar.extractall(path=self.plugin_dir)
+            human_name = args.split('/')[-1][:-7]
+        else:
+            human_name = human_name_for_git_url(repo)
+            p = subprocess.Popen([git_path, 'clone', repo, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            feedback = p.stdout.read().decode('utf-8')
+            error_feedback = p.stderr.read().decode('utf-8')
+            if p.wait():
+                return ("Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback), )
+        self.add_plugin_repo(human_name, repo)
+        return self.update_dynamic_plugins()
+
     @botcmd(admin_only=True)
     def repos_install(self, mess, args):
         """ install a plugin repository from the given source or a known public repo (see !repos to find those).
@@ -523,28 +547,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         """
         if not args.strip():
             return "You should have an urls/git repo argument"
-        if args in KNOWN_PUBLIC_REPOS:
-            args = KNOWN_PUBLIC_REPOS[args][0]  # replace it by the url
-        git_path = which('git')
-
-        if not git_path:
-            return ('git command not found: You need to have git installed on '
-                    'your system to be able to install git based plugins.')
-
-        if args.endswith('tar.gz'):
-            tar = TarFile(fileobj=urlopen(args))
-            tar.extractall(path=self.plugin_dir)
-            human_name = args.split('/')[-1][:-7]
-        else:
-            human_name = human_name_for_git_url(args)
-            p = subprocess.Popen([git_path, 'clone', args, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            feedback = p.stdout.read().decode('utf-8')
-            error_feedback = p.stderr.read().decode('utf-8')
-            if p.wait():
-                return "Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback)
-        self.add_plugin_repo(human_name, args)
-        errors = self.update_dynamic_plugins()
+        errors = self.install(args)
         if errors:
             self.send(mess.frm, 'Some plugins are generating errors:\n' + '\n'.join(errors),
                       message_type=mess.type)

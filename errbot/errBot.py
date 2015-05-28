@@ -519,8 +519,8 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         else:
             self.send(
                 mess.frm,
-                ("A new plugin repository named %s has been installed correctly from "
-                 "%s. Refreshing the plugins commands..." % (human_name, args)),
+                ("A new plugin repository has been installed correctly from "
+                 "%s. Refreshing the plugins commands..." % args),
                 message_type=mess.type
             )
         self.activate_non_started_plugins()

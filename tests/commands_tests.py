@@ -1,5 +1,4 @@
 # coding=utf-8
-from ast import literal_eval
 
 # create a mock configuration
 from errbot.backends.test import FullStackTest, push_message, pop_message
@@ -46,10 +45,6 @@ class TestCommands(FullStackTest):
         self.assertIn('GC 0->', pop_message())
 
     def test_config_cycle(self):
-        # test the full configuration cycle help, get set and export, import
-        push_message('!zap configs')
-        self.assertIn('Done', pop_message())
-
         push_message('!config Webserver')
         m = pop_message()
         self.assertIn('Default configuration for this plugin (you can copy and paste this directly as a command)', m)
@@ -62,15 +57,6 @@ class TestCommands(FullStackTest):
         m = pop_message()
         self.assertIn('Current configuration', m)
         self.assertIn('localhost', m)
-
-        push_message('!export configs')
-        configs = pop_message()
-        self.assertIn('localhost', configs)
-        obj = literal_eval(configs)  # be sure it is parseable
-        obj['Webserver']['HOST'] = 'localhost'
-
-        push_message('!import configs ' + repr(obj))
-        self.assertIn('Import is done correctly', pop_message())
 
         push_message('!config Webserver')
         self.assertIn('localhost', pop_message())
@@ -109,9 +95,6 @@ class TestCommands(FullStackTest):
         push_message('!repos install git://github.com/gbin/err-helloworld.git')
         self.assertIn('err-helloworld', pop_message(timeout=60))
         self.assertIn('reload', pop_message())
-
-        push_message('!repos export')  # should appear in the export
-        self.assertEqual("{'err-helloworld': 'git://github.com/gbin/err-helloworld.git'}", pop_message())
 
         push_message('!help hello')  # should appear in the help
         self.assertEqual("this command says hello", pop_message())

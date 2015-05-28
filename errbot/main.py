@@ -52,7 +52,7 @@ def setup_bot(bot_class, logger, config, restore = None):
         bot = holder.bot  # gives the bot to the script
         if 'repos' in bot:
             log.fatal('You cannot restore onto a non empty bot.')
-        from errbot.plugin_manager import get_plugin_by_name
+        from errbot.plugin_manager import get_plugin_by_name  # noqa
         log.info('**** RESTORING the bot from %s' % restore)
         with open(restore) as f:
             exec(f.read())

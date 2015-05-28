@@ -156,6 +156,7 @@ class BotPlugin(BotPluginBase):
         be called.
 
         It means recusively:
+
         1. in case of a dictionary, it will check if all the entries and from
            the same type are there and not more.
         2. in case of an array or tuple, it will assume array members of the
@@ -231,6 +232,7 @@ class BotPlugin(BotPluginBase):
             You can block this call until you are done with the stream.
             To signal that you accept / reject the file, simply call stream.accept()
             or stream.reject() and return.
+
             :param stream:
                 the incoming stream request.
         """

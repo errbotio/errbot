@@ -214,7 +214,7 @@ class XMPPMUCRoom(MUCRoom):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :args:
             One or more JID's to invite into the room.
         """
         room = str(self)

@@ -247,7 +247,7 @@ class HipChatMUCRoom(MUCRoom):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :args:
             One or more people to invite into the room. May be the
             mention name (beginning with an @) or "FirstName LastName"
             of the user you wish to invite.

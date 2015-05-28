@@ -33,6 +33,11 @@ class RoomDoesNotExistError(RoomError):
     on a room that doesn't exist"""
 
 
+class UserDoesNotExistError(Exception):
+    """Exception that is raised when performing an operation
+    on a user that doesn't exist"""
+
+
 class Identifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends
@@ -46,6 +51,7 @@ class Identifier(object):
             self._node = node
             self._domain = domain
             self._resource = resource
+        logging.debug('Identifier: node={}, domain={}, resource={}'.format(self._node, self._domain, self._resource))
 
     @property
     def node(self):
@@ -599,7 +605,7 @@ class MUCRoom(Identifier):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :args*:
             One or more JID's to invite into the room.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
@@ -903,7 +909,7 @@ class Backend(object):
         username = get_sender_username(mess)
         user_cmd_history = self.cmd_history[username]
 
-        logging.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
+        logging.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, jid))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items

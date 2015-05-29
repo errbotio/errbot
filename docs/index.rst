@@ -63,7 +63,7 @@ Screenshots
             <img src="_static/screenshots/thumb_help.png" width="155" height="150" alt="Showing output of the built-in help command" />
         </a>
         <a href="_static/screenshots/quota.png" class="fancybox" title="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts">
-            <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts" />
+            <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Err running on HipChat, showing off a (business-specific) command to get and set the disk quotas for mail accounts" />
         </a>
         <a href="_static/screenshots/basecamp.png" class="fancybox" title="An older version of Err, running on Basecamp">
             <img src="_static/screenshots/thumb_basecamp.png" width="181" height= "150" alt="An older version of Err, running on Basecamp" />
@@ -119,5 +119,5 @@ License
 Err is free software, available under the GPL-3 license. Please refer to the
 :download:`full license text <gpl-3.0.txt>` for more details.
 
-.. _`Google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
+.. _`Google plus community`: https://plus.google.com/communities/117050256560830486288
 .. _`GitHub page`: http://github.com/gbin/err/

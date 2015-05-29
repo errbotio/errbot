@@ -78,6 +78,8 @@ exclude_patterns = [
     'errbot.backends.campfire.rst',  # Broken on Python 3
     'errbot.backends.graphic.rst',  # Quite a pain to build, not worth it
     'errbot.backends.tox.rst',  # Also quite a pain to build at this stage
+    'errbot.config-template.rst',  # Sample config, Not a real module
+    'errbot.config-travisci.rst',  # TravisCI config. Not a real module
     '_gh-pages',
 ]
 

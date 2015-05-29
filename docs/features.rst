@@ -10,6 +10,7 @@ Currently, the following networks are supported:
   * Hipchat_
   * IRC
   * Tox_
+  * Slack_
 
 Core features
 ^^^^^^^^^^^^^
@@ -45,13 +46,14 @@ Extensive plugin framework
 * As well as a polling framework for plugins
 * An easy configuration framework
 * A test backend for unittests for plugins which can make assertions about issued commands and their responses
-* And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make seperate text and HTML versions of your command output yourself
+* And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make separate text and HTML versions of your command output yourself
 
 
 .. _Hipchat: https://www.hipchat.com/
 .. _Campfire: https://campfirenow.com/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _Tox: https://tox.im/
+.. _Slack: https://slack.com/
 .. _yapsy: http://yapsy.sourceforge.net/
 .. _jinja2: http://jinja.pocoo.org/
 .. _bottle: http://bottlepy.org/

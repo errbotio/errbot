@@ -78,7 +78,8 @@ easier for us to figure out what is going on, as well.
 Getting help
 ============
 
-For general help with Err, we'd prefer you post in our `Google Plus community`_.
+For general help with Err, you can post in our `Google Plus community`_ or
+visit our Gitter_ channel.
 
 .. _GitHub: https://github.com/gbin/err
 .. _fork: https://github.com/gbin/err/fork
@@ -91,3 +92,4 @@ For general help with Err, we'd prefer you post in our `Google Plus community`_.
 .. _`Google Plus community`: https://plus.google.com/communities/117050256560830486288
 .. _reStructuredText Primer: http://sphinx-doc.org/rest.html
 .. _Inline markup: http://sphinx-doc.org/markup/inline.html
+.. _Gitter: http://gitter.im/gbin/err/

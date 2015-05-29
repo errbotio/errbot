@@ -152,7 +152,7 @@ class IRCMUCRoom(MUCRoom):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :args:
             One or more nicks to invite into the room.
         """
         room = str(self)

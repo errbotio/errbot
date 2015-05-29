@@ -17,7 +17,7 @@ change.
 In order to make the process as easy for everyone involved, please follow
 these guidelines as you open a pull request.
 
-* Make your changes on a seperate branch_, preferably giving it a descriptive name.
+* Make your changes on a separate branch_, preferably giving it a descriptive name.
 * Split your work up into smaller commits if possible, while making sure each commit
   can still function on it's own. Do not commit work-in-progress code, commit it
   once it's working.
@@ -50,7 +50,7 @@ This way, the API documentation on the site always reflects the version of the c
 found on PyPI rather than something that is in development but not yet released.
 
 When making changes to the documentation, please base your branch off the `errbot.net`
-banch and open a pull request with us as described in the previous section.
+branch and open a pull request with us as described in the previous section.
 
 .. note::
     Useful references on working with sphinx and reStructuredText are the

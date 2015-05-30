@@ -7,7 +7,6 @@ from bottle import Bottle, request
 from bottle import jinja2_view as view
 # noinspection PyUnresolvedReferences
 from bottle import jinja2_template as template
-from errbot.plugin_manager import get_all_active_plugin_objects
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ def try_decode_json(req):
     data = req.body.read().decode()
     try:
         return loads(data)
-    except Exception as _:
+    except Exception:
         return None
 
 
@@ -56,10 +55,10 @@ class WebView(object):
 
     def __call__(self, *args, **kwargs):
         name_to_find = self.func.__name__
-        log.debug('All active plugin objects %s ' % get_all_active_plugin_objects())
+        log.debug('All active plugin objects %s ' % self.plugin_manager.get_all_active_plugin_objects())
         # Horrible hack to find the bound method from the unbound function the decorator
         # was able to give us:
-        for obj in get_all_active_plugin_objects():
+        for obj in self.plugin_manager.get_all_active_plugin_objects():
             matching_members = getmembers(obj, self.method_filter)
             log.debug('Matching members %s -> %s' % (obj, matching_members))
             if matching_members:

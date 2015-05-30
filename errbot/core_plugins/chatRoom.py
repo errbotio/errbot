@@ -3,7 +3,6 @@ from uuid import uuid4
 
 from errbot import BotPlugin, PY3, botcmd, SeparatorArgParser, ShlexArgParser
 from errbot.backends.base import RoomNotJoinedError
-from errbot.holder import bot
 from errbot.version import VERSION
 
 log = logging.getLogger(__name__)
@@ -250,7 +249,7 @@ class ChatRoom(BotPlugin):
         return "Room created (%s)" % room_name
 
     def callback_message(self, mess):
-        if bot.mode != 'campfire':  # no relay support in campfire
+        if self._bot.mode != 'campfire':  # no relay support in campfire
             try:
                 mess_type = mess.type
                 if mess_type == 'chat':

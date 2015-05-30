@@ -71,12 +71,12 @@ class Webserver(BotPlugin):
     min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
     max_err_version = VERSION
 
-    def __init__(self):
+    def __init__(self, bot):
         self.webserver = None
         self.webchat_mode = False
         self.ssl_context = None
         self.test_app = TestApp(bottle_app)
-        super(Webserver, self).__init__()
+        super(Webserver, self).__init__(bot)
 
     def get_configuration_template(self):
         return {'HOST': '0.0.0.0',

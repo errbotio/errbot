@@ -27,7 +27,7 @@ from errbot.backends.base import (
 )
 from errbot.core_plugins.wsview import reset_app  # noqa
 from errbot.errBot import ErrBot  # noqa
-from errbot.main import main  # noqa
+from errbot.main import setup_bot  # noqa
 
 incoming_stanza_queue = Queue()
 outgoing_message_queue = Queue()
@@ -285,8 +285,8 @@ class TestBot(object):
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
-        self.bot_thread = Thread(target=main, name='TestBot main thread',
-                                 args=(TestBackend, self.logger, self.bot_config))
+        self.bot = setup_bot(TestBackend, self.logger, self.bot_config)
+        self.bot_thread = Thread(target=self.bot.serve_forever, name='TestBot main thread')
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 

@@ -4,6 +4,7 @@
 from errbot.backends.test import FullStackTest, push_message, pop_message
 from queue import Empty
 import unittest
+import re
 
 
 class TestCommands(FullStackTest):
@@ -131,6 +132,19 @@ class TestCommands(FullStackTest):
 
         push_message('!hello')  # should not respond
         self.assertIn('Command "hello" not found', pop_message())
+
+    def test_backup(self):
+        push_message('!repos install git://github.com/gbin/err-helloworld.git')
+        self.assertIn('err-helloworld', pop_message(timeout=60))
+        self.assertIn('reload', pop_message())
+        push_message('!backup')
+        msg = pop_message()
+        self.assertIn('has been written in', msg)
+        filename = re.search(r"'([A-Za-z0-9_\./\\-]*)'", msg).group(1)
+        # At least the backup should mention the installed plugin
+
+        self.assertIn('err-helloworld', open(filename).read())
+        push_message('!repos uninstall err-helloworld')
 
     def test_encoding_preservation(self):
         push_message('!echo へようこそ')

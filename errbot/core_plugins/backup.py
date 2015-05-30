@@ -1,6 +1,6 @@
 from errbot import BotPlugin, botcmd
-from errbot.holder import bot
 from errbot.plugin_manager import get_all_plugins
+from errbot import holder
 import os
 
 
@@ -16,8 +16,8 @@ class Backup(BotPlugin):
         with open(filename, 'w') as f:
             f.write('## This file is not executable on its own. use err.py -r FILE to restore your bot.\n\n')
             f.write('log.info("Restoring core configs.")\n')
-            for key in bot:
-                f.write('bot["'+key+'"] = ' + repr(bot[key]) + '\n')
+            for key in holder.bot:
+                f.write('bot["'+key+'"] = ' + repr(holder.bot[key]) + '\n')
 
             f.write('log.info("Installing plugins.")\n')
             f.write('for repo in bot["repos"]:\n')
@@ -37,4 +37,4 @@ class Backup(BotPlugin):
                         f.write('pobj["'+key+'"] = ' + repr(pobj[key]) + '\n')
                     f.write('pobj.close_storage()\n')
 
-        return "The backup file has been writen in '%s'" % filename
+        return "The backup file has been written in '%s'" % filename

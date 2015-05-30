@@ -12,6 +12,7 @@ from .utils import version2array, PY3
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
+from .core_plugins.wsview import route
 
 log = logging.getLogger(__name__)
 
@@ -192,7 +193,9 @@ class BotPluginManager(PluginManager):
         add_plugin_templates_path(pta_item.path)
         populate_doc(pta_item)
         try:
-            return self.activatePluginByName(name, "bots")
+            obj = self.activatePluginByName(name, "bots")
+            route(obj)
+            return obj
         except Exception:
             pta_item.activated = False  # Yapsy doesn't revert this in case of error
             remove_plugin_templates_path(pta_item.path)
@@ -201,6 +204,8 @@ class BotPluginManager(PluginManager):
             raise
 
     def deactivate_plugin_by_name(self, name):
+        # TODO handle the "un"routing.
+
         pta_item = self.getPluginByName(name, 'bots')
         remove_plugin_templates_path(pta_item.path)
         try:

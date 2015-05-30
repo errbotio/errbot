@@ -44,6 +44,21 @@ def reset_app():
     bottle_app = DynamicBottle()
 
 
+def route(obj):
+    """Check for functions to route in obj and route them."""
+    classname = obj.__class__.__name__
+    log.info("Checking %s for webhooks", classname)
+    for name, func in getmembers(obj, ismethod):
+        if getattr(func, '_err_webhook_uri_rule', False):
+            log.info("... Routing %s", func.__name__)
+            for verb in func._err_webhook_methods:
+                wv = WebView(func,
+                             func._err_webhook_form_param,
+                             func._err_webhook_raw)
+                bottle_app.route(func._err_webhook_uri_rule, verb,
+                                 callback=wv, name=func.__name__ + '_' + verb)
+
+
 class WebView(object):
     def __init__(self, func, form_param, raw):
         if form_param is not None and raw:
@@ -54,35 +69,24 @@ class WebView(object):
         self.method_filter = lambda obj: ismethod(obj) and self.func.__name__ == obj.__name__
 
     def __call__(self, *args, **kwargs):
-        name_to_find = self.func.__name__
-        log.debug('All active plugin objects %s ' % self.plugin_manager.get_all_active_plugin_objects())
-        # Horrible hack to find the bound method from the unbound function the decorator
-        # was able to give us:
-        for obj in self.plugin_manager.get_all_active_plugin_objects():
-            matching_members = getmembers(obj, self.method_filter)
-            log.debug('Matching members %s -> %s' % (obj, matching_members))
-            if matching_members:
-                name, func = matching_members[0]
-                if self.raw:  # override and gives the request directly
-                    response = func(request, **kwargs)
-                elif self.form_param:
-                    content = request.forms.get(self.form_param)
-                    if content is None:
-                        raise Exception("Received a request on a webhook with a form_param defined, "
-                                        "but that key ({}) is missing from the request.".format(self.form_param))
-                    try:
-                        content = loads(content)
-                    except ValueError:
-                        log.debug('The form parameter is not JSON, return it as a string')
-                    response = func(content, **kwargs)
+        if self.raw:  # override and gives the request directly
+            response = self.func(request, **kwargs)
+        elif self.form_param:
+            content = request.forms.get(self.form_param)
+            if content is None:
+                raise Exception("Received a request on a webhook with a form_param defined, "
+                                "but that key ({}) is missing from the request.".format(self.form_param))
+            try:
+                content = loads(content)
+            except ValueError:
+                log.debug('The form parameter is not JSON, return it as a string')
+            response = self.func(content, **kwargs)
+        else:
+            data = try_decode_json(request)
+            if not data:
+                if hasattr(request, 'forms'):
+                    data = dict(request.forms)  # form encoded
                 else:
-                    data = try_decode_json(request)
-                    if not data:
-                        if hasattr(request, 'forms'):
-                            data = dict(request.forms)  # form encoded
-                        else:
-                            data = request.body.read().decode()
-                    response = func(data, **kwargs)
-                return response if response else ''  # assume None as an OK response (simplifies the client side)
-
-        raise Exception('Problem finding back the correct Handler for func %s' % name_to_find)
+                    data = request.body.read().decode()
+            response = self.func(data, **kwargs)
+        return response if response else ''  # assume None as an OK response (simplifies the client side)

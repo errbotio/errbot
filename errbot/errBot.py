@@ -431,7 +431,9 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
                 return "Plugin already in active list"
             if name not in self.get_all_plugin_names():
                 return "I don't know this %s plugin" % name
-            self.activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+            obj = self.activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+
+
         except Exception as e:
             log.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)

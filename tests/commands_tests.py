@@ -153,7 +153,6 @@ class TestCommands(FullStackTest):
         push_message('!echo へようこそ')
         self.assertEquals('へようこそ', pop_message())
 
-    @unittest.skip('refactor broke it')
     def test_webserver_webhook_test(self):
         push_message("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', pop_message())

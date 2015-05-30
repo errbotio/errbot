@@ -41,7 +41,7 @@ STZ_IQ = 3
 
 
 class MUCRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', occupants=None, topic=None):
+    def __init__(self, jid=None, node='', domain='', resource='', occupants=None, topic=None, bot=None):
         """
         :param jid: See parent class.
         :param node: See parent class.
@@ -54,6 +54,7 @@ class MUCRoom(MUCRoom):
             occupants = []
         self._occupants = occupants
         self._topic = topic
+        self._bot = bot
         super(MUCRoom, self).__init__(jid=jid, node=node, domain=domain, resource=resource)
 
     @property
@@ -75,7 +76,6 @@ class MUCRoom(MUCRoom):
     def join(self, username=None, password=None):
         global rooms
         import config
-        from errbot.holder import bot
         bot_itself = config.BOT_IDENTITY['username']
 
         if self.joined:
@@ -89,12 +89,11 @@ class MUCRoom(MUCRoom):
         room = [r for r in rooms if str(r) == str(self)][0]
         room._occupants.append(MUCOccupant(bot_itself))
         log.info("Joined room {!s}".format(self))
-        bot.callback_room_joined(room)
+        self._bot.callback_room_joined(room)
 
     def leave(self, reason=None):
         global rooms
         import config
-        from errbot.holder import bot
         bot_itself = config.BOT_IDENTITY['username']
 
         if not self.joined:
@@ -104,7 +103,7 @@ class MUCRoom(MUCRoom):
         room = [r for r in rooms if str(r) == str(self)][0]
         room._occupants = [o for o in room._occupants if str(o) != bot_itself]
         log.info("Left room {!s}".format(self))
-        bot.callback_room_left(room)
+        self._bot.callback_room_left(room)
 
     @property
     def exists(self):
@@ -138,8 +137,7 @@ class MUCRoom(MUCRoom):
         room = [r for r in rooms if str(r) == str(self)][0]
         room._topic = self._topic
         log.info("Topic for room {!s} set to '{}'".format(self, topic))
-        from errbot.holder import bot
-        bot.callback_room_topic(self)
+        self._bot.callback_room_topic(self)
 
 
 class TestBackend(ErrBot):
@@ -206,7 +204,7 @@ class TestBackend(ErrBot):
         try:
             return [r for r in rooms if str(r) == str(room)][0]
         except IndexError:
-            r = MUCRoom(jid=room)
+            r = MUCRoom(jid=room, bot=self)
             return r
 
     def groupchat_reply_format(self):

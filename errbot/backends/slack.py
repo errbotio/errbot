@@ -134,10 +134,11 @@ class SlackBackend(ErrBot):
             raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
         return response
 
-    def serve_forever(self):
+    def serve_once(self):
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
             log.info("Connected")
+            self.reset_reconnection_count()
             try:
                 while True:
                     for message in self.sc.rtm_read():
@@ -157,12 +158,13 @@ class SlackBackend(ErrBot):
                             log.exception("%s event handler raised an exception" % event_type)
                     time.sleep(1)
             except KeyboardInterrupt:
-                log.info("Caught KeyboardInterrupt, shutting down..")
+                log.info("Interrupt received, shutting down..")
+                return True
+            except:
+                log.exception("Error reading from RTM stream:")
             finally:
-                log.debug("Trigger disconnect callback")
+                log.debug("Triggering disconnect callback")
                 self.disconnect_callback()
-                log.debug("Trigger shutdown")
-                self.shutdown()
         else:
             raise Exception('Connection failed, invalid token ?')
 

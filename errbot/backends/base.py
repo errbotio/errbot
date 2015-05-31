@@ -2,6 +2,8 @@ import difflib
 import inspect
 import io
 import logging
+import random
+import time
 import traceback
 import warnings
 
@@ -685,6 +687,12 @@ class Backend(object):
     def __init__(self, config):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
+        self._reconnection_count = 0          # Increments with each failed (re)connection
+        self._reconnection_delay = 1          # Amount of seconds the bot will sleep on the
+        #                                     # next reconnection attempt
+        self._reconnection_max_delay = 600    # Maximum delay between reconnection attempts
+        self._reconnection_multiplier = 1.75  # Delay multiplier
+        self._reconnection_jitter = (0, 3)    # Random jitter added to delay (min, max)
 
         if config.BOT_ASYNC:
             self.thread_pool = ThreadPool(3)
@@ -1183,6 +1191,57 @@ class Backend(object):
 
         self.send_message(mess)
 
+    def serve_forever(self):
+        """
+        Connect the back-end to the server and serve forever.
+
+        Back-ends MAY choose to re-implement this method, in which case
+        they are responsible for implementing reconnection logic themselves.
+
+        Back-ends SHOULD trigger :func:`~connect_callback()` and
+        :func:`~disconnect_callback()` themselves after connection/disconnection.
+        """
+        while True:
+            try:
+                if self.serve_once():
+                    break  # Truth-y exit from serve_once means shutdown was requested
+            except KeyboardInterrupt:
+                log.info("Interrupt received, shutting down..")
+                break
+            except:
+                log.exception("Exception occurred in serve_once:")
+
+            log.info(
+                "Reconnecting in {delay} seconds ({count} attempted reconnections so far)".format(
+                    delay=self._reconnection_delay, count=self._reconnection_count)
+            )
+            try:
+                self._delay_reconnect()
+                self._reconnection_count += 1
+            except KeyboardInterrupt:
+                log.info("Interrupt received, shutting down..")
+                break
+
+        log.info("Trigger shutdown")
+        self.shutdown()
+
+    def _delay_reconnect(self):
+        """Delay next reconnection attempt until a suitable back-off time has passed"""
+        time.sleep(self._reconnection_delay)
+
+        self._reconnection_delay *= self._reconnection_multiplier
+        if self._reconnection_delay > self._reconnection_max_delay:
+            self._reconnection_delay = self._reconnection_max_delay
+        self._reconnection_delay += random.uniform(*self._reconnection_jitter)
+
+    def reset_reconnection_count(self):
+        """
+        Reset the reconnection count. Back-ends should call this after
+        successfully connecting.
+        """
+        self._reconnection_count = 0
+        self._reconnection_delay = 1
+
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
     def groupchat_reply_format(self):
@@ -1191,7 +1250,19 @@ class Backend(object):
     def build_message(self, text):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def serve_forever(self):
+    def serve_once(self):
+        """
+        Connect the back-end to the server and serve a connection once
+        (meaning until disconnected for any reason).
+
+        Back-ends MAY choose not to implement this method, IF they implement a custom
+        :func:`~serve_forever`.
+
+        This function SHOULD raise an exception or return a value that evaluates
+        to False in order to signal something went wrong. A return value that
+        evaluates to True will signal the bot that serving is done and a shut-down
+        is requested.
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def connect(self):

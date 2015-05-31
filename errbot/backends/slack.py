@@ -12,6 +12,8 @@ from errbot.backends.base import (
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 
+log = log.getLogger(__name__)
+
 try:
     from functools import lru_cache
 except ImportError:
@@ -19,8 +21,8 @@ except ImportError:
 try:
     from slackclient import SlackClient
 except ImportError:
-    logging.exception("Could not start the Slack back-end")
-    logging.fatal(
+    log.exception("Could not start the Slack back-end")
+    log.fatal(
         "You need to install the slackclient package in order to use the Slack "
         "back-end. You should be able to install this package using: "
         "pip install slackclient"
@@ -29,8 +31,8 @@ except ImportError:
 except SyntaxError:
     if not PY3:
         raise
-    logging.exception("Could not start the Slack back-end")
-    logging.fatal(
+    log.exception("Could not start the Slack back-end")
+    log.fatal(
         "I cannot start the Slack back-end because I cannot import the SlackClient. "
         "Python 3 compatibility on SlackClient is still quite young, you may be "
         "running an old version or perhaps they released a version with a Python "
@@ -86,7 +88,7 @@ class SlackBackend(ErrBot):
         identity = config.BOT_IDENTITY
         self.token = identity.get('token', None)
         if not self.token:
-            logging.fatal(
+            log.fatal(
                 'You need to set your token (found under "Bot Integration" on Slack) in '
                 'the BOT_IDENTITY setting in your configuration. Without this token I '
                 'cannot connect to Slack.'
@@ -94,12 +96,12 @@ class SlackBackend(ErrBot):
             sys.exit(1)
         self.sc = SlackClient(self.token)
 
-        logging.debug("Verifying authentication token")
+        log.debug("Verifying authentication token")
         self.auth = self.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:
-            logging.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
+            log.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
             sys.exit(1)
-        logging.debug("Token accepted")
+        log.debug("Token accepted")
         self.jid = SlackIdentifier(
             node=self.auth["user_id"],
             domain=self.sc.server.domain,
@@ -133,33 +135,33 @@ class SlackBackend(ErrBot):
         return response
 
     def serve_forever(self):
-        logging.info("Connecting to Slack real-time-messaging API")
+        log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
-            logging.info("Connected")
+            log.info("Connected")
             try:
                 while True:
                     for message in self.sc.rtm_read():
                         if 'type' not in message:
-                            logging.debug("Ignoring non-event message: %s" % message)
+                            log.debug("Ignoring non-event message: %s" % message)
                             continue
 
                         event_type = message['type']
                         event_handler = getattr(self, '_%s_event_handler' % event_type, None)
                         if event_handler is None:
-                            logging.debug("No event handler available for %s, ignoring this event" % event_type)
+                            log.debug("No event handler available for %s, ignoring this event" % event_type)
                             continue
                         try:
-                            logging.debug("Processing slack event: %s" % message)
+                            log.debug("Processing slack event: %s" % message)
                             event_handler(message)
                         except Exception:
-                            logging.exception("%s event handler raised an exception" % event_type)
+                            log.exception("%s event handler raised an exception" % event_type)
                     time.sleep(1)
             except KeyboardInterrupt:
-                logging.info("Caught KeyboardInterrupt, shutting down..")
+                log.info("Caught KeyboardInterrupt, shutting down..")
             finally:
-                logging.debug("Trigger disconnect callback")
+                log.debug("Trigger disconnect callback")
                 self.disconnect_callback()
-                logging.debug("Trigger shutdown")
+                log.debug("Trigger shutdown")
                 self.shutdown()
         else:
             raise Exception('Connection failed, invalid token ?')
@@ -181,7 +183,7 @@ class SlackBackend(ErrBot):
         elif presence == 'away':
             status = AWAY
         else:
-            logging.error(
+            log.error(
                 "It appears the Slack API changed, I received an unknown presence type %s" % presence
             )
             status = ONLINE
@@ -191,16 +193,16 @@ class SlackBackend(ErrBot):
         """Event handler for the 'message' event"""
         channel = event['channel']
         if channel.startswith('C'):
-            logging.debug("Handling message from a public channel")
+            log.debug("Handling message from a public channel")
             message_type = 'groupchat'
         elif channel.startswith('G'):
-            logging.debug("Handling message from a private group")
+            log.debug("Handling message from a private group")
             message_type = 'groupchat'
         elif channel.startswith('D'):
-            logging.debug("Handling message from a user")
+            log.debug("Handling message from a user")
             message_type = 'chat'
         else:
-            logging.warning("Unknown message type! Unable to handle")
+            log.warning("Unknown message type! Unable to handle")
             return
 
         msg = Message(event['text'], type_=message_type)
@@ -291,10 +293,10 @@ class SlackBackend(ErrBot):
             else:
                 to_humanreadable = mess.to.resource
                 to_id = self.get_im_channel(self.username_to_userid(to_humanreadable))
-            logging.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
+            log.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_id))
             self.sc.rtm_send_message(to_id, mess.body)
         except Exception:
-            logging.exception(
+            log.exception(
                 "An exception occurred while trying to send the following message "
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
@@ -415,32 +417,32 @@ class SlackRoom(MUCRoom):
         return self._name
 
     def join(self, username=None, password=None):
-        logging.info("Joining channel %s" % str(self))
+        log.info("Joining channel %s" % str(self))
         holder.bot.api_call('channels.join', data={'name': self.name})
 
     def leave(self, reason=None):
         if self.id.startswith('C'):
-            logging.info("Leaving channel %s (%s)" % (str(self), self.id))
+            log.info("Leaving channel %s (%s)" % (str(self), self.id))
             holder.bot.api_call('channels.leave', data={'channel': self.id})
         else:
-            logging.info("Leaving group %s (%s)" % (str(self), self.id))
+            log.info("Leaving group %s (%s)" % (str(self), self.id))
             holder.bot.api_call('groups.leave', data={'channel': self.id})
         self._id = None
 
     def create(self, private=False):
         if private:
-            logging.info("Creating group %s" % str(self))
+            log.info("Creating group %s" % str(self))
             holder.bot.api_call('groups.create', data={'name': self.name})
         else:
-            logging.info("Creating channel %s" % str(self))
+            log.info("Creating channel %s" % str(self))
             holder.bot.api_call('channels.create', data={'name': self.name})
 
     def destroy(self):
         if self.id.startswith('C'):
-            logging.info("Archiving channel %s (%s)" % (str(self), self.id))
+            log.info("Archiving channel %s (%s)" % (str(self), self.id))
             holder.bot.api_call('channels.archive', data={'channel': self.id})
         else:
-            logging.info("Archiving group %s (%s)" % (str(self), self.id))
+            log.info("Archiving group %s (%s)" % (str(self), self.id))
             holder.bot.api_call('groups.archive', data={'channel': self.id})
         self._id = None
 
@@ -464,10 +466,10 @@ class SlackRoom(MUCRoom):
     @topic.setter
     def topic(self, topic):
         if self.private:
-            logging.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
+            log.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
             holder.bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
         else:
-            logging.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
+            log.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
             holder.bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
 
     @property
@@ -480,10 +482,10 @@ class SlackRoom(MUCRoom):
     @purpose.setter
     def purpose(self, purpose):
         if self.private:
-            logging.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
+            log.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
             holder.bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
         else:
-            logging.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
+            log.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
             holder.bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
 
     @property
@@ -500,7 +502,7 @@ class SlackRoom(MUCRoom):
         for user in args:
             if user not in users:
                 raise UserDoesNotExistError("User '%s' not found" % user)
-            logging.info("Inviting %s into %s (%s)" % (user, str(self), self.id))
+            log.info("Inviting %s into %s (%s)" % (user, str(self), self.id))
             method = 'groups.invite' if self.private else 'channels.invite'
             response = holder.bot.api_call(
                 method,

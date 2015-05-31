@@ -118,7 +118,8 @@ class BotPluginManager(PluginManager):
     def instanciateElement(self, element):
         """ Override the loading method to inject bot """
         # check if we have a plugin not overridding __init__ incorrectly
-        args, argslist, kwargs, _ = inspect.getargspec(element)
+        args, argslist, kwargs, _ = inspect.getargspec(element.__init__)
+
         log.debug('plugin __init__(args=%s, argslist=%s, kwargs=%s)' % (args, argslist, kwargs))
         if len(args) == 1 and argslist is None and kwargs is None:
             log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '

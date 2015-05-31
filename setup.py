@@ -38,7 +38,7 @@ deps = ['webtest',
         'jinja2',
         'pyOpenSSL',
         'colorlog',
-        'yapsy']
+        'yapsy>=1.11']  # We need the new contact to instanciate the plugins.
 
 if PY2:
     deps += ['dnspython',  # dnspython is needed for SRV records

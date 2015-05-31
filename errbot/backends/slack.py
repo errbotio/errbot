@@ -96,18 +96,6 @@ class SlackBackend(ErrBot):
             sys.exit(1)
         self.sc = SlackClient(self.token)
 
-        log.debug("Verifying authentication token")
-        self.auth = self.api_call("auth.test", raise_errors=False)
-        if not self.auth['ok']:
-            log.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
-            sys.exit(1)
-        log.debug("Token accepted")
-        self.jid = SlackIdentifier(
-            node=self.auth["user_id"],
-            domain=self.sc.server.domain,
-            resource=self.auth["user_id"]
-        )
-
     def api_call(self, method, data=None, raise_errors=True):
         """
         Make an API call to the Slack API and return response data.
@@ -135,6 +123,17 @@ class SlackBackend(ErrBot):
         return response
 
     def serve_once(self):
+        log.info("Verifying authentication token")
+        self.auth = self.api_call("auth.test", raise_errors=False)
+        if not self.auth['ok']:
+            log.error("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
+        log.debug("Token accepted")
+        self.jid = SlackIdentifier(
+            node=self.auth["user_id"],
+            domain=self.sc.server.domain,
+            resource=self.auth["user_id"]
+        )
+
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
             log.info("Connected")

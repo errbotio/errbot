@@ -12,7 +12,7 @@ from errbot.backends.base import (
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 
-log = log.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 try:
     from functools import lru_cache

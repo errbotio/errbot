@@ -112,7 +112,7 @@ class ToxConnection(Tox):
         try:
             groupnumber = self.join_groupchat(friend_number, data)
             if groupnumber >= 0:
-                self.rooms.add(TOXMUCRoom(self, groupnumber))
+                self.rooms.add(TOXMUCRoom(self, groupnumber, bot=self.backend))
             else:
                 log.error("Error joining room %s", data_hex)
         except OperationFailedError:
@@ -241,11 +241,11 @@ class ToxConnection(Tox):
 
 
 class TOXMUCRoom(MUCRoom):
-    def __init__(self, conn, group_number=None):
+    def __init__(self, conn, group_number=None, bot=None):
         if group_number is not None:
-            super().__init__(str(group_number))
+            super().__init__(str(group_number), bot=bot)
         else:
-            super().__init__(None)  # needed to properly initialize an identity.
+            super().__init__(None, bot=bot)  # needed to properly initialize an identity.
 
         self.conn = conn
 
@@ -416,7 +416,7 @@ class ToxBackend(ErrBot):
 
     def query_room(self, room):
         if room is None:
-            return TOXMUCRoom(self.conn)  # either it is a new room
+            return TOXMUCRoom(self.conn, bot=self)  # either it is a new room
         for gc in self.conn.rooms:  # or it must exist here.
             if gc.node == room:
                 return gc

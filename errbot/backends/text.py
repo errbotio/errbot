@@ -68,7 +68,7 @@ class TextBackend(ErrBot):
         return 'text'
 
     def query_room(self, room):
-        room = TextMUCRoom(room)
+        room = TextMUCRoom(room, bot=self)
         self.rooms.add(room)
         return room
 
@@ -80,8 +80,8 @@ class TextBackend(ErrBot):
 
 
 class TextMUCRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource=''):
-        super().__init__(jid, node, domain, resource)
+    def __init__(self, jid=None, node='', domain='', resource='', bot=None):
+        super().__init__(jid, node, domain, resource, bot)
         self.topic_ = ''
         self.joined_ = False
 

@@ -507,6 +507,10 @@ class MUCRoom(Identifier):
     This class represents a Multi-User Chatroom.
     """
 
+    def __init__(self, jid=None, node='', domain='', resource='', bot=None):
+        super().__init__(jid, node, domain, resource)
+        self._bot = bot
+
     def join(self, username=None, password=None):
         """
         Join the room.

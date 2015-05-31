@@ -62,7 +62,6 @@ def verify_gtalk_cert(xmpp_client):
 class XMPPMUCRoom(MUCRoom):
     def __init__(self, *args, **kwargs):
         super(XMPPMUCRoom, self).__init__(*args, **kwargs)
-        self._bot = kwargs['bot']
         self.xep0045 = self._bot.conn.client.plugin['xep_0045']
 
     def join(self, username=None, password=None):

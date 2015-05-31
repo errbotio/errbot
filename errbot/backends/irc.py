@@ -34,7 +34,6 @@ except ImportError as _:
 class IRCMUCRoom(MUCRoom):
     def __init__(self, *args, **kwargs):
         super(IRCMUCRoom, self).__init__(*args, **kwargs)
-        self._bot = kwargs['bot']
         self.connection = self._bot.conn.connection
 
     def join(self, username=None, password=None):

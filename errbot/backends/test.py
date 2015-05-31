@@ -54,8 +54,7 @@ class MUCRoom(MUCRoom):
             occupants = []
         self._occupants = occupants
         self._topic = topic
-        self._bot = bot
-        super(MUCRoom, self).__init__(jid=jid, node=node, domain=domain, resource=resource)
+        super(MUCRoom, self).__init__(jid=jid, node=node, domain=domain, resource=resource, bot=bot)
 
     @property
     def occupants(self):

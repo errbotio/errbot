@@ -353,6 +353,7 @@ class SlackBackend(ErrBot):
 
 class SlackRoom(MUCRoom):
     def __init__(self, jid=None, node='', domain='', resource='', name=None, bot=None):
+        super().__init__(jid, node, domain, resource, bot)
         if jid is not None or node != '' or resource != '':
             raise ValueError("SlackRoom() only supports construction using domain or name")
         if domain != '' and name is not None:
@@ -367,7 +368,6 @@ class SlackRoom(MUCRoom):
             self._name = bot.channelid_to_channelname(domain)
 
         self._id = None
-        self._bot = bot
         self.sc = bot.sc
 
     def __str__(self):

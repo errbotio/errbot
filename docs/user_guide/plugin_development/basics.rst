@@ -159,7 +159,7 @@ names can differ, doing so is not recommended.
 While the items from the `[Core]` section tell Err where to find the
 code, the `[Python]` section tells Err which versions of Python your
 plugin is compatible with. As you are probably aware, Err runs on
-both 2.7 and 3.\ *x* versions of Python, but maintaining compatibilty
+both 2.7 and 3.\ *x* versions of Python, but maintaining compatibility
 to both can take some time and effort however. Effort you might not
 want to put into your own plugins.
 

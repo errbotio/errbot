@@ -31,7 +31,7 @@ And *myplugin.plug*:
     Description = my plugin
 
 
-This does absolutely nothing shocking, but how do you test it? We need to interact with the bot somehow, send it `!mycommand` and validate the reply. Fortunatly Err provides some help.
+This does absolutely nothing shocking, but how do you test it? We need to interact with the bot somehow, send it `!mycommand` and validate the reply. Fortunately Err provides some help.
 
 Our test, *test_myplugin.py*:
 
@@ -41,7 +41,7 @@ Our test, *test_myplugin.py*:
     from errbot.backends.test import testbot, push_message, pop_message
 
 
-    class TestMyPlugin(oject):
+    class TestMyPlugin(object):
         extra_plugin_dir = '.'
 
         def test_command(self, testbot):
@@ -72,7 +72,7 @@ Such helper methods can be either instance methods, methods that take `self` as 
         def mycommand_helper():
             return "This is my awesome command"
 
-The `mycommand_helper` method does not need any information stored on the bot whatsoever or any other bot state. It can function standalone but it makes sense organisation-wise to have it be a member of the `MyPlugin` class.
+The `mycommand_helper` method does not need any information stored on the bot whatsoever or any other bot state. It can function standalone but it makes sense organization-wise to have it be a member of the `MyPlugin` class.
 
 Such methods can be tested very easily, without needing a bot:
 
@@ -215,7 +215,7 @@ PEP-8 and code coverage
 
 If you feel like it you can also add syntax checkers like `pep8` into the mix to validate your code behaves to certain stylistic best practices set out in PEP-8.
 
-First, install the pep8 for py.test_: :command:`pip instal pytest-pep8`.
+First, install the pep8 for py.test_: :command:`pip install pytest-pep8`.
 
 Then, simply add `--pep8` to the test invocation command: `py.test --pep8`.
 
@@ -246,7 +246,7 @@ In order to do that you'll need a `.travis.yml` similar to this:
       - 3.3
       - 3.4
     install:
-      - pip instal -q err pytest pytest-pep8 --use-wheel
+      - pip install -q err pytest pytest-pep8 --use-wheel
       - pip install -q coverage coveralls --use-wheel
     script:
       - coverage run --source myplugin -m py.test --pep8

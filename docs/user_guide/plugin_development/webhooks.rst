@@ -39,7 +39,7 @@ request::
             return "OK"
 
 This will listen for POST requests on
-http://yourserver.tld:yourport/test/, and return *"OK"* as the
+http://domain.tld:port/test/, and return *"OK"* as the
 response body.
 
 .. note::

@@ -265,4 +265,4 @@ Both Travis-CI and Coveralls easily integrate with Github hosted code.
 .. _Coveralls.io: https://coveralls.io
 .. _Travis-CI: https://travis-ci.org
 .. _Yapsy: http://yapsy.sourceforge.net
-.. _wheels: http://www.python.org/dev/peps/pep-0427/
+.. _wheels: https://www.python.org/dev/peps/pep-0427/

@@ -2,6 +2,7 @@ from configparser import NoSectionError
 from itertools import chain
 import importlib
 import fnmatch
+import inspect
 import logging
 import sys
 import os
@@ -116,6 +117,16 @@ class BotPluginManager(PluginManager):
 
     def instanciateElement(self, element):
         """ Override the loading method to inject bot """
+        # check if we have a plugin not overridding __init__ incorrectly
+        args, argslist, kwargs, _ = inspect.getargspec(element)
+        log.debug('plugin __init__(args=%s, argslist=%s, kwargs=%s)' % (args, argslist, kwargs))
+        if len(args) == 1 and argslist is None and kwargs is None:
+            log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '
+                      'and forward them to super().__init__') % element.__name__)
+            obj = element()
+            obj._load_bot(self)  # sideload the bot
+            return obj
+
         return element(self)
 
     def get_plugin_by_name(self, name):

@@ -17,13 +17,19 @@ class BotPluginBase(StoreMixin):
      It is the main contract between the plugins and the bot
     """
 
-    def __init__(self, bot):
-        self._bot = bot  # DO NOT USE OUTSIDE OF THIS CLASS
-        self.plugin_dir = bot.plugin_dir
+    def __init__(self, bot=None):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
+        if bot is not None:
+            self._load_bot(bot)
         super(BotPluginBase, self).__init__()
+
+    def _load_bot(self, bot):
+        """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
+        """
+        self._bot = bot
+        self.plugin_dir = bot.plugin_dir
 
     @property
     def mode(self):

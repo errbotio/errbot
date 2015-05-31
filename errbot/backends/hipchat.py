@@ -359,7 +359,7 @@ class HipchatBackend(XMPPBackend):
 
         joined_rooms = []
         for room in xep0045.getJoinedRooms():
-            joined_rooms.append(HipChatMUCRoom(rooms[room]))
+            joined_rooms.append(HipChatMUCRoom(rooms[room], self))
         return joined_rooms
 
     def query_room(self, room):
@@ -382,7 +382,7 @@ class HipchatBackend(XMPPBackend):
         else:
             name = room
 
-        return HipChatMUCRoom(name)
+        return HipChatMUCRoom(name, self)
 
     def groupchat_reply_format(self):
         return '@{0} {1}'

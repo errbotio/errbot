@@ -3,6 +3,7 @@
 import logging
 BOT_DATA_DIR = '/tmp'
 BOT_EXTRA_PLUGIN_DIR = None
+AUTOINSTALL_DEPS = True
 BOT_LOG_FILE = '/tmp/err.log'
 BOT_LOG_LEVEL = logging.DEBUG
 BOT_LOG_SENTRY = False

@@ -26,9 +26,9 @@ Version 2.2.0-beta (2015-02-16)
 
 New features:
 
-- New serverless tox backend (see http://tox.im for more info)
+- New serverless tox backend (see https://tox.im for more info)
 - New Presence callbacks with status messages etc.
-- New file transfert support (upload and downloads) for selected backends
+- New file transfer support (upload and downloads) for selected backends
 - New MUC management API
 - added err-githubhook to the official repo list (thx Daniele Sluijters)
 - added err-linksBot to the official repo list (thx Arnaud Vazard)
@@ -41,8 +41,8 @@ New features:
 
 Bug fixed:
 
-- complete pass & fixes with a static analyser
-- better feedback when config.py is borken
+- complete pass & fixes with a static analyzer
+- better feedback when config.py is broken
 - hipchat has been rewritten and goes through the API
 - more consistency on properties versus setters/getters
 - mac osx fixes (thx Andrii Kostenko)
@@ -151,7 +151,7 @@ Features:
 - SSL support for webhook callbacks
 - JID unicode support
 - Per user command history (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
-- HIDE_RESTRICTED_COMMANDS option added to filter out the non accessoble commands from the help  (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
+- HIDE_RESTRICTED_COMMANDS option added to filter out the non accessible commands from the help  (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
 - err-markovbot has been added to the official plugins list (Thanks to Max Wagner https://github.com/MaxWagner)
 - the version parsing now supports beta, alpha, rc etc ... statuses
 
@@ -161,7 +161,7 @@ Major refactoring:
 - xmpp backend has been replaced by sleekxmpp
 - flask has been replaced by bottle (sorry flask no py3 support, no future)
 - rocket is used as webserver with SSL support
-- now the IRC backend uses the smpler python/irc package
+- now the IRC backend uses the simpler python/irc package
 - improved unittest coverage
 
 
@@ -231,13 +231,13 @@ Bugs:
 
 - bot initiated messages were not correctly callbacked on jabber backend
 - !apropos was generating an unicode error thx to https://github.com/zoni for the fix
-- corrected a serie of issues related to the sharedmiddleware on flask
+- corrected a series of issues related to the sharedmiddleware on flask
 - fixed a regression on the IRC backend thx to https://github.com/nvdk for helping on those
 
 Features:
 
 - added err-mailwatch to the official repo thx to https://github.com/zoni for the contribution
-- added a "null" backend to stabilise the web ui
+- added a "null" backend to stabilize the web ui
 
 Version 1.6.5 (2012-09-10)
 --------------------------
@@ -296,7 +296,7 @@ Bugs:
 
 - missing a dependency for python config [thx to Joshua Tobin https://github.com/joshuatobin]
 - Fixing two logging debug statements that are mixed up [thx to Joshua Tobin https://github.com/joshuatobin]
-- Removed the URL rewritting from the QT user interface
+- Removed the URL rewriting from the QT user interface
 
 Features:
 
@@ -319,7 +319,7 @@ Bugs:
 - corrected a threading issue that was preventing err to quit
 - the python shebangs lines where not generic
 - the config path is not inserted first so we don't conflict with other installs
-- corrected a corruption of the configs on some persistance stores on shutdown
+- corrected a corruption of the configs on some persistence stores on shutdown
 
 Features:
 

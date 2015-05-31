@@ -523,7 +523,7 @@ class ErrBot(Backend, StoreMixin):
         """ install a plugin repository from the given source or a known public repo (see !repos to find those).
         for example from a known repo : !install err-codebot
         for example a git url : git@github.com:gbin/plugin.git
-        or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
+        or an url towards a tar.gz archive : http://www.example.com/plugin-latest.tar.gz
         """
         if not args.strip():
             return "You should have an urls/git repo argument"

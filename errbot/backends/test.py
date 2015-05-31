@@ -10,15 +10,19 @@ import pytest
 
 log = logging.getLogger(__name__)
 
-__import__('errbot.config-template')
-config_module = sys.modules['errbot.config-template']
-sys.modules['config'] = config_module
+try:
+    import config  # keep the config if we provide one.
+except:
+    # otherwise generate a temporary one.
+    __import__('errbot.config-template')
+    config_module = sys.modules['errbot.config-template']
+    sys.modules['config'] = config_module
 
-tempdir = mkdtemp()
-config_module.BOT_DATA_DIR = tempdir
-config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
-config_module.BOT_EXTRA_PLUGIN_DIR = []
-config_module.BOT_LOG_LEVEL = logging.DEBUG
+    tempdir = mkdtemp()
+    config_module.BOT_DATA_DIR = tempdir
+    config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+    config_module.BOT_EXTRA_PLUGIN_DIR = []
+    config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.

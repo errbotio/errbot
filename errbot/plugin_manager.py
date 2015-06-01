@@ -191,13 +191,17 @@ def reload_plugin_by_name(name):
 
 
 def install_package(package):
+    log.info("Installing package '%s'." % package)
     if hasattr(sys, 'real_prefix'):
         # this is a virtualenv, so we can use it directly
         pip.main(['install', package])
     else:
         # otherwise only install it as a user package
         pip.main(['install', '--user', package])
-    globals()[package] = importlib.import_module(package)
+    try:
+        globals()[package] = importlib.import_module(package)
+    except:
+        log.exception("Failed to load the dependent package")
 
 
 def update_plugin_places(path_list, extra_plugin_dir, autoinstall_deps=True):
@@ -214,8 +218,9 @@ def update_plugin_places(path_list, extra_plugin_dir, autoinstall_deps=True):
                 deps_to_install.update(result[1])
         if deps_to_install:
             for dep in deps_to_install:
-                log.info("Trying to install an unmet dependency: %s" % dep)
-                install_package(dep)
+                if dep.strip() != '':
+                    log.info("Trying to install an unmet dependency: '%s'" % dep)
+                    install_package(dep)
         errors = []
     else:
         errors = [result[0] for result in dependencies_result if result is not None]

@@ -95,18 +95,6 @@ class SlackBackend(ErrBot):
             sys.exit(1)
         self.sc = SlackClient(self.token)
 
-        log.debug("Verifying authentication token")
-        self.auth = self.api_call("auth.test", raise_errors=False)
-        if not self.auth['ok']:
-            log.fatal("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
-            sys.exit(1)
-        log.debug("Token accepted")
-        self.jid = SlackIdentifier(
-            node=self.auth["user_id"],
-            domain=self.sc.server.domain,
-            resource=self.auth["user_id"]
-        )
-
     def api_call(self, method, data=None, raise_errors=True):
         """
         Make an API call to the Slack API and return response data.
@@ -133,10 +121,22 @@ class SlackBackend(ErrBot):
             raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
         return response
 
-    def serve_forever(self):
+    def serve_once(self):
+        log.info("Verifying authentication token")
+        self.auth = self.api_call("auth.test", raise_errors=False)
+        if not self.auth['ok']:
+            log.error("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
+        log.debug("Token accepted")
+        self.jid = SlackIdentifier(
+            node=self.auth["user_id"],
+            domain=self.sc.server.domain,
+            resource=self.auth["user_id"]
+        )
+
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
             log.info("Connected")
+            self.reset_reconnection_count()
             try:
                 while True:
                     for message in self.sc.rtm_read():
@@ -156,12 +156,13 @@ class SlackBackend(ErrBot):
                             log.exception("%s event handler raised an exception" % event_type)
                     time.sleep(1)
             except KeyboardInterrupt:
-                log.info("Caught KeyboardInterrupt, shutting down..")
+                log.info("Interrupt received, shutting down..")
+                return True
+            except:
+                log.exception("Error reading from RTM stream:")
             finally:
-                log.debug("Trigger disconnect callback")
+                log.debug("Triggering disconnect callback")
                 self.disconnect_callback()
-                log.debug("Trigger shutdown")
-                self.shutdown()
         else:
             raise Exception('Connection failed, invalid token ?')
 

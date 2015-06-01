@@ -1,7 +1,6 @@
 import logging
 import sys
 
-from errbot import holder
 from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
 from errbot.backends.xmpp import XMPPBackend, XMPPConnection
 from errbot.utils import parse_jid
@@ -48,14 +47,15 @@ class HipChatMUCRoom(MUCRoom):
     This class represents a Multi-User Chatroom.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, bot=None):
         """
             :param name:
                 The name of the room
             """
         super().__init__()
-        self.hypchat = holder.bot.conn.hypchat
-        self.xep0045 = holder.bot.conn.client.plugin['xep_0045']
+        self._bot = bot
+        self.hypchat = bot.conn.hypchat
+        self.xep0045 = bot.conn.client.plugin['xep_0045']
         self._name = name
 
     @property
@@ -114,16 +114,16 @@ class HipChatMUCRoom(MUCRoom):
 
         room = self.jid
         self.xep0045.joinMUC(room, username, password=password, wait=True)
-        holder.bot.conn.add_event_handler(
+        self._bot.conn.add_event_handler(
             "muc::{}::got_online".format(room),
-            holder.bot.user_joined_chat
+            self._bot.user_joined_chat
         )
-        holder.bot.conn.add_event_handler(
+        self._bot.conn.add_event_handler(
             "muc::{}::got_offline".format(room),
-            holder.bot.user_left_chat
+            self._bot.user_left_chat
         )
 
-        holder.bot.callback_room_joined(self)
+        self._bot.callback_room_joined(self)
         log.info("Joined room {}".format(self.name))
 
     def leave(self, reason=None):
@@ -138,16 +138,16 @@ class HipChatMUCRoom(MUCRoom):
         room = self.jid
         try:
             self.xep0045.leaveMUC(room=room, nick=self.xep0045.ourNicks[room], msg=reason)
-            holder.bot.conn.del_event_handler(
+            self._bot.conn.del_event_handler(
                 "muc::{}::got_online".format(room),
-                holder.bot.user_joined_chat
+                self._bot.user_joined_chat
             )
-            holder.bot.conn.del_event_handler(
+            self._bot.conn.del_event_handler(
                 "muc::{}::got_offline".format(room),
-                holder.bot.user_left_chat
+                self._bot.user_left_chat
             )
             log.info("Left room {}".format(self))
-            holder.bot.callback_room_left(self)
+            self._bot.callback_room_left(self)
         except KeyError:
             log.debug("Trying to leave {} while not in this room".format(self))
 
@@ -255,7 +255,7 @@ class HipChatMUCRoom(MUCRoom):
             of the user you wish to invite.
         """
         room = self.room
-        users = holder.bot.conn.users
+        users = self._bot.conn.users
 
         for person in args:
             try:
@@ -351,7 +351,7 @@ class HipchatBackend(XMPPBackend):
         :returns:
             A list of :class:`~HipChatMUCRoom` instances.
         """
-        xep0045 = holder.bot.conn.client.plugin['xep_0045']
+        xep0045 = self.conn.client.plugin['xep_0045']
         rooms = {}
         # Build a mapping of xmpp_jid->name for easy reference
         for room in self.conn.hypchat.rooms(expand='items')['items']:
@@ -359,7 +359,7 @@ class HipchatBackend(XMPPBackend):
 
         joined_rooms = []
         for room in xep0045.getJoinedRooms():
-            joined_rooms.append(HipChatMUCRoom(rooms[room]))
+            joined_rooms.append(HipChatMUCRoom(rooms[room], self))
         return joined_rooms
 
     def query_room(self, room):
@@ -382,7 +382,7 @@ class HipchatBackend(XMPPBackend):
         else:
             name = room
 
-        return HipChatMUCRoom(name)
+        return HipChatMUCRoom(name, self)
 
     def groupchat_reply_format(self):
         return '@{0} {1}'

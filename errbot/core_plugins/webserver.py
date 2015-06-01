@@ -1,13 +1,15 @@
 import sys
 import logging
 import os
+import inspect
+
 from json import loads
 from random import random
 from errbot import PY3
 from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
-from errbot.core_plugins.wsview import bottle_app
+from errbot.core_plugins.wsview import bottle_app, reset_app, WebView
 from errbot.decorators import webhook
 from errbot.bundled.rocket import Rocket
 from webtest import TestApp
@@ -71,12 +73,12 @@ class Webserver(BotPlugin):
     min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
     max_err_version = VERSION
 
-    def __init__(self):
+    def __init__(self, bot):
         self.webserver = None
         self.webchat_mode = False
         self.ssl_context = None
         self.test_app = TestApp(bottle_app)
-        super(Webserver, self).__init__()
+        super().__init__(bot)
 
     def get_configuration_template(self):
         return {'HOST': '0.0.0.0',
@@ -111,7 +113,6 @@ class Webserver(BotPlugin):
         log.debug('Liftoff!')
 
         super(Webserver, self).activate()
-        log.info('Webserver activated')
 
     def deactivate(self):
         if self.webserver is not None:

@@ -27,17 +27,12 @@ from pprint import pformat
 
 from . import botcmd, PY2
 from .backends.base import Backend, ACLViolation
-from .plugin_manager import (
-    get_all_active_plugin_names, deactivate_all_plugins, update_plugin_places, get_all_active_plugin_objects,
-    get_all_plugins, global_restart, get_all_plugin_names, activate_plugin_with_version_check,
-    deactivate_plugin_by_name,
-    get_plugin_obj_by_name, PluginConfigurationException, check_dependencies, reload_plugin_by_name
-)
 from .storage import StoreMixin
 from .utils import human_name_for_git_url, tail, format_timedelta, which, get_sender_username, PLUGINS_SUBDIR
 from .repos import KNOWN_PUBLIC_REPOS
 from .version import VERSION
 from .streaming import Tee
+from .plugin_manager import BotPluginManager, global_restart, check_dependencies, PluginConfigurationException
 
 log = logging.getLogger(__name__)
 
@@ -81,7 +76,7 @@ def bot_config_defaults(config):
         config.AUTOINSTALL_DEPS = False
 
 
-class ErrBot(Backend, StoreMixin):
+class ErrBot(Backend, StoreMixin, BotPluginManager):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
     __errdoc__ = """ Commands related to the bot administration """
@@ -102,14 +97,16 @@ class ErrBot(Backend, StoreMixin):
             self[CONFIGS] = {}
         super(ErrBot, self).__init__(bot_config)
 
+        # init the plugin manager part
+        self._init_plugin_manager()
+
     def __hash__(self):
         # Ensures this class (and subclasses) are hashable.
         # Presumably the use of mixins causes __hash__ to be
         # None otherwise.
         return int(id(self))
 
-    @staticmethod
-    def _dispatch_to_plugins(method, *args, **kwargs):
+    def _dispatch_to_plugins(self, method, *args, **kwargs):
         """
         Dispatch the given method to all active plugins.
 
@@ -119,13 +116,13 @@ class ErrBot(Backend, StoreMixin):
         :param *args: Passed to the callback function.
         :param **kwargs: Passed to the callback function.
         """
-        for plugin in get_all_active_plugin_objects():
+        for plugin in self.get_all_active_plugin_objects():
             plugin_name = plugin.__class__.__name__
             log.debug("Triggering {} on {}".format(method, plugin_name))
             # noinspection PyBroadException
             try:
                 getattr(plugin, method)(*args, **kwargs)
-            except Exception as _:
+            except Exception:
                 log.exception("{} on {} crashed".format(method, plugin_name))
 
     # Repo management
@@ -179,7 +176,7 @@ class ErrBot(Backend, StoreMixin):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        all_candidates, errors = update_plugin_places(
+        all_candidates, errors = self.update_plugin_places(
             [self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()],
             self.bot_config.BOT_EXTRA_PLUGIN_DIR, self.bot_config.AUTOINSTALL_DEPS)
         self.all_candidates = all_candidates
@@ -187,17 +184,17 @@ class ErrBot(Backend, StoreMixin):
 
     def send_message(self, mess):
         super(ErrBot, self).send_message(mess)
-        for bot in get_all_active_plugin_objects():
+        for bot in self.get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:
                 bot.callback_botmessage(mess)
-            except Exception as _:
+            except Exception:
                 log.exception("Crash in a callback_botmessage handler")
 
     def callback_message(self, mess):
         if super(ErrBot, self).callback_message(mess):
             # Act only in the backend tells us that this message is OK to broadcast
-            for bot in get_all_active_plugin_objects():
+            for bot in self.get_all_active_plugin_objects():
                 # noinspection PyBroadException
                 try:
                     log.debug('Trigger callback_message on %s' % bot.__class__.__name__)
@@ -210,7 +207,7 @@ class ErrBot(Backend, StoreMixin):
                         bot.callback_message(None, mess)
                     else:
                         bot.callback_message(mess)
-                except Exception as _:
+                except Exception:
                     log.exception("Crash in a callback_message handler")
 
     def callback_presence(self, pres):
@@ -248,13 +245,13 @@ class ErrBot(Backend, StoreMixin):
 
     def callback_stream(self, stream):
         log.info("Initiated an incoming transfer %s" % stream)
-        Tee(stream, get_all_active_plugin_objects()).start()
+        Tee(stream, self.get_all_active_plugin_objects()).start()
 
     def activate_non_started_plugins(self):
         log.info('Activating all the plugins...')
         configs = self[CONFIGS]
         errors = ''
-        for pluginInfo in get_all_plugins():
+        for pluginInfo in self.getAllPlugins():
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
                     errors += ('Notice: %s is blacklisted, use ' + self.prefix + 'load %s to unblacklist it\n') % (
@@ -262,7 +259,7 @@ class ErrBot(Backend, StoreMixin):
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     log.info('Activate plugin: %s' % pluginInfo.name)
-                    activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
+                    self.activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
             except Exception as e:
                 log.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
@@ -271,13 +268,13 @@ class ErrBot(Backend, StoreMixin):
         return errors
 
     def signal_connect_to_all_plugins(self):
-        for bot in get_all_active_plugin_objects():
+        for bot in self.get_all_active_plugin_objects():
             if hasattr(bot, 'callback_connect'):
                 # noinspection PyBroadException
                 try:
                     log.debug('Trigger callback_connect on %s' % bot.__class__.__name__)
                     bot.callback_connect()
-                except Exception as _:
+                except Exception:
                     log.exception("callback_connect failed for %s" % bot)
 
     def connect_callback(self):
@@ -292,15 +289,14 @@ class ErrBot(Backend, StoreMixin):
     def disconnect_callback(self):
         self.remove_commands_from(self)
         log.info('Disconnect callback, deactivating all the plugins.')
-        deactivate_all_plugins()
+        self.deactivate_all_plugins()
 
     def shutdown(self):
         log.info('Shutdown.')
         self.close_storage()
         log.info('Bye.')
 
-    @staticmethod
-    def formatted_plugin_list(active_only=True):
+    def formatted_plugin_list(self, active_only=True):
         """
         Return a formatted, plain-text list of loaded plugins.
 
@@ -309,9 +305,9 @@ class ErrBot(Backend, StoreMixin):
         (blacklisted) plugins.
         """
         if active_only:
-            all_plugins = get_all_active_plugin_names()
+            all_plugins = self.get_all_active_plugin_names()
         else:
-            all_plugins = get_all_plugin_names()
+            all_plugins = self.get_all_plugin_names()
         return "\n".join(("• " + plugin for plugin in all_plugins))
 
     @botcmd(template='status')
@@ -333,7 +329,7 @@ class ErrBot(Backend, StoreMixin):
         try:
             from posix import getloadavg
             loads = getloadavg()
-        except Exception as _:
+        except Exception:
             loads = None
 
         return {'loads': loads}
@@ -349,7 +345,7 @@ class ErrBot(Backend, StoreMixin):
         """ shows the plugin status
         """
         all_blacklisted = self.get_blacklisted_plugin()
-        all_loaded = get_all_active_plugin_names()
+        all_loaded = self.get_all_active_plugin_names()
         all_attempted = sorted([p.name for p in self.all_candidates])
         plugins_statuses = []
         for name in all_attempted:
@@ -360,7 +356,7 @@ class ErrBot(Backend, StoreMixin):
                     plugins_statuses.append(('BU', name))
             elif name in all_loaded:
                 plugins_statuses.append(('L', name))
-            elif get_plugin_obj_by_name(name) is not None and get_plugin_obj_by_name(
+            elif self.get_plugin_obj_by_name(name) is not None and self.get_plugin_obj_by_name(
                     name).get_configuration_template() is not None and self.get_plugin_configuration(name) is None:
                 plugins_statuses.append(('C', name))
             else:
@@ -423,7 +419,7 @@ class ErrBot(Backend, StoreMixin):
     def restart(self, mess, args):
         """ restart the bot """
         self.send(mess.frm, "Deactivating all the plugins...")
-        deactivate_all_plugins()
+        self.deactivate_all_plugins()
         self.send(mess.frm, "Restarting")
         self.shutdown()
         global_restart()
@@ -431,28 +427,28 @@ class ErrBot(Backend, StoreMixin):
 
     def activate_plugin(self, name):
         try:
-            if name in get_all_active_plugin_names():
+            if name in self.get_all_active_plugin_names():
                 return "Plugin already in active list"
-            if name not in get_all_plugin_names():
+            if name not in self.get_all_plugin_names():
                 return "I don't know this %s plugin" % name
-            activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+            self.activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
         except Exception as e:
             log.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)
-        get_plugin_obj_by_name(name).callback_connect()
+        self.get_plugin_obj_by_name(name).callback_connect()
         return "Plugin %s activated" % name
 
     def deactivate_plugin(self, name):
-        if name not in get_all_active_plugin_names():
+        if name not in self.get_all_active_plugin_names():
             return "Plugin %s not in active list" % name
-        deactivate_plugin_by_name(name)
+        self.deactivate_plugin_by_name(name)
         return "Plugin %s deactivated" % name
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def blacklist(self, mess, args):
         """Blacklist a plugin so that it will not be loaded automatically during bot startup"""
-        if args not in get_all_plugin_names():
+        if args not in self.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         return self.blacklist_plugin(args)
@@ -461,7 +457,7 @@ class ErrBot(Backend, StoreMixin):
     @botcmd(admin_only=True)
     def unblacklist(self, mess, args):
         """Remove a plugin from the blacklist"""
-        if args not in get_all_plugin_names():
+        if args not in self.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         return self.unblacklist_plugin(args)
@@ -474,13 +470,13 @@ class ErrBot(Backend, StoreMixin):
         if not args:
             return ("Please tell me which of the following plugins to reload:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
-        if args not in get_all_plugin_names():
+        if args not in self.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args in get_all_active_plugin_names():
+        if args in self.get_all_active_plugin_names():
             return "{} is already loaded".format(args)
 
-        reload_plugin_by_name(args)
+        self.reload_plugin_by_name(args)
         r = self.activate_plugin(args)
         return r
 
@@ -492,10 +488,10 @@ class ErrBot(Backend, StoreMixin):
         if not args:
             return ("Please tell me which of the following plugins to reload:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
-        if args not in get_all_plugin_names():
+        if args not in self.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args not in get_all_active_plugin_names():
+        if args not in self.get_all_active_plugin_names():
             return "{} is not currently loaded".format(args)
 
         return self.deactivate_plugin(args)
@@ -509,13 +505,13 @@ class ErrBot(Backend, StoreMixin):
             yield ("Please tell me which of the following plugins to reload:\n"
                    "{}".format(self.formatted_plugin_list(active_only=False)))
             return
-        if args not in get_all_plugin_names():
+        if args not in self.get_all_plugin_names():
             yield ("{} isn't a valid plugin name. The current plugins are:\n"
                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
             return
 
         yield self.deactivate_plugin(args)  # Not needed but keeps the feedback to user consistent
-        reload_plugin_by_name(args)
+        self.reload_plugin_by_name(args)
         yield self.activate_plugin(args)
 
     @botcmd(admin_only=True)
@@ -573,7 +569,7 @@ class ErrBot(Backend, StoreMixin):
             return "This repo is not installed check with " + self.prefix + "repos the list of installed ones"
 
         plugin_path = self.plugin_dir + os.sep + args
-        for plugin in get_all_plugins():
+        for plugin in self.getAllPlugins():
             if plugin.path.startswith(plugin_path) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                 self.send(mess.frm, '/me is unloading plugin %s' % plugin.name)
                 self.deactivate_plugin(plugin.name)
@@ -774,11 +770,11 @@ class ErrBot(Backend, StoreMixin):
                 self.send(mess.frm, "Update of %s succeeded...\n\n%s\n\n" % (d, feedback),
                           message_type=mess.type)
                 if not core_to_update:
-                    for plugin in get_all_plugins():
+                    for plugin in self.getAllPlugins():
                         if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                             name = plugin.name
                             self.send(mess.frm, '/me is reloading plugin %s' % name)
-                            reload_plugin_by_name(plugin.name)
+                            self.reload_plugin_by_name(plugin.name)
                             self.activate_plugin(plugin.name)
                             self.send(mess.frm, '%s reloaded and reactivated' % name)
         if core_to_update:
@@ -805,7 +801,7 @@ class ErrBot(Backend, StoreMixin):
         plugin_name = args[0]
         if self.is_plugin_blacklisted(plugin_name):
             return 'Load this plugin first with ' + self.prefix + 'load %s' % plugin_name
-        obj = get_plugin_obj_by_name(plugin_name)
+        obj = self.get_plugin_obj_by_name(plugin_name)
         if obj is None:
             return 'Unknown plugin or the plugin could not load %s' % plugin_name
         template_obj = obj.get_configuration_template()
@@ -825,7 +821,7 @@ class ErrBot(Backend, StoreMixin):
         # noinspection PyBroadException
         try:
             real_config_obj = literal_eval(' '.join(args[1:]))
-        except Exception as _:
+        except Exception:
             log.exception('Invalid expression for the configuration of the plugin')
             return 'Syntax error in the given configuration'
         if type(real_config_obj) != type(template_obj):

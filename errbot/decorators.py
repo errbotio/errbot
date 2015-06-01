@@ -216,10 +216,11 @@ def webhook(*args, **kwargs):
     """
 
     def decorate(func, uri_rule, methods=('POST', 'GET'), form_param=None, raw=False):
-        log.info("webhooks:  Bind %s to %s" % (uri_rule, func.__name__))
-
-        for verb in methods:
-            bottle_app.route(uri_rule, verb, callback=WebView(func, form_param, raw), name=func.__name__ + '_' + verb)
+        log.info("webhooks:  Flag to bind %s to %s" % (uri_rule, func.__name__))
+        func._err_webhook_uri_rule = uri_rule
+        func._err_webhook_methods = methods
+        func._err_webhook_form_param = form_param
+        func._err_webhook_raw = raw
         return func
 
     if isinstance(args[0], str) or (PY2 and isinstance(args[0], basestring)):

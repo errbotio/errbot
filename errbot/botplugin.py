@@ -7,7 +7,6 @@ from threading import Timer, current_thread
 
 from .utils import PLUGINS_SUBDIR, recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
-from . import holder
 
 log = logging.getLogger(__name__)
 
@@ -18,12 +17,19 @@ class BotPluginBase(StoreMixin):
      It is the main contract between the plugins and the bot
     """
 
-    def __init__(self):
-        self.plugin_dir = holder.bot.plugin_dir
+    def __init__(self, bot=None):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
+        if bot is not None:
+            self._load_bot(bot)
         super(BotPluginBase, self).__init__()
+
+    def _load_bot(self, bot):
+        """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
+        """
+        self._bot = bot
+        self.plugin_dir = bot.plugin_dir
 
     @property
     def mode(self):
@@ -32,11 +38,11 @@ class BotPluginBase(StoreMixin):
 
         :return: the mode like 'tox', 'xmpp' etc...
         """
-        return holder.bot.mode
+        return self._bot.mode
 
     @property
     def bot_config(self):
-        return holder.bot.bot_config
+        return self._bot.bot_config
 
     def activate(self):
         """
@@ -48,7 +54,7 @@ class BotPluginBase(StoreMixin):
         filename = os.path.join(self.bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR, classname + '.db')
         log.debug('Loading %s' % filename)
         self.open_storage(filename)
-        holder.bot.inject_commands_from(self)
+        self._bot.inject_commands_from(self)
         self.is_activated = True
 
     def deactivate(self):
@@ -65,7 +71,7 @@ class BotPluginBase(StoreMixin):
             self.close_storage()
         except StoreNotOpenError:
             pass
-        holder.bot.remove_commands_from(self)
+        self._bot.remove_commands_from(self)
         self.is_activated = False
 
     def start_poller(self, interval, method, args=None, kwargs=None):
@@ -81,7 +87,7 @@ class BotPluginBase(StoreMixin):
         try:
             self.current_pollers.append((method, args, kwargs))
             self.program_next_poll(interval, method, args, kwargs)
-        except Exception as _:
+        except Exception:
             log.exception('failed')
 
     def stop_poller(self, method, args=None, kwargs=None):
@@ -110,7 +116,7 @@ class BotPluginBase(StoreMixin):
             # noinspection PyBroadException
             try:
                 method(*args, **kwargs)
-            except Exception as _:
+            except Exception:
                 log.exception('A poller crashed')
             self.program_next_poll(interval, method, args, kwargs)
 
@@ -288,14 +294,14 @@ class BotPlugin(BotPluginBase):
         """
             Sends a warning to the administrators of the bot
         """
-        return holder.bot.warn_admins(warning)
+        return self._bot.warn_admins(warning)
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """
             Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
-        return holder.bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+        return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
     def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):
         """
@@ -308,14 +314,14 @@ class BotPlugin(BotPluginBase):
 
             It will return a Stream object on which you can monitor the progress of it.
         """
-        return holder.bot.send_stream_request(user, fsource, name, size, stream_type)
+        return self._bot.send_stream_request(user, fsource, name, size, stream_type)
 
     def bare_send(self, xmppy_msg):
         """
             A bypass to send directly a crafted xmppy message.
               Usefull to extend to bot in not forseen ways.
         """
-        c = holder.bot.connect()
+        c = self._bot.connect()
         if c:
             return c.send(xmppy_msg)
         logging.warning('Ignored a message as the bot is not connected yet')
@@ -332,13 +338,13 @@ class BotPlugin(BotPluginBase):
         :param password:
             An optional password to use (for password-protected rooms).
         """
-        return holder.bot.join_room(room, username, password)
+        return self._bot.join_room(room, username, password)
 
     def rooms(self):
         """
         The list of rooms the bot is currently in.
         """
-        return holder.bot.rooms()
+        return self._bot.rooms()
 
     def query_room(self, room):
         """
@@ -351,7 +357,7 @@ class BotPlugin(BotPluginBase):
         :raises:
             :class:`~errbot.backends.base.RoomDoesNotExistError` if the room doesn't exist.
         """
-        return holder.bot.query_room(room=room)
+        return self._bot.query_room(room=room)
 
     def invite_in_room(self, room, jids_to_invite):
         """
@@ -369,7 +375,7 @@ class BotPlugin(BotPluginBase):
         """
             Get the current installed plugin repos in a dictionary of name / url
         """
-        return holder.bot.get_installed_plugin_repos()
+        return self._bot.get_installed_plugin_repos()
 
     def start_poller(self, interval, method, args=None, kwargs=None):
         """

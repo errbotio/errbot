@@ -3,7 +3,6 @@ import logging
 import re
 import time
 import sys
-from errbot import holder
 from errbot import PY3
 from errbot.backends.base import (
     Message, build_message, Identifier, Presence, ONLINE, AWAY,
@@ -330,13 +329,13 @@ class SlackBackend(ErrBot):
 
     def query_room(self, room):
         if room.startswith('C') or room.startswith('G'):
-            return SlackRoom(domain=room)
+            return SlackRoom(domain=room, bot=self)
 
         m = SLACK_CLIENT_CHANNEL_HYPERLINK.match(room)
         if m is not None:
-            return SlackRoom(domain=m.groupdict()['id'])
+            return SlackRoom(domain=m.groupdict()['id'], bot=self)
 
-        return SlackRoom(name=room)
+        return SlackRoom(name=room, bot=self)
 
     def rooms(self):
         """
@@ -346,14 +345,15 @@ class SlackBackend(ErrBot):
             A list of :class:`~SlackRoom` instances.
         """
         channels = self.channels(joined_only=True, exclude_archived=True)
-        return [SlackRoom(domain=channel['id']) for channel in channels]
+        return [SlackRoom(domain=channel['id'], bot=self) for channel in channels]
 
     def groupchat_reply_format(self):
         return '@{0}: {1}'
 
 
 class SlackRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', name=None):
+    def __init__(self, jid=None, node='', domain='', resource='', name=None, bot=None):
+        super().__init__(jid, node, domain, resource, bot)
         if jid is not None or node != '' or resource != '':
             raise ValueError("SlackRoom() only supports construction using domain or name")
         if domain != '' and name is not None:
@@ -365,10 +365,10 @@ class SlackRoom(MUCRoom):
             else:
                 self._name = name
         else:
-            self._name = holder.bot.channelid_to_channelname(domain)
+            self._name = bot.channelid_to_channelname(domain)
 
         self._id = None
-        self.sc = holder.bot.sc
+        self.sc = bot.sc
 
     def __str__(self):
         return "#%s" % self.name
@@ -378,7 +378,7 @@ class SlackRoom(MUCRoom):
         """
         The channel object exposed by SlackClient
         """
-        id = holder.bot.sc.server.channels.find(self.name)
+        id = self.sc.server.channels.find(self.name)
         if id is None:
             raise RoomDoesNotExistError(
                 "%s does not exist (or is a private group you don't have access to)" % str(self)
@@ -395,9 +395,9 @@ class SlackRoom(MUCRoom):
           * https://api.slack.com/methods/groups.list
         """
         if self.private:
-            return holder.bot.api_call('groups.info', data={'channel': self.id})["group"]
+            return self._bot.api_call('groups.info', data={'channel': self.id})["group"]
         else:
-            return holder.bot.api_call('channels.info', data={'channel': self.id})["channel"]
+            return self._bot.api_call('channels.info', data={'channel': self.id})["channel"]
 
     @property
     def private(self):
@@ -418,42 +418,42 @@ class SlackRoom(MUCRoom):
 
     def join(self, username=None, password=None):
         log.info("Joining channel %s" % str(self))
-        holder.bot.api_call('channels.join', data={'name': self.name})
+        self._bot.api_call('channels.join', data={'name': self.name})
 
     def leave(self, reason=None):
         if self.id.startswith('C'):
             log.info("Leaving channel %s (%s)" % (str(self), self.id))
-            holder.bot.api_call('channels.leave', data={'channel': self.id})
+            self._bot.api_call('channels.leave', data={'channel': self.id})
         else:
             log.info("Leaving group %s (%s)" % (str(self), self.id))
-            holder.bot.api_call('groups.leave', data={'channel': self.id})
+            self._bot.api_call('groups.leave', data={'channel': self.id})
         self._id = None
 
     def create(self, private=False):
         if private:
             log.info("Creating group %s" % str(self))
-            holder.bot.api_call('groups.create', data={'name': self.name})
+            self._bot.api_call('groups.create', data={'name': self.name})
         else:
             log.info("Creating channel %s" % str(self))
-            holder.bot.api_call('channels.create', data={'name': self.name})
+            self._bot.api_call('channels.create', data={'name': self.name})
 
     def destroy(self):
         if self.id.startswith('C'):
             log.info("Archiving channel %s (%s)" % (str(self), self.id))
-            holder.bot.api_call('channels.archive', data={'channel': self.id})
+            self._bot.api_call('channels.archive', data={'channel': self.id})
         else:
             log.info("Archiving group %s (%s)" % (str(self), self.id))
-            holder.bot.api_call('groups.archive', data={'channel': self.id})
+            self._bot.api_call('groups.archive', data={'channel': self.id})
         self._id = None
 
     @property
     def exists(self):
-        channels = holder.bot.channels(joined_only=False, exclude_archived=False)
+        channels = self._bot.channels(joined_only=False, exclude_archived=False)
         return len([c for c in channels if c['name'] == self.name]) > 0
 
     @property
     def joined(self):
-        channels = holder.bot.channels(joined_only=True)
+        channels = self._bot.channels(joined_only=True)
         return len([c for c in channels if c['name'] == self.name]) > 0
 
     @property
@@ -467,10 +467,10 @@ class SlackRoom(MUCRoom):
     def topic(self, topic):
         if self.private:
             log.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
-            holder.bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
+            self._bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
         else:
             log.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
-            holder.bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
+            self._bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
 
     @property
     def purpose(self):
@@ -483,28 +483,28 @@ class SlackRoom(MUCRoom):
     def purpose(self, purpose):
         if self.private:
             log.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
-            holder.bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
+            self._bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
         else:
             log.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
-            holder.bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
+            self._bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
 
     @property
     def occupants(self):
         members = self._channel_info['members']
         return [SlackMUCOccupant(
                 node=self.name,
-                domain=holder.bot.sc.server.domain,
-                resource=holder.bot.userid_to_username(m))
+                domain=self._bot.sc.server.domain,
+                resource=self._bot.userid_to_username(m))
                 for m in members]
 
     def invite(self, *args):
-        users = {user['name']: user['id'] for user in holder.bot.api_call('users.list')['members']}
+        users = {user['name']: user['id'] for user in self._bot.api_call('users.list')['members']}
         for user in args:
             if user not in users:
                 raise UserDoesNotExistError("User '%s' not found" % user)
             log.info("Inviting %s into %s (%s)" % (user, str(self), self.id))
             method = 'groups.invite' if self.private else 'channels.invite'
-            response = holder.bot.api_call(
+            response = self._bot.api_call(
                 method,
                 data={'channel': self.id, 'user': users[user]},
                 raise_errors=False

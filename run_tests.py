@@ -6,8 +6,6 @@ import sys
 
 PY3 = sys.version_info[0] == 3
 
-pytest_result = pytest.main()
-
 # Skip pep8 checks on Python 2 because the code conversion done by
 # 3to2 tends to mess things up
 if PY3:
@@ -17,6 +15,8 @@ if PY3:
 else:
     print("Running under Python 2, skipping pep8 style checks")
     pep8_result = 0
+
+pytest_result = pytest.main('-x')
 
 if pytest_result or pep8_result:
     sys.exit(1)

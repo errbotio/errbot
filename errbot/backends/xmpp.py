@@ -8,7 +8,6 @@ from errbot.backends.base import (
 )
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
-from errbot import holder
 from threading import Thread
 from time import sleep
 
@@ -63,7 +62,7 @@ def verify_gtalk_cert(xmpp_client):
 class XMPPMUCRoom(MUCRoom):
     def __init__(self, *args, **kwargs):
         super(XMPPMUCRoom, self).__init__(*args, **kwargs)
-        self.xep0045 = holder.bot.conn.client.plugin['xep_0045']
+        self.xep0045 = self._bot.conn.client.plugin['xep_0045']
 
     def join(self, username=None, password=None):
         """
@@ -74,13 +73,13 @@ class XMPPMUCRoom(MUCRoom):
         """
         room = str(self)
         self.xep0045.joinMUC(str(self), username, password=password, wait=True)
-        holder.bot.conn.add_event_handler(
+        self._bot.conn.add_event_handler(
             "muc::{}::got_online".format(room),
-            holder.bot.user_joined_chat
+            self._bot.user_joined_chat
         )
-        holder.bot.conn.add_event_handler(
+        self._bot.conn.add_event_handler(
             "muc::{}::got_offline".format(room),
-            holder.bot.user_left_chat
+            self._bot.user_left_chat
         )
         # Room configuration can only be done once a MUC presence stanza
         # has been received from the server. This HAS to take place in a
@@ -88,7 +87,7 @@ class XMPPMUCRoom(MUCRoom):
         t = Thread(target=self.configure)
         t.setDaemon(True)
         t.start()
-        holder.bot.callback_room_joined(self)
+        self._bot.callback_room_joined(self)
         log.info("Joined room {}".format(room))
 
     def leave(self, reason=None):
@@ -104,16 +103,16 @@ class XMPPMUCRoom(MUCRoom):
         try:
             self.xep0045.leaveMUC(room=room, nick=self.xep0045.ourNicks[room], msg=reason)
 
-            holder.bot.conn.del_event_handler(
+            self._bot.conn.del_event_handler(
                 "muc::{}::got_online".format(room),
-                holder.bot.user_joined_chat
+                self._bot.user_joined_chat
             )
-            holder.bot.conn.del_event_handler(
+            self._bot.conn.del_event_handler(
                 "muc::{}::got_offline".format(room),
-                holder.bot.user_left_chat
+                self._bot.user_left_chat
             )
             log.info("Left room {}".format(room))
-            holder.bot.callback_room_left(self)
+            self._bot.callback_room_left(self)
         except KeyError:
             log.debug("Trying to leave {} while not in this room".format(room))
 
@@ -175,7 +174,7 @@ class XMPPMUCRoom(MUCRoom):
         if not self.joined:
             raise RoomNotJoinedError("Must be in a room in order to see the topic.")
         try:
-            return holder.bot._room_topics[str(self)]
+            return self._bot._room_topics[str(self)]
         except KeyError:
             return None
 
@@ -262,9 +261,10 @@ class XMPPMUCOccupant(MUCOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None):
+    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, bot=None):
         if feature is not None:
             feature = {}
+        self._bot = bot
         self.connected = False
         self.server = server
 
@@ -327,7 +327,7 @@ class XMPPConnection(object):
             "MUCRoom class instead.",
             DeprecationWarning
         )
-        holder.bot.query_room(room).join(username=username, password=password)
+        self._bot.query_room(room).join(username=username, password=password)
 
     def configure_room(self, room):
         """
@@ -345,7 +345,7 @@ class XMPPConnection(object):
             "MUCRoom class instead.",
             DeprecationWarning
         )
-        holder.bot.query_room(room).configure()
+        self._bot.query_room(room).configure()
 
     def invite_in_room(self, room, jids_to_invite):
         """
@@ -357,7 +357,7 @@ class XMPPConnection(object):
             "MUCRoom class instead.",
             DeprecationWarning,
         )
-        holder.bot.query_room(room).invite(jids_to_invite)
+        self._bot.query_room(room).invite(jids_to_invite)
 
 XMPP_TO_ERR_STATUS = {'available': ONLINE,
                       'away': AWAY,
@@ -397,7 +397,8 @@ class XMPPBackend(ErrBot):
             feature=self.feature,
             keepalive=self.keepalive,
             ca_cert=self.ca_cert,
-            server=self.server
+            server=self.server,
+            bot=self
         )
 
     def incoming_message(self, xmppmsg):
@@ -513,8 +514,8 @@ class XMPPBackend(ErrBot):
         :returns:
             A list of :class:`~errbot.backends.base.XMPPMUCRoom` instances.
         """
-        xep0045 = holder.bot.client.plugin['xep_0045']
-        return [XMPPMUCRoom(room) for room in xep0045.getJoinedRooms()]
+        xep0045 = self.client.plugin['xep_0045']
+        return [XMPPMUCRoom(room, bot=self) for room in xep0045.getJoinedRooms()]
 
     def query_room(self, room):
         """
@@ -525,7 +526,7 @@ class XMPPBackend(ErrBot):
         :returns:
             An instance of :class:`~XMPPMUCRoom`.
         """
-        return XMPPMUCRoom(room)
+        return XMPPMUCRoom(room, bot=self)
 
     def groupchat_reply_format(self):
         return '@{0} {1}'

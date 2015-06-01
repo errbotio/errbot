@@ -3,7 +3,6 @@ import logging
 import sys
 import warnings
 
-from errbot import holder
 from errbot.backends.base import (
     Identifier, Message, MUCOccupant, MUCRoom, RoomError, RoomNotJoinedError,
     build_message, build_text_html_message_pair,
@@ -35,7 +34,7 @@ except ImportError as _:
 class IRCMUCRoom(MUCRoom):
     def __init__(self, *args, **kwargs):
         super(IRCMUCRoom, self).__init__(*args, **kwargs)
-        self.connection = holder.bot.conn.connection
+        self.connection = self._bot.conn.connection
 
     def join(self, username=None, password=None):
         """
@@ -51,7 +50,7 @@ class IRCMUCRoom(MUCRoom):
         room = str(self)
 
         self.connection.join(room, key=password)
-        holder.bot.callback_room_joined(self)
+        self._bot.callback_room_joined(self)
         log.info("Joined room {}".format(room))
 
     def leave(self, reason=None):
@@ -67,7 +66,7 @@ class IRCMUCRoom(MUCRoom):
 
         self.connection.part(room, reason)
         log.info("Left room {}".format(room))
-        holder.bot.callback_room_left(self)
+        self._bot.callback_room_left(self)
 
     def create(self):
         """
@@ -107,7 +106,7 @@ class IRCMUCRoom(MUCRoom):
         :getter:
             Returns `True` if the room has been joined, `False` otherwise.
         """
-        return str(self) in holder.bot.conn.channels.keys()
+        return str(self) in self._bot.conn.channels.keys()
 
     @property
     def topic(self):
@@ -142,7 +141,7 @@ class IRCMUCRoom(MUCRoom):
         """
         occupants = []
         try:
-            for nick in holder.bot.conn.channels[str(self)].users():
+            for nick in self._bot.conn.channels[str(self)].users():
                 occupants.append(MUCOccupant(node=nick))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
@@ -283,7 +282,7 @@ class IRCBackend(ErrBot):
         :returns:
             An instance of :class:`~IRCMUCRoom`.
         """
-        return IRCMUCRoom(node=room)
+        return IRCMUCRoom(node=room, bot=self)
 
     @property
     def mode(self):

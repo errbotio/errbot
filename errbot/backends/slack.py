@@ -351,6 +351,10 @@ class SlackBackend(ErrBot):
     def groupchat_reply_format(self):
         return '@{0}: {1}'
 
+    @staticmethod
+    def get_jid_from_message(mess):
+        return mess.frm.resource
+
 
 class SlackRoom(MUCRoom):
     def __init__(self, jid=None, node='', domain='', resource='', name=None, bot=None):

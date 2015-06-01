@@ -1032,8 +1032,11 @@ class Backend(object):
 
         Raises ACLViolation() if the command may not be executed in the given context
         """
-        usr = str(get_jid_from_message(mess))
+        usr = str(self.get_jid_from_message(mess))
         typ = mess.type
+
+        log.debug("check_command_access of user {user} for command {command}"
+                  .format(user=usr, command=cmd))
 
         if cmd not in self.bot_config.ACCESS_CONTROLS:
             self.bot_config.ACCESS_CONTROLS[cmd] = self.bot_config.ACCESS_CONTROLS_DEFAULT
@@ -1246,6 +1249,15 @@ class Backend(object):
         self._reconnection_count = 0
         self._reconnection_delay = 1
 
+    @staticmethod
+    def get_jid_from_message(mess):
+        if mess.type == 'chat':
+            # strip the resource for direct chats
+            return mess.frm.stripped
+        fr = mess.frm
+        jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
+        return jid
+
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
     def groupchat_reply_format(self):
@@ -1330,9 +1342,9 @@ class Backend(object):
 
 
 def get_jid_from_message(mess):
-    if mess.type == 'chat':
-        # strip the resource for direct chats
-        return mess.frm.stripped
-    fr = mess.frm
-    jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
-    return jid
+    warnings.warn(
+        "errbot.backends.base.get_jid_from_message is deprecated, "
+        "use errbot.backends.base.Backend.get_jid_from_message instead",
+        DeprecationWarning
+    )
+    return Backend.get_jid_from_message(mess)

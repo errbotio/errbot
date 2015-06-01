@@ -1,6 +1,4 @@
 from errbot import BotPlugin, botcmd
-from errbot.plugin_manager import get_all_plugins
-from errbot import holder
 import os
 
 
@@ -16,8 +14,8 @@ class Backup(BotPlugin):
         with open(filename, 'w') as f:
             f.write('## This file is not executable on its own. use err.py -r FILE to restore your bot.\n\n')
             f.write('log.info("Restoring core configs.")\n')
-            for key in holder.bot:
-                f.write('bot["'+key+'"] = ' + repr(holder.bot[key]) + '\n')
+            for key in self._bot:  # don't mimic that in real plugins, this is core only.
+                f.write('bot["'+key+'"] = ' + repr(self._bot[key]) + '\n')
 
             f.write('log.info("Installing plugins.")\n')
             f.write('for repo in bot["repos"]:\n')
@@ -27,7 +25,7 @@ class Backup(BotPlugin):
 
             f.write('log.info("Restoring plugins data.")\n')
 
-            for plug in get_all_plugins():
+            for plug in self._bot.getAllPlugins():
                 pobj = plug.plugin_object
                 if pobj.shelf:
                     f.write('pobj = get_plugin_by_name("' + plug.name + '").plugin_object\n')

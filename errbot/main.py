@@ -5,7 +5,7 @@ import sys
 log = logging.getLogger(__name__)
 
 
-def setup_bot(bot_class, logger, config, restore = None):
+def setup_bot(bot_class, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
@@ -49,7 +49,6 @@ def setup_bot(bot_class, logger, config, restore = None):
     # restore the bot from the restore script
     if restore:
         # Prepare the context for the restore script
-        bot = holder.bot  # gives the bot to the script
         if 'repos' in bot:
             log.fatal('You cannot restore onto a non empty bot.')
         from errbot.plugin_manager import get_plugin_by_name  # noqa
@@ -60,13 +59,13 @@ def setup_bot(bot_class, logger, config, restore = None):
         print('Restore complete restore the bot normally')
         sys.exit(0)
 
-    errors = holder.bot.update_dynamic_plugins()
+    errors = bot.update_dynamic_plugins()
     if errors:
         log.error('Some plugins failed to load:\n' + '\n'.join(errors))
     return bot
 
 
-def main(bot_class, logger, config, restore = None):
+def main(bot_class, logger, config, restore=None):
     bot = setup_bot(bot_class, logger, config, restore)
     log.debug('serve from %s' % bot)
     bot.serve_forever()

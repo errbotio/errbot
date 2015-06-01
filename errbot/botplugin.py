@@ -57,7 +57,7 @@ class BotPluginBase(StoreMixin):
             super(Gnagna, self).activate())
         """
         self.init_storage()
-        holder.bot.inject_commands_from(self)
+        self._bot.inject_commands_from(self)
         self.is_activated = True
 
     def deactivate(self):

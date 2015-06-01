@@ -10,15 +10,16 @@ import pytest
 
 log = logging.getLogger(__name__)
 
+# otherwise generate a temporary one.
 __import__('errbot.config-template')
-config_module = sys.modules['errbot.config-template']
-sys.modules['config'] = config_module
+config = sys.modules['errbot.config-template']
+sys.modules['config'] = config
 
 tempdir = mkdtemp()
-config_module.BOT_DATA_DIR = tempdir
-config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
-config_module.BOT_EXTRA_PLUGIN_DIR = []
-config_module.BOT_LOG_LEVEL = logging.DEBUG
+config.BOT_DATA_DIR = tempdir
+config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+config.BOT_EXTRA_PLUGIN_DIR = []
+config.BOT_LOG_LEVEL = logging.DEBUG
 
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
@@ -63,7 +64,6 @@ class MUCRoom(MUCRoom):
     @property
     def joined(self):
         global rooms
-        import config
         bot_itself = config.BOT_IDENTITY['username']
 
         room = [r for r in rooms if str(r) == str(self)]
@@ -74,7 +74,6 @@ class MUCRoom(MUCRoom):
 
     def join(self, username=None, password=None):
         global rooms
-        import config
         bot_itself = config.BOT_IDENTITY['username']
 
         if self.joined:
@@ -92,7 +91,6 @@ class MUCRoom(MUCRoom):
 
     def leave(self, reason=None):
         global rooms
-        import config
         bot_itself = config.BOT_IDENTITY['username']
 
         if not self.joined:
@@ -266,14 +264,14 @@ class TestBot(object):
         """
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
-        file = logging.FileHandler(config_module.BOT_LOG_FILE, encoding='utf-8')
+        file = logging.FileHandler(config.BOT_LOG_FILE, encoding='utf-8')
         self.logger = logging.getLogger('')
         self.logger.setLevel(loglevel)
         self.logger.addHandler(file)
 
-        config_module.BOT_EXTRA_PLUGIN_DIR = extra_plugin_dir
-        config_module.BOT_LOG_LEVEL = loglevel
-        self.bot_config = config_module
+        config.BOT_EXTRA_PLUGIN_DIR = extra_plugin_dir
+        config.BOT_LOG_LEVEL = loglevel
+        self.bot_config = config
 
     def start(self):
         """

@@ -24,14 +24,14 @@ class StoreMixin(MutableMapping):
     """
 
     def __init__(self):
+        log.info('Init shelf of %s' % self.__class__.__name__)
         self.shelf = None
 
     def open_storage(self, path):
         if hasattr(self, 'shelf') and self.shelf is not None:
             raise StoreAlreadyOpenError("Storage appears to be opened already")
-        log.info("Try to open db file %s" % path)
         self.shelf = shelve.DbfilenameShelf(path, protocol=2)
-        log.debug('Opened shelf of %s' % self.__class__.__name__)
+        log.info('Opened shelf of %s at %s' % (self.__class__.__name__, path))
 
     def close_storage(self):
         if not hasattr(self, 'shelf') or self.shelf is None:

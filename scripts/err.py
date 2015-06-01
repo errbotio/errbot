@@ -137,6 +137,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=None,
                         help='Specify the directory where your config.py is (default: current working directory)')
+    parser.add_argument('-r', '--restore', nargs='?', default=None, const='default',
+                        help='Restores a bot from backup.py. (default: backup.py from the bot data directory)')
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
@@ -164,7 +166,12 @@ if __name__ == "__main__":
     filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc',
                                          'xmpp', 'tox', 'slack', 'null')
                      if args[mname]]
-    mode = filtered_mode[0] if filtered_mode else 'xmpp'  # default value
+    if args['restore']:
+        mode = 'null'  # we don't want any backend when we restore
+    elif filtered_mode:
+        mode = filtered_mode[0]
+    else:
+        'xmpp'  # default value
 
     config = get_config(config_path, mode)  # will exit if load fails
 
@@ -226,7 +233,8 @@ if __name__ == "__main__":
     if (not ON_WINDOWS) and args['daemon']:
         if args['text']:
             raise Exception('You cannot run in text and daemon mode at the same time')
-
+        if args['restore']:
+            raise Exception('You cannot restore a backup in daemon mode.')
         if args['pidfile']:
             pid = args['pidfile']
         else:
@@ -249,6 +257,9 @@ if __name__ == "__main__":
             log.exception('Failed to daemonize the process')
         exit(0)
     from errbot.main import main
+    restore = args['restore']
+    if restore == 'default':  # restore with no argument, get the default location
+        restore = path.join(config.BOT_DATA_DIR, 'backup.py')
 
-    main(bot_class, logger, config)
+    main(bot_class, logger, config, restore)
     log.info('Process exiting')

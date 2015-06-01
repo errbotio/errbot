@@ -1,11 +1,11 @@
 from os import path, makedirs
 import logging
+import sys
 
 log = logging.getLogger(__name__)
 
 
-def setup_bot(bot_class, logger, config):
-
+def setup_bot(bot_class, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
@@ -45,13 +45,27 @@ def setup_bot(bot_class, logger, config):
     except Exception:
         log.exception("Unable to configure the backend, please check if your config.py is correct.")
         exit(-1)
+
+    # restore the bot from the restore script
+    if restore:
+        # Prepare the context for the restore script
+        if 'repos' in bot:
+            log.fatal('You cannot restore onto a non empty bot.')
+        from errbot.plugin_manager import get_plugin_by_name  # noqa
+        log.info('**** RESTORING the bot from %s' % restore)
+        with open(restore) as f:
+            exec(f.read())
+        bot.close_storage()
+        print('Restore complete restore the bot normally')
+        sys.exit(0)
+
     errors = bot.update_dynamic_plugins()
     if errors:
         log.error('Some plugins failed to load:\n' + '\n'.join(errors))
     return bot
 
 
-def main(bot_class, logger, config):
-    bot = setup_bot(bot_class, logger, config)
+def main(bot_class, logger, config, restore=None):
+    bot = setup_bot(bot_class, logger, config, restore)
     log.debug('serve from %s' % bot)
     bot.serve_forever()

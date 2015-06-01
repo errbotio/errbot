@@ -16,6 +16,10 @@ else:
     print("Running under Python 2, skipping pep8 style checks")
     pep8_result = 0
 
+if pep8_result != 0:
+    print("Pep8 failed.")
+    sys.exit(-1)
+
 pytest_result = pytest.main('-x')
 
 if pytest_result or pep8_result:

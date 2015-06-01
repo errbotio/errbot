@@ -28,16 +28,18 @@ from errbot.utils import mess_2_embeddablehtml  # noqa
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 
 
+class Config:
+    BOT_IDENTITY = {'username': 'err@localhost'}
+    BOT_ASYNC = False
+    BOT_PREFIX = '!'
+    CHATROOM_FN = 'blah'
+
+
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
     jid = Identifier('err@localhost/err')
 
     def __init__(self, extra_config={}):
-        class Config:
-            BOT_IDENTITY = {'username': 'err@localhost'}
-            BOT_ASYNC = False
-            BOT_PREFIX = '!'
-            CHATROOM_FN = 'blah'
         self.bot_config = Config()
         for key in extra_config:
             setattr(self.bot_config, key, extra_config[key])

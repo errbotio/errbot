@@ -47,7 +47,7 @@ class NullBackend(ErrBot):
 
     def build_message(self, text):
         text, html = build_text_html_message_pair(text)
-        return Message(text, html=html)se
+        return Message(text, html=html)
 
     def build_identifier(self, strrep):
         return SimpleIdentifier(strrep)

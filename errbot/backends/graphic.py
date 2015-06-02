@@ -4,8 +4,8 @@ import re
 import sys
 
 import errbot
-from errbot.backends.base import Message, build_text_html_message_pair, Identifier
-from errbot.backed.text import TextBackend   # we use that as we emulate MUC there already
+from errbot.backends.base import Message, build_text_html_message_pair
+from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.backends.text import SimpleIdentifier
 from errbot.utils import mess_2_embeddablehtml
 
@@ -208,7 +208,7 @@ class GraphicBackend(TextBackend):
     def __init__(self, config):
         self.conn = None
         super().__init__(config)
-        self.jid = Identifier('Err')
+        self.jid = SimpleIdentifier('Err')
         self.app = None
 
     def send_command(self, text):

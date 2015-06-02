@@ -5,7 +5,7 @@ import time
 import sys
 from errbot import PY3
 from errbot.backends.base import (
-    Message, build_message, Identifier, Presence, ONLINE, AWAY,
+    Message, build_message, Presence, ONLINE, AWAY,
     MUCRoom, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot

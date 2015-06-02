@@ -85,11 +85,17 @@ class XMPPIdentifier(object):
         return self._resource
 
     @property
+    def person(self):
+        return self._node + '@' + self._domain
+
+    @deprecated("Use .person instead")
+    @property
     def stripped(self):
         if self._domain:
             return self._node + '@' + self._domain
         return self._node  # if the backend has no domain notion
 
+    @deprecated
     def bare_match(self, other):
         """ checks if 2 identifiers are equal, ignoring the resource """
         return other.stripped == self.stripped
@@ -294,15 +300,18 @@ class XMPPMUCRoom(MUCRoom):
                       .format(room, affiliation))
 
 
-class XMPPMUCOccupant(MUCOccupant):
+class XMPPMUCOccupant(MUCOccupant, XMPPIdentifier):
     def __init__(self, **kwargs):
-        super(XMPPMUCOccupant, self).__init__(jid=kwargs.pop("jid"))
+        super().__init__(jid=kwargs.pop("jid"))
 
         for k, v in kwargs.items():
             # Ensure existing attributes can't be overridden, either accidentally
             # or maliciously by a rogue server.
             if not hasattr(self, k):
                 setattr(self, k, v)
+
+    def person(self):
+        return self.resource
 
 
 class XMPPConnection(object):
@@ -535,6 +544,31 @@ class XMPPBackend(ErrBot):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_reply(self, mess, text=None, private=False):
+        """Build a message for responding to another message.
+        Message is NOT sent"""
+        msg_type = mess.type
+        response = self.build_message(text)
+
+        response.frm = self.jid
+        if msg_type == 'groupchat' and not private:
+            # stripped returns the full bot@conference.domain.tld/chat_username
+            # but in case of a groupchat, we should only try to send to the MUC address
+            # itself (bot@conference.domain.tld)
+            response.to = XMPPIdentifier(node=mess.frm.node, domain=mess.frm.domain)
+        elif str(mess.to) == self.bot_config.BOT_IDENTITY['username']:
+            # This is a direct private message, not initiated through a MUC. Use
+            # stripped to remove the resource so that the response goes to the
+            # client with the highest priority
+            response.to = mess.frm.stripped
+        else:
+            # This is a private message that was initiated through a MUC. Don't use
+            # stripped here to retain the resource, else the XMPP server doesn't
+            # know which user we're actually responding to.
+            response.to = mess.frm
+        response.type = 'chat' if private else msg_type
+        return response
 
     def invite_in_room(self, room, jids_to_invite):
         """

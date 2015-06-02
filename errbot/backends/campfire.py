@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from errbot.backends.base import Message, build_message, Identifier
+from errbot.backends.base import Message, build_message
 from errbot.errBot import ErrBot
 from threading import Condition
 
@@ -32,9 +32,9 @@ class CampfireConnection(pyfire.Campfire):
 ENCODING_INPUT = sys.stdin.encoding
 
 
-class CampfireIdentifier(Identifier):
-    def __init__(self, s):
-        self._user = s   # it is just one room for the moment
+class CampfireIdentifier(object):
+    def __init__(self, user):
+        self._user = user   # it is just one room for the moment
 
     @property
     def user(self):
@@ -80,7 +80,7 @@ class CampfireBackend(ErrBot):
     def connect(self):
         if not self.conn:
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = Identifier(self.username)
+            self.jid = CampfireIdentifier(self.username)
             self.room = self.conn.get_room_by_name(self.chatroom).name
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms

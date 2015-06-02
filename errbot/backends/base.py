@@ -51,8 +51,6 @@ class Message(object):
     make sense in the context of other back-ends.
     """
 
-    fr = Identifier('unknown@localhost')
-
     def __init__(self, body, type_='chat', html=None):
         """
         :param body:
@@ -91,13 +89,9 @@ class Message(object):
         Set the recipient of the message.
 
         :param to:
-            An :class:`~errbot.backends.base.Identifier`, or string which may
-            be parsed as one, identifying the recipient.
+            An identifier from for example build_identifier().
         """
-        if isinstance(to, Identifier):
-            self._to = to
-        else:
-            self._to = Identifier(to)  # assume a parseable string
+        self._to = to
 
     @property
     def type(self):
@@ -138,13 +132,9 @@ class Message(object):
         Set the sender of the message.
 
         :param from_:
-            An :class:`~errbot.backends.base.Identifier`, or string which may
-            be parsed as one, identifying the sender.
+            An identifier from build_identifier.
         """
-        if isinstance(from_, Identifier):
-            self._from = from_
-        else:
-            self._from = Identifier(from_)  # assume a parseable string
+        self._from = from_
 
     @property
     def body(self):
@@ -279,7 +269,7 @@ class Presence(object):
 
     @property
     def chatroom(self):
-        """ Returns the Identifier pointing the room in which the event occurred.
+        """ Returns the identifier pointing the room in which the event occurred.
             If it returns None, the event occurred outside of a chatroom.
         """
         return self._chatroom
@@ -626,35 +616,15 @@ class Backend(object):
 
     def send_message(self, mess):
         """Should be overridden by backends"""
+        raise NotImplementedError("send_message should be implemented by the backend")
 
     def send_simple_reply(self, mess, text, private=False):
         """Send a simple response to a message"""
         self.send_message(self.build_reply(mess, text, private))
 
     def build_reply(self, mess, text=None, private=False):
-        """Build a message for responding to another message.
-        Message is NOT sent"""
-        msg_type = mess.type
-        response = self.build_message(text)
-
-        response.frm = self.jid
-        if msg_type == 'groupchat' and not private:
-            # stripped returns the full bot@conference.domain.tld/chat_username
-            # but in case of a groupchat, we should only try to send to the MUC address
-            # itself (bot@conference.domain.tld)
-            response.to = Identifier(node=mess.frm.node, domain=mess.frm.domain)
-        elif str(mess.to) == self.bot_config.BOT_IDENTITY['username']:
-            # This is a direct private message, not initiated through a MUC. Use
-            # stripped to remove the resource so that the response goes to the
-            # client with the highest priority
-            response.to = mess.frm.stripped
-        else:
-            # This is a private message that was initiated through a MUC. Don't use
-            # stripped here to retain the resource, else the XMPP server doesn't
-            # know which user we're actually responding to.
-            response.to = mess.frm
-        response.type = 'chat' if private else msg_type
-        return response
+        """ Should be implemented by the backend """
+        raise NotImplementedError("build_reply should be implemented by the backend")
 
     def callback_presence(self, presence):
         """
@@ -688,7 +658,7 @@ class Backend(object):
         type_ = mess.type
         jid = mess.frm
         text = mess.body
-        username = get_sender_username(mess)
+        username = mess.frm.person
         user_cmd_history = self.cmd_history[username]
 
         if mess.delayed:
@@ -705,7 +675,7 @@ class Backend(object):
         # background discussion on this). Matching against CHATROOM_FN isn't technically
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
-        if (jid.bare_match(self.jid) or
+        if (jid.person == self.jid.person or
             type_ == "groupchat" and mess.nick == self.bot_config.CHATROOM_FN):  # noqa
                 log.debug("Ignoring message from self")
                 return False
@@ -833,7 +803,7 @@ class Backend(object):
         """Process and execute a bot command"""
 
         jid = mess.frm
-        username = get_sender_username(mess)
+        username = jid.person
         user_cmd_history = self.cmd_history[username]
 
         log.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
@@ -946,7 +916,7 @@ class Backend(object):
 
         Raises ACLViolation() if the command may not be executed in the given context
         """
-        usr = str(get_jid_from_message(mess))
+        usr = str(mess.frm)
         typ = mess.type
 
         if cmd not in self.bot_config.ACCESS_CONTROLS:
@@ -1246,10 +1216,4 @@ class Backend(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
 
-def get_jid_from_message(mess):
-    if mess.type == 'chat':
-        # strip the resource for direct chats
-        return mess.frm.stripped
-    fr = mess.frm
-    jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
-    return jid
+

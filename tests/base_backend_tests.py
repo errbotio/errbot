@@ -20,7 +20,8 @@ import os  # noqa
 import re  # noqa
 from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
-from errbot.backends.base import Identifier, Backend, Message  # noqa
+from errbot.backends.xmpp import XMPPIdentifier
+from errbot.backends.base import Backend, Message  # noqa
 from errbot.backends.base import build_message, build_text_html_message_pair  # noqa
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.utils import mess_2_embeddablehtml  # noqa
@@ -37,7 +38,7 @@ class Config:
 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
-    jid = Identifier('err@localhost/err')
+    jid = XMPPIdentifier('err@localhost/err')
 
     def __init__(self, extra_config={}):
         self.bot_config = Config()
@@ -149,33 +150,33 @@ class TestBase(unittest.TestCase):
         self.dummy = DummyBackend()
 
     def test_identifier_parsing(self):
-        id1 = Identifier(jid='gbin@gootz.net/toto')
+        id1 = XMPPIdentifier(jid='gbin@gootz.net/toto')
         self.assertEqual(id1.node, 'gbin')
         self.assertEqual(id1.domain, 'gootz.net')
         self.assertEqual(id1.resource, 'toto')
 
-        id2 = Identifier(jid='gbin@gootz.net')
+        id2 = XMPPIdentifier(jid='gbin@gootz.net')
         self.assertEqual(id2.node, 'gbin')
         self.assertEqual(id2.domain, 'gootz.net')
         self.assertIsNone(id2.resource)
 
     def test_identifier_matching(self):
-        id1 = Identifier(jid='gbin@gootz.net/toto')
-        id2 = Identifier(jid='gbin@gootz.net/titi')
-        id3 = Identifier(jid='gbin@giitz.net/titi')
-        self.assertTrue(id1.bare_match(id2))
-        self.assertFalse(id2.bare_match(id3))
+        id1 = XMPPIdentifier(jid='gbin@gootz.net/toto')
+        id2 = XMPPIdentifier(jid='gbin@gootz.net/titi')
+        id3 = XMPPIdentifier(jid='gbin@giitz.net/titi')
+        self.assertTrue(id1.person == id2.person)
+        self.assertFalse(id2.person == id3.person)
 
     def test_identifier_stripping(self):
-        id1 = Identifier(jid='gbin@gootz.net/toto')
+        id1 = XMPPIdentifier(jid='gbin@gootz.net/toto')
         self.assertEqual(id1.stripped, 'gbin@gootz.net')
 
     def test_identifier_str_rep(self):
-        self.assertEqual(str(Identifier(jid="gbin@gootz.net/toto")), "gbin@gootz.net/toto")
-        self.assertEqual(str(Identifier(jid="gbin@gootz.net")), "gbin@gootz.net")
+        self.assertEqual(str(XMPPIdentifier(jid="gbin@gootz.net/toto")), "gbin@gootz.net/toto")
+        self.assertEqual(str(XMPPIdentifier(jid="gbin@gootz.net")), "gbin@gootz.net")
 
     def test_identifier_unicode_rep(self):
-        self.assertEqual(str(Identifier(jid="gbin@gootz.net/へようこそ")), "gbin@gootz.net/へようこそ")
+        self.assertEqual(str(XMPPIdentifier(jid="gbin@gootz.net/へようこそ")), "gbin@gootz.net/へようこそ")
 
     def test_xhtmlparsing_and_textify(self):
         text_plain, node = build_text_html_message_pair('<html><body>Message</body></html>')
@@ -185,7 +186,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual(node.getchildren()[0].text, 'Message')
 
     def test_identifier_double_at_parsing(self):
-        id1 = Identifier(jid='gbin@titi.net@gootz.net/toto')
+        id1 = XMPPIdentifier(jid='gbin@titi.net@gootz.net/toto')
         self.assertEqual(id1.node, 'gbin@titi.net')
         self.assertEqual(id1.domain, 'gootz.net')
         self.assertEqual(id1.resource, 'toto')

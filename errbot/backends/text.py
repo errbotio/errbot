@@ -1,6 +1,6 @@
 import logging
 import sys
-from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE, MUCRoom, MUCOccupant
+from errbot.backends.base import Message, build_message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 log = logging.getLogger(__name__)
@@ -14,6 +14,11 @@ A_BLUE = '\x1b[34m'
 
 class SimpleIdentifier(str):
     """ This is a test identifier just represented as a string """
+    @property
+    def person(self):
+        """This needs to return the part of the identifier pointing to a person.
+        For example for XMPP it is node@domain without the resource that actually maps to a device."""
+        return self
 
 
 class TextBackend(ErrBot):
@@ -60,6 +65,13 @@ class TextBackend(ErrBot):
     def build_message(self, text):
         return build_message(text, Message)
 
+    def build_reply(self, mess, text=None, private=False):
+        response = self.build_message(text)
+        response.frm = self.jid
+        response.to = mess.frm
+        response.type = 'chat' if private else mess.type
+        return response
+
     def shutdown(self):
         super(TextBackend, self).shutdown()
 
@@ -72,7 +84,7 @@ class TextBackend(ErrBot):
         return 'text'
 
     def query_room(self, room):
-        room = TextMUCRoom(room, bot=self)
+        room = TextMUCRoom()
         self.rooms.add(room)
         return room
 
@@ -84,8 +96,7 @@ class TextBackend(ErrBot):
 
 
 class TextMUCRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', bot=None):
-        super().__init__(jid, node, domain, resource, bot)
+    def __init__(self):
         self.topic_ = ''
         self.joined_ = False
 
@@ -119,7 +130,7 @@ class TextMUCRoom(MUCRoom):
 
     @property
     def occupants(self):
-        return [MUCOccupant("Somebody")]
+        return [SimpleIdentifier("Somebody")]
 
     def invite(self, *args):
         pass

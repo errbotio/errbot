@@ -4,7 +4,7 @@ import sys
 import warnings
 
 from errbot.backends.base import (
-    Identifier, Message, MUCOccupant, MUCRoom, RoomError, RoomNotJoinedError,
+    Message, MUCOccupant, MUCRoom, RoomError, RoomNotJoinedError,
     build_message, build_text_html_message_pair,
 )
 from errbot.errBot import ErrBot
@@ -212,7 +212,7 @@ class IRCConnection(SingleServerIRCBot):
 
     def on_pubmsg(self, _, e):
         msg = Message(e.arguments[0], type_='groupchat')
-        msg.frm = Identifier(node=e.target)
+        msg.frm = self.callback.build_identifier(e.target)
         msg.to = self.callback.jid
         msg.nick = e.source.split('!')[0]  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)

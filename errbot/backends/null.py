@@ -1,6 +1,6 @@
 import logging
 from time import sleep
-from errbot.backends.base import Message, Identifier, build_text_html_message_pair
+from errbot.backends.base import Message, build_text_html_message_pair
 from errbot.backends.text import SimpleIdentifier
 from errbot.errBot import ErrBot
 
@@ -21,7 +21,7 @@ class NullBackend(ErrBot):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.jid = Identifier('Err')  # whatever
+        self.jid = SimpleIdentifier('Err')  # whatever
 
     def serve_forever(self):
         self.connect()  # be sure we are "connected" before the first command

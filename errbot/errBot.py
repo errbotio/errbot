@@ -183,7 +183,6 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         return errors
 
     def send_message(self, mess):
-        super(ErrBot, self).send_message(mess)
         for bot in self.get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:

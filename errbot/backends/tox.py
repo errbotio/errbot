@@ -26,12 +26,6 @@ except ImportError:
     sys.exit(-1)
 
 
-# Backend notes
-#
-# TOX mapping to Err Identifier :
-# TOX client_id as hash string -> node
-
-
 TOX_MAX_MESS_LENGTH = 1368
 
 NOT_ADMIN = "You are not recognized as an administrator of this bot"
@@ -90,7 +84,7 @@ class ToxConnection(Tox):
         Returns the Tox friend number from the roster.
 
         :exception ValueError if the identifier is not a Tox one.
-        :param identifier: an err Identifier
+        :param identifier: an err identifier
         :param autoinvite: set to True if you want to invite this identifier if it is not in your roster.
         :return: the tox friend number from the roster, None if it could not be found.
         """

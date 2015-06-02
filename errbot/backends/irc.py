@@ -30,9 +30,11 @@ except ImportError as _:
     """)
     sys.exit(-1)
 
-class IRCIdentifier(Identifier):
-    def __init__(self, s):
-        self._nick, self._domain = s.split('!')
+
+class IRCIdentifier(object):
+    def __init__(self, nick, domain):
+        self._nick = nick
+        self._domain = domain
 
     @property
     def nick(self):
@@ -42,7 +44,9 @@ class IRCIdentifier(Identifier):
     def domain(self):
         return self._domain
 
-    # TODO: __unicode__
+    def __unicode__(self):
+        return "{}!{}" % (self._nick, self._domain)
+
 
 class IRCMUCRoom(MUCRoom):
     def __init__(self, *args, **kwargs):
@@ -270,6 +274,10 @@ class IRCBackend(ErrBot):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, txtrep):
+        nick, domain = txtrep.split('!')
+        return IRCIdentifier(nick, domain)
 
     def shutdown(self):
         super().shutdown()

@@ -31,6 +31,7 @@ class CampfireConnection(pyfire.Campfire):
 
 ENCODING_INPUT = sys.stdin.encoding
 
+
 class CampfireIdentifier(Identifier):
     def __init__(self, s):
         self._user = s   # it is just one room for the moment
@@ -38,6 +39,7 @@ class CampfireIdentifier(Identifier):
     @property
     def user(self):
         return self._user
+
 
 class CampfireBackend(ErrBot):
     exit_lock = Condition()

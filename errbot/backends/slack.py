@@ -53,7 +53,7 @@ class SlackAPIResponseError(RuntimeError):
 
 
 class SlackIdentifier(Identifier):
-    def __init__(self, userid, domain, channel = None):
+    def __init__(self, userid, domain, channel=None):
         self._userid = userid
         self._domain = domain
         self._channel = channel
@@ -70,17 +70,14 @@ class SlackIdentifier(Identifier):
     def channel(self):
         return self._channel
 
+    def __unicode__(self):
+        # TODO if domain
+        return "{}@{}" % (self._userid, self._domain)
+
 
 class SlackMUCOccupant(SlackIdentifier):
     """
     This class represents a person inside a MUC.
-
-    This class exists to expose additional information about occupants
-    inside a MUC. For example, the XMPP back-end may expose backend-specific
-    information such as the real JID of the occupant and whether or not
-    that person is a moderator or owner of the room.
-
-    See the parent class for additional details.
     """
 
 
@@ -206,8 +203,12 @@ class SlackBackend(ErrBot):
             return
 
         msg = Message(event['text'], type_=message_type)
-        msg.frm = SlackIdentifier(self.userid_to_username(event['user']), self.sc.server.domain, self.channelid_to_channelname(event['channel']))
-        msg.to = SlackIdentifier(self.sc.server.username, self.sc.server.domain, self.channelid_to_channelname(event['channel']))
+        msg.frm = SlackIdentifier(self.userid_to_username(event['user']),
+                                  self.sc.server.domain,
+                                  self.channelid_to_channelname(event['channel']))
+        msg.to = SlackIdentifier(self.sc.server.username,
+                                 self.sc.server.domain,
+                                 self.channelid_to_channelname(event['channel']))
         msg.nick = msg.frm.userid
         self.callback_message(msg)
 
@@ -295,6 +296,10 @@ class SlackBackend(ErrBot):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, txtrep):
+        # TODO channel
+        return SlackIdentifier(txtrep, self.sc.server.domain)
 
     def build_reply(self, mess, text=None, private=False):
         msg_type = mess.type

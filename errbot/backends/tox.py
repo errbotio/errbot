@@ -7,7 +7,7 @@ from os.path import exists, join
 import io
 from errbot.backends import base
 from errbot.errBot import ErrBot
-from errbot.backends.base import Message, Identifier, Presence, Stream, MUCRoom
+from errbot.backends.base import Message, Presence, Stream, MUCRoom
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.backends.base import build_message
 from errbot.backends.base import STREAM_TRANSFER_IN_PROGRESS
@@ -48,12 +48,14 @@ TOX_GROUP_TO_ERR_STATUS = {
     Tox.CHAT_CHANGE_PEER_NAME: None,
 }
 
-class ToxIdentifier(Identifier):
+
+class ToxIdentifier(object):
     def __init__(self, client_id=None, group_number=None, friend_group_number=None, username=None):
         self._client_id = client_id
         self._group_number = group_number
         self._friend_group_number = friend_group_number
         self._username = username
+
 
 class ToxStreamer(io.BufferedRWPair):
     def __init__(self):
@@ -81,7 +83,7 @@ class ToxConnection(Tox):
         self.bootstrap_from_address(*bootstrap_servers)
 
     def friend_to_idd(self, friend_number):
-        return Identifier(self.get_client_id(friend_number))
+        return ToxIdentifier(client_id=self.get_client_id(friend_number))
 
     def idd_to_friend(self, identifier, autoinvite=True, autoinvite_message='I am just a bot.'):
         """

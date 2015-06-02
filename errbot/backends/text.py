@@ -11,24 +11,21 @@ A_RESET = '\x1b[0m'
 A_CYAN = '\x1b[36m'
 A_BLUE = '\x1b[34m'
 
-class SimpleIdentifier(Identifier):
-    def __init__(self, s):
-        self._nick = s
 
-    @property
-    def nick(self):
-        return self._nick
+class SimpleIdentifier(str):
+    """ This is a test identifier just represented as a string """
+
 
 class TextBackend(ErrBot):
 
     def __init__(self, config):
         super().__init__(config)
         log.debug("Text Backend Init.")
-        self.jid = Identifier('Err')
+        self.jid = SimpleIdentifier('Err')
         self.rooms = set()
 
     def serve_forever(self):
-        me = Identifier(self.bot_config.BOT_ADMINS[0])
+        me = SimpleIdentifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=me, status=ONLINE))
         try:

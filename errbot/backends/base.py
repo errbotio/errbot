@@ -343,9 +343,6 @@ STREAM_REJECTED = 'rejected'
 
 DEFAULT_REASON = 'unknown'
 
-class Identifier(object):
-    def __init__(self, s):
-        raise NotImplemented('Identifier() should never be called directly, use self.build_identifier() instead.')
 
 class Stream(io.BufferedReader):
     """
@@ -439,14 +436,10 @@ class Stream(io.BufferedReader):
         return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
 
 
-class MUCRoom(Identifier):
+class MUCRoom(object):
     """
     This class represents a Multi-User Chatroom.
     """
-
-    def __init__(self, jid=None, node='', domain='', resource='', bot=None):
-        super().__init__(jid, node, domain, resource)
-        self._bot = bot
 
     def join(self, username=None, password=None):
         """
@@ -551,20 +544,6 @@ class MUCRoom(Identifier):
             One or more JID's to invite into the room.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
-
-
-class MUCOccupant(Identifier):
-    """
-    This class represents a person inside a MUC.
-
-    This class exists to expose additional information about occupants
-    inside a MUC. For example, the XMPP back-end may expose backend-specific
-    information such as the real JID of the occupant and whether or not
-    that person is a moderator or owner of the room.
-
-    See the parent class for additional details.
-    """
-    pass
 
 
 def build_text_html_message_pair(source):
@@ -1187,6 +1166,9 @@ class Backend(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def build_message(self, text):
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def build_identifier(self, text):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def serve_once(self):

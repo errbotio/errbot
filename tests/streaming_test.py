@@ -2,7 +2,7 @@ import unittest
 from io import BytesIO
 from errbot.streaming import Tee
 from errbot.backends.base import Stream
-from errbot.backends.text import SimpleIdentifier
+from errbot.backends import SimpleIdentifier
 import logging
 
 

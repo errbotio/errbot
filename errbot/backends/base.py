@@ -520,7 +520,7 @@ class MUCRoom(object):
         The room's occupants.
 
         :getter:
-            Returns a list of :class:`~errbot.backends.base.MUCOccupant` instances.
+            Returns a list of occupant identities.
         :raises:
             :class:`~MUCNotJoinedError` if the room has not yet been joined.
         """
@@ -1187,7 +1187,7 @@ class Backend(object):
         Query a room for information.
 
         :param room:
-            The JID/identifier of the room to query for.
+            The room to query for.
         :returns:
             An instance of :class:`~MUCRoom`.
         """
@@ -1214,6 +1214,3 @@ class Backend(object):
             A list of :class:`~errbot.backends.base.MUCRoom` instances.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
-
-
-

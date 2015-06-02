@@ -17,6 +17,7 @@ PY2 = not PY3
 
 PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
 
+
 class deprecated(object):
     """ deprecated decorator. emits a warning on a call on an old method and call the new method anyway """
     def __init__(self, new=None):
@@ -55,6 +56,7 @@ class deprecated(object):
 def get_sender_username(mess):
     """Extract the sender's user name from a message"""
     return mess.frm.person
+
 
 def format_timedelta(timedelta):
     total_seconds = timedelta.seconds + (86400 * timedelta.days)

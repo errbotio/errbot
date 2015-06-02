@@ -1,5 +1,6 @@
 import logging
 import sys
+from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, build_message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -10,15 +11,6 @@ ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
 A_RESET = '\x1b[0m'
 A_CYAN = '\x1b[36m'
 A_BLUE = '\x1b[34m'
-
-
-class SimpleIdentifier(str):
-    """ This is a test identifier just represented as a string """
-    @property
-    def person(self):
-        """This needs to return the part of the identifier pointing to a person.
-        For example for XMPP it is node@domain without the resource that actually maps to a device."""
-        return self
 
 
 class TextBackend(ErrBot):

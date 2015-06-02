@@ -1,7 +1,7 @@
 import logging
 from time import sleep
 from errbot.backends.base import Message, build_text_html_message_pair
-from errbot.backends.text import SimpleIdentifier
+from errbot.backends import SimpleIdentifier
 from errbot.errBot import ErrBot
 
 log = logging.getLogger(__name__)

@@ -4,9 +4,9 @@ import re
 import sys
 
 import errbot
+from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, build_text_html_message_pair
 from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
-from errbot.backends.text import SimpleIdentifier
 from errbot.utils import mess_2_embeddablehtml
 
 log = logging.getLogger(__name__)

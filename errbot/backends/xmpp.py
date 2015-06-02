@@ -556,7 +556,6 @@ class XMPPBackend(ErrBot):
 
         return XMPPIdentifier(node, domain, resource)
 
-
     def build_reply(self, mess, text=None, private=False):
         """Build a message for responding to another message.
         Message is NOT sent"""

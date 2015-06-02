@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from threading import Thread
 
 import pytest
-from errbot.backends.text import SimpleIdentifier
+from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ config.BOT_LOG_LEVEL = logging.DEBUG
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
 from errbot.backends.base import (
-    Message, build_message, MUCRoom, MUCOccupant  # noqa
+    Message, build_message, MUCRoom  # noqa
 )
 from errbot.core_plugins.wsview import reset_app  # noqa
 from errbot.errBot import ErrBot  # noqa
@@ -42,13 +42,10 @@ STZ_PRE = 2
 STZ_IQ = 3
 
 
-class MUCRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', occupants=None, topic=None, bot=None):
+class TestMUCRoom(MUCRoom):
+    def __init__(self, name, occupants=None, topic=None, bot=None):
         """
-        :param jid: See parent class.
-        :param node: See parent class.
-        :param domain: See parent class.
-        :param resource: See parent class.
+        :param name: Name of the room
         :param occupants: Occupants of the room
         :param topic: The MUC's topic
         """
@@ -86,7 +83,7 @@ class MUCRoom(MUCRoom):
             self.create()
 
         room = [r for r in rooms if str(r) == str(self)][0]
-        room._occupants.append(MUCOccupant(bot_itself))
+        room._occupants.append(SimpleMUCOccupant(bot_itself))
         log.info("Joined room {!s}".format(self))
         self._bot.callback_room_joined(room)
 

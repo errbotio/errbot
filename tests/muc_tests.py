@@ -57,11 +57,6 @@ class TestMUC(object):
         assert len(room.occupants) == 1
         assert 'err@localhost' in [str(o) for o in room.occupants]
 
-        assert issubclass(
-            room.occupants[0].__class__,
-            errbot.backends.base.MUCOccupant
-        )
-
     def test_topic(self, testbot):  # noqa
         room = testbot.bot.rooms()[0]
         assert room.topic is None

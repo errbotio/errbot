@@ -4,7 +4,7 @@ import sys
 import warnings
 
 from errbot.backends.base import (
-    Message, MUCOccupant, MUCRoom, RoomError, RoomNotJoinedError,
+    Message, MUCRoom, RoomError, RoomNotJoinedError,
     build_message, build_text_html_message_pair,
 )
 from errbot.errBot import ErrBot
@@ -32,7 +32,7 @@ except ImportError as _:
 
 
 class IRCIdentifier(object):
-    def __init__(self, nick, domain):
+    def __init__(self, nick, domain=None):
         self._nick = nick
         self._domain = domain
 
@@ -46,6 +46,11 @@ class IRCIdentifier(object):
 
     def __unicode__(self):
         return "{}!{}" % (self._nick, self._domain)
+
+
+class IRCMUCOccupant(IRCIdentifier):
+    def __init__(self, nick):
+        super().__init__(nick)
 
 
 class IRCMUCRoom(MUCRoom):
@@ -152,14 +157,14 @@ class IRCMUCRoom(MUCRoom):
         The room's occupants.
 
         :getter:
-            Returns a list of :class:`~errbot.backends.base.MUCOccupant` instances.
-        :raises:
+            Returns a list of occupants.
+            :raises:
             :class:`~MUCNotJoinedError` if the room has not yet been joined.
         """
         occupants = []
         try:
             for nick in self._bot.conn.channels[str(self)].users():
-                occupants.append(MUCOccupant(node=nick))
+                occupants.append(IRCMUCOccupant(nick=nick))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -281,18 +286,6 @@ class IRCBackend(ErrBot):
 
     def shutdown(self):
         super().shutdown()
-
-    def join_room(self, room, username=None, password=None):
-        """
-        .. deprecated:: 2.2.0
-            Use the methods on :class:`IRCMUCRoom` instead.
-        """
-        warnings.warn(
-            "Using join_room is deprecated, use join from the "
-            "MUCRoom class instead.",
-            DeprecationWarning
-        )
-        self.query_room(room).join(username=username, password=password)
 
     def query_room(self, room):
         """

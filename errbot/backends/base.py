@@ -12,7 +12,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 
 from errbot import botcmd, PY2
-from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after, deprecated
+from errbot.utils import get_sender_username, xhtml2txt, split_string_after, deprecated
 from errbot.templating import tenv
 from errbot.bundled.threadpool import ThreadPool, WorkRequest
 

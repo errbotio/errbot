@@ -8,7 +8,6 @@ from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
 from time import sleep
-from errbot.utils import parse_jid
 
 log = logging.getLogger(__name__)
 
@@ -64,13 +63,10 @@ class XMPPIdentifier(object):
     are identifying a person on their system.
     """
 
-    def __init__(self, jid=None, node='', domain='', resource=''):
-        if jid:
-            self._node, self._domain, self._resource = parse_jid(jid)
-        else:
-            self._node = node
-            self._domain = domain
-            self._resource = resource
+    def __init__(self, node='', domain='', resource=''):
+        self._node = node
+        self._domain = domain
+        self._resource = resource
 
     @property
     def node(self):
@@ -544,6 +540,22 @@ class XMPPBackend(ErrBot):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, txtrep):
+        if jid.find('@') != -1:
+            split_jid = jid.split('@')
+            node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
+            if domain.find('/') != -1:
+                domain, resource = domain.split('/')[0:2]  # hack for IRC where you can have several slashes here
+            else:
+                resource = None
+        else:
+            node = jid
+            domain = None
+            resource = None
+
+        return XMPPIdentifier(node, domain, resource)
+
 
     def build_reply(self, mess, text=None, private=False):
         """Build a message for responding to another message.

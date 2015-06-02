@@ -3,7 +3,6 @@ import sys
 
 from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
 from errbot.backends.xmpp import XMPPBackend, XMPPConnection
-from errbot.utils import parse_jid
 
 log = logging.getLogger(__name__)
 
@@ -86,15 +85,15 @@ class HipChatMUCRoom(MUCRoom):
 
     @property
     def node(self):
-        return parse_jid(self.jid)[0]
+        return self._bot.build_identifier(self.jid).node
 
     @property
     def domain(self):
-        return parse_jid(self.jid)[1]
+        return self._bot.build_identifier(self.jid).domain
 
     @property
     def resource(self):
-        return parse_jid(self.jid)[2]
+        return self._bot.build_identifier(self.jid).resource
 
     def __repr__(self):
         return "<HipChatMUCRoom('{}')>".format(self.name)

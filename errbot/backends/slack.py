@@ -53,21 +53,25 @@ class SlackAPIResponseError(RuntimeError):
 
 
 class SlackIdentifier(Identifier):
-    def __init__(self, jid=None, node='', domain='', resource=''):
-        super().__init__(jid, node, domain, resource)
+    def __init__(self, userid, domain, channel = None):
+        self._userid = userid
+        self._domain = domain
+        self._channel = channel
 
     @property
-    def stripped(self):
-        # Slack back-end uses the resource to denote the user ID. In XMPP
-        # it can happen that this needs to be stripped, but not with Slack.
-        # We should *always* return the full triplet here.
-        return str(self)
+    def userid(self):
+        return self._userid
 
-    def __str__(self):
-        return "%s@%s/%s" % (self.node, self.domain, self.resource)
+    @property
+    def domain(self):
+        return self._domain
+
+    @property
+    def channel(self):
+        return self._channel
 
 
-class SlackMUCOccupant(Identifier):
+class SlackMUCOccupant(SlackIdentifier):
     """
     This class represents a person inside a MUC.
 
@@ -127,11 +131,7 @@ class SlackBackend(ErrBot):
         if not self.auth['ok']:
             log.error("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
         log.debug("Token accepted")
-        self.jid = SlackIdentifier(
-            node=self.auth["user_id"],
-            domain=self.sc.server.domain,
-            resource=self.auth["user_id"]
-        )
+        self.jid = SlackIdentifier(self.auth["user_id"], self.sc.server.domain)
 
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
@@ -174,7 +174,7 @@ class SlackBackend(ErrBot):
     def _presence_change_event_handler(self, event):
         """Event handler for the 'presence_change' event"""
 
-        idd = SlackIdentifier(domain=self.sc.server.domain, resource=event['user'])
+        idd = SlackIdentifier(event['user'], self.sc.server.domain)
         presence = event['presence']
         # According to https://api.slack.com/docs/presence, presence can
         # only be one of 'active' and 'away'
@@ -206,17 +206,9 @@ class SlackBackend(ErrBot):
             return
 
         msg = Message(event['text'], type_=message_type)
-        msg.frm = SlackIdentifier(
-            node=self.channelid_to_channelname(event['channel']),
-            domain=self.sc.server.domain,
-            resource=self.userid_to_username(event['user'])
-        )
-        msg.to = SlackIdentifier(
-            node=self.channelid_to_channelname(event['channel']),
-            domain=self.sc.server.domain,
-            resource=self.sc.server.username
-        )
-        msg.nick = msg.frm.resource
+        msg.frm = SlackIdentifier(self.userid_to_username(event['user']), self.sc.server.domain, self.channelid_to_channelname(event['channel']))
+        msg.to = SlackIdentifier(self.sc.server.username, self.sc.server.domain, self.channelid_to_channelname(event['channel']))
+        msg.nick = msg.frm.userid
         self.callback_message(msg)
 
     def userid_to_username(self, id):

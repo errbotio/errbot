@@ -42,74 +42,6 @@ class UserDoesNotExistError(Exception):
     on a user that doesn't exist"""
 
 
-class Identifier(object):
-    """
-    This class is the parent and the basic contract of all the ways the backends
-    are identifying a person on their system.
-    """
-
-    def __init__(self, jid=None, node='', domain='', resource=''):
-        if jid:
-            self._node, self._domain, self._resource = parse_jid(jid)
-        else:
-            self._node = node
-            self._domain = domain
-            self._resource = resource
-
-    @property
-    def node(self):
-        return self._node
-
-    @property
-    def domain(self):
-        return self._domain
-
-    @property
-    def resource(self):
-        return self._resource
-
-    @property
-    def stripped(self):
-        if self._domain:
-            return self._node + '@' + self._domain
-        return self._node  # if the backend has no domain notion
-
-    def bare_match(self, other):
-        """ checks if 2 identifiers are equal, ignoring the resource """
-        return other.stripped == self.stripped
-
-    def __str__(self):
-        answer = self.stripped
-        if self._resource:
-            answer += '/' + self._resource
-        return answer
-
-    def __unicode__(self):
-        return str(self.__str__())
-
-    # deprecated stuff ...
-
-    @deprecated(node)
-    def getNode(self):
-        """ will be removed on the next version """
-
-    @deprecated(domain)
-    def getDomain(self):
-        """ will be removed on the next version """
-
-    @deprecated(bare_match)
-    def bareMatch(self, other):
-        """ will be removed on the next version """
-
-    @deprecated(stripped)
-    def getStripped(self):
-        """ will be removed on the next version """
-
-    @deprecated(resource)
-    def getResource(self):
-        """ will be removed on the next version """
-
-
 class Message(object):
     """
     A chat message.
@@ -411,6 +343,9 @@ STREAM_REJECTED = 'rejected'
 
 DEFAULT_REASON = 'unknown'
 
+class Identifier(object):
+    def __init__(self, s):
+        raise NotImplemented('Identifier() should never be called directly, use self.build_identifier() instead.')
 
 class Stream(io.BufferedReader):
     """

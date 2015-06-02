@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 from threading import Thread
 
 import pytest
+from errbot.backends.text import SimpleIdentifier
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ config.BOT_LOG_LEVEL = logging.DEBUG
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
 from errbot.backends.base import (
-    Message, build_message, Identifier, MUCRoom, MUCOccupant  # noqa
+    Message, build_message, MUCRoom, MUCOccupant  # noqa
 )
 from errbot.core_plugins.wsview import reset_app  # noqa
 from errbot.errBot import ErrBot  # noqa
@@ -140,7 +141,7 @@ class MUCRoom(MUCRoom):
 class TestBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
-        self.jid = Identifier('Err')  # whatever
+        self.jid = SimpleIdentifier('Err')  # whatever
         self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
 
     def send_message(self, mess):

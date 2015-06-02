@@ -31,6 +31,13 @@ class CampfireConnection(pyfire.Campfire):
 
 ENCODING_INPUT = sys.stdin.encoding
 
+class CampfireIdentifier(Identifier):
+    def __init__(self, s):
+        self._user = s   # it is just one room for the moment
+
+    @property
+    def user(self):
+        return self._user
 
 class CampfireBackend(ErrBot):
     exit_lock = Condition()
@@ -45,22 +52,14 @@ class CampfireBackend(ErrBot):
         if not hasattr(config, 'CHATROOM_PRESENCE') or len(config['CHATROOM_PRESENCE']) < 1:
             raise Exception('Your bot needs to join at least one room, please set'
                             ' CHATROOM_PRESENCE with at least a room in your config')
-        self.chatroom = CHATROOM_PRESENCE[0]
+        self.chatroom = config.CHATROOM_PRESENCE[0]
+        self.room = None
         self.ssl = identity['ssl'] if 'ssl' in identity else True
         self.jid = None
 
     def send_message(self, mess):
         super(CampfireBackend, self).send_message(mess)
-        # we only reply to rooms in reality in campfire so we need to find one or a default one at least
-        room_name = mess.to.domain
-        if not room_name:
-            room_name = mess.frm.domain
-        if room_name in self.conn.rooms:
-            room = self.conn.rooms[room_name][0]
-            room.speak(mess.body)  # Basic text support for the moment
-        else:
-            log.info(
-                "Attempted to send a message to a not connected room yet Room %s : %s" % (room_name, mess.body))
+        self.room.speak(mess.body)  # Basic text support for the moment
 
     def serve_forever(self):
         self.exit_lock.acquire()
@@ -79,9 +78,8 @@ class CampfireBackend(ErrBot):
     def connect(self):
         if not self.conn:
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = Identifier(node=self.username,
-                                  domain=self.conn.get_room_by_name(self.chatroom).name,
-                                  resource=self.username)
+            self.jid = Identifier(self.username)
+            self.room = self.conn.get_room_by_name(self.chatroom).name
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms
         return self.conn
@@ -99,7 +97,7 @@ class CampfireBackend(ErrBot):
             user = message.user.name
         if message.is_text():
             msg = Message(message.body, type_='groupchat')  # it is always a groupchat in campfire
-            msg.frm = user + '@' + message.room.get_data()['name'] + '/' + user
+            msg.frm = CampfireIdentifier(user)
             msg.to = self.jid  # assume it is for me
             self.callback_message(msg)
 
@@ -114,6 +112,9 @@ class CampfireBackend(ErrBot):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, strrep):
+        return CampfireIdentifier(strrep)
 
     def send_simple_reply(self, mess, text, private=False):
         """Total hack to avoid stripping of rooms"""

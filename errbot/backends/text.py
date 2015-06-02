@@ -11,6 +11,13 @@ A_RESET = '\x1b[0m'
 A_CYAN = '\x1b[36m'
 A_BLUE = '\x1b[34m'
 
+class SimpleIdentifier(Identifier):
+    def __init__(self, s):
+        self._nick = s
+
+    @property
+    def nick(self):
+        return self._nick
 
 class TextBackend(ErrBot):
 

@@ -30,6 +30,19 @@ except ImportError as _:
     """)
     sys.exit(-1)
 
+class IRCIdentifier(Identifier):
+    def __init__(self, s):
+        self._nick, self._domain = s.split('!')
+
+    @property
+    def nick(self):
+        return self._nick
+
+    @property
+    def domain(self):
+        return self._domain
+
+    # TODO: __unicode__
 
 class IRCMUCRoom(MUCRoom):
     def __init__(self, *args, **kwargs):

@@ -4,12 +4,13 @@ import warnings
 
 from errbot.backends.base import (
     Message, MUCRoom, MUCOccupant, Presence, RoomNotJoinedError,
-    build_message, Identifier
-)
+    build_message,
+    Identifier)
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
 from time import sleep
+from errbot.utils import parse_jid
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +58,51 @@ def verify_gtalk_cert(xmpp_client):
             pass
 
     log.error("invalid cert received for %s", xmpp_client.boundjid.server)
+
+class XMPPIdentifier(Identifier):
+    """
+    This class is the parent and the basic contract of all the ways the backends
+    are identifying a person on their system.
+    """
+
+    def __init__(self, jid=None, node='', domain='', resource=''):
+        if jid:
+            self._node, self._domain, self._resource = parse_jid(jid)
+        else:
+            self._node = node
+            self._domain = domain
+            self._resource = resource
+
+    @property
+    def node(self):
+        return self._node
+
+    @property
+    def domain(self):
+        return self._domain
+
+    @property
+    def resource(self):
+        return self._resource
+
+    @property
+    def stripped(self):
+        if self._domain:
+            return self._node + '@' + self._domain
+        return self._node  # if the backend has no domain notion
+
+    def bare_match(self, other):
+        """ checks if 2 identifiers are equal, ignoring the resource """
+        return other.stripped == self.stripped
+
+    def __str__(self):
+        answer = self.stripped
+        if self._resource:
+            answer += '/' + self._resource
+        return answer
+
+    def __unicode__(self):
+        return str(self.__str__())
 
 
 class XMPPMUCRoom(MUCRoom):
@@ -371,7 +417,7 @@ class XMPPBackend(ErrBot):
         super(XMPPBackend, self).__init__(config)
         identity = config.BOT_IDENTITY
 
-        self.jid = Identifier(identity['username'])
+        self.jid = XMPPIdentifier(identity['username'])
         self.password = identity['password']
         self.server = identity.get('server', None)
         self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', {})
@@ -415,19 +461,19 @@ class XMPPBackend(ErrBot):
 
     def contact_online(self, event):
         log.debug("contact_online %s" % event)
-        p = Presence(identifier=Identifier(str(event['from'])),
+        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
                      status=ONLINE)
         self.callback_presence(p)
 
     def contact_offline(self, event):
         log.debug("contact_offline %s" % event)
-        p = Presence(identifier=Identifier(str(event['from'])),
+        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
                      status=OFFLINE)
         self.callback_presence(p)
 
     def user_joined_chat(self, event):
         log.debug("user_join_chat %s" % event)
-        idd = Identifier(str(event['from']))
+        idd = XMPPIdentifier(str(event['from']))
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=ONLINE)
@@ -435,7 +481,7 @@ class XMPPBackend(ErrBot):
 
     def user_left_chat(self, event):
         log.debug("user_left_chat %s" % event)
-        idd = Identifier(str(event['from']))
+        idd = XMPPIdentifier(str(event['from']))
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=OFFLINE)
@@ -458,7 +504,7 @@ class XMPPBackend(ErrBot):
         if not errstatus:
             errstatus = event['type']
 
-        p = Presence(identifier=Identifier(str(event['from'])),
+        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
                      status=errstatus, message=message)
         self.callback_presence(p)
 

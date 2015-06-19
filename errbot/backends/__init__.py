@@ -10,9 +10,8 @@ class SimpleIdentifier(str):
         For example for XMPP it is node@domain without the resource that actually maps to a device."""
         return self
 
+
 class SimpleMUCOccupant(SimpleIdentifier):
     """ This is a MUC occupant represented as a string.
         DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
     """
-
-

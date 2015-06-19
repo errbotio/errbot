@@ -929,7 +929,7 @@ class Backend(object):
            usr in self.bot_config.ACCESS_CONTROLS[cmd]['denyusers']):
             raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
-            stripped = mess.frm.stripped
+            stripped = mess.frm.person
             if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
                self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):
                 raise ACLViolation("You're not allowed to access this command from a chatroom")

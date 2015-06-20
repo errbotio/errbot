@@ -92,7 +92,8 @@ class Message(object):
             An identifier from for example build_identifier().
         """
         if not hasattr(to, 'person'):
-           raise Exception('`to` not an Identifier as it misses the "person" property. `to` : %s (%s)' % (to, to.__class__))
+            raise Exception('`to` not an Identifier as it misses ''the "person" property. `to` : %s (%s)'
+                            % (to, to.__class__))
         self._to = to
 
     @property
@@ -137,7 +138,8 @@ class Message(object):
             An identifier from build_identifier.
         """
         if not hasattr(from_, 'person'):
-           raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)' % (from_, from_.__class__))
+            raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)'
+                            % (from_, from_.__class__))
         self._from = from_
 
     @property
@@ -663,7 +665,8 @@ class Backend(object):
         jid = mess.frm
         text = mess.body
         if not hasattr(mess.frm, 'person'):
-           raise Exception('mess.frm not an Identifier as it misses the "person" property. Class of frm : %s', mess.frm.__class__)
+            raise Exception('mess.frm not an Identifier as it misses the "person" property. Class of frm : %s'
+                            % mess.frm.__class__)
 
         username = mess.frm.person
         user_cmd_history = self.cmd_history[username]
@@ -937,7 +940,8 @@ class Backend(object):
             raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
             if not hasattr(mess.frm, 'room'):
-                raise Exception('mess.from from a room is not a MUCIdentifier as it misses the "room" property. Class of frm : %s', mess.frm.__class__)
+                raise Exception('mess.frm is not a MUCIdentifier as it misses the "room" property. Class of frm : %s'
+                                % mess.frm.__class__)
             room = str(mess.frm.room)
             if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
                self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):

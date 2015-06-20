@@ -157,7 +157,6 @@ class TestCommands(FullStackTest):
         self.assertIn('Plugin configuration done.', pop_message())
         self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
 
-
     @unittest.skip("broken FIXME")
     def test_load_reload_and_unload(self):
         for command in ('load', 'reload', 'unload'):

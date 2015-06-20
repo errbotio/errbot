@@ -30,6 +30,7 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 class Config:
     BOT_IDENTITY = {'username': 'err@localhost'}
     BOT_ASYNC = False
@@ -310,7 +311,7 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(m)
         self.assertRaises(Empty, self.dummy.pop_message, *[], **{'block': False})
 
-        m = self.makemessage("!return_args_as_str one two", from_ = SimpleMUCOccupant("someone@room"), type="groupchat")
+        m = self.makemessage("!return_args_as_str one two", from_=SimpleMUCOccupant("someone@room"), type="groupchat")
         self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
 

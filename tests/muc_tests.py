@@ -2,6 +2,7 @@ import os
 import errbot.backends.base
 from errbot.backends.test import push_message, pop_message
 from errbot.backends.test import testbot  # noqa
+from errbot.backends import SimpleMUCOccupant
 import logging
 import unittest
 log = logging.getLogger(__name__)
@@ -17,7 +18,6 @@ class TestMUC(object):
         assert hasattr(p, 'rooms')
         assert hasattr(p, 'query_room')
 
-    @unittest.skip("broken FIXME")
     def test_create_join_leave_destroy_lifecycle(self, testbot):  # noqa
         rooms = testbot.bot.rooms()
         assert len(rooms) == 1
@@ -54,13 +54,11 @@ class TestMUC(object):
         rooms = testbot.bot.rooms()
         assert r2 not in rooms
 
-    @unittest.skip("broken FIXME")
     def test_occupants(self, testbot):  # noqa
         room = testbot.bot.rooms()[0]
         assert len(room.occupants) == 1
-        assert 'err@localhost' in [str(o) for o in room.occupants]
+        assert SimpleMUCOccupant('err@localhost') in room.occupants
 
-    @unittest.skip("broken FIXME")
     def test_topic(self, testbot):  # noqa
         room = testbot.bot.rooms()[0]
         assert room.topic is None
@@ -69,7 +67,6 @@ class TestMUC(object):
         assert room.topic == "Err rocks!"
         assert testbot.bot.rooms()[0].topic == "Err rocks!"
 
-    @unittest.skip("broken FIXME")
     def test_plugin_callbacks(self, testbot):  # noqa
         p = testbot.bot.get_plugin_obj_by_name('RoomTest')
         assert p is not None
@@ -85,7 +82,6 @@ class TestMUC(object):
         p.query_room('newroom@conference.server.tld').leave()
         assert p.events.get(timeout=5) == "callback_room_left newroom@conference.server.tld"
 
-    @unittest.skip("broken FIXME")
     def test_botcommands(self, testbot):  # noqa
         rooms = testbot.bot.rooms()
         room = testbot.bot.query_room('err@conference.server.tld')
@@ -128,7 +124,7 @@ class TestMUC(object):
         assert pop_message() == "I'm currently in these rooms:\n\terr@conference.server.tld"
 
         push_message("!room occupants err@conference.server.tld")
-        assert pop_message() == "Occupants in err@conference.server.tld:\n\terr@localhost"
+        assert pop_message() == "Occupants in err@conference.server.tld:\n\terr"
 
         push_message("!room topic err@conference.server.tld")
         assert pop_message() == "No topic is set for err@conference.server.tld"

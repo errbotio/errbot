@@ -33,3 +33,6 @@ class SimpleMUCOccupant(SimpleIdentifier):
 
     def __unicode__(self):
         return self._person + '@' + self._room
+
+    def __eq__(self, other):
+        return self.person == other.person and self.room == other.room

@@ -54,6 +54,7 @@ class TestMUCRoom(MUCRoom):
         self._occupants = occupants
         self._topic = topic
         self._bot = bot
+        self._name = name
 
     @property
     def occupants(self):
@@ -62,11 +63,10 @@ class TestMUCRoom(MUCRoom):
     @property
     def joined(self):
         global rooms
-        bot_itself = config.BOT_IDENTITY['username']
-
+        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'])
         room = [r for r in rooms if str(r) == str(self)]
         if room:
-            return bot_itself in [str(o) for o in room[0].occupants]
+            return bot_itself in room[0].occupants
         else:
             return False
 
@@ -89,14 +89,14 @@ class TestMUCRoom(MUCRoom):
 
     def leave(self, reason=None):
         global rooms
-        bot_itself = config.BOT_IDENTITY['username']
+        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'])
 
         if not self.joined:
             logging.warning("Attempted to leave room '{!s}', but not in this room".format(self))
             return
 
         room = [r for r in rooms if str(r) == str(self)][0]
-        room._occupants = [o for o in room._occupants if str(o) != bot_itself]
+        room._occupants = [o for o in room._occupants if o != bot_itself]
         log.info("Left room {!s}".format(self))
         self._bot.callback_room_left(room)
 
@@ -134,6 +134,11 @@ class TestMUCRoom(MUCRoom):
         log.info("Topic for room {!s} set to '{}'".format(self, topic))
         self._bot.callback_room_topic(self)
 
+    def __unicode__(self):
+        return self._name
+
+    def __str__(self):
+        return self._name
 
 class TestBackend(ErrBot):
     def __init__(self, config):
@@ -184,7 +189,7 @@ class TestBackend(ErrBot):
         return build_message(text, Message)
 
     def build_reply(self, mess, text=None, private=False):
-        msg = Message(text)
+        msg = self.build_message(text)
         msg.frm = self.jid
         msg.to = mess.frm
         return msg
@@ -198,6 +203,7 @@ class TestBackend(ErrBot):
 
     def rooms(self):
         global rooms
+        log.debug('******************** ROOMS %s' % repr(rooms))
         return [r for r in rooms if r.joined]
 
     def query_room(self, room):

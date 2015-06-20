@@ -859,7 +859,7 @@ class Backend(object):
             wr = WorkRequest(
                 self._execute_and_send,
                 [],
-                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
+                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess,
                  'template_name': f._err_command_template}
             )
             self.thread_pool.putRequest(wr)
@@ -868,22 +868,20 @@ class Backend(object):
                 # depleted so we don't have strange concurrency issues.
                 self.thread_pool.wait()
         else:
-            self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess, jid=jid,
+            self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
                                    template_name=f._err_command_template)
 
-    def _execute_and_send(self, cmd, args, match, mess, jid, template_name=None):
+    def _execute_and_send(self, cmd, args, match, mess, template_name=None):
         """Execute a bot command and send output back to the caller
 
         cmd: The command that was given to the bot (after being expanded)
         args: Arguments given along with cmd
         match: A re.MatchObject if command is coming from a regex-based command, else None
         mess: The message object
-        jid: The jid of the person executing the command
         template_name: The name of the template which should be used to render
             html-im output, if any
 
         """
-
         def process_reply(reply_):
             # integrated templating
             if template_name:
@@ -910,8 +908,8 @@ class Backend(object):
         except Exception as e:
             tb = traceback.format_exc()
             log.exception('An error happened while processing '
-                          'a message ("%s") from %s: %s"' %
-                          (mess.body, jid, tb))
+                          'a message ("%s"): %s"' %
+                          (mess.body, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
     def is_admin(self, usr):

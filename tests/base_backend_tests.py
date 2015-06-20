@@ -54,7 +54,7 @@ class DummyBackend(Backend):
         return build_message(text, Message)
 
     def build_reply(self, mess, text=None, private=False):
-        msg = Message(text)
+        msg = self.build_message(text)
         msg.frm = self.jid
         msg.to = mess.frm
         return msg
@@ -193,16 +193,15 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
 
         dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.return_args_as_str._err_command_template)
+                                template_name=dummy.return_args_as_str._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().body)
 
-    @unittest.skip("html borken")
     def test_commands_can_return_html(self):
         dummy = self.dummy
         m = self.example_message
 
         dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.return_args_as_html._err_command_template)
+                                template_name=dummy.return_args_as_html._err_command_template)
         response = dummy.pop_message()
         self.assertEqual("foobar", response.body)
         self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>'
@@ -213,12 +212,11 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='raises_exception', args=[], match=None, mess=m, jid='noterr@localhost',
+        dummy._execute_and_send(cmd='raises_exception', args=[], match=None, mess=m,
                                 template_name=dummy.raises_exception._err_command_template)
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().body)
 
         dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], match=None, mess=m,
-                                jid='noterr@localhost',
                                 template_name=dummy.yields_str_then_raises_exception._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().body)
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().body)
@@ -228,17 +226,16 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
 
         dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.yield_args_as_str._err_command_template)
+                                template_name=dummy.yield_args_as_str._err_command_template)
         self.assertEqual("foo", dummy.pop_message().body)
         self.assertEqual("bar", dummy.pop_message().body)
 
-    @unittest.skip("html borken")
     def test_commands_can_yield_html(self):
         dummy = self.dummy
         m = self.example_message
 
         dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.yield_args_as_html._err_command_template)
+                                template_name=dummy.yield_args_as_html._err_command_template)
         response1 = dummy.pop_message()
         response2 = dummy.pop_message()
         self.assertEqual("foo", response1.body)
@@ -254,7 +251,7 @@ class TestExecuteAndSend(unittest.TestCase):
         self.dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.return_long_output._err_command_template)
+                                template_name=dummy.return_long_output._err_command_template)
         for i in range(3):  # return_long_output outputs a string that's 3x longer than the size limit
             self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().body)
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
@@ -265,7 +262,7 @@ class TestExecuteAndSend(unittest.TestCase):
         self.dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.yield_long_output._err_command_template)
+                                template_name=dummy.yield_long_output._err_command_template)
         for i in range(6):  # yields_long_output yields 2 strings that are 3x longer than the size limit
             self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().body)
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})

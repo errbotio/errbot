@@ -246,6 +246,7 @@ class Message(object):
     def getMuckNick(self):
         """ will be removed on the next version """
 
+
 ONLINE = 'online'
 OFFLINE = 'offline'
 AWAY = 'away'

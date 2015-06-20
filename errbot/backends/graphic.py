@@ -4,7 +4,6 @@ import re
 import sys
 
 import errbot
-from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, build_text_html_message_pair
 from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.utils import mess_2_embeddablehtml
@@ -208,7 +207,7 @@ class GraphicBackend(TextBackend):
     def __init__(self, config):
         self.conn = None
         super().__init__(config)
-        self.jid = SimpleIdentifier('Err')
+        self.jid = build_identifier('Err')
         self.app = None
 
     def send_command(self, text):
@@ -224,9 +223,6 @@ class GraphicBackend(TextBackend):
         msg = Message(txt, html=node) if node else Message(txt)
         msg.frm = self.jid
         return msg  # rebuild a pure html snippet to include directly in the console html
-
-    def build_identifier(self, strrep):
-        return SimpleIdentifier(strrep)
 
     def serve_forever(self):
         self.connect()  # be sure we are "connected" before the first command

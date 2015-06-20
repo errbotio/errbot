@@ -144,8 +144,8 @@ class TestMUCRoom(MUCRoom):
 class TestBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
-        self.jid = SimpleIdentifier('Err')  # whatever
-        self.sender = SimpleIdentifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
+        self.jid = self.build_identifier('Err')  # whatever
+        self.sender = self.build_identifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
 
     def send_message(self, mess):
         super(TestBackend, self).send_message(mess)
@@ -189,22 +189,21 @@ class TestBackend(ErrBot):
     def build_message(self, text):
         return build_message(text, Message)
 
+    def build_identifier(self, text_representation):
+        return SimpleIdentifier(text_representation)
+
     def build_reply(self, mess, text=None, private=False):
         msg = self.build_message(text)
         msg.frm = self.jid
         msg.to = mess.frm
         return msg
 
-    def shutdown(self):
-        super(TestBackend, self).shutdown()
-
     @property
     def mode(self):
-        return 'text'
+        return 'test'
 
     def rooms(self):
         global rooms
-        log.debug('******************** ROOMS %s' % repr(rooms))
         return [r for r in rooms if r.joined]
 
     def query_room(self, room):

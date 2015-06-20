@@ -40,9 +40,9 @@ class Config:
 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
-    jid = SimpleIdentifier('err')
 
     def __init__(self, extra_config={}):
+        self.jid = self.build_identifier('err')
         self.bot_config = Config()
         for key in extra_config:
             setattr(self.bot_config, key, extra_config[key])
@@ -52,6 +52,9 @@ class DummyBackend(Backend):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, text_representation):
+        return SimpleIdentifier(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         msg = self.build_message(text)
@@ -168,8 +171,8 @@ class TestBase(unittest.TestCase):
         dummy = self.dummy
 
         m = dummy.build_message('Content')
-        m.frm = SimpleIdentifier('user')
-        m.to = SimpleIdentifier('somewhere')
+        m.frm = dummy.build_identifier('user')
+        m.to = dummy.build_identifier('somewhere')
         resp = dummy.build_reply(m, 'Response')
 
         self.assertEqual(str(resp.to), 'user')
@@ -181,8 +184,8 @@ class TestExecuteAndSend(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
         self.example_message = self.dummy.build_message('some_message')
-        self.example_message.frm = SimpleIdentifier('noterr')
-        self.example_message.to = SimpleIdentifier('err')
+        self.example_message.frm = self.dummy.build_identifier('noterr')
+        self.example_message.to = self.dummy.build_identifier('err')
 
         assets_path = os.path.join(os.path.dirname(__file__), 'assets')
         templating.template_path.append(templating.make_templates_path(assets_path))
@@ -272,7 +275,11 @@ class BotCmds(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
 
-    def makemessage(self, message, from_=SimpleIdentifier("noterr"), to=SimpleIdentifier("noterr"), type="chat"):
+    def makemessage(self, message, from_=None, to=None, type="chat"):
+        if not from_:
+            from_ = self.dummy.build_identifier("noterr")
+        if not to:
+            to = self.dummy.build_identifier("noterr")
         m = self.dummy.build_message(message)
         m.frm = from_
         m.to = to

@@ -1149,7 +1149,7 @@ class Backend(object):
     def build_message(self, text):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def build_identifier(self, text):
+    def build_identifier(self, text_representation):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def serve_once(self):

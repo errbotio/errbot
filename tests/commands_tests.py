@@ -1,7 +1,6 @@
 # coding=utf-8
 
 # create a mock configuration
-from errbot.backends import SimpleIdentifier
 from errbot.backends.test import FullStackTest, push_message, pop_message
 from queue import Empty
 import unittest
@@ -80,7 +79,7 @@ class TestCommands(FullStackTest):
         orig_sender = self.bot.sender
         try:
             # Pretend to be someone else. History should be empty
-            self.bot.sender = SimpleIdentifier('non_default_person')
+            self.bot.sender = self.bot.build_identifier('non_default_person')
             push_message('!history')
             self.assertRaises(Empty, pop_message, block=False)
             push_message('!echo should be a separate history')

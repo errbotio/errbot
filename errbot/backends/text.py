@@ -18,11 +18,11 @@ class TextBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
         log.debug("Text Backend Init.")
-        self.jid = SimpleIdentifier('Err')
+        self.jid = self.build_identifier('Err')
         self.rooms = set()
 
     def serve_forever(self):
-        me = SimpleIdentifier(self.bot_config.BOT_ADMINS[0])
+        me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=me, status=ONLINE))
         try:
@@ -56,6 +56,9 @@ class TextBackend(ErrBot):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, text_representation):
+        return SimpleIdentifier(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)
@@ -122,7 +125,7 @@ class TextMUCRoom(MUCRoom):
 
     @property
     def occupants(self):
-        return [SimpleIdentifier("Somebody")]
+        return [self.build_identifier("Somebody")]
 
     def invite(self, *args):
         pass

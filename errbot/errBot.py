@@ -638,7 +638,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
     def history(self, mess, args):
         """display the command history"""
         answer = []
-        user_cmd_history = self.cmd_history[get_sender_username(mess)]
+        user_cmd_history = self.cmd_history[mess.frm.person]
         l = len(user_cmd_history)
         for i in range(0, l):
             c = user_cmd_history[i]

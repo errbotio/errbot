@@ -28,6 +28,7 @@ from errbot.utils import mess_2_embeddablehtml  # noqa
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 
+logging.basicConfig(level=logging.DEBUG)
 
 class Config:
     BOT_IDENTITY = {'username': 'err@localhost'}
@@ -166,8 +167,8 @@ class TestBase(unittest.TestCase):
         dummy = self.dummy
 
         m = dummy.build_message('Content')
-        m.frm = 'user'
-        m.to = 'somewhere'
+        m.frm = SimpleIdentifier('user')
+        m.to = SimpleIdentifier('somewhere')
         resp = dummy.build_reply(m, 'Response')
 
         self.assertEqual(str(resp.to), 'user')
@@ -305,10 +306,11 @@ class BotCmds(unittest.TestCase):
 
         # Groupchat should still require the prefix
         m.type = "groupchat"
+        m.frm = SimpleMUCOccupant("someone@room")
         self.dummy.callback_message(m)
         self.assertRaises(Empty, self.dummy.pop_message, *[], **{'block': False})
 
-        m = self.makemessage("!return_args_as_str one two", type="groupchat")
+        m = self.makemessage("!return_args_as_str one two", from_ = SimpleMUCOccupant("someone@room"), type="groupchat")
         self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
 
@@ -430,26 +432,26 @@ class BotCmds(unittest.TestCase):
                 expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("err")),
-                acl={'command': {'allowrooms': ('room@localhost',)}},
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
+                acl={'command': {'allowrooms': ('room',)}},
                 acl_default={},
                 expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("err")),
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
                 acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
                 acl_default={},
                 expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("err")),
-                acl={'command': {'denyrooms': ('room@localhost',)}},
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
+                acl={'command': {'denyrooms': ('room',)}},
                 acl_default={},
                 expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("err")),
-                acl={'command': {'denyrooms': ('anotherroom@localhost',)}},
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
+                acl={'command': {'denyrooms': ('anotherroom',)}},
                 acl_default={},
                 expected_response="Regular command"
             ),
@@ -459,7 +461,6 @@ class BotCmds(unittest.TestCase):
             self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT = test['acl_default']
             self.dummy.bot_config.ACCESS_CONTROLS = test['acl']
             logger = logging.getLogger(__name__)
-            print(test['message'].frm)
             logger.info("** message: {}".format(test['message'].body))
             logger.info("** acl: {!r}".format(test['acl']))
             logger.info("** acl_default: {!r}".format(test['acl_default']))

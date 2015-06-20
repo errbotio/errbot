@@ -53,7 +53,7 @@ class TestMUCRoom(MUCRoom):
             occupants = []
         self._occupants = occupants
         self._topic = topic
-        super(MUCRoom, self).__init__(jid=jid, node=node, domain=domain, resource=resource, bot=bot)
+        self._bot = bot
 
     @property
     def occupants(self):
@@ -139,7 +139,7 @@ class TestBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
         self.jid = SimpleIdentifier('Err')  # whatever
-        self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
+        self.sender = SimpleIdentifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
 
     def send_message(self, mess):
         super(TestBackend, self).send_message(mess)
@@ -183,6 +183,12 @@ class TestBackend(ErrBot):
     def build_message(self, text):
         return build_message(text, Message)
 
+    def build_reply(self, mess, text=None, private=False):
+        msg = Message(text)
+        msg.frm = self.jid
+        msg.to = mess.frm
+        return msg
+
     def shutdown(self):
         super(TestBackend, self).shutdown()
 
@@ -199,7 +205,7 @@ class TestBackend(ErrBot):
         try:
             return [r for r in rooms if str(r) == str(room)][0]
         except IndexError:
-            r = MUCRoom(jid=room, bot=self)
+            r = TestMUCRoom(room, bot=self)
             return r
 
     def groupchat_reply_format(self):

@@ -91,6 +91,8 @@ class Message(object):
         :param to:
             An identifier from for example build_identifier().
         """
+        if not hasattr(to, 'person'):
+           raise Exception('`to` not an Identifier as it misses the "person" property. `to` : %s (%s)' % (to, to.__class__))
         self._to = to
 
     @property
@@ -134,6 +136,8 @@ class Message(object):
         :param from_:
             An identifier from build_identifier.
         """
+        if not hasattr(from_, 'person'):
+           raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)' % (from_, from_.__class__))
         self._from = from_
 
     @property
@@ -624,7 +628,7 @@ class Backend(object):
 
     def build_reply(self, mess, text=None, private=False):
         """ Should be implemented by the backend """
-        raise NotImplementedError("build_reply should be implemented by the backend")
+        raise NotImplementedError("build_reply should be implemented by the backend %s" % self.__class__)
 
     def callback_presence(self, presence):
         """
@@ -658,6 +662,9 @@ class Backend(object):
         type_ = mess.type
         jid = mess.frm
         text = mess.body
+        if not hasattr(mess.frm, 'person'):
+           raise Exception('mess.frm not an Identifier as it misses the "person" property. Class of frm : %s', mess.frm.__class__)
+
         username = mess.frm.person
         user_cmd_history = self.cmd_history[username]
 
@@ -916,7 +923,7 @@ class Backend(object):
 
         Raises ACLViolation() if the command may not be executed in the given context
         """
-        usr = str(mess.frm)
+        usr = str(mess.frm.person)
         typ = mess.type
 
         if cmd not in self.bot_config.ACCESS_CONTROLS:
@@ -929,15 +936,17 @@ class Backend(object):
            usr in self.bot_config.ACCESS_CONTROLS[cmd]['denyusers']):
             raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
-            stripped = mess.frm.person
+            if not hasattr(mess.frm, 'room'):
+                raise Exception('mess.from from a room is not a MUCIdentifier as it misses the "room" property. Class of frm : %s', mess.frm.__class__)
+            room = str(mess.frm.room)
             if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
                self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):
                 raise ACLViolation("You're not allowed to access this command from a chatroom")
             if ('allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               stripped not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']):
+               room not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']):
                 raise ACLViolation("You're not allowed to access this command from this room")
             if ('denyrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               stripped in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']):
+               room in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']):
                 raise ACLViolation("You're not allowed to access this command from this room")
         else:
             if ('allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and

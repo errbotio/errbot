@@ -140,6 +140,7 @@ class TestMUCRoom(MUCRoom):
     def __str__(self):
         return self._name
 
+
 class TestBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)

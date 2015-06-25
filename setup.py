@@ -33,7 +33,7 @@ if PY3 and py_version < (3, 3):
 
 deps = ['webtest',
         'setuptools',
-        'yapsy==1.11.123b', # 1.11.123 is buggy, we need to force 123b.
+        'yapsy==1.11.123b',  # 1.11.123 is buggy, we need to force 123b.
         'bottle',
         'requests',
         'jinja2',

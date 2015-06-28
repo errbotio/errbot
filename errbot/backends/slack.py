@@ -93,7 +93,7 @@ class SlackBackend(ErrBot):
                 'cannot connect to Slack.'
             )
             sys.exit(1)
-        self.sc = SlackClient(self.token)
+        self.sc = None  # Will be initialized in serve_once
 
     def api_call(self, method, data=None, raise_errors=True):
         """
@@ -122,6 +122,7 @@ class SlackBackend(ErrBot):
         return response
 
     def serve_once(self):
+        self.sc = SlackClient(self.token)
         log.info("Verifying authentication token")
         self.auth = self.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:

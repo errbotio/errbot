@@ -64,9 +64,16 @@ class TestMUCRoom(MUCRoom):
     def joined(self):
         global rooms
         bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'])
+        log.info("rooms = %s" % repr(rooms))
+        log.info("self = %s" % repr(self))
+        log.info("bot_itself = %s" % repr(bot_itself))
         room = [r for r in rooms if r._name == self._name]
         if room:
-            return bot_itself in room[0].occupants
+            # bot_itself in room[0].occupants doesn't work on py2.7
+            for occupant in room[0].occupants:
+                if bot_itself.__eq__(occupant):
+                    return True
+            return False
         else:
             return False
 

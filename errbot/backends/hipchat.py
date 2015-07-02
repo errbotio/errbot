@@ -1,8 +1,8 @@
 import logging
 import sys
 
-from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
-from errbot.backends.xmpp import XMPPBackend, XMPPConnection
+from errbot.backends.base import RoomDoesNotExistError
+from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ except ImportError:
     sys.exit(1)
 
 
-class HipChatMUCOccupant(MUCOccupant):
+class HipChatMUCOccupant(XMPPMUCOccupant):
     """
     An occupant of a Multi-User Chatroom.
 
@@ -41,7 +41,7 @@ class HipChatMUCOccupant(MUCOccupant):
         return self.name
 
 
-class HipChatMUCRoom(MUCRoom):
+class HipChatMUCRoom(XMPPMUCRoom):
     """
     This class represents a Multi-User Chatroom.
     """

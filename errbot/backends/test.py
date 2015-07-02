@@ -64,7 +64,7 @@ class TestMUCRoom(MUCRoom):
     def joined(self):
         global rooms
         bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'])
-        room = [r for r in rooms if str(r) == str(self)]
+        room = [r for r in rooms if r._name == self._name]
         if room:
             return bot_itself in room[0].occupants
         else:
@@ -82,7 +82,7 @@ class TestMUCRoom(MUCRoom):
             log.debug("Room {!s} doesn't exist yet, creating it".format(self))
             self.create()
 
-        room = [r for r in rooms if str(r) == str(self)][0]
+        room = [r for r in rooms if r._name == self._name][0]
         room._occupants.append(SimpleMUCOccupant(bot_itself))
         log.info("Joined room {!s}".format(self))
         self._bot.callback_room_joined(room)
@@ -95,7 +95,7 @@ class TestMUCRoom(MUCRoom):
             logging.warning("Attempted to leave room '{!s}', but not in this room".format(self))
             return
 
-        room = [r for r in rooms if str(r) == str(self)][0]
+        room = [r for r in rooms if r._name == self._name][0]
         room._occupants = [o for o in room._occupants if o != bot_itself]
         log.info("Left room {!s}".format(self))
         self._bot.callback_room_left(room)
@@ -103,7 +103,7 @@ class TestMUCRoom(MUCRoom):
     @property
     def exists(self):
         global rooms
-        return str(self) in [str(r) for r in rooms]
+        return self._name in [r._name for r in rooms]
 
     def create(self):
         global rooms
@@ -118,7 +118,7 @@ class TestMUCRoom(MUCRoom):
         if not self.exists:
             logging.warning("Cannot destroy room {!s}, it doesn't exist".format(self))
         else:
-            rooms = [r for r in rooms if str(r) != str(self)]
+            rooms = [r for r in rooms if r._name != self._name]
             log.info("Destroyed room {!s}".format(self))
 
     @property
@@ -129,7 +129,7 @@ class TestMUCRoom(MUCRoom):
     def topic(self, topic):
         global rooms
         self._topic = topic
-        room = [r for r in rooms if str(r) == str(self)][0]
+        room = [r for r in rooms if r._name == self._name][0]
         room._topic = self._topic
         log.info("Topic for room {!s} set to '{}'".format(self, topic))
         self._bot.callback_room_topic(self)

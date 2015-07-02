@@ -817,7 +817,7 @@ class Backend(object):
         username = jid.person
         user_cmd_history = self.cmd_history[username]
 
-        log.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
+        log.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, jid))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items

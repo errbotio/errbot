@@ -31,9 +31,9 @@ TOX_MAX_MESS_LENGTH = 1368
 NOT_ADMIN = "You are not recognized as an administrator of this bot"
 
 TOX_TO_ERR_STATUS = {
-    Tox.USERSTATUS_NONE: ONLINE,
-    Tox.USERSTATUS_AWAY: AWAY,
-    Tox.USERSTATUS_BUSY: DND,
+    Tox.USER_STATUS_NONE: ONLINE,
+    Tox.USER_STATUS_AWAY: AWAY,
+    Tox.USER_STATUS_BUSY: DND,
 }
 
 TOX_GROUP_TO_ERR_STATUS = {
@@ -49,6 +49,11 @@ class ToxIdentifier(object):
         self._group_number = group_number
         self._friend_group_number = friend_group_number
         self._username = username
+
+    @property
+    def person(self):
+        return self._username
+
 
 
 class ToxStreamer(io.BufferedRWPair):

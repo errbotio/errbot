@@ -55,7 +55,6 @@ class ToxIdentifier(object):
         return self._username
 
 
-
 class ToxStreamer(io.BufferedRWPair):
     def __init__(self):
         r, w = os.pipe()

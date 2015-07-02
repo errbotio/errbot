@@ -215,7 +215,6 @@ class GraphicBackend(TextBackend):
         msg.frm = self.jid
         return msg  # rebuild a pure html snippet to include directly in the console html
 
-
     def send_message(self, mess):
         self.send(mess)
 

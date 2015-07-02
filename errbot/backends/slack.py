@@ -248,8 +248,8 @@ class SlackBackend(ErrBot):
         else:
             msg.frm = SlackMUCOccupant(self.sc, event['user'], event['channel'])
             msg.to = SlackMUCOccupant(self.sc, self.username_to_userid(self.sc.server.username),
-                                     event['channel'])
- 
+                                      event['channel'])
+
         msg.nick = msg.frm.userid
         self.callback_message(msg)
 

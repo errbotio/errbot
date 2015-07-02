@@ -2,6 +2,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class DeprecationBridgeIdentifier(object):
     """This is a Deprecation bridge that will be removed.
     Originally identifier were mapped to XMPP, this emulate that with a deprecation notice.

@@ -353,7 +353,7 @@ class IRCBackend(ErrBot):
         """
 
         channels = self.conn.channels.keys()
-        return [IRCMUCRoom(node=channel) for channel in channels]
+        return [IRCMUCRoom(channel, self) for channel in channels]
 
     def groupchat_reply_format(self):
         return '{0}: {1}'

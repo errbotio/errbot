@@ -57,7 +57,6 @@ Chatting server support:
 
 - XMPP: Tested with Google Talk, Hipchat_, Openfire_ and Jabber but should be compatible with any standard XMPP server
 - Slack_
-- CampFire_
 - TOX_ (Peer to peer encrypted network)
 - IRC
 
@@ -106,7 +105,6 @@ An extensive framework for writing custom plugins:
 .. _sleekxmpp: http://sleekxmpp.com/
 .. _irc: https://pypi.python.org/pypi/irc/
 .. _slack: https://slack.com/
-.. _campfire: https://campfirenow.com/
 .. _TOX: https://tox.im/
 .. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _github: http://github.com/gbin/err/

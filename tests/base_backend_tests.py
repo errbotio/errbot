@@ -311,11 +311,13 @@ class BotCmds(unittest.TestCase):
 
         # Groupchat should still require the prefix
         m.type = "groupchat"
-        m.frm = SimpleMUCOccupant("someone@room")
+        m.frm = SimpleMUCOccupant("someone", "room")
         self.dummy.callback_message(m)
         self.assertRaises(Empty, self.dummy.pop_message, *[], **{'block': False})
 
-        m = self.makemessage("!return_args_as_str one two", from_=SimpleMUCOccupant("someone@room"), type="groupchat")
+        m = self.makemessage("!return_args_as_str one two",
+                             from_=SimpleMUCOccupant("someone", "room"),
+                             type="groupchat")
         self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
 
@@ -437,25 +439,25 @@ class BotCmds(unittest.TestCase):
                 expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
                 acl={'command': {'allowrooms': ('room',)}},
                 acl_default={},
                 expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
                 acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
                 acl_default={},
                 expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
                 acl={'command': {'denyrooms': ('room',)}},
                 acl_default={},
                 expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone@room")),
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
                 acl={'command': {'denyrooms': ('anotherroom',)}},
                 acl_default={},
                 expected_response="Regular command"

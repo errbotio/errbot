@@ -23,10 +23,10 @@ class TestMUC(object):
         assert len(rooms) == 1
 
         r1 = rooms[0]
-        assert str(r1) == "err@conference.server.tld"
+        assert str(r1) == "testroom"
         assert issubclass(r1.__class__, errbot.backends.base.MUCRoom)
 
-        r2 = testbot.bot.query_room('room@conference.server.tld')
+        r2 = testbot.bot.query_room('testroom2')
         assert not r2.exists
 
         r2.create()
@@ -45,7 +45,7 @@ class TestMUC(object):
         rooms = testbot.bot.rooms()
         assert r2 in rooms
 
-        r2 = testbot.bot.query_room('room@conference.server.tld')
+        r2 = testbot.bot.query_room('testroom2')
         assert r2.joined
 
         r2.leave()
@@ -57,7 +57,7 @@ class TestMUC(object):
     def test_occupants(self, testbot):  # noqa
         room = testbot.bot.rooms()[0]
         assert len(room.occupants) == 1
-        assert SimpleMUCOccupant('err@localhost') in room.occupants
+        assert SimpleMUCOccupant('err', 'testroom') in room.occupants
 
     def test_topic(self, testbot):  # noqa
         room = testbot.bot.rooms()[0]
@@ -73,62 +73,62 @@ class TestMUC(object):
         p.purge()
 
         log.debug("query and join")
-        p.query_room('newroom@conference.server.tld').join()
-        assert p.events.get(timeout=5) == "callback_room_joined newroom@conference.server.tld"
+        p.query_room('newroom').join()
+        assert p.events.get(timeout=5) == "callback_room_joined newroom"
 
-        p.query_room('newroom@conference.server.tld').topic = "Err rocks!"
+        p.query_room('newroom').topic = "Err rocks!"
         assert p.events.get(timeout=5) == "callback_room_topic Err rocks!"
 
-        p.query_room('newroom@conference.server.tld').leave()
-        assert p.events.get(timeout=5) == "callback_room_left newroom@conference.server.tld"
+        p.query_room('newroom').leave()
+        assert p.events.get(timeout=5) == "callback_room_left newroom"
 
     def test_botcommands(self, testbot):  # noqa
         rooms = testbot.bot.rooms()
-        room = testbot.bot.query_room('err@conference.server.tld')
+        room = testbot.bot.query_room('testroom')
         assert len(rooms) == 1
         assert rooms[0] == room
 
         assert room.joined
-        push_message("!room leave err@conference.server.tld")
-        assert pop_message() == "Left the room err@conference.server.tld"
-        room = testbot.bot.query_room('err@conference.server.tld')
+        push_message("!room leave testroom")
+        assert pop_message() == "Left the room testroom"
+        room = testbot.bot.query_room('testroom')
         assert not room.joined
 
         push_message("!room list")
         assert pop_message() == "I'm not currently in any rooms."
 
-        push_message("!room destroy err@conference.server.tld")
-        assert pop_message() == "Destroyed the room err@conference.server.tld"
+        push_message("!room destroy testroom")
+        assert pop_message() == "Destroyed the room testroom"
         rooms = testbot.bot.rooms()
-        room = testbot.bot.query_room('err@conference.server.tld')
+        room = testbot.bot.query_room('testroom')
         assert not room.exists
         assert room not in rooms
 
-        push_message("!room create err@conference.server.tld")
-        assert pop_message() == "Created the room err@conference.server.tld"
+        push_message("!room create testroom")
+        assert pop_message() == "Created the room testroom"
         rooms = testbot.bot.rooms()
-        room = testbot.bot.query_room('err@conference.server.tld')
+        room = testbot.bot.query_room('testroom')
         assert room.exists
         assert room not in rooms
         assert not room.joined
 
-        push_message("!room join err@conference.server.tld")
-        assert pop_message() == "Joined the room err@conference.server.tld"
+        push_message("!room join testroom")
+        assert pop_message() == "Joined the room testroom"
         rooms = testbot.bot.rooms()
-        room = testbot.bot.query_room('err@conference.server.tld')
+        room = testbot.bot.query_room('testroom')
         assert room.exists
         assert room.joined
         assert room in rooms
 
         push_message("!room list")
-        assert pop_message() == "I'm currently in these rooms:\n\terr@conference.server.tld"
+        assert pop_message() == "I'm currently in these rooms:\n\ttestroom"
 
-        push_message("!room occupants err@conference.server.tld")
-        assert pop_message() == "Occupants in err@conference.server.tld:\n\terr"
+        push_message("!room occupants testroom")
+        assert pop_message() == "Occupants in testroom:\n\terr"
 
-        push_message("!room topic err@conference.server.tld")
-        assert pop_message() == "No topic is set for err@conference.server.tld"
-        push_message("!room topic err@conference.server.tld 'Err rocks!'")
-        assert pop_message() == "Topic for err@conference.server.tld set."
-        push_message("!room topic err@conference.server.tld")
-        assert pop_message() == "Topic for err@conference.server.tld: Err rocks!"
+        push_message("!room topic testroom")
+        assert pop_message() == "No topic is set for testroom"
+        push_message("!room topic testroom 'Err rocks!'")
+        assert pop_message() == "Topic for testroom set."
+        push_message("!room topic testroom")
+        assert pop_message() == "Topic for testroom: Err rocks!"

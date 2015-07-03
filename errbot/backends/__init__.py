@@ -29,8 +29,8 @@ class SimpleIdentifier(DeprecationBridgeIdentifier):
         use self.build_identifier(identifier_as_string) instead.
     """
 
-    def __init__(self, usr, client=None):
-        self._person = usr
+    def __init__(self, person, client=None):
+        self._person = person
         self._client = client
 
     @property
@@ -50,13 +50,15 @@ class SimpleIdentifier(DeprecationBridgeIdentifier):
         return self._person
     __str__ = __unicode__
 
+    def __eq__(self, other):
+        return self.person == other.person
+
 
 class SimpleMUCOccupant(SimpleIdentifier):
     """ This is a MUC occupant represented as a string.
         DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
     """
-    def __init__(self, idd):
-        person, room = idd.split('@')
+    def __init__(self, person, room):
         super().__init__(person)
         self._room = room
 
@@ -66,6 +68,8 @@ class SimpleMUCOccupant(SimpleIdentifier):
 
     def __unicode__(self):
         return self._person + '@' + self._room
+
+    __str__ = __unicode__
 
     def __eq__(self, other):
         return self.person == other.person and self.room == other.room

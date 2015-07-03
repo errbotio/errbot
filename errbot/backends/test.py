@@ -21,6 +21,8 @@ config.BOT_DATA_DIR = tempdir
 config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 config.BOT_EXTRA_PLUGIN_DIR = []
 config.BOT_LOG_LEVEL = logging.DEBUG
+config.CHATROOM_PRESENCE = ('testroom',)  # we are testing with simple identfiers
+config.BOT_IDENTITY = {'username': 'err'}  # we are testing with simple identfiers
 
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
@@ -63,19 +65,15 @@ class TestMUCRoom(MUCRoom):
     @property
     def joined(self):
         global rooms
-        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'])
-        log.info("rooms = %s" % repr(rooms))
-        log.info("self = %s" % repr(self))
-        log.info("bot_itself = %s" % repr(bot_itself))
+        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
+        for room in rooms:
+            log.info("room = %s" % room._name)
+        log.info("self = %s" % repr(self._name))
+        log.info("bot_itself = %s" % str(bot_itself))
         room = [r for r in rooms if r._name == self._name]
         if room:
-            # bot_itself in room[0].occupants doesn't work on py2.7
-            for occupant in room[0].occupants:
-                if bot_itself.__eq__(occupant):
-                    return True
-            return False
-        else:
-            return False
+            return bot_itself in room[0].occupants
+        return False
 
     def join(self, username=None, password=None):
         global rooms
@@ -90,13 +88,13 @@ class TestMUCRoom(MUCRoom):
             self.create()
 
         room = [r for r in rooms if r._name == self._name][0]
-        room._occupants.append(SimpleMUCOccupant(bot_itself))
+        room._occupants.append(SimpleMUCOccupant(bot_itself, self._name))
         log.info("Joined room {!s}".format(self))
         self._bot.callback_room_joined(room)
 
     def leave(self, reason=None):
         global rooms
-        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'])
+        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
 
         if not self.joined:
             logging.warning("Attempted to leave room '{!s}', but not in this room".format(self))
@@ -146,6 +144,9 @@ class TestMUCRoom(MUCRoom):
 
     def __str__(self):
         return self._name
+
+    def __eq__(self, other):
+        return self._name == other._name
 
 
 class TestBackend(ErrBot):

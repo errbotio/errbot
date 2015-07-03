@@ -90,11 +90,6 @@ BOT_IDENTITY = {
     ## of HipChat then you may leave this commented out.
     # 'endpoint' : 'https://api.hipchat.com'
 
-    ## Campfire mode (Comment the others above if using this mode)
-    # 'subdomain': 'yatta',
-    # 'username' : 'errbot',
-    # 'password' : 'changeme',
-
     ## TOX Mode (comment the others above if using this mode)
     # 'username': 'errbot',
 
@@ -115,9 +110,6 @@ BOT_IDENTITY = {
 
 # Set the admins of your bot. Only these users will have access
 # to the admin-only commands.
-#
-# Campfire syntax is the full name:
-# BOT_ADMINS = ('Guillaume Binet',)
 #
 # TOX syntax is a hash.
 # BOT_ADMINS = ['F9886B47503FB80E6347CC0907D8000144305796DE54693253AA5E574E5E8106C7D002557189', ]

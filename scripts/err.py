@@ -142,7 +142,6 @@ if __name__ == "__main__":
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
-    backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
     backend_group.add_argument('-I', '--irc', action='store_true', help='IRC backend')
     backend_group.add_argument('-O', '--tox', action='store_true', help='TOX backend')
     backend_group.add_argument('-S', '--slack', action='store_true', help='Slack backend')
@@ -163,7 +162,7 @@ if __name__ == "__main__":
         sys.path.insert(0, config_path)  # appends the current config in order to find config.py
     else:
         config_path = execution_dir
-    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc',
+    filtered_mode = [mname for mname in ('text', 'graphic', 'hipchat', 'irc',
                                          'xmpp', 'tox', 'slack', 'null')
                      if args[mname]]
     if args['restore']:
@@ -184,11 +183,6 @@ if __name__ == "__main__":
         from errbot.backends.graphic import GraphicBackend
 
         return GraphicBackend
-
-    def campfire():
-        from errbot.backends.campfire import CampfireBackend
-
-        return CampfireBackend
 
     def hipchat():
         from errbot.backends.hipchat import HipchatBackend

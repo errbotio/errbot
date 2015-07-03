@@ -250,26 +250,25 @@ class ChatRoom(BotPlugin):
         return "Room created (%s)" % room_name
 
     def callback_message(self, mess):
-        if self._bot.mode != 'campfire':  # no relay support in campfire
-            try:
-                mess_type = mess.type
-                if mess_type == 'chat':
-                    username = mess.frm.person
-                    if username in self.bot_config.CHATROOM_RELAY:
-                        log.debug('Message to relay from %s.' % username)
-                        body = mess.body
-                        rooms = self.bot_config.CHATROOM_RELAY[username]
-                        for room in rooms:
-                            self.send(room, body, message_type='groupchat')
-                elif mess_type == 'groupchat':
-                    fr = mess.frm
-                    # TODO fixme for non XMPP backend
-                    chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node
-                    if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
-                        users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
-                        log.debug('Message to relay to %s.' % users_to_relay_to)
-                        body = '[%s] %s' % (fr.resource, mess.body)
-                        for user in users_to_relay_to:
-                            self.send(user, body)
-            except Exception as e:
-                log.exception('crashed in callback_message %s' % e)
+        try:
+            mess_type = mess.type
+            if mess_type == 'chat':
+                username = mess.frm.person
+                if username in self.bot_config.CHATROOM_RELAY:
+                    log.debug('Message to relay from %s.' % username)
+                    body = mess.body
+                    rooms = self.bot_config.CHATROOM_RELAY[username]
+                    for room in rooms:
+                        self.send(room, body, message_type='groupchat')
+            elif mess_type == 'groupchat':
+                fr = mess.frm
+                # TODO fixme for non XMPP backend
+                chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node
+                if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
+                    users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
+                    log.debug('Message to relay to %s.' % users_to_relay_to)
+                    body = '[%s] %s' % (fr.resource, mess.body)
+                    for user in users_to_relay_to:
+                        self.send(user, body)
+        except Exception as e:
+            log.exception('crashed in callback_message %s' % e)

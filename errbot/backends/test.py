@@ -57,28 +57,27 @@ class TestMUCRoom(MUCRoom):
         self._topic = topic
         self._bot = bot
         self._name = name
+        self._bot_mucid = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
 
     @property
     def occupants(self):
         return self._occupants
 
+    def find_croom(self):
+        """ find back the canonical room from a this room"""
+        for croom in rooms:
+            if croom == self:
+                return croom
+        return None
+
     @property
     def joined(self):
-        global rooms
-        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
-        for room in rooms:
-            log.info("room = %s" % room._name)
-        log.info("self = %s" % repr(self._name))
-        log.info("bot_itself = %s" % str(bot_itself))
-        room = [r for r in rooms if r._name == self._name]
+        room = self.find_croom()
         if room:
-            return bot_itself in room[0].occupants
+            return self._bot_mucid in room.occupants
         return False
 
     def join(self, username=None, password=None):
-        global rooms
-        bot_itself = config.BOT_IDENTITY['username']
-
         if self.joined:
             logging.warning("Attempted to join room '{!s}', but already in this room".format(self))
             return
@@ -87,44 +86,41 @@ class TestMUCRoom(MUCRoom):
             log.debug("Room {!s} doesn't exist yet, creating it".format(self))
             self.create()
 
-        room = [r for r in rooms if r._name == self._name][0]
-        room._occupants.append(SimpleMUCOccupant(bot_itself, self._name))
+        room = self.find_croom()
+        room._occupants.append(self._bot_mucid)
         log.info("Joined room {!s}".format(self))
         self._bot.callback_room_joined(room)
 
     def leave(self, reason=None):
-        global rooms
-        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
-
         if not self.joined:
             logging.warning("Attempted to leave room '{!s}', but not in this room".format(self))
             return
 
-        room = [r for r in rooms if r._name == self._name][0]
-        room._occupants.remove(bot_itself)
+        room = self.find_croom()
+        room._occupants.remove(self._bot_mucid)
         log.info("Left room {!s}".format(self))
         self._bot.callback_room_left(room)
 
     @property
     def exists(self):
-        global rooms
-        return self._name in [r._name for r in rooms]
+        return self.find_croom() is not None
 
     def create(self):
-        global rooms
         if self.exists:
             logging.warning("Room {!s} already created".format(self))
-        else:
-            rooms.append(self)
-            log.info("Created room {!s}".format(self))
+            return
+
+        global rooms
+        rooms.append(self)
+        log.info("Created room {!s}".format(self))
 
     def destroy(self):
-        global rooms
         if not self.exists:
             logging.warning("Cannot destroy room {!s}, it doesn't exist".format(self))
-        else:
-            rooms = [r for r in rooms if r._name != self._name]
-            log.info("Destroyed room {!s}".format(self))
+            return
+
+        rooms.remove(self)
+        log.info("Destroyed room {!s}".format(self))
 
     @property
     def topic(self):
@@ -132,9 +128,8 @@ class TestMUCRoom(MUCRoom):
 
     @topic.setter
     def topic(self, topic):
-        global rooms
         self._topic = topic
-        room = [r for r in rooms if r._name == self._name][0]
+        room = self.find_croom()
         room._topic = self._topic
         log.info("Topic for room {!s} set to '{}'".format(self, topic))
         self._bot.callback_room_topic(self)

@@ -1067,7 +1067,9 @@ class Backend(object):
         return ''.join(filter(None, [top, description, usage, bottom]))
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
-        """Sends a simple message to the specified user."""
+        """Sends a simple message to the specified user.
+           user is a textual representation of its identity (backward compatibility).
+        """
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
 
@@ -1077,14 +1079,11 @@ class Backend(object):
             reply_text = text
 
         mess = self.build_message(reply_text)
-        if hasattr(user, 'stripped'):
-            mess.to = user.stripped
-        else:
-            mess.to = user
+        mess.to = self.build_identifier(user)
 
         if in_reply_to:
             mess.type = in_reply_to.type
-            mess.frm = in_reply_to.to.stripped
+            mess.frm = in_reply_to.to
         else:
             mess.type = message_type
             mess.frm = self.jid

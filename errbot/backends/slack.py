@@ -165,7 +165,7 @@ class SlackBackend(ErrBot):
         log.info("Verifying authentication token")
         self.auth = self.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:
-            log.error("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
+            raise SlackAPIResponseError("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
         log.debug("Token accepted")
         self.bot_identifier = SlackIdentifier(self.sc, self.auth["user_id"])
 
@@ -391,12 +391,13 @@ class SlackBackend(ErrBot):
         return 'slack'
 
     def query_room(self, room):
+        """ Room can either be a name or a channelid """
         if room.startswith('C') or room.startswith('G'):
-            return SlackRoom(domain=room, bot=self)
+            return SlackRoom(channelid=room, bot=self)
 
         m = SLACK_CLIENT_CHANNEL_HYPERLINK.match(room)
         if m is not None:
-            return SlackRoom(domain=m.groupdict()['id'], bot=self)
+            return SlackRoom(channelid=m.groupdict()['id'], bot=self)
 
         return SlackRoom(name=room, bot=self)
 
@@ -408,19 +409,16 @@ class SlackBackend(ErrBot):
             A list of :class:`~SlackRoom` instances.
         """
         channels = self.channels(joined_only=True, exclude_archived=True)
-        return [SlackRoom(domain=channel['id'], bot=self) for channel in channels]
+        return [SlackRoom(channelid=channel['id'], bot=self) for channel in channels]
 
     def groupchat_reply_format(self):
         return '@{0}: {1}'
 
 
 class SlackRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', name=None, bot=None):
-        super().__init__(jid, node, domain, resource, bot)
-        if jid is not None or node != '' or resource != '':
-            raise ValueError("SlackRoom() only supports construction using domain or name")
-        if domain != '' and name is not None:
-            raise ValueError("domain and name are mutually exclusive")
+    def __init__(self, name=None, channelid=None, bot=None):
+        if channelid != '' and name is not None:
+            raise ValueError("channelid and name are mutually exclusive")
 
         if name is not None:
             if name.startswith('#'):
@@ -428,7 +426,7 @@ class SlackRoom(MUCRoom):
             else:
                 self._name = name
         else:
-            self._name = bot.channelid_to_channelname(domain)
+            self._name = bot.channelid_to_channelname(channelid)
 
         self._id = None
         self.sc = bot.sc

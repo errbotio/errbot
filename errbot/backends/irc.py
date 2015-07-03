@@ -240,7 +240,7 @@ class IRCConnection(SingleServerIRCBot):
         if room[0] != '#' and room[0] != '$':
             raise Exception('[%s] is not a room' % room)
         msg.frm = IRCMUCOccupant(nick, room)
-        msg.to = self.callback.jid
+        msg.to = self.callback.bot_identifier
         msg.nick = nick  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)
 

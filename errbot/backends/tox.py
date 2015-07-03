@@ -127,7 +127,7 @@ class ToxConnection(Tox):
         msg = Message(message)
         msg.frm = self.friend_to_idd(friend_number)
         log.debug('TOX: %s: %s' % (msg.frm, message))
-        msg.to = self.backend.jid
+        msg.to = self.backend.bot_identifier
         self.backend.callback_message(msg)
 
     def on_group_namelist_change(self, group_number, friend_group_number, change):
@@ -161,7 +161,7 @@ class ToxConnection(Tox):
         log.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
         msg = Message(message, type_='groupchat')
         msg.frm = ToxIdentifier(group_number=str(group_number), friend_group_number=str(friend_group_number))
-        msg.to = self.backend.jid
+        msg.to = self.backend.bot_identifier
         log.debug('TOX: callback with type = %s' % msg.type)
         self.backend.callback_message(msg)
 
@@ -308,9 +308,9 @@ class TOXMUCRoom(MUCRoom):
             return [base.MUCOccupant(name) for name in self.conn.group_get_names(self.group_number)]
         return []
 
-    def invite(self, *jids):
+    def invite(self, *identifiers):
         if self.joined:
-            for friend_id in jids:
+            for friend_id in identifiers:
                 log.debug("Invite friend %i in group %i", int(friend_id), self.group_number)
                 self.conn.invite_friend(int(friend_id), self.group_number)
         raise ValueError("This chatgroup is not joined, you cannot invite anybody.")

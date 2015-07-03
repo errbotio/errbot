@@ -144,7 +144,7 @@ class ChatRoom(BotPlugin):
         Invite one or more people into a chatroom.
 
         Usage:
-        !room invite <room> <jid 1> [<jid2>, ..]
+        !room invite <room> <identifier1> [<identifier2>, ..]
 
         Examples (XMPP):
         !room invite room@conference.server.tld bob@server.tld

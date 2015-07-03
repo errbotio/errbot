@@ -309,7 +309,7 @@ class BotPlugin(BotPluginBase):
     def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):
         """
             Sends asynchronously a stream/file to a user.
-            user is the jid of the person you want to send it to.
+            user is the identifier of the person you want to send it to.
             fsource is a file object you want to send.
             name is an optional filename for it.
             size is optional and is the espected size for it.
@@ -362,9 +362,9 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.query_room(room=room)
 
-    def invite_in_room(self, room, jids_to_invite):
+    def invite_in_room(self, room, identifiers_to_invite):
         """
-            Make the bot invite a list of jids to a room
+            Make the bot invite a list of identifiers to a room
         """
         warnings.warn(
             "Using invite_in_room is deprecated, use invite from the "
@@ -372,7 +372,7 @@ class BotPlugin(BotPluginBase):
             DeprecationWarning,
             stacklevel=2
         )
-        self.query_room(room).invite(jids_to_invite)
+        self.query_room(room).invite(identifiers_to_invite)
 
     def get_installed_plugin_repos(self):
         """

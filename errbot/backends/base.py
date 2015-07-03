@@ -538,7 +538,7 @@ class MUCRoom(object):
         Invite one or more people into the room.
 
         :*args:
-            One or more JID's to invite into the room.
+            One or more identifiers to invite into the room.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
@@ -680,12 +680,6 @@ class Backend(object):
             log.debug("unhandled message type %s" % mess)
             return False
 
-        # Ignore messages from ourselves. Because it isn't always possible to get the
-        # real JID from a MUC participant (including ourself), matching the JID against
-        # ourselves isn't enough (see https://github.com/gbin/err/issues/90 for
-        # background discussion on this). Matching against CHATROOM_FN isn't technically
-        # correct in all cases because a MUC could give us another nickname, but it
-        # covers 99% of the MUC cases, so it should suffice for the time being.
         if (frm.person == self.bot_identifier.person or
             type_ == "groupchat" and mess.nick == self.bot_config.CHATROOM_FN):  # noqa
                 log.debug("Ignoring message from self")
@@ -813,11 +807,11 @@ class Backend(object):
     def _process_command(self, mess, cmd, args, match):
         """Process and execute a bot command"""
 
-        jid = mess.frm
-        username = jid.person
+        frm = mess.frm
+        username = frm.person
         user_cmd_history = self.cmd_history[username]
 
-        log.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, jid))
+        log.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, frm))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
@@ -1177,7 +1171,7 @@ class Backend(object):
         Join a room (MUC).
 
         :param room:
-            The JID/identifier of the room to join.
+            The identifier of the room to join.
         :param username:
             An optional username to use.
         :param password:

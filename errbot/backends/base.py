@@ -1062,8 +1062,11 @@ class Backend(object):
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """Sends a simple message to the specified user.
-           user is a textual representation of its identity (backward compatibility).
         """
+        if isinstance(user, str):
+            log.warn("""deprecation notice: you passed user as a string.
+                    You should use self.build_identifier(user) instead or directly an identifier if you have one.""")
+            user = self.build_identifier(user)
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
 
@@ -1073,7 +1076,7 @@ class Backend(object):
             reply_text = text
 
         mess = self.build_message(reply_text)
-        mess.to = self.build_identifier(user)
+        mess.to = user
 
         if in_reply_to:
             mess.type = in_reply_to.type

@@ -101,7 +101,7 @@ class TestMUCRoom(MUCRoom):
             return
 
         room = [r for r in rooms if r._name == self._name][0]
-        room._occupants = [o for o in room._occupants if o != bot_itself]
+        room._occupants.remove(bot_itself)
         log.info("Left room {!s}".format(self))
         self._bot.callback_room_left(room)
 

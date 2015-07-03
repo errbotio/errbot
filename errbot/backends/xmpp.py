@@ -3,13 +3,12 @@ import sys
 import warnings
 
 from errbot.backends.base import (
-    Message, MUCRoom, MUCOccupant, Presence, RoomNotJoinedError,
-    build_message, Identifier
-)
+    Message, MUCRoom, Presence, RoomNotJoinedError, build_message)
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
 from time import sleep
+from errbot.utils import deprecated
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +56,53 @@ def verify_gtalk_cert(xmpp_client):
             pass
 
     log.error("invalid cert received for %s", xmpp_client.boundjid.server)
+
+
+class XMPPIdentifier(object):
+    """
+    This class is the parent and the basic contract of all the ways the backends
+    are identifying a person on their system.
+    """
+
+    def __init__(self, node='', domain='', resource=''):
+        self._node = node
+        self._domain = domain
+        self._resource = resource
+
+    @property
+    def node(self):
+        return self._node
+
+    @property
+    def domain(self):
+        return self._domain
+
+    @property
+    def resource(self):
+        return self._resource
+
+    @property
+    def person(self):
+        return self._node + '@' + self._domain
+
+    @property
+    def stripped(self):
+        log.warning('stripped is deprecated, use .person on identifiers instead')
+        return self.person
+
+    @deprecated
+    def bare_match(self, other):
+        """ checks if 2 identifiers are equal, ignoring the resource """
+        return other.stripped == self.stripped
+
+    def __str__(self):
+        answer = self.person
+        if self._resource:
+            answer += '/' + self._resource
+        return answer
+
+    def __unicode__(self):
+        return str(self.__str__())
 
 
 class XMPPMUCRoom(MUCRoom):
@@ -249,15 +295,18 @@ class XMPPMUCRoom(MUCRoom):
                       .format(room, affiliation))
 
 
-class XMPPMUCOccupant(MUCOccupant):
+class XMPPMUCOccupant(XMPPIdentifier):
     def __init__(self, **kwargs):
-        super(XMPPMUCOccupant, self).__init__(jid=kwargs.pop("jid"))
+        super().__init__(jid=kwargs.pop("jid"))
 
         for k, v in kwargs.items():
             # Ensure existing attributes can't be overridden, either accidentally
             # or maliciously by a rogue server.
             if not hasattr(self, k):
                 setattr(self, k, v)
+
+    def person(self):
+        return self.resource
 
 
 class XMPPConnection(object):
@@ -267,7 +316,6 @@ class XMPPConnection(object):
         self._bot = bot
         self.connected = False
         self.server = server
-
         self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': feature})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
@@ -371,7 +419,7 @@ class XMPPBackend(ErrBot):
         super(XMPPBackend, self).__init__(config)
         identity = config.BOT_IDENTITY
 
-        self.jid = Identifier(identity['username'])
+        self.jid = self.build_identifier(identity['username'])
         self.password = identity['password']
         self.server = identity.get('server', None)
         self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', {})
@@ -406,8 +454,8 @@ class XMPPBackend(ErrBot):
         msg = Message(xmppmsg['body'])
         if 'html' in xmppmsg.keys():
             msg.html = xmppmsg['html']
-        msg.frm = xmppmsg['from'].full
-        msg.to = xmppmsg['to'].full
+        msg.frm = self.build_identifier(xmppmsg['from'].full)
+        msg.to = self.build_identifier(xmppmsg['to'].full)
         msg.type = xmppmsg['type']
         msg.nick = xmppmsg['mucnick']
         msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
@@ -415,19 +463,19 @@ class XMPPBackend(ErrBot):
 
     def contact_online(self, event):
         log.debug("contact_online %s" % event)
-        p = Presence(identifier=Identifier(str(event['from'])),
+        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
                      status=ONLINE)
         self.callback_presence(p)
 
     def contact_offline(self, event):
         log.debug("contact_offline %s" % event)
-        p = Presence(identifier=Identifier(str(event['from'])),
+        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
                      status=OFFLINE)
         self.callback_presence(p)
 
     def user_joined_chat(self, event):
         log.debug("user_join_chat %s" % event)
-        idd = Identifier(str(event['from']))
+        idd = XMPPIdentifier(str(event['from']))
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=ONLINE)
@@ -435,7 +483,7 @@ class XMPPBackend(ErrBot):
 
     def user_left_chat(self, event):
         log.debug("user_left_chat %s" % event)
-        idd = Identifier(str(event['from']))
+        idd = XMPPIdentifier(str(event['from']))
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=OFFLINE)
@@ -458,7 +506,7 @@ class XMPPBackend(ErrBot):
         if not errstatus:
             errstatus = event['type']
 
-        p = Presence(identifier=Identifier(str(event['from'])),
+        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
                      status=errstatus, message=message)
         self.callback_presence(p)
 
@@ -490,6 +538,46 @@ class XMPPBackend(ErrBot):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, txtrep):
+        if txtrep.find('@') != -1:
+            split_jid = txtrep.split('@')
+            node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
+            if domain.find('/') != -1:
+                domain, resource = domain.split('/')
+            else:
+                resource = None
+        else:
+            node = txtrep
+            domain = None
+            resource = None
+
+        return XMPPIdentifier(node, domain, resource)
+
+    def build_reply(self, mess, text=None, private=False):
+        """Build a message for responding to another message.
+        Message is NOT sent"""
+        msg_type = mess.type
+        response = self.build_message(text)
+
+        response.frm = self.jid
+        if msg_type == 'groupchat' and not private:
+            # stripped returns the full bot@conference.domain.tld/chat_username
+            # but in case of a groupchat, we should only try to send to the MUC address
+            # itself (bot@conference.domain.tld)
+            response.to = self.build_identifier(mess.frm.person)
+        elif mess.to.person == self.bot_config.BOT_IDENTITY['username']:
+            # This is a direct private message, not initiated through a MUC. Use
+            # stripped to remove the resource so that the response goes to the
+            # client with the highest priority
+            response.to = self.build_identifier(mess.frm.person)
+        else:
+            # This is a private message that was initiated through a MUC. Don't use
+            # stripped here to retain the resource, else the XMPP server doesn't
+            # know which user we're actually responding to.
+            response.to = mess.frm
+        response.type = 'chat' if private else msg_type
+        return response
 
     def invite_in_room(self, room, jids_to_invite):
         """

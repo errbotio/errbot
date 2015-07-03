@@ -4,8 +4,8 @@ import re
 import sys
 
 import errbot
-from errbot.backends.base import Message, build_text_html_message_pair, Identifier
-from errbot.backed.text import TextBackend   # we use that as we emulate MUC there already
+from errbot.backends.base import Message, build_text_html_message_pair
+from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.utils import mess_2_embeddablehtml
 
 log = logging.getLogger(__name__)
@@ -24,7 +24,9 @@ except ImportError:
     sudo apt-get install python-pyside
     -> On Gentoo
     sudo emerge -av dev-python/pyside
-    -> Generic
+    -> On Arch
+    sudo pacman -S python-pyside
+     -> Generic/virtual envs
     pip install PySide
     """)
     sys.exit(-1)
@@ -108,18 +110,6 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super(CommandBox, self).keyPressEvent(*args, **kwargs)
 
 
-class ConnectionMock(QObject):
-    newAnswer = QtCore.Signal(str, bool)
-
-    def send_message(self, mess):
-        self.send(mess)
-
-    def send(self, mess):
-        if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
-            content, is_html = mess_2_embeddablehtml(mess)
-            self.newAnswer.emit(content, is_html)
-
-
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
 
@@ -159,6 +149,8 @@ background-size: contain; margin:0;">"""
 
 
 class ChatApplication(QtGui.QApplication):
+    newAnswer = QtCore.Signal(str, bool)
+
     def __init__(self, *args, **kwargs):
         backend = kwargs.pop('backend')
         config = kwargs.pop('config')
@@ -191,7 +183,7 @@ class ChatApplication(QtGui.QApplication):
         self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
         self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
         self.input.newCommand.connect(lambda text: backend.send_command(text))
-        backend.conn.newAnswer.connect(self.new_message)
+        self.newAnswer.connect(self.new_message)
 
         self.mainW.show()
 
@@ -205,15 +197,14 @@ class ChatApplication(QtGui.QApplication):
 
 class GraphicBackend(TextBackend):
     def __init__(self, config):
-        self.conn = None
         super().__init__(config)
-        self.jid = Identifier('Err')
+        self.jid = self.build_identifier('Err')
         self.app = None
 
     def send_command(self, text):
         self.app.new_message(text, False)
         msg = Message(text)
-        msg.frm = self.bot_config.BOT_ADMINS[0]  # assume this is the admin talking
+        msg.frm = self.build_identifier(self.bot_config.BOT_ADMINS[0])  # assume this is the admin talking
         msg.to = self.jid  # To me only
         self.callback_message(msg)
         self.app.input.clear()
@@ -224,8 +215,15 @@ class GraphicBackend(TextBackend):
         msg.frm = self.jid
         return msg  # rebuild a pure html snippet to include directly in the console html
 
+    def send_message(self, mess):
+        self.send(mess)
+
+    def send(self, mess):
+        if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
+            content, is_html = mess_2_embeddablehtml(mess)
+            self.app.newAnswer.emit(content, is_html)
+
     def serve_forever(self):
-        self.connect()  # be sure we are "connected" before the first command
         self.connect_callback()  # notify that the connection occured
 
         # create window and components
@@ -236,11 +234,6 @@ class GraphicBackend(TextBackend):
             self.disconnect_callback()
             self.shutdown()
             exit(0)
-
-    def connect(self):
-        if not self.conn:
-            self.conn = ConnectionMock()
-        return self.conn
 
     @property
     def mode(self):

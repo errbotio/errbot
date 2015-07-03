@@ -1,6 +1,7 @@
 import logging
 from time import sleep
-from errbot.backends.base import Message, Identifier, build_text_html_message_pair
+from errbot.backends.base import Message, build_text_html_message_pair
+from errbot.backends import SimpleIdentifier
 from errbot.errBot import ErrBot
 
 log = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class NullBackend(ErrBot):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.jid = Identifier('Err')  # whatever
+        self.jid = SimpleIdentifier('Err')  # whatever
 
     def serve_forever(self):
         self.connect()  # be sure we are "connected" before the first command
@@ -47,6 +48,9 @@ class NullBackend(ErrBot):
     def build_message(self, text):
         text, html = build_text_html_message_pair(text)
         return Message(text, html=html)
+
+    def build_identifier(self, strrep):
+        return SimpleIdentifier(strrep)
 
     def join_room(self, room, username=None, password=None):
         pass  # just ignore that

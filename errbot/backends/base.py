@@ -12,7 +12,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 
 from errbot import botcmd, PY2
-from errbot.utils import get_sender_username, xhtml2txt, parse_jid, split_string_after, deprecated
+from errbot.utils import get_sender_username, xhtml2txt, split_string_after, deprecated
 from errbot.templating import tenv
 from errbot.bundled.threadpool import ThreadPool, WorkRequest
 
@@ -42,74 +42,6 @@ class UserDoesNotExistError(Exception):
     on a user that doesn't exist"""
 
 
-class Identifier(object):
-    """
-    This class is the parent and the basic contract of all the ways the backends
-    are identifying a person on their system.
-    """
-
-    def __init__(self, jid=None, node='', domain='', resource=''):
-        if jid:
-            self._node, self._domain, self._resource = parse_jid(jid)
-        else:
-            self._node = node
-            self._domain = domain
-            self._resource = resource
-
-    @property
-    def node(self):
-        return self._node
-
-    @property
-    def domain(self):
-        return self._domain
-
-    @property
-    def resource(self):
-        return self._resource
-
-    @property
-    def stripped(self):
-        if self._domain:
-            return self._node + '@' + self._domain
-        return self._node  # if the backend has no domain notion
-
-    def bare_match(self, other):
-        """ checks if 2 identifiers are equal, ignoring the resource """
-        return other.stripped == self.stripped
-
-    def __str__(self):
-        answer = self.stripped
-        if self._resource:
-            answer += '/' + self._resource
-        return answer
-
-    def __unicode__(self):
-        return str(self.__str__())
-
-    # deprecated stuff ...
-
-    @deprecated(node)
-    def getNode(self):
-        """ will be removed on the next version """
-
-    @deprecated(domain)
-    def getDomain(self):
-        """ will be removed on the next version """
-
-    @deprecated(bare_match)
-    def bareMatch(self, other):
-        """ will be removed on the next version """
-
-    @deprecated(stripped)
-    def getStripped(self):
-        """ will be removed on the next version """
-
-    @deprecated(resource)
-    def getResource(self):
-        """ will be removed on the next version """
-
-
 class Message(object):
     """
     A chat message.
@@ -118,8 +50,6 @@ class Message(object):
     the bot. It is modeled after XMPP messages so not all methods
     make sense in the context of other back-ends.
     """
-
-    fr = Identifier('unknown@localhost')
 
     def __init__(self, body, type_='chat', html=None):
         """
@@ -159,13 +89,12 @@ class Message(object):
         Set the recipient of the message.
 
         :param to:
-            An :class:`~errbot.backends.base.Identifier`, or string which may
-            be parsed as one, identifying the recipient.
+            An identifier from for example build_identifier().
         """
-        if isinstance(to, Identifier):
-            self._to = to
-        else:
-            self._to = Identifier(to)  # assume a parseable string
+        if not hasattr(to, 'person'):
+            raise Exception('`to` not an Identifier as it misses ''the "person" property. `to` : %s (%s)'
+                            % (to, to.__class__))
+        self._to = to
 
     @property
     def type(self):
@@ -206,13 +135,12 @@ class Message(object):
         Set the sender of the message.
 
         :param from_:
-            An :class:`~errbot.backends.base.Identifier`, or string which may
-            be parsed as one, identifying the sender.
+            An identifier from build_identifier.
         """
-        if isinstance(from_, Identifier):
-            self._from = from_
-        else:
-            self._from = Identifier(from_)  # assume a parseable string
+        if not hasattr(from_, 'person'):
+            raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)'
+                            % (from_, from_.__class__))
+        self._from = from_
 
     @property
     def body(self):
@@ -318,6 +246,7 @@ class Message(object):
     def getMuckNick(self):
         """ will be removed on the next version """
 
+
 ONLINE = 'online'
 OFFLINE = 'offline'
 AWAY = 'away'
@@ -347,7 +276,7 @@ class Presence(object):
 
     @property
     def chatroom(self):
-        """ Returns the Identifier pointing the room in which the event occurred.
+        """ Returns the identifier pointing the room in which the event occurred.
             If it returns None, the event occurred outside of a chatroom.
         """
         return self._chatroom
@@ -504,14 +433,10 @@ class Stream(io.BufferedReader):
         return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
 
 
-class MUCRoom(Identifier):
+class MUCRoom(object):
     """
     This class represents a Multi-User Chatroom.
     """
-
-    def __init__(self, jid=None, node='', domain='', resource='', bot=None):
-        super().__init__(jid, node, domain, resource)
-        self._bot = bot
 
     def join(self, username=None, password=None):
         """
@@ -602,7 +527,7 @@ class MUCRoom(Identifier):
         The room's occupants.
 
         :getter:
-            Returns a list of :class:`~errbot.backends.base.MUCOccupant` instances.
+            Returns a list of occupant identities.
         :raises:
             :class:`~MUCNotJoinedError` if the room has not yet been joined.
         """
@@ -616,20 +541,6 @@ class MUCRoom(Identifier):
             One or more JID's to invite into the room.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
-
-
-class MUCOccupant(Identifier):
-    """
-    This class represents a person inside a MUC.
-
-    This class exists to expose additional information about occupants
-    inside a MUC. For example, the XMPP back-end may expose backend-specific
-    information such as the real JID of the occupant and whether or not
-    that person is a moderator or owner of the room.
-
-    See the parent class for additional details.
-    """
-    pass
 
 
 def build_text_html_message_pair(source):
@@ -712,35 +623,15 @@ class Backend(object):
 
     def send_message(self, mess):
         """Should be overridden by backends"""
+        raise NotImplementedError("send_message should be implemented by the backend")
 
     def send_simple_reply(self, mess, text, private=False):
         """Send a simple response to a message"""
         self.send_message(self.build_reply(mess, text, private))
 
     def build_reply(self, mess, text=None, private=False):
-        """Build a message for responding to another message.
-        Message is NOT sent"""
-        msg_type = mess.type
-        response = self.build_message(text)
-
-        response.frm = self.jid
-        if msg_type == 'groupchat' and not private:
-            # stripped returns the full bot@conference.domain.tld/chat_username
-            # but in case of a groupchat, we should only try to send to the MUC address
-            # itself (bot@conference.domain.tld)
-            response.to = Identifier(node=mess.frm.node, domain=mess.frm.domain)
-        elif str(mess.to) == self.bot_config.BOT_IDENTITY['username']:
-            # This is a direct private message, not initiated through a MUC. Use
-            # stripped to remove the resource so that the response goes to the
-            # client with the highest priority
-            response.to = mess.frm.stripped
-        else:
-            # This is a private message that was initiated through a MUC. Don't use
-            # stripped here to retain the resource, else the XMPP server doesn't
-            # know which user we're actually responding to.
-            response.to = mess.frm
-        response.type = 'chat' if private else msg_type
-        return response
+        """ Should be implemented by the backend """
+        raise NotImplementedError("build_reply should be implemented by the backend %s" % self.__class__)
 
     def callback_presence(self, presence):
         """
@@ -774,7 +665,11 @@ class Backend(object):
         type_ = mess.type
         jid = mess.frm
         text = mess.body
-        username = get_sender_username(mess)
+        if not hasattr(mess.frm, 'person'):
+            raise Exception('mess.frm not an Identifier as it misses the "person" property. Class of frm : %s'
+                            % mess.frm.__class__)
+
+        username = mess.frm.person
         user_cmd_history = self.cmd_history[username]
 
         if mess.delayed:
@@ -791,7 +686,7 @@ class Backend(object):
         # background discussion on this). Matching against CHATROOM_FN isn't technically
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
-        if (jid.bare_match(self.jid) or
+        if (jid.person == self.jid.person or
             type_ == "groupchat" and mess.nick == self.bot_config.CHATROOM_FN):  # noqa
                 log.debug("Ignoring message from self")
                 return False
@@ -919,10 +814,10 @@ class Backend(object):
         """Process and execute a bot command"""
 
         jid = mess.frm
-        username = get_sender_username(mess)
+        username = jid.person
         user_cmd_history = self.cmd_history[username]
 
-        log.info("Processing command '{}' with parameters '{}' from {}/{}".format(cmd, args, jid, mess.nick))
+        log.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, jid))
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
@@ -965,7 +860,7 @@ class Backend(object):
             wr = WorkRequest(
                 self._execute_and_send,
                 [],
-                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'jid': jid,
+                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess,
                  'template_name': f._err_command_template}
             )
             self.thread_pool.putRequest(wr)
@@ -974,22 +869,20 @@ class Backend(object):
                 # depleted so we don't have strange concurrency issues.
                 self.thread_pool.wait()
         else:
-            self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess, jid=jid,
+            self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
                                    template_name=f._err_command_template)
 
-    def _execute_and_send(self, cmd, args, match, mess, jid, template_name=None):
+    def _execute_and_send(self, cmd, args, match, mess, template_name=None):
         """Execute a bot command and send output back to the caller
 
         cmd: The command that was given to the bot (after being expanded)
         args: Arguments given along with cmd
         match: A re.MatchObject if command is coming from a regex-based command, else None
         mess: The message object
-        jid: The jid of the person executing the command
         template_name: The name of the template which should be used to render
             html-im output, if any
 
         """
-
         def process_reply(reply_):
             # integrated templating
             if template_name:
@@ -1016,8 +909,8 @@ class Backend(object):
         except Exception as e:
             tb = traceback.format_exc()
             log.exception('An error happened while processing '
-                          'a message ("%s") from %s: %s"' %
-                          (mess.body, jid, tb))
+                          'a message ("%s"): %s"' %
+                          (mess.body, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
     def is_admin(self, usr):
@@ -1032,7 +925,7 @@ class Backend(object):
 
         Raises ACLViolation() if the command may not be executed in the given context
         """
-        usr = str(get_jid_from_message(mess))
+        usr = str(mess.frm.person)
         typ = mess.type
 
         if cmd not in self.bot_config.ACCESS_CONTROLS:
@@ -1045,15 +938,18 @@ class Backend(object):
            usr in self.bot_config.ACCESS_CONTROLS[cmd]['denyusers']):
             raise ACLViolation("You're not allowed to access this command from this user")
         if typ == 'groupchat':
-            stripped = mess.frm.stripped
+            if not hasattr(mess.frm, 'room'):
+                raise Exception('mess.frm is not a MUCIdentifier as it misses the "room" property. Class of frm : %s'
+                                % mess.frm.__class__)
+            room = str(mess.frm.room)
             if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
                self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):
                 raise ACLViolation("You're not allowed to access this command from a chatroom")
             if ('allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               stripped not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']):
+               room not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']):
                 raise ACLViolation("You're not allowed to access this command from this room")
             if ('denyrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               stripped in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']):
+               room in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']):
                 raise ACLViolation("You're not allowed to access this command from this room")
         else:
             if ('allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and
@@ -1171,7 +1067,9 @@ class Backend(object):
         return ''.join(filter(None, [top, description, usage, bottom]))
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
-        """Sends a simple message to the specified user."""
+        """Sends a simple message to the specified user.
+           user is a textual representation of its identity (backward compatibility).
+        """
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
 
@@ -1181,14 +1079,11 @@ class Backend(object):
             reply_text = text
 
         mess = self.build_message(reply_text)
-        if hasattr(user, 'stripped'):
-            mess.to = user.stripped
-        else:
-            mess.to = user
+        mess.to = self.build_identifier(user)
 
         if in_reply_to:
             mess.type = in_reply_to.type
-            mess.frm = in_reply_to.to.stripped
+            mess.frm = in_reply_to.to
         else:
             mess.type = message_type
             mess.frm = self.jid
@@ -1254,6 +1149,9 @@ class Backend(object):
     def build_message(self, text):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
+    def build_identifier(self, text_representation):
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
     def serve_once(self):
         """
         Connect the back-end to the server and serve a connection once
@@ -1300,7 +1198,7 @@ class Backend(object):
         Query a room for information.
 
         :param room:
-            The JID/identifier of the room to query for.
+            The room to query for.
         :returns:
             An instance of :class:`~MUCRoom`.
         """
@@ -1327,12 +1225,3 @@ class Backend(object):
             A list of :class:`~errbot.backends.base.MUCRoom` instances.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
-
-
-def get_jid_from_message(mess):
-    if mess.type == 'chat':
-        # strip the resource for direct chats
-        return mess.frm.stripped
-    fr = mess.frm
-    jid = Identifier(node=fr.node, domain=fr.domain, resource=fr.resource)
-    return jid

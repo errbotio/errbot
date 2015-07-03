@@ -7,7 +7,7 @@ from os.path import exists, join
 import io
 from errbot.backends import base
 from errbot.errBot import ErrBot
-from errbot.backends.base import Message, Identifier, Presence, Stream, MUCRoom
+from errbot.backends.base import Message, Presence, Stream, MUCRoom
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.backends.base import build_message
 from errbot.backends.base import STREAM_TRANSFER_IN_PROGRESS
@@ -26,20 +26,14 @@ except ImportError:
     sys.exit(-1)
 
 
-# Backend notes
-#
-# TOX mapping to Err Identifier :
-# TOX client_id as hash string -> node
-
-
 TOX_MAX_MESS_LENGTH = 1368
 
 NOT_ADMIN = "You are not recognized as an administrator of this bot"
 
 TOX_TO_ERR_STATUS = {
-    Tox.USERSTATUS_NONE: ONLINE,
-    Tox.USERSTATUS_AWAY: AWAY,
-    Tox.USERSTATUS_BUSY: DND,
+    Tox.USER_STATUS_NONE: ONLINE,
+    Tox.USER_STATUS_AWAY: AWAY,
+    Tox.USER_STATUS_BUSY: DND,
 }
 
 TOX_GROUP_TO_ERR_STATUS = {
@@ -47,6 +41,18 @@ TOX_GROUP_TO_ERR_STATUS = {
     Tox.CHAT_CHANGE_PEER_DEL: AWAY,
     Tox.CHAT_CHANGE_PEER_NAME: None,
 }
+
+
+class ToxIdentifier(object):
+    def __init__(self, client_id=None, group_number=None, friend_group_number=None, username=None):
+        self._client_id = client_id
+        self._group_number = group_number
+        self._friend_group_number = friend_group_number
+        self._username = username
+
+    @property
+    def person(self):
+        return self._username
 
 
 class ToxStreamer(io.BufferedRWPair):
@@ -75,25 +81,24 @@ class ToxConnection(Tox):
         self.bootstrap_from_address(*bootstrap_servers)
 
     def friend_to_idd(self, friend_number):
-        return Identifier(node=self.get_client_id(friend_number))
+        return ToxIdentifier(client_id=self.get_client_id(friend_number))
 
     def idd_to_friend(self, identifier, autoinvite=True, autoinvite_message='I am just a bot.'):
         """
         Returns the Tox friend number from the roster.
 
         :exception ValueError if the identifier is not a Tox one.
-        :param identifier: an err Identifier
+        :param identifier: an err identifier
         :param autoinvite: set to True if you want to invite this identifier if it is not in your roster.
         :return: the tox friend number from the roster, None if it could not be found.
         """
-        if len(identifier.node) > 76 or len(identifier.node) < 64:
+        if len(identifier.userid) > 76 or len(identifier.userid) < 64:
             raise ValueError("%s is not a valid Tox Identifier.")
         try:
-            self.get_friend_id(identifier.node)
-            return self.get_friend_id(identifier.node)
+            return self.get_friend_id(identifier.userid)
         except OperationFailedError:
             if autoinvite:
-                return self.add_friend(identifier.node, autoinvite_message)
+                return self.add_friend(identifier.userid, autoinvite_message)
             return None
 
     def on_friend_request(self, friend_pk, message):
@@ -129,7 +134,7 @@ class ToxConnection(Tox):
         log.debug("TOX: user %s changed state in group %s" % (friend_group_number, group_number))
         newstatus = TOX_GROUP_TO_ERR_STATUS[change]
         if newstatus:
-            chatroom = Identifier(node=str(group_number), resource=str(friend_group_number))
+            chatroom = ToxIdentifier(group_number=str(group_number), friend_group_number=str(friend_group_number))
             pres = Presence(nick=self.group_peername(group_number, friend_group_number),
                             status=newstatus,
                             chatroom=chatroom)
@@ -155,7 +160,7 @@ class ToxConnection(Tox):
     def on_group_message(self, group_number, friend_group_number, message):
         log.debug('TOX: Group-%i User-%i: %s' % (group_number, friend_group_number, message))
         msg = Message(message, type_='groupchat')
-        msg.frm = Identifier(node=str(group_number), resource=str(friend_group_number))
+        msg.frm = ToxIdentifier(group_number=str(group_number), friend_group_number=str(friend_group_number))
         msg.to = self.backend.jid
         log.debug('TOX: callback with type = %s' % msg.type)
         self.backend.callback_message(msg)
@@ -336,7 +341,7 @@ class ToxBackend(ErrBot):
         username = config.BOT_IDENTITY['username']
         super(ToxBackend, self).__init__(config)
         self.conn = ToxConnection(self, username)
-        self.jid = Identifier(str(self.conn.get_address()), resource=username)
+        self.jid = ToxIdentifier(userid=str(self.conn.get_address()), username=username)
 
     def is_admin(self, friend_number):
         pk = self.conn.get_client_id(int(friend_number))

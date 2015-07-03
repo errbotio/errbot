@@ -1,9 +1,8 @@
 import logging
 import sys
 
-from errbot.backends.base import MUCOccupant, MUCRoom, RoomDoesNotExistError
-from errbot.backends.xmpp import XMPPBackend, XMPPConnection
-from errbot.utils import parse_jid
+from errbot.backends.base import RoomDoesNotExistError
+from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ except ImportError:
     sys.exit(1)
 
 
-class HipChatMUCOccupant(MUCOccupant):
+class HipChatMUCOccupant(XMPPMUCOccupant):
     """
     An occupant of a Multi-User Chatroom.
 
@@ -42,7 +41,7 @@ class HipChatMUCOccupant(MUCOccupant):
         return self.name
 
 
-class HipChatMUCRoom(MUCRoom):
+class HipChatMUCRoom(XMPPMUCRoom):
     """
     This class represents a Multi-User Chatroom.
     """
@@ -86,15 +85,15 @@ class HipChatMUCRoom(MUCRoom):
 
     @property
     def node(self):
-        return parse_jid(self.jid)[0]
+        return self._bot.build_identifier(self.jid).node
 
     @property
     def domain(self):
-        return parse_jid(self.jid)[1]
+        return self._bot.build_identifier(self.jid).domain
 
     @property
     def resource(self):
-        return parse_jid(self.jid)[2]
+        return self._bot.build_identifier(self.jid).resource
 
     def __repr__(self):
         return "<HipChatMUCRoom('{}')>".format(self.name)

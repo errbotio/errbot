@@ -1,6 +1,7 @@
 import logging
 import sys
-from errbot.backends.base import Message, build_message, Identifier, Presence, ONLINE, OFFLINE, MUCRoom, MUCOccupant
+from errbot.backends import SimpleIdentifier
+from errbot.backends.base import Message, build_message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 log = logging.getLogger(__name__)
@@ -17,11 +18,11 @@ class TextBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
         log.debug("Text Backend Init.")
-        self.jid = Identifier('Err')
+        self.jid = self.build_identifier('Err')
         self.rooms = set()
 
     def serve_forever(self):
-        me = Identifier(self.bot_config.BOT_ADMINS[0])
+        me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=me, status=ONLINE))
         try:
@@ -56,6 +57,16 @@ class TextBackend(ErrBot):
     def build_message(self, text):
         return build_message(text, Message)
 
+    def build_identifier(self, text_representation):
+        return SimpleIdentifier(text_representation)
+
+    def build_reply(self, mess, text=None, private=False):
+        response = self.build_message(text)
+        response.frm = self.jid
+        response.to = mess.frm
+        response.type = 'chat' if private else mess.type
+        return response
+
     def shutdown(self):
         super(TextBackend, self).shutdown()
 
@@ -68,7 +79,7 @@ class TextBackend(ErrBot):
         return 'text'
 
     def query_room(self, room):
-        room = TextMUCRoom(room, bot=self)
+        room = TextMUCRoom()
         self.rooms.add(room)
         return room
 
@@ -80,8 +91,7 @@ class TextBackend(ErrBot):
 
 
 class TextMUCRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', bot=None):
-        super().__init__(jid, node, domain, resource, bot)
+    def __init__(self):
         self.topic_ = ''
         self.joined_ = False
 
@@ -115,7 +125,7 @@ class TextMUCRoom(MUCRoom):
 
     @property
     def occupants(self):
-        return [MUCOccupant("Somebody")]
+        return [self.build_identifier("Somebody")]
 
     def invite(self, *args):
         pass

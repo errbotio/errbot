@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 from threading import Thread
 
 import pytest
+from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
 
 log = logging.getLogger(__name__)
 
@@ -20,11 +21,13 @@ config.BOT_DATA_DIR = tempdir
 config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 config.BOT_EXTRA_PLUGIN_DIR = []
 config.BOT_LOG_LEVEL = logging.DEBUG
+config.CHATROOM_PRESENCE = ('testroom',)  # we are testing with simple identfiers
+config.BOT_IDENTITY = {'username': 'err'}  # we are testing with simple identfiers
 
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
 from errbot.backends.base import (
-    Message, build_message, Identifier, MUCRoom, MUCOccupant  # noqa
+    Message, build_message, MUCRoom  # noqa
 )
 from errbot.core_plugins.wsview import reset_app  # noqa
 from errbot.errBot import ErrBot  # noqa
@@ -41,13 +44,10 @@ STZ_PRE = 2
 STZ_IQ = 3
 
 
-class MUCRoom(MUCRoom):
-    def __init__(self, jid=None, node='', domain='', resource='', occupants=None, topic=None, bot=None):
+class TestMUCRoom(MUCRoom):
+    def __init__(self, name, occupants=None, topic=None, bot=None):
         """
-        :param jid: See parent class.
-        :param node: See parent class.
-        :param domain: See parent class.
-        :param resource: See parent class.
+        :param name: Name of the room
         :param occupants: Occupants of the room
         :param topic: The MUC's topic
         """
@@ -55,7 +55,8 @@ class MUCRoom(MUCRoom):
             occupants = []
         self._occupants = occupants
         self._topic = topic
-        super(MUCRoom, self).__init__(jid=jid, node=node, domain=domain, resource=resource, bot=bot)
+        self._bot = bot
+        self._name = name
 
     @property
     def occupants(self):
@@ -64,13 +65,15 @@ class MUCRoom(MUCRoom):
     @property
     def joined(self):
         global rooms
-        bot_itself = config.BOT_IDENTITY['username']
-
-        room = [r for r in rooms if str(r) == str(self)]
+        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
+        for room in rooms:
+            log.info("room = %s" % room._name)
+        log.info("self = %s" % repr(self._name))
+        log.info("bot_itself = %s" % str(bot_itself))
+        room = [r for r in rooms if r._name == self._name]
         if room:
-            return bot_itself in [str(o) for o in room[0].occupants]
-        else:
-            return False
+            return bot_itself in room[0].occupants
+        return False
 
     def join(self, username=None, password=None):
         global rooms
@@ -84,28 +87,28 @@ class MUCRoom(MUCRoom):
             log.debug("Room {!s} doesn't exist yet, creating it".format(self))
             self.create()
 
-        room = [r for r in rooms if str(r) == str(self)][0]
-        room._occupants.append(MUCOccupant(bot_itself))
+        room = [r for r in rooms if r._name == self._name][0]
+        room._occupants.append(SimpleMUCOccupant(bot_itself, self._name))
         log.info("Joined room {!s}".format(self))
         self._bot.callback_room_joined(room)
 
     def leave(self, reason=None):
         global rooms
-        bot_itself = config.BOT_IDENTITY['username']
+        bot_itself = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
 
         if not self.joined:
             logging.warning("Attempted to leave room '{!s}', but not in this room".format(self))
             return
 
-        room = [r for r in rooms if str(r) == str(self)][0]
-        room._occupants = [o for o in room._occupants if str(o) != bot_itself]
+        room = [r for r in rooms if r._name == self._name][0]
+        room._occupants.remove(bot_itself)
         log.info("Left room {!s}".format(self))
         self._bot.callback_room_left(room)
 
     @property
     def exists(self):
         global rooms
-        return str(self) in [str(r) for r in rooms]
+        return self._name in [r._name for r in rooms]
 
     def create(self):
         global rooms
@@ -120,7 +123,7 @@ class MUCRoom(MUCRoom):
         if not self.exists:
             logging.warning("Cannot destroy room {!s}, it doesn't exist".format(self))
         else:
-            rooms = [r for r in rooms if str(r) != str(self)]
+            rooms = [r for r in rooms if r._name != self._name]
             log.info("Destroyed room {!s}".format(self))
 
     @property
@@ -131,17 +134,26 @@ class MUCRoom(MUCRoom):
     def topic(self, topic):
         global rooms
         self._topic = topic
-        room = [r for r in rooms if str(r) == str(self)][0]
+        room = [r for r in rooms if r._name == self._name][0]
         room._topic = self._topic
         log.info("Topic for room {!s} set to '{}'".format(self, topic))
         self._bot.callback_room_topic(self)
+
+    def __unicode__(self):
+        return self._name
+
+    def __str__(self):
+        return self._name
+
+    def __eq__(self, other):
+        return self._name == other._name
 
 
 class TestBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
-        self.jid = Identifier('Err')  # whatever
-        self.sender = config.BOT_ADMINS[0]  # By default, assume this is the admin talking
+        self.jid = self.build_identifier('Err')  # whatever
+        self.sender = self.build_identifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
 
     def send_message(self, mess):
         super(TestBackend, self).send_message(mess)
@@ -185,12 +197,18 @@ class TestBackend(ErrBot):
     def build_message(self, text):
         return build_message(text, Message)
 
-    def shutdown(self):
-        super(TestBackend, self).shutdown()
+    def build_identifier(self, text_representation):
+        return SimpleIdentifier(text_representation)
+
+    def build_reply(self, mess, text=None, private=False):
+        msg = self.build_message(text)
+        msg.frm = self.jid
+        msg.to = mess.frm
+        return msg
 
     @property
     def mode(self):
-        return 'text'
+        return 'test'
 
     def rooms(self):
         global rooms
@@ -201,7 +219,7 @@ class TestBackend(ErrBot):
         try:
             return [r for r in rooms if str(r) == str(room)][0]
         except IndexError:
-            r = MUCRoom(jid=room, bot=self)
+            r = TestMUCRoom(room, bot=self)
             return r
 
     def groupchat_reply_format(self):

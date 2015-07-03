@@ -20,12 +20,15 @@ import os  # noqa
 import re  # noqa
 from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
-from errbot.backends.base import Identifier, Backend, Message  # noqa
+from errbot.backends import SimpleIdentifier, SimpleMUCOccupant   # noqa
+from errbot.backends.base import Backend, Message  # noqa
 from errbot.backends.base import build_message, build_text_html_message_pair  # noqa
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.utils import mess_2_embeddablehtml  # noqa
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Config:
@@ -37,9 +40,9 @@ class Config:
 
 class DummyBackend(Backend):
     outgoing_message_queue = Queue()
-    jid = Identifier('err@localhost/err')
 
     def __init__(self, extra_config={}):
+        self.jid = self.build_identifier('err')
         self.bot_config = Config()
         for key in extra_config:
             setattr(self.bot_config, key, extra_config[key])
@@ -49,6 +52,15 @@ class DummyBackend(Backend):
 
     def build_message(self, text):
         return build_message(text, Message)
+
+    def build_identifier(self, text_representation):
+        return SimpleIdentifier(text_representation)
+
+    def build_reply(self, mess, text=None, private=False):
+        msg = self.build_message(text)
+        msg.frm = self.jid
+        msg.to = mess.frm
+        return msg
 
     def send_message(self, mess):
         self.outgoing_message_queue.put(mess)
@@ -148,35 +160,6 @@ class TestBase(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
 
-    def test_identifier_parsing(self):
-        id1 = Identifier(jid='gbin@gootz.net/toto')
-        self.assertEqual(id1.node, 'gbin')
-        self.assertEqual(id1.domain, 'gootz.net')
-        self.assertEqual(id1.resource, 'toto')
-
-        id2 = Identifier(jid='gbin@gootz.net')
-        self.assertEqual(id2.node, 'gbin')
-        self.assertEqual(id2.domain, 'gootz.net')
-        self.assertIsNone(id2.resource)
-
-    def test_identifier_matching(self):
-        id1 = Identifier(jid='gbin@gootz.net/toto')
-        id2 = Identifier(jid='gbin@gootz.net/titi')
-        id3 = Identifier(jid='gbin@giitz.net/titi')
-        self.assertTrue(id1.bare_match(id2))
-        self.assertFalse(id2.bare_match(id3))
-
-    def test_identifier_stripping(self):
-        id1 = Identifier(jid='gbin@gootz.net/toto')
-        self.assertEqual(id1.stripped, 'gbin@gootz.net')
-
-    def test_identifier_str_rep(self):
-        self.assertEqual(str(Identifier(jid="gbin@gootz.net/toto")), "gbin@gootz.net/toto")
-        self.assertEqual(str(Identifier(jid="gbin@gootz.net")), "gbin@gootz.net")
-
-    def test_identifier_unicode_rep(self):
-        self.assertEqual(str(Identifier(jid="gbin@gootz.net/へようこそ")), "gbin@gootz.net/へようこそ")
-
     def test_xhtmlparsing_and_textify(self):
         text_plain, node = build_text_html_message_pair('<html><body>Message</body></html>')
         self.assertEqual(text_plain, 'Message')
@@ -184,22 +167,16 @@ class TestBase(unittest.TestCase):
         self.assertEqual(node.getchildren()[0].tag, 'body')
         self.assertEqual(node.getchildren()[0].text, 'Message')
 
-    def test_identifier_double_at_parsing(self):
-        id1 = Identifier(jid='gbin@titi.net@gootz.net/toto')
-        self.assertEqual(id1.node, 'gbin@titi.net')
-        self.assertEqual(id1.domain, 'gootz.net')
-        self.assertEqual(id1.resource, 'toto')
-
     def test_buildreply(self):
         dummy = self.dummy
 
         m = dummy.build_message('Content')
-        m.frm = 'from@fromdomain.net/fromresource'
-        m.to = 'to@todomain.net/toresource'
+        m.frm = dummy.build_identifier('user')
+        m.to = dummy.build_identifier('somewhere')
         resp = dummy.build_reply(m, 'Response')
 
-        self.assertEqual(str(resp.to), 'from@fromdomain.net/fromresource')
-        self.assertEqual(str(resp.frm), 'err@localhost/err')
+        self.assertEqual(str(resp.to), 'user')
+        self.assertEqual(str(resp.frm), 'err')
         self.assertEqual(str(resp.body), 'Response')
 
 
@@ -207,8 +184,8 @@ class TestExecuteAndSend(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
         self.example_message = self.dummy.build_message('some_message')
-        self.example_message.frm = 'noterr@localhost/resource'
-        self.example_message.to = 'err@localhost/resource'
+        self.example_message.frm = self.dummy.build_identifier('noterr')
+        self.example_message.to = self.dummy.build_identifier('err')
 
         assets_path = os.path.join(os.path.dirname(__file__), 'assets')
         templating.template_path.append(templating.make_templates_path(assets_path))
@@ -219,7 +196,7 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
 
         dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.return_args_as_str._err_command_template)
+                                template_name=dummy.return_args_as_str._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().body)
 
     def test_commands_can_return_html(self):
@@ -227,7 +204,7 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
 
         dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.return_args_as_html._err_command_template)
+                                template_name=dummy.return_args_as_html._err_command_template)
         response = dummy.pop_message()
         self.assertEqual("foobar", response.body)
         self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>'
@@ -238,12 +215,11 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='raises_exception', args=[], match=None, mess=m, jid='noterr@localhost',
+        dummy._execute_and_send(cmd='raises_exception', args=[], match=None, mess=m,
                                 template_name=dummy.raises_exception._err_command_template)
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().body)
 
         dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], match=None, mess=m,
-                                jid='noterr@localhost',
                                 template_name=dummy.yields_str_then_raises_exception._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().body)
         self.assertIn(dummy.MSG_ERROR_OCCURRED, dummy.pop_message().body)
@@ -253,7 +229,7 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
 
         dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.yield_args_as_str._err_command_template)
+                                template_name=dummy.yield_args_as_str._err_command_template)
         self.assertEqual("foo", dummy.pop_message().body)
         self.assertEqual("bar", dummy.pop_message().body)
 
@@ -262,7 +238,7 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
 
         dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.yield_args_as_html._err_command_template)
+                                template_name=dummy.yield_args_as_html._err_command_template)
         response1 = dummy.pop_message()
         response2 = dummy.pop_message()
         self.assertEqual("foo", response1.body)
@@ -278,7 +254,7 @@ class TestExecuteAndSend(unittest.TestCase):
         self.dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.return_long_output._err_command_template)
+                                template_name=dummy.return_long_output._err_command_template)
         for i in range(3):  # return_long_output outputs a string that's 3x longer than the size limit
             self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().body)
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
@@ -289,7 +265,7 @@ class TestExecuteAndSend(unittest.TestCase):
         self.dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
         dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, mess=m,
-                                jid='noterr@localhost', template_name=dummy.yield_long_output._err_command_template)
+                                template_name=dummy.yield_long_output._err_command_template)
         for i in range(6):  # yields_long_output yields 2 strings that are 3x longer than the size limit
             self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().body)
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
@@ -299,7 +275,11 @@ class BotCmds(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
 
-    def makemessage(self, message, from_="noterr@localhost/resource", to="noterr@localhost/resource", type="chat"):
+    def makemessage(self, message, from_=None, to=None, type="chat"):
+        if not from_:
+            from_ = self.dummy.build_identifier("noterr")
+        if not to:
+            to = self.dummy.build_identifier("noterr")
         m = self.dummy.build_message(message)
         m.frm = from_
         m.to = to
@@ -331,10 +311,13 @@ class BotCmds(unittest.TestCase):
 
         # Groupchat should still require the prefix
         m.type = "groupchat"
+        m.frm = SimpleMUCOccupant("someone", "room")
         self.dummy.callback_message(m)
         self.assertRaises(Empty, self.dummy.pop_message, *[], **{'block': False})
 
-        m = self.makemessage("!return_args_as_str one two", type="groupchat")
+        m = self.makemessage("!return_args_as_str one two",
+                             from_=SimpleMUCOccupant("someone", "room"),
+                             type="groupchat")
         self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
 
@@ -456,26 +439,26 @@ class BotCmds(unittest.TestCase):
                 expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
-                acl={'command': {'allowrooms': ('room@localhost',)}},
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
+                acl={'command': {'allowrooms': ('room',)}},
                 acl_default={},
                 expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
                 acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
                 acl_default={},
                 expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
-                acl={'command': {'denyrooms': ('room@localhost',)}},
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
+                acl={'command': {'denyrooms': ('room',)}},
                 acl_default={},
                 expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_="room@localhost/err"),
-                acl={'command': {'denyrooms': ('anotherroom@localhost',)}},
+                message=self.makemessage("!command", type="groupchat", from_=SimpleMUCOccupant("someone", "room")),
+                acl={'command': {'denyrooms': ('anotherroom',)}},
                 acl_default={},
                 expected_response="Regular command"
             ),

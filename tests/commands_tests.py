@@ -79,7 +79,7 @@ class TestCommands(FullStackTest):
         orig_sender = self.bot.sender
         try:
             # Pretend to be someone else. History should be empty
-            self.bot.sender = 'non_default_person@localhost'
+            self.bot.sender = self.bot.build_identifier('non_default_person')
             push_message('!history')
             self.assertRaises(Empty, pop_message, block=False)
             push_message('!echo should be a separate history')

@@ -27,6 +27,7 @@ class ChatRoom(BotPlugin):
         if not self.connected:
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:
+                log.debug('Try to join room %s' % room)
                 if isinstance(room, basestring):
                     room, username, password = (room, self.bot_config.CHATROOM_FN, None)
                 else:
@@ -192,7 +193,7 @@ class ChatRoom(BotPlugin):
             return
         for room in args:
             try:
-                occupants = [str(o) for o in self.query_room(room).occupants]
+                occupants = [o.person for o in self.query_room(room).occupants]
                 yield "Occupants in {}:\n\t{}".format(room, "\n\t".join(occupants))
             except RoomNotJoinedError as e:
                 yield "Cannot list occupants in {}: {}".format(room, e)
@@ -253,7 +254,7 @@ class ChatRoom(BotPlugin):
             try:
                 mess_type = mess.type
                 if mess_type == 'chat':
-                    username = mess.frm.node
+                    username = mess.frm.person
                     if username in self.bot_config.CHATROOM_RELAY:
                         log.debug('Message to relay from %s.' % username)
                         body = mess.body
@@ -262,6 +263,7 @@ class ChatRoom(BotPlugin):
                             self.send(room, body, message_type='groupchat')
                 elif mess_type == 'groupchat':
                     fr = mess.frm
+                    # TODO fixme for non XMPP backend
                     chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node
                     if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                         users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]

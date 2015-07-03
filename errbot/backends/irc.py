@@ -3,8 +3,9 @@ import logging
 import sys
 import warnings
 
+from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import (
-    Identifier, Message, MUCOccupant, MUCRoom, RoomError, RoomNotJoinedError,
+    Message, MUCRoom, RoomError, RoomNotJoinedError,
     build_message, build_text_html_message_pair,
 )
 from errbot.errBot import ErrBot
@@ -31,9 +32,51 @@ except ImportError as _:
     sys.exit(-1)
 
 
+class IRCIdentifier(DeprecationBridgeIdentifier):
+    # TODO(gbin): remove the deprecation warnings at one point.
+
+    def __init__(self, nick, domain=None):
+        self._nick = nick
+        self._domain = domain
+
+    @property
+    def nick(self):
+        return self._nick
+
+    @property
+    def domain(self):
+        return self._domain
+
+    # generic compatibility
+    person = nick
+
+    def __unicode__(self):
+        return "%s!%s" % (self._nick, self._domain)
+
+    def __str__(self):
+        return self.__unicode__()
+
+
+class IRCMUCOccupant(IRCIdentifier):
+    def __init__(self, nick, room):
+        super().__init__(nick)
+        self._room = room
+
+    @property
+    def room(self):
+        return self._room
+
+    def __unicode__(self):
+        return "%s!%s %s" % (self._nick, self._domain, self._room)
+
+    def __str__(self):
+        return self.__unicode__()
+
+
 class IRCMUCRoom(MUCRoom):
-    def __init__(self, *args, **kwargs):
-        super(IRCMUCRoom, self).__init__(*args, **kwargs)
+    def __init__(self, room, bot):
+        self._bot = bot
+        self.room = room
         self.connection = self._bot.conn.connection
 
     def join(self, username=None, password=None):
@@ -47,11 +90,10 @@ class IRCMUCRoom(MUCRoom):
             log.debug("Ignored username parameter on join(), it is unsupported on this back-end.")
         if password is None:
             password = ""
-        room = str(self)
 
-        self.connection.join(room, key=password)
+        self.connection.join(self.room, key=password)
         self._bot.callback_room_joined(self)
-        log.info("Joined room {}".format(room))
+        log.info("Joined room {}".format(self.room))
 
     def leave(self, reason=None):
         """
@@ -62,10 +104,9 @@ class IRCMUCRoom(MUCRoom):
         """
         if reason is None:
             reason = ""
-        room = str(self)
 
-        self.connection.part(room, reason)
-        log.info("Left room {}".format(room))
+        self.connection.part(self.room, reason)
+        log.info("Left room {}".format(self.room))
         self._bot.callback_room_left(self)
 
     def create(self):
@@ -106,7 +147,7 @@ class IRCMUCRoom(MUCRoom):
         :getter:
             Returns `True` if the room has been joined, `False` otherwise.
         """
-        return str(self) in self._bot.conn.channels.keys()
+        return self.room in self._bot.conn.channels.keys()
 
     @property
     def topic(self):
@@ -117,7 +158,7 @@ class IRCMUCRoom(MUCRoom):
             Returns the topic (a string) if one is set, `None` if no
             topic has been set at all.
         """
-        return self.connection.topic(str(self))
+        return self.connection.topic(self.room)
 
     @topic.setter
     def topic(self, topic):
@@ -127,7 +168,7 @@ class IRCMUCRoom(MUCRoom):
         :param topic:
             The topic to set.
         """
-        self.connection.topic(str(self), topic)
+        self.connection.topic(self.room, topic)
 
     @property
     def occupants(self):
@@ -135,14 +176,14 @@ class IRCMUCRoom(MUCRoom):
         The room's occupants.
 
         :getter:
-            Returns a list of :class:`~errbot.backends.base.MUCOccupant` instances.
-        :raises:
+            Returns a list of occupants.
+            :raises:
             :class:`~MUCNotJoinedError` if the room has not yet been joined.
         """
         occupants = []
         try:
-            for nick in self._bot.conn.channels[str(self)].users():
-                occupants.append(MUCOccupant(node=nick))
+            for nick in self._bot.conn.channels[self.room].users():
+                occupants.append(IRCMUCOccupant(nick=nick))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -154,10 +195,9 @@ class IRCMUCRoom(MUCRoom):
         :*args:
             One or more nicks to invite into the room.
         """
-        room = str(self)
         for nick in args:
-            self.connection.invite(nick, room)
-            log.info("Invited {} to {}".format(nick, room))
+            self.connection.invite(nick, self.room)
+            log.info("Invited {} to {}".format(nick, self.room))
 
 
 class IRCConnection(SingleServerIRCBot):
@@ -195,15 +235,19 @@ class IRCConnection(SingleServerIRCBot):
 
     def on_pubmsg(self, _, e):
         msg = Message(e.arguments[0], type_='groupchat')
-        msg.frm = Identifier(node=e.target)
+        nick = e.source.split('!')[0]
+        room = e.target
+        if room[0] != '#' and room[0] != '$':
+            raise Exception('[%s] is not a room' % room)
+        msg.frm = IRCMUCOccupant(nick, room)
         msg.to = self.callback.jid
-        msg.nick = e.source.split('!')[0]  # FIXME find the real nick in the channel
+        msg.nick = nick  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)
 
     def on_privmsg(self, _, e):
         msg = Message(e.arguments[0])
-        msg.frm = e.source.split('!')[0]
-        msg.to = e.target
+        msg.frm = IRCIdentifier(e.source.split('!')[0])
+        msg.to = IRCIdentifier(e.target)
         self.callback.callback_message(msg)
 
     def send_private_message(self, to, line):
@@ -227,21 +271,40 @@ class IRCBackend(ErrBot):
         private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
         channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)
 
-        self.jid = Identifier(node=nickname, domain=server)
+        self.jid = IRCIdentifier(nickname, server)
         super(IRCBackend, self).__init__(config)
         self.conn = IRCConnection(self, nickname, server, port, ssl, password, username, private_rate, channel_rate)
 
     def send_message(self, mess):
         super(IRCBackend, self).send_message(mess)
-        msg_func = self.conn.send_private_message if mess.type == 'chat' else self.conn.send_public_message
-        # If this is a response in private of a public message take the recipient in
-        # the resource instead of the incoming chatroom
-        if mess.type == 'chat' and mess.to.resource:
-            to = mess.to.resource
+        if mess.type == 'chat':
+            msg_func = self.conn.send_private_message
+            msg_to = mess.to.person
         else:
-            to = mess.to.node
+            msg_func = self.conn.send_public_message
+            msg_to = mess.to.room
+
         for line in build_text_html_message_pair(mess.body)[0].split('\n'):
-            msg_func(to, line)
+            msg_func(msg_to, line)
+
+    def build_reply(self, mess, text=None, private=False):
+        log.debug("Build reply.")
+        log.debug("Orig From %s" % mess.frm)
+        log.debug("Orig To %s" % mess.to)
+        log.debug("Orig Type %s" % mess.type)
+
+        msg_type = mess.type
+        response = self.build_message(text)
+
+        response.frm = self.jid
+        response.to = mess.frm
+        response.type = 'chat' if private else msg_type
+
+        log.debug("Response From %s" % response.frm)
+        log.debug("Response To %s" % response.to)
+        log.debug("Response Type %s" % response.type)
+
+        return response
 
     def serve_forever(self):
         try:
@@ -258,20 +321,13 @@ class IRCBackend(ErrBot):
     def build_message(self, text):
         return build_message(text, Message)
 
+    def build_identifier(self, txtrep):
+        log.debug("Build identifier from [%s]" % txtrep)
+        nick, domain = txtrep.split('!')
+        return IRCIdentifier(nick, domain)
+
     def shutdown(self):
         super().shutdown()
-
-    def join_room(self, room, username=None, password=None):
-        """
-        .. deprecated:: 2.2.0
-            Use the methods on :class:`IRCMUCRoom` instead.
-        """
-        warnings.warn(
-            "Using join_room is deprecated, use join from the "
-            "MUCRoom class instead.",
-            DeprecationWarning
-        )
-        self.query_room(room).join(username=username, password=password)
 
     def query_room(self, room):
         """
@@ -282,7 +338,7 @@ class IRCBackend(ErrBot):
         :returns:
             An instance of :class:`~IRCMUCRoom`.
         """
-        return IRCMUCRoom(node=room, bot=self)
+        return IRCMUCRoom(room, bot=self)
 
     @property
     def mode(self):

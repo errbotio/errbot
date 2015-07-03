@@ -42,7 +42,7 @@ class DummyBackend(Backend):
     outgoing_message_queue = Queue()
 
     def __init__(self, extra_config={}):
-        self.jid = self.build_identifier('err')
+        self.bot_identifier = self.build_identifier('err')
         self.bot_config = Config()
         for key in extra_config:
             setattr(self.bot_config, key, extra_config[key])
@@ -58,7 +58,7 @@ class DummyBackend(Backend):
 
     def build_reply(self, mess, text=None, private=False):
         msg = self.build_message(text)
-        msg.frm = self.jid
+        msg.frm = self.bot_identifier
         msg.to = mess.frm
         return msg
 

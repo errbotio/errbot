@@ -147,7 +147,7 @@ class TestMUCRoom(MUCRoom):
 class TestBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
-        self.jid = self.build_identifier('Err')  # whatever
+        self.bot_identifier = self.build_identifier('Err')  # whatever
         self.sender = self.build_identifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
 
     def send_message(self, mess):
@@ -166,7 +166,7 @@ class TestBackend(ErrBot):
                 if stanza_type is STZ_MSG:
                     msg = Message(entry)
                     msg.frm = self.sender
-                    msg.to = self.jid  # To me only
+                    msg.to = self.bot_identifier  # To me only
                     self.callback_message(msg)
                 elif stanza_type is STZ_PRE:
                     log.info("Presence stanza received.")
@@ -197,7 +197,7 @@ class TestBackend(ErrBot):
 
     def build_reply(self, mess, text=None, private=False):
         msg = self.build_message(text)
-        msg.frm = self.jid
+        msg.frm = self.bot_identifier
         msg.to = mess.frm
         return msg
 

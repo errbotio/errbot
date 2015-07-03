@@ -663,7 +663,7 @@ class Backend(object):
         """
         # Prepare to handle either private chats or group chats
         type_ = mess.type
-        jid = mess.frm
+        frm = mess.frm
         text = mess.body
         if not hasattr(mess.frm, 'person'):
             raise Exception('mess.frm not an Identifier as it misses the "person" property. Class of frm : %s'
@@ -686,12 +686,12 @@ class Backend(object):
         # background discussion on this). Matching against CHATROOM_FN isn't technically
         # correct in all cases because a MUC could give us another nickname, but it
         # covers 99% of the MUC cases, so it should suffice for the time being.
-        if (jid.person == self.jid.person or
+        if (frm.person == self.bot_identifier.person or
             type_ == "groupchat" and mess.nick == self.bot_config.CHATROOM_FN):  # noqa
                 log.debug("Ignoring message from self")
                 return False
 
-        log.debug("*** jid = %s" % jid)
+        log.debug("*** frm = %s" % frm)
         log.debug("*** username = %s" % username)
         log.debug("*** type = %s" % type_)
         log.debug("*** text = %s" % text)
@@ -1086,7 +1086,7 @@ class Backend(object):
             mess.frm = in_reply_to.to
         else:
             mess.type = message_type
-            mess.frm = self.jid
+            mess.frm = self.bot_identifier
 
         self.send_message(mess)
 

@@ -21,7 +21,7 @@ class NullBackend(ErrBot):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.jid = SimpleIdentifier('Err')  # whatever
+        self.bot_identifier = self.build_identifier('Err')  # whatever
 
     def serve_forever(self):
         self.connect()  # be sure we are "connected" before the first command

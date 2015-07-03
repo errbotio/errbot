@@ -271,7 +271,7 @@ class IRCBackend(ErrBot):
         private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
         channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)
 
-        self.jid = IRCIdentifier(nickname, server)
+        self.bot_identifier = IRCIdentifier(nickname, server)
         super(IRCBackend, self).__init__(config)
         self.conn = IRCConnection(self, nickname, server, port, ssl, password, username, private_rate, channel_rate)
 
@@ -296,7 +296,7 @@ class IRCBackend(ErrBot):
         msg_type = mess.type
         response = self.build_message(text)
 
-        response.frm = self.jid
+        response.frm = self.bot_identifier
         response.to = mess.frm
         response.type = 'chat' if private else msg_type
 

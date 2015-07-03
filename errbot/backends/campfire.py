@@ -57,7 +57,7 @@ class CampfireBackend(ErrBot):
         self.chatroom = config.CHATROOM_PRESENCE[0]
         self.room = None
         self.ssl = identity['ssl'] if 'ssl' in identity else True
-        self.jid = None
+        self.bot_identifier = None
 
     def send_message(self, mess):
         super(CampfireBackend, self).send_message(mess)
@@ -80,7 +80,7 @@ class CampfireBackend(ErrBot):
     def connect(self):
         if not self.conn:
             self.conn = CampfireConnection(self.subdomain, self.username, self.password, self.ssl)
-            self.jid = CampfireIdentifier(self.username)
+            self.bot_identifier = self.build_identifier(self.username)
             self.room = self.conn.get_room_by_name(self.chatroom).name
             # put us by default in the first room
             # resource emulates the XMPP behavior in chatrooms
@@ -100,7 +100,7 @@ class CampfireBackend(ErrBot):
         if message.is_text():
             msg = Message(message.body, type_='groupchat')  # it is always a groupchat in campfire
             msg.frm = CampfireIdentifier(user)
-            msg.to = self.jid  # assume it is for me
+            msg.to = self.bot_identifier  # assume it is for me
             self.callback_message(msg)
 
     def error_callback(self, error, room):

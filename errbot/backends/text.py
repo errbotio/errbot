@@ -18,7 +18,7 @@ class TextBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
         log.debug("Text Backend Init.")
-        self.jid = self.build_identifier('Err')
+        self.bot_identifier = self.build_identifier('Err')
         self.rooms = set()
 
     def serve_forever(self):
@@ -33,7 +33,7 @@ class TextBackend(ErrBot):
                     entry = input('\n>>> ')
                 msg = Message(entry)
                 msg.frm = me
-                msg.to = self.jid
+                msg.to = self.bot_identifier
                 self.callback_message(msg)
         except EOFError:
             pass
@@ -62,7 +62,7 @@ class TextBackend(ErrBot):
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)
-        response.frm = self.jid
+        response.frm = self.bot_identifier
         response.to = mess.frm
         response.type = 'chat' if private else mess.type
         return response

@@ -341,7 +341,7 @@ class ToxBackend(ErrBot):
         username = config.BOT_IDENTITY['username']
         super(ToxBackend, self).__init__(config)
         self.conn = ToxConnection(self, username)
-        self.jid = ToxIdentifier(userid=str(self.conn.get_address()), username=username)
+        self.bot_identifier = ToxIdentifier(userid=str(self.conn.get_address()), username=username)
 
     def is_admin(self, friend_number):
         pk = self.conn.get_client_id(int(friend_number))

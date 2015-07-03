@@ -167,7 +167,7 @@ class SlackBackend(ErrBot):
         if not self.auth['ok']:
             log.error("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
         log.debug("Token accepted")
-        self.jid = SlackIdentifier(self.sc, self.auth["user_id"])
+        self.bot_identifier = SlackIdentifier(self.sc, self.auth["user_id"])
 
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
@@ -205,7 +205,7 @@ class SlackBackend(ErrBot):
     def _hello_event_handler(self, event):
         """Event handler for the 'hello' event"""
         self.connect_callback()
-        self.callback_presence(Presence(identifier=self.jid, status=ONLINE))
+        self.callback_presence(Presence(identifier=self.bot_identifier, status=ONLINE))
 
     def _presence_change_event_handler(self, event):
         """Event handler for the 'presence_change' event"""
@@ -370,7 +370,7 @@ class SlackBackend(ErrBot):
         msg_type = mess.type
         response = self.build_message(text)
 
-        response.frm = self.jid
+        response.frm = self.bot_identifier
         response.to = mess.frm
         response.type = 'chat' if private else msg_type
 

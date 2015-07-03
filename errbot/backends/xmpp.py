@@ -316,7 +316,7 @@ class XMPPConnection(object):
         self._bot = bot
         self.connected = False
         self.server = server
-        self.client = ClientXMPP(str(jid), password, plugin_config={'feature_mechanisms': feature})
+        self.client = ClientXMPP(jid, password, plugin_config={'feature_mechanisms': feature})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
         self.client.register_plugin('xep_0004')  # Multi-User Chat backward compability (necessary for join room)
@@ -419,12 +419,15 @@ class XMPPBackend(ErrBot):
         super(XMPPBackend, self).__init__(config)
         identity = config.BOT_IDENTITY
 
-        self.jid = self.build_identifier(identity['username'])
+        self.jid = identity['username']  # backward compatibility
         self.password = identity['password']
         self.server = identity.get('server', None)
         self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', {})
         self.keepalive = config.__dict__.get('XMPP_KEEPALIVE_INTERVAL', None)
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
+
+        # generic backend compatibility
+        self.bot_identifier = self.build_identifier(self.jid)
 
         self.conn = self.create_connection()
         self.conn.add_event_handler("message", self.incoming_message)
@@ -440,7 +443,7 @@ class XMPPBackend(ErrBot):
 
     def create_connection(self):
         return XMPPConnection(
-            jid=self.jid,
+            jid=self.jid,  # textual and original representation
             password=self.password,
             feature=self.feature,
             keepalive=self.keepalive,
@@ -560,7 +563,7 @@ class XMPPBackend(ErrBot):
         msg_type = mess.type
         response = self.build_message(text)
 
-        response.frm = self.jid
+        response.frm = self.bot_identity
         if msg_type == 'groupchat' and not private:
             # stripped returns the full bot@conference.domain.tld/chat_username
             # but in case of a groupchat, we should only try to send to the MUC address

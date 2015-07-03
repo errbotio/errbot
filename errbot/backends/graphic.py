@@ -198,21 +198,21 @@ class ChatApplication(QtGui.QApplication):
 class GraphicBackend(TextBackend):
     def __init__(self, config):
         super().__init__(config)
-        self.jid = self.build_identifier('Err')
+        self.bot_identifier = self.build_identifier('Err')
         self.app = None
 
     def send_command(self, text):
         self.app.new_message(text, False)
         msg = Message(text)
         msg.frm = self.build_identifier(self.bot_config.BOT_ADMINS[0])  # assume this is the admin talking
-        msg.to = self.jid  # To me only
+        msg.to = self.bot_identifier  # To me only
         self.callback_message(msg)
         self.app.input.clear()
 
     def build_message(self, text):
         txt, node = build_text_html_message_pair(text)
         msg = Message(txt, html=node) if node else Message(txt)
-        msg.frm = self.jid
+        msg.frm = self.bot_identifier
         return msg  # rebuild a pure html snippet to include directly in the console html
 
     def send_message(self, mess):

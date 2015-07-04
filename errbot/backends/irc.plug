@@ -1,0 +1,6 @@
+[Core]
+Name = IRC
+Module = irc
+
+[Documentation]
+Description = This is the IRC backend for Err.

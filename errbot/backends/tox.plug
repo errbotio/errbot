@@ -1,0 +1,6 @@
+[Core]
+Name = Tox
+Module = tox
+
+[Documentation]
+Description = This is the TOX backend for Err.

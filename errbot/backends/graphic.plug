@@ -1,0 +1,6 @@
+[Core]
+Name = Graphic
+Module = graphic
+
+[Documentation]
+Description = This is the graphic backend for Err.

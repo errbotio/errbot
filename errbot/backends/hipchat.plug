@@ -1,0 +1,6 @@
+[Core]
+Name = Hipchat
+Module = hipchat
+
+[Documentation]
+Description = This is the hipchat backend for Err.

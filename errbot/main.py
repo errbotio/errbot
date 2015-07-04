@@ -73,6 +73,12 @@ def setup_bot(backend_name, logger, config, restore=None):
         log.error('Some plugins failed to load:\n' + '\n'.join(errors))
     return bot
 
+def enumerate_backends(config):
+    """ Returns all the backends found for the given config.
+    """
+    bpm = BackendManager(config)
+    return [plug.name for (_, _, plug) in bpm.getPluginCandidates()]
+
 
 def main(bot_class, logger, config, restore=None):
     bot = setup_bot(bot_class, logger, config, restore)

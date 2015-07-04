@@ -87,7 +87,7 @@ else:
 logger.addHandler(console_hdlr)
 
 
-def get_config(config_path, mode):
+def get_config(config_path):
     __import__('errbot.config-template')  # - is on purpose, it should not be imported normally ;)
     template = sys.modules['errbot.config-template']
     config_fullpath = config_path + sep + 'config.py'
@@ -105,13 +105,7 @@ def get_config(config_path, mode):
 
     # noinspection PyBroadException
     try:
-        try:
-            # gives the opportunity to have one config per mode to simplify the debugging
-            config = __import__('config_' + mode)
-        except ImportError as ie:
-            if not str(ie).startswith('No module named'):
-                log.exception('Error while trying to load %s' % 'config_' + mode)
-            config = __import__('config')
+        config = __import__('config')
 
         diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
         if diffs:
@@ -141,7 +135,7 @@ if __name__ == "__main__":
                         help='Restores a bot from backup.py. (default: backup.py from the bot data directory).')
     parser.add_argument('-b', '--backend', nargs='?', default=None,
                         help='Starts with the specified backend. See -l go get a list of backends found.')
-    parser.add_argument('-l', '--list', help='Lists all the backends found.')
+    parser.add_argument('-l', '--list', action='store_true', help='Lists all the backends found.')
 
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
@@ -168,6 +162,14 @@ if __name__ == "__main__":
     else:
         config_path = execution_dir
 
+    config = get_config(config_path)  # will exit if load fails
+    if args['list']:
+        from errbot.main import enumerate_backends
+        print('Available backends:')
+        for backend_name in enumerate_backends(config):
+            print('\t\t%s' % backend_name)
+        sys.exit(0)
+
     # this is temporary until the modes are removed to translate the mode names to backend names
     classic_vs_plugin_names = {'text': 'Text',
                                'graphic': 'Graphic',
@@ -188,7 +190,6 @@ if __name__ == "__main__":
         backend = 'XMPP'  # default value
 
     log.info("Backend selected '%s'." % backend)
-    config = get_config(config_path, backend)  # will exit if load fails
 
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).

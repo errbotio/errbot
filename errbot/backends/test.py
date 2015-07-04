@@ -9,16 +9,14 @@ from threading import Thread
 import pytest
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
 
-log = logging.getLogger(__name__)
-
-# Errbot machinery must not be imported before this point
-# because of the import hackery above.
 from errbot.backends.base import (
-    Message, build_message, MUCRoom  # noqa
+    Message, build_message, MUCRoom
 )
-from errbot.core_plugins.wsview import reset_app  # noqa
-from errbot.errBot import ErrBot  # noqa
-from errbot.main import setup_bot  # noqa
+from errbot.core_plugins.wsview import reset_app
+from errbot.errBot import ErrBot
+from errbot.main import setup_bot
+
+log = logging.getLogger(__name__)
 
 QUIT_MESSAGE = '$STOP$'
 

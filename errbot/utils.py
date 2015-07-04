@@ -289,7 +289,13 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
 
 
 def find_roots(path, file_sig='*.plug'):
-    """Collects all the paths from path recursively that contains files of type file_sig"""
+    """Collects all the paths from path recursively that contains files of type `file_sig`.
+       :param base:
+            a base path to walk from
+       :param file_sig:
+            the file pattern to look for
+       :return: a set of paths
+    """
     roots = set()  # you can have several .plug per directory.
     for root, dirnames, filenames in os.walk(path):
         for filename in fnmatch.filter(filenames, file_sig):
@@ -298,6 +304,15 @@ def find_roots(path, file_sig='*.plug'):
 
 
 def find_roots_with_extra(base, extra, file_sig='*.plug'):
+    """Collects all the paths from path recursively that contains files of type `file_sig`.
+       :param base:
+            a base path to walk from
+       :param extra:
+            a extra dorectory or directories to walk from
+       :param file_sig:
+            the file pattern to look for
+       :return: a set of paths
+    """
     # adds the extra plugin dir from the setup for developers convenience
     all_base_and_extra = [base]
     if extra:

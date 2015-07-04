@@ -186,6 +186,8 @@ if __name__ == "__main__":
         backend = 'Null'  # we don't want any backend when we restore
     elif filtered_mode:
         backend = classic_vs_plugin_names[filtered_mode[0]]
+    elif args['backend']:
+        backend = args['backend']
     else:
         backend = 'XMPP'  # default value
 

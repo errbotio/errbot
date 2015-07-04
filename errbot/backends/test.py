@@ -332,7 +332,6 @@ class TestBot(object):
         assert 'not found' not in self.bot.pop_message(timeout)
 
 
-
 class FullStackTest(unittest.TestCase, TestBot):
     """
     Test class for use with Python's unittest module to write tests

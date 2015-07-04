@@ -12,6 +12,11 @@ log = logging.getLogger(__name__)
 
 
 class SpecificBackendLocator(PluginFileAnalyzerWithInfoFile):
+    """
+    This is a plugin locator (kind of filter in yapsy jargon) to match a backend.
+    We have to go through hoops because yapsy is really aggressive at instanciating plugin.
+    (this would instanciate several bots, we don't want to do that).
+    """
     def __init__(self, name_to_find):
         super().__init__('SpecificBackendLocator', 'plug')
         self._name_to_find = name_to_find
@@ -30,7 +35,7 @@ class BackendManager(PluginManager):
     """
     def __init__(self, config):
         self._config = config
-        # set a locator that gets every possible backends
+        # set a locator that gets every possible backends as a first discovery pass.
         self._locator = PluginFileLocator(analyzers=[PluginFileAnalyzerWithInfoFile('AllBackendLocator', 'plug')])
         super().__init__(plugin_locator=self._locator)
         self.setCategoriesFilter({'backend': ErrBot})
@@ -61,6 +66,7 @@ class BackendManager(PluginManager):
         raise Exception("Backend '%s' not found." % name)
 
     def get_backend_by_name(self, name):
+        # set a locator to narrow it to only one.
         self._locator.setAnalyzers([SpecificBackendLocator(name)])
         log.debug("Refilter the backend plugins...")
         self.locatePlugins()

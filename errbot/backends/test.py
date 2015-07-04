@@ -307,6 +307,31 @@ class TestBot(object):
         self.bot.reset_rooms()
         self.bot_thread = None
 
+    def pop_message(self, timeout=5, block=True):
+        return self.bot.pop_message(timeout, block)
+
+    def push_message(self, msg):
+        return self.bot.push_message(msg)
+
+    def push_presence(self, presence):
+        """ presence must at least duck type base.Presence
+        """
+        return self.bot.push_presence(presence)
+
+    def zap_queues(self):
+        return self.bot.zap_queues()
+
+    def assertCommand(self, command, response, timeout=5):
+        """Assert the given command returns the given response"""
+        self.bot.push_message(command)
+        assert response in self.bot.pop_message(timeout)
+
+    def assertCommandFound(self, command, timeout=5):
+        """Assert the given command does not exist"""
+        self.bot.push_message(command)
+        assert 'not found' not in self.bot.pop_message(timeout)
+
+
 
 class FullStackTest(unittest.TestCase, TestBot):
     """
@@ -343,12 +368,67 @@ class FullStackTest(unittest.TestCase, TestBot):
     def tearDown(self):
         self.stop()
 
-    def assertCommand(self, command, response, timeout=5):
-        """Assert the given command returns the given response"""
-        self.bot.push_message(command)
-        self.assertIn(response, self.bot.pop_message(), timeout)
 
-    def assertCommandFound(self, command, timeout=5):
-        """Assert the given command does not exist"""
-        self.bot.push_message(command)
-        self.assertNotIn('not found', self.bot.pop_message(), timeout)
+@pytest.fixture
+def testbot(request):
+    """
+    Pytest fixture to write tests against a fully functioning bot.
+
+    For example, if you wanted to test the builtin `!about` command,
+    you could write a test file with the following::
+
+        from errbot.backends.test import testbot, push_message, pop_message
+
+        def test_about(testbot):
+            testbot.push_message('!about')
+            assert "Err version" in testbot.pop_message()
+
+    It's possible to provide additional configuration to this fixture,
+    by setting variables at module level or as class attributes (the
+    latter taking precedence over the former). For example::
+
+        from errbot.backends.test import testbot, push_message, pop_message
+
+        extra_plugin_dir = '/foo/bar'
+
+        def test_about(testbot):
+            testbot.pushMessage('!about')
+            assert "Err version" in testbot.pop_message()
+
+    ..or::
+
+        from errbot.backends.test import testbot, push_message, pop_message
+
+        extra_plugin_dir = '/foo/bar'
+
+        class Tests(object):
+            # Wins over `extra_plugin_dir = '/foo/bar'` above
+            extra_plugin_dir = '/foo/baz'
+
+            def test_about(self, testbot):
+                testbot.push_message('!about')
+                assert "Err version" in testbot.pop_message()
+
+    ..to load additional plugins from the directory `/foo/bar` or
+    `/foo/baz` respectively. This works for the following items, which are
+    passed to the constructor of :class:`~errbot.backends.test.TestBot`:
+
+    * `extra_plugin_dir`
+    * `loglevel`
+    """
+
+    def on_finish():
+        bot.stop()
+
+    kwargs = {}
+    for attr, default in (('extra_plugin_dir', None), ('loglevel', logging.DEBUG),):
+            if hasattr(request, 'instance'):
+                kwargs[attr] = getattr(request.instance, attr, None)
+            if kwargs[attr] is None:
+                kwargs[attr] = getattr(request.module, attr, default)
+
+    bot = TestBot(**kwargs)
+    bot.start()
+
+    request.addfinalizer(on_finish)
+    return bot

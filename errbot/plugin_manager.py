@@ -1,7 +1,6 @@
 from configparser import NoSectionError
 from itertools import chain
 import importlib
-import fnmatch
 import inspect
 import logging
 import sys
@@ -9,7 +8,7 @@ import os
 import pip
 from . import PY2
 from .botplugin import BotPlugin
-from .utils import version2array, PY3
+from .utils import version2array, PY3, find_roots, find_roots_with_extra
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -32,30 +31,6 @@ class IncompatiblePluginException(Exception):
 
 class PluginConfigurationException(Exception):
     pass
-
-
-def find_plugin_roots(path):
-    """ Recursively find the plugins from the given path.
-    It is usefull so you can give a root directory of checked out plugins and
-    it will discover them automatically.
-    """
-    plugin_roots = set()  # you can have several .plug per directory.
-    for root, dirnames, filenames in os.walk(path):
-        for filename in fnmatch.filter(filenames, '*.plug'):
-            plugin_roots.add(os.path.dirname(os.path.join(root, filename)))
-    return plugin_roots
-
-
-def get_preloaded_plugins(extra):
-    # adds the extra plugin dir from the setup for developers convenience
-    all_builtins_and_extra = [CORE_PLUGINS]
-    if extra:
-        if isinstance(extra, list):
-            for path in extra:
-                all_builtins_and_extra.extend(find_plugin_roots(path))
-        else:
-            all_builtins_and_extra.extend(find_plugin_roots(extra))
-    return all_builtins_and_extra
 
 
 def populate_doc(plugin):
@@ -247,7 +222,7 @@ class BotPluginManager(PluginManager):
         plugin.plugin_object.__class__ = new_class
 
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
-        builtins = get_preloaded_plugins(extra_plugin_dir)
+        builtins = find_roots_with_extra(CORE_PLUGINS, extra_plugin_dir)
         paths = builtins + path_list
         for entry in paths:
             if entry not in sys.path:

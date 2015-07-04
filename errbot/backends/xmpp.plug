@@ -1,0 +1,6 @@
+[Core]
+Name = XMPP
+Module = xmpp
+
+[Documentation]
+Description = This is the XMPP backend for Err.

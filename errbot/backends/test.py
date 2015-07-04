@@ -11,19 +11,6 @@ from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
 
 log = logging.getLogger(__name__)
 
-# otherwise generate a temporary one.
-__import__('errbot.config-template')
-config = sys.modules['errbot.config-template']
-sys.modules['config'] = config
-
-tempdir = mkdtemp()
-config.BOT_DATA_DIR = tempdir
-config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
-config.BOT_EXTRA_PLUGIN_DIR = []
-config.BOT_LOG_LEVEL = logging.DEBUG
-config.CHATROOM_PRESENCE = ('testroom',)  # we are testing with simple identfiers
-config.BOT_IDENTITY = {'username': 'err'}  # we are testing with simple identfiers
-
 # Errbot machinery must not be imported before this point
 # because of the import hackery above.
 from errbot.backends.base import (
@@ -32,10 +19,6 @@ from errbot.backends.base import (
 from errbot.core_plugins.wsview import reset_app  # noqa
 from errbot.errBot import ErrBot  # noqa
 from errbot.main import setup_bot  # noqa
-
-incoming_stanza_queue = Queue()
-outgoing_message_queue = Queue()
-rooms = []
 
 QUIT_MESSAGE = '$STOP$'
 
@@ -57,7 +40,7 @@ class TestMUCRoom(MUCRoom):
         self._topic = topic
         self._bot = bot
         self._name = name
-        self._bot_mucid = SimpleMUCOccupant(config.BOT_IDENTITY['username'], self._name)
+        self._bot_mucid = SimpleMUCOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
 
     @property
     def occupants(self):
@@ -65,7 +48,7 @@ class TestMUCRoom(MUCRoom):
 
     def find_croom(self):
         """ find back the canonical room from a this room"""
-        for croom in rooms:
+        for croom in self._bot._rooms:
             if croom == self:
                 return croom
         return None
@@ -110,8 +93,7 @@ class TestMUCRoom(MUCRoom):
             logging.warning("Room {!s} already created".format(self))
             return
 
-        global rooms
-        rooms.append(self)
+        self._bot._rooms.append(self)
         log.info("Created room {!s}".format(self))
 
     def destroy(self):
@@ -119,7 +101,7 @@ class TestMUCRoom(MUCRoom):
             logging.warning("Cannot destroy room {!s}, it doesn't exist".format(self))
             return
 
-        rooms.remove(self)
+        self._bot._rooms.remove(self)
         log.info("Destroyed room {!s}".format(self))
 
     @property
@@ -146,20 +128,28 @@ class TestMUCRoom(MUCRoom):
 
 class TestBackend(ErrBot):
     def __init__(self, config):
-        super().__init__(config)
+        config.BOT_LOG_LEVEL = logging.DEBUG
+        config.CHATROOM_PRESENCE = ('testroom',)  # we are testing with simple identfiers
+        config.BOT_IDENTITY = {'username': 'err'}  # we are testing with simple identfiers
         self.bot_identifier = self.build_identifier('Err')  # whatever
+
+        super().__init__(config)
+        self.incoming_stanza_queue = Queue()
+        self.outgoing_message_queue = Queue()
         self.sender = self.build_identifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
+        self.reset_rooms()
 
     def send_message(self, mess):
         super(TestBackend, self).send_message(mess)
-        outgoing_message_queue.put(mess.body)
+        self.outgoing_message_queue.put(mess.body)
 
     def serve_forever(self):
-
         self.connect_callback()  # notify that the connection occured
         try:
             while True:
-                stanza_type, entry = incoming_stanza_queue.get()
+                print('waiting on queue')
+                stanza_type, entry = self.incoming_stanza_queue.get()
+                print('message received')
                 if entry == QUIT_MESSAGE:
                     log.info("Stop magic message received, quitting...")
                     break
@@ -206,13 +196,11 @@ class TestBackend(ErrBot):
         return 'test'
 
     def rooms(self):
-        global rooms
-        return [r for r in rooms if r.joined]
+        return [r for r in self._rooms if r.joined]
 
     def query_room(self, room):
-        global rooms
         try:
-            return [r for r in rooms if str(r) == str(room)][0]
+            return [r for r in self._rooms if str(r) == str(room)][0]
         except IndexError:
             r = TestMUCRoom(room, bot=self)
             return r
@@ -220,38 +208,29 @@ class TestBackend(ErrBot):
     def groupchat_reply_format(self):
         return '{0} {1}'
 
+    def pop_message(self, timeout=5, block=True):
+        return self.outgoing_message_queue.get(timeout=timeout, block=block)
 
-def pop_message(timeout=5, block=True):
-    return outgoing_message_queue.get(timeout=timeout, block=block)
+    def push_message(self, msg):
+        self.incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
 
+    def push_presence(self, presence):
+        """ presence must at least duck type base.Presence
+        """
+        self.incoming_stanza_queue.put((STZ_PRE, presence), timeout=5)
 
-def push_message(msg):
-    incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
+    def zap_queues(self):
+        while not self.incoming_stanza_queue.empty():
+            msg = self.incoming_stanza_queue.get(block=False)
+            log.error('Message left in the incoming queue during a test : %s' % msg)
 
+        while not self.outgoing_message_queue.empty():
+            msg = self.outgoing_message_queue.get(block=False)
+            log.error('Message left in the outgoing queue during a test : %s' % msg)
 
-def push_presence(presence):
-    """ presence must at least duck type base.Presence
-    """
-    incoming_stanza_queue.put((STZ_PRE, presence), timeout=5)
-
-
-# def pushIQ(stanza):
-#    pass
-
-def zap_queues():
-    while not incoming_stanza_queue.empty():
-        msg = incoming_stanza_queue.get(block=False)
-        log.error('Message left in the incoming queue during a test : %s' % msg)
-
-    while not outgoing_message_queue.empty():
-        msg = outgoing_message_queue.get(block=False)
-        log.error('Message left in the outgoing queue during a test : %s' % msg)
-
-
-def reset_rooms():
-    """Reset/clear all rooms"""
-    global rooms
-    rooms = []
+    def reset_rooms(self):
+        """Reset/clear all rooms"""
+        self._rooms = []
 
 
 class TestBot(object):
@@ -275,6 +254,12 @@ class TestBot(object):
         :param loglevel: Logging verbosity. Expects one of the constants
             defined by the logging module.
         """
+        __import__('errbot.config-template')
+        config = sys.modules['errbot.config-template']
+        tempdir = mkdtemp()
+        config.BOT_DATA_DIR = tempdir
+        config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
         file = logging.FileHandler(config.BOT_LOG_FILE, encoding='utf-8')
@@ -295,14 +280,15 @@ class TestBot(object):
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
-        self.bot = setup_bot(TestBackend, self.logger, self.bot_config)
+        self.bot = setup_bot('Test', self.logger, self.bot_config)
         self.bot_thread = Thread(target=self.bot.serve_forever, name='TestBot main thread')
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 
+        self.bot.push_message("!echo ready")
+
         # Ensure bot is fully started and plugins are loaded before returning
-        push_message("!echo ready")
-        assert pop_message(timeout=60) == "ready"
+        assert self.bot.pop_message(timeout=60) == "ready"
 
     def stop(self):
         """
@@ -313,12 +299,12 @@ class TestBot(object):
         """
         if self.bot_thread is None:
             raise Exception("Bot has not yet been started")
-        push_message(QUIT_MESSAGE)
+        self.bot.push_message(QUIT_MESSAGE)
         self.bot_thread.join()
         reset_app()  # empty the bottle ... hips!
         log.info("Main bot thread quits")
-        zap_queues()
-        reset_rooms()
+        self.bot.zap_queues()
+        self.bot.reset_rooms()
         self.bot_thread = None
 
 
@@ -359,85 +345,10 @@ class FullStackTest(unittest.TestCase, TestBot):
 
     def assertCommand(self, command, response, timeout=5):
         """Assert the given command returns the given response"""
-        push_message(command)
-        self.assertIn(response, popMessage(), timeout)
+        self.bot.push_message(command)
+        self.assertIn(response, self.bot.pop_message(), timeout)
 
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command does not exist"""
-        push_message(command)
-        self.assertNotIn('not found', popMessage(), timeout)
-
-
-@pytest.fixture
-def testbot(request):
-    """
-    Pytest fixture to write tests against a fully functioning bot.
-
-    For example, if you wanted to test the builtin `!about` command,
-    you could write a test file with the following::
-
-        from errbot.backends.test import testbot, push_message, pop_message
-
-        def test_about(testbot):
-            push_message('!about')
-            assert "Err version" in pop_message()
-
-    It's possible to provide additional configuration to this fixture,
-    by setting variables at module level or as class attributes (the
-    latter taking precedence over the former). For example::
-
-        from errbot.backends.test import testbot, push_message, pop_message
-
-        extra_plugin_dir = '/foo/bar'
-
-        def test_about(testbot):
-            pushMessage('!about')
-            assert "Err version" in pop_message()
-
-    ..or::
-
-        from errbot.backends.test import testbot, push_message, pop_message
-
-        extra_plugin_dir = '/foo/bar'
-
-        class Tests(object):
-            # Wins over `extra_plugin_dir = '/foo/bar'` above
-            extra_plugin_dir = '/foo/baz'
-
-            def test_about(self, testbot):
-                push_message('!about')
-                assert "Err version" in pop_message()
-
-    ..to load additional plugins from the directory `/foo/bar` or
-    `/foo/baz` respectively. This works for the following items, which are
-    passed to the constructor of :class:`~errbot.backends.test.TestBot`:
-
-    * `extra_plugin_dir`
-    * `loglevel`
-    """
-
-    def on_finish():
-        bot.stop()
-
-    kwargs = {}
-    for attr, default in (
-        ('extra_plugin_dir', None),
-        ('loglevel', logging.DEBUG),
-    ):
-            if hasattr(request, 'instance'):
-                kwargs[attr] = getattr(request.instance, attr, None)
-            if kwargs[attr] is None:
-                kwargs[attr] = getattr(request.module, attr, default)
-
-    bot = TestBot(**kwargs)
-    bot.start()
-
-    request.addfinalizer(on_finish)
-    return bot
-
-
-# Backward compatibility
-popMessage = pop_message
-pushMessage = push_message
-pushPresence = push_presence
-zapQueues = zap_queues
+        self.bot.push_message(command)
+        self.assertNotIn('not found', self.bot.pop_message(), timeout)

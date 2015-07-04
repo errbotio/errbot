@@ -136,9 +136,13 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=None,
-                        help='Specify the directory where your config.py is (default: current working directory)')
+                        help='Specify the directory where your config.py is (default: current working directory).')
     parser.add_argument('-r', '--restore', nargs='?', default=None, const='default',
-                        help='Restores a bot from backup.py. (default: backup.py from the bot data directory)')
+                        help='Restores a bot from backup.py. (default: backup.py from the bot data directory).')
+    parser.add_argument('-b', '--backend', nargs='?', default=None,
+                        help='Starts with the specified backend. See -l go get a list of backends found.')
+    parser.add_argument('-l', '--list', help='Lists all the backends found.')
+
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
@@ -163,64 +167,29 @@ if __name__ == "__main__":
         sys.path.insert(0, config_path)  # appends the current config in order to find config.py
     else:
         config_path = execution_dir
-    filtered_mode = [mname for mname in ('text', 'graphic', 'campfire', 'hipchat', 'irc',
-                                         'xmpp', 'tox', 'slack', 'null')
-                     if args[mname]]
+
+    # this is temporary until the modes are removed to translate the mode names to backend names
+    classic_vs_plugin_names = {'text': 'Text',
+                               'graphic': 'Graphic',
+                               'campfire': 'Campfire',
+                               'hipchat': 'Hipchat',
+                               'irc': 'IRC',
+                               'xmpp': 'XMPP',
+                               'tox': 'TOX',
+                               'slack': 'Slack',
+                               'null': 'Null'}
+
+    filtered_mode = [mname for mname in classic_vs_plugin_names.keys() if args[mname]]
     if args['restore']:
-        mode = 'null'  # we don't want any backend when we restore
+        backend = 'Null'  # we don't want any backend when we restore
     elif filtered_mode:
-        mode = filtered_mode[0]
+        backend = classic_vs_plugin_names[filtered_mode[0]]
     else:
-        'xmpp'  # default value
+        backend = 'XMPP'  # default value
 
-    config = get_config(config_path, mode)  # will exit if load fails
+    log.info("Backend selected '%s'." % backend)
+    config = get_config(config_path, backend)  # will exit if load fails
 
-    def text():
-        from errbot.backends.text import TextBackend
-
-        return TextBackend
-
-    def graphic():
-        from errbot.backends.graphic import GraphicBackend
-
-        return GraphicBackend
-
-    def campfire():
-        from errbot.backends.campfire import CampfireBackend
-
-        return CampfireBackend
-
-    def hipchat():
-        from errbot.backends.hipchat import HipchatBackend
-
-        return HipchatBackend
-
-    def irc():
-        from errbot.backends.irc import IRCBackend
-
-        return IRCBackend
-
-    def xmpp():
-        from errbot.backends.xmpp import XMPPBackend
-
-        return XMPPBackend
-
-    def tox():
-        from errbot.backends.tox import ToxBackend
-
-        return ToxBackend
-
-    def slack():
-        from errbot.backends.slack import SlackBackend
-
-        return SlackBackend
-
-    def null():
-        from errbot.backends.null import NullBackend
-
-        return NullBackend
-
-    bot_class = locals()[mode]()
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).
 
@@ -248,8 +217,7 @@ if __name__ == "__main__":
         try:
             def action():
                 from errbot.main import main
-
-                main(bot_class, logger, config)
+                main(backend_name, logger, config)
 
             daemon = Daemonize(app="err", pid=pid, action=action)
             daemon.start()
@@ -261,5 +229,5 @@ if __name__ == "__main__":
     if restore == 'default':  # restore with no argument, get the default location
         restore = path.join(config.BOT_DATA_DIR, 'backup.py')
 
-    main(bot_class, logger, config, restore)
+    main(backend, logger, config, restore)
     log.info('Process exiting')

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import fnmatch
 import inspect
 import logging
 import os
@@ -285,3 +286,24 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
     if times is None:
         return starmap(func, repeat(args))
     return starmap(func, repeat(args, times))
+
+
+def find_roots(path, file_sig='*.plug'):
+    """Collects all the paths from path recursively that contains files of type file_sig"""
+    roots = set()  # you can have several .plug per directory.
+    for root, dirnames, filenames in os.walk(path):
+        for filename in fnmatch.filter(filenames, file_sig):
+            roots.add(os.path.dirname(os.path.join(root, filename)))
+    return roots
+
+
+def find_roots_with_extra(base, extra, file_sig='*.plug'):
+    # adds the extra plugin dir from the setup for developers convenience
+    all_base_and_extra = [base]
+    if extra:
+        if isinstance(extra, list):
+            for path in extra:
+                all_base_and_extra.extend(find_roots(path, file_sig))
+        else:
+            all_base_and_extra.extend(find_roots(extra, file_sig))
+    return all_base_and_extra

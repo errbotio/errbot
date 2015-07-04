@@ -1,11 +1,12 @@
 from os import path, makedirs
 import logging
+from errbot.backend_manager import BackendManager
 import sys
 
 log = logging.getLogger(__name__)
 
 
-def setup_bot(bot_class, logger, config, restore=None):
+def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
@@ -40,8 +41,16 @@ def setup_bot(bot_class, logger, config, restore=None):
     d = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
     if not path.exists(d):
         makedirs(d, mode=0o755)
+
+    # instanciate the bot
+    bpm = BackendManager(config)
+
+    plug = bpm.get_candidate(backend_name)
+
+    log.info("Found Backend plugin: '%s'\n\t\t\t\t\t\tDescription: %s" % (plug.name, plug.description))
+
     try:
-        bot = bot_class(config)
+        bot = bpm.get_backend_by_name(backend_name)
     except Exception:
         log.exception("Unable to configure the backend, please check if your config.py is correct.")
         exit(-1)

@@ -1,0 +1,6 @@
+[Core]
+Name = Test
+Module = test
+
+[Documentation]
+Description = This is the test backend for Err.

@@ -1,0 +1,6 @@
+[Core]
+Name = Text
+Module = text
+
+[Documentation]
+Description = This is the text backend for Err.

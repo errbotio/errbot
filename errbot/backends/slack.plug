@@ -1,0 +1,6 @@
+[Core]
+Name = Slack
+Module = slack
+
+[Documentation]
+Description = This is the slack backend for Err.

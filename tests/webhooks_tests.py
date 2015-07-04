@@ -4,7 +4,7 @@ import os
 import pytest
 import requests
 import socket
-from errbot.backends.test import testbot, push_message, pop_message
+from errbot.backends.test import FullStackTest
 from time import sleep
 
 log = logging.getLogger(__name__)
@@ -29,27 +29,27 @@ def webserver_ready(host, port):
         return False
 
 
-@pytest.fixture(autouse=True)
-def webserver(testbot):
-    push_message("!config Webserver {{'HOST': 'localhost', 'PORT': {}, 'SSL':  None}}".format(WEBSERVER_PORT))
-    pop_message()
-    while not webserver_ready('localhost', WEBSERVER_PORT):
-        log.debug("Webserver not ready yet, sleeping 0.1 second")
-        sleep(0.1)
+class TestWebhooks(FullStackTest):
 
+    def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
+        super().setUp(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'webhooks_tests'),
+                      extra_test_file)
+        self.bot.push_message("!config Webserver " +
+                              "{{'HOST': 'localhost', 'PORT': {}, 'SSL':  None}}".format(WEBSERVER_PORT))
+        self.bot.pop_message()
+        while not webserver_ready('localhost', WEBSERVER_PORT):
+            log.debug("Webserver not ready yet, sleeping 0.1 second")
+            sleep(0.1)
 
-class TestWebhooks(object):
-    extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'webhooks_tests')
-
-    def test_not_configured_url_returns_404(self, testbot):
+    def test_not_configured_url_returns_404(self):
         assert requests.post(
             'http://localhost:{}/randomness_blah'.format(WEBSERVER_PORT),
             "{'toto': 'titui'}"
         ).status_code == 404
 
-    def test_webserver_plugin_ok(self, testbot):
-        push_message("!webstatus")
-        assert "/echo/" in pop_message()
+    def test_webserver_plugin_ok(self):
+        self.bot.push_message("!webstatus")
+        assert "/echo/" in self.bot.pop_message()
 
     def test_json_is_automatically_decoded(self):
         assert requests.post(
@@ -97,18 +97,18 @@ class TestWebhooks(object):
         ).text == "<class 'bottle.LocalRequest'>"
 
     def test_generate_certificate_creates_usable_cert(self):
-        from config import BOT_DATA_DIR
-        key_path = os.sep.join((BOT_DATA_DIR, "webserver_key.pem"))
-        cert_path = os.sep.join((BOT_DATA_DIR, "webserver_certificate.pem"))
+        d = self.bot.bot_config.BOT_DATA_DIR
+        key_path = os.sep.join((d, "webserver_key.pem"))
+        cert_path = os.sep.join((d, "webserver_certificate.pem"))
 
-        push_message("!generate_certificate")
-        assert "Generating" in pop_message(timeout=1)
+        self.bot.push_message("!generate_certificate")
+        assert "Generating" in self.bot.pop_message(timeout=1)
 
         # Generating a certificate could be slow on weak hardware, so keep a safe
         # timeout on the first pop_message()
-        assert "successfully generated" in pop_message(timeout=60)
-        assert "is recommended" in pop_message(timeout=1)
-        assert key_path in pop_message(timeout=1)
+        assert "successfully generated" in self.bot.pop_message(timeout=60)
+        assert "is recommended" in self.bot.pop_message(timeout=1)
+        assert key_path in self.bot.pop_message(timeout=1)
 
         webserver_config = {
             'HOST': 'localhost',
@@ -121,8 +121,8 @@ class TestWebhooks(object):
                 'enabled': True,
             }
         }
-        push_message("!config Webserver {!r}".format(webserver_config))
-        pop_message()
+        self.bot.push_message("!config Webserver {!r}".format(webserver_config))
+        self.bot.pop_message()
 
         while not webserver_ready('localhost', WEBSERVER_SSL_PORT):
             log.debug("Webserver not ready yet, sleeping 0.1 second")

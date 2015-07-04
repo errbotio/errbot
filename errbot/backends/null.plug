@@ -1,0 +1,6 @@
+[Core]
+Name = Null
+Module = null
+
+[Documentation]
+Description = This is the Null backend for Err.

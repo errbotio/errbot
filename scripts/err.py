@@ -133,8 +133,6 @@ if __name__ == "__main__":
                         help='Specify the directory where your config.py is (default: current working directory).')
     parser.add_argument('-r', '--restore', nargs='?', default=None, const='default',
                         help='Restores a bot from backup.py. (default: backup.py from the bot data directory).')
-    parser.add_argument('-b', '--backend', nargs='?', default=None,
-                        help='Starts with the specified backend. See -l go get a list of backends found.')
     parser.add_argument('-l', '--list', action='store_true', help='Lists all the backends found.')
 
     backend_group = parser.add_mutually_exclusive_group()
@@ -186,12 +184,22 @@ if __name__ == "__main__":
         backend = 'Null'  # we don't want any backend when we restore
     elif filtered_mode:
         backend = classic_vs_plugin_names[filtered_mode[0]]
-    elif args['backend']:
-        backend = args['backend']
+        if backend != 'Text':
+            log.warn("""Deprecation notice:
+            Please add BACKEND='%s' to your config.py instead of using the '--%s' command line parameter.
+            The backend command line parameters will be removed on the next version of Err.
+            """ % (backend, filtered_mode[0]))
+    elif hasattr(config, 'BACKEND'):
+        backend = config['BACKEND']
     else:
+        log.warn("""Deprecation notice:
+        Err is defaulting to XMPP because you did not specify any backend.
+        Please add BACKEND='XMPP' to your config.py if you really want that.
+        This behaviour will be removed on the next version of Err.
+        """)
         backend = 'XMPP'  # default value
 
-    log.info("Backend selected '%s'." % backend)
+    log.info("Selected backend '%s'." % backend)
 
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).

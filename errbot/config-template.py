@@ -22,6 +22,27 @@ import logging
 # Core Err configuration                                                 #
 ##########################################################################
 
+# BACKEND selection.
+# This configures the type of chat server you which to use Err with.
+#
+# The current choices:
+
+# Debug backends to test your plugins manually:
+# 'Text'     - on the text console
+# 'Graphic'  - in a GUI window
+
+# Commercial backends:
+# 'Campfire' - see https://campfirenow.com/
+# 'Hipchat'  - see https://www.hipchat.com/
+# 'Slack'    - see https://slack.com/
+
+# Open protocols:
+# 'TOX'      - see https://tox.im/
+# 'IRC'      - for classic IRC or bridged services like https://gitter.im
+# 'XMPP'
+
+# BACKEND = 'XMPP'
+
 # The location where all of Err's data should be stored. Make sure to set
 # this to a directory that is writable by the user running the bot.
 BOT_DATA_DIR = '/var/lib/err'

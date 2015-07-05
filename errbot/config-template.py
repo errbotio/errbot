@@ -54,6 +54,9 @@ BOT_DATA_DIR = '/var/lib/err'
 # plugins inside this directory.
 BOT_EXTRA_PLUGIN_DIR = None
 
+# If you use an external backend as a plugin,
+# this is where you tell err where to find it.
+# BOT_EXTRA_BACKEND_DIR = '/opt/errbackends'
 
 # Should plugin dependencies be installed automatically? If this is true
 # then Err will use pip to install any missing dependencies automatically.

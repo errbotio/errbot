@@ -240,14 +240,40 @@ class SlackBackend(ErrBot):
         else:
             log.warning("Unknown message type! Unable to handle")
             return
+        subtype = event.get('subtype', None)
 
-        msg = Message(event['text'], type_=message_type)
+        if subtype == "message_deleted":
+            log.debug("Message of type message_deleted, ignoring this event")
+            return
+        if subtype == "message_changed" and 'attachments' in event['message']:
+            # If you paste a link into Slack, it does a call-out to grab details
+            # from it so it can display this in the chatroom. These show up as
+            # message_changed events with an 'attachments' key in the embedded
+            # message. We should completely ignore these events otherwise we
+            # could end up processing bot commands twice (user issues a command
+            # containing a link, it gets processed, then Slack triggers the
+            # message_changed event and we end up processing it again as a new
+            # message. This is not what we want).
+            log.debug(
+                "Ignoring message_changed event with attachments, likely caused "
+                "by Slack auto-expanding a link"
+            )
+            return
+
+        if 'message' in event:
+            text = event['message']['text']
+            user = event['message']['user']
+        else:
+            text = event['text']
+            user = event['user']
+
+        msg = Message(text, type_=message_type)
         if message_type == 'chat':
-            msg.frm = SlackIdentifier(self.sc, event['user'], event['channel'])
+            msg.frm = SlackIdentifier(self.sc, user, event['channel'])
             msg.to = SlackIdentifier(self.sc, self.username_to_userid(self.sc.server.username),
                                      event['channel'])
         else:
-            msg.frm = SlackMUCOccupant(self.sc, event['user'], event['channel'])
+            msg.frm = SlackMUCOccupant(self.sc, user, event['channel'])
             msg.to = SlackMUCOccupant(self.sc, self.username_to_userid(self.sc.server.username),
                                       event['channel'])
 

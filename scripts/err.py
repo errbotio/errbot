@@ -190,7 +190,7 @@ if __name__ == "__main__":
             The backend command line parameters will be removed on the next version of Err.
             """ % (backend, filtered_mode[0]))
     elif hasattr(config, 'BACKEND'):
-        backend = config['BACKEND']
+        backend = config.BACKEND
     else:
         log.warn("""Deprecation notice:
         Err is defaulting to XMPP because you did not specify any backend.

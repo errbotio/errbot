@@ -1,6 +1,19 @@
 Release history
 ===============
 
+Version 2.3.0-beta (2015-07)
+-------------------------------
+
+New features:
+
+- new Slack backend
+- third party backends (they are plugins too)
+- hipchat endpoint can be used (#348)
+- XMPP server parameter can be overriden
+
+
+Bug fixed:
+
 Version 2.2.1 (2015-05-16)
 --------------------------
 

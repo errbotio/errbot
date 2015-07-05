@@ -8,11 +8,19 @@ New features:
 
 - new Slack backend
 - third party backends (they are plugins too)
+- completely revamped backup/restore feature.
 - hipchat endpoint can be used (#348)
 - XMPP server parameter can be overriden
-
+- Identifiers are now generic (not tight to XMPP anymore)
 
 Bug fixed:
+
+- IRC backend compatibility with gitter
+- Better logging to debug plugin callbacks
+- Better dependency requirements (setup.py vs requirements.txt)
+- builtins are now named core_plugins (the plan is to move more there)
+- a lot of refactoring around globals (it enabled the third party plugins)
+
 
 Version 2.2.1 (2015-05-16)
 --------------------------

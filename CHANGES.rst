@@ -1,7 +1,15 @@
 Release history
 ===============
 
-Version 2.3.0-beta (2015-07)
+Version 2.3.0-rc1 (2015-07-06)
+------------------------------
+
+Bug fixed:
+
+- import error at install time.
+
+
+Version 2.3.0-beta (2015-07-05)
 -------------------------------
 
 New features:

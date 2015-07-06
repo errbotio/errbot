@@ -19,7 +19,6 @@ import sys
 from glob import glob
 from platform import system
 from setuptools import setup, find_packages
-from py2conv import walk_lib3to2_input_sources, convert_to_python2
 
 py_version = sys.version_info[:2]
 PY2 = py_version[0] == 2
@@ -82,6 +81,7 @@ if __name__ == "__main__":
     # under python2 if we want to make a source distribution,
     # don't pre-convert the sources, leave them as py3.
     if PY2 and ('install' in sys.argv or 'develop' in sys.argv):
+        from utils.py2conv import convert_to_python2
         convert_to_python2()
 
     setup(

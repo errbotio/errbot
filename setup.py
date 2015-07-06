@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # under python2 if we want to make a source distribution,
     # don't pre-convert the sources, leave them as py3.
     if PY2 and ('install' in sys.argv or 'develop' in sys.argv):
-        from utils.py2conv import convert_to_python2
+        from py2conv import convert_to_python2
         convert_to_python2()
 
     setup(

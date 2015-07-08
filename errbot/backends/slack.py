@@ -60,8 +60,8 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         if userid[0] != 'U':
             raise Exception('This is not a Slack userid: %s' % userid)
 
-        if channelid and channelid[0] != 'D' and channelid[0] != 'C':
-            raise Exception('This is not a Slack channelid: %s' % channelid)
+        if channelid and channelid[0] not in ('D', 'C', 'G'):
+            raise Exception('This is not a valid Slack channelid: %s' % channelid)
 
         self._userid = userid
         self._channelid = channelid

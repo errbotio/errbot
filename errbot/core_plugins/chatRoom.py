@@ -263,12 +263,11 @@ class ChatRoom(BotPlugin):
                             self.send(room, body, message_type='groupchat')
                 elif mess_type == 'groupchat':
                     fr = mess.frm
-                    # TODO fixme for non XMPP backend
-                    chat_room = fr.node + '@' + fr.domain if fr.domain else fr.node
+                    chat_room = fr.room
                     if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                         users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
                         log.debug('Message to relay to %s.' % users_to_relay_to)
-                        body = '[%s] %s' % (fr.resource, mess.body)
+                        body = '[%s] %s' % (fr.person, mess.body)
                         for user in users_to_relay_to:
                             self.send(user, body)
             except Exception as e:

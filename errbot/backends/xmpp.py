@@ -305,8 +305,13 @@ class XMPPMUCOccupant(XMPPIdentifier):
             if not hasattr(self, k):
                 setattr(self, k, v)
 
+    @property
     def person(self):
         return self.resource
+
+    @property
+    def room(self):
+        return fr.node + '@' + fr.domain
 
 
 class XMPPConnection(object):

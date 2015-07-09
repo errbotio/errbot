@@ -397,7 +397,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         Useful when the things are going crazy and you down have access to the machine.
         """
         if args != "really":
-          return "Use `!killbot really` if you really want to shutdown the bot."
+            return "Use `!killbot really` if you really want to shutdown the bot."
 
         self.send(mess.frm, "Dave, I can see you are really upset about this...")
         self.deactivate_all_plugins()

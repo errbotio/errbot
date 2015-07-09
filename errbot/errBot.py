@@ -20,6 +20,7 @@ import gc
 import logging
 import os
 import shutil
+import signal
 import subprocess
 from tarfile import TarFile
 from urllib.request import urlopen
@@ -381,13 +382,30 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def restart(self, mess, args):
-        """ restart the bot """
+        """ Restart the bot. """
         self.send(mess.frm, "Deactivating all the plugins...")
         self.deactivate_all_plugins()
         self.send(mess.frm, "Restarting")
         self.shutdown()
         global_restart()
         return "I'm restarting..."
+
+    # noinspection PyUnusedLocal
+    @botcmd(admin_only=True)
+    def killbot(self, mess, args):
+        """ Shutdown the bot.
+        Useful when the things are going crazy and you down have access to the machine.
+        """
+        if args != "really":
+          return "Use `!killbot really` if you really want to shutdown the bot."
+
+        self.send(mess.frm, "Dave, I can see you are really upset about this...")
+        self.deactivate_all_plugins()
+        self.send(mess.frm, "I know I have made some very poor decisions recently...")
+        self.send(mess.frm, "Daisy, Daaaaiseey...")
+        self.shutdown()
+        log.debug("Exiting")
+        os.kill(os.getpid(), signal.SIGTERM)
 
     def activate_plugin(self, name):
         try:

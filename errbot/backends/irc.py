@@ -50,6 +50,11 @@ class IRCIdentifier(DeprecationBridgeIdentifier):
     # generic compatibility
     person = nick
 
+    @property
+    def fullname(self):
+        # TODO: this should be possible to get
+        return None
+
     def __unicode__(self):
         return "%s!%s" % (self._nick, self._domain)
 

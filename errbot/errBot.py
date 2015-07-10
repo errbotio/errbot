@@ -371,7 +371,22 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         """
         return args
 
-    # noinspection PyUnusedLocal
+    @botcmd
+    def whoami(self, mess, args):
+        """ A simple command echoing the details of your identifier. Useful to debug identity problems.
+        """
+        frm = mess.frm
+        resp = "\n`person` is %s\n" % frm.person
+        resp += "\n`nick` is %s\n" % frm.nick
+        resp += "\n`fullname` is %s\n" % frm.fullname
+        resp += "\n`client` is %s\n" % frm.client
+
+        #  extra info if it is a MUC
+        if hasattr(frm, 'room'):
+            resp += "\n`room` is %s\n" % frm.room
+
+        return resp
+
     @botcmd
     def uptime(self, mess, args):
         """ Return the uptime of the bot

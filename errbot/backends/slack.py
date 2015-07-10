@@ -99,8 +99,17 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         return self._sc.server.domain
 
     # Compatibility with the generic API.
-    person = username
-    client = channelname
+    person = userid
+    client = channelid
+    nick = username
+
+    @property
+    def fullname(self):
+        """Convert a Slack user ID to their user name"""
+        user = self._sc.server.users.find(self._userid)
+        if user is None:
+            raise UserDoesNotExistError("Cannot find user with ID %s" % self._userid)
+        return user.real_name
 
     def __unicode__(self):
         if self.channelname:

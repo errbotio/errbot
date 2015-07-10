@@ -29,9 +29,11 @@ class SimpleIdentifier(DeprecationBridgeIdentifier):
         use self.build_identifier(identifier_as_string) instead.
     """
 
-    def __init__(self, person, client=None):
+    def __init__(self, person, client=None, nick=None, fullname=None):
         self._person = person
         self._client = client
+        self._nick = nick
+        self._fullname = fullname
 
     @property
     def person(self):
@@ -43,6 +45,18 @@ class SimpleIdentifier(DeprecationBridgeIdentifier):
         """This needs to return the part of the identifier pointing to a client from which a person is sending a message from.
         Returns None is unspecified"""
         return self._client
+
+    @property
+    def nick(self):
+        """This needs to return a short display name for this identifier e.g. gbin.
+        Returns None is unspecified"""
+        return self._nick
+
+    @property
+    def fullname(self):
+        """This needs to return a long display name for this identifier e.g. Guillaume Binet.
+        Returns None is unspecified"""
+        return self._fullname
 
     def __unicode__(self):
         if self.client:

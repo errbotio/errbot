@@ -54,6 +54,18 @@ class ToxIdentifier(object):
     def person(self):
         return self._username
 
+    @property
+    def client(self):
+        return None
+
+    @property
+    def nick(self):
+        return self._username
+
+    @property
+    def fullname(self):
+        return None
+
 
 class ToxStreamer(io.BufferedRWPair):
     def __init__(self):

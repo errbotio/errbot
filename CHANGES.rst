@@ -1,6 +1,14 @@
 Release history
 ===============
 
+Version 2.3.0 (2015-07)
+-----------------------
+
+Stuff that might break you:
+
+- XMPP properties .node, .domain and .resource on identifiers are deprecated, a backward compatibility layer has been added but we highly encourage you to not rely on those but use the generic ones from now on: .person, .client and for MUCOccupants .room on top of .person and .client.
+- To create identifiers from a string (i.e. if you don't get it from the bot itself) you now have to use build_identifier(string) to make the backend parse it
+
 Version 2.3.0-rc2 (2015-07-06)
 ------------------------------
 

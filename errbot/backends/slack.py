@@ -123,6 +123,7 @@ class SlackMUCOccupant(SlackIdentifier):
     This class represents a person inside a MUC.
     """
     room = SlackIdentifier.channelname
+
     def __unicode__(self):
         return "#%s/%s" % (self.room, self.username)
 
@@ -389,10 +390,12 @@ class SlackBackend(ErrBot):
         elif txtrep[0] == '#':
             plainrep = txtrep[1:]
             if '/' not in txtrep:
-              raise Exception("Unparseable slack identifier, should be #channelname/username or @username : '%s'" % txtrep)
+                raise Exception("Unparseable slack identifier, " +
+                                "should be #channelname/username or @username : '%s'" % txtrep)
             channelname, username = plainrep.split('/')
         else:
-            raise Exception("Unparseable slack identifier, should be #channelname/username or @username : '%s'" % txtrep)
+            raise Exception("Unparseable slack identifier, " +
+                            "should be #channelname/username or @username : '%s'" % txtrep)
 
         userid = self.username_to_userid(username)
         if channelname:

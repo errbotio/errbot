@@ -42,6 +42,11 @@ class BotPluginBase(StoreMixin):
 
     @property
     def bot_config(self):
+        """
+        Get the bot configuration from config.py.
+        For exemple you can access:
+        self.bot_config.BOT_DATA_DIR
+        """
         return self._bot.bot_config
 
     def init_storage(self):

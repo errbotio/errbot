@@ -86,6 +86,14 @@ class XMPPIdentifier(object):
         return self._node + '@' + self._domain
 
     @property
+    def nick(self):
+        return self._node
+
+    @property
+    def fullname(self):
+        return None  # Not supported by default on XMPP.
+
+    @property
     def stripped(self):
         log.warning('stripped is deprecated, use .person on identifiers instead')
         return self.person

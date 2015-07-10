@@ -130,10 +130,6 @@ KNOWN_PUBLIC_REPOS = {
         'https://github.com/daenney/err-githubhook.git',
         'Webhooks endpoint supporting the majority of Github Webhook Events'
     ),
-    'err-linksBot': (
-        'https://github.com/vaz-ar/err-linksBot.git',
-        'Plugin to handle links posted in chatrooms'
-    ),
     'err-stash': (
         'https://github.com/charlesrg/err-stash.git',
         'Plugin to notify commits to Atlassian Stash Git repo to user or chatrooms.'

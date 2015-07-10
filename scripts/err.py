@@ -228,7 +228,7 @@ if __name__ == "__main__":
         try:
             def action():
                 from errbot.main import main
-                main(backend_name, logger, config)
+                main(backend, logger, config)
 
             daemon = Daemonize(app="err", pid=pid, action=action)
             daemon.start()

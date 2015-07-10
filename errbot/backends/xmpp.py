@@ -625,4 +625,4 @@ class XMPPBackend(ErrBot):
         return XMPPMUCRoom(room, bot=self)
 
     def groupchat_reply_format(self):
-        return '@{0} {1}'
+        return '@{user} {reply}'

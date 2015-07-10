@@ -240,4 +240,4 @@ class GraphicBackend(TextBackend):
         return 'graphic'
 
     def groupchat_reply_format(self):
-        return '{0} {1}'
+        return '{user} {reply}'

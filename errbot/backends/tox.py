@@ -428,4 +428,4 @@ class ToxBackend(ErrBot):
         return None
 
     def groupchat_reply_format(self):
-        return '@{0} {1}'
+        return '@{user} {reply}'

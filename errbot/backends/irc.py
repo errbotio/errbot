@@ -356,4 +356,4 @@ class IRCBackend(ErrBot):
         return [IRCMUCRoom(channel, self) for channel in channels]
 
     def groupchat_reply_format(self):
-        return '{0}: {1}'
+        return '{user}: {reply}'

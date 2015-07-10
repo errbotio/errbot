@@ -438,7 +438,7 @@ class SlackBackend(ErrBot):
         return [SlackRoom(channelid=channel['id'], bot=self) for channel in channels]
 
     def groupchat_reply_format(self):
-        return '@{0}: {1}'
+        return '@{user}: {reply}'
 
 
 class SlackRoom(MUCRoom):

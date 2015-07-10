@@ -63,3 +63,6 @@ class NullBackend(ErrBot):
     @property
     def mode(self):
         return 'null'
+
+    def groupchat_reply_format(self):
+        return '{user} {reply}'

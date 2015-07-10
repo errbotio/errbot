@@ -90,12 +90,11 @@ logger.addHandler(console_hdlr)
 def get_config(config_path):
     __import__('errbot.config-template')  # - is on purpose, it should not be imported normally ;)
     template = sys.modules['errbot.config-template']
-    config_fullpath = config_path + sep + 'config.py'
-
+    config_fullpath = config_path
     if not path.exists(config_fullpath):
         log.error(
-            'I cannot find the file config.py in the directory %s \n'
-            '(You can change this directory with the -c parameter see --help)' % config_path
+            'I cannot find the file %s \n'
+            '(You can change this path with the -c parameter see --help)' % config_path
         )
         log.info(
             'You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (
@@ -105,7 +104,7 @@ def get_config(config_path):
 
     # noinspection PyBroadException
     try:
-        config = __import__('config')
+        config = __import__(path.splitext(path.basename(config_fullpath))[0])
 
         diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
         if diffs:
@@ -130,7 +129,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
     parser.add_argument('-c', '--config', default=None,
-                        help='Specify the directory where your config.py is (default: current working directory).')
+                        help='Full path to your config.py (default: config.py in current working directory).')
     parser.add_argument('-r', '--restore', nargs='?', default=None, const='default',
                         help='Restores a bot from backup.py. (default: backup.py from the bot data directory).')
     parser.add_argument('-l', '--list', action='store_true', help='Lists all the backends found.')
@@ -156,9 +155,10 @@ if __name__ == "__main__":
     config_path = args['config']
     # setup the environment to be able to import the config.py
     if config_path:
-        sys.path.insert(0, config_path)  # appends the current config in order to find config.py
+        # appends the current config in order to find config.py
+        sys.path.insert(0, path.dirname(path.abspath(config_path)))
     else:
-        config_path = execution_dir
+        config_path = execution_dir + sep + 'config.py'
 
     config = get_config(config_path)  # will exit if load fails
     if args['list']:

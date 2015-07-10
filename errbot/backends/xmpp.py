@@ -98,6 +98,10 @@ class XMPPIdentifier(object):
         return None  # Not supported by default on XMPP.
 
     @property
+    def client(self):
+        return self._resource
+
+    @property
     def stripped(self):
         log.warning('stripped is deprecated, use .person on identifiers instead')
         return self.person

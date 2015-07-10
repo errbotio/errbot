@@ -384,6 +384,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         #  extra info if it is a MUC
         if hasattr(frm, 'room'):
             resp += "\n`room` is %s\n" % frm.room
+        resp += "\n\nstring representation is %s\n" % frm
 
         return resp
 

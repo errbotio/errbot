@@ -45,11 +45,12 @@ this with :func:`~errbot.botplugin.BotPlugin.send`:
 
     # Or to send to a MUC
     self.send(
-        "conference.host.tld/room",
+        "room@conference.host.tld",
         "Boo! Bet you weren't expecting me, were you?",
         message_type="groupchat"
     )
 
+For Err=>2.3 you need to use : self.build_identifier("user@host.tld/resource") but the format of the identifier might be dependent on the backend you use.
 
 Templating
 ----------

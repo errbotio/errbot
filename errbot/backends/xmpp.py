@@ -64,7 +64,11 @@ class XMPPIdentifier(object):
     are identifying a person on their system.
     """
 
-    def __init__(self, node='', domain='', resource=''):
+    def __init__(self, node, domain, resource):
+        if not node:
+            raise Exception('An XMPPIdentifier needs to have a node.')
+        if not domain:
+            raise Exception('An XMPPIdentifier needs to have a domain.')
         self._node = node
         self._domain = domain
         self._resource = resource
@@ -104,7 +108,7 @@ class XMPPIdentifier(object):
         return other.stripped == self.stripped
 
     def __str__(self):
-        answer = self.person
+        answer = self._node + '@' + self._domain  # don't call .person: see below
         if self._resource:
             answer += '/' + self._resource
         return answer
@@ -114,8 +118,9 @@ class XMPPIdentifier(object):
 
 
 class XMPPMUCRoom(MUCRoom):
-    def __init__(self, *args, **kwargs):
-        super(XMPPMUCRoom, self).__init__(*args, **kwargs)
+    def __init__(self, name, bot):
+        self._bot = bot
+        self._name = name
         self.xep0045 = self._bot.conn.client.plugin['xep_0045']
 
     def join(self, username=None, password=None):
@@ -256,10 +261,7 @@ class XMPPMUCRoom(MUCRoom):
         occupants = []
         try:
             for occupant in self.xep0045.rooms[str(self)].values():
-                occupant = occupant.copy()
-                for attr in ("node", "domain", "resource"):
-                    occupant.pop(attr, None)
-                occupants.append(XMPPMUCOccupant(jid=str(occupant.pop("jid")), **occupant))
+                occupants.append(XMPPMUCOccupant(occupant.node, occupant.domain, occupant.resource))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -304,22 +306,13 @@ class XMPPMUCRoom(MUCRoom):
 
 
 class XMPPMUCOccupant(XMPPIdentifier):
-    def __init__(self, **kwargs):
-        super().__init__(jid=kwargs.pop("jid"))
-
-        for k, v in kwargs.items():
-            # Ensure existing attributes can't be overridden, either accidentally
-            # or maliciously by a rogue server.
-            if not hasattr(self, k):
-                setattr(self, k, v)
-
     @property
     def person(self):
-        return self.resource
+        return str(self)  # this is the full identifier.
 
     @property
     def room(self):
-        return fr.node + '@' + fr.domain
+        return self.node + '@' + self.domain
 
 
 class XMPPConnection(object):
@@ -472,7 +465,15 @@ class XMPPBackend(ErrBot):
             msg.html = xmppmsg['html']
         msg.frm = self.build_identifier(xmppmsg['from'].full)
         msg.to = self.build_identifier(xmppmsg['to'].full)
+        log.debug("incoming_message frm : %s" % msg.frm)
+        log.debug("incoming_message frm node: %s" % msg.frm.node)
+        log.debug("incoming_message frm domain: %s" % msg.frm.domain)
+        log.debug("incoming_message frm resource: %s" % msg.frm.resource)
         msg.type = xmppmsg['type']
+        if msg.type == 'groupchat':
+            # those are not simple identifiers, they are muc occupants.
+            msg.frm = XMPPMUCOccupant(msg.frm.node, msg.frm.domain, msg.frm.resource)
+            msg.to = XMPPMUCOccupant(msg.to.node, msg.to.domain, msg.to.resource)
         msg.nick = xmppmsg['mucnick']
         msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
         self.callback_message(msg)
@@ -512,7 +513,7 @@ class XMPPBackend(ErrBot):
         if topic == "":
             topic = None
         self._room_topics[room] = topic
-        room = XMPPMUCRoom(event.values['mucroom'])
+        room = XMPPMUCRoom(event.values['mucroom'], self)
         self.callback_room_topic(room)
 
     def user_changed_status(self, event):
@@ -573,10 +574,13 @@ class XMPPBackend(ErrBot):
     def build_reply(self, mess, text=None, private=False):
         """Build a message for responding to another message.
         Message is NOT sent"""
+        log.debug("build reply ...")
+        log.debug("mess.frm = %s" % str(mess.frm))
+        log.debug("mess.frm.person = %s" % mess.frm.person)
         msg_type = mess.type
         response = self.build_message(text)
 
-        response.frm = self.bot_identity
+        response.frm = self.bot_identifier
         if msg_type == 'groupchat' and not private:
             # stripped returns the full bot@conference.domain.tld/chat_username
             # but in case of a groupchat, we should only try to send to the MUC address
@@ -619,7 +623,7 @@ class XMPPBackend(ErrBot):
             A list of :class:`~errbot.backends.base.XMPPMUCRoom` instances.
         """
         xep0045 = self.client.plugin['xep_0045']
-        return [XMPPMUCRoom(room, bot=self) for room in xep0045.getJoinedRooms()]
+        return [XMPPMUCRoom(room, self) for room in xep0045.getJoinedRooms()]
 
     def query_room(self, room):
         """
@@ -630,7 +634,7 @@ class XMPPBackend(ErrBot):
         :returns:
             An instance of :class:`~XMPPMUCRoom`.
         """
-        return XMPPMUCRoom(room, bot=self)
+        return XMPPMUCRoom(room, self)
 
     def groupchat_reply_format(self):
         return '@{0} {1}'

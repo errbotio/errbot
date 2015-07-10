@@ -46,16 +46,13 @@ class HipChatMUCRoom(XMPPMUCRoom):
     This class represents a Multi-User Chatroom.
     """
 
-    def __init__(self, name, bot=None):
+    def __init__(self, name, bot):
         """
             :param name:
                 The name of the room
             """
-        super().__init__()
-        self._bot = bot
+        super().__init__(name, bot)
         self.hypchat = bot.conn.hypchat
-        self.xep0045 = bot.conn.client.plugin['xep_0045']
-        self._name = name
 
     @property
     def room(self):
@@ -320,7 +317,7 @@ class HipchatBackend(XMPPBackend):
     def __init__(self, config):
         self.api_token = config.BOT_IDENTITY['token']
         self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
-        super(HipchatBackend, self).__init__(config)
+        super().__init__(config)
 
     def create_connection(self):
         # HipChat connections time out with the default keepalive interval

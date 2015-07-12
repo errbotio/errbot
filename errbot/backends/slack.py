@@ -294,33 +294,33 @@ class SlackBackend(ErrBot):
 
     def userid_to_username(self, id):
         """Convert a Slack user ID to their user name"""
-        user = self.sc.server.users.find(id)
-        if user is None:
+        user = [user for user in self.sc.server.users if user.id == id]
+        if not user:
             raise UserDoesNotExistError("Cannot find user with ID %s" % id)
-        return user.name
+        return user[0].name
 
     def username_to_userid(self, name):
         """Convert a Slack user name to their user ID"""
-        user = self.sc.server.users.find(name)
-        if user is None:
+        user = [user for user in self.sc.server.users if user.name == name]
+        if not user:
             raise UserDoesNotExistError("Cannot find user %s" % name)
-        return user.id
+        return user[0].id
 
     def channelid_to_channelname(self, id):
         """Convert a Slack channel ID to its channel name"""
-        channel = self.sc.server.channels.find(id)
-        if channel is None:
+        channel = [channel for channel in self.sc.server.channels if channel.id == id]
+        if not channel:
             raise RoomDoesNotExistError("No channel with ID %s exists" % id)
-        return channel.name
+        return channel[0].name
 
     def channelname_to_channelid(self, name):
         """Convert a Slack channel name to its channel ID"""
         if name.startswith('#'):
             name = name[1:]
-        channel = self.sc.server.channels.find(name)
-        if channel is None:
+        channel = [channel for channel in self.sc.server.channels if channel.name == name]
+        if not channel:
             raise RoomDoesNotExistError("No channel named %s exists" % name)
-        return channel.id
+        return channel[0].id
 
     def channels(self, exclude_archived=True, joined_only=False):
         """

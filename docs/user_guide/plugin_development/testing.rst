@@ -41,7 +41,7 @@ Our test, *test_myplugin.py*:
     from errbot.backends.test import testbot, push_message, pop_message
 
 
-    class TestMyPlugin(oject):
+    class TestMyPlugin(object):
         extra_plugin_dir = '.'
 
         def test_command(self, testbot):

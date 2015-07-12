@@ -225,6 +225,9 @@ class SlackBackend(ErrBot):
             status = ONLINE
         self.callback_presence(Presence(identifier=idd, status=status))
 
+    def _team_join_event_handler(self, event):
+        self.sc.parse_user_data((event['user'],))
+
     def _message_event_handler(self, event):
         """Event handler for the 'message' event"""
         channel = event['channel']

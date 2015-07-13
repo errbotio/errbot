@@ -22,6 +22,3 @@ work with Err if you only have basic Python knowledge, but you
 should know about data structures such as dictionaries, tuples and
 lists, know what docstrings are and have a basic understanding of
 decorators.
-
-Recommended to implement the tests of you plugin:
-`Python <http://pytest.org/>`_.

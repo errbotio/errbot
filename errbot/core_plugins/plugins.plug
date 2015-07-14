@@ -1,0 +1,9 @@
+[Core]
+Name = Plugins
+Module = plugins
+
+[Documentation]
+Description = Commands to manage the plugins of the bot by chatting.
+
+[Python]
+Version = 2+

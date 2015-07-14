@@ -34,16 +34,16 @@ class TestCommands(FullStackTest):
         self.assertCommand('!status gc', 'GC 0->')
 
     def test_config_cycle(self):
-        self.bot.push_message('!config Webserver')
+        self.bot.push_message('!plugin config Webserver')
         m = self.bot.pop_message()
         self.assertIn('Default configuration for this plugin (you can copy and paste this directly as a command)', m)
         self.assertNotIn('Current configuration', m)
 
-        self.assertCommand("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}",
+        self.assertCommand("!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}",
                            'Plugin configuration done.')
 
-        self.assertCommand('!config Webserver', 'Current configuration')
-        self.assertCommand('!config Webserver', 'localhost')
+        self.assertCommand('!plugin config Webserver', 'Current configuration')
+        self.assertCommand('!plugin config Webserver', 'localhost')
 
     def test_apropos(self):
         self.assertCommand('!apropos about', '!about: Returns some')
@@ -78,24 +78,24 @@ class TestCommands(FullStackTest):
         self.assertCommand('!help hello', 'this command says hello')
         self.assertCommand('!hello', 'Hello World !')
 
-        self.bot.push_message('!reload HelloWorld')
+        self.bot.push_message('!plugin reload HelloWorld')
         self.assertEqual('Plugin HelloWorld deactivated', self.bot.pop_message())
         self.assertEqual('Plugin HelloWorld activated', self.bot.pop_message())
 
         self.bot.push_message('!hello')  # should still respond
         self.assertEqual('Hello World !', self.bot.pop_message())
 
-        self.bot.push_message('!blacklist HelloWorld')
+        self.bot.push_message('!plugin blacklist HelloWorld')
         self.assertEqual('Plugin HelloWorld is now blacklisted', self.bot.pop_message())
-        self.bot.push_message('!unload HelloWorld')
+        self.bot.push_message('!plugin unload HelloWorld')
         self.assertEqual('Plugin HelloWorld deactivated', self.bot.pop_message())
 
         self.bot.push_message('!hello')  # should not respond
         self.assertIn('Command "hello" not found', self.bot.pop_message())
 
-        self.bot.push_message('!unblacklist HelloWorld')
+        self.bot.push_message('!plugin unblacklist HelloWorld')
         self.assertEqual('Plugin HelloWorld removed from blacklist', self.bot.pop_message())
-        self.bot.push_message('!load HelloWorld')
+        self.bot.push_message('!plugin load HelloWorld')
         self.assertEqual('Plugin HelloWorld activated', self.bot.pop_message())
 
         self.bot.push_message('!hello')  # should respond back
@@ -126,54 +126,54 @@ class TestCommands(FullStackTest):
         self.assertEquals('へようこそ', self.bot.pop_message())
 
     def test_webserver_webhook_test(self):
-        self.bot.push_message("!config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
+        self.bot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', self.bot.pop_message())
         self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
 
     def test_load_reload_and_unload(self):
         for command in ('load', 'reload', 'unload'):
-            self.bot.push_message("!{}".format(command))
+            self.bot.push_message("!plugin {}".format(command))
             m = self.bot.pop_message()
             self.assertIn('Please tell me which of the following plugins to reload', m)
             self.assertIn('ChatRoom', m)
 
-            self.bot.push_message('!{} nosuchplugin'.format(command))
+            self.bot.push_message('!plugin {} nosuchplugin'.format(command))
             m = self.bot.pop_message()
             self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
             self.assertIn('ChatRoom', m)
 
-        self.bot.push_message('!reload ChatRoom')
+        self.bot.push_message('!plugin reload ChatRoom')
         self.assertEqual('Plugin ChatRoom deactivated', self.bot.pop_message())
         self.assertEqual('Plugin ChatRoom activated', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
         self.assertIn("[L] ChatRoom", self.bot.pop_message())
 
-        self.bot.push_message('!unload ChatRoom')
+        self.bot.push_message('!plugin unload ChatRoom')
         self.assertEqual('Plugin ChatRoom deactivated', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
         self.assertIn("[U] ChatRoom", self.bot.pop_message())
 
-        self.bot.push_message('!unload ChatRoom')
+        self.bot.push_message('!plugin unload ChatRoom')
         self.assertEqual('ChatRoom is not currently loaded', self.bot.pop_message())
 
-        self.bot.push_message('!load ChatRoom')
+        self.bot.push_message('!plugin load ChatRoom')
         self.assertEqual('Plugin ChatRoom activated', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
         self.assertIn("[L] ChatRoom", self.bot.pop_message())
 
-        self.bot.push_message('!load ChatRoom')
+        self.bot.push_message('!plugin load ChatRoom')
         self.assertEqual('ChatRoom is already loaded', self.bot.pop_message())
 
-        self.bot.push_message('!unload ChatRoom')
+        self.bot.push_message('!plugin unload ChatRoom')
         self.assertEqual('Plugin ChatRoom deactivated', self.bot.pop_message())
-        self.bot.push_message('!reload ChatRoom')
+        self.bot.push_message('!plugin reload ChatRoom')
         self.assertEqual('Plugin ChatRoom not in active list', self.bot.pop_message())
         self.assertEqual('Plugin ChatRoom activated', self.bot.pop_message())
 
-        self.bot.push_message('!blacklist ChatRoom')
+        self.bot.push_message('!plugin blacklist ChatRoom')
         self.assertEqual("Plugin ChatRoom is now blacklisted", self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
@@ -181,33 +181,33 @@ class TestCommands(FullStackTest):
 
         # Needed else configuration for this plugin gets saved which screws up
         # other tests
-        self.bot.push_message('!unblacklist ChatRoom')
+        self.bot.push_message('!plugin unblacklist ChatRoom')
         self.bot.pop_message()
 
     def test_unblacklist_and_blacklist(self):
-        self.bot.push_message('!unblacklist nosuchplugin')
+        self.bot.push_message('!plugin unblacklist nosuchplugin')
         m = self.bot.pop_message()
         self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
         self.assertIn('ChatRoom', m)
 
-        self.bot.push_message('!blacklist nosuchplugin')
+        self.bot.push_message('!plugin blacklist nosuchplugin')
         m = self.bot.pop_message()
         self.assertIn("nosuchplugin isn't a valid plugin name. The current plugins are", m)
         self.assertIn('ChatRoom', m)
 
-        self.bot.push_message('!blacklist ChatRoom')
+        self.bot.push_message('!plugin blacklist ChatRoom')
         self.assertEqual("Plugin ChatRoom is now blacklisted", self.bot.pop_message())
 
-        self.bot.push_message('!blacklist ChatRoom')
+        self.bot.push_message('!plugin blacklist ChatRoom')
         self.assertEqual("Plugin ChatRoom is already blacklisted", self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
         self.assertIn("[B,L] ChatRoom", self.bot.pop_message())
 
-        self.bot.push_message('!unblacklist ChatRoom')
+        self.bot.push_message('!plugin unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom removed from blacklist', self.bot.pop_message())
 
-        self.bot.push_message('!unblacklist ChatRoom')
+        self.bot.push_message('!plugin unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom is not blacklisted', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")

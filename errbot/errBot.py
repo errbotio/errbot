@@ -23,11 +23,9 @@ from urllib.request import urlopen
 
 from . import botcmd, PY2
 from .backends.base import Backend, ACLViolation
-from .storage import StoreMixin
 from .utils import (human_name_for_git_url,
                     which,
                     get_sender_username,
-                    PLUGINS_SUBDIR,
                     get_class_that_defined_method)
 from .repos import KNOWN_PUBLIC_REPOS
 from .version import VERSION
@@ -64,7 +62,7 @@ def bot_config_defaults(config):
         config.AUTOINSTALL_DEPS = False
 
 
-class ErrBot(Backend, StoreMixin, BotPluginManager):
+class ErrBot(Backend, BotPluginManager):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
     __errdoc__ = """ Commands related to the bot administration """
@@ -72,26 +70,12 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
 
-    # Storage names
-    REPOS = b'repos' if PY2 else 'repos'
-    CONFIGS = b'configs' if PY2 else 'configs'
-    BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
-
     def __init__(self, bot_config):
         log.debug("ErrBot init.")
-        self.bot_config = bot_config
-
-        self.plugin_dir = os.path.join(bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR)
-
-        self.open_storage(os.path.join(bot_config.BOT_DATA_DIR, 'core.db'))
-        self.prefix = bot_config.BOT_PREFIX
-        # be sure we have a configs entry for the plugin configurations
-        if self.CONFIGS not in self:
-            self[self.CONFIGS] = {}
         super(ErrBot, self).__init__(bot_config)
-
-        # init the plugin manager part
-        self._init_plugin_manager()
+        self._init_plugin_manager(bot_config)
+        self.bot_config = bot_config
+        self.prefix = bot_config.BOT_PREFIX
 
     def __hash__(self):
         # Ensures this class (and subclasses) are hashable.

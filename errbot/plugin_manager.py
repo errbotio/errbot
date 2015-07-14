@@ -8,11 +8,12 @@ import os
 import pip
 from . import PY2
 from .botplugin import BotPlugin
-from .utils import version2array, PY3, find_roots, find_roots_with_extra
+from .utils import version2array, PY3, find_roots, find_roots_with_extra, PLUGINS_SUBDIR
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
 from .core_plugins.wsview import route
+from .storage import StoreMixin
 
 log = logging.getLogger(__name__)
 
@@ -87,9 +88,24 @@ def global_restart():
     os.execl(python, python, *sys.argv)
 
 
-class BotPluginManager(PluginManager):
+class BotPluginManager(PluginManager, StoreMixin):
     """Customized yapsy PluginManager for ErrBot."""
-    def _init_plugin_manager(self):
+
+    # Storage names
+    REPOS = b'repos' if PY2 else 'repos'
+    CONFIGS = b'configs' if PY2 else 'configs'
+    BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
+
+    # gbin: making an __init__ here will be tricky with the MRO
+    # use _init_plugin_manager directly.
+
+    def _init_plugin_manager(self, bot_config):
+        self.plugin_dir = os.path.join(bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR)
+        self.open_storage(os.path.join(bot_config.BOT_DATA_DIR, 'core.db'))
+        # be sure we have a configs entry for the plugin configurations
+        if self.CONFIGS not in self:
+            self[self.CONFIGS] = {}
+
         self.setCategoriesFilter({"bots": BotPlugin})
         plugin_locator = self._locatorDecide('plug', None)
         self.setPluginLocator(plugin_locator, None)

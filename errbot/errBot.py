@@ -15,10 +15,8 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from datetime import datetime
 import inspect
-import gc
 import logging
 import os
-import signal
 import subprocess
 from tarfile import TarFile
 from urllib.request import urlopen
@@ -27,7 +25,6 @@ from . import botcmd, PY2
 from .backends.base import Backend, ACLViolation
 from .storage import StoreMixin
 from .utils import (human_name_for_git_url,
-                    format_timedelta,
                     which,
                     get_sender_username,
                     PLUGINS_SUBDIR,
@@ -35,7 +32,7 @@ from .utils import (human_name_for_git_url,
 from .repos import KNOWN_PUBLIC_REPOS
 from .version import VERSION
 from .streaming import Tee
-from .plugin_manager import BotPluginManager, global_restart, check_dependencies, PluginConfigurationException
+from .plugin_manager import BotPluginManager, check_dependencies, PluginConfigurationException
 
 log = logging.getLogger(__name__)
 
@@ -290,95 +287,6 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         log.info('Shutdown.')
         self.close_storage()
         log.info('Bye.')
-
-    @botcmd(template='status')
-    def status(self, mess, args):
-        """ If I am alive I should be able to respond to this one
-        """
-        plugins_statuses = self.status_plugins(mess, args)
-        loads = self.status_load(mess, args)
-        gc = self.status_gc(mess, args)
-
-        return {'plugins_statuses': plugins_statuses['plugins_statuses'],
-                'loads': loads['loads'],
-                'gc': gc['gc']}
-
-    @botcmd(template='status_load')
-    def status_load(self, mess, args):
-        """ shows the load status
-        """
-        try:
-            from posix import getloadavg
-            loads = getloadavg()
-        except Exception:
-            loads = None
-
-        return {'loads': loads}
-
-    @botcmd(template='status_gc')
-    def status_gc(self, mess, args):
-        """ shows the garbage collection details
-        """
-        return {'gc': gc.get_count()}
-
-    @botcmd(template='status_plugins')
-    def status_plugins(self, mess, args):
-        """ shows the plugin status
-        """
-        all_blacklisted = self.get_blacklisted_plugin()
-        all_loaded = self.get_all_active_plugin_names()
-        all_attempted = sorted([p.name for p in self.all_candidates])
-        plugins_statuses = []
-        for name in all_attempted:
-            if name in all_blacklisted:
-                if name in all_loaded:
-                    plugins_statuses.append(('BL', name))
-                else:
-                    plugins_statuses.append(('BU', name))
-            elif name in all_loaded:
-                plugins_statuses.append(('L', name))
-            elif self.get_plugin_obj_by_name(name) is not None and self.get_plugin_obj_by_name(
-                    name).get_configuration_template() is not None and self.get_plugin_configuration(name) is None:
-                plugins_statuses.append(('C', name))
-            else:
-                plugins_statuses.append(('U', name))
-
-        return {'plugins_statuses': plugins_statuses}
-
-    @botcmd
-    def uptime(self, mess, args):
-        """ Return the uptime of the bot
-        """
-        return "I've been up for %s %s (since %s)" % (args, format_timedelta(datetime.now() - self.startup_time),
-                                                      self.startup_time.strftime('%A, %b %d at %H:%M'))
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def restart(self, mess, args):
-        """ Restart the bot. """
-        self.send(mess.frm, "Deactivating all the plugins...")
-        self.deactivate_all_plugins()
-        self.send(mess.frm, "Restarting")
-        self.shutdown()
-        global_restart()
-        return "I'm restarting..."
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def killbot(self, mess, args):
-        """ Shutdown the bot.
-        Useful when the things are going crazy and you down have access to the machine.
-        """
-        if args != "really":
-            return "Use `!killbot really` if you really want to shutdown the bot."
-
-        self.send(mess.frm, "Dave, I can see you are really upset about this...")
-        self.deactivate_all_plugins()
-        self.send(mess.frm, "I know I have made some very poor decisions recently...")
-        self.send(mess.frm, "Daisy, Daaaaiseey...")
-        self.shutdown()
-        log.debug("Exiting")
-        os.kill(os.getpid(), signal.SIGTERM)
 
     def activate_plugin(self, name):
         try:

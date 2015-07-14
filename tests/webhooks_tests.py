@@ -34,7 +34,7 @@ class TestWebhooks(FullStackTest):
     def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
         super().setUp(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'webhooks_tests'),
                       extra_test_file)
-        self.bot.push_message("!config Webserver " +
+        self.bot.push_message("!plugin config Webserver " +
                               "{{'HOST': 'localhost', 'PORT': {}, 'SSL':  None}}".format(WEBSERVER_PORT))
         self.bot.pop_message()
         while not webserver_ready('localhost', WEBSERVER_PORT):
@@ -121,7 +121,7 @@ class TestWebhooks(FullStackTest):
                 'enabled': True,
             }
         }
-        self.bot.push_message("!config Webserver {!r}".format(webserver_config))
+        self.bot.push_message("!plugin config Webserver {!r}".format(webserver_config))
         self.bot.pop_message()
 
         while not webserver_ready('localhost', WEBSERVER_SSL_PORT):

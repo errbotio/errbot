@@ -1,0 +1,9 @@
+[Core]
+Name = Utils
+Module = utils
+
+[Documentation]
+Description = Core Errbot utils commands.
+
+[Python]
+Version = 2+

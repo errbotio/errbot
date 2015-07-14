@@ -13,25 +13,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-from ast import literal_eval
 from datetime import datetime
 import inspect
-import gc
 import logging
 import os
-import shutil
-import signal
 import subprocess
 from tarfile import TarFile
 from urllib.request import urlopen
-from pprint import pformat
 
 from . import botcmd, PY2
 from .backends.base import Backend, ACLViolation
 from .storage import StoreMixin
 from .utils import (human_name_for_git_url,
-                    tail,
-                    format_timedelta,
                     which,
                     get_sender_username,
                     PLUGINS_SUBDIR,
@@ -39,13 +32,9 @@ from .utils import (human_name_for_git_url,
 from .repos import KNOWN_PUBLIC_REPOS
 from .version import VERSION
 from .streaming import Tee
-from .plugin_manager import BotPluginManager, global_restart, check_dependencies, PluginConfigurationException
+from .plugin_manager import BotPluginManager, check_dependencies, PluginConfigurationException
 
 log = logging.getLogger(__name__)
-
-CONFIGS = b'configs' if PY2 else 'configs'
-REPOS = b'repos' if PY2 else 'repos'
-BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
 
 def bot_config_defaults(config):
@@ -83,6 +72,11 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
 
+    # Storage names
+    REPOS = b'repos' if PY2 else 'repos'
+    CONFIGS = b'configs' if PY2 else 'configs'
+    BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
+
     def __init__(self, bot_config):
         log.debug("ErrBot init.")
         self.bot_config = bot_config
@@ -92,8 +86,8 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         self.open_storage(os.path.join(bot_config.BOT_DATA_DIR, 'core.db'))
         self.prefix = bot_config.BOT_PREFIX
         # be sure we have a configs entry for the plugin configurations
-        if CONFIGS not in self:
-            self[CONFIGS] = {}
+        if self.CONFIGS not in self:
+            self[self.CONFIGS] = {}
         super(ErrBot, self).__init__(bot_config)
 
         # init the plugin manager part
@@ -126,7 +120,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
 
     # Repo management
     def get_installed_plugin_repos(self):
-        return self.get(REPOS, {})
+        return self.get(self.REPOS, {})
 
     def add_plugin_repo(self, name, url):
         if PY2:
@@ -134,11 +128,11 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
             url = url.encode('utf-8')
         repos = self.get_installed_plugin_repos()
         repos[name] = url
-        self[REPOS] = repos
+        self[self.REPOS] = repos
 
     # plugin blacklisting management
     def get_blacklisted_plugin(self):
-        return self.get(BL_PLUGINS, [])
+        return self.get(self.BL_PLUGINS, [])
 
     def is_plugin_blacklisted(self, name):
         return name in self.get_blacklisted_plugin()
@@ -147,7 +141,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         if self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is already blacklisted' % name)
             return 'Plugin %s is already blacklisted' % name
-        self[BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
+        self[self.BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
         log.info('Plugin %s is now blacklisted' % name)
         return 'Plugin %s is now blacklisted' % name
 
@@ -157,26 +151,26 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
             return 'Plugin %s is not blacklisted' % name
         l = self.get_blacklisted_plugin()
         l.remove(name)
-        self[BL_PLUGINS] = l
+        self[self.BL_PLUGINS] = l
         log.info('Plugin %s removed from blacklist' % name)
         return 'Plugin %s removed from blacklist' % name
 
     # configurations management
     def get_plugin_configuration(self, name):
-        configs = self[CONFIGS]
+        configs = self[self.CONFIGS]
         if name not in configs:
             return None
         return configs[name]
 
     def set_plugin_configuration(self, name, obj):
-        configs = self[CONFIGS]
+        configs = self[self.CONFIGS]
         configs[name] = obj
-        self[CONFIGS] = configs
+        self[self.CONFIGS] = configs
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
         all_candidates, errors = self.update_plugin_places(
-            [self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()],
+            [self.plugin_dir + os.sep + d for d in self.get(self.REPOS, {}).keys()],
             self.bot_config.BOT_EXTRA_PLUGIN_DIR, self.bot_config.AUTOINSTALL_DEPS)
         self.all_candidates = all_candidates
         return errors
@@ -247,7 +241,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
 
     def activate_non_started_plugins(self):
         log.info('Activating all the plugins...')
-        configs = self[CONFIGS]
+        configs = self[self.CONFIGS]
         errors = ''
         for pluginInfo in self.getAllPlugins():
             try:
@@ -294,137 +288,6 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         self.close_storage()
         log.info('Bye.')
 
-    def formatted_plugin_list(self, active_only=True):
-        """
-        Return a formatted, plain-text list of loaded plugins.
-
-        When active_only=True, this will only return plugins which
-        are actually active. Otherwise, it will also include inactive
-        (blacklisted) plugins.
-        """
-        if active_only:
-            all_plugins = self.get_all_active_plugin_names()
-        else:
-            all_plugins = self.get_all_plugin_names()
-        return "\n".join(("• " + plugin for plugin in all_plugins))
-
-    @botcmd(template='status')
-    def status(self, mess, args):
-        """ If I am alive I should be able to respond to this one
-        """
-        plugins_statuses = self.status_plugins(mess, args)
-        loads = self.status_load(mess, args)
-        gc = self.status_gc(mess, args)
-
-        return {'plugins_statuses': plugins_statuses['plugins_statuses'],
-                'loads': loads['loads'],
-                'gc': gc['gc']}
-
-    @botcmd(template='status_load')
-    def status_load(self, mess, args):
-        """ shows the load status
-        """
-        try:
-            from posix import getloadavg
-            loads = getloadavg()
-        except Exception:
-            loads = None
-
-        return {'loads': loads}
-
-    @botcmd(template='status_gc')
-    def status_gc(self, mess, args):
-        """ shows the garbage collection details
-        """
-        return {'gc': gc.get_count()}
-
-    @botcmd(template='status_plugins')
-    def status_plugins(self, mess, args):
-        """ shows the plugin status
-        """
-        all_blacklisted = self.get_blacklisted_plugin()
-        all_loaded = self.get_all_active_plugin_names()
-        all_attempted = sorted([p.name for p in self.all_candidates])
-        plugins_statuses = []
-        for name in all_attempted:
-            if name in all_blacklisted:
-                if name in all_loaded:
-                    plugins_statuses.append(('BL', name))
-                else:
-                    plugins_statuses.append(('BU', name))
-            elif name in all_loaded:
-                plugins_statuses.append(('L', name))
-            elif self.get_plugin_obj_by_name(name) is not None and self.get_plugin_obj_by_name(
-                    name).get_configuration_template() is not None and self.get_plugin_configuration(name) is None:
-                plugins_statuses.append(('C', name))
-            else:
-                plugins_statuses.append(('U', name))
-
-        return {'plugins_statuses': plugins_statuses}
-
-    # noinspection PyUnusedLocal
-    @botcmd
-    def echo(self, mess, args):
-        """ A simple echo command. Useful for encoding tests etc ...
-        """
-        return args
-
-    @botcmd
-    def whoami(self, mess, args):
-        """ A simple command echoing the details of your identifier. Useful to debug identity problems.
-        """
-        if args:
-            frm = self.build_identifier(str(args).strip('"'))
-        else:
-            frm = mess.frm
-        resp = "\n`person` is %s\n" % frm.person
-        resp += "\n`nick` is %s\n" % frm.nick
-        resp += "\n`fullname` is %s\n" % frm.fullname
-        resp += "\n`client` is %s\n" % frm.client
-
-        #  extra info if it is a MUC
-        if hasattr(frm, 'room'):
-            resp += "\n`room` is %s\n" % frm.room
-        resp += "\n\nstring representation is '%s'\n" % frm
-        resp += "\nclass is '%s'\n" % frm.__class__.__name__
-
-        return resp
-
-    @botcmd
-    def uptime(self, mess, args):
-        """ Return the uptime of the bot
-        """
-        return "I've been up for %s %s (since %s)" % (args, format_timedelta(datetime.now() - self.startup_time),
-                                                      self.startup_time.strftime('%A, %b %d at %H:%M'))
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def restart(self, mess, args):
-        """ Restart the bot. """
-        self.send(mess.frm, "Deactivating all the plugins...")
-        self.deactivate_all_plugins()
-        self.send(mess.frm, "Restarting")
-        self.shutdown()
-        global_restart()
-        return "I'm restarting..."
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def killbot(self, mess, args):
-        """ Shutdown the bot.
-        Useful when the things are going crazy and you down have access to the machine.
-        """
-        if args != "really":
-            return "Use `!killbot really` if you really want to shutdown the bot."
-
-        self.send(mess.frm, "Dave, I can see you are really upset about this...")
-        self.deactivate_all_plugins()
-        self.send(mess.frm, "I know I have made some very poor decisions recently...")
-        self.send(mess.frm, "Daisy, Daaaaiseey...")
-        self.shutdown()
-        log.debug("Exiting")
-        os.kill(os.getpid(), signal.SIGTERM)
-
     def activate_plugin(self, name):
         try:
             if name in self.get_all_active_plugin_names():
@@ -444,77 +307,7 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         self.deactivate_plugin_by_name(name)
         return "Plugin %s deactivated" % name
 
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def blacklist(self, mess, args):
-        """Blacklist a plugin so that it will not be loaded automatically during bot startup"""
-        if args not in self.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        return self.blacklist_plugin(args)
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def unblacklist(self, mess, args):
-        """Remove a plugin from the blacklist"""
-        if args not in self.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        return self.unblacklist_plugin(args)
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def load(self, mess, args):
-        """load a plugin"""
-        args = args.strip()
-        if not args:
-            return ("Please tell me which of the following plugins to reload:\n"
-                    "{}".format(self.formatted_plugin_list(active_only=False)))
-        if args not in self.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args in self.get_all_active_plugin_names():
-            return "{} is already loaded".format(args)
-
-        self.reload_plugin_by_name(args)
-        r = self.activate_plugin(args)
-        return r
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def unload(self, mess, args):
-        """unload a plugin"""
-        args = args.strip()
-        if not args:
-            return ("Please tell me which of the following plugins to reload:\n"
-                    "{}".format(self.formatted_plugin_list(active_only=False)))
-        if args not in self.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args not in self.get_all_active_plugin_names():
-            return "{} is not currently loaded".format(args)
-
-        return self.deactivate_plugin(args)
-
-    # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def reload(self, mess, args):
-        """reload a plugin"""
-        args = args.strip()
-        if not args:
-            yield ("Please tell me which of the following plugins to reload:\n"
-                   "{}".format(self.formatted_plugin_list(active_only=False)))
-            return
-        if args not in self.get_all_plugin_names():
-            yield ("{} isn't a valid plugin name. The current plugins are:\n"
-                   "{}".format(args, self.formatted_plugin_list(active_only=False)))
-            return
-
-        yield self.deactivate_plugin(args)  # Not needed but keeps the feedback to user consistent
-        self.reload_plugin_by_name(args)
-        yield self.activate_plugin(args)
-
-    def install(self, repo):
+    def install_repo(self, repo):
         if repo in KNOWN_PUBLIC_REPOS:
             repo = KNOWN_PUBLIC_REPOS[repo][0]  # replace it by the url
         git_path = which('git')
@@ -538,65 +331,6 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
         self.add_plugin_repo(human_name, repo)
         return self.update_dynamic_plugins()
 
-    @botcmd(admin_only=True)
-    def repos_install(self, mess, args):
-        """ install a plugin repository from the given source or a known public repo (see !repos to find those).
-        for example from a known repo : !install err-codebot
-        for example a git url : git@github.com:gbin/plugin.git
-        or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
-        """
-        if not args.strip():
-            return "You should have an urls/git repo argument"
-        errors = self.install(args)
-        if errors:
-            self.send(mess.frm, 'Some plugins are generating errors:\n' + '\n'.join(errors),
-                      message_type=mess.type)
-        else:
-            self.send(
-                mess.frm,
-                ("A new plugin repository has been installed correctly from "
-                 "%s. Refreshing the plugins commands..." % args),
-                message_type=mess.type
-            )
-        self.activate_non_started_plugins()
-        return "Plugin reload done."
-
-    @botcmd(admin_only=True)
-    def repos_uninstall(self, mess, args):
-        """ uninstall a plugin repository by name.
-        """
-        if not args.strip():
-            return "You should have a repo name as argument"
-        repos = self.get(REPOS, {})
-        if args not in repos:
-            return "This repo is not installed check with " + self.prefix + "repos the list of installed ones"
-
-        plugin_path = self.plugin_dir + os.sep + args
-        for plugin in self.getAllPlugins():
-            if plugin.path.startswith(plugin_path) and hasattr(plugin, 'is_activated') and plugin.is_activated:
-                self.send(mess.frm, '/me is unloading plugin %s' % plugin.name)
-                self.deactivate_plugin(plugin.name)
-
-        shutil.rmtree(plugin_path)
-        repos.pop(args)
-        self[REPOS] = repos
-
-        return 'Plugins unloaded and repo %s removed' % args
-
-    # noinspection PyUnusedLocal
-    @botcmd(template='repos')
-    def repos(self, mess, args):
-        """ list the current active plugin repositories
-        """
-        installed_repos = self.get_installed_plugin_repos()
-        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
-        max_width = max([len(name) for name in all_names])
-        return {'repos': [
-            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width),
-             KNOWN_PUBLIC_REPOS[repo_name][1]
-             if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
-            for repo_name in all_names]}
-
     def get_doc(self, command):
         """Get command documentation
         """
@@ -608,141 +342,3 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
 
     def get_command_classes(self):
         return (get_class_that_defined_method(command) for command in self.commands.values())
-
-    # noinspection PyUnusedLocal
-    @botcmd(historize=False)
-    def history(self, mess, args):
-        """display the command history"""
-        answer = []
-        user_cmd_history = self.cmd_history[mess.frm.person]
-        l = len(user_cmd_history)
-        for i in range(0, l):
-            c = user_cmd_history[i]
-            answer.append('%2i:%s%s %s' % (l - i, self.prefix, c[0], c[1]))
-        return '\n'.join(answer)
-
-    @botcmd(split_args_with=' ', admin_only=True)
-    def repos_update(self, mess, args):
-        """ update the bot and/or plugins
-        use : !repos update all
-        to update everything
-        or : !repos update core
-        to update only the core
-        or : !repos update repo_name repo_name ...
-        to update selectively some repos
-        """
-        git_path = which('git')
-        if not git_path:
-            return ('git command not found: You need to have git installed on '
-                    'your system to be able to install git based plugins.')
-
-        directories = set()
-        repos = self.get(REPOS, {})
-        core_to_update = 'all' in args or 'core' in args
-        if core_to_update:
-            directories.add(os.path.dirname(__file__))
-
-        if 'all' in args:
-            directories.update([self.plugin_dir + os.sep + name for name in repos])
-        else:
-            directories.update([self.plugin_dir + os.sep + name for name in set(args).intersection(set(repos))])
-
-        for d in directories:
-            self.send(mess.frm, "I am updating %s ..." % d, message_type=mess.type)
-            p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            feedback = p.stdout.read().decode('utf-8') + '\n' + '-' * 50 + '\n'
-            err = p.stderr.read().strip().decode('utf-8')
-            if err:
-                feedback += err + '\n' + '-' * 50 + '\n'
-            dep_err = check_dependencies(d)
-            if dep_err:
-                feedback += dep_err + '\n'
-            if p.wait():
-                self.send(mess.frm, "Update of %s failed...\n\n%s\n\n resuming..." % (d, feedback),
-                          message_type=mess.type)
-            else:
-                self.send(mess.frm, "Update of %s succeeded...\n\n%s\n\n" % (d, feedback),
-                          message_type=mess.type)
-                if not core_to_update:
-                    for plugin in self.getAllPlugins():
-                        if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
-                            name = plugin.name
-                            self.send(mess.frm, '/me is reloading plugin %s' % name)
-                            self.reload_plugin_by_name(plugin.name)
-                            self.activate_plugin(plugin.name)
-                            self.send(mess.frm, '%s reloaded and reactivated' % name)
-        if core_to_update:
-            self.restart(mess, '')
-            return "You have updated the core, I need to restart."
-        return "Done."
-
-    # noinspection PyUnusedLocal
-    @botcmd(split_args_with=' ', admin_only=True)
-    def config(self, mess, args):
-        """ configure or get the configuration / configuration template for a specific plugin
-        ie.
-        !config ExampleBot
-        could return a template if it is not configured:
-        {'LOGIN': 'example@example.com', 'PASSWORD': 'password', 'DIRECTORY': '/toto'}
-        Copy paste, adapt so can configure the plugin :
-        !config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
-        It will then reload the plugin with this config.
-        You can at any moment retreive the current values:
-        !config ExampleBot
-        should return :
-        {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
-        """
-        plugin_name = args[0]
-        if self.is_plugin_blacklisted(plugin_name):
-            return 'Load this plugin first with ' + self.prefix + 'load %s' % plugin_name
-        obj = self.get_plugin_obj_by_name(plugin_name)
-        if obj is None:
-            return 'Unknown plugin or the plugin could not load %s' % plugin_name
-        template_obj = obj.get_configuration_template()
-        if template_obj is None:
-            return 'This plugin is not configurable.'
-
-        if len(args) == 1:
-            current_config = self.get_plugin_configuration(plugin_name)
-            response = ("Default configuration for this plugin (you can copy and paste "
-                        "this directly as a command):\n{prefix}config {plugin_name} \n{config}").format(
-                prefix=self.prefix, plugin_name=plugin_name, config=pformat(template_obj))
-            if current_config:
-                response += "\n\nCurrent configuration:\n{prefix}config {plugin_name} \n{config}".format(
-                    prefix=self.prefix, plugin_name=plugin_name, config=pformat(current_config))
-            return response
-
-        # noinspection PyBroadException
-        try:
-            real_config_obj = literal_eval(' '.join(args[1:]))
-        except Exception:
-            log.exception('Invalid expression for the configuration of the plugin')
-            return 'Syntax error in the given configuration'
-        if type(real_config_obj) != type(template_obj):
-            return 'It looks fishy, your config type is not the same as the template !'
-
-        self.set_plugin_configuration(plugin_name, real_config_obj)
-        self.deactivate_plugin(plugin_name)
-        try:
-            self.activate_plugin(plugin_name)
-        except PluginConfigurationException as ce:
-            log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
-            self.set_plugin_configuration(plugin_name, None)
-            return 'Incorrect plugin configuration: %s' % ce
-        return 'Plugin configuration done.'
-
-    # noinspection PyUnusedLocal
-    @botcmd
-    def log_tail(self, mess, args):
-        """ Display a tail of the log of n lines or 40 by default
-        use : !log tail 10
-        """
-        # admin_only(mess)  # uncomment if paranoid.
-        n = 40
-        if args.isdigit():
-            n = int(args)
-
-        if self.bot_config.BOT_LOG_FILE:
-            with open(self.bot_config.BOT_LOG_FILE, 'r') as f:
-                return tail(f, n)
-        return 'No log is configured, please define BOT_LOG_FILE in config.py'

@@ -322,3 +322,10 @@ def find_roots_with_extra(base, extra, file_sig='*.plug'):
         else:
             all_base_and_extra.extend(find_roots(extra, file_sig))
     return all_base_and_extra
+
+
+def get_class_that_defined_method(meth):
+    for cls in inspect.getmro(type(meth.__self__)):
+        if meth.__name__ in cls.__dict__:
+            return cls
+    return None

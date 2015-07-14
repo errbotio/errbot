@@ -595,10 +595,6 @@ class Backend(object):
     MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. ' \
                          'An unexpected error occurred.'
 
-    MSG_HELP_TAIL = 'Type help <command name> to get more info ' \
-                    'about that specific command.'
-    MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
-
     def __init__(self, config):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
@@ -1029,36 +1025,6 @@ class Backend(object):
         of the help message.
         """
         return ""
-
-    @botcmd
-    def help(self, mess, args):
-        """   Returns a help string listing available options.
-
-        Automatically assigned to the "help" command."""
-        if not args:
-            if self.__doc__:
-                description = self.__doc__.strip()
-            else:
-                description = 'Available commands:'
-
-            usage = '\n'.join(sorted([
-                self.bot_config.BOT_PREFIX + '%s: %s' % (name, (command.__doc__ or
-                                                         '(undocumented)').strip().split('\n', 1)[0])
-                for (name, command) in self.commands.items()
-                if name != 'help' and not command._err_command_hidden
-            ]))
-            usage = '\n\n' + '\n\n'.join(filter(None, [usage, self.MSG_HELP_TAIL]))
-        else:
-            description = ''
-            if args in self.commands:
-                usage = (self.commands[args].__doc__ or
-                         'undocumented').strip()
-            else:
-                usage = self.MSG_HELP_UNDEFINED_COMMAND
-
-        top = self.top_of_help_message()
-        bottom = self.bottom_of_help_message()
-        return ''.join(filter(None, [top, description, usage, bottom]))
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """Sends a simple message to the specified user.

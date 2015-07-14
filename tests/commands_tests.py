@@ -12,8 +12,7 @@ class TestCommands(FullStackTest):
         self.assertCommand('!help', 'Available help')
 
     def test_help(self):
-        self.assertCommand('!help ErrBot', 'Available commands for ErrBot')
-        self.assertCommand('!help ErrBot', '!about')
+        self.assertCommand('!help Help', '!about')
         self.assertCommand('!help beurk', 'That command is not defined.')
 
     def test_about(self):

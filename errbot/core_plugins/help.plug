@@ -1,0 +1,9 @@
+[Core]
+Name = Help
+Module = help
+
+[Documentation]
+Description = Core plugin of help related functions.
+
+[Python]
+Version = 2+

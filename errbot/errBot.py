@@ -29,21 +29,19 @@ from pprint import pformat
 from . import botcmd, PY2
 from .backends.base import Backend, ACLViolation
 from .storage import StoreMixin
-from .utils import human_name_for_git_url, tail, format_timedelta, which, get_sender_username, PLUGINS_SUBDIR
+from .utils import (human_name_for_git_url,
+                    tail,
+                    format_timedelta,
+                    which,
+                    get_sender_username,
+                    PLUGINS_SUBDIR,
+                    get_class_that_defined_method)
 from .repos import KNOWN_PUBLIC_REPOS
 from .version import VERSION
 from .streaming import Tee
 from .plugin_manager import BotPluginManager, global_restart, check_dependencies, PluginConfigurationException
 
 log = logging.getLogger(__name__)
-
-
-def get_class_that_defined_method(meth):
-    for cls in inspect.getmro(type(meth.__self__)):
-        if meth.__name__ in cls.__dict__:
-            return cls
-    return None
-
 
 CONFIGS = b'configs' if PY2 else 'configs'
 REPOS = b'repos' if PY2 else 'repos'
@@ -611,66 +609,6 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
     def get_command_classes(self):
         return (get_class_that_defined_method(command) for command in self.commands.values())
 
-    @botcmd
-    def help(self, mess, args):
-        """   Returns a help string listing available options.
-
-        Automatically assigned to the "help" command."""
-
-        def may_access_command(cmd):
-            try:
-                self.check_command_access(mess, cmd)
-                return True
-            except ACLViolation:
-                return False
-
-        usage = ''
-        if not args:
-            description = 'Available help:\n'
-            command_classes = sorted(set(self.get_command_classes()), key=lambda c: c.__name__)
-            usage = '\n'.join(
-                self.prefix + 'help %s: %s' % (clazz.__name__, clazz.__errdoc__ or '(undocumented)') for clazz in
-                command_classes)
-        elif args == 'full':
-            description = 'Available commands:'
-
-            clazz_commands = {}
-            for (name, command) in self.commands.items():
-                clazz = get_class_that_defined_method(command)
-                commands = clazz_commands.get(clazz, [])
-                if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name):
-                    commands.append((name, command))
-                    clazz_commands[clazz] = commands
-
-            for clazz in sorted(set(clazz_commands), key=lambda c: c.__name__):
-                usage += '\n\n%s: %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
-                usage += '\n'.join(sorted([
-                    '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
-                                                     (self.get_doc(command).strip()).split('\n', 1)[0])
-                    for (name, command) in clazz_commands[clazz]
-                    if name != 'help' and not command._err_command_hidden and
-                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
-                ]))
-            usage += '\n\n'
-        elif args in (clazz.__name__ for clazz in self.get_command_classes()):
-            # filter out the commands related to this class
-            commands = [(name, command) for (name, command) in self.commands.items() if
-                        get_class_that_defined_method(command).__name__ == args]
-            description = 'Available commands for %s:\n\n' % args
-            usage += '\n'.join(sorted([
-                '\t' + self.prefix + '%s: %s' % (name.replace('_', ' ', 1),
-                                                 (self.get_doc(command).strip()).split('\n', 1)[0])
-                for (name, command) in commands
-                if not command._err_command_hidden and
-                (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
-            ]))
-        else:
-            return super(ErrBot, self).help(mess, '_'.join(args.strip().split(' ')))
-
-        top = self.top_of_help_message()
-        bottom = self.bottom_of_help_message()
-        return ''.join(filter(None, [top, description, usage, bottom]))
-
     # noinspection PyUnusedLocal
     @botcmd(historize=False)
     def history(self, mess, args):
@@ -682,55 +620,6 @@ class ErrBot(Backend, StoreMixin, BotPluginManager):
             c = user_cmd_history[i]
             answer.append('%2i:%s%s %s' % (l - i, self.prefix, c[0], c[1]))
         return '\n'.join(answer)
-
-    # noinspection PyUnusedLocal
-    @botcmd
-    def about(self, mess, args):
-        """   Returns some information about this err instance"""
-
-        result = 'Err version %s \n\n' % VERSION
-        result += ('Authors: Mondial Telecom, Guillaume BINET, Tali PETROVER, '
-                   'Ben VAN DAELE, Paul LABEDAN and others.\n\n')
-        return result
-
-    # noinspection PyUnusedLocal
-    @botcmd
-    def apropos(self, mess, args):
-        """   Returns a help string listing available options.
-
-        Automatically assigned to the "help" command."""
-        if not args:
-            return 'Usage: ' + self.prefix + 'apropos search_term'
-
-        description = 'Available commands:\n'
-
-        clazz_commands = {}
-        for (name, command) in self.commands.items():
-            clazz = get_class_that_defined_method(command)
-            clazz = str.__module__ + '.' + clazz.__name__  # makes the fuul qualified name
-            commands = clazz_commands.get(clazz, [])
-            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self.check_command_access(mess, name)[0]:
-                commands.append((name, command))
-                clazz_commands[clazz] = commands
-
-        usage = ''
-        for clazz in sorted(clazz_commands):
-            usage += '\n'.join(sorted([
-                '\t' + self.prefix + '%s: %s' % (
-                    name.replace('_', ' ', 1),
-                    (command.__doc__ or '(undocumented)').strip().split('\n', 1)[0]
-                )
-                for (name, command) in clazz_commands[clazz]
-                if args is not None and
-                command.__doc__ is not None and
-                args.lower() in command.__doc__.lower() and
-                name != 'help' and not command._err_command_hidden
-            ]))
-        usage += '\n\n'
-
-        top = self.top_of_help_message()
-        bottom = self.bottom_of_help_message()
-        return ''.join(filter(None, [top, description, usage, bottom])).strip()
 
     @botcmd(split_args_with=' ', admin_only=True)
     def repos_update(self, mess, args):

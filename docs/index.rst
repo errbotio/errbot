@@ -15,11 +15,11 @@ is merely a Python module containing a class derived from
     from errbot import BotPlugin, botcmd
 
     class HelloWorld(BotPlugin):
-        """Example 'Hello, world!' plugin for Err"""
+        """Example 'Hello, world!' plugin for Err."""
 
         @botcmd
         def hello(self, msg, args):
-            """Say hello to the world"""
+            """Say hello to the world."""
             return "Hello, world!"
 
 By default, Err looks at your docstrings to automatically document commands for the
@@ -96,6 +96,7 @@ User guide
   user_guide/interaction
   user_guide/plugin_development/index
   user_guide/sentry
+  user_guide/backend_development/index
 
 API documentation
 -----------------

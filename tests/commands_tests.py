@@ -30,6 +30,12 @@ class TestCommands(FullStackTest):
     def test_status_load(self):
         self.assertCommand('!status load', 'Load ')
 
+    def test_whoami(self):
+        self.assertCommand('!whoami', '`person` is gbin@localhost')
+
+    def test_echo(self):
+        self.assertCommand('!echo foo', 'foo')
+
     def test_status_gc(self):
         self.assertCommand('!status gc', 'GC 0->')
 

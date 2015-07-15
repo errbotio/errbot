@@ -5,21 +5,13 @@ from tempfile import mkdtemp
 from os.path import sep
 from errbot.errBot import bot_config_defaults
 
-__import__('errbot.config-template')
-config_module = sys.modules['errbot.config-template']
-sys.modules['config'] = config_module
-
-tempdir = mkdtemp()
-config_module.BOT_DATA_DIR = tempdir
-config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
-config_module.BOT_EXTRA_PLUGIN_DIR = []
-config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 import unittest  # noqa
 import os  # noqa
 import re  # noqa
 from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
+from errbot.errBot import ErrBot
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant   # noqa
 from errbot.backends.base import Backend, Message  # noqa
 from errbot.backends.base import build_message, build_text_html_message_pair  # noqa
@@ -38,16 +30,26 @@ class Config:
     CHATROOM_FN = 'blah'
 
 
-class DummyBackend(Backend):
+class DummyBackend(ErrBot):
     outgoing_message_queue = Queue()
 
     def __init__(self, extra_config={}):
+        # make up a config.
+        tempdir = mkdtemp()
+        # reset the config every time
+        sys.modules.pop('errbot.config-template', None)
+        __import__('errbot.config-template')
+        config = sys.modules['errbot.config-template']
+        config.BOT_DATA_DIR = tempdir
+        config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+        config.BOT_EXTRA_PLUGIN_DIR = []
+        config.BOT_LOG_LEVEL = logging.DEBUG
+
         self.bot_identifier = self.build_identifier('err')
-        self.bot_config = Config()
         for key in extra_config:
-            setattr(self.bot_config, key, extra_config[key])
-        bot_config_defaults(self.bot_config)
-        super(DummyBackend, self).__init__(self.bot_config)
+            setattr(config, key, extra_config[key])
+        bot_config_defaults(config)
+        super(DummyBackend, self).__init__(config)
         self.inject_commands_from(self)
 
     def build_message(self, text):

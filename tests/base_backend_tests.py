@@ -23,13 +23,6 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 logging.basicConfig(level=logging.DEBUG)
 
 
-class Config:
-    BOT_IDENTITY = {'username': 'err@localhost'}
-    BOT_ASYNC = False
-    BOT_PREFIX = '!'
-    CHATROOM_FN = 'blah'
-
-
 class DummyBackend(ErrBot):
     outgoing_message_queue = Queue()
 
@@ -40,16 +33,20 @@ class DummyBackend(ErrBot):
         sys.modules.pop('errbot.config-template', None)
         __import__('errbot.config-template')
         config = sys.modules['errbot.config-template']
+        bot_config_defaults(config)
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
         config.BOT_EXTRA_PLUGIN_DIR = []
         config.BOT_LOG_LEVEL = logging.DEBUG
+        config.BOT_IDENTITY = {'username': 'err@localhost'}
+        config.BOT_ASYNC = False
+        config.BOT_PREFIX = '!'
+        config.CHATROOM_FN = 'blah'
 
-        self.bot_identifier = self.build_identifier('err')
         for key in extra_config:
             setattr(config, key, extra_config[key])
-        bot_config_defaults(config)
         super(DummyBackend, self).__init__(config)
+        self.bot_identifier = self.build_identifier('err')
         self.inject_commands_from(self)
 
     def build_message(self, text):

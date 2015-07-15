@@ -374,9 +374,6 @@ class SlackBackend(ErrBot):
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
 
-    def build_message(self, text):
-        return build_message(text, Message)
-
     def build_identifier(self, txtrep):
         """ #channelname/username
             or @username

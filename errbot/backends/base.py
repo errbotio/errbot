@@ -1,4 +1,3 @@
-import inspect
 import io
 import logging
 import random
@@ -539,51 +538,10 @@ class MUCRoom(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
 
-def build_text_html_message_pair(source):
-    node = None
-    text_plain = None
-
-    try:
-        node = ET.XML(source)
-        text_plain = xhtml2txt(source)
-    except ParseError as ee:
-        if source.strip():  # avoids keep alive pollution
-            log.debug('Could not parse [%s] as XHTML-IM, assume pure text Parsing error = [%s]' % (source, ee))
-            text_plain = source
-    except UnicodeEncodeError:
-        text_plain = source
-    return text_plain, node
-
-
-def build_message(text, message_class, conversion_function=None):
-    """Builds an xhtml message without attributes.
-    If input is not valid xhtml-im fallback to normal."""
-    message = None  # keeps the compiler happy
-    try:
-        text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
-        if PY2:
-            ET.XML(text.encode('utf-8'))  # test if is it xml
-        else:
-            ET.XML(text)
-
-        edulcorated_html = conversion_function(text) if conversion_function else text
-        try:
-            text_plain, node = build_text_html_message_pair(edulcorated_html)
-            message = message_class(body=text_plain)
-            message.html = node
-        except ET.ParseError as ee:
-            log.error('Error translating to hipchat [%s] Parsing error = [%s]' % (edulcorated_html, ee))
-    except ET.ParseError as ee:
-        if text.strip():  # avoids keep alive pollution
-            log.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
-        message = message_class(body=text)
-    return message
-
-
 class Backend(object):
     """
     Implements the basic Bot logic (logic independent from the backend) and leaves
-    you to implement the missing parts
+    you to implement the missing parts.
     """
 
     cmd_history = defaultdict(lambda: deque(maxlen=10))  # this will be a per user history
@@ -684,12 +642,32 @@ class Backend(object):
         self._reconnection_count = 0
         self._reconnection_delay = 1
 
+    def build_message(self, text):
+        """ You might want to override this one depending on your backend """
+        # the default implementation gets the text, check if it is parseable in
+        # xhtml
+        # if yes, tries to reconstruct a text version of it.
+
+        node = None
+        try:
+            if PY2:
+                node = ET.XML(text.encode('utf-8'))  # test if is it xml
+            else:
+                node = ET.XML(text)
+
+            text = xhtml2txt(text)
+        except ET.ParseError as ee:
+            if text.strip():  # avoids keep alive pollution
+                log.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
+
+        message = Message(body=text)
+        if node:
+            message.html = node
+        return message
+
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
     def groupchat_reply_format(self):
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    def build_message(self, text):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def build_identifier(self, text_representation):

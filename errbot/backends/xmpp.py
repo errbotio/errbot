@@ -3,7 +3,7 @@ import sys
 import warnings
 
 from errbot.backends.base import (
-    Message, MUCRoom, Presence, RoomNotJoinedError, build_message)
+    Message, MUCRoom, Presence, RoomNotJoinedError)
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
@@ -556,9 +556,6 @@ class XMPPBackend(ErrBot):
             self.disconnect_callback()
             log.debug("Trigger shutdown")
             self.shutdown()
-
-    def build_message(self, text):
-        return build_message(text, Message)
 
     def build_identifier(self, txtrep):
         if txtrep.find('@') != -1:

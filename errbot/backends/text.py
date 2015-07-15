@@ -54,9 +54,6 @@ class TextBackend(ErrBot):
         else:
             print('\n\n' + mess.body + '\n\n')
 
-    def build_message(self, text):
-        return build_message(text, Message)
-
     def build_identifier(self, text_representation):
         return SimpleIdentifier(text_representation)
 

@@ -9,9 +9,7 @@ from threading import Thread
 import pytest
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
 
-from errbot.backends.base import (
-    Message, build_message, MUCRoom
-)
+from errbot.backends.base import Message, MUCRoom
 from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import setup_bot
@@ -176,9 +174,6 @@ class TestBackend(ErrBot):
 
     def connect(self):
         return
-
-    def build_message(self, text):
-        return build_message(text, Message)
 
     def build_identifier(self, text_representation):
         return SimpleIdentifier(text_representation)

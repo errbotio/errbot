@@ -14,7 +14,6 @@ from mock import patch  # noqa
 from errbot.errBot import ErrBot
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant   # noqa
 from errbot.backends.base import Backend, Message  # noqa
-from errbot.backends.base import build_message, build_text_html_message_pair  # noqa
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.utils import mess_2_embeddablehtml  # noqa
 
@@ -48,9 +47,6 @@ class DummyBackend(ErrBot):
         super(DummyBackend, self).__init__(config)
         self.bot_identifier = self.build_identifier('err')
         self.inject_commands_from(self)
-
-    def build_message(self, text):
-        return build_message(text, Message)
 
     def build_identifier(self, text_representation):
         return SimpleIdentifier(text_representation)
@@ -158,13 +154,6 @@ class DummyBackend(ErrBot):
 class TestBase(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
-
-    def test_xhtmlparsing_and_textify(self):
-        text_plain, node = build_text_html_message_pair('<html><body>Message</body></html>')
-        self.assertEqual(text_plain, 'Message')
-        self.assertEqual(node.tag, 'html')
-        self.assertEqual(node.getchildren()[0].tag, 'body')
-        self.assertEqual(node.getchildren()[0].text, 'Message')
 
     def test_buildreply(self):
         dummy = self.dummy

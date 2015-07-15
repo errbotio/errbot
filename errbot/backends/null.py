@@ -1,6 +1,6 @@
 import logging
 from time import sleep
-from errbot.backends.base import Message, build_text_html_message_pair
+from errbot.backends.base import Message
 from errbot.backends import SimpleIdentifier
 from errbot.errBot import ErrBot
 
@@ -44,10 +44,6 @@ class NullBackend(ErrBot):
         if not self.conn:
             self.conn = ConnectionMock()
         return self.conn
-
-    def build_message(self, text):
-        text, html = build_text_html_message_pair(text)
-        return Message(text, html=html)
 
     def build_identifier(self, strrep):
         return SimpleIdentifier(strrep)

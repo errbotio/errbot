@@ -4,10 +4,7 @@ import sys
 import warnings
 
 from errbot.backends import DeprecationBridgeIdentifier
-from errbot.backends.base import (
-    Message, MUCRoom, RoomError, RoomNotJoinedError,
-    build_message, build_text_html_message_pair,
-)
+from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, build_text_html_message_pair
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 
@@ -324,7 +321,8 @@ class IRCBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        return build_message(text, Message)
+        text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
+        return super().build_message(text)
 
     def build_identifier(self, txtrep):
         log.debug("Build identifier from [%s]" % txtrep)

@@ -9,7 +9,6 @@ from errbot.backends import base
 from errbot.errBot import ErrBot
 from errbot.backends.base import Message, Presence, Stream, MUCRoom
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
-from errbot.backends.base import build_message
 from errbot.backends.base import STREAM_TRANSFER_IN_PROGRESS
 from threading import Thread
 
@@ -416,9 +415,6 @@ class ToxBackend(ErrBot):
         if not self.conn.isconnected():
             self.conn.connect()
         return self.conn
-
-    def build_message(self, text):
-        return build_message(text, Message)
 
     def build_reply(self, mess, text=None, private=False):
         # Tox doesn't support private message in chatrooms

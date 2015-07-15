@@ -17,17 +17,13 @@ from datetime import datetime
 import inspect
 import logging
 import os
-import subprocess
 from tarfile import TarFile
 from urllib.request import urlopen
 
 from . import botcmd, PY2
 from .backends.base import Backend, ACLViolation
-from .utils import (human_name_for_git_url,
-                    which,
-                    get_sender_username,
+from .utils import (get_sender_username,
                     get_class_that_defined_method)
-from .repos import KNOWN_PUBLIC_REPOS
 from .version import VERSION
 from .streaming import Tee
 from .plugin_manager import BotPluginManager, check_dependencies, PluginConfigurationException
@@ -77,12 +73,6 @@ class ErrBot(Backend, BotPluginManager):
         self.bot_config = bot_config
         self.prefix = bot_config.BOT_PREFIX
 
-    def __hash__(self):
-        # Ensures this class (and subclasses) are hashable.
-        # Presumably the use of mixins causes __hash__ to be
-        # None otherwise.
-        return int(id(self))
-
     def _dispatch_to_plugins(self, method, *args, **kwargs):
         """
         Dispatch the given method to all active plugins.
@@ -101,63 +91,6 @@ class ErrBot(Backend, BotPluginManager):
                 getattr(plugin, method)(*args, **kwargs)
             except Exception:
                 log.exception("{} on {} crashed".format(method, plugin_name))
-
-    # Repo management
-    def get_installed_plugin_repos(self):
-        return self.get(self.REPOS, {})
-
-    def add_plugin_repo(self, name, url):
-        if PY2:
-            name = name.encode('utf-8')
-            url = url.encode('utf-8')
-        repos = self.get_installed_plugin_repos()
-        repos[name] = url
-        self[self.REPOS] = repos
-
-    # plugin blacklisting management
-    def get_blacklisted_plugin(self):
-        return self.get(self.BL_PLUGINS, [])
-
-    def is_plugin_blacklisted(self, name):
-        return name in self.get_blacklisted_plugin()
-
-    def blacklist_plugin(self, name):
-        if self.is_plugin_blacklisted(name):
-            logging.warning('Plugin %s is already blacklisted' % name)
-            return 'Plugin %s is already blacklisted' % name
-        self[self.BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
-        log.info('Plugin %s is now blacklisted' % name)
-        return 'Plugin %s is now blacklisted' % name
-
-    def unblacklist_plugin(self, name):
-        if not self.is_plugin_blacklisted(name):
-            logging.warning('Plugin %s is not blacklisted' % name)
-            return 'Plugin %s is not blacklisted' % name
-        l = self.get_blacklisted_plugin()
-        l.remove(name)
-        self[self.BL_PLUGINS] = l
-        log.info('Plugin %s removed from blacklist' % name)
-        return 'Plugin %s removed from blacklist' % name
-
-    # configurations management
-    def get_plugin_configuration(self, name):
-        configs = self[self.CONFIGS]
-        if name not in configs:
-            return None
-        return configs[name]
-
-    def set_plugin_configuration(self, name, obj):
-        configs = self[self.CONFIGS]
-        configs[name] = obj
-        self[self.CONFIGS] = configs
-
-    # this will load the plugins the admin has setup at runtime
-    def update_dynamic_plugins(self):
-        all_candidates, errors = self.update_plugin_places(
-            [self.plugin_dir + os.sep + d for d in self.get(self.REPOS, {}).keys()],
-            self.bot_config.BOT_EXTRA_PLUGIN_DIR, self.bot_config.AUTOINSTALL_DEPS)
-        self.all_candidates = all_candidates
-        return errors
 
     def send_message(self, mess):
         for bot in self.get_all_active_plugin_objects():
@@ -223,26 +156,6 @@ class ErrBot(Backend, BotPluginManager):
         log.info("Initiated an incoming transfer %s" % stream)
         Tee(stream, self.get_all_active_plugin_objects()).start()
 
-    def activate_non_started_plugins(self):
-        log.info('Activating all the plugins...')
-        configs = self[self.CONFIGS]
-        errors = ''
-        for pluginInfo in self.getAllPlugins():
-            try:
-                if self.is_plugin_blacklisted(pluginInfo.name):
-                    errors += ('Notice: %s is blacklisted, use ' + self.prefix + 'load %s to unblacklist it\n') % (
-                        pluginInfo.name, pluginInfo.name)
-                    continue
-                if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
-                    log.info('Activate plugin: %s' % pluginInfo.name)
-                    self.activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
-            except Exception as e:
-                log.exception("Error loading %s" % pluginInfo.name)
-                errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
-        if errors:
-            self.warn_admins(errors)
-        return errors
-
     def signal_connect_to_all_plugins(self):
         for bot in self.get_all_active_plugin_objects():
             if hasattr(bot, 'callback_connect'):
@@ -266,54 +179,6 @@ class ErrBot(Backend, BotPluginManager):
         self.remove_commands_from(self)
         log.info('Disconnect callback, deactivating all the plugins.')
         self.deactivate_all_plugins()
-
-    def shutdown(self):
-        log.info('Shutdown.')
-        self.close_storage()
-        log.info('Bye.')
-
-    def activate_plugin(self, name):
-        try:
-            if name in self.get_all_active_plugin_names():
-                return "Plugin already in active list"
-            if name not in self.get_all_plugin_names():
-                return "I don't know this %s plugin" % name
-            self.activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
-        except Exception as e:
-            log.exception("Error loading %s" % name)
-            return '%s failed to start : %s\n' % (name, e)
-        self.get_plugin_obj_by_name(name).callback_connect()
-        return "Plugin %s activated" % name
-
-    def deactivate_plugin(self, name):
-        if name not in self.get_all_active_plugin_names():
-            return "Plugin %s not in active list" % name
-        self.deactivate_plugin_by_name(name)
-        return "Plugin %s deactivated" % name
-
-    def install_repo(self, repo):
-        if repo in KNOWN_PUBLIC_REPOS:
-            repo = KNOWN_PUBLIC_REPOS[repo][0]  # replace it by the url
-        git_path = which('git')
-
-        if not git_path:
-            return ('git command not found: You need to have git installed on '
-                    'your system to be able to install git based plugins.', )
-
-        if repo.endswith('tar.gz'):
-            tar = TarFile(fileobj=urlopen(repo))
-            tar.extractall(path=self.plugin_dir)
-            human_name = args.split('/')[-1][:-7]
-        else:
-            human_name = human_name_for_git_url(repo)
-            p = subprocess.Popen([git_path, 'clone', repo, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            feedback = p.stdout.read().decode('utf-8')
-            error_feedback = p.stderr.read().decode('utf-8')
-            if p.wait():
-                return ("Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback), )
-        self.add_plugin_repo(human_name, repo)
-        return self.update_dynamic_plugins()
 
     def get_doc(self, command):
         """Get command documentation

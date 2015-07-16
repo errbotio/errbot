@@ -130,14 +130,16 @@ def recurse_ansi(write, element, table=None):
                 log.warn("there is no '%s' bgcolor in ansi" % v)
             write(color_attr)
             exit.append(bg.default)
-
-    if element.tag == 'strong':
+    if element.tag == 'img':
+        text = dict(items)['src']
+    elif element.tag == 'strong':
         write(fx.bold)
         exit.append(fx.normal)
     elif element.tag == 'em':
         write(fx.underline)
         exit.append(fx.not_underline)
     elif element.tag == 'p':
+        write(' ')
         exit.append('\n')
     elif element.tag == 'li':
         write('• ')
@@ -147,6 +149,27 @@ def recurse_ansi(write, element, table=None):
         write('\n')
     elif element.tag == 'ul':  # ignore the text part
         text = None
+    elif element.tag == 'h1':
+        write(fx.bold)
+        text = text.upper()
+        exit.append(fx.normal)
+        exit.append('\n\n')
+    elif element.tag == 'h2':
+        write('\n')
+        write('  ')
+        write(fx.bold)
+        exit.append(fx.normal)
+        exit.append('\n\n')
+    elif element.tag == 'h3':
+        write('\n')
+        write('    ')
+        write(fx.underline)
+        exit.append(fx.not_underline)
+        exit.append('\n')
+    elif element.tag in ('h4', 'h5', 'h6'):
+        write('\n')
+        write('      ')
+        exit.append('\n')
     elif element.tag == 'table':
         table = Table()
         orig_write = write
@@ -253,25 +276,25 @@ Natural amp: &
 
 No problem with less : <
 
-
-This is an H1
-=============
-
-This is an H2
--------------
-
 # This is an H1
-
+Paragraph in h1
 ## This is an H2
-
+Paragraph in h2
 ### This is an H3
+Paragraph in h3
+#### This is an H4
+Paragraph in h4
+##### This is an H5
+Paragraph in h5
+###### This is an H6
+Paragraph in h6
 
-#### This is an H3
+![Alt text](/path/to/img.jpg)
 
-##### This is an H3
 
-###### This is an H3
+Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
 
+Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
 """)
     print('-----------------------------------------------------------')
     print(out)

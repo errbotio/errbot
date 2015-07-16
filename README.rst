@@ -1,5 +1,5 @@
 
-.. image:: https://img.shields.io/travis/gbin/err.svg
+.. image:: https://img.shields.io/travis/gbin/err/master.svg
    :target: https://travis-ci.org/gbin/err/
 
 .. image:: https://img.shields.io/pypi/v/err.svg

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# vim: noai:ts=2:sw=2
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
+from itertools import chain
 
 from ansi.color import fg, fx
 import io
@@ -19,15 +21,17 @@ class Table(object):
     else:
       self.rows.append([])
 
-  def add_col(self, text):
+  def add_col(self):
     if not self.rows:
       self.rows = [[]]
-    self.rows[-1].append(text)
+    else:
+      self.rows[-1].append(('',0))
 
-  def add_header(self, text):
+  def add_header(self):
     if not self.headers:
       self.headers = [[]]
-    self.headers[-1].append(text)
+    else:
+      self.headers[-1].append(('',0))
 
   def begin_headers(self):
     self.in_headers = True
@@ -35,6 +39,33 @@ class Table(object):
   def end_headers(self):
     self.in_headers = False
 
+  def write(self, text):
+    cells = self.headers if self.in_headers else self.rows
+
+    text_cell, count = cells[-1][-1]
+    if isinstance(text, str):
+      text_cell += text
+      count += len(text)
+    else:
+      text_cell += str(text)  # Graphic
+    cells[-1][-1] = text_cell, count
+
+  def __str__(self):
+    nbcols = max(len(row) for row in chain(self.headers, self.rows))
+    print("nbcols = %i" % nbcols)
+    maxes = [0,] * nbcols
+
+    for row in chain(self.headers, self.rows):
+      for i, el in enumerate(row):
+        _, length = el
+        if maxes[i] < length:
+          maxes[i] = length
+    print("maxes %s" % maxes)
+
+    top = '┌' + '┬'.join('─' * m for m in maxes) + '┐'
+    mid = '│' + '│'.join(' ' * m for m in maxes) + '│'
+    inter = '│' + '│'.join(' ' * m for m in maxes) + '│'
+    return top
 
 def recurse_ansi(write, element, table = None):
   print("tag = '%s'" % element.tag)
@@ -76,16 +107,21 @@ def recurse_ansi(write, element, table = None):
     text = None
   elif element.tag == 'table':
     table = Table()
+    orig_write = write
+    write = table.write
+    text = None
+  elif element.tag == 'tbody':
+    text = None
   elif element.tag == 'thead':
     table.begin_headers()
+    text = None
   elif element.tag == 'tr':
     table.next_row()
+    text = None
   elif element.tag == 'td':
-    table.add_col(text)
-    text = None
+    table.add_col()
   elif element.tag == 'th':
-    table.add_header(text)
-    text = None
+    table.add_header()
 
   if text:
     write(text)
@@ -96,12 +132,14 @@ def recurse_ansi(write, element, table = None):
     print('end of table')
     print('headers: %s' % repr(table.headers))
     print('rows: %s' % repr(table.rows))
+    write = orig_write
+    write(table)
 
   if element.tag == 'thead':
     table.end_headers()
 
   for restore in exit:
-    write(str(restore))
+    write(restore)
 
 def to_ansi(element):
   f = io.StringIO()
@@ -141,8 +179,8 @@ after ruler
 
 First Header  | Second Header
 ------------- | -------------
-Content Cell  | Content Cell
-Content Cell  | Content Cell
+Content Cell  | *Content Cell*
+Content Cell  | _Content Cell_
 
 """)
   print('-----------------------------------------------------------')

@@ -127,4 +127,4 @@ class CampfireBackend(ErrBot):
         return 'campfire'
 
     def groupchat_reply_format(self):
-        return '@{0} {1}'
+        return '@{user} {reply}'

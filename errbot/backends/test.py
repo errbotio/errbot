@@ -204,7 +204,7 @@ class TestBackend(ErrBot):
             return r
 
     def groupchat_reply_format(self):
-        return '{0} {1}'
+        return '{user} {reply}'
 
     def pop_message(self, timeout=5, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)

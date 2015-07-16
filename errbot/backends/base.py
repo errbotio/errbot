@@ -1037,7 +1037,7 @@ class Backend(object):
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
 
         if (message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply):
-            reply_text = self.groupchat_reply_format().format(in_reply_to.nick, text)
+            reply_text = self.groupchat_reply_format().format(user=user.node, reply=text)
         else:
             reply_text = text
 

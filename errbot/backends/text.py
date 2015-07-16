@@ -87,7 +87,7 @@ class TextBackend(ErrBot):
         return self.rooms
 
     def groupchat_reply_format(self):
-        return '{0} {1}'
+        return '{user} {reply}'
 
 
 class TextMUCRoom(MUCRoom):

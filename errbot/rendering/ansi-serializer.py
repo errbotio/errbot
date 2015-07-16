@@ -8,7 +8,7 @@ from markdown.extensions import Extension
 from markdown.postprocessors import Postprocessor
 from itertools import chain
 import html
-
+from os import path
 from ansi.color import fg, bg, fx
 import io
 
@@ -238,64 +238,8 @@ class AnsiExtension(Extension):
 if __name__ == '__main__':
     md = Markdown(output_format='ansi', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
-    out = md.convert(
-        """
-Normal Markdown:
-**bold**
-
-_italic_
-
-Red paragraph
-{color='red'}
-
-Inline `blue text`{color='blue'}
-Inline `green text`{color='green'}
-
-Inline *emphasis blue text*{color='blue'}
-
-Inline `yellow on cyan`{color='yellow' bgcolor='cyan'}
-
-This is my list:
-
--  element one
--  element two
--  element three
-
-***
-after ruler
-
-
-First Header  | Second Header
-------------- | -------------
-Content Cell  | **Content Cell**
-Content Cell  | _Content Cell_
-
-
-Copyright: &copy;
-Natural amp: &
-
-No problem with less : <
-
-# This is an H1
-Paragraph in h1
-## This is an H2
-Paragraph in h2
-### This is an H3
-Paragraph in h3
-#### This is an H4
-Paragraph in h4
-##### This is an H5
-Paragraph in h5
-###### This is an H6
-Paragraph in h6
-
-![Alt text](/path/to/img.jpg)
-
-
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-""")
+    with open(path.join(path.dirname(path.realpath(__file__)), 'test.md')) as f:
+        out = md.convert(f.read())
     print('-----------------------------------------------------------')
     print(out)
     print('-----------------------------------------------------------')

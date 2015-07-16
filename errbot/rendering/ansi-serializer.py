@@ -15,10 +15,11 @@ import io
 
 class Table(object):
 
-    def __init__(self):
+    def __init__(self,  ansi=True):
         self.headers = []
         self.rows = []
         self.in_headers = False
+        self.ansi = ansi
 
     def next_row(self):
         if self.in_headers:
@@ -51,13 +52,12 @@ class Table(object):
         if isinstance(text, str):
             text_cell += text
             count += len(text)
-        else:
+        elif self.ansi:  # skip the graphic if text
             text_cell += str(text)  # Graphic
         cells[-1][-1] = text_cell, count
 
     def __str__(self):
         nbcols = max(len(row) for row in chain(self.headers, self.rows))
-        print("nbcols = %i" % nbcols)
         maxes = [0, ] * nbcols
 
         for row in chain(self.headers, self.rows):
@@ -65,7 +65,6 @@ class Table(object):
                 _, length = el
                 if maxes[i] < length:
                     maxes[i] = length
-        print("maxes %s" % maxes)
 
         # add up margins
         maxes = [m + 2 for m in maxes]
@@ -106,7 +105,7 @@ class Table(object):
         return output.getvalue()
 
 
-def recurse_ansi(write, element, table=None):
+def recurse_ansi(write, element, table=None, ansi=True):
     print("tag = '%s'" % element.tag)
     print("text = '%s'" % element.text)
     items = element.items()
@@ -171,7 +170,7 @@ def recurse_ansi(write, element, table=None):
         write('      ')
         exit.append('\n')
     elif element.tag == 'table':
-        table = Table()
+        table = Table(ansi)
         orig_write = write
         write = table.write
         text = None
@@ -192,13 +191,13 @@ def recurse_ansi(write, element, table=None):
         write(text)
 
     for e in element:
-        recurse_ansi(write, e, table)
+        recurse_ansi(write, e, table, ansi)
     if element.tag == 'table':
         print('end of table')
         print('headers: %s' % repr(table.headers))
         print('rows: %s' % repr(table.rows))
         write = orig_write
-        write(table)
+        write(str(table))
 
     if element.tag == 'thead':
         table.end_headers()
@@ -216,8 +215,20 @@ def to_ansi(element):
     write(fx.reset)
     return f.getvalue()
 
+
+def to_text(element):
+    f = io.StringIO()
+
+    def write(text):
+        if not isinstance(text, str):  # skip graphic stuff
+            return None
+        return f.write(text)
+    recurse_ansi(write, element, ansi=False)
+    return f.getvalue()
+
 # patch us in
 Markdown.output_formats['ansi'] = to_ansi
+Markdown.output_formats['text'] = to_text
 
 
 class AnsiPostprocessor(Postprocessor):
@@ -240,6 +251,15 @@ if __name__ == '__main__':
     md.stripTopLevelTags = False
     with open(path.join(path.dirname(path.realpath(__file__)), 'test.md')) as f:
         out = md.convert(f.read())
+    print('ANSI ------------------------------------------------------')
+    print(out)
     print('-----------------------------------------------------------')
+
+    md = Markdown(output_format='text', extensions=[ExtraExtension(), AnsiExtension()])
+    md.stripTopLevelTags = False
+    with open(path.join(path.dirname(path.realpath(__file__)), 'test.md')) as f:
+        out = md.convert(f.read())
+
+    print('TEXT ------------------------------------------------------')
     print(out)
     print('-----------------------------------------------------------')

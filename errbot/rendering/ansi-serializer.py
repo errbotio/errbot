@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: noai:ts=2:sw=2
+# vim: noai:ts=4:sw=4
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
+from markdown.extensions import Extension
+from markdown.postprocessors import Postprocessor
 from itertools import chain
+import html
 
-from ansi.color import fg, fx
+from ansi.color import fg, bg, fx
 import io
 
 
@@ -116,19 +119,22 @@ def recurse_ansi(write, element, table=None):
     for k, v in items:
         print("k = %s / v = %s" % (k, v))
         if k == 'color':
-            if v == 'red':
-                write(fg.red)
-            elif v == 'blue':
-                write(fg.blue)
-        exit.append(fg.default)
+            color_attr = getattr(fg, v)
+            if color_attr is None:
+                log.warn("there is no '%s' color in ansi" % v)
+            write(color_attr)
+            exit.append(fg.default)
+        elif k == 'bgcolor':
+            color_attr = getattr(bg, v)
+            if color_attr is None:
+                log.warn("there is no '%s' bgcolor in ansi" % v)
+            write(color_attr)
+            exit.append(bg.default)
 
     if element.tag == 'strong':
         write(fx.bold)
         exit.append(fx.normal)
     elif element.tag == 'em':
-        write(fx.italic)
-        exit.append(fx.not_italic)
-    elif element.tag == 'u':
         write(fx.underline)
         exit.append(fx.not_underline)
     elif element.tag == 'p':
@@ -187,9 +193,27 @@ def to_ansi(element):
     write(fx.reset)
     return f.getvalue()
 
+# patch us in
+Markdown.output_formats['ansi'] = to_ansi
+
+
+class AnsiPostprocessor(Postprocessor):
+
+    def run(self, text):
+        return html.unescape(text)
+
+
+class AnsiExtension(Extension):
+
+    def extendMarkdown(self, md, md_globals):
+        md.registerExtension(self)
+        md.postprocessors.add(
+            "unescape html", AnsiPostprocessor(), ">amp_substitute"
+        )
+
+
 if __name__ == '__main__':
-    Markdown.output_formats['ansi'] = to_ansi
-    md = Markdown(output_format='ansi', extensions=[ExtraExtension()])
+    md = Markdown(output_format='ansi', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     out = md.convert(
         """
@@ -202,8 +226,11 @@ Red paragraph
 {color='red'}
 
 Inline `blue text`{color='blue'}
+Inline `green text`{color='green'}
 
 Inline *emphasis blue text*{color='blue'}
+
+Inline `yellow on cyan`{color='yellow' bgcolor='cyan'}
 
 This is my list:
 
@@ -219,6 +246,31 @@ First Header  | Second Header
 ------------- | -------------
 Content Cell  | **Content Cell**
 Content Cell  | _Content Cell_
+
+
+Copyright: &copy;
+Natural amp: &
+
+No problem with less : <
+
+
+This is an H1
+=============
+
+This is an H2
+-------------
+
+# This is an H1
+
+## This is an H2
+
+### This is an H3
+
+#### This is an H3
+
+##### This is an H3
+
+###### This is an H3
 
 """)
     print('-----------------------------------------------------------')

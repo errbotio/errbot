@@ -152,10 +152,10 @@ All together now
             return self.mycommand_another_helper()
 
         @staticmethod
-        def mycommand_helper();
+        def mycommand_helper():
             return "This is my awesome command"
 
-        def mycommand_another_helper(self);
+        def mycommand_another_helper(self):
             return "This is another awesome command"
 
 *myplugin.plug*:

@@ -5,24 +5,15 @@ from tempfile import mkdtemp
 from os.path import sep
 from errbot.errBot import bot_config_defaults
 
-__import__('errbot.config-template')
-config_module = sys.modules['errbot.config-template']
-sys.modules['config'] = config_module
-
-tempdir = mkdtemp()
-config_module.BOT_DATA_DIR = tempdir
-config_module.BOT_LOG_FILE = tempdir + sep + 'log.txt'
-config_module.BOT_EXTRA_PLUGIN_DIR = []
-config_module.BOT_LOG_LEVEL = logging.DEBUG
 
 import unittest  # noqa
 import os  # noqa
 import re  # noqa
 from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
+from errbot.errBot import ErrBot
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant   # noqa
 from errbot.backends.base import Backend, Message  # noqa
-from errbot.backends.base import build_message, build_text_html_message_pair  # noqa
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.utils import mess_2_embeddablehtml  # noqa
 
@@ -31,27 +22,31 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 logging.basicConfig(level=logging.DEBUG)
 
 
-class Config:
-    BOT_IDENTITY = {'username': 'err@localhost'}
-    BOT_ASYNC = False
-    BOT_PREFIX = '!'
-    CHATROOM_FN = 'blah'
-
-
-class DummyBackend(Backend):
+class DummyBackend(ErrBot):
     outgoing_message_queue = Queue()
 
     def __init__(self, extra_config={}):
-        self.bot_identifier = self.build_identifier('err')
-        self.bot_config = Config()
-        for key in extra_config:
-            setattr(self.bot_config, key, extra_config[key])
-        bot_config_defaults(self.bot_config)
-        super(DummyBackend, self).__init__(self.bot_config)
-        self.inject_commands_from(self)
+        # make up a config.
+        tempdir = mkdtemp()
+        # reset the config every time
+        sys.modules.pop('errbot.config-template', None)
+        __import__('errbot.config-template')
+        config = sys.modules['errbot.config-template']
+        bot_config_defaults(config)
+        config.BOT_DATA_DIR = tempdir
+        config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+        config.BOT_EXTRA_PLUGIN_DIR = []
+        config.BOT_LOG_LEVEL = logging.DEBUG
+        config.BOT_IDENTITY = {'username': 'err@localhost'}
+        config.BOT_ASYNC = False
+        config.BOT_PREFIX = '!'
+        config.CHATROOM_FN = 'blah'
 
-    def build_message(self, text):
-        return build_message(text, Message)
+        for key in extra_config:
+            setattr(config, key, extra_config[key])
+        super(DummyBackend, self).__init__(config)
+        self.bot_identifier = self.build_identifier('err')
+        self.inject_commands_from(self)
 
     def build_identifier(self, text_representation):
         return SimpleIdentifier(text_representation)
@@ -159,13 +154,6 @@ class DummyBackend(Backend):
 class TestBase(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()
-
-    def test_xhtmlparsing_and_textify(self):
-        text_plain, node = build_text_html_message_pair('<html><body>Message</body></html>')
-        self.assertEqual(text_plain, 'Message')
-        self.assertEqual(node.tag, 'html')
-        self.assertEqual(node.getchildren()[0].tag, 'body')
-        self.assertEqual(node.getchildren()[0].text, 'Message')
 
     def test_buildreply(self):
         dummy = self.dummy

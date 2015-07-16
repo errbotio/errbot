@@ -62,10 +62,43 @@ class Table(object):
           maxes[i] = length
     print("maxes %s" % maxes)
 
-    top = '┌' + '┬'.join('─' * m for m in maxes) + '┐'
-    mid = '│' + '│'.join(' ' * m for m in maxes) + '│'
-    inter = '│' + '│'.join(' ' * m for m in maxes) + '│'
-    return top
+    # add up margins
+    maxes = [m + 2 for m in maxes]
+
+    output = io.StringIO()
+    if self.headers:
+      output.write('┏' + '┳'.join('━' * m for m in maxes) + '┓')
+      output.write('\n')
+      first = True
+      for row in self.headers:
+        if not first:
+          output.write('┣' + '╋'.join('━' * m for m in maxes) + '┫')
+          output.write('\n')
+        first = False
+        for i, header in enumerate(row):
+          text, l = header
+          output.write('┃ ' + text + ' ' * (maxes[i] - 2 - l) + ' ')
+        output.write('┃')
+        output.write('\n')
+      output.write('┡' + '╇'.join('━' * m for m in maxes) + '┩')
+      output.write('\n')
+    else:
+      output.write('┌' + '┬'.join('─' * m for m in maxes) + '┐')
+      output.write('\n')
+    first = True
+    for row in self.rows:
+      if not first:
+        output.write('├' + '┼'.join('─' * m for m in maxes) + '┤')
+        output.write('\n')
+      first = False
+      for i, item in enumerate(row):
+        text, l = item
+        output.write('│ ' + text + ' ' * (maxes[i] - 2 - l) + ' ')
+      output.write('│')
+      output.write('\n')
+    output.write('└' + '┴'.join('─' * m for m in maxes) + '┘')
+    output.write('\n')
+    return output.getvalue()
 
 def recurse_ansi(write, element, table = None):
   print("tag = '%s'" % element.tag)
@@ -179,7 +212,7 @@ after ruler
 
 First Header  | Second Header
 ------------- | -------------
-Content Cell  | *Content Cell*
+Content Cell  | **Content Cell**
 Content Cell  | _Content Cell_
 
 """)

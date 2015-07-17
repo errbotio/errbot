@@ -106,8 +106,6 @@ class Table(object):
 
 
 def recurse_ansi(write, element, table=None, ansi=True):
-    print("tag = '%s'" % element.tag)
-    print("text = '%s'" % element.text)
     items = element.items()
     exit = []
     if element.text:
@@ -116,7 +114,6 @@ def recurse_ansi(write, element, table=None, ansi=True):
         text = ''
 
     for k, v in items:
-        print("k = %s / v = %s" % (k, v))
         if k == 'color':
             color_attr = getattr(fg, v)
             if color_attr is None:
@@ -193,9 +190,6 @@ def recurse_ansi(write, element, table=None, ansi=True):
     for e in element:
         recurse_ansi(write, e, table, ansi)
     if element.tag == 'table':
-        print('end of table')
-        print('headers: %s' % repr(table.headers))
-        print('rows: %s' % repr(table.rows))
         write = orig_write
         write(str(table))
 
@@ -232,34 +226,17 @@ Markdown.output_formats['text'] = to_text
 
 
 class AnsiPostprocessor(Postprocessor):
+    """Markdown generates html entities, this reputs them back to their unicode equivalent"""
 
     def run(self, text):
         return html.unescape(text)
 
 
 class AnsiExtension(Extension):
+    """(kinda hackish) This is just a private extension to postprocess the html text to ansi text"""
 
     def extendMarkdown(self, md, md_globals):
         md.registerExtension(self)
         md.postprocessors.add(
             "unescape html", AnsiPostprocessor(), ">amp_substitute"
         )
-
-
-if __name__ == '__main__':
-    md = Markdown(output_format='ansi', extensions=[ExtraExtension(), AnsiExtension()])
-    md.stripTopLevelTags = False
-    with open(path.join(path.dirname(path.realpath(__file__)), 'test.md')) as f:
-        out = md.convert(f.read())
-    print('ANSI ------------------------------------------------------')
-    print(out)
-    print('-----------------------------------------------------------')
-
-    md = Markdown(output_format='text', extensions=[ExtraExtension(), AnsiExtension()])
-    md.stripTopLevelTags = False
-    with open(path.join(path.dirname(path.realpath(__file__)), 'test.md')) as f:
-        out = md.convert(f.read())
-
-    print('TEXT ------------------------------------------------------')
-    print(out)
-    print('-----------------------------------------------------------')

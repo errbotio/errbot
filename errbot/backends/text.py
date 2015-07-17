@@ -1,7 +1,7 @@
 import logging
 import sys
 from errbot.backends import SimpleIdentifier
-from errbot.backends.base import Message, build_message, Presence, ONLINE, OFFLINE, MUCRoom
+from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 log = logging.getLogger(__name__)

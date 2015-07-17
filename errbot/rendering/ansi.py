@@ -12,6 +12,16 @@ from os import path
 from ansi.color import fg, bg, fx
 import io
 
+try:
+    from html import unescape  # py3.5
+except:
+    try:
+        from html.parser import HTMLParser  # py3.4
+        unescape = HTMLParser().unescape
+    except ImportError:
+        from HTMLParser import HTMLParser  # py2
+        unescape = HTMLParser().unescape
+
 
 class Table(object):
 
@@ -229,7 +239,7 @@ class AnsiPostprocessor(Postprocessor):
     """Markdown generates html entities, this reputs them back to their unicode equivalent"""
 
     def run(self, text):
-        return html.unescape(text)
+        return unescape(text)
 
 
 class AnsiExtension(Extension):

@@ -16,11 +16,10 @@ try:
 except:
     try:
         from html.parser import HTMLParser  # py3.4
-        unescape = HTMLParser().unescape
     except ImportError:
         from HTMLParser import HTMLParser  # py2
+    finally:
         unescape = HTMLParser().unescape
-
 
 class Table(object):
 

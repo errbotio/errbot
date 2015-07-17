@@ -6,7 +6,7 @@ import sys
 from errbot import PY3
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import (
-    Message, build_message, Presence, ONLINE, AWAY,
+    Message, Presence, ONLINE, AWAY,
     MUCRoom, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot

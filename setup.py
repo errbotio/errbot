@@ -28,7 +28,7 @@ ON_WINDOWS = system() == 'Windows'
 if py_version < (2, 7):
     raise RuntimeError('Err requires Python 2.7 or later')
 
-if PY3 and py_version < (3, 3):
+if PY3 and py_version < (3, 4):
     raise RuntimeError('On Python 3, Err requires Python 3.3 or later')
 
 deps = ['webtest',

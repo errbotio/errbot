@@ -1,38 +1,18 @@
 Normal Markdown:
+image: ![Err is talking](http://errbot.net/_static/err_speech.png)
+
 **bold**
 
 _italic_
 
-Red paragraph
-{color='red'}
-
-Inline `blue text`{color='blue'}
-Inline `green text`{color='green'}
-
-Inline *emphasis blue text*{color='blue'}
-
-Inline `yellow on cyan`{color='yellow' bgcolor='cyan'}
-
-This is my list:
+This is a list:
 
 -  element one
 -  element two
 -  element three
 
+This is a ruler:
 - - -
-after ruler
-
-
-First Header  | Second Header
-------------- | -------------
-Content Cell  | **Content Cell**
-Content Cell  | _Content Cell_
-
-
-Copyright: &copy;
-Natural amp: &
-
-No problem with less : <
 
 # This is an H1
 Paragraph in h1
@@ -47,10 +27,25 @@ Paragraph in h5
 ###### This is an H6
 Paragraph in h6
 
-image: ![Err is talking](http://errbot.net/_static/err_speech.png)
+Markdown extra (colors):
+Red paragraph
+{color='red'}
 
+Inline `blue text`{color='blue'}
+Inline `green text`{color='green'}
 
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+Inline *emphasis blue text*{color='blue'}
 
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+Inline `yellow on cyan`{color='yellow' bgcolor='cyan'}
 
+Markdown extra (table):
+
+First Header  | Second Header
+------------- | -------------
+Content Cell  | **Content Cell**
+Content Cell  | _Content Cell_
+
+Special characters:
+Copyright: &copy;
+Natural amp: &
+Less : <

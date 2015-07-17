@@ -21,6 +21,7 @@ except:
     finally:
         unescape = HTMLParser().unescape
 
+
 class Table(object):
 
     def __init__(self,  ansi=True):

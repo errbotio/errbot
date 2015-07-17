@@ -1,6 +1,8 @@
 # vim: ts=4:sw=4
 import logging
 import sys
+from ansi.color import fg, bg, fx
+from errbot.rendering import ansi, text
 from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
@@ -9,8 +11,7 @@ log = logging.getLogger(__name__)
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
-from ansi.color import fg, bg, fx
-from errbot.rendering import ansi, text
+
 
 class TextBackend(ErrBot):
 
@@ -85,6 +86,7 @@ class TextBackend(ErrBot):
 
 
 class TextMUCRoom(MUCRoom):
+
     def __init__(self):
         self.topic_ = ''
         self.joined_ = False

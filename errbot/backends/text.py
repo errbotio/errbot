@@ -1,3 +1,4 @@
+# vim: ts=4:sw=4
 import logging
 import sys
 from errbot.backends import SimpleIdentifier
@@ -8,10 +9,8 @@ log = logging.getLogger(__name__)
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
-A_RESET = '\x1b[0m'
-A_CYAN = '\x1b[36m'
-A_BLUE = '\x1b[34m'
-
+from ansi.color import fg, bg, fx
+from errbot.rendering import ansi, text
 
 class TextBackend(ErrBot):
 
@@ -20,6 +19,7 @@ class TextBackend(ErrBot):
         log.debug("Text Backend Init.")
         self.bot_identifier = self.build_identifier('Err')
         self.rooms = set()
+        self.md = ansi() if ANSI else text()
 
     def serve_forever(self):
         me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
@@ -28,7 +28,7 @@ class TextBackend(ErrBot):
         try:
             while True:
                 if ANSI:
-                    entry = input('\n' + A_CYAN + ' >>> ' + A_RESET)
+                    entry = input('\n' + str(fg.cyan) + ' >>> ' + str(fx.reset))
                 else:
                     entry = input('\n>>> ')
                 msg = Message(entry)
@@ -49,10 +49,7 @@ class TextBackend(ErrBot):
 
     def send_message(self, mess):
         super(TextBackend, self).send_message(mess)
-        if ANSI:
-            print('\n\n' + A_BLUE + mess.body + A_RESET + '\n\n')
-        else:
-            print('\n\n' + mess.body + '\n\n')
+        print('\n\n' + self.md.convert(mess.body) + '\n\n')
 
     def build_identifier(self, text_representation):
         return SimpleIdentifier(text_representation)

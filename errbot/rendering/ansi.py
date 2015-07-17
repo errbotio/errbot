@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: noai:ts=4:sw=4
+# vim: ts=4:sw=4
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension

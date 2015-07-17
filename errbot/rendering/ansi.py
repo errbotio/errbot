@@ -7,7 +7,6 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
 from markdown.postprocessors import Postprocessor
 from itertools import chain
-import html
 from os import path
 from ansi.color import fg, bg, fx
 import io

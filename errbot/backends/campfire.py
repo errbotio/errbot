@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from errbot.backends.base import Message, build_message
+from errbot.backends.base import Message
 from errbot.errBot import ErrBot
 from threading import Condition
 
@@ -111,9 +111,6 @@ class CampfireBackend(ErrBot):
 
     def join_room(self, room, username=None, password=None):
         self.conn.join_room(room, self.msg_callback, self.error_callback)
-
-    def build_message(self, text):
-        return build_message(text, Message)
 
     def build_identifier(self, strrep):
         return CampfireIdentifier(strrep)

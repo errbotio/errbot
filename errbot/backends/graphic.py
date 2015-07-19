@@ -4,9 +4,9 @@ import re
 import sys
 
 import errbot
-from errbot.backends.base import Message, build_text_html_message_pair
+from errbot.backends.base import Message
 from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
-from errbot.utils import mess_2_embeddablehtml
+from errbot.rendering import xhtml
 
 log = logging.getLogger(__name__)
 
@@ -113,27 +113,8 @@ class CommandBox(QtGui.QPlainTextEdit, object):
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
 
-def linkify(text):
-    def replacewithlink(matchobj):
-        url = matchobj.group(0)
-        txt = str(url)
-
-        imglink = ''
-        for a in ['png', '.gif', '.jpg', '.jpeg', '.svg']:
-            if txt.lower().endswith(a):
-                imglink = '<br /><img src="{}" />'.format(url)
-                break
-        return ('<a href="{url}" target="_blank" rel="nofollow">{text}'
-                '<img class="imglink" src="/images/linkout.png"></a>'
-                '{imglink}'.format(url=url, text=txt, imglink=imglink))
-
-    return urlfinder.sub(replacewithlink, text)
-
-
-def htmlify(text, is_html, receiving):
-    tag = 'div' if is_html else 'pre'
-    if not is_html:
-        text = linkify(text)
+def htmlify(text, receiving):
+    tag = 'div'
     if receiving:
         style = 'background-color: rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);'
     else:
@@ -149,7 +130,7 @@ background-size: contain; margin:0;">"""
 
 
 class ChatApplication(QtGui.QApplication):
-    newAnswer = QtCore.Signal(str, bool)
+    newAnswer = QtCore.Signal(str)
 
     def __init__(self, *args, **kwargs):
         backend = kwargs.pop('backend')
@@ -187,8 +168,8 @@ class ChatApplication(QtGui.QApplication):
 
         self.mainW.show()
 
-    def new_message(self, text, is_html, receiving=True):
-        self.buffer += htmlify(text, is_html, receiving)
+    def new_message(self, text, receiving=True):
+        self.buffer += htmlify(text, receiving)
         self.output.setHtml(self.buffer)
 
     def scroll_output_to_bottom(self):
@@ -199,7 +180,9 @@ class GraphicBackend(TextBackend):
     def __init__(self, config):
         super().__init__(config)
         self.bot_identifier = self.build_identifier('Err')
-        self.app = None
+        # create window and components
+        self.app = ChatApplication(sys.argv, backend=self, config=self.bot_config)
+        self.md = xhtml()
 
     def send_command(self, text):
         self.app.new_message(text, False)
@@ -210,24 +193,18 @@ class GraphicBackend(TextBackend):
         self.app.input.clear()
 
     def build_message(self, text):
-        txt, node = build_text_html_message_pair(text)
-        msg = Message(txt, html=node) if node else Message(txt)
+        msg = Message(text)
         msg.frm = self.bot_identifier
         return msg  # rebuild a pure html snippet to include directly in the console html
 
     def send_message(self, mess):
-        self.send(mess)
-
-    def send(self, mess):
         if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
-            content, is_html = mess_2_embeddablehtml(mess)
-            self.app.newAnswer.emit(content, is_html)
+            content = self.md.convert(mess.body)
+            self.app.newAnswer.emit(content)
 
     def serve_forever(self):
         self.connect_callback()  # notify that the connection occured
 
-        # create window and components
-        self.app = ChatApplication(sys.argv, backend=self, config=self.bot_config)
         try:
             self.app.exec_()
         finally:

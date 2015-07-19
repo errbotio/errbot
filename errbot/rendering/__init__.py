@@ -32,3 +32,13 @@ def text():
     md = Markdown(output_format='text', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
+
+def xhtml():
+    """This makes a converter from markdown to xhtml format.
+    It can be called like this:
+    from errbot.rendering import xhtml
+    md_converter = xhtml()  # you need to cache the converter
+
+    html = md_converter.convert(md_txt)
+    """
+    return Markdown(output_format='xhtml', extensions=[ExtraExtension()])

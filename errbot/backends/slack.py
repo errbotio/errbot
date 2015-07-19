@@ -4,7 +4,7 @@ import re
 import time
 import sys
 from errbot import PY3
-from errbot.backends import DeprecationBridgeIdentifier
+from errbot.backends import SimpleIdentifier
 from errbot.backends.base import (
     Message, Presence, ONLINE, AWAY,
     MUCRoom, RoomDoesNotExistError, UserDoesNotExistError
@@ -53,7 +53,7 @@ class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
 
 
-class SlackIdentifier(DeprecationBridgeIdentifier):
+class SlackIdentifier(SimpleIdentifier):
     # TODO(gbin): remove this deprecation warnings at one point.
 
     def __init__(self, sc, userid, channelid=None):
@@ -110,6 +110,10 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         if user is None:
             raise UserDoesNotExistError("Cannot find user with ID %s" % self._userid)
         return user.real_name
+
+    @property
+    def aclattr(self):
+        return self.nick
 
     def __unicode__(self):
         return "@%s" % self.username

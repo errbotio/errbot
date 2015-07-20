@@ -1,7 +1,10 @@
 # vim: noai:ts=4:sw=4
+import re
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
+from markdown.extensions.attr_list import AttrListTreeprocessor
 
+ATTR_RE = re.compile(AttrListTreeprocessor.BASE_RE)
 # Here are few helpers to simplify the conversion from markdown to various
 # backend formats.
 
@@ -32,3 +35,20 @@ def text():
     md = Markdown(output_format='text', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
+
+
+class Mde2mdConverter(object):
+    def convert(self, mde):
+        while True:
+            m = ATTR_RE.search(mde)
+            if m is None:
+                break
+            left, right = m.span()
+            mde = mde[:left] + mde[right:]
+        return mde
+
+
+def md():
+    """This makes a converter from markdown-extra to markdown, stripping the attributes from extra.
+    """
+    return Mde2mdConverter()

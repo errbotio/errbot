@@ -15,3 +15,8 @@ class MdRendering(unittest.TestCase):
         md = rendering.text()
         self.assertEquals(md.convert("*woot*"), "woot")
         self.assertEquals(md.convert("# woot"), "WOOT")
+
+    def test_mde2md(self):
+        md = rendering.md()
+        self.assertEquals(md.convert("woot"), "woot")
+        self.assertEquals(md.convert("woot{stuff} really{otherstuff}"), "woot really")

@@ -52,3 +52,14 @@ def md():
     """This makes a converter from markdown-extra to markdown, stripping the attributes from extra.
     """
     return Mde2mdConverter()
+
+
+def xhtml():
+    """This makes a converter from markdown to xhtml format.
+    It can be called like this:
+    from errbot.rendering import xhtml
+    md_converter = xhtml()  # you need to cache the converter
+
+    html = md_converter.convert(md_txt)
+    """
+    return Markdown(output_format='xhtml', extensions=[ExtraExtension()])

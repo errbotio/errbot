@@ -3,7 +3,6 @@ language: python
 python:
   - "2.7"
   - "3.4"
-  - "nightly"  # this should be 3.5
 
 before_script:
   - cp errbot/config-travisci.py config.py

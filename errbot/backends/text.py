@@ -50,6 +50,9 @@ class TextBackend(ErrBot):
 
     def send_message(self, mess):
         super(TextBackend, self).send_message(mess)
+        print('Before markdown transformation:\n')
+        print('\n\n' + mess.body + '\n\n')
+        print('After markdown transformation:\n')
         print('\n\n' + self.md.convert(mess.body) + '\n\n')
 
     def build_identifier(self, text_representation):

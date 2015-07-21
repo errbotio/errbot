@@ -1,9 +1,5 @@
-{% extends "base.html" %}
-{% block body %}
-    <div style="font-family: monospace">
-        <p style='margin-top: 0; margin-bottom: 0;'>Internal webserver URI mapping [URI Regexp -&gt; endpoint]:</p>
-        {% for uri, endpoint in rules %}
-            <p style='margin-top: 0; margin-bottom: 0; white-space:pre;'>{{ uri|e }} -&gt; {{ endpoint }}</p>
-        {% endfor %}
-    </div>
-{% endblock %}
+Internal webserver URI mapping [URI Regexp -> endpoint]:
+
+{% for uri, endpoint in rules %}
+- {{ uri|e }} -> {{ endpoint }}
+{% endfor %}

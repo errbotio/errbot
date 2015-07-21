@@ -67,9 +67,8 @@ class Plugins(BotPlugin):
         """
         installed_repos = self._bot.get_installed_plugin_repos()
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
-        max_width = max([len(name) for name in all_names])
         return {'repos': [
-            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width),
+            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name,
              KNOWN_PUBLIC_REPOS[repo_name][1]
              if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
             for repo_name in all_names]}

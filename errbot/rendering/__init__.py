@@ -52,6 +52,7 @@ def imtext():
     md.stripTopLevelTags = False
     return md
 
+
 class Mde2mdConverter(object):
     def convert(self, mde):
         while True:

@@ -255,6 +255,7 @@ def to_text(element):
     recurse_ansi(write, element, mode='text')
     return f.getvalue()
 
+
 def to_imtext(element):
     """ Simplified Format for skype, gtalk, slack ... """
     f = io.StringIO()

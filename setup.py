@@ -40,7 +40,10 @@ deps = ['webtest',
         'colorlog',
         'yapsy>=1.11',  # new contract for plugin instantiation
         'markdown',  # rendering stuff
-        'ansi']
+        'ansi',
+        'pygments',
+        'pygments-markdown-lexer==0.1.0dev39',  # sytax coloring to debug md
+        ]
 
 if PY2:
     deps += ['dnspython',  # dnspython is needed for SRV records

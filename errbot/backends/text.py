@@ -2,11 +2,15 @@
 import logging
 import sys
 from ansi.color import fg, bg, fx
-from errbot.rendering import ansi, text
+from errbot.rendering import ansi, text, xhtml
 from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
+from pygments import highlight
+from pygments.formatters import Terminal256Formatter
+from pygments.lexers import get_lexer_by_name
+
 log = logging.getLogger(__name__)
 
 ENCODING_INPUT = sys.stdin.encoding
@@ -20,7 +24,12 @@ class TextBackend(ErrBot):
         log.debug("Text Backend Init.")
         self.bot_identifier = self.build_identifier('Err')
         self.rooms = set()
-        self.md = ansi() if ANSI else text()
+        self.md_html = xhtml()  # for more debug feedback on md
+        self.md_text = text()  # for more debug feedback on md
+        self.md_ansi = ansi()
+        self.md_lexer = get_lexer_by_name("md", stripall=True)
+        self.html_lexer = get_lexer_by_name("html", stripall=True)
+        self.terminal_formatter = Terminal256Formatter(style='paraiso-dark')
 
     def serve_forever(self):
         me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
@@ -49,11 +58,25 @@ class TextBackend(ErrBot):
             self.shutdown()
 
     def send_message(self, mess):
+        bar = '\n╌╌[{mode}]' + ('╌' * 60)
         super(TextBackend, self).send_message(mess)
-        print('Before markdown transformation:\n')
-        print('\n\n' + mess.body + '\n\n')
-        print('After markdown transformation:\n')
-        print('\n\n' + self.md.convert(mess.body) + '\n\n')
+        print(bar.format(mode='MD  '))
+        if ANSI:
+            print(highlight(mess.body, self.md_lexer, self.terminal_formatter))
+        else:
+            print(mess.body)
+        print(bar.format(mode='HTML'))
+        html = self.md_html.convert(mess.body)
+        if ANSI:
+            print(highlight(html, self.html_lexer, self.terminal_formatter))
+        else:
+            print(html)
+        print(bar.format(mode='TEXT'))
+        print(self.md_text.convert(mess.body))
+        if ANSI:
+            print(bar.format(mode='ANSI'))
+            print(self.md_ansi.convert(mess.body))
+        print('\n\n')
 
     def build_identifier(self, text_representation):
         return SimpleIdentifier(text_representation)

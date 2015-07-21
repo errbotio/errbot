@@ -9,7 +9,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 
 from errbot import botcmd, PY2
-from errbot.utils import get_sender_username, xhtml2txt, deprecated
+from errbot.utils import get_sender_username, deprecated
 
 log = logging.getLogger(__name__)
 
@@ -644,26 +644,7 @@ class Backend(object):
 
     def build_message(self, text):
         """ You might want to override this one depending on your backend """
-        # the default implementation gets the text, check if it is parseable in
-        # xhtml
-        # if yes, tries to reconstruct a text version of it.
-
-        node = None
-        try:
-            if PY2:
-                node = ET.XML(text.encode('utf-8'))  # test if is it xml
-            else:
-                node = ET.XML(text)
-
-            text = xhtml2txt(text)
-        except ET.ParseError as ee:
-            if text.strip():  # avoids keep alive pollution
-                log.debug('Determined that [%s] is not XHTML-IM (%s)' % (text, ee))
-
-        message = Message(body=text)
-        if node:
-            message.html = node
-        return message
+        return Message(body=text)
 
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 

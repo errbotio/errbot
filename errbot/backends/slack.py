@@ -11,6 +11,7 @@ from errbot.backends.base import (
 )
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
+from errbot.rendering import imtext
 
 log = logging.getLogger(__name__)
 
@@ -145,6 +146,7 @@ class SlackBackend(ErrBot):
             )
             sys.exit(1)
         self.sc = None  # Will be initialized in serve_once
+        self.md = imtext()
 
     def api_call(self, method, data=None, raise_errors=True):
         """
@@ -367,7 +369,8 @@ class SlackBackend(ErrBot):
                 to_humanreadable = mess.to.username
                 to_channel_id = mess.to.channelid
             log.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_channel_id))
-            self.sc.rtm_send_message(to_channel_id, mess.body)
+            body = self.md.convert(mess.body)
+            self.sc.rtm_send_message(to_channel_id, body)
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "

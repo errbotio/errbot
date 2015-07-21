@@ -114,7 +114,10 @@ class Table(object):
             output.write('\n')
         output.write('└' + '┴'.join('─' * m for m in maxes) + '┘')
         output.write('\n')
-        return output.getvalue()
+        if self.mode == 'imtext':
+            return '```\n' + output.getvalue() + '```\n'
+        else:
+            return output.getvalue()
 
 
 def recurse_ansi(write, element, table=None, mode='ansi'):
@@ -141,14 +144,14 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     if element.tag == 'img':
         text = dict(items)['src']
     elif element.tag == 'strong':
-        if mode == 'imtext':  # * * are supported in imtext
+        if mode == 'imtext' and not table:  # * * are supported in imtext
             write('*')
             exit.append('*')
         else:
             write(fx.bold)
             exit.append(fx.normal)
     elif element.tag == 'em':
-        if mode == 'imtext':  # _ _ are supported in imtext
+        if mode == 'imtext' and not table:  # _ _ are supported in imtext
             write('_')
             exit.append('_')
         else:
@@ -166,7 +169,7 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     elif element.tag == 'ul':  # ignore the text part
         text = None
     elif element.tag == 'h1':
-        if mode == 'imtext':  # * * are supported in imtext
+        if mode == 'imtext' and not table:  # * * are supported in imtext
             write('*')
             exit.append('*')
         else:
@@ -177,7 +180,7 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     elif element.tag == 'h2':
         write('\n')
         write('  ')
-        if mode == 'imtext':  # * * are supported in imtext
+        if mode == 'imtext' and not table:  # * * are supported in imtext
             write('*')
             exit.append('*')
         else:
@@ -187,7 +190,7 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     elif element.tag == 'h3':
         write('\n')
         write('    ')
-        if mode == 'imtext':  # _ _ are supported in imtext
+        if mode == 'imtext' and not table:  # _ _ are supported in imtext
             write('_')
             exit.append('_')
         else:

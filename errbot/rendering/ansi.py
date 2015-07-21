@@ -10,6 +10,9 @@ from itertools import chain
 from os import path
 from ansi.color import fg, bg, fx
 import io
+import logging
+
+log = logging.getLogger(__name__)
 
 try:
     from html import unescape  # py3.5
@@ -115,13 +118,13 @@ class Table(object):
 
 
 def recurse_ansi(write, element, table=None, ansi=True):
-    items = element.items()
     exit = []
     if element.text:
         text = element.text
     else:
         text = ''
 
+    items = element.items()
     for k, v in items:
         if k == 'color':
             color_attr = getattr(fg, v)
@@ -195,7 +198,6 @@ def recurse_ansi(write, element, table=None, ansi=True):
 
     if text:
         write(text)
-
     for e in element:
         recurse_ansi(write, e, table, ansi)
     if element.tag == 'table':
@@ -207,6 +209,10 @@ def recurse_ansi(write, element, table=None, ansi=True):
 
     for restore in exit:
         write(restore)
+    if element.tail:
+        tail = element.tail.rstrip('\n')
+        if tail:
+            write(tail)
 
 
 def to_ansi(element):
@@ -247,5 +253,6 @@ class AnsiExtension(Extension):
     def extendMarkdown(self, md, md_globals):
         md.registerExtension(self)
         md.postprocessors.add(
-            "unescape html", AnsiPostprocessor(), ">amp_substitute"
+            "unescape html", AnsiPostprocessor(), ">unescape"
         )
+        log.debug("Will apply those postprocessors:\n%s" % md.postprocessors)

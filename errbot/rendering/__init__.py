@@ -63,3 +63,10 @@ def xhtml():
     html = md_converter.convert(md_txt)
     """
     return Markdown(output_format='xhtml', extensions=[ExtraExtension()])
+
+
+def md_escape(text):
+    """ Call this if you want to be sure your text won't be interpreted as markdown """
+    text = text.replace('{', '\{')
+    text = text.replace('}', '\}')
+    return text

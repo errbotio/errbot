@@ -3,6 +3,7 @@ import sys
 
 from errbot.backends.base import RoomDoesNotExistError
 from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
+from errbot.rendering import xhtml
 
 log = logging.getLogger(__name__)
 
@@ -317,6 +318,7 @@ class HipchatBackend(XMPPBackend):
     def __init__(self, config):
         self.api_token = config.BOT_IDENTITY['token']
         self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
+        self.md = xhtml()
         super().__init__(config)
 
     def create_connection(self):
@@ -379,6 +381,15 @@ class HipchatBackend(XMPPBackend):
             name = room
 
         return HipChatMUCRoom(name, self)
+
+    def send_message(self, mess):
+        if mess.type == 'groupchat':
+          room_id = self.query_room(mess.to.node + '@' + mess.to.domain)
+          log.debug("room id = %s" % room_id)
+          body = self.md.convert(mess.body)
+          self.conn.hypchat.get_room(room_id).notification(body, format='html')
+        else:
+          super().send_message(mess)
 
     def groupchat_reply_format(self):
         return '@{0} {1}'

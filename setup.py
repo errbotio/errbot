@@ -42,7 +42,7 @@ deps = ['webtest',
         'markdown',  # rendering stuff
         'ansi',
         'pygments',
-        'pygments-markdown-lexer==0.1.0dev39',  # sytax coloring to debug md
+        'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
         ]
 
 if PY2:

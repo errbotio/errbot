@@ -8,7 +8,7 @@
     {%- elif name == 'B' -%}
         **B**{color='red'}
     {%- elif name == 'BL' -%}
-        **B**{color='red'} ,**L**{color='green'}
+        **B**{color='red'},**L**{color='green'}
     {%- elif name == 'BU' -%}
         **B**{color='red'},**U**
     {%- endif %}

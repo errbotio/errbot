@@ -41,7 +41,7 @@ deps = ['webtest',
         'yapsy>=1.11',  # new contract for plugin instantiation
         'markdown',  # rendering stuff
         'ansi',
-        'pygments',
+        'Pygments',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
         ]
 

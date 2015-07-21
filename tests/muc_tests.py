@@ -123,10 +123,10 @@ class TestMUC(FullStackTest):
         assert room in rooms
 
         self.bot.push_message("!room list")
-        assert self.bot.pop_message() == "I'm currently in these rooms:\n\ttestroom"
+        assert "testroom" in self.bot.pop_message()
 
         self.bot.push_message("!room occupants testroom")
-        assert self.bot.pop_message() == "Occupants in testroom:\n\terr"
+        assert "err" in self.bot.pop_message()
 
         self.bot.push_message("!room topic testroom")
         assert self.bot.pop_message() == "No topic is set for testroom"

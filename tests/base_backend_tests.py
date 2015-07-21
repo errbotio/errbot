@@ -15,7 +15,7 @@ from errbot.errBot import ErrBot
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant   # noqa
 from errbot.backends.base import Backend, Message  # noqa
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
-from errbot.utils import mess_2_embeddablehtml  # noqa
+from errbot.rendering import text
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 
@@ -47,6 +47,7 @@ class DummyBackend(ErrBot):
         super(DummyBackend, self).__init__(config)
         self.bot_identifier = self.build_identifier('err')
         self.inject_commands_from(self)
+        self.md = text()  # We just want simple text for testing purposes
 
     def build_identifier(self, text_representation):
         return SimpleIdentifier(text_representation)
@@ -58,6 +59,7 @@ class DummyBackend(ErrBot):
         return msg
 
     def send_message(self, mess):
+        mess._body = self.md.convert(mess.body)
         self.outgoing_message_queue.put(mess)
 
     def pop_message(self, timeout=3, block=True):
@@ -95,8 +97,8 @@ class DummyBackend(ErrBot):
     def return_args_as_str(self, mess, args):
         return "".join(args)
 
-    @botcmd(template='args_as_html')
-    def return_args_as_html(self, mess, args):
+    @botcmd(template='args_as_md')
+    def return_args_as_md(self, mess, args):
         return {'args': args}
 
     @botcmd
@@ -108,8 +110,8 @@ class DummyBackend(ErrBot):
         for arg in args:
             yield arg
 
-    @botcmd(template='args_as_html')
-    def yield_args_as_html(self, mess, args):
+    @botcmd(template='args_as_md')
+    def yield_args_as_md(self, mess, args):
         for arg in args:
             yield {'args': [arg]}
 
@@ -187,17 +189,14 @@ class TestExecuteAndSend(unittest.TestCase):
                                 template_name=dummy.return_args_as_str._err_command_template)
         self.assertEqual("foobar", dummy.pop_message().body)
 
-    def test_commands_can_return_html(self):
+    def test_commands_can_return_md(self):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='return_args_as_html', args=['foo', 'bar'], match=None, mess=m,
-                                template_name=dummy.return_args_as_html._err_command_template)
+        dummy._execute_and_send(cmd='return_args_as_md', args=['foo', 'bar'], match=None, mess=m,
+                                template_name=dummy.return_args_as_md._err_command_template)
         response = dummy.pop_message()
         self.assertEqual("foobar", response.body)
-        self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>'
-                         '<em xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</em>\n\n',
-                         mess_2_embeddablehtml(response)[0])
 
     def test_exception_is_caught_and_shows_error_message(self):
         dummy = self.dummy
@@ -221,20 +220,14 @@ class TestExecuteAndSend(unittest.TestCase):
         self.assertEqual("foo", dummy.pop_message().body)
         self.assertEqual("bar", dummy.pop_message().body)
 
-    def test_commands_can_yield_html(self):
+    def test_commands_can_yield_md(self):
         dummy = self.dummy
         m = self.example_message
 
-        dummy._execute_and_send(cmd='yield_args_as_html', args=['foo', 'bar'], match=None, mess=m,
-                                template_name=dummy.yield_args_as_html._err_command_template)
-        response1 = dummy.pop_message()
-        response2 = dummy.pop_message()
-        self.assertEqual("foo", response1.body)
-        self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">foo</strong>\n\n',
-                         mess_2_embeddablehtml(response1)[0])
-        self.assertEqual("bar", response2.body)
-        self.assertEqual('<strong xmlns:ns0="http://jabber.org/protocol/xhtml-im">bar</strong>\n\n',
-                         mess_2_embeddablehtml(response2)[0])
+        dummy._execute_and_send(cmd='yield_args_as_md', args=['foo', 'bar'], match=None, mess=m,
+                                template_name=dummy.yield_args_as_md._err_command_template)
+        self.assertEqual("foo", dummy.pop_message().body)
+        self.assertEqual("bar", dummy.pop_message().body)
 
     def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_returned(self):
         dummy = self.dummy
@@ -244,7 +237,7 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, mess=m,
                                 template_name=dummy.return_long_output._err_command_template)
         for i in range(3):  # return_long_output outputs a string that's 3x longer than the size limit
-            self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().body)
+            self.assertEqual(LONG_TEXT_STRING.strip(), dummy.pop_message().body)
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
 
     def test_output_longer_than_max_message_size_is_split_into_multiple_messages_when_yielded(self):
@@ -255,7 +248,7 @@ class TestExecuteAndSend(unittest.TestCase):
         dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, mess=m,
                                 template_name=dummy.yield_long_output._err_command_template)
         for i in range(6):  # yields_long_output yields 2 strings that are 3x longer than the size limit
-            self.assertEqual(LONG_TEXT_STRING, dummy.pop_message().body)
+            self.assertEqual(LONG_TEXT_STRING.strip(), dummy.pop_message().body)
         self.assertRaises(Empty, dummy.pop_message, *[], **{'block': False})
 
 

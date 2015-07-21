@@ -37,6 +37,21 @@ def text():
     return md
 
 
+def imtext():
+    """This makes a converter from markdown to imtext (unicode) format.
+    imtest is the format like gtalk, slack or skype with simple _ or * markup.
+
+    It can be called like this:
+    from errbot.rendering import imtext
+    md_converter = imtext()  # you need to cache the converter
+
+    im_text = md_converter.convert(md_txt)
+    """
+    from .ansi import AnsiExtension
+    md = Markdown(output_format='imtext', extensions=[ExtraExtension(), AnsiExtension()])
+    md.stripTopLevelTags = False
+    return md
+
 class Mde2mdConverter(object):
     def convert(self, mde):
         while True:

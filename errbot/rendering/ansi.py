@@ -27,11 +27,11 @@ except:
 
 class Table(object):
 
-    def __init__(self,  ansi=True):
+    def __init__(self,  mode='ansi'):
         self.headers = []
         self.rows = []
         self.in_headers = False
-        self.ansi = ansi
+        self.mode = mode
 
     def next_row(self):
         if self.in_headers:
@@ -64,7 +64,7 @@ class Table(object):
         if isinstance(text, str):
             text_cell += text
             count += len(text)
-        elif self.ansi:  # skip the graphic if text
+        elif self.mode == "ansi":  # skip the graphic if not ansi
             text_cell += str(text)  # Graphic
         cells[-1][-1] = text_cell, count
 
@@ -117,7 +117,7 @@ class Table(object):
         return output.getvalue()
 
 
-def recurse_ansi(write, element, table=None, ansi=True):
+def recurse_ansi(write, element, table=None, mode='ansi'):
     exit = []
     if element.text:
         text = element.text
@@ -141,11 +141,19 @@ def recurse_ansi(write, element, table=None, ansi=True):
     if element.tag == 'img':
         text = dict(items)['src']
     elif element.tag == 'strong':
-        write(fx.bold)
-        exit.append(fx.normal)
+        if mode == 'imtext':  # * * are supported in imtext
+            write('*')
+            exit.append('*')
+        else:
+            write(fx.bold)
+            exit.append(fx.normal)
     elif element.tag == 'em':
-        write(fx.underline)
-        exit.append(fx.not_underline)
+        if mode == 'imtext':  # _ _ are supported in imtext
+            write('_')
+            exit.append('_')
+        else:
+            write(fx.underline)
+            exit.append(fx.not_underline)
     elif element.tag == 'p':
         write(' ')
         exit.append('\n')
@@ -158,20 +166,32 @@ def recurse_ansi(write, element, table=None, ansi=True):
     elif element.tag == 'ul':  # ignore the text part
         text = None
     elif element.tag == 'h1':
-        write(fx.bold)
+        if mode == 'imtext':  # * * are supported in imtext
+            write('*')
+            exit.append('*')
+        else:
+            write(fx.bold)
         text = text.upper()
         exit.append(fx.normal)
         exit.append('\n\n')
     elif element.tag == 'h2':
         write('\n')
         write('  ')
-        write(fx.bold)
+        if mode == 'imtext':  # * * are supported in imtext
+            write('*')
+            exit.append('*')
+        else:
+            write(fx.bold)
         exit.append(fx.normal)
         exit.append('\n\n')
     elif element.tag == 'h3':
         write('\n')
         write('    ')
-        write(fx.underline)
+        if mode == 'imtext':  # _ _ are supported in imtext
+            write('_')
+            exit.append('_')
+        else:
+            write(fx.underline)
         exit.append(fx.not_underline)
         exit.append('\n')
     elif element.tag in ('h4', 'h5', 'h6'):
@@ -179,7 +199,7 @@ def recurse_ansi(write, element, table=None, ansi=True):
         write('      ')
         exit.append('\n')
     elif element.tag == 'table':
-        table = Table(ansi)
+        table = Table(mode)
         orig_write = write
         write = table.write
         text = None
@@ -199,7 +219,7 @@ def recurse_ansi(write, element, table=None, ansi=True):
     if text:
         write(text)
     for e in element:
-        recurse_ansi(write, e, table, ansi)
+        recurse_ansi(write, e, table, mode)
     if element.tag == 'table':
         write = orig_write
         write(str(table))
@@ -232,12 +252,24 @@ def to_text(element):
         if not isinstance(text, str):  # skip graphic stuff
             return None
         return f.write(text)
-    recurse_ansi(write, element, ansi=False)
+    recurse_ansi(write, element, mode='text')
+    return f.getvalue()
+
+def to_imtext(element):
+    """ Simplified Format for skype, gtalk, slack ... """
+    f = io.StringIO()
+
+    def write(text):
+        if not isinstance(text, str):  # skip graphic stuff
+            return None
+        return f.write(text)
+    recurse_ansi(write, element, mode='imtext')
     return f.getvalue()
 
 # patch us in
 Markdown.output_formats['ansi'] = to_ansi
 Markdown.output_formats['text'] = to_text
+Markdown.output_formats['imtext'] = to_imtext
 
 
 class AnsiPostprocessor(Postprocessor):

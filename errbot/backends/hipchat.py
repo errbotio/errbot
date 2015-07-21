@@ -384,12 +384,12 @@ class HipchatBackend(XMPPBackend):
 
     def send_message(self, mess):
         if mess.type == 'groupchat':
-          room_id = self.query_room(mess.to.node + '@' + mess.to.domain)
-          log.debug("room id = %s" % room_id)
-          body = self.md.convert(mess.body)
-          self.conn.hypchat.get_room(room_id).notification(body, format='html')
+            room_id = self.query_room(mess.to.node + '@' + mess.to.domain)
+            log.debug("room id = %s" % room_id)
+            body = self.md.convert(mess.body)
+            self.conn.hypchat.get_room(room_id).notification(body, format='html')
         else:
-          super().send_message(mess)
+            super().send_message(mess)
 
     def groupchat_reply_format(self):
         return '@{0} {1}'

@@ -26,10 +26,12 @@ except:
     finally:
         unescape = HTMLParser().unescape
 
+
 # chr that should not count as a space
 class NSC(object):
     def __init__(self, s):
         self.s = s
+
     def __str__(self):
         return self.s
 
@@ -149,7 +151,6 @@ IMTEXT_CHRS = CharacterTable(fg_black='',
                              fx_normal=NSC('*'),
                              fixed_width='```\n',
                              end_fixed_width='```\n')
-
 
 
 class Table(object):
@@ -350,7 +351,7 @@ def translate(element, ct=ANSI_CHRS):
     def write(ansi_obj):
         return f.write(str(ansi_obj))
     recurse(write, ct, element)
-    write(fx.reset)
+    write(ct.fx_reset)
     return f.getvalue()
 
 

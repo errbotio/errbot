@@ -160,6 +160,8 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     elif element.tag == 'p':
         write(' ')
         exit.append('\n')
+    elif element.tag == 'a':
+        exit.append(' (' + element.get('href') + ')')
     elif element.tag == 'li':
         write('• ')
         exit.append('\n')

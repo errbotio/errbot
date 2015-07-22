@@ -1,6 +1,9 @@
 Normal Markdown:
 image: ![Err is talking](http://errbot.net/_static/err_speech.png)
 
+link: This is [a link](http://www.errbot.net).
+
+
 **bold**
 
 _italic_

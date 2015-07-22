@@ -12,6 +12,7 @@ from errbot.rendering import ansi
 
 log = logging.getLogger(__name__)
 
+
 try:
     import irc.connection
     from irc.bot import SingleServerIRCBot
@@ -215,7 +216,8 @@ class IRCConnection(SingleServerIRCBot):
                  username=None,
                  private_rate=1,
                  channel_rate=1,
-                 reconnect_on_kick=5):
+                 reconnect_on_kick=5,
+                 reconnect_on_disconnect=5):
         self.use_ssl = ssl
         self.callback = callback
         # manually decorate functions
@@ -225,7 +227,7 @@ class IRCConnection(SingleServerIRCBot):
 
         if username is None:
             username = nickname
-        super().__init__([(server, port, password)], nickname, username)
+        super().__init__([(server, port, password)], nickname, username, reconnection_interval=reconnect_on_disconnect)
 
     def connect(self, *args, **kwargs):
         if self.use_ssl:
@@ -290,6 +292,7 @@ class IRCBackend(ErrBot):
         private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
         channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)
         reconnect_on_kick = config.__dict__.get('IRC_RECONNECT_ON_KICK', 5)
+        reconnect_on_disconnect = config.__dict__.get('IRC_RECONNECT_ON_DISCONNECT', 5)
 
         self.bot_identifier = IRCIdentifier(nickname, server)
         super(IRCBackend, self).__init__(config)
@@ -302,7 +305,8 @@ class IRCBackend(ErrBot):
                                   username,
                                   private_rate,
                                   channel_rate,
-                                  reconnect_on_kick)
+                                  reconnect_on_kick,
+                                  reconnect_on_disconnect)
         self.md = ansi()
 
     def send_message(self, mess):

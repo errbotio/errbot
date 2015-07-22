@@ -9,6 +9,8 @@ from markdown.postprocessors import Postprocessor
 from itertools import chain
 from os import path
 from ansi.color import fg, bg, fx
+from collections import namedtuple
+from functools import partial
 import io
 import logging
 
@@ -24,14 +26,139 @@ except:
     finally:
         unescape = HTMLParser().unescape
 
+# chr that should not count as a space
+class NSC(object):
+    def __init__(self, s):
+        self.s = s
+    def __str__(self):
+        return self.s
+
+# The translation table for the special characters.
+CharacterTable = namedtuple('CharacterTable',
+                            ['fg_black',
+                             'fg_red',
+                             'fg_green',
+                             'fg_yellow',
+                             'fg_blue',
+                             'fg_magenta',
+                             'fg_cyan',
+                             'fg_white',
+                             'fg_default',
+                             'bg_black',
+                             'bg_red',
+                             'bg_green',
+                             'bg_yellow',
+                             'bg_blue',
+                             'bg_magenta',
+                             'bg_cyan',
+                             'bg_white',
+                             'bg_default',
+                             'fx_reset',
+                             'fx_bold',
+                             'fx_italic',
+                             'fx_underline',
+                             'fx_not_italic',
+                             'fx_not_underline',
+                             'fx_normal',
+                             'fixed_width',
+                             'end_fixed_width',
+                             ])
+
+ANSI_CHRS = CharacterTable(fg_black=fg.black,
+                           fg_red=fg.red,
+                           fg_green=fg.green,
+                           fg_yellow=fg.yellow,
+                           fg_blue=fg.blue,
+                           fg_magenta=fg.magenta,
+                           fg_cyan=fg.cyan,
+                           fg_white=fg.white,
+                           fg_default=fg.default,
+                           bg_black=bg.black,
+                           bg_red=bg.red,
+                           bg_green=bg.green,
+                           bg_yellow=bg.yellow,
+                           bg_blue=bg.blue,
+                           bg_magenta=bg.magenta,
+                           bg_cyan=bg.cyan,
+                           bg_white=bg.white,
+                           bg_default=bg.default,
+                           fx_reset=fx.reset,
+                           fx_bold=fx.bold,
+                           fx_italic=fx.italic,
+                           fx_underline=fx.underline,
+                           fx_not_italic=fx.not_italic,
+                           fx_not_underline=fx.not_underline,
+                           fx_normal=fx.normal,
+                           fixed_width='',
+                           end_fixed_width='')
+
+# Pure Text doesn't have any graphical chrs.
+TEXT_CHRS = CharacterTable(fg_black='',
+                           fg_red='',
+                           fg_green='',
+                           fg_yellow='',
+                           fg_blue='',
+                           fg_magenta='',
+                           fg_cyan='',
+                           fg_white='',
+                           fg_default='',
+                           bg_black='',
+                           bg_red='',
+                           bg_green='',
+                           bg_yellow='',
+                           bg_blue='',
+                           bg_magenta='',
+                           bg_cyan='',
+                           bg_white='',
+                           bg_default='',
+                           fx_reset='',
+                           fx_bold='',
+                           fx_italic='',
+                           fx_underline='',
+                           fx_not_italic='',
+                           fx_not_underline='',
+                           fx_normal='',
+                           fixed_width='',
+                           end_fixed_width='')
+
+# IMText have some formatting available
+IMTEXT_CHRS = CharacterTable(fg_black='',
+                             fg_red='',
+                             fg_green='',
+                             fg_yellow='',
+                             fg_blue='',
+                             fg_magenta='',
+                             fg_cyan='',
+                             fg_white='',
+                             fg_default='',
+                             bg_black='',
+                             bg_red='',
+                             bg_green='',
+                             bg_yellow='',
+                             bg_blue='',
+                             bg_magenta='',
+                             bg_cyan='',
+                             bg_white='',
+                             bg_default='',
+                             fx_reset='',
+                             fx_bold=NSC('*'),
+                             fx_italic='',
+                             fx_underline=NSC('_'),
+                             fx_not_italic='',
+                             fx_not_underline=NSC('_'),
+                             fx_normal=NSC('*'),
+                             fixed_width='```\n',
+                             end_fixed_width='```\n')
+
+
 
 class Table(object):
 
-    def __init__(self,  mode='ansi'):
+    def __init__(self,  ct):
         self.headers = []
         self.rows = []
         self.in_headers = False
-        self.mode = mode
+        self.ct = ct
 
     def next_row(self):
         if self.in_headers:
@@ -64,8 +191,8 @@ class Table(object):
         if isinstance(text, str):
             text_cell += text
             count += len(text)
-        elif self.mode == "ansi":  # skip the graphic if not ansi
-            text_cell += str(text)  # Graphic
+        else:
+            text_cell += str(text)  # This is a non space chr
         cells[-1][-1] = text_cell, count
 
     def __str__(self):
@@ -114,13 +241,10 @@ class Table(object):
             output.write('\n')
         output.write('└' + '┴'.join('─' * m for m in maxes) + '┘')
         output.write('\n')
-        if self.mode == 'imtext':
-            return '```\n' + output.getvalue() + '```\n'
-        else:
-            return output.getvalue()
+        return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
 
 
-def recurse_ansi(write, element, table=None, mode='ansi'):
+def recurse(write, ct, element, table=None):
     exit = []
     if element.text:
         text = element.text
@@ -130,33 +254,25 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     items = element.items()
     for k, v in items:
         if k == 'color':
-            color_attr = getattr(fg, v)
+            color_attr = getattr(ct, 'fg_' + v)
             if color_attr is None:
                 log.warn("there is no '%s' color in ansi" % v)
             write(color_attr)
-            exit.append(fg.default)
+            exit.append(ct.fg_default)
         elif k == 'bgcolor':
-            color_attr = getattr(bg, v)
+            color_attr = getattr(ct, 'bg_' + v)
             if color_attr is None:
                 log.warn("there is no '%s' bgcolor in ansi" % v)
             write(color_attr)
-            exit.append(bg.default)
+            exit.append(ct.bg_default)
     if element.tag == 'img':
         text = dict(items)['src']
     elif element.tag == 'strong':
-        if mode == 'imtext' and not table:  # * * are supported in imtext
-            write('*')
-            exit.append('*')
-        else:
-            write(fx.bold)
-            exit.append(fx.normal)
+        write(ct.fx_bold)
+        exit.append(ct.fx_normal)
     elif element.tag == 'em':
-        if mode == 'imtext' and not table:  # _ _ are supported in imtext
-            write('_')
-            exit.append('_')
-        else:
-            write(fx.underline)
-            exit.append(fx.not_underline)
+        write(ct.fx_underline)
+        exit.append(ct.fx_not_underline)
     elif element.tag == 'p':
         write(' ')
         exit.append('\n')
@@ -171,40 +287,28 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     elif element.tag == 'ul':  # ignore the text part
         text = None
     elif element.tag == 'h1':
-        if mode == 'imtext' and not table:  # * * are supported in imtext
-            write('*')
-            exit.append('*')
-        else:
-            write(fx.bold)
+        write(ct.fx_bold)
         text = text.upper()
-        exit.append(fx.normal)
+        exit.append(ct.fx_normal)
         exit.append('\n\n')
     elif element.tag == 'h2':
         write('\n')
         write('  ')
-        if mode == 'imtext' and not table:  # * * are supported in imtext
-            write('*')
-            exit.append('*')
-        else:
-            write(fx.bold)
-        exit.append(fx.normal)
+        write(ct.fx_bold)
+        exit.append(ct.fx_normal)
         exit.append('\n\n')
     elif element.tag == 'h3':
         write('\n')
         write('    ')
-        if mode == 'imtext' and not table:  # _ _ are supported in imtext
-            write('_')
-            exit.append('_')
-        else:
-            write(fx.underline)
-        exit.append(fx.not_underline)
+        write(ct.fx_underline)
+        exit.append(ct.fx_not_underline)
         exit.append('\n')
     elif element.tag in ('h4', 'h5', 'h6'):
         write('\n')
         write('      ')
         exit.append('\n')
     elif element.tag == 'table':
-        table = Table(mode)
+        table = Table(ct)
         orig_write = write
         write = table.write
         text = None
@@ -224,7 +328,7 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
     if text:
         write(text)
     for e in element:
-        recurse_ansi(write, e, table, mode)
+        recurse(write, ct, e, table)
     if element.tag == 'table':
         write = orig_write
         write(str(table))
@@ -240,42 +344,20 @@ def recurse_ansi(write, element, table=None, mode='ansi'):
             write(tail)
 
 
-def to_ansi(element):
+def translate(element, ct=ANSI_CHRS):
     f = io.StringIO()
 
     def write(ansi_obj):
         return f.write(str(ansi_obj))
-    recurse_ansi(write, element)
+    recurse(write, ct, element)
     write(fx.reset)
     return f.getvalue()
 
 
-def to_text(element):
-    f = io.StringIO()
-
-    def write(text):
-        if not isinstance(text, str):  # skip graphic stuff
-            return None
-        return f.write(text)
-    recurse_ansi(write, element, mode='text')
-    return f.getvalue()
-
-
-def to_imtext(element):
-    """ Simplified Format for skype, gtalk, slack ... """
-    f = io.StringIO()
-
-    def write(text):
-        if not isinstance(text, str):  # skip graphic stuff
-            return None
-        return f.write(text)
-    recurse_ansi(write, element, mode='imtext')
-    return f.getvalue()
-
 # patch us in
-Markdown.output_formats['ansi'] = to_ansi
-Markdown.output_formats['text'] = to_text
-Markdown.output_formats['imtext'] = to_imtext
+Markdown.output_formats['ansi'] = partial(translate, ct=ANSI_CHRS)
+Markdown.output_formats['text'] = partial(translate, ct=TEXT_CHRS)
+Markdown.output_formats['imtext'] = partial(translate, ct=IMTEXT_CHRS)
 
 
 class AnsiPostprocessor(Postprocessor):

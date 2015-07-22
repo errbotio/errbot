@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 try:
     import irc.connection
+    from irc.client import ServerNotConnectedError
     from irc.bot import SingleServerIRCBot
 except ImportError as _:
     log.exception("Could not start the IRC backend")
@@ -272,11 +273,19 @@ class IRCConnection(SingleServerIRCBot):
         t.start()
 
     def send_private_message(self, to, line):
-        self.connection.privmsg(to, line)
+        try:
+            self.connection.privmsg(to, line)
+        except ServerNotConnectedError:
+            pass  # the message will be lost
 
     def send_public_message(self, to, line):
-        self.connection.privmsg(to, line)
+        try:
+            self.connection.privmsg(to, line)
+        except ServerNotConnectedError:
+            pass  # the message will be lost
 
+    def on_disconnect(self, _, e):
+        self.callback.disconnect_callback()
 
 class IRCBackend(ErrBot):
     def __init__(self, config):

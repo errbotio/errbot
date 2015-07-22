@@ -1,6 +1,0 @@
-[Core]
-Name = Campfire
-Module = campfire
-
-[Documentation]
-Description = This is the campfire backend for Err.

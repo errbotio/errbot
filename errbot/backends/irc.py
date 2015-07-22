@@ -287,6 +287,7 @@ class IRCConnection(SingleServerIRCBot):
     def on_disconnect(self, _, e):
         self.callback.disconnect_callback()
 
+
 class IRCBackend(ErrBot):
     def __init__(self, config):
 

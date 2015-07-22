@@ -335,14 +335,14 @@ class ErrBot(Backend, BotPluginManager):
         args: Arguments given along with cmd
         match: A re.MatchObject if command is coming from a regex-based command, else None
         mess: The message object
-        template_name: The name of the template which should be used to render
-            html-im output, if any
+        template_name: The name of the jinja template which should be used to render
+            the markdown output, if any
 
         """
         def process_reply(reply_):
             # integrated templating
             if template_name:
-                reply_ = tenv().get_template(template_name + '.html').render(**reply_)
+                reply_ = tenv().get_template(template_name + '.md').render(**reply_)
 
             # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
             return str(reply_)

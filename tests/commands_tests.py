@@ -25,13 +25,13 @@ class TestCommands(FullStackTest):
         self.assertCommand('!status', 'Yes I am alive')
 
     def test_status_plugins(self):
-        self.assertCommand('!status plugins', 'L=Loaded, U=Unloaded')
+        self.assertCommand('!status plugins', 'L = Loaded, U = Unloaded')
 
     def test_status_load(self):
         self.assertCommand('!status load', 'Load ')
 
     def test_whoami(self):
-        self.assertCommand('!whoami', '`person` is gbin@localhost')
+        self.assertCommand('!whoami', 'person is gbin@localhost')
 
     def test_echo(self):
         self.assertCommand('!echo foo', 'foo')

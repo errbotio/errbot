@@ -8,7 +8,7 @@ from threading import Thread
 
 import pytest
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
-
+from errbot.rendering import text
 from errbot.backends.base import Message, MUCRoom
 from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
@@ -134,10 +134,11 @@ class TestBackend(ErrBot):
         self.outgoing_message_queue = Queue()
         self.sender = self.build_identifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
         self.reset_rooms()
+        self.md = text()
 
     def send_message(self, mess):
         super(TestBackend, self).send_message(mess)
-        self.outgoing_message_queue.put(mess.body)
+        self.outgoing_message_queue.put(self.md.convert(mess.body))
 
     def serve_forever(self):
         self.connect_callback()  # notify that the connection occured

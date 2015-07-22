@@ -227,29 +227,10 @@ REINSERT_EOLS = re.compile(r'</p>|</li>|<br/>', re.I)
 ZAP_TAGS = re.compile(r'<[^>]+>')
 
 
-def xhtml2txt(xhtml):
-    text_plain = REMOVE_EOL.sub('', xhtml)  # Ignore formatting TODO exclude pre
-    text_plain = REINSERT_EOLS.sub('\n', text_plain)  # readd the \n where they probably fit best
-    text_plain = ZAP_TAGS.sub('', text_plain)  # zap every tag left
-    return unescape_xml(text_plain).strip()
-
-
 def utf8(key):
     if type(key) == str:
         return key.encode()  # it defaults to utf-8
     return key
-
-
-def mess_2_embeddablehtml(mess):
-    html_content = mess.html
-    if html_content is not None:
-        body = html_content.find('{http://jabber.org/protocol/xhtml-im}body')
-        result = ''
-        for child in body.getchildren():
-            result += tostring(child).decode().replace('ns0:', '')
-        return result, True
-    else:
-        return mess.body, False
 
 
 def RateLimited(minInterval):

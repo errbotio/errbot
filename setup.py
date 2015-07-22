@@ -28,7 +28,7 @@ ON_WINDOWS = system() == 'Windows'
 if py_version < (2, 7):
     raise RuntimeError('Err requires Python 2.7 or later')
 
-if PY3 and py_version < (3, 3):
+if PY3 and py_version < (3, 4):
     raise RuntimeError('On Python 3, Err requires Python 3.3 or later')
 
 deps = ['webtest',
@@ -38,7 +38,12 @@ deps = ['webtest',
         'jinja2',
         'pyOpenSSL',
         'colorlog',
-        'yapsy>=1.11']  # We need the new contact to instanciate the plugins.
+        'yapsy>=1.11',  # new contract for plugin instantiation
+        'markdown',  # rendering stuff
+        'ansi',
+        'Pygments>=2.0.2',
+        'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
+        ]
 
 if PY2:
     deps += ['dnspython',  # dnspython is needed for SRV records

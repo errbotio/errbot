@@ -13,7 +13,9 @@ def make_templates_path(root):
 system_templates_path = make_templates_path(os.path.dirname(__file__))
 template_path = [system_templates_path]
 TEMPLATE_PATH.insert(0, system_templates_path)  # for views
-env = Environment(loader=FileSystemLoader(template_path))
+env = Environment(loader=FileSystemLoader(template_path),
+                  trim_blocks=True,
+                  keep_trailing_newline=False)
 
 
 def tenv():

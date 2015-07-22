@@ -2,6 +2,7 @@ import logging
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.utils import tail
+from os import path
 
 log = logging.getLogger(__name__)
 
@@ -65,3 +66,10 @@ class Utils(BotPlugin):
             with open(self.bot_config.BOT_LOG_FILE, 'r') as f:
                 return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'
+
+    @botcmd
+    def render_test(self, mess, args):
+        """ Tests / showcases the markdown rendering on your current backend
+        """
+        with open(path.join(path.dirname(path.realpath(__file__)), 'test.md')) as f:
+            return f.read()

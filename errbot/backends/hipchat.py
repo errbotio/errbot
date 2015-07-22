@@ -1,9 +1,14 @@
+# vim: ts=4:sw=4
 import logging
 import sys
 
+from markdown import Markdown
+from markdown.extensions.extra import ExtraExtension
+from markdown.extensions import Extension
+from markdown.treeprocessors import Treeprocessor
+
 from errbot.backends.base import RoomDoesNotExistError
 from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
-
 log = logging.getLogger(__name__)
 
 try:
@@ -16,6 +21,40 @@ except ImportError:
         "pip install hypchat"
     )
     sys.exit(1)
+
+
+# Rendering customizations
+class HipchatTreeprocessor(Treeprocessor):
+    def run(self, root):
+        def recurse_patch(element):
+            t = element.tag
+            if t == 'h1':
+                element.tag = 'strong'
+                element.text = element.text.upper()
+            elif t == 'h2':
+                element.tag = 'em'
+            elif t in ('h3', 'h4', 'h5', 'h6'):
+                element.tag = 'p'
+            elif t == 'hr':
+                element.tag = 'p'
+                element.text = '─' * 80
+
+            for elems in element:
+                recurse_patch(elems)
+        recurse_patch(root)
+
+
+class HipchatExtension(Extension):
+    """Removes the unsupported html tags from hipchat"""
+
+    def extendMarkdown(self, md, md_globals):
+        md.registerExtension(self)
+        md.treeprocessors.add("hipchat stripper", HipchatTreeprocessor(), '<inline')
+        log.debug("Will apply those treeprocessors:\n%s" % md.treeprocessors)
+
+
+def hipchat_html():
+    return Markdown(output_format='xhtml', extensions=[ExtraExtension(), HipchatExtension()])
 
 
 class HipChatMUCOccupant(XMPPMUCOccupant):
@@ -317,6 +356,7 @@ class HipchatBackend(XMPPBackend):
     def __init__(self, config):
         self.api_token = config.BOT_IDENTITY['token']
         self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
+        self.md = hipchat_html()
         super().__init__(config)
 
     def create_connection(self):
@@ -379,6 +419,15 @@ class HipchatBackend(XMPPBackend):
             name = room
 
         return HipChatMUCRoom(name, self)
+
+    def send_message(self, mess):
+        if mess.type == 'groupchat':
+            room_id = self.query_room(mess.to.node + '@' + mess.to.domain)
+            log.debug("room id = %s" % room_id)
+            body = self.md.convert(mess.body)
+            self.conn.hypchat.get_room(room_id).notification(body, format='html')
+        else:
+            super().send_message(mess)
 
     def groupchat_reply_format(self):
         return '@{0} {1}'

@@ -8,6 +8,8 @@ import shutil
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.repos import KNOWN_PUBLIC_REPOS
+from errbot.rendering import md_escape
+
 log = logging.getLogger(__name__)
 
 
@@ -67,9 +69,8 @@ class Plugins(BotPlugin):
         """
         installed_repos = self._bot.get_installed_plugin_repos()
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
-        max_width = max([len(name) for name in all_names])
         return {'repos': [
-            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name.ljust(max_width),
+            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name,
              KNOWN_PUBLIC_REPOS[repo_name][1]
              if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
             for repo_name in all_names]}
@@ -156,13 +157,14 @@ class Plugins(BotPlugin):
             return 'This plugin is not configurable.'
 
         if len(args) == 1:
-            current_config = self._bot.get_plugin_configuration(plugin_name)
             response = ("Default configuration for this plugin (you can copy and paste "
                         "this directly as a command):\n{prefix}config {plugin_name} \n{config}").format(
-                prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(template_obj))
+                prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(template_obj)))
+
+            current_config = self._bot.get_plugin_configuration(plugin_name)
             if current_config:
                 response += "\n\nCurrent configuration:\n{prefix}config {plugin_name} \n{config}".format(
-                    prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(current_config))
+                    prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(current_config)))
             return response
 
         # noinspection PyBroadException
@@ -196,7 +198,7 @@ class Plugins(BotPlugin):
             all_plugins = self._bot.get_all_active_plugin_names()
         else:
             all_plugins = self._bot.get_all_plugin_names()
-        return "\n".join(("• " + plugin for plugin in all_plugins))
+        return "\n".join(("- " + plugin for plugin in all_plugins))
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)

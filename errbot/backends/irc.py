@@ -4,9 +4,10 @@ import sys
 import warnings
 
 from errbot.backends import DeprecationBridgeIdentifier
-from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, build_text_html_message_pair
+from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
+from errbot.rendering import ansi
 
 log = logging.getLogger(__name__)
 
@@ -276,6 +277,7 @@ class IRCBackend(ErrBot):
         self.bot_identifier = IRCIdentifier(nickname, server)
         super(IRCBackend, self).__init__(config)
         self.conn = IRCConnection(self, nickname, server, port, ssl, password, username, private_rate, channel_rate)
+        self.md = ansi()
 
     def send_message(self, mess):
         super(IRCBackend, self).send_message(mess)
@@ -286,7 +288,8 @@ class IRCBackend(ErrBot):
             msg_func = self.conn.send_public_message
             msg_to = mess.to.room
 
-        for line in build_text_html_message_pair(mess.body)[0].split('\n'):
+        body = md.convert(mess.body)
+        for line in body.split('\n'):
             msg_func(msg_to, line)
 
     def build_reply(self, mess, text=None, private=False):

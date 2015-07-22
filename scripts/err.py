@@ -137,7 +137,6 @@ if __name__ == "__main__":
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
-    backend_group.add_argument('-C', '--campfire', action='store_true', help='campfire backend')
     backend_group.add_argument('-I', '--irc', action='store_true', help='IRC backend')
     backend_group.add_argument('-O', '--tox', action='store_true', help='TOX backend')
     backend_group.add_argument('-S', '--slack', action='store_true', help='Slack backend')
@@ -171,7 +170,6 @@ if __name__ == "__main__":
     # this is temporary until the modes are removed to translate the mode names to backend names
     classic_vs_plugin_names = {'text': 'Text',
                                'graphic': 'Graphic',
-                               'campfire': 'Campfire',
                                'hipchat': 'Hipchat',
                                'irc': 'IRC',
                                'xmpp': 'XMPP',

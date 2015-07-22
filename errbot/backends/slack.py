@@ -455,7 +455,7 @@ class SlackBackend(ErrBot):
 
 class SlackRoom(MUCRoom):
     def __init__(self, name=None, channelid=None, bot=None):
-        if channelid != '' and name is not None:
+        if channelid is not None and name is not None:
             raise ValueError("channelid and name are mutually exclusive")
 
         if name is not None:
@@ -467,6 +467,7 @@ class SlackRoom(MUCRoom):
             self._name = bot.channelid_to_channelname(channelid)
 
         self._id = None
+        self._bot = bot
         self.sc = bot.sc
 
     def __str__(self):

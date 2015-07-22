@@ -138,7 +138,6 @@ if __name__ == "__main__":
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')
     backend_group.add_argument('-H', '--hipchat', action='store_true', help='Hipchat backend')
     backend_group.add_argument('-I', '--irc', action='store_true', help='IRC backend')
-    backend_group.add_argument('-O', '--tox', action='store_true', help='TOX backend')
     backend_group.add_argument('-S', '--slack', action='store_true', help='Slack backend')
     backend_group.add_argument('-T', '--text', action='store_true', help='locale text debug backend')
     backend_group.add_argument('-G', '--graphic', action='store_true', help='local graphical debug mode backend')
@@ -173,7 +172,6 @@ if __name__ == "__main__":
                                'hipchat': 'Hipchat',
                                'irc': 'IRC',
                                'xmpp': 'XMPP',
-                               'tox': 'TOX',
                                'slack': 'Slack',
                                'null': 'Null'}
 

@@ -57,9 +57,10 @@ Chatting server support:
 
 - XMPP: Tested with Google Talk, Hipchat_, Openfire_ and Jabber but should be compatible with any standard XMPP server
 - Slack_
-- CampFire_
-- TOX_ (Peer to peer encrypted network)
 - IRC
+- CampFire_ (See https://github.com/gbin/err-backend-campfire to install it)
+- TOX_ (See https://github.com/gbin/err-backend-tox to install it)
+- Gitter_ (See https://github.com/gbin/err-backend-gitter to install it)
 
 Main features:
 
@@ -107,6 +108,7 @@ An extensive framework for writing custom plugins:
 .. _irc: https://pypi.python.org/pypi/irc/
 .. _slack: https://slack.com/
 .. _campfire: https://campfirenow.com/
+.. _Gitter: https://gitter.im/
 .. _TOX: https://tox.im/
 .. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _github: http://github.com/gbin/err/
@@ -149,10 +151,6 @@ For the XMPP based backends you must also install::
     pyasn1-modules
     dnspython3  # dnspython for Python 2.7
 
-For the TOX backend, you must install::
-
-    PyTox
-
 For the IRC backend, you must install::
 
     irc
@@ -167,7 +165,7 @@ file <install_directory>/errbot/config-template.py to your data directory as con
 /usr/lib64/python<python_version_number>/site-packages/errbot)
 
 Read the documentation within this file and edit the values as needed so the bot can
-connect to your chosen XMPP or IRC server.
+connect to your chosen backend (XMPP, Hipchat, Slack ...) server.
 
 **Starting the daemon**
 

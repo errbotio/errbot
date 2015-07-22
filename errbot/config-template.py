@@ -38,7 +38,7 @@ import logging
 # 'Gitter'   - see https://gitter.im/ (follow instructions from https://github.com/gbin/err-backend-gitter)
 
 # Open protocols:
-# 'TOX'      - see https://tox.im/
+# 'TOX'      - see https://tox.im/ (follow instructions from https://github.com/gbin/err-backend-tox)
 # 'IRC'      - for classic IRC or bridged services like https://gitter.im
 # 'XMPP'
 
@@ -115,9 +115,6 @@ BOT_IDENTITY = {
     ## of HipChat then you may leave this commented out.
     # 'endpoint' : 'https://api.hipchat.com'
 
-    ## TOX Mode (comment the others above if using this mode)
-    # 'username': 'errbot',
-
     ## Slack Mode (comment the others above if using this mode)
     # 'token': 'xoxb-4426949411-aEM7...',
 
@@ -130,14 +127,9 @@ BOT_IDENTITY = {
     # 'ssl': False,                  # optional
 }
 
-## TOX Mode
-# TOX_BOOTSTRAP_SERVER = ["54.199.139.199", 33445, "7F9C31FE850E97CEFD4C4591DF93FC757C7C12549DDD55F8EEAECC34FE76C029"]
-
 # Set the admins of your bot. Only these users will have access
 # to the admin-only commands.
 #
-# TOX syntax is a hash.
-# BOT_ADMINS = ['F9886B47503FB80E6347CC0907D8000144305796DE54693253AA5E574E5E8106C7D002557189', ]
 BOT_ADMINS = ('gbin@localhost',)
 
 # Chatrooms your bot should join on startup. For the IRC backend you

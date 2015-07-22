@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import logging
 import sys
 import warnings
+import threading
 
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError
@@ -213,12 +214,14 @@ class IRCConnection(SingleServerIRCBot):
                  password=None,
                  username=None,
                  private_rate=1,
-                 channel_rate=1):
+                 channel_rate=1,
+                 reconnect_on_kick=5):
         self.use_ssl = ssl
         self.callback = callback
         # manually decorate functions
         self.send_private_message = RateLimited(private_rate)(self.send_private_message)
         self.send_public_message = RateLimited(channel_rate)(self.send_private_message)
+        self._reconnect_on_kick = reconnect_on_kick
 
         if username is None:
             username = nickname
@@ -253,6 +256,19 @@ class IRCConnection(SingleServerIRCBot):
         msg.to = IRCIdentifier(e.target)
         self.callback.callback_message(msg)
 
+    def on_kick(self, _, e):
+        if not self._reconnect_on_kick:
+            log.info("RECONNECT_ON_KICK is 0 or None, won't try to reconnect")
+            return
+        log.info("Got kicked out of %s... reconnect in %d seconds... " % (e.target, self._reconnect_on_kick))
+
+        def reconnect_channel(name):
+            log.info("Reconnecting to %s after having beeing kicked" % name)
+            self.callback.query_room(name).join()
+        t = threading.Timer(self._reconnect_on_kick, reconnect_channel, [e.target, ])
+        t.daemon = True
+        t.start()
+
     def send_private_message(self, to, line):
         self.connection.privmsg(to, line)
 
@@ -273,10 +289,20 @@ class IRCBackend(ErrBot):
 
         private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
         channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)
+        reconnect_on_kick = config.__dict__.get('IRC_RECONNECT_ON_KICK', 5)
 
         self.bot_identifier = IRCIdentifier(nickname, server)
         super(IRCBackend, self).__init__(config)
-        self.conn = IRCConnection(self, nickname, server, port, ssl, password, username, private_rate, channel_rate)
+        self.conn = IRCConnection(self,
+                                  nickname,
+                                  server,
+                                  port,
+                                  ssl,
+                                  password,
+                                  username,
+                                  private_rate,
+                                  channel_rate,
+                                  reconnect_on_kick)
         self.md = ansi()
 
     def send_message(self, mess):
@@ -288,7 +314,7 @@ class IRCBackend(ErrBot):
             msg_func = self.conn.send_public_message
             msg_to = mess.to.room
 
-        body = md.convert(mess.body)
+        body = self.md.convert(mess.body)
         for line in body.split('\n'):
             msg_func(msg_to, line)
 

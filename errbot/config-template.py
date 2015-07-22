@@ -278,6 +278,9 @@ REVERSE_CHATROOM_RELAY = {}
 # to a value of 0 effectively disables rate limiting.
 #IRC_CHANNEL_RATE = 1  # Regular channel messages
 #IRC_PRIVATE_RATE = 1  # Private messages
+#IRC_RECONNECT_ON_KICK = 5  # Reconnect back to a channel after a kick (in seconds)
+                            # Put it at None if you don't want the chat to
+                            # reconnect
 
 # Allow messages sent in a chatroom to be directed at requester.
 #GROUPCHAT_NICK_PREFIXED = False

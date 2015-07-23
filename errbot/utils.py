@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import time
+from platform import system
 from functools import wraps
 from html import entities
 from itertools import starmap, repeat
@@ -15,6 +16,7 @@ log = logging.getLogger(__name__)
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
+ON_WINDOWS = system() == 'Windows'
 
 PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
 
@@ -107,6 +109,9 @@ def tail(f, window=20):
 
 
 def which(program):
+    if ON_WINDOWS:
+        program += '.exe'
+
     def is_exe(file_path):
         return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
 

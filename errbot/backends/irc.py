@@ -222,8 +222,11 @@ class IRCConnection(SingleServerIRCBot):
         self.use_ssl = ssl
         self.callback = callback
         # manually decorate functions
-        self.send_private_message = RateLimited(private_rate)(self.send_private_message)
-        self.send_public_message = RateLimited(channel_rate)(self.send_private_message)
+        if private_rate:
+            self.send_private_message = RateLimited(private_rate)(self.send_private_message)
+
+        if channel_rate:
+            self.send_public_message = RateLimited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
 
         if username is None:

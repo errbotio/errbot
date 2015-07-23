@@ -40,8 +40,10 @@ class Plugins(BotPlugin):
                  "%s. Refreshing the plugins commands..." % args),
                 message_type=mess.type
             )
-        self._bot.activate_non_started_plugins()
-        return "Plugin reload done."
+        loading_errors = self._bot.activate_non_started_plugins()
+        if loading_errors:
+            return loading_errors
+        return "Plugins reloaded without any error."
 
     @botcmd(admin_only=True)
     def repos_uninstall(self, mess, args):

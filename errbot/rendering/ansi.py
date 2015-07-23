@@ -351,8 +351,8 @@ def translate(element, ct=ANSI_CHRS):
     def write(ansi_obj):
         return f.write(str(ansi_obj))
     recurse(write, ct, element)
-    write(ct.fx_reset)
-    return f.getvalue()
+    result = f.getvalue().rstrip('\n')  # remove the useless final \n
+    return result + str(ct.fx_reset)
 
 
 # patch us in

@@ -310,7 +310,7 @@ class BotPlugin(BotPluginBase):
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
         if isinstance(user, str):
-            user = self.build_identifier(str(user))  # backward compatibility
+            user = self.build_identifier(user)  # backward compatibility
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
     def build_identifier(self, txtrep):

@@ -14,14 +14,20 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-# Fail early if the user tries to run err under the incorrect interpreter
 import inspect
 import sys
+import logging
+import argparse
+from os import path, sep, getcwd, access, W_OK
+from platform import system
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
 
-def foo(param='canary'):  #noqa
+# Fail early if the user tries to run err under the incorrect interpreter
+
+
+def foo(param='canary'):
     pass
 
 foo_src = inspect.getsourcelines(foo)[0][0]
@@ -35,11 +41,6 @@ if PY2 and "param='canary'" in foo_src:
     print('Either use python3 or install err using ./setup.py develop.')
     sys.exit(-1)
 
-import logging
-from colorlog import ColoredFormatter
-import argparse
-from os import path, sep, getcwd, access, W_OK
-from platform import system
 
 log = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ isatty = pydev or stream.isatty()  # force isatty if we are under pydev because 
 console_hdlr = logging.StreamHandler(stream)
 
 if isatty:
+    from colorlog import ColoredFormatter  # noqa
     formatter = ColoredFormatter(
         "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s "
         "%(blue)s%(name)-25.25s%(reset)s %(white)s%(message)s%(reset)s",

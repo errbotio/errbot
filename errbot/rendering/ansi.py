@@ -356,9 +356,11 @@ def translate(element, ct=ANSI_CHRS):
 
 
 # patch us in
-Markdown.output_formats['ansi'] = partial(translate, ct=ANSI_CHRS)
-Markdown.output_formats['text'] = partial(translate, ct=TEXT_CHRS)
-Markdown.output_formats['imtext'] = partial(translate, ct=IMTEXT_CHRS)
+def enable_format(name, ct):
+    Markdown.output_formats[name] = partial(translate, ct=ct)
+
+for name, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
+    enable_format(name, ct)
 
 
 class AnsiPostprocessor(Postprocessor):

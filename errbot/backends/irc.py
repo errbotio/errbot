@@ -8,10 +8,42 @@ from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
-from errbot.rendering import ansi
+from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
+
+from markdown import Markdown
+from markdown.extensions.extra import ExtraExtension
 
 log = logging.getLogger(__name__)
 
+IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
+                          fg_red=NSC('\x0304'),
+                          fg_green=NSC('\x0303'),
+                          fg_yellow=NSC('\x0308'),
+                          fg_blue=NSC('\x0302'),
+                          fg_magenta=NSC('\x0306'),
+                          fg_cyan=NSC('\x0310'),
+                          fg_white=NSC('\x0300'),
+                          fg_default=NSC('\x03'),
+                          bg_black=NSC('\x03,01'),
+                          bg_red=NSC('\x03,04'),
+                          bg_green=NSC('\x03,03'),
+                          bg_yellow=NSC('\x03,08'),
+                          bg_blue=NSC('\x03,02'),
+                          bg_magenta=NSC('\x03,06'),
+                          bg_cyan=NSC('\x03,10'),
+                          bg_white=NSC('\x03,00'),
+                          bg_default=NSC('\x03,'),
+                          fx_reset=NSC('\x03'),
+                          fx_bold=NSC('\x02'),
+                          fx_italic=NSC('\x1D'),
+                          fx_underline=NSC('\x1F'),
+                          fx_not_italic=NSC('\x0F'),
+                          fx_not_underline=NSC('\x0F'),
+                          fx_normal=NSC('\x0F'),
+                          fixed_width='',
+                          end_fixed_width='')
+
+enable_format('irc', IRC_CHRS)
 
 try:
     import irc.connection
@@ -32,6 +64,12 @@ except ImportError as _:
     """)
     sys.exit(-1)
 
+def irc_md():
+    """This makes a converter from markdown to mirc color format.
+    """
+    md = Markdown(output_format='irc', extensions=[ExtraExtension(), AnsiExtension()])
+    md.stripTopLevelTags = False
+    return md
 
 class IRCIdentifier(DeprecationBridgeIdentifier):
     # TODO(gbin): remove the deprecation warnings at one point.
@@ -320,7 +358,7 @@ class IRCBackend(ErrBot):
                                   channel_rate,
                                   reconnect_on_kick,
                                   reconnect_on_disconnect)
-        self.md = ansi()
+        self.md = irc_md()
 
     def send_message(self, mess):
         super(IRCBackend, self).send_message(mess)

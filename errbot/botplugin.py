@@ -314,6 +314,10 @@ class BotPlugin(BotPluginBase):
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
     def build_identifier(self, txtrep):
+        """
+           Transform a textual representation of a user or room identifier to the correct
+           Identifier object you can set in Message.to and Message.frm.
+        """
         return self._bot.build_identifier(txtrep)
 
     def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):

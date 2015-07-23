@@ -410,8 +410,14 @@ class IRCBackend(ErrBot):
 
     def build_identifier(self, txtrep):
         log.debug("Build identifier from [%s]" % txtrep)
-        nick, domain = txtrep.split('!')
-        return IRCIdentifier(nick, domain)
+        if txtrep.startswith('#'):
+            return IRCMUCOccupant(None, txtrep)
+
+        if '!' in txtrep:
+            nick, domain = txtrep.split('!')
+            return IRCIdentifier(nick, domain)
+
+        return IRCIdentifier(txtrep)
 
     def shutdown(self):
         super().shutdown()

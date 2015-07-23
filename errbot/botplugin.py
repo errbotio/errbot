@@ -309,7 +309,12 @@ class BotPlugin(BotPluginBase):
             Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
         """
+        if isinstance(user, str):
+            user = self.build_identifier(str(user))  # backward compatibility
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+
+    def build_identifier(self, txtrep):
+        return self._bot.build_identifier(txtrep)
 
     def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):
         """

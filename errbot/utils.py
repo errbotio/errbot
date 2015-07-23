@@ -315,3 +315,13 @@ def get_class_that_defined_method(meth):
         if meth.__name__ in cls.__dict__:
             return cls
     return None
+
+
+def compat_str(s):
+    """ Detect if s is a string and convert it to unicode if it is a byte or
+        py2 string """
+    if isinstance(s, str):
+        return s
+    elif isinstance(s, bytes):
+        return s.decode('utf-8')
+    return None

@@ -25,7 +25,8 @@ from urllib.request import urlopen
 from . import botcmd, PY2
 from .backends.base import Backend, ACLViolation
 from .utils import (get_sender_username, split_string_after,
-                    get_class_that_defined_method)
+                    get_class_that_defined_method, compat_str)
+
 from .version import VERSION
 from .streaming import Tee
 from .plugin_manager import BotPluginManager, PluginConfigurationException
@@ -495,10 +496,11 @@ class ErrBot(Backend, BotPluginManager):
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """Sends a simple message to the specified user.
         """
-        if isinstance(user, str):
+        s = compat_str(user)
+        if s is not None:
             log.warn("""deprecation notice: you passed user as a string.
                     You should use self.build_identifier(user) instead or directly an identifier if you have one.""")
-            user = self.build_identifier(user)
+            user = self.build_identifier(s)
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
 

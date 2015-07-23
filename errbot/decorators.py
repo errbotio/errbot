@@ -6,6 +6,7 @@ import shlex
 
 from . import PY2
 from .core_plugins.wsview import bottle_app, WebView
+from .utils import compat_str
 
 log = logging.getLogger(__name__)
 
@@ -222,7 +223,7 @@ def webhook(*args, **kwargs):
         func._err_webhook_form_param = form_param
         func._err_webhook_raw = raw
         return func
-
-    if isinstance(args[0], str) or (PY2 and isinstance(args[0], basestring)):
-        return lambda method: decorate(method, args[0], **kwargs)
+    first = compat_str(args[0])
+    if first is not None:
+        return lambda method: decorate(method, first, **kwargs)
     return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)

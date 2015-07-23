@@ -4,6 +4,7 @@ from uuid import uuid4
 from errbot import BotPlugin, PY3, botcmd, SeparatorArgParser, ShlexArgParser
 from errbot.backends.base import RoomNotJoinedError
 from errbot.version import VERSION
+from errbot.utils import compat_str
 
 log = logging.getLogger(__name__)
 
@@ -28,8 +29,9 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:
                 log.debug('Try to join room %s' % repr(room))
-                if isinstance(room, basestring):
-                    room, username, password = (room, self.bot_config.CHATROOM_FN, None)
+                room_name = compat_str(room)
+                if room_name is not None:
+                    room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
                 else:
                     room, username, password = (room[0], self.bot_config.CHATROOM_FN, room[1])
                 log.info("Joining room {} with username {}".format(room, username))

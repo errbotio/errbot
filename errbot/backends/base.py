@@ -9,7 +9,7 @@ from xml.etree import cElementTree as ET
 from xml.etree.cElementTree import ParseError
 
 from errbot import botcmd, PY2
-from errbot.utils import get_sender_username, deprecated
+from errbot.utils import get_sender_username, deprecated, compat_str
 
 log = logging.getLogger(__name__)
 
@@ -55,11 +55,7 @@ class Message(object):
         :param html:
             An optional HTML representation of the body.
         """
-        # it is either unicode or assume it is utf-8
-        if isinstance(body, str):
-            self._body = body
-        else:
-            self._body = body.decode('utf-8')
+        self._body = compat_str(body)
         self._html = html
         self._type = type_
         self._from = None

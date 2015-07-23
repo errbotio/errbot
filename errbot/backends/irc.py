@@ -64,12 +64,14 @@ except ImportError as _:
     """)
     sys.exit(-1)
 
+
 def irc_md():
     """This makes a converter from markdown to mirc color format.
     """
     md = Markdown(output_format='irc', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
+
 
 class IRCIdentifier(DeprecationBridgeIdentifier):
     # TODO(gbin): remove the deprecation warnings at one point.

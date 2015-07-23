@@ -28,7 +28,7 @@ from .utils import (get_sender_username, split_string_after,
                     get_class_that_defined_method)
 from .version import VERSION
 from .streaming import Tee
-from .plugin_manager import BotPluginManager, check_dependencies, PluginConfigurationException
+from .plugin_manager import BotPluginManager, PluginConfigurationException
 from .bundled.threadpool import ThreadPool, WorkRequest
 from .templating import tenv
 

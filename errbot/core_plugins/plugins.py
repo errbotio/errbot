@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from ast import literal_eval
 import logging
+import subprocess
 from os import path
 from pprint import pformat
 import shutil
@@ -9,6 +10,8 @@ from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.rendering import md_escape
+from errbot.utils import which
+from errbot.plugin_manager import check_dependencies, global_restart
 
 log = logging.getLogger(__name__)
 
@@ -94,7 +97,7 @@ class Plugins(BotPlugin):
         repos = self._bot.get(self._bot.REPOS, {})
         core_to_update = 'all' in args or 'core' in args
         if core_to_update:
-            directories.add(os.path.dirname(__file__))
+            directories.add(path.dirname(__file__))
 
         if 'all' in args:
             directories.update([path.join(self._bot.plugin_dir, name) for name in repos])
@@ -126,8 +129,8 @@ class Plugins(BotPlugin):
                             self._bot.activate_plugin(plugin.name)
                             self.send(mess.frm, '%s reloaded and reactivated' % name)
         if core_to_update:
-            self._bot.restart(mess, '')
-            return "You have updated the core, I need to restart."
+            self.send(mess.frm, "You have updated the core, I need to restart.", message_type=mess.type)
+            global_restart()
         return "Done."
 
     # noinspection PyUnusedLocal

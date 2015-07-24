@@ -6,6 +6,7 @@ from errbot.backends.base import (
     Message, MUCRoom, Presence, RoomNotJoinedError)
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
+from errbot.rendering import text, xhtml
 from threading import Thread
 from time import sleep
 from errbot.utils import deprecated
@@ -452,6 +453,8 @@ class XMPPBackend(ErrBot):
         # MUC subject events
         self.conn.add_event_handler("groupchat_subject", self.chat_topic)
         self._room_topics = {}
+        self.md_xhtml = xhtml()
+        self.md_text = text()
 
     def create_connection(self):
         return XMPPConnection(
@@ -550,10 +553,22 @@ class XMPPBackend(ErrBot):
 
     def send_message(self, mess):
         super(XMPPBackend, self).send_message(mess)
-        self.conn.client.send_message(mto=mess.to,
-                                      mbody=mess.body,
+        text = self.md_text.convert(mess.body)
+        HTML_TEMPLATE = """
+        <message>
+          <body>{text}</body>
+            <html xmlns='http://jabber.org/protocol/xhtml-im'>
+              <body xmlns='http://www.w3.org/1999/xhtml'>
+              {html}
+              </body>
+            </html>
+        </message>"""
+        html = HTML_TEMPLATE.format(text=text,
+                                    html=self.md_xhtml.convert(mess.body))
+        self.conn.client.send_message(mto=mess.to.person,
+                                      mbody=text,
                                       mtype=mess.type,
-                                      mhtml=mess.html)
+                                      mhtml=html)
 
     def serve_forever(self):
         self.conn.connect()

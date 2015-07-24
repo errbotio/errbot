@@ -104,6 +104,9 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
     client = channelid
     nick = username
 
+    # Override for ACLs
+    aclattr = username
+
     @property
     def fullname(self):
         """Convert a Slack user ID to their user name"""

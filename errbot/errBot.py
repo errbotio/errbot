@@ -382,7 +382,10 @@ class ErrBot(Backend, BotPluginManager):
 
         Raises ACLViolation() if the command may not be executed in the given context
         """
-        usr = str(mess.frm.person)
+        if hasattr(mess.frm, 'aclattr'):  # if the identity requires a special field to be used for acl
+            usr = mess.frm.aclattr
+        else:
+            usr = mess.frm.person  # default
         typ = mess.type
 
         if cmd not in self.bot_config.ACCESS_CONTROLS:

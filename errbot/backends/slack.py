@@ -297,7 +297,6 @@ class SlackBackend(ErrBot):
             msg.to = SlackMUCOccupant(self.sc, self.username_to_userid(self.sc.server.username),
                                       event['channel'])
 
-        msg.nick = msg.frm.userid
         self.callback_message(msg)
 
     def userid_to_username(self, id):

@@ -348,6 +348,7 @@ class Stream(io.BufferedReader):
         self._stream_type = stream_type
         self._status = STREAM_WAITING_TO_START
         self._reason = DEFAULT_REASON
+        self._transfered = 0
 
     @property
     def identifier(self):
@@ -371,6 +372,13 @@ class Stream(io.BufferedReader):
             The expected size in bytes of the stream if it is known or None.
         """
         return self._size
+
+    @property
+    def transfered(self):
+        """
+            The currently transfered size.
+        """
+        return self._transfered
 
     @property
     def stream_type(self):
@@ -422,6 +430,10 @@ class Stream(io.BufferedReader):
             Creates a clone and with an alternative stream
         """
         return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
+
+    def ack_data(self, length):
+        """ Acknowledge data has been transfered. """
+        self._transfered = length
 
 
 class MUCRoom(object):

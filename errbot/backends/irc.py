@@ -3,9 +3,11 @@ import logging
 import sys
 import warnings
 import threading
+import subprocess
+import struct
 
 from errbot.backends import DeprecationBridgeIdentifier
-from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError
+from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
@@ -268,9 +270,11 @@ class IRCConnection(SingleServerIRCBot):
         if channel_rate:
             self.send_public_message = RateLimited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
+        self._pending_transfers = {}
 
         if username is None:
             username = nickname
+        self.transfers = {}
         super().__init__([(server, port, password)], nickname, username, reconnection_interval=reconnect_on_disconnect)
 
     def connect(self, *args, **kwargs):
@@ -330,6 +334,58 @@ class IRCConnection(SingleServerIRCBot):
     def on_disconnect(self, _, e):
         self.callback.disconnect_callback()
 
+    def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
+        # Creates a new connection
+        dcc = self.dcc_listen("raw")
+        msg_parts = map(str, (
+            'SEND',
+            name,
+            irc.client.ip_quad_to_numstr(dcc.localaddress),
+            dcc.localport,
+            size,
+        ))
+        msg = subprocess.list2cmdline(msg_parts)
+        self.connection.ctcp("DCC", identifier.nick, msg)
+        stream = Stream(identifier, fsource, name, size, stream_type)
+        self.transfers[dcc] = stream
+
+        return stream
+
+    def on_dcc_connect(self, dcc, event):
+        stream = self.transfers.get(dcc, None)
+        if stream is None:
+            log.error("DCC connect on a none registered connection")
+            return
+        log.debug("Start transfer for %s" % stream.identifier)
+        stream.accept()
+        self.send_chunk(stream, dcc)
+
+    def on_dcc_disconnect(self, dcc, event):
+        self.transfers.pop(dcc)
+
+    def send_chunk(self, stream, dcc):
+        data = stream.read(4096)
+        dcc.send_bytes(data)
+        stream.ack_data(len(data))
+
+    def on_dccmsg(self, dcc, event):
+        stream = self.transfers.get(dcc, None)
+        if stream is None:
+            log.error("DCC connect on a none registered connection")
+            return
+        acked = struct.unpack("!I", event.arguments[0])[0]
+        if acked == stream.size:
+            log.info("File %s successfully transfered to %s" % (stream.name, stream.identifier))
+            dcc.disconnect()
+            self.transfers.pop(dcc)
+        elif acked == stream.transfered:
+            log.debug("Chunk for file %s successfully transfered to %s (%d/%d)  " %
+                      (stream.name, stream.identifier, stream.transfered, stream.size))
+            self.send_chunk(stream, dcc)
+        else:
+            log.debug("Partial chunk for file %s successfully transfered to %s (%d/%d), wait for more" %
+                      (stream.name, stream.identifier, stream.transfered, stream.size))
+
 
 class IRCBackend(ErrBot):
     def __init__(self, config):
@@ -348,7 +404,7 @@ class IRCBackend(ErrBot):
         reconnect_on_disconnect = config.__dict__.get('IRC_RECONNECT_ON_DISCONNECT', 5)
 
         self.bot_identifier = IRCIdentifier(nickname, server)
-        super(IRCBackend, self).__init__(config)
+        super().__init__(config)
         self.conn = IRCConnection(self,
                                   nickname,
                                   server,
@@ -374,6 +430,9 @@ class IRCBackend(ErrBot):
         body = self.md.convert(mess.body)
         for line in body.split('\n'):
             msg_func(msg_to, line)
+
+    def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
+        return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)
 
     def build_reply(self, mess, text=None, private=False):
         log.debug("Build reply.")

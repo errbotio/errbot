@@ -127,6 +127,9 @@ class XMPPMUCRoom(MUCRoom):
         self._name = name
         self.xep0045 = self._bot.conn.client.plugin['xep_0045']
 
+    def __str__(self):
+        return "%s" % self._name
+
     def join(self, username=None, password=None):
         """
         Join the room.
@@ -135,7 +138,7 @@ class XMPPMUCRoom(MUCRoom):
         :meth:`create` on it first.
         """
         room = str(self)
-        self.xep0045.joinMUC(str(self), username, password=password, wait=True)
+        self.xep0045.joinMUC(room, username, password=password, wait=True)
         self._bot.conn.add_event_handler(
             "muc::{}::got_online".format(room),
             self._bot.user_joined_chat
@@ -483,19 +486,23 @@ class XMPPBackend(ErrBot):
 
     def contact_online(self, event):
         log.debug("contact_online %s" % event)
-        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
-                     status=ONLINE)
+        p = Presence(
+            identifier=self.build_identifier(event['from'].full),
+            status=ONLINE
+        )
         self.callback_presence(p)
 
     def contact_offline(self, event):
         log.debug("contact_offline %s" % event)
-        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
-                     status=OFFLINE)
+        p = Presence(
+            identifier=self.build_identifier(event['from'].full),
+            status=OFFLINE
+        )
         self.callback_presence(p)
 
     def user_joined_chat(self, event):
         log.debug("user_join_chat %s" % event)
-        idd = XMPPIdentifier(str(event['from']))
+        idd = self.build_identifier(event['from'].full)
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=ONLINE)
@@ -503,7 +510,7 @@ class XMPPBackend(ErrBot):
 
     def user_left_chat(self, event):
         log.debug("user_left_chat %s" % event)
-        idd = XMPPIdentifier(str(event['from']))
+        idd = self.build_identifier(event['from'].full)
         p = Presence(chatroom=idd,
                      nick=idd.resource,
                      status=OFFLINE)
@@ -526,8 +533,11 @@ class XMPPBackend(ErrBot):
         if not errstatus:
             errstatus = event['type']
 
-        p = Presence(identifier=XMPPIdentifier(str(event['from'])),
-                     status=errstatus, message=message)
+        p = Presence(
+            identifier=self.build_identifier(event['from'].full),
+            status=errstatus,
+            message=message
+        )
         self.callback_presence(p)
 
     def connected(self, data):

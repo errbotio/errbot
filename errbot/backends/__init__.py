@@ -58,10 +58,22 @@ class SimpleIdentifier(DeprecationBridgeIdentifier):
         Returns None is unspecified"""
         return self._fullname
 
+    @property
+    def aclattr(self):
+        """
+        Return an identifier that is suitable for ACL checks.
+
+        Back-ends can override this to allow ACL checks against a more
+        human-readable name even if it uses cryptic IDs under the hood.
+        (See the Slack back-end for an example)
+        """
+        return self.person
+
     def __unicode__(self):
         if self.client:
             return self._person + "/" + self._client
         return self._person
+
     __str__ = __unicode__
 
     def __eq__(self, other):

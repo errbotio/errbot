@@ -2,8 +2,10 @@ import logging
 import sys
 import warnings
 
+from errbot.backends import SimpleIdentifier
 from errbot.backends.base import (
-    Message, MUCRoom, Presence, RoomNotJoinedError)
+    Message, MUCRoom, Presence, RoomNotJoinedError
+)
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from threading import Thread
@@ -58,7 +60,7 @@ def verify_gtalk_cert(xmpp_client):
     log.error("invalid cert received for %s", xmpp_client.boundjid.server)
 
 
-class XMPPIdentifier(object):
+class XMPPIdentifier(SimpleIdentifier):
     """
     This class is the parent and the basic contract of all the ways the backends
     are identifying a person on their system.

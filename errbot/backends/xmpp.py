@@ -329,7 +329,6 @@ class XMPPConnection(object):
         self.client = ClientXMPP(jid, password, plugin_config={'feature_mechanisms': feature})
         self.client.register_plugin('xep_0030')  # Service Discovery
         self.client.register_plugin('xep_0045')  # Multi-User Chat
-        self.client.register_plugin('xep_0004')  # Multi-User Chat backward compability (necessary for join room)
         self.client.register_plugin('xep_0199')  # XMPP Ping
         self.client.register_plugin('xep_0203')  # XMPP Delayed messages
         self.client.register_plugin('xep_0249')  # XMPP direct MUC invites

@@ -127,6 +127,9 @@ class XMPPMUCRoom(MUCRoom):
         self._name = name
         self.xep0045 = self._bot.conn.client.plugin['xep_0045']
 
+    def __str__(self):
+        return "%s" % self._name
+
     def join(self, username=None, password=None):
         """
         Join the room.
@@ -135,7 +138,7 @@ class XMPPMUCRoom(MUCRoom):
         :meth:`create` on it first.
         """
         room = str(self)
-        self.xep0045.joinMUC(str(self), username, password=password, wait=True)
+        self.xep0045.joinMUC(room, username, password=password, wait=True)
         self._bot.conn.add_event_handler(
             "muc::{}::got_online".format(room),
             self._bot.user_joined_chat

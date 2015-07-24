@@ -46,22 +46,18 @@ class Message(object):
     make sense in the context of other back-ends.
     """
 
-    def __init__(self, body, type_='chat', html=None):
+    def __init__(self, body='', type_='chat', frm=None, to=None, delayed=False):
         """
         :param body:
             The plaintext body of the message.
         :param type_:
             The type of message (generally one of either 'chat' or 'groupchat').
-        :param html:
-            An optional HTML representation of the body.
         """
         self._body = compat_str(body)
-        self._html = html
         self._type = type_
-        self._from = None
-        self._to = None
-        self._delayed = False
-        self._nick = None
+        self._from = frm
+        self._to = to
+        self._delayed = delayed
 
     @property
     def to(self):
@@ -143,26 +139,9 @@ class Message(object):
         """
         return self._body
 
-    @property
-    def html(self):
-        """
-        Get the HTML representation of the message.
-
-        :returns:
-            A string containing the HTML message or `None` when there
-            is none.
-        """
-        return self._html
-
-    @html.setter
-    def html(self, html):
-        """
-        Set the HTML representation of the message
-
-        :param html:
-            The HTML message.
-        """
-        self._html = html
+    @body.setter
+    def body(self, body):
+        self._body = body
 
     @property
     def delayed(self):
@@ -171,14 +150,6 @@ class Message(object):
     @delayed.setter
     def delayed(self, delayed):
         self._delayed = delayed
-
-    @property
-    def nick(self):
-        return self._nick
-
-    @nick.setter
-    def nick(self, nick):
-        self._nick = nick
 
     def __str__(self):
         return self._body
@@ -213,28 +184,12 @@ class Message(object):
     def getBody(self):
         """ will be removed on the next version """
 
-    @deprecated(html)
-    def getHTML(self):
-        """ will be removed on the next version """
-
-    @deprecated(html.fset)
-    def setHTML(self, html):
-        """ will be removed on the next version """
-
     @deprecated(delayed)
     def isDelayed(self):
         """ will be removed on the next version """
 
     @deprecated(delayed.fset)
     def setDelayed(self, delayed):
-        """ will be removed on the next version """
-
-    @deprecated(nick)
-    def setMuckNick(self, nick):
-        """ will be removed on the next version """
-
-    @deprecated(nick.fset)
-    def getMuckNick(self):
         """ will be removed on the next version """
 
 
@@ -656,7 +611,11 @@ class Backend(object):
 
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
-    def groupchat_reply_format(self):
+    def prefix_groupchat_reply(self, message, identifier):
+        """ Patches message with the conventional prefix to ping the specific contact
+        For example:
+        @gbin, you forgot the milk !
+        """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def build_identifier(self, text_representation):

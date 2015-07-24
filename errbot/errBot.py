@@ -144,7 +144,7 @@ class ErrBot(Backend, BotPluginManager):
             return False
 
         if (frm.person == self.bot_identifier.person or
-            type_ == "groupchat" and mess.nick == self.bot_config.CHATROOM_FN):  # noqa
+            type_ == "groupchat" and mess.frm.nick == self.bot_config.CHATROOM_FN):  # noqa
                 log.debug("Ignoring message from self")
                 return False
 
@@ -497,7 +497,17 @@ class ErrBot(Backend, BotPluginManager):
         return ""
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
-        """Sends a simple message to the specified user.
+        """ Sends a simple message to the specified user.
+            :param user:
+                an identifier from build_identifier or from an incoming message
+            :param in_reply_to:
+                the original message the bot is answering from
+            :param text:
+                the markdown text you want to send
+            :param message_type:
+                chat or groupchat
+            :param groupchat_nick_reply:
+                authorized the prefixing with the nick form the user
         """
         s = compat_str(user)
         if s is not None:
@@ -505,14 +515,7 @@ class ErrBot(Backend, BotPluginManager):
                     You should use self.build_identifier(user) instead or directly an identifier if you have one.""")
             user = self.build_identifier(s)
 
-        nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
-
-        if (message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply):
-            reply_text = self.groupchat_reply_format().format(in_reply_to.frm.nick, text)
-        else:
-            reply_text = text
-
-        mess = self.build_message(reply_text)
+        mess = self.build_message(text)
         mess.to = user
 
         if in_reply_to:
@@ -521,6 +524,10 @@ class ErrBot(Backend, BotPluginManager):
         else:
             mess.type = message_type
             mess.frm = self.bot_identifier
+
+        nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
+        if message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply:
+            self.prefix_groupchat_reply(mess, in_reply_to.frm)
 
         self.send_message(mess)
 

@@ -509,5 +509,5 @@ class IRCBackend(ErrBot):
         channels = self.conn.channels.keys()
         return [IRCMUCRoom(channel, self) for channel in channels]
 
-    def groupchat_reply_format(self):
-        return '{0}: {1}'
+    def prefix_groupchat_reply(self, message, identifier):
+        message.body = '{0}: {1}'.format(identifier.nick, message.body)

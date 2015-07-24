@@ -199,8 +199,8 @@ class TestBackend(ErrBot):
             r = TestMUCRoom(room, bot=self)
             return r
 
-    def groupchat_reply_format(self):
-        return '{0} {1}'
+    def prefix_groupchat_reply(self, message, identifier):
+        message.body = '{0} {1}'.format(identifier.nick, message.body)
 
     def pop_message(self, timeout=5, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)

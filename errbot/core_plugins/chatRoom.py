@@ -29,19 +29,27 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:
                 log.debug('Try to join room %s' % repr(room))
-                room_name = compat_str(room)
-                if room_name is not None:
-                    room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
-                else:
-                    room, username, password = (room[0], self.bot_config.CHATROOM_FN, room[1])
-                log.info("Joining room {} with username {}".format(room, username))
                 try:
-                    self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
-                except NotImplementedError:
-                    # Backward compatibility for backends which do not yet have a
-                    # query_room implementation and still have a join_room method.
-                    logging.warning("query_room not implemented on this backend, using legacy join_room instead")
-                    self.join_room(room, username=username, password=password)
+                    self._join_room(room)
+                except Exception:
+                    # Ensure failure to join a room doesn't crash the plugin
+                    # as a whole.
+                    log.exception("Joining room %s failed", repr(room))
+
+    def _join_room(self, room):
+        room_name = compat_str(room)
+        if room_name is not None:
+            room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
+        else:
+            room, username, password = (room[0], self.bot_config.CHATROOM_FN, room[1])
+        log.info("Joining room {} with username {}".format(room, username))
+        try:
+            self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
+        except NotImplementedError:
+            # Backward compatibility for backends which do not yet have a
+            # query_room implementation and still have a join_room method.
+            logging.warning("query_room not implemented on this backend, using legacy join_room instead")
+            self.join_room(room, username=username, password=password)
 
     def deactivate(self):
         self.connected = False

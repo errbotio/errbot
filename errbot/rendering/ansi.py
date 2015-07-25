@@ -303,7 +303,7 @@ def recurse(write, ct, element, table=None):
         write('    ')
         write(ct.fx_underline)
         exit.append(ct.fx_not_underline)
-        exit.append('\n')
+        exit.append('\n\n')
     elif element.tag in ('h4', 'h5', 'h6'):
         write('\n')
         write('      ')

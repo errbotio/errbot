@@ -14,7 +14,8 @@ Slack
 ~~~~~
 
 .. image:: docs/imgs/slack.png
-   :width: 200 px
+   :width: 50%
+   :align: center
 
 Hipchat
 ~~~~~~~

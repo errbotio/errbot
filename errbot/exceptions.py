@@ -24,6 +24,14 @@ class UserDoesNotExistError(Exception):
 class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
 
+    def __init__(self, *args, error, **kwargs):
+        """
+        :param response:
+            The 'error' key from the API response data
+        """
+        self.error = error
+        super().__init__(*args, **kwargs)
+
 
 class IncompatiblePluginException(Exception):
     pass

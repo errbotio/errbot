@@ -170,7 +170,10 @@ class SlackBackend(ErrBot):
             data = {}
         response = json.loads(self.sc.server.api_call(method, **data).decode('utf-8'))
         if raise_errors and not response['ok']:
-            raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
+            raise SlackAPIResponseError(
+                "Slack API call to %s failed: %s" % (method, response['error']),
+                error=response['error']
+            )
         return response
 
     def serve_once(self):

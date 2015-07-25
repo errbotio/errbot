@@ -511,8 +511,6 @@ class ErrBot(Backend, BotPluginManager):
         """
         s = compat_str(user)
         if s is not None:
-            log.warn("""deprecation notice: you passed user as a string.
-                    You should use self.build_identifier(user) instead or directly an identifier if you have one.""")
             user = self.build_identifier(s)
 
         mess = self.build_message(text)

@@ -6,8 +6,8 @@ import sys
 from errbot import PY3
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import (
-    Message, Presence, ONLINE, AWAY,
-    MUCRoom, RoomDoesNotExistError, UserDoesNotExistError
+    Message, Presence, ONLINE, AWAY, MUCRoom,
+    RoomError, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -49,9 +49,27 @@ except SyntaxError:
 # token matching this regex.
 SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
 
+USER_IS_BOT_HELPTEXT = (
+    "Connected to Slack using a bot account, which cannot manage "
+    "channels itself (you must invite the bot to channels instead, "
+    "it will auto-accept) nor invite people.\n\n"
+    "If you need this functionality, you will have to create a "
+    "regular user account and connect Err using that account. "
+    "For this, you will also need to generate a user token at "
+    "https://api.slack.com/web."
+)
+
 
 class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
+
+    def __init__(self, *args, error, **kwargs):
+        """
+        :param error:
+            The 'error' key from the API response data
+        """
+        self.error = error
+        super().__init__(*args, **kwargs)
 
 
 class SlackIdentifier(DeprecationBridgeIdentifier):
@@ -174,7 +192,10 @@ class SlackBackend(ErrBot):
             data = {}
         response = json.loads(self.sc.server.api_call(method, **data).decode('utf-8'))
         if raise_errors and not response['ok']:
-            raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
+            raise SlackAPIResponseError(
+                "Slack API call to %s failed: %s" % (method, response['error']),
+                error=response['error']
+            )
         return response
 
     def serve_once(self):
@@ -523,32 +544,56 @@ class SlackRoom(MUCRoom):
 
     def join(self, username=None, password=None):
         log.info("Joining channel %s" % str(self))
-        self._bot.api_call('channels.join', data={'name': self.name})
+        try:
+            self._bot.api_call('channels.join', data={'name': self.name})
+        except SlackAPIResponseError as e:
+            if e.error == "user_is_bot":
+                raise RoomError("Unable to join channel. " + USER_IS_BOT_HELPTEXT)
+            else:
+                raise RoomError(e)
 
     def leave(self, reason=None):
-        if self.id.startswith('C'):
-            log.info("Leaving channel %s (%s)" % (str(self), self.id))
-            self._bot.api_call('channels.leave', data={'channel': self.id})
-        else:
-            log.info("Leaving group %s (%s)" % (str(self), self.id))
-            self._bot.api_call('groups.leave', data={'channel': self.id})
+        try:
+            if self.id.startswith('C'):
+                log.info("Leaving channel %s (%s)" % (str(self), self.id))
+                self._bot.api_call('channels.leave', data={'channel': self.id})
+            else:
+                log.info("Leaving group %s (%s)" % (str(self), self.id))
+                self._bot.api_call('groups.leave', data={'channel': self.id})
+        except SlackAPIResponseError as e:
+            if e.error == "user_is_bot":
+                raise RoomError("Unable to leave channel. " + USER_IS_BOT_HELPTEXT)
+            else:
+                raise RoomError(e)
         self._id = None
 
     def create(self, private=False):
-        if private:
-            log.info("Creating group %s" % str(self))
-            self._bot.api_call('groups.create', data={'name': self.name})
-        else:
-            log.info("Creating channel %s" % str(self))
-            self._bot.api_call('channels.create', data={'name': self.name})
+        try:
+            if private:
+                log.info("Creating group %s" % str(self))
+                self._bot.api_call('groups.create', data={'name': self.name})
+            else:
+                log.info("Creating channel %s" % str(self))
+                self._bot.api_call('channels.create', data={'name': self.name})
+        except SlackAPIResponseError as e:
+            if e.error == "user_is_bot":
+                raise RoomError("Unable to create channel. " + USER_IS_BOT_HELPTEXT)
+            else:
+                raise RoomError(e)
 
     def destroy(self):
-        if self.id.startswith('C'):
-            log.info("Archiving channel %s (%s)" % (str(self), self.id))
-            self._bot.api_call('channels.archive', data={'channel': self.id})
-        else:
-            log.info("Archiving group %s (%s)" % (str(self), self.id))
-            self._bot.api_call('groups.archive', data={'channel': self.id})
+        try:
+            if self.id.startswith('C'):
+                log.info("Archiving channel %s (%s)" % (str(self), self.id))
+                self._bot.api_call('channels.archive', data={'channel': self.id})
+            else:
+                log.info("Archiving group %s (%s)" % (str(self), self.id))
+                self._bot.api_call('groups.archive', data={'channel': self.id})
+        except SlackAPIResponseError as e:
+            if e.error == "user_is_bot":
+                raise RoomError("Unable to archive channel. " + USER_IS_BOT_HELPTEXT)
+            else:
+                raise RoomError(e)
         self._id = None
 
     @property
@@ -614,5 +659,9 @@ class SlackRoom(MUCRoom):
                 data={'channel': self.id, 'user': users[user]},
                 raise_errors=False
             )
-            if not response['ok'] and response['error'] != "already_in_channel":
-                raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
+
+            if not response['ok']:
+                if response['error'] == "user_is_bot":
+                    raise RoomError("Unable to invite people. " + USER_IS_BOT_HELPTEXT)
+                elif response['error'] != "already_in_channel":
+                    raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))

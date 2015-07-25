@@ -414,8 +414,6 @@ def testbot(request):
         bot.stop()
 
     #  setup the logging to something digestable.
-    import logging
-
     logger = logging.getLogger('')
     logging.getLogger('yapsy').setLevel(logging.ERROR)  # this one is way too verbose in debug
     logging.getLogger('MARKDOWN').setLevel(logging.ERROR)  # this one is way too verbose in debug

@@ -1,10 +1,7 @@
-import logging
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.utils import tail
 from os import path
-
-log = logging.getLogger(__name__)
 
 
 class Utils(BotPlugin):

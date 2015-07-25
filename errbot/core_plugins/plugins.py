@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from ast import literal_eval
-import logging
 import subprocess
 from os import path
 from pprint import pformat
@@ -11,9 +10,7 @@ from errbot.version import VERSION
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.rendering import md_escape
 from errbot.utils import which
-from errbot.plugin_manager import check_dependencies, global_restart
-
-log = logging.getLogger(__name__)
+from errbot.plugin_manager import check_dependencies, global_restart, PluginConfigurationException
 
 
 class Plugins(BotPlugin):
@@ -176,7 +173,7 @@ class Plugins(BotPlugin):
         try:
             real_config_obj = literal_eval(' '.join(args[1:]))
         except Exception:
-            log.exception('Invalid expression for the configuration of the plugin')
+            self.log.exception('Invalid expression for the configuration of the plugin')
             return 'Syntax error in the given configuration'
         if type(real_config_obj) != type(template_obj):
             return 'It looks fishy, your config type is not the same as the template !'
@@ -186,7 +183,7 @@ class Plugins(BotPlugin):
         try:
             self._bot.activate_plugin(plugin_name)
         except PluginConfigurationException as ce:
-            log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
+            self.log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
             self._bot.set_plugin_configuration(plugin_name, None)
             return 'Incorrect plugin configuration: %s' % ce
         return 'Plugin configuration done.'

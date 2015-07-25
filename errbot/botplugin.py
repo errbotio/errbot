@@ -21,6 +21,7 @@ class BotPluginBase(StoreMixin):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
+        self.log = logging.getLogger("errbot.plugins.%s" % self.__class__.__name__)
         if bot is not None:
             self._load_bot(bot)
         super(BotPluginBase, self).__init__()

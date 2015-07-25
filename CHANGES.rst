@@ -8,7 +8,30 @@ New and noteworthy
 - new Slack backend
 - new Gitter backend (see http://www.github.com/gbin/err-backend-gitter for more info about installing it)
 - completely new rendering engine: now all text from either a plugin return or a template is *markdown extras*
+- you can test the various formatting under your backend with the `!render test` command.
+
+Examples of rendering:
+
+Slack:
+
+.. image:: docs/imgs/Slack.png
+
+Hipchat:
+
+.. image:: docs/imgs/hipchat.png
+
+IRC:
+
+.. image:: docs/imgs/IRC.png
+
+Gitter:
+
+.. image:: docs/imgs/IRC.png
+
 - the text backend exposes the original md, its html representation and ansi representation so plugin developers can anticipate what the rendering will look like under various backends
+
+.. image:: docs/imgs/text.png
+
 - completely revamped backup/restore feature (see `!help backup`).
 - Identifiers are now generic (and not tight to XMPP anymore) with common notions of `.person` `.room` (for MUCIdentifiers) `.client` `.nick` and `displayname` see https://github.com/gbin/err/blob/master/docs/user_guide/backend_development/index.rst#identifiers for details.
 - New `!whoami` command to debug identity problems for your plugins.

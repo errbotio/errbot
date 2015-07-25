@@ -15,7 +15,8 @@ from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-log = logging.getLogger(__name__)
+# Can't use __name__ because of Yapsy
+log = logging.getLogger('errbot.backends.irc')
 
 IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           fg_red=NSC('\x0304'),

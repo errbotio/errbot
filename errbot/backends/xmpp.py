@@ -11,7 +11,8 @@ from threading import Thread
 from time import sleep
 from errbot.utils import deprecated
 
-log = logging.getLogger(__name__)
+# Can't use __name__ because of Yapsy
+log = logging.getLogger('errbot.backends.xmpp')
 
 try:
     from sleekxmpp import ClientXMPP

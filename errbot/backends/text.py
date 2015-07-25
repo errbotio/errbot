@@ -12,7 +12,8 @@ from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
-log = logging.getLogger(__name__)
+# Can't use __name__ because of Yapsy
+log = logging.getLogger('errbot.backends.text')
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()

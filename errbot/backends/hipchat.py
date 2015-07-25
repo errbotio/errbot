@@ -9,7 +9,9 @@ from markdown.treeprocessors import Treeprocessor
 
 from errbot.backends.base import RoomDoesNotExistError
 from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
-log = logging.getLogger(__name__)
+
+# Can't use __name__ because of Yapsy
+log = logging.getLogger('errbot.backends.hipchat')
 
 try:
     import hypchat

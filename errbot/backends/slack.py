@@ -13,7 +13,8 @@ from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 from errbot.rendering import imtext
 
-log = logging.getLogger(__name__)
+# Can't use __name__ because of Yapsy
+log = logging.getLogger('errbot.backends.slack')
 
 try:
     from functools import lru_cache

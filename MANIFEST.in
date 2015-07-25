@@ -2,7 +2,8 @@ include COPYING
 include *.rst
 include errbot/builtins/*.plug
 include errbot/*.svg
-include errbot/templates/*.html
+include errbot/templates/*.md
+include errbot/core_plugins/templates/*.md
 include errbot/builtins/templates/*.html
 include errbot/builtins/web-static/*.html
 include errbot/builtins/web-static/*.js

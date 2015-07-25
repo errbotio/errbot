@@ -98,7 +98,7 @@ if __name__ == "__main__":
         install_requires=deps,
         tests_require=['nose', 'webtest', 'requests'],
         package_data={
-            '': ['*.txt', '*.rst', '*.plug', '*.html', '*.js', '*.css'],
+            '': ['*.txt', '*.rst', '*.plug', '*.md', '*.js', '*.css'],
         },
 
         author="Guillaume BINET",

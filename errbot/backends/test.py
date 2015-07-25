@@ -414,7 +414,18 @@ def testbot(request):
     def on_finish():
         bot.stop()
 
+    #  setup the logging to something digestable.
+    logger = logging.getLogger('')
+    logging.getLogger('yapsy').setLevel(logging.ERROR)  # this one is way too verbose in debug
+    logging.getLogger('MARKDOWN').setLevel(logging.ERROR)  # this one is way too verbose in debug
+    logging.getLogger('Rocket.Errors').setLevel(logging.ERROR)  # this one is way too verbose in debug
+    logger.setLevel(logging.DEBUG)
+    console_hdlr = logging.StreamHandler(sys.stdout)
+    console_hdlr.setFormatter(logging.Formatter("%(levelname)-8s %(name)-25s %(message)s"))
+    logger.addHandler(console_hdlr)
+
     kwargs = {}
+
     for attr, default in (('extra_plugin_dir', None), ('loglevel', logging.DEBUG),):
             if hasattr(request, 'instance'):
                 kwargs[attr] = getattr(request.instance, attr, None)

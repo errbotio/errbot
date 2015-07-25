@@ -10,7 +10,7 @@ New and noteworthy
 - completely new rendering engine: now all text from either a plugin return or a template is **markdown extras**
 - you can test the various formatting under your backend with the `!render test` command.
 - the text backend exposes the original md, its html representation and ansi representation so plugin developers can anticipate what the rendering will look like under various backends
-*See the screenshots below: Slack_, Hipchat_, IRC_, Gitter_ and finally Text_.*
+See the screenshots below: Slack_, Hipchat_, IRC_, Gitter_ and finally Text_.
 
 - completely revamped backup/restore feature (see `!help backup`).
 - Identifiers are now generic (and not tight to XMPP anymore) with common notions of `.person` `.room` (for MUCIdentifiers) `.client` `.nick` and `displayname` see `this doc <https://github.com/gbin/err/blob/master/docs/user_guide/backend_development/index.rst#identifiers>`_ for details.

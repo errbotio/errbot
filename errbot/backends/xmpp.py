@@ -2,9 +2,9 @@ import logging
 import sys
 import warnings
 
-from errbot.backends.base import (
-    Message, MUCRoom, Presence, RoomNotJoinedError)
+from errbot.backends.base import Message, MUCRoom, Presence
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
+from errbot.exceptions import RoomNotJoinedError
 from errbot.errBot import ErrBot
 from errbot.rendering import text, xhtml
 from threading import Thread

@@ -73,24 +73,10 @@ After the initial installation and security setup, Err can be administered by ju
 - polling support: your can setup a plugin to periodically do something
 - end to end test backend
 
-An extensive framework for writing custom plugins:
-
-
-.. _Openfire: http://www.igniterealtime.org/projects/openfire/
-.. _jabberbot: http://thp.io/2007/python-jabberbot/
-.. _yapsy: http://yapsy.sourceforge.net/
-.. _jinja2: http://jinja.pocoo.org/
-.. _bottle: http://bottlepy.org/
-.. _rocket: https://pypi.python.org/pypi/rocket
-.. _sleekxmpp: http://sleekxmpp.com/
-.. _irc: https://pypi.python.org/pypi/irc/
-.. _`google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
-
-
 Community and support
 ---------------------
 
-If you have a question or want to share your latest plugin creation: feel free to join the chat on `gitter <https://gitter.im/gbin/err>`_. Err has also a `google plus community`_. You can ping us on Twitter with the hashtag ``#errbot``. 
+If you have a question or want to share your latest plugin creation: feel free to join the chat on `gitter <https://gitter.im/gbin/err>`_. Err has also a `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_. You can ping us on Twitter with the hashtag ``#errbot``. 
 But if you have a bug to report or wish to request a feature, please log them `here <https://github.com/gbin/err/issues>`_.
 
 Contributions

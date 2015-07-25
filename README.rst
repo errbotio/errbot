@@ -105,7 +105,7 @@ Or if you wish to try out the latest, bleeding edge version::
 
 **Extra dependencies**
 
-requirements.txt lists only the bare minimum list of dependencies needed to run Err.
+setup.py only installs the bare minimum dependencies needed to run Err.
 Depending on the backend you choose, additional requirements need to be installed.
 
 +------------+-----------------------------------------------------------------------------------+

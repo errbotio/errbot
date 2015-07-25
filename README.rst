@@ -29,7 +29,7 @@ Err
 ===
 
 Err is a chatbot. It allows you to start scripts interactively from your chatrooms
-for any reason: random humour, starting a build, monitoring commits, triggering
+for any reason: random humour, chatops, starting a build, monitoring commits, triggering
 alerts...
 
 It is written and easily extensible in Python.

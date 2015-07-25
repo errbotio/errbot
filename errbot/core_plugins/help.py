@@ -81,7 +81,7 @@ class Help(BotPlugin):
             description = '### Available help\n\n'
             command_classes = sorted(set(self._bot.get_command_classes()), key=lambda c: c.__name__)
             usage = '\n'.join(
-                '- **' + self._bot.prefix + 'help %s** %s' % (clazz.__name__, clazz.__errdoc__.strip() or '(undocumented)') for clazz in
+                '- **' + self._bot.prefix + 'help %s** \- %s' % (clazz.__name__, clazz.__errdoc__.strip() or '(undocumented)') for clazz in
                 command_classes)
         elif args == 'full':
             description = '### Available commands\n\n'
@@ -95,7 +95,7 @@ class Help(BotPlugin):
                     clazz_commands[clazz] = commands
 
             for clazz in sorted(set(clazz_commands), key=lambda c: c.__name__):
-                usage += '\n\n**%s** %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
+                usage += '\n\n**%s** \- %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
                 usage += '\n'.join(sorted([ '**' + self._bot.prefix + '%s** %s' % (name.replace('_', ' ', 1),
                                                           (self._bot.get_doc(command).strip()).split('\n', 1)[0])
                     for (name, command) in clazz_commands[clazz]
@@ -109,7 +109,7 @@ class Help(BotPlugin):
                         get_class_that_defined_method(command).__name__ == args]
             description = '### Available commands for %s\n\n' % args
             usage += '\n'.join(sorted([
-                '- **' + self._bot.prefix + '%s** %s' % (name.replace('_', ' ', 1),
+                '- **' + self._bot.prefix + '%s** \- %s' % (name.replace('_', ' ', 1),
                                                       (self._bot.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in commands
                 if not command._err_command_hidden and

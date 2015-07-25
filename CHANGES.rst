@@ -51,27 +51,32 @@ Bugs squashed
 Annex
 -----
 
-:: _Slack:
+.. _Slack:
 
 Rendering under **Slack**:
+
 .. image:: docs/imgs/slack.png
 
-:: _Hipchat:
+.. _Hipchat:
 
 Rendering under **Hipchat**:
+
 .. image:: docs/imgs/hipchat.png
 
-:: _IRC:
+.. _IRC:
 
 Rendering under **IRC**:
+
 .. image:: docs/imgs/IRC.png
 
-:: _Gitter:
+.. _Gitter:
 
 Rendering under **Gitter**:
+
 .. image:: docs/imgs/gitter.png
 
-:: _Text:
+.. _Text:
 
 Rendering under **Text** (for plugin development):
+
 .. image:: docs/imgs/text.png

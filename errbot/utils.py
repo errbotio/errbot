@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import time
+from errbot.exceptions import ValidationException
 from platform import system
 from functools import wraps
 from html import entities
@@ -158,10 +159,6 @@ def version2array(version):
         raise ValueError(INVALID_VERSION_EXCEPTION % version)
 
     return response
-
-
-class ValidationException(Exception):
-    pass
 
 
 def recurse_check_structure(sample, to_check):

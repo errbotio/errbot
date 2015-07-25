@@ -9,6 +9,7 @@ import subprocess
 import pip
 from . import PY2
 from .botplugin import BotPlugin
+from .exceptions import IncompatiblePluginException, PluginConfigurationException
 from .utils import version2array, PY3, find_roots, find_roots_with_extra, PLUGINS_SUBDIR, which, human_name_for_git_url
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
@@ -26,14 +27,6 @@ try:
     from importlib import reload  # new in python 3.4
 except ImportError:
     from imp import reload
-
-
-class IncompatiblePluginException(Exception):
-    pass
-
-
-class PluginConfigurationException(Exception):
-    pass
 
 
 def populate_doc(plugin):

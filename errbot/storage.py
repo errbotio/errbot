@@ -3,19 +3,9 @@ import logging
 import shelve
 
 from . import PY2
+from .exceptions import StoreAlreadyOpenError, StoreNotOpenError
+
 log = logging.getLogger(__name__)
-
-
-class StoreException(Exception):
-    pass
-
-
-class StoreAlreadyOpenError(StoreException):
-    pass
-
-
-class StoreNotOpenError(StoreException):
-    pass
 
 
 class StoreMixin(MutableMapping):

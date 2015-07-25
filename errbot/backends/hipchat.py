@@ -7,7 +7,7 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
-from errbot.backends.base import RoomDoesNotExistError
+from errbot.exceptions import RoomDoesNotExistError
 from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
 log = logging.getLogger(__name__)
 

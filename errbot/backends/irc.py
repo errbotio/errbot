@@ -7,7 +7,8 @@ import subprocess
 import struct
 
 from errbot.backends import DeprecationBridgeIdentifier
-from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream
+from errbot.backends.base import Message, MUCRoom, Stream
+from errbot.exceptions import RoomError, RoomNotJoinedError
 from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC

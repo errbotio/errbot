@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from errbot import BotPlugin, PY3, botcmd, SeparatorArgParser, ShlexArgParser
 from errbot.backends.base import RoomNotJoinedError
+from errbot.exceptions import SlackAPIResponseError
 from errbot.version import VERSION
 from errbot.utils import compat_str
 
@@ -15,6 +16,17 @@ __author__ = 'gbin'
 # which in turn references http://www.rfk.id.au/blog/entry/preparing-pyenchant-for-python-3/
 if PY3:
     basestring = (str, bytes)
+
+
+SLACK_USER_IS_BOT_HELPTEXT = (
+    "Connected to Slack using a bot account, which cannot manage "
+    "channels itself (you must invite the bot to channels instead, "
+    "it will auto-accept) nor invite people.\n\n"
+    "If you need this functionality, you will have to create a "
+    "regular user account and connect Err using that account. "
+    "For this, you will also need to generate a user token at "
+    "https://api.slack.com/web."
+)
 
 
 class ChatRoom(BotPlugin):
@@ -42,6 +54,11 @@ class ChatRoom(BotPlugin):
                     # query_room implementation and still have a join_room method.
                     logging.warning("query_room not implemented on this backend, using legacy join_room instead")
                     self.join_room(room, username=username, password=password)
+                except SlackAPIResponseError as e:
+                    if e.error != "user_is_bot":
+                        raise
+                    log.warning("Ignoring entries from CHATROOM_PRESENCE. " + SLACK_USER_IS_BOT_HELPTEXT)
+                    return
 
     def deactivate(self):
         self.connected = False
@@ -72,7 +89,14 @@ class ChatRoom(BotPlugin):
             if len(args) < 1:
                 return "Please tell me which chatroom to create."
             room = self.query_room(args[0])
-        room.create()
+
+        try:
+            room.create()
+        except SlackAPIResponseError as e:
+            if e.error != "user_is_bot":
+                raise
+            return "Unable to create rooms. " + SLACK_USER_IS_BOT_HELPTEXT
+
         return "Created the room {}".format(room)
 
     @botcmd()
@@ -99,7 +123,12 @@ class ChatRoom(BotPlugin):
         args[0].strip()
 
         room, password = (args[0], None) if arglen == 1 else (args[0], args[1])
-        self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
+        try:
+            self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
+        except SlackAPIResponseError as e:
+            if e.error != "user_is_bot":
+                raise
+            return "Unable to join rooms. " + SLACK_USER_IS_BOT_HELPTEXT
         return "Joined the room {}".format(room)
 
     @botcmd(split_args_with=SeparatorArgParser())
@@ -118,7 +147,12 @@ class ChatRoom(BotPlugin):
         """
         if len(args) < 1:
             return "Please tell me which chatroom to leave."
-        self.query_room(args[0]).leave()
+        try:
+            self.query_room(args[0]).leave()
+        except SlackAPIResponseError as e:
+            if e.error != "user_is_bot":
+                raise
+            return "Unable to leave rooms. " + SLACK_USER_IS_BOT_HELPTEXT
         return "Left the room {}".format(args[0])
 
     @botcmd(split_args_with=SeparatorArgParser())
@@ -137,7 +171,12 @@ class ChatRoom(BotPlugin):
         """
         if len(args) < 1:
             return "Please tell me which chatroom to destroy."
-        self.query_room(args[0]).destroy()
+        try:
+            self.query_room(args[0]).destroy()
+        except SlackAPIResponseError as e:
+            if e.error != "user_is_bot":
+                raise
+            return "Unable to destroy rooms. " + SLACK_USER_IS_BOT_HELPTEXT
         return "Destroyed the room {}".format(args[0])
 
     @botcmd(split_args_with=SeparatorArgParser())
@@ -156,7 +195,12 @@ class ChatRoom(BotPlugin):
         """
         if len(args) < 2:
             return "Please tell me which person(s) to invite into which room."
-        self.query_room(args[0]).invite(*args[1:])
+        try:
+            self.query_room(args[0]).invite(*args[1:])
+        except SlackAPIResponseError as e:
+            if e.error != "user_is_bot":
+                raise
+            return "Unable to invite people into rooms. " + SLACK_USER_IS_BOT_HELPTEXT
         return "Invited {} into the room {}".format(", ".join(args[1:]), args[0])
 
     @botcmd

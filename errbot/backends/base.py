@@ -11,30 +11,15 @@ from xml.etree.cElementTree import ParseError
 from errbot import botcmd, PY2
 from errbot.utils import get_sender_username, deprecated, compat_str
 
+# Backward-compatibility in case there are plugins importing them from
+# this module still. These were moved in Err 3.0.0 so this should be
+# removed when 4.0.0 is released.
+from errbot.exceptions import (
+    ACLViolation, RoomError, RoomNotJoinedError, RoomDoesNotExistError,
+    UserDoesNotExistError
+)
+
 log = logging.getLogger(__name__)
-
-
-class ACLViolation(Exception):
-    """Exceptions raised when user is not allowed to execute given command due to ACLs"""
-
-
-class RoomError(Exception):
-    """General exception class for MUC-related errors"""
-
-
-class RoomNotJoinedError(RoomError):
-    """Exception raised when performing MUC operations
-    that require the bot to have joined the room"""
-
-
-class RoomDoesNotExistError(RoomError):
-    """Exception that is raised when performing an operation
-    on a room that doesn't exist"""
-
-
-class UserDoesNotExistError(Exception):
-    """Exception that is raised when performing an operation
-    on a user that doesn't exist"""
 
 
 class Message(object):

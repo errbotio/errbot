@@ -5,9 +5,9 @@ import time
 import sys
 from errbot import PY3
 from errbot.backends import DeprecationBridgeIdentifier
-from errbot.backends.base import (
-    Message, Presence, ONLINE, AWAY,
-    MUCRoom, RoomDoesNotExistError, UserDoesNotExistError
+from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom
+from errbot.exceptions import (
+    SlackAPIResponseError, RoomDoesNotExistError, UserDoesNotExistError
 )
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -48,10 +48,6 @@ except SyntaxError:
 # link if you prefix it with a #. Other clients receive this link as a
 # token matching this regex.
 SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
-
-
-class SlackAPIResponseError(RuntimeError):
-    """Slack API returned a non-OK response"""
 
 
 class SlackIdentifier(DeprecationBridgeIdentifier):
@@ -174,7 +170,10 @@ class SlackBackend(ErrBot):
             data = {}
         response = json.loads(self.sc.server.api_call(method, **data).decode('utf-8'))
         if raise_errors and not response['ok']:
-            raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
+            raise SlackAPIResponseError(
+                "Slack API call to %s failed: %s" % (method, response['error']),
+                error=response['error']
+            )
         return response
 
     def serve_once(self):

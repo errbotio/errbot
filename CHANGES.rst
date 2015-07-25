@@ -10,22 +10,26 @@ New and noteworthy
 - completely new rendering engine: now all text from either a plugin return or a template is *markdown extras*
 - you can test the various formatting under your backend with the `!render test` command.
 
-_Slack_
+Slack
+~~~~~
 
 .. image:: docs/imgs/slack.png
-   :scale: 50 %
+   :width: 200 px
 
-_Hipchat_
+Hipchat
+~~~~~~~
 
 .. image:: docs/imgs/hipchat.png
    :scale: 50 %
 
-_IRC_
+IRC
+~~~
 
 .. image:: docs/imgs/IRC.png
    :scale: 50 %
 
-_Gitter_
+Gitter
+~~~~~~
 
 .. image:: docs/imgs/IRC.png
    :scale: 50 %

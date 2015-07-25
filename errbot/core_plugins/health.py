@@ -11,7 +11,7 @@ from datetime import datetime
 log = logging.getLogger(__name__)
 
 
-class Help(BotPlugin):
+class Health(BotPlugin):
     min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
     max_err_version = VERSION
 

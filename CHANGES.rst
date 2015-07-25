@@ -4,6 +4,7 @@ v3.0.0-rc1
 ``Release date: 2015-07-24``
 
 We have decided to promote this release as the v3 \\o/. This is the next version after 2.3.0-rc2.
+
 This document includes all the changes since the last stable version (2.2.0).
 
 If you have any difficulty using this new release, feel free to jump into our `dev room on gitter <https://gitter.im/gbin/err>`_.
@@ -12,7 +13,7 @@ New and noteworthy
 ------------------
 
 - backends are now plugins too
-- new Slack backend (see the `config template <https://github.com/gbin/err/blob/changes-3.0/errbot/config-template.py#L118>`_ for details)
+- new Slack backend (see the `config template <https://github.com/gbin/err/blob/master/errbot/config-template.py#L118>`_ for details)
 - new Gitter backend (see `the gitter backend repo <http://www.github.com/gbin/err-backend-gitter>`_ for more info about installing it)
 - completely new rendering engine: now all text from either a plugin return or a template is **markdown extras**
 - you can test the various formatting under your backend with the ``!render test`` command.
@@ -36,10 +37,10 @@ Minor improvements
 Stuff that might break you
 --------------------------
 
-- if you upgrade from a previous version, please install: **pip install markdown ansi Pygments "pygments-markdown-lexer>=0.1.0.dev29"**
+- if you upgrade from a previous version, please install: ``pip install markdown ansi Pygments "pygments-markdown-lexer>=0.1.0.dev29"``
 - you need to add the type of backend you use in your config file instead of the command like. i.e. ``BACKEND = 'XMPP'``
 - XMPP properties ``.node``, ``.domain`` and ``.resource`` on identifiers are deprecated, a backward compatibility layer has been added but we highly encourage you to not rely on those but use the generic ones from now on: ``.person``, ``.client`` and for MUCOccupants ``.room`` on top of ``.person`` and ``.client``.
-- To create identifiers from a string (i.e. if you don't get it from the bot itself) you now have to use build_identifier(string) to make the backend parse it
+- To create identifiers from a string (i.e. if you don't get it from the bot itself) you now have to use ``build_identifier(string)`` to make the backend parse it
 - command line parameter -c needs to be the full path of your config file, it allows us to have different set of configs to test the bot.
 - campfire and TOX backends are now external plugins: see `the tox backend repo <http://www.github.com/gbin/err-backend-tox>`_ and `the campfire backend repo <http://www.github.com/gbin/err-backend-campfire>`_ for more info about installing them.
 - any output from plugin is now considered markdown, it might break some of your output if you had any markup characters (\#, \-, \* ...).

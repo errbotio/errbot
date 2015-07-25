@@ -26,16 +26,18 @@ class Utils(BotPlugin):
             frm = self.build_identifier(str(args).strip('"'))
         else:
             frm = mess.frm
-        resp = "\n`person` is %s\n" % frm.person
-        resp += "\n`nick` is %s\n" % frm.nick
-        resp += "\n`fullname` is %s\n" % frm.fullname
-        resp += "\n`client` is %s\n" % frm.client
+        resp = "| key      | value\n"
+        resp += "| -------- | --------\n"
+        resp += "| person   | `%s`\n" % frm.person
+        resp += "| nick     | `%s`\n" % frm.nick
+        resp += "| fullname | `%s`\n" % frm.fullname
+        resp += "| client   | `%s`\n\n" % frm.client
 
         #  extra info if it is a MUC
         if hasattr(frm, 'room'):
             resp += "\n`room` is %s\n" % frm.room
-        resp += "\n\nstring representation is '%s'\n" % frm
-        resp += "\nclass is '%s'\n" % frm.__class__.__name__
+        resp += "\n\n- string representation is '%s'\n" % frm
+        resp += "- class is '%s'\n" % frm.__class__.__name__
 
         return resp
 

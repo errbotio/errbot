@@ -6,42 +6,33 @@ New and noteworthy
 
 - backends are now plugins too
 - new Slack backend
-- new Gitter backend (see http://www.github.com/gbin/err-backend-gitter for more info about installing it)
-- completely new rendering engine: now all text from either a plugin return or a template is *markdown extras*
+- new Gitter backend (see `the gitter backend repo <http://www.github.com/gbin/err-backend-gitter>`_ for more info about installing it)
+- completely new rendering engine: now all text from either a plugin return or a template is **markdown extras**
 - you can test the various formatting under your backend with the `!render test` command.
 
-Slack
-~~~~~
+
+Rendering under **Slack**
 
 .. image:: docs/imgs/slack.png
-   :width: 50%
-   :align: center
 
-Hipchat
-~~~~~~~
+Rendering under **Hipchat**
 
 .. image:: docs/imgs/hipchat.png
-   :scale: 50 %
 
-IRC
-~~~
+Rendering under **IRC**
 
 .. image:: docs/imgs/IRC.png
-   :scale: 50 %
 
-Gitter
-~~~~~~
+Rendering under **Gitter**
 
 .. image:: docs/imgs/IRC.png
-   :scale: 50 %
 
 - the text backend exposes the original md, its html representation and ansi representation so plugin developers can anticipate what the rendering will look like under various backends
 
 .. image:: docs/imgs/text.png
-   :scale: 50 %
 
 - completely revamped backup/restore feature (see `!help backup`).
-- Identifiers are now generic (and not tight to XMPP anymore) with common notions of `.person` `.room` (for MUCIdentifiers) `.client` `.nick` and `displayname` see https://github.com/gbin/err/blob/master/docs/user_guide/backend_development/index.rst#identifiers for details.
+- Identifiers are now generic (and not tight to XMPP anymore) with common notions of `.person` `.room` (for MUCIdentifiers) `.client` `.nick` and `displayname` see `this doc <https://github.com/gbin/err/blob/master/docs/user_guide/backend_development/index.rst#identifiers>_` for details.
 - New `!whoami` command to debug identity problems for your plugins.
 - New `!killbot` command to stop your bot remotely in case of emergency.
 - IRC: file transfer from the bot is now supported (DCC)
@@ -60,7 +51,7 @@ Stuff that might break you
 - XMPP properties .node, .domain and .resource on identifiers are deprecated, a backward compatibility layer has been added but we highly encourage you to not rely on those but use the generic ones from now on: .person, .client and for MUCOccupants .room on top of .person and .client.
 - To create identifiers from a string (i.e. if you don't get it from the bot itself) you now have to use build_identifier(string) to make the backend parse it
 - command line parameter -c needs to be the full path of your config file, it allows us to have different set of configs to test the bot.
-- campfire and TOX backends are now external plugins: see http://www.github.com/gbin/err-backend-tox and http://www.github.com/gbin/err-backend-campfire for more info about installing them.
+- campfire and TOX backends are now external plugins: see `the tox backend repo <http://www.github.com/gbin/err-backend-tox>`_ and `the campfire backend repo <http://www.github.com/gbin/err-backend-campfire>`_ for more info about installing them.
 - any output from plugin is now considered markdown, it might break some of your output if you had any markup characters (\#, \-, \* ...).
 
 Bugs squashed

@@ -4,7 +4,8 @@ from errbot.backends.base import Message
 from errbot.backends import SimpleIdentifier
 from errbot.errBot import ErrBot
 
-log = logging.getLogger(__name__)
+# Can't use __name__ because of Yapsy
+log = logging.getLogger('errbot.backends.null')
 
 
 class ConnectionMock():

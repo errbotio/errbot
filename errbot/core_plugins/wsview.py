@@ -79,7 +79,7 @@ class WebView(object):
             try:
                 content = loads(content)
             except ValueError:
-                log.debug('The form parameter is not JSON, return it as a string')
+                self.log.debug('The form parameter is not JSON, return it as a string')
             response = self.func(content, **kwargs)
         else:
             data = try_decode_json(request)

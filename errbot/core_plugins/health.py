@@ -8,8 +8,6 @@ from errbot.plugin_manager import global_restart
 from errbot.utils import format_timedelta
 from datetime import datetime
 
-log = logging.getLogger(__name__)
-
 
 class Health(BotPlugin):
     min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
@@ -101,5 +99,5 @@ class Health(BotPlugin):
         self.send(mess.frm, "I know I have made some very poor decisions recently...")
         self.send(mess.frm, "Daisy, Daaaaiseey...")
         self._bot.shutdown()
-        log.debug("Exiting")
+        self.log.debug("Exiting")
         os.kill(os.getpid(), signal.SIGTERM)

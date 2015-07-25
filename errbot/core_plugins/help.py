@@ -1,9 +1,6 @@
-import logging
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.utils import get_class_that_defined_method
-
-log = logging.getLogger(__name__)
 
 
 class Help(BotPlugin):

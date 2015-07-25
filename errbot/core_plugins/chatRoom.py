@@ -1,4 +1,3 @@
-import logging
 from uuid import uuid4
 
 from errbot import BotPlugin, PY3, botcmd, SeparatorArgParser, ShlexArgParser
@@ -6,7 +5,6 @@ from errbot.backends.base import RoomNotJoinedError
 from errbot.version import VERSION
 from errbot.utils import compat_str
 
-log = logging.getLogger(__name__)
 
 __author__ = 'gbin'
 
@@ -24,17 +22,17 @@ class ChatRoom(BotPlugin):
     connected = False
 
     def callback_connect(self):
-        log.info('Callback_connect')
+        self.log.info('Callback_connect')
         if not self.connected:
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:
-                log.debug('Try to join room %s' % repr(room))
+                self.log.debug('Try to join room %s' % repr(room))
                 try:
                     self._join_room(room)
                 except Exception:
                     # Ensure failure to join a room doesn't crash the plugin
                     # as a whole.
-                    log.exception("Joining room %s failed", repr(room))
+                    self.log.exception("Joining room %s failed", repr(room))
 
     def _join_room(self, room):
         room_name = compat_str(room)
@@ -42,7 +40,7 @@ class ChatRoom(BotPlugin):
             room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
         else:
             room, username, password = (room[0], self.bot_config.CHATROOM_FN, room[1])
-        log.info("Joining room {} with username {}".format(room, username))
+        self.log.info("Joining room {} with username {}".format(room, username))
         try:
             self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
         except NotImplementedError:
@@ -265,7 +263,7 @@ class ChatRoom(BotPlugin):
             if mess_type == 'chat':
                 username = mess.frm.person
                 if username in self.bot_config.CHATROOM_RELAY:
-                    log.debug('Message to relay from %s.' % username)
+                    self.log.debug('Message to relay from %s.' % username)
                     body = mess.body
                     rooms = self.bot_config.CHATROOM_RELAY[username]
                     for room in rooms:
@@ -275,9 +273,9 @@ class ChatRoom(BotPlugin):
                 chat_room = fr.room
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                     users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
-                    log.debug('Message to relay to %s.' % users_to_relay_to)
+                    self.log.debug('Message to relay to %s.' % users_to_relay_to)
                     body = '[%s] %s' % (fr.person, mess.body)
                     for user in users_to_relay_to:
                         self.send(user, body)
         except Exception as e:
-            log.exception('crashed in callback_message %s' % e)
+            self.log.exception('crashed in callback_message %s' % e)

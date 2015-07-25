@@ -14,7 +14,8 @@ from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import setup_bot
 
-log = logging.getLogger(__name__)
+# Can't use __name__ because of Yapsy
+log = logging.getLogger('errbot.backends.test')
 
 QUIT_MESSAGE = '$STOP$'
 

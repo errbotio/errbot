@@ -1,5 +1,10 @@
-v3.0.0-beta
-===========
+v3.0.0-rc1
+==========
+
+Release date: 2015-07-24
+
+We have decided to promote this release as the v3 \o/. This is the next version after 2.3.0-rc2.
+This document includes all the changes since the last stable version (2.2.0).
 
 New and noteworthy
 ------------------
@@ -29,6 +34,7 @@ Minor improvements
 Stuff that might break you
 --------------------------
 
+- if you upgrade from a previous version, please install: **pip install markdown ansi Pygments "pygments-markdown-lexer>=0.1.0.dev29"**
 - XMPP properties .node, .domain and .resource on identifiers are deprecated, a backward compatibility layer has been added but we highly encourage you to not rely on those but use the generic ones from now on: .person, .client and for MUCOccupants .room on top of .person and .client.
 - To create identifiers from a string (i.e. if you don't get it from the bot itself) you now have to use build_identifier(string) to make the backend parse it
 - command line parameter -c needs to be the full path of your config file, it allows us to have different set of configs to test the bot.

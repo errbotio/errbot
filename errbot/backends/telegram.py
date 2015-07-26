@@ -49,7 +49,7 @@ class TelegramBotFilter(object):
             return 0
 
 
-class TelegramIdentifier(SimpleIdentifier):
+class TelegramIdentifier(object):
 
     def __init__(self, id, first_name=None, last_name=None, username=None, title=None):
         self._id = id

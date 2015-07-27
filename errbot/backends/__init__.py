@@ -24,9 +24,17 @@ class DeprecationBridgeIdentifier(object):
 
 
 class SimpleIdentifier(DeprecationBridgeIdentifier):
-    """ This is an identifier just represented as a string.
-        DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
-        use self.build_identifier(identifier_as_string) instead.
+    """
+    This is an identifier just represented as a string.
+    DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
+    use self.build_identifier(identifier_as_string) instead.
+
+    Note to back-end implementors: You should provide a custom
+    <yourbackend>Identifier object that adheres to this interface.
+
+    You should not directly inherit from SimpleIdentifier, inherit
+    from object instead and make sure it includes all properties and
+    methods exposed by this class.
     """
 
     def __init__(self, person, client=None, nick=None, fullname=None):

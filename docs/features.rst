@@ -10,9 +10,9 @@ Currently, the following networks are supported:
   * IRC
   * Slack_
   * Telegram_
-  * Tox_ (maintained seperately)
-  * Gitter_ (maintained seperately)
-  * CampFire_ (maintained seperately)
+  * Tox_ (maintained `separately <https://github.com/gbin/err-backend-tox>`__)
+  * Gitter_ (maintained `separately <https://github.com/gbin/err-backend-gitter>`__)
+  * CampFire_ (maintained `separately <https://github.com/gbin/err-backend-campfire>`__)
 
 Core features
 ^^^^^^^^^^^^^

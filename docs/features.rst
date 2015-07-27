@@ -6,10 +6,13 @@ that makes it relatively easy to write new back-ends in order to support more.
 Currently, the following networks are supported:
 
   * XMPP *(Any standards-compliant XMPP/Jabber server should work - Google Talk/Hangouts included)*
-  * CampFire_
   * Hipchat_
   * IRC
-  * Tox_
+  * Slack_
+  * Telegram_
+  * Tox_ (maintained seperately)
+  * Gitter_ (maintained seperately)
+  * CampFire_ (maintained seperately)
 
 Core features
 ^^^^^^^^^^^^^
@@ -51,7 +54,10 @@ Extensive plugin framework
 .. _Hipchat: https://www.hipchat.com/
 .. _Campfire: https://campfirenow.com/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
+.. _Slack: http://slack.com/
 .. _Tox: https://tox.im/
+.. _Telegram: https://telegram.org/
+.. _Gitter: http://gitter.im/
 .. _yapsy: http://yapsy.sourceforge.net/
 .. _jinja2: http://jinja.pocoo.org/
 .. _bottle: http://bottlepy.org/

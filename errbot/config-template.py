@@ -23,7 +23,7 @@ import logging
 ##########################################################################
 
 # BACKEND selection.
-# This configures the type of chat server you which to use Err with.
+# This configures the type of chat server you wish to use Err with.
 #
 # The current choices:
 
@@ -40,7 +40,9 @@ import logging
 # Open protocols:
 # 'TOX'      - see https://tox.im/ (follow instructions from https://github.com/gbin/err-backend-tox)
 # 'IRC'      - for classic IRC or bridged services like https://gitter.im
-# 'XMPP'
+# 'XMPP'     - the Extensible Messaging and Presence Protocol (https://xmpp.org/)
+# 'Telegram' - cloud-based mobile and desktop messaging app with a focus
+#              on security and speed. (https://telegram.org/)
 
 # BACKEND = 'XMPP'
 
@@ -115,8 +117,11 @@ BOT_IDENTITY = {
     ## of HipChat then you may leave this commented out.
     # 'endpoint' : 'https://api.hipchat.com'
 
-    ## Slack Mode (comment the others above if using this mode)
+    ## Slack mode (comment the others above if using this mode)
     # 'token': 'xoxb-4426949411-aEM7...',
+
+    ## Telegram mode (comment the others above if using this mode)
+    # 'token': '103419016:AAbcd1234...',
 
     ## IRC mode (Comment the others above if using this mode)
     # 'nickname' : 'err-chatbot',

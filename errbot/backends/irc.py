@@ -232,7 +232,7 @@ class IRCMUCRoom(MUCRoom):
         occupants = []
         try:
             for nick in self._bot.conn.channels[self.room].users():
-                occupants.append(IRCMUCOccupant(nick=nick))
+                occupants.append(IRCMUCOccupant(nick=nick, room=self.room))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -364,7 +364,8 @@ class IRCConnection(SingleServerIRCBot):
     def on_dcc_disconnect(self, dcc, event):
         self.transfers.pop(dcc)
 
-    def send_chunk(self, stream, dcc):
+    @staticmethod
+    def send_chunk(stream, dcc):
         data = stream.read(4096)
         dcc.send_bytes(data)
         stream.ack_data(len(data))

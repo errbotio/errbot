@@ -77,7 +77,10 @@ class HipChatMUCOccupant(XMPPMUCOccupant):
         """
         for k, v in user.items():
             setattr(self, k, v)
-        super(HipChatMUCOccupant, self).__init__(jid=user['xmpp_jid'])
+        # Quick fix to be able to all the parent.
+        node_domain, resource = user['xmpp_jid'].split('/')
+        node, domain = node_domain.split('@')
+        super(HipChatMUCOccupant, self).__init__(node, domain, resource)
 
     def __str__(self):
         return self.name

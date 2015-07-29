@@ -44,6 +44,7 @@ Features
 
 - `Slack <https://slack.com/>`_ (built-in support)
 - `Hipchat <http://www.hipchat.org/>`_ (built-in support)
+- `Telegram <https://www.telegram.org/>`_ (built-in support)
 - `XMPP <http://xmpp.org>`_ (built-in support)
 - IRC (built-in support)
 - `Gitter <https://gitter.im/>`_ (Follow the instructions from `here <https://github.com/gbin/err-backend-gitter>`_ to install it)

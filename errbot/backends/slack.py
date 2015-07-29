@@ -3,15 +3,15 @@ import logging
 import re
 import time
 import sys
+
 from errbot import PY3
 from errbot.backends import DeprecationBridgeIdentifier
-from errbot.backends.base import (
-    Message, Presence, ONLINE, AWAY, MUCRoom,
-    RoomError, RoomDoesNotExistError, UserDoesNotExistError
-)
+from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom, RoomError, RoomDoesNotExistError, \
+    UserDoesNotExistError
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 from errbot.rendering import imtext
+
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.slack')
@@ -155,7 +155,6 @@ class SlackMUCOccupant(SlackIdentifier):
 
 
 class SlackBackend(ErrBot):
-
     def __init__(self, config):
         super().__init__(config)
         identity = config.BOT_IDENTITY
@@ -643,9 +642,9 @@ class SlackRoom(MUCRoom):
     def occupants(self):
         members = self._channel_info['members']
         return [SlackMUCOccupant(
-                node=self.name,
-                domain=self._bot.sc.server.domain,
-                resource=self._bot.userid_to_username(m))
+            node=self.name,
+            domain=self._bot.sc.server.domain,
+            resource=self._bot.userid_to_username(m))
                 for m in members]
 
     def invite(self, *args):

@@ -1,9 +1,10 @@
 import logging
 import sys
-from errbot.backends import SimpleIdentifier
+
 from errbot.backends.base import RoomError
 from errbot.errBot import ErrBot
 from errbot.rendering import text
+
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.telegram')

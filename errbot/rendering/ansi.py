@@ -2,17 +2,16 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4:sw=4
 
-from markdown import Markdown
-from markdown.extensions.extra import ExtraExtension
-from markdown.extensions import Extension
-from markdown.postprocessors import Postprocessor
 from itertools import chain
-from os import path
-from ansi.color import fg, bg, fx
 from collections import namedtuple
 from functools import partial
 import io
 import logging
+
+from markdown import Markdown
+from markdown.extensions import Extension
+from markdown.postprocessors import Postprocessor
+from ansi.color import fg, bg, fx
 
 log = logging.getLogger(__name__)
 

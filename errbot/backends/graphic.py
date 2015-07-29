@@ -8,6 +8,7 @@ from errbot.backends.base import Message
 from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.rendering import xhtml
 
+
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.graphic')
 

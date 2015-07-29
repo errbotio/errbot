@@ -3,13 +3,10 @@ import logging
 import random
 import time
 import warnings
-
 from collections import deque, defaultdict
-from xml.etree import cElementTree as ET
-from xml.etree.cElementTree import ParseError
 
-from errbot import botcmd, PY2
-from errbot.utils import get_sender_username, deprecated, compat_str
+from errbot.utils import deprecated, compat_str
+
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.base')

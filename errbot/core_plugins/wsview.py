@@ -3,6 +3,7 @@ from json import loads
 import logging
 
 from bottle import Bottle, request
+
 # noinspection PyUnresolvedReferences
 from bottle import jinja2_view as view
 # noinspection PyUnresolvedReferences

@@ -1,12 +1,12 @@
-import logging
 import gc
 import os
 import signal
+from datetime import datetime
+
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.plugin_manager import global_restart
 from errbot.utils import format_timedelta
-from datetime import datetime
 
 
 class Health(BotPlugin):

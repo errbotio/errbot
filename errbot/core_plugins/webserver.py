@@ -1,17 +1,17 @@
 import sys
 import os
-import inspect
-
 from json import loads
 from random import random
+
+from webtest import TestApp
+
 from errbot import PY3
 from errbot import botcmd
 from errbot import BotPlugin
 from errbot.version import VERSION
-from errbot.core_plugins.wsview import bottle_app, reset_app, WebView
+from errbot.core_plugins.wsview import bottle_app
 from errbot.decorators import webhook
 from errbot.bundled.rocket import Rocket
-from webtest import TestApp
 
 if PY3:
     from urllib.request import unquote

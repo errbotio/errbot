@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 import logging
 import sys
-import warnings
 import threading
 import subprocess
 import struct
+
+from markdown import Markdown
+from markdown.extensions.extra import ExtraExtension
 
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream
@@ -12,8 +14,6 @@ from errbot.errBot import ErrBot
 from errbot.utils import RateLimited
 from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
 
-from markdown import Markdown
-from markdown.extensions.extra import ExtraExtension
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.irc')

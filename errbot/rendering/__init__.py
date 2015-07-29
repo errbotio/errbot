@@ -1,5 +1,6 @@
 # vim: noai:ts=4:sw=4
 import re
+
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 from markdown.extensions.attr_list import AttrListTreeprocessor

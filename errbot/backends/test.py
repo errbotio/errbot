@@ -7,12 +7,14 @@ from tempfile import mkdtemp
 from threading import Thread
 
 import pytest
+
 from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
 from errbot.rendering import text
 from errbot.backends.base import Message, MUCRoom
 from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import setup_bot
+
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.test')

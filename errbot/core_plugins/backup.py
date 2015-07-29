@@ -1,5 +1,6 @@
-from errbot import BotPlugin, botcmd
 import os
+
+from errbot import BotPlugin, botcmd
 
 
 class Backup(BotPlugin):

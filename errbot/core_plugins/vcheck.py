@@ -1,7 +1,8 @@
-from errbot import BotPlugin
-from errbot.version import VERSION
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
+
+from errbot import BotPlugin
+from errbot.version import VERSION
 from errbot.utils import version2array
 
 HOME = 'http://gbin.github.io/err/version'

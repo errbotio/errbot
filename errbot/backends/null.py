@@ -1,8 +1,9 @@
 import logging
 from time import sleep
-from errbot.backends.base import Message
+
 from errbot.backends import SimpleIdentifier
 from errbot.errBot import ErrBot
+
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.null')

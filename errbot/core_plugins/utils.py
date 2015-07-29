@@ -1,7 +1,8 @@
+from os import path
+
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.utils import tail
-from os import path
 
 
 class Utils(BotPlugin):

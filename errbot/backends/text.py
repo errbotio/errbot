@@ -2,15 +2,18 @@
 # vim: ts=4:sw=4
 import logging
 import sys
-from ansi.color import fg, bg, fx
+
+from ansi.color import fg, fx
+from pygments import highlight
+from pygments.formatters import Terminal256Formatter
+from pygments.lexers import get_lexer_by_name
+
 from errbot.rendering import ansi, text, xhtml
 from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
-from pygments import highlight
-from pygments.formatters import Terminal256Formatter
-from pygments.lexers import get_lexer_by_name
+
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.text')

@@ -6,8 +6,6 @@ from errbot.version import VERSION
 from errbot.utils import compat_str
 
 
-__author__ = 'gbin'
-
 # 2to3 hack
 # thanks to https://github.com/oxplot/fysom/issues/1
 # which in turn references http://www.rfk.id.au/blog/entry/preparing-pyenchant-for-python-3/

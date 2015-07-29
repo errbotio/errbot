@@ -4,6 +4,7 @@ import sys
 
 from yapsy.PluginManager import PluginManager
 from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
+
 from errbot.errBot import ErrBot
 from .utils import find_roots_with_extra
 

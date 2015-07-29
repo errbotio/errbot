@@ -2,7 +2,6 @@ import logging
 import os
 import shlex
 import warnings
-
 from threading import Timer, current_thread
 
 from .utils import PLUGINS_SUBDIR, recurse_check_structure

@@ -25,7 +25,9 @@ logging.basicConfig(level=logging.DEBUG)
 class DummyBackend(ErrBot):
     outgoing_message_queue = Queue()
 
-    def __init__(self, extra_config={}):
+    def __init__(self, extra_config=None):
+        if extra_config is None:
+            extra_config = {}
         # make up a config.
         tempdir = mkdtemp()
         # reset the config every time

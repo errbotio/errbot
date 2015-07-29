@@ -2,7 +2,7 @@ from collections import MutableMapping
 import logging
 import shelve
 
-from . import PY2
+from .utils import PY2
 log = logging.getLogger(__name__)
 
 

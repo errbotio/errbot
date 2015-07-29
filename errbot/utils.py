@@ -78,9 +78,9 @@ def format_timedelta(timedelta):
 BAR_WIDTH = 15.0
 
 
-def drawbar(value, max):
-    if max:
-        value_in_chr = int(round((value * BAR_WIDTH / max)))
+def drawbar(value, max_):
+    if max_:
+        value_in_chr = int(round((value * BAR_WIDTH / max_)))
     else:
         value_in_chr = 0
     return '[' + '█' * value_in_chr + '▒' * int(round(BAR_WIDTH - value_in_chr)) + ']'
@@ -323,5 +323,5 @@ def compat_str(s):
     if isinstance(s, str):
         return s
     elif isinstance(s, bytes):
-        return s.decode('utf-8')
+        return s.decode()
     return None

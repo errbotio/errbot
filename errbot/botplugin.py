@@ -83,6 +83,13 @@ class BotPluginBase(StoreMixin):
         self.is_activated = False
 
     def start_poller(self, interval, method, args=None, kwargs=None):
+        """ Starts a poller that will be called at a regular interval
+
+        :param interval: interval in seconds
+        :param method: targetted method
+        :param args: args for the targetted method
+        :param kwargs: kwargs for the targetting method
+        """
         if not kwargs:
             kwargs = {}
         if not args:

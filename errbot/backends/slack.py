@@ -4,12 +4,11 @@ import re
 import time
 import sys
 
-from errbot import PY3
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom, RoomError, RoomDoesNotExistError, \
     UserDoesNotExistError
 from errbot.errBot import ErrBot
-from errbot.utils import deprecated
+from errbot.utils import deprecated, PY3
 from errbot.rendering import imtext
 
 
@@ -64,7 +63,7 @@ USER_IS_BOT_HELPTEXT = (
 class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
 
-    def __init__(self, *args, error, **kwargs):
+    def __init__(self, *args, error='', **kwargs):
         """
         :param error:
             The 'error' key from the API response data
@@ -203,7 +202,7 @@ class SlackBackend(ErrBot):
         log.info("Verifying authentication token")
         self.auth = self.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:
-            raise SlackAPIResponseError("Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
+            raise SlackAPIResponseError(error="Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
         log.debug("Token accepted")
         self.bot_identifier = SlackIdentifier(self.sc, self.auth["user_id"])
 
@@ -320,11 +319,11 @@ class SlackBackend(ErrBot):
 
         self.callback_message(msg)
 
-    def userid_to_username(self, id):
+    def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""
-        user = [user for user in self.sc.server.users if user.id == id]
+        user = [user for user in self.sc.server.users if user.id == id_]
         if not user:
-            raise UserDoesNotExistError("Cannot find user with ID %s" % id)
+            raise UserDoesNotExistError("Cannot find user with ID %s" % id_)
         return user[0].name
 
     def username_to_userid(self, name):
@@ -334,11 +333,11 @@ class SlackBackend(ErrBot):
             raise UserDoesNotExistError("Cannot find user %s" % name)
         return user[0].id
 
-    def channelid_to_channelname(self, id):
+    def channelid_to_channelname(self, id_):
         """Convert a Slack channel ID to its channel name"""
-        channel = [channel for channel in self.sc.server.channels if channel.id == id]
+        channel = [channel for channel in self.sc.server.channels if channel.id == id_]
         if not channel:
-            raise RoomDoesNotExistError("No channel with ID %s exists" % id)
+            raise RoomDoesNotExistError("No channel with ID %s exists" % id_)
         return channel[0].name
 
     def channelname_to_channelid(self, name):
@@ -379,9 +378,9 @@ class SlackBackend(ErrBot):
         return channels + groups
 
     @lru_cache(50)
-    def get_im_channel(self, id):
+    def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
-        response = self.api_call('im.open', data={'user': id})
+        response = self.api_call('im.open', data={'user': id_})
         return response['channel']['id']
 
     def send_message(self, mess):
@@ -504,12 +503,12 @@ class SlackRoom(MUCRoom):
         """
         The channel object exposed by SlackClient
         """
-        id = self.sc.server.channels.find(self.name)
-        if id is None:
+        id_ = self.sc.server.channels.find(self.name)
+        if id_ is None:
             raise RoomDoesNotExistError(
                 "%s does not exist (or is a private group you don't have access to)" % str(self)
             )
-        return id
+        return id_
 
     @property
     def _channel_info(self):
@@ -641,11 +640,7 @@ class SlackRoom(MUCRoom):
     @property
     def occupants(self):
         members = self._channel_info['members']
-        return [SlackMUCOccupant(
-            node=self.name,
-            domain=self._bot.sc.server.domain,
-            resource=self._bot.userid_to_username(m))
-                for m in members]
+        return [SlackMUCOccupant(self.sc, self._bot.userid_to_username(m), self._name) for m in members]
 
     def invite(self, *args):
         users = {user['name']: user['id'] for user in self._bot.api_call('users.list')['members']}
@@ -664,4 +659,4 @@ class SlackRoom(MUCRoom):
                 if response['error'] == "user_is_bot":
                     raise RoomError("Unable to invite people. " + USER_IS_BOT_HELPTEXT)
                 elif response['error'] != "already_in_channel":
-                    raise SlackAPIResponseError("Slack API call to %s failed: %s" % (method, response['error']))
+                    raise SlackAPIResponseError(error="Slack API call to %s failed: %s" % (method, response['error']))

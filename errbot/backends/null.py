@@ -9,7 +9,7 @@ from errbot.errBot import ErrBot
 log = logging.getLogger('errbot.backends.null')
 
 
-class ConnectionMock():
+class ConnectionMock(object):
     def send(self, mess):
         pass
 

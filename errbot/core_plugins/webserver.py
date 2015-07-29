@@ -5,12 +5,10 @@ from random import random
 
 from webtest import TestApp
 
-from errbot import PY3
-from errbot import botcmd
-from errbot import BotPlugin
+from errbot import botcmd, BotPlugin, webhook
 from errbot.version import VERSION
+from errbot.utils import PY3
 from errbot.core_plugins.wsview import bottle_app
-from errbot.decorators import webhook
 from errbot.bundled.rocket import Rocket
 
 if PY3:

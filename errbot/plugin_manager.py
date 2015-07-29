@@ -7,9 +7,8 @@ import sys
 import os
 import subprocess
 import pip
-from . import PY2
 from .botplugin import BotPlugin
-from .utils import version2array, PY3, find_roots, find_roots_with_extra, PLUGINS_SUBDIR, which, human_name_for_git_url
+from .utils import version2array, PY3, PY2, find_roots_with_extra, PLUGINS_SUBDIR, which, human_name_for_git_url
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -82,7 +81,7 @@ def check_dependencies(path):
                     missing_pkg)
         return None
     except Exception:
-        return ('You need to have setuptools installed for the dependency check of the plugins', [])
+        return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
 def global_restart():
@@ -405,7 +404,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             feedback = p.stdout.read().decode('utf-8')
             error_feedback = p.stderr.read().decode('utf-8')
             if p.wait():
-                return ("Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback), )
+                return "Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback),
         self.add_plugin_repo(human_name, repo)
         return self.update_dynamic_plugins()
 

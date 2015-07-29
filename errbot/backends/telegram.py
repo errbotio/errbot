@@ -52,8 +52,8 @@ class TelegramBotFilter(object):
 
 class TelegramIdentifier(object):
 
-    def __init__(self, id, first_name=None, last_name=None, username=None, title=None):
-        self._id = id
+    def __init__(self, id_, first_name=None, last_name=None, username=None, title=None):
+        self._id = id_
         self._first_name = first_name
         self._last_name = last_name
         self._username = username
@@ -135,7 +135,7 @@ class TelegramBackend(ErrBot):
             return False
 
         self.bot_identifier = TelegramIdentifier(
-            id=me.id,
+            id_=me.id,
             first_name=me.first_name,
             last_name=me.last_name,
             username=me.username
@@ -185,7 +185,7 @@ class TelegramBackend(ErrBot):
         if isinstance(message.chat, telegram.user.User):
             message_instance.type = "chat"
             message_instance.frm = TelegramIdentifier(
-                id=message.from_user.id,
+                id_=message.from_user.id,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
                 username=message.from_user.username
@@ -200,7 +200,7 @@ class TelegramBackend(ErrBot):
                 username=message.from_user.username
             )
             message_instance.to = TelegramIdentifier(
-                id=message.chat.id,
+                id_=message.chat.id,
                 title=message.chat.title
             )
 
@@ -223,10 +223,10 @@ class TelegramBackend(ErrBot):
         Convert a textual representation into a :class:`~TelegramIdentifier`.
         """
         log.debug("building an identifier from %s" % txtrep)
-        id = txtrep.strip()
-        if not self._is_numeric(id):
+        id_ = txtrep.strip()
+        if not self._is_numeric(id_):
             raise ValueError("Telegram identifiers must be numeric")
-        return TelegramIdentifier(id=id)
+        return TelegramIdentifier(id_=id_)
 
     def build_reply(self, mess, text=None, private=False):
         msg_type = mess.type
@@ -266,10 +266,10 @@ class TelegramBackend(ErrBot):
         message.body = '@{0}: {1}'.format(identifier.nick, message.body)
 
     @staticmethod
-    def _is_numeric(input):
+    def _is_numeric(input_):
         """Return true if input is a number"""
         try:
-            int(input)
+            int(input_)
             return True
         except ValueError:
             return False

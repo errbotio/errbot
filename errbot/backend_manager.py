@@ -61,6 +61,11 @@ class BackendManager(PluginManager):
         return element(self._config)
 
     def get_candidate(self, name):
+        """ Find the backend plugin by name.
+
+        :param name: The name of the plugin you are looking for.
+        :return: :raise Exception:
+        """
         for (_, _, plug) in self.getPluginCandidates():
             if plug.name == name:
                 return plug

@@ -1,9 +1,9 @@
 from uuid import uuid4
 
-from errbot import BotPlugin, PY3, botcmd, SeparatorArgParser, ShlexArgParser
+from errbot import BotPlugin, botcmd, SeparatorArgParser, ShlexArgParser
 from errbot.backends.base import RoomNotJoinedError
 from errbot.version import VERSION
-from errbot.utils import compat_str
+from errbot.utils import compat_str, PY3
 
 
 # 2to3 hack

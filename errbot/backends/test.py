@@ -27,6 +27,9 @@ STZ_IQ = 3
 
 
 class TestMUCRoom(MUCRoom):
+    def invite(self, *args):
+        pass
+
     def __init__(self, name, occupants=None, topic=None, bot=None):
         """
         :param name: Name of the room

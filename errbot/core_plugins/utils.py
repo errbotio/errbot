@@ -63,7 +63,7 @@ class Utils(BotPlugin):
             n = int(args)
 
         if self.bot_config.BOT_LOG_FILE:
-            with open(self.bot_config.BOT_LOG_FILE, 'r') as f:
+            with open(self.bot_config.BOT_LOG_FILE) as f:
                 return tail(f, n)
         return 'No log is configured, please define BOT_LOG_FILE in config.py'
 

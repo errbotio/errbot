@@ -17,20 +17,15 @@ from datetime import datetime
 import difflib
 import inspect
 import logging
-import os
 import traceback
-from tarfile import TarFile
-from urllib.request import urlopen
 
-from . import botcmd, PY2
-from .backends.base import Backend, ACLViolation
-from .utils import (get_sender_username, split_string_after,
-                    get_class_that_defined_method, compat_str)
-
-from .version import VERSION
-from .streaming import Tee
-from .plugin_manager import BotPluginManager, PluginConfigurationException
 from .bundled.threadpool import ThreadPool, WorkRequest
+
+from .backends.base import Backend, ACLViolation
+from .utils import (split_string_after,
+                    get_class_that_defined_method, compat_str)
+from .streaming import Tee
+from .plugin_manager import BotPluginManager
 from .templating import tenv
 
 log = logging.getLogger(__name__)

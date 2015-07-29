@@ -424,6 +424,7 @@ def testbot(request):
     logger.setLevel(logging.DEBUG)
     console_hdlr = logging.StreamHandler(sys.stdout)
     console_hdlr.setFormatter(logging.Formatter("%(levelname)-8s %(name)-25s %(message)s"))
+    logger.handlers = []
     logger.addHandler(console_hdlr)
 
     kwargs = {}

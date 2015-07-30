@@ -50,6 +50,10 @@ import logging
 # this to a directory that is writable by the user running the bot.
 BOT_DATA_DIR = '/var/lib/err'
 
+# The location of the log file. If you set this to None, then logging will
+# happen to console only.
+BOT_LOG_FILE = BOT_DATA_DIR + '/err.log'
+
 # Set this to a directory on your system where you want to load extra
 # plugins from, which is useful mostly if you want to develop a plugin
 # locally before publishing it. Note that you can specify only a single
@@ -71,10 +75,6 @@ BOT_EXTRA_PLUGIN_DIR = None
 # the user running Err.
 #AUTOINSTALL_DEPS = True
 
-# The location of the log file. If you set this to None, then logging will
-# happen to console only.
-BOT_LOG_FILE = '/var/log/err/err.log'
-
 # The verbosity level of logging that is done to the above logfile, and to
 # the console. This takes the standard Python logging levels, DEBUG, INFO,
 # WARN, ERROR. For more info, see http://docs.python.org/library/logging.html
@@ -90,8 +90,8 @@ BOT_LOG_SENTRY = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 
-# Execute commands in asynchronous mode. In this mode, Err will spawn 3 
-# seperate threads to handle commands, instead of blocking on each 
+# Execute commands in asynchronous mode. In this mode, Err will spawn 3
+# separate threads to handle commands, instead of blocking on each
 # single command.
 BOT_ASYNC = True
 

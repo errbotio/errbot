@@ -16,6 +16,7 @@
 
 import inspect
 import sys
+from distutils.util import strtobool
 import logging
 import argparse
 from os import path, sep, getcwd, access, W_OK
@@ -139,6 +140,13 @@ def get_config(config_path):
     log.info('Config check passed...')
     return config
 
+def yes_no_question(question):
+    sys.stdout.write('%s [y/N] ' % question)
+    while True:
+        try:
+            return strtobool(input().lower())
+        except ValueError:
+            sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
 
 if __name__ == "__main__":
 
@@ -149,6 +157,8 @@ if __name__ == "__main__":
     sys.path.insert(0, execution_dir)
 
     parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
+    parser.add_argument('-i', '--init', nargs='?', default=None, const='.',
+                        help='This configures err. You can optionally pass it the full path of the err base directory in which it will create the config, store the plugins and data. By default it will take the current directory.')
     parser.add_argument('-c', '--config', default=None,
                         help='Full path to your config.py (default: config.py in current working directory).')
     parser.add_argument('-r', '--restore', nargs='?', default=None, const='default',
@@ -171,6 +181,14 @@ if __name__ == "__main__":
                                   help='Specify the pid file for the daemon (default: current bot data directory)')
 
     args = vars(parser.parse_args())  # create a dictionary of args
+
+    if args['init']:
+        data_path = path.abspath(args['init'])
+        print('\nErr installation.\n\n This will initialize err data in:\n\n%s\n\nYou have to be sure this is an empty and accessible directory.\n' % data_path)
+        resp = yes_no_question('Is this what you want to do ?')
+        print(resp)
+        sys.exit(0)
+
     config_path = args['config']
     # setup the environment to be able to import the config.py
     if config_path:

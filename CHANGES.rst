@@ -24,7 +24,9 @@ See the screenshots below: Slack_, Hipchat_, IRC_, Gitter_ and finally Text_.
 - Identifiers are now generic (and not tight to XMPP anymore) with common notions of ``.person`` ``.room`` (for MUCIdentifiers) ``.client`` ``.nick`` and ``.displayname`` see `this doc <https://github.com/gbin/err/blob/master/docs/user_guide/backend_development/index.rst#identifiers>`_ for details.
 - New ``!whoami`` command to debug identity problems for your plugins.
 - New ``!killbot`` command to stop your bot remotely in case of emergency.
+- New support for `argparse style command arguments <https://github.com/gbin/err/blob/master/docs/user_guide/plugin_development/botcommands.rst#argparse-argument-splitting>`_ with the ``@arg_botcmd`` decorator.
 - IRC: file transfer from the bot is now supported (DCC)
+
 
 Minor improvements
 ------------------

@@ -27,7 +27,6 @@ See the screenshots below: Slack_, Hipchat_, IRC_, Gitter_ and finally Text_.
 - New support for `argparse style command arguments <https://github.com/gbin/err/blob/master/docs/user_guide/plugin_development/botcommands.rst#argparse-argument-splitting>`_ with the ``@arg_botcmd`` decorator.
 - IRC: file transfer from the bot is now supported (DCC)
 
-
 Minor improvements
 ------------------
 

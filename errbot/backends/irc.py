@@ -93,6 +93,7 @@ class IRCIdentifier(DeprecationBridgeIdentifier):
 
     # generic compatibility
     person = nick
+    client = ''  # TODO it should be possible to get more info here
 
     @property
     def fullname(self):

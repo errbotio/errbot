@@ -7,6 +7,7 @@ import sys
 
 from .core_plugins.wsview import bottle_app, WebView
 from .utils import compat_str
+from .utils import PY2, PY3  # noqa gbin: this is now used by plugins
 from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser  # noqa
 from .core_plugins.wsview import route, view  # noqa
 

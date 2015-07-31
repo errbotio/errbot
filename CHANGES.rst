@@ -1,7 +1,7 @@
 v3.0.0-rc1
 ==========
 
-``Release date: 2015-07-24``
+``Release date: 2015-07``
 
 We have decided to promote this release as the v3 \\o/. This is the next version after 2.3.0-rc2.
 

@@ -9,6 +9,8 @@ from errbot.rendering import text
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.telegram')
 
+TELEGRAM_MESSAGE_SIZE_LIMIT = 1024
+
 try:
     import telegram
 except ImportError:
@@ -111,6 +113,7 @@ class TelegramBackend(ErrBot):
 
     def __init__(self, config):
         super().__init__(config)
+        config.MESSAGE_SIZE_LIMIT = TELEGRAM_MESSAGE_SIZE_LIMIT
         logging.getLogger('telegram.bot').addFilter(TelegramBotFilter())
 
         identity = config.BOT_IDENTITY

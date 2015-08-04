@@ -138,4 +138,8 @@ KNOWN_PUBLIC_REPOS = {
         'https://github.com/charlesrg/err-stash.git',
         'Plugin to notify commits to Atlassian Stash Git repo to user or chatrooms.'
     ),
+    u'err-stackstorm': (
+        u'https://github.com/fmnisme/err-stackstorm.git',
+        u'Plugin to run action-alias in stackstorm.'
+    ),
 }

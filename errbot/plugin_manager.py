@@ -109,8 +109,8 @@ class BotPluginManager(PluginManager, StoreMixin):
             self[self.CONFIGS] = {}
 
         self.setCategoriesFilter({"bots": BotPlugin})
-        locator = PluginFileLocator()
-        locator.setAnalyzers([PluginFileAnalyzerWithInfoFile("info_ext", 'plug')])
+        locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug')])
+        locator.disableRecursiveScan()  # We do that ourselves
         self.setPluginLocator(locator)
 
     def instanciateElement(self, element):
@@ -241,11 +241,17 @@ class BotPluginManager(PluginManager, StoreMixin):
         plugin.plugin_object.__class__ = new_class
 
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
+        log.debug("path_list %s" % repr(path_list))
+        log.debug("extra_plugin_dir %s" % repr(extra_plugin_dir))
+        log.debug("CORE_PLUGINS %s" % repr(CORE_PLUGINS))
         builtins = find_roots_with_extra(CORE_PLUGINS, extra_plugin_dir)
-        paths = builtins + path_list
+        if isinstance(extra_plugin_dir, list):
+            paths = path_list + extra_plugin_dir
+        else:
+            paths = path_list + [extra_plugin_dir, ]
         for entry in paths:
             if entry not in sys.path:
-                sys.path.append(entry)  # so plugins can relatively import their submodules
+                sys.path.append(entry)  # so plugins can relatively import their repos
         dependencies_result = [check_dependencies(path) for path in paths]
         deps_to_install = set()
         if autoinstall_deps:
@@ -261,19 +267,17 @@ class BotPluginManager(PluginManager, StoreMixin):
         else:
             errors = [result[0] for result in dependencies_result if result is not None]
         self.setPluginPlaces(chain(builtins, path_list))
-        all_candidates = []
-
-        def add_candidate(candidate):
-            all_candidates.append(candidate)
-
         self.locatePlugins()
+
+        self.all_candidates = self.getPluginCandidates()
+
         # noinspection PyBroadException
         try:
-            self.loadPlugins(add_candidate)
+            self.loadPlugins()
         except Exception:
             log.exception("Error while loading plugins")
 
-        return all_candidates, errors
+        return errors
 
     def get_all_active_plugin_objects(self):
         return [plug.plugin_object
@@ -341,11 +345,9 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        all_candidates, errors = self.update_plugin_places(
+        return self.update_plugin_places(
             [self.plugin_dir + os.sep + d for d in self.get(self.REPOS, {}).keys()],
             self.bot_config.BOT_EXTRA_PLUGIN_DIR, self.bot_config.AUTOINSTALL_DEPS)
-        self.all_candidates = all_candidates
-        return errors
 
     def activate_non_started_plugins(self):
         log.info('Activating all the plugins...')

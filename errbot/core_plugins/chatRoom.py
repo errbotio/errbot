@@ -1,16 +1,19 @@
 from uuid import uuid4
+import logging
 
 from errbot import BotPlugin, botcmd, SeparatorArgParser, ShlexArgParser
 from errbot.backends.base import RoomNotJoinedError
 from errbot.version import VERSION
 from errbot.utils import compat_str, PY3
 
-
 # 2to3 hack
 # thanks to https://github.com/oxplot/fysom/issues/1
 # which in turn references http://www.rfk.id.au/blog/entry/preparing-pyenchant-for-python-3/
 if PY3:
     basestring = (str, bytes)
+
+log = logging.getLogger(__name__)
+log.debug("LOADING CHATROOM")
 
 
 class ChatRoom(BotPlugin):

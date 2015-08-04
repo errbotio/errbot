@@ -232,8 +232,10 @@ class BotPluginManager(PluginManager, StoreMixin):
             self.deactivate_plugin_by_name(name)
 
         plugin = self.get_plugin_by_name(name)
-        logging.critical(dir(plugin))
-        module = __import__(plugin.path.split(os.sep)[-1])
+        log.debug("reloading plugin: %s" % plugin.path)
+        module = __import__(plugin.plugin_object.__module__)
+        log.debug("module dir: %s" % dir(module))
+        log.debug("module file: %s" % module.__file__)
         reload(module)
 
         class_name = type(plugin.plugin_object).__name__
@@ -245,13 +247,19 @@ class BotPluginManager(PluginManager, StoreMixin):
         log.debug("extra_plugin_dir %s" % repr(extra_plugin_dir))
         log.debug("CORE_PLUGINS %s" % repr(CORE_PLUGINS))
         builtins = find_roots_with_extra(CORE_PLUGINS, extra_plugin_dir)
-        if isinstance(extra_plugin_dir, list):
-            paths = path_list + extra_plugin_dir
-        else:
-            paths = path_list + [extra_plugin_dir, ]
+
+        paths = path_list
+        if extra_plugin_dir:
+            if isinstance(extra_plugin_dir, list):
+                paths += extra_plugin_dir
+            else:
+                paths += [extra_plugin_dir, ]
+
         for entry in paths:
             if entry not in sys.path:
+                log.debug("Add %s to paths")
                 sys.path.append(entry)  # so plugins can relatively import their repos
+
         dependencies_result = [check_dependencies(path) for path in paths]
         deps_to_install = set()
         if autoinstall_deps:

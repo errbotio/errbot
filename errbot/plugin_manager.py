@@ -12,6 +12,7 @@ from .utils import version2array, PY3, PY2, find_roots_with_extra, PLUGINS_SUBDI
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
+from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
 from .core_plugins.wsview import route
 from .storage import StoreMixin
 from .repos import KNOWN_PUBLIC_REPOS
@@ -108,8 +109,9 @@ class BotPluginManager(PluginManager, StoreMixin):
             self[self.CONFIGS] = {}
 
         self.setCategoriesFilter({"bots": BotPlugin})
-        plugin_locator = self._locatorDecide('plug', None)
-        self.setPluginLocator(plugin_locator, None)
+        locator = PluginFileLocator()
+        locator.setAnalyzers([PluginFileAnalyzerWithInfoFile("info_ext", 'plug')])
+        self.setPluginLocator(locator)
 
     def instanciateElement(self, element):
         """ Override the loading method to inject bot """

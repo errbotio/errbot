@@ -1,7 +1,7 @@
 v3.0.0-rc1
 ==========
 
-``Release date: 2015-07``
+``Release date: 2015-08-05``
 
 We have decided to promote this release as the v3 \\o/. This is the next version after 2.3.0-rc2.
 
@@ -49,6 +49,7 @@ Stuff that might break you
 Bugs squashed
 -------------
 
+- plugin loader do not traverse __pycache__ and dotted directory anymore
 - import error at install time.
 - IRC backend compatibility with gitter
 - Better logging to debug plugin callbacks

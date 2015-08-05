@@ -228,7 +228,9 @@ class BotPluginManager(PluginManager, StoreMixin):
         """
         Completely reload the given plugin, including reloading of the module's code
         """
-        if name in self.get_all_active_plugin_names():
+        was_activated = name in self.get_all_active_plugin_names()
+
+        if was_activated:
             self.deactivate_plugin_by_name(name)
 
         plugin = self.get_plugin_by_name(name)
@@ -242,10 +244,10 @@ class BotPluginManager(PluginManager, StoreMixin):
         new_class = getattr(module, class_name)
         plugin.plugin_object.__class__ = new_class
 
+        if was_activated:
+            self.activate_plugin(name)
+
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
-        log.debug("path_list %s" % repr(path_list))
-        log.debug("extra_plugin_dir %s" % repr(extra_plugin_dir))
-        log.debug("CORE_PLUGINS %s" % repr(CORE_PLUGINS))
         builtins = find_roots_with_extra(CORE_PLUGINS, extra_plugin_dir)
 
         paths = path_list
@@ -388,13 +390,13 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)
         self.get_plugin_obj_by_name(name).callback_connect()
-        return "Plugin %s activated" % name
+        return "Plugin %s activated." % name
 
     def deactivate_plugin(self, name):
         if name not in self.get_all_active_plugin_names():
             return "Plugin %s not in active list" % name
         self.deactivate_plugin_by_name(name)
-        return "Plugin %s deactivated" % name
+        return "Plugin %s deactivated." % name
 
     def install_repo(self, repo):
         if repo in KNOWN_PUBLIC_REPOS:

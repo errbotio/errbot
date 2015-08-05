@@ -125,7 +125,6 @@ class Plugins(BotPlugin):
                             name = plugin.name
                             self.send(mess.frm, '/me is reloading plugin %s' % name)
                             self._bot.reload_plugin_by_name(plugin.name)
-                            self._bot.activate_plugin(plugin.name)
                             self.send(mess.frm, '%s reloaded and reactivated' % name)
         if core_to_update:
             self.send(mess.frm, "You have updated the core, I need to restart.", message_type=mess.type)
@@ -205,52 +204,54 @@ class Plugins(BotPlugin):
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def plugin_reload(self, mess, args):
-        """reload a plugin"""
-        args = args.strip()
-        if not args:
+        """reload a plugin: reload the code of the plugin leaving the activation status intact."""
+        name = args.strip()
+        if not name:
             yield ("Please tell me which of the following plugins to reload:\n"
                    "{}".format(self.formatted_plugin_list(active_only=False)))
             return
-        if args not in self._bot.get_all_plugin_names():
+        if name not in self._bot.get_all_plugin_names():
             yield ("{} isn't a valid plugin name. The current plugins are:\n"
-                   "{}".format(args, self.formatted_plugin_list(active_only=False)))
+                   "{}".format(name, self.formatted_plugin_list(active_only=False)))
             return
 
-        yield self._bot.deactivate_plugin(args)  # Not needed but keeps the feedback to user consistent
-        self._bot.reload_plugin_by_name(args)
-        yield self._bot.activate_plugin(args)
+        if name not in self._bot.get_all_active_plugin_names():
+            yield (("Warning: plugin %s is currently not activated. " +
+                   "Use !plugin activate %s to activate it.") % (name, name))
+
+        self._bot.reload_plugin_by_name(name)
+
+        yield "Plugin %s reloaded." % name
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_load(self, mess, args):
-        """load a plugin"""
+    def plugin_activate(self, mess, args):
+        """activate a plugin. [calls .activate() on the plugin]"""
         args = args.strip()
         if not args:
-            return ("Please tell me which of the following plugins to reload:\n"
+            return ("Please tell me which of the following plugins to activate:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
         if args not in self._bot.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args in self._bot.get_all_active_plugin_names():
-            return "{} is already loaded".format(args)
+            return "{} is already activated.".format(args)
 
-        self._bot.reload_plugin_by_name(args)
-        r = self._bot.activate_plugin(args)
-        return r
+        return self._bot.activate_plugin(args)
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_unload(self, mess, args):
-        """unload a plugin"""
+    def plugin_deactivate(self, mess, args):
+        """deactivate a plugin. [calls .deactivate on the plugin]"""
         args = args.strip()
         if not args:
-            return ("Please tell me which of the following plugins to reload:\n"
+            return ("Please tell me which of the following plugins to deactivate:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
         if args not in self._bot.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args not in self._bot.get_all_active_plugin_names():
-            return "{} is not currently loaded".format(args)
+            return "{} is already deactivated.".format(args)
 
         return self._bot.deactivate_plugin(args)
 

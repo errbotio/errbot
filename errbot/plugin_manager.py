@@ -1,6 +1,7 @@
 from configparser import NoSectionError
 from itertools import chain
 import importlib
+import imp
 import inspect
 import logging
 import sys
@@ -234,14 +235,13 @@ class BotPluginManager(PluginManager, StoreMixin):
             self.deactivate_plugin_by_name(name)
 
         plugin = self.get_plugin_by_name(name)
-        log.debug("reloading plugin: %s" % plugin.path)
-        module = __import__(plugin.plugin_object.__module__)
-        log.debug("module dir: %s" % dir(module))
-        log.debug("module file: %s" % module.__file__)
-        reload(module)
 
+        module_alias = plugin.plugin_object.__module__
+        module_old = __import__(module_alias)
+        f = module_old.__file__
+        module_new = imp.load_source(module_alias, module_old.__file__)
         class_name = type(plugin.plugin_object).__name__
-        new_class = getattr(module, class_name)
+        new_class = getattr(module_new, class_name)
         plugin.plugin_object.__class__ = new_class
 
         if was_activated:
@@ -279,7 +279,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         self.setPluginPlaces(chain(builtins, path_list))
         self.locatePlugins()
 
-        self.all_candidates = self.getPluginCandidates()
+        self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 
         # noinspection PyBroadException
         try:

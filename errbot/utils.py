@@ -288,7 +288,7 @@ def find_roots(path, file_sig='*.plug'):
             dir_to_add = os.path.dirname(os.path.join(root, filename))
             relative = os.path.relpath(os.path.realpath(dir_to_add), os.path.realpath(path))
             for subelement in relative.split(os.path.sep):
-                if subelement.startswith('.') or subelement == '__pycache__':
+                if subelement != '.' and (subelement.startswith('.') or subelement == '__pycache__'):
                     # this is not a directoty to consider
                     log.debug("Ignore %s" % dir_to_add)
                     break

@@ -43,3 +43,10 @@ class TestPluginManagement(unittest.TestCase):
         self.assertEquals(find_roots_with_extra(CORE_PLUGINS, toto), [CORE_PLUGINS, toto])
         self.assertEquals(find_roots_with_extra(CORE_PLUGINS, [toto, titi]), [CORE_PLUGINS, toto, titi])
         self.assertEquals(find_roots_with_extra(CORE_PLUGINS, [toto, titi, 'nothing']), [CORE_PLUGINS, toto, titi])
+
+    def test_ignore_dotted_directories(self):
+        root = tempfile.mkdtemp()
+        a = os.path.join(root, '.invisible')
+        os.mkdir(a)
+        touch(os.path.join(a, 'toto.plug'))
+        self.assertEquals(find_roots_with_extra(CORE_PLUGINS, root), [CORE_PLUGINS])

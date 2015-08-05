@@ -241,7 +241,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         f = module_old.__file__
         if f.endswith('.pyc'):
             f = f[:-1]  # py2 compat : load the .py
-        module_new = imp.load_source(module_alias, module_old.__file__)
+        module_new = imp.load_source(module_alias, f)
         class_name = type(plugin.plugin_object).__name__
         new_class = getattr(module_new, class_name)
         plugin.plugin_object.__class__ = new_class

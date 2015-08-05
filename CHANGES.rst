@@ -14,6 +14,7 @@ New and noteworthy
 
 - backends are now plugins too
 - new Slack backend (see the `config template <https://github.com/gbin/err/blob/master/errbot/config-template.py#L118>`_ for details)
+- new Telegram backend
 - new Gitter backend (see `the gitter backend repo <http://www.github.com/gbin/err-backend-gitter>`_ for more info about installing it)
 - completely new rendering engine: now all text from either a plugin return or a template is **markdown extras**
 - you can test the various formatting under your backend with the ``!render test`` command.

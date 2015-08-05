@@ -130,10 +130,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         return element(self)
 
     def get_plugin_by_name(self, name):
-        plugin = self.getPluginByName(name, 'bots')
-        if plugin is None:
-            return None
-        return plugin
+        return self.getPluginByName(name, 'bots')
 
     def get_plugin_obj_by_name(self, name):
         plugin = self.get_plugin_by_name(name)

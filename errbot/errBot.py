@@ -598,10 +598,8 @@ class ErrBot(Backend, BotPluginManager):
         log.info('Notifying connection to all the plugins...')
         self.signal_connect_to_all_plugins()
         log.info('Plugin activation done.')
-        self.inject_commands_from(self)
 
     def disconnect_callback(self):
-        self.remove_commands_from(self)
         log.info('Disconnect callback, deactivating all the plugins.')
         self.deactivate_all_plugins()
 

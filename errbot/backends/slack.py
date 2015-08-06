@@ -310,6 +310,8 @@ class SlackBackend(ErrBot):
             text = event['text']
             user = event['user']
 
+        text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
+
         msg = Message(text, type_=message_type)
         if message_type == 'chat':
             msg.frm = SlackIdentifier(self.sc, user, event['channel'])
@@ -490,6 +492,11 @@ class SlackBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0}: {1}'.format(identifier.nick, message.body)
+
+    def remove_angle_brackets_from_uris(self, match_object):
+        if "://" in match_object.group():
+            return match_object.group().strip("<>")
+        return match_object.group() 
 
 
 class SlackRoom(MUCRoom):

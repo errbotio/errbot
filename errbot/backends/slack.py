@@ -496,7 +496,7 @@ class SlackBackend(ErrBot):
     def remove_angle_brackets_from_uris(self, match_object):
         if "://" in match_object.group():
             return match_object.group().strip("<>")
-        return match_object.group() 
+        return match_object.group()
 
 
 class SlackRoom(MUCRoom):

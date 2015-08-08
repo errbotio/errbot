@@ -587,7 +587,7 @@ class XMPPBackend(ErrBot):
             split_jid = txtrep.split('@')
             node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
             if domain.find('/') != -1:
-                domain, resource = domain.split('/')
+                domain, resource = domain.split('/', 1)
             else:
                 resource = None
         else:

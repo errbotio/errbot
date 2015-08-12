@@ -243,21 +243,6 @@ class ChatRoom(BotPlugin):
                 return "Cannot set the topic for {}: {}".format(args[0], e)
             return "Topic for {} set.".format(args[0])
 
-    @botcmd
-    def gtalk_room_create(self, mess, args):
-        """ Create an adhoc chatroom for Google talk and invite the listed persons.
-            If no person is listed, only the requestor is invited.
-
-            Examples:
-            !room create
-            !room create gbin@gootz.net toto@gootz.net
-        """
-        room_name = "private-chat-%s@groupchat.google.com" % uuid4()
-        self.join_room(room_name)
-        to_invite = (mess.frm.stripped,) if not args else (jid.strip() for jid in args.split())
-        self.invite_in_room(room_name, to_invite)
-        return "Room created (%s)" % room_name
-
     def callback_message(self, mess):
         try:
             mess_type = mess.type

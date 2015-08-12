@@ -249,8 +249,8 @@ class ChatRoom(BotPlugin):
             If no person is listed, only the requestor is invited.
 
             Examples:
-            !root create
-            !root create gbin@gootz.net toto@gootz.net
+            !room create
+            !room create gbin@gootz.net toto@gootz.net
         """
         room_name = "private-chat-%s@groupchat.google.com" % uuid4()
         self.join_room(room_name)

@@ -17,7 +17,7 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     if config.BOT_LOG_FILE:
         hdlr = logging.FileHandler(config.BOT_LOG_FILE)
-        hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+        hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
         logger.addHandler(hdlr)
 
     if config.BOT_LOG_SENTRY:

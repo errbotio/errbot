@@ -104,7 +104,7 @@ if isatty:
     )
     console_hdlr.setFormatter(formatter)
 else:
-    console_hdlr.setFormatter(logging.Formatter("%(levelname)-8s %(name)-25s %(message)s"))
+    console_hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
 logger.addHandler(console_hdlr)
 
 

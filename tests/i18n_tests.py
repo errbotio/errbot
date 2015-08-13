@@ -1,3 +1,4 @@
+# -*- coding=utf-8 -*-
 from os import path
 from errbot.backends.test import testbot
 

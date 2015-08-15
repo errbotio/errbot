@@ -11,6 +11,8 @@ import logging
 from markdown import Markdown
 from markdown.extensions import Extension
 from markdown.postprocessors import Postprocessor
+from markdown.extensions.fenced_code import FencedBlockPreprocessor
+
 from ansi.color import fg, bg, fx
 
 log = logging.getLogger(__name__)
@@ -250,7 +252,6 @@ def recurse(write, ct, element, table=None):
         text = element.text
     else:
         text = ''
-
     items = element.items()
     for k, v in items:
         if k == 'color':
@@ -369,12 +370,44 @@ class AnsiPostprocessor(Postprocessor):
         return unescape(text)
 
 
+# This is an adapted FencedBlockPreprocessor that doesn't insert <code><pre>
+class AnsiPreprocessor(FencedBlockPreprocessor):
+    def run(self, lines):
+        """ Match and store Fenced Code Blocks in the HtmlStash. """
+        text = "\n".join(lines)
+        while 1:
+            m = self.FENCED_BLOCK_RE.search(text)
+            if m:
+                code = self._escape(m.group('code'))
+
+                placeholder = self.markdown.htmlStash.store(code, safe=False)
+                text = '%s\n%s\n%s' % (text[:m.start()],
+                                       placeholder,
+                                       text[m.end():])
+            else:
+                break
+        return text.split("\n")
+
+    def _escape(self, txt):
+        """ basic html escaping """
+        txt = txt.replace('&', '&amp;')
+        txt = txt.replace('<', '&lt;')
+        txt = txt.replace('>', '&gt;')
+        txt = txt.replace('"', '&quot;')
+        return txt
+
+
 class AnsiExtension(Extension):
     """(kinda hackish) This is just a private extension to postprocess the html text to ansi text"""
 
     def extendMarkdown(self, md, md_globals):
         md.registerExtension(self)
         md.postprocessors.add(
-            "unescape html", AnsiPostprocessor(), ">unescape"
+            "unescape_html", AnsiPostprocessor(), ">unescape"
         )
-        log.debug("Will apply those postprocessors:\n%s" % md.postprocessors)
+        md.preprocessors.add(
+            "ansi_fenced_codeblock", AnsiPreprocessor(md), "<fenced_code_block"
+        )
+        del(md.preprocessors['fenced_code_block'])  # remove the old fenced block
+        log.debug("Will apply those postprocessors:\n%s" % '\n'.join(md.postprocessors))
+        log.debug("Will apply those preprocessors:\n%s" % '\n'.join(md.preprocessors))

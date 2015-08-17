@@ -14,6 +14,7 @@ Plugins form the heart of Err. From the ground up, it is designed to be extended
   botcommands
   messaging
   presence
+  persistence
   configuration
   scheduling
   webhooks

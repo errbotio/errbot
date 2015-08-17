@@ -136,14 +136,14 @@ class Plugins(BotPlugin):
     def plugin_config(self, mess, args):
         """ configure or get the configuration / configuration template for a specific plugin
         ie.
-        !config ExampleBot
+        !plugin config ExampleBot
         could return a template if it is not configured:
         {'LOGIN': 'example@example.com', 'PASSWORD': 'password', 'DIRECTORY': '/toto'}
         Copy paste, adapt so can configure the plugin :
-        !config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
+        !plugin config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         It will then reload the plugin with this config.
         You can at any moment retreive the current values:
-        !config ExampleBot
+        !plugin config ExampleBot
         should return :
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
@@ -159,12 +159,12 @@ class Plugins(BotPlugin):
 
         if len(args) == 1:
             response = ("Default configuration for this plugin (you can copy and paste "
-                        "this directly as a command):\n{prefix}config {plugin_name} \n{config}").format(
+                        "this directly as a command):\n{prefix}plugin config {plugin_name} \n{config}").format(
                 prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(template_obj)))
 
             current_config = self._bot.get_plugin_configuration(plugin_name)
             if current_config:
-                response += "\n\nCurrent configuration:\n{prefix}config {plugin_name} \n{config}".format(
+                response += "\n\nCurrent configuration:\n{prefix}plugin config {plugin_name} \n{config}".format(
                     prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(current_config)))
             return response
 

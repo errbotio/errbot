@@ -65,6 +65,8 @@ CharacterTable = namedtuple('CharacterTable',
                              'fx_normal',
                              'fixed_width',
                              'end_fixed_width',
+                             'inline_code',
+                             'end_inline_code',
                              ])
 
 ANSI_CHRS = CharacterTable(fg_black=fg.black,
@@ -93,7 +95,10 @@ ANSI_CHRS = CharacterTable(fg_black=fg.black,
                            fx_not_underline=fx.not_underline,
                            fx_normal=fx.normal,
                            fixed_width='',
-                           end_fixed_width='')
+                           end_fixed_width='',
+                           inline_code='',
+                           end_inline_code='')
+
 
 # Pure Text doesn't have any graphical chrs.
 TEXT_CHRS = CharacterTable(fg_black='',
@@ -122,7 +127,10 @@ TEXT_CHRS = CharacterTable(fg_black='',
                            fx_not_underline='',
                            fx_normal='',
                            fixed_width='',
-                           end_fixed_width='')
+                           end_fixed_width='',
+                           inline_code='',
+                           end_inline_code='')
+
 
 # IMText have some formatting available
 IMTEXT_CHRS = CharacterTable(fg_black='',
@@ -151,7 +159,9 @@ IMTEXT_CHRS = CharacterTable(fg_black='',
                              fx_not_underline=NSC('_'),
                              fx_normal=NSC('*'),
                              fixed_width='```\n',
-                             end_fixed_width='```\n')
+                             end_fixed_width='```\n',
+                             inline_code='`',
+                             end_inline_code='`')
 
 
 class Table(object):
@@ -271,6 +281,9 @@ def recurse(write, ct, element, table=None):
     elif element.tag == 'strong':
         write(ct.fx_bold)
         exit.append(ct.fx_normal)
+    elif element.tag == 'code':
+        write(ct.inline_code)
+        exit.append(ct.end_inline_code)
     elif element.tag == 'em':
         write(ct.fx_underline)
         exit.append(ct.fx_not_underline)

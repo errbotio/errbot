@@ -1,9 +1,9 @@
-v3.0.0-rc1
-==========
+v3.0.0
+======
 
-``Release date: 2015-08-05``
+``Release date: 2015-08-17``
 
-We have decided to promote this release as the v3 \\o/. This is the next version after 2.3.0-rc2.
+We have decided to promote this release as the v3 \\o/.
 
 This document includes all the changes since the last stable version (2.2.0).
 
@@ -46,6 +46,7 @@ Stuff that might break you
 - command line parameter -c needs to be the full path of your config file, it allows us to have different set of configs to test the bot.
 - campfire and TOX backends are now external plugins: see `the tox backend repo <http://www.github.com/gbin/err-backend-tox>`_ and `the campfire backend repo <http://www.github.com/gbin/err-backend-campfire>`_ for more info about installing them.
 - any output from plugin is now considered markdown, it might break some of your output if you had any markup characters (\#, \-, \* ...).
+- we removed the gtalk support as it is going away.
 
 Bugs squashed
 -------------
@@ -60,6 +61,14 @@ Bugs squashed
 - git should now work under Windows
 - None was documented as a valid value for the IRC rate limiter but was not.
 - removed xep_0004 from the xmpp backend (it was deprecated)
+
+since 3.0.0-rc1:
+
+- imtext was removing the \` for Slack
+- corrected the leaking <code><pre> in text/ansi
+- fixed a restart loop in Telegram
+- clear formatting in the Slack backend for angle brackets [thx @RobSpectre]
+- XMPP: allow slashes in resources
 
 Annex
 -----

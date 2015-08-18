@@ -8,7 +8,7 @@ from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
-from errbot.rendering import ansi, text, xhtml
+from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
@@ -32,6 +32,7 @@ class TextBackend(ErrBot):
         self.md_html = xhtml()  # for more debug feedback on md
         self.md_text = text()  # for more debug feedback on md
         self.md_ansi = ansi()
+        self.md_im = imtext()
         self.md_lexer = get_lexer_by_name("md", stripall=True)
         self.html_lexer = get_lexer_by_name("html", stripall=True)
         self.terminal_formatter = Terminal256Formatter(style='paraiso-dark')
@@ -81,6 +82,8 @@ class TextBackend(ErrBot):
         if ANSI:
             print(bar.format(mode='ANSI'))
             print(self.md_ansi.convert(mess.body))
+        print(bar.format(mode='IN  '))
+        print(self.md_im.convert(mess.body))
         print('\n\n')
 
     def build_identifier(self, text_representation):

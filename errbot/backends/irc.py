@@ -44,7 +44,9 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           fx_not_underline=NSC('\x0F'),
                           fx_normal=NSC('\x0F'),
                           fixed_width='',
-                          end_fixed_width='')
+                          end_fixed_width='',
+                          inline_code='',
+                          end_inline_code='')
 
 enable_format('irc', IRC_CHRS)
 

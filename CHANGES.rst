@@ -1,3 +1,7 @@
+v3.0.1
+======
+- bugfix for IRC backend not starting.
+
 v3.0.0
 ======
 

@@ -103,10 +103,10 @@ if __name__ == "__main__":
 
         author="Guillaume BINET",
         author_email="gbin@gootz.net",
-        description="err is a plugin based team chatbot designed to be easily deployable, extensible and maintainable.",
+        description="Err is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description=''.join([read('README.rst'), '\n\n', changes]),
         license="GPL",
-        keywords="xmpp jabber chatbot bot plugin",
+        keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
         url="http://errbot.net/",
         classifiers=[
             "Development Status :: 5 - Production/Stable",

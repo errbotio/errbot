@@ -16,6 +16,10 @@ class ACLS(BotPlugin):
         """
         Check command against ACL rules
 
+        :param msg: The original message the commands is coming from.
+        :param cmd: The command name
+        :param args: Its arguments.
+
         Raises ACLViolation() if the command may not be executed in the given context
         """
         self.log.info("Check %s for ACLs." % cmd)
@@ -55,6 +59,15 @@ class ACLS(BotPlugin):
 
     @cmdfilter
     def admin(self, msg, cmd, args):
+        """
+        Check command against the is_admin criteria.
+
+        :param msg: The original message the commands is coming from.
+        :param cmd: The command name
+        :param args: Its arguments.
+
+        Raises ACLViolation() if the command may not be executed in the given context
+        """
         self.log.info("Check if %s is admin only command." % cmd)
         f = self._bot.commands[cmd] if cmd in self._bot.commands else self._bot.re_commands[cmd]
 

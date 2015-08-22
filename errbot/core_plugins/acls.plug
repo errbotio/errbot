@@ -1,0 +1,9 @@
+[Core]
+Name = ACLs
+Module = acls
+
+[Documentation]
+Description = This is checking commands for ACLs.
+
+[Python]
+Version = 2+

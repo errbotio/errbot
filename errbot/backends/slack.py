@@ -126,7 +126,9 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
     nick = username
 
     # Override for ACLs
-    aclattr = username
+    @property
+    def aclattr(self):
+        return self.username.split('@')[0]
 
     @property
     def fullname(self):
@@ -454,9 +456,6 @@ class SlackBackend(ErrBot):
         response.type = 'chat' if private else msg_type
 
         return response
-
-    def is_admin(self, usr):
-        return usr.split('@')[0] in self.bot_config.BOT_ADMINS
 
     def shutdown(self):
         super().shutdown()

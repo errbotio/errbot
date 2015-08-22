@@ -21,7 +21,7 @@ import traceback
 
 from .bundled.threadpool import ThreadPool, WorkRequest
 
-from .backends.base import Backend, ACLViolation
+from .backends.base import Backend
 from .utils import (split_string_after,
                     get_class_that_defined_method, compat_str)
 from .streaming import Tee
@@ -77,6 +77,7 @@ class ErrBot(Backend, BotPluginManager):
             log.debug('created the thread pool' + str(self.thread_pool))
         self.commands = {}  # the dynamically populated list of commands available on the bot
         self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
+        self.command_filters = []  # the dynamically populated list of filters
         self.MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". ' \
                                    'Type "' + bot_config.BOT_PREFIX + 'help" for available commands.'
         if bot_config.BOT_ALT_PREFIX_CASEINSENSITIVE:
@@ -262,8 +263,25 @@ class ErrBot(Backend, BotPluginManager):
                     self.send_simple_reply(mess, reply)
         return True
 
+    def _process_command_filters(self, msg, cmd, args, dry_run=False):
+        try:
+            for cmd_filter in self.command_filters:
+                msg, cmd, args = cmd_filter(msg, cmd, args, dry_run)
+                if msg is None:
+                    return None, None, None
+            return msg, cmd, args
+        except Exception:
+            log.exception("Exception in a filter command, blocking the command in doubt")
+            return None, None, None
+
     def _process_command(self, mess, cmd, args, match):
         """Process and execute a bot command"""
+
+        # first it must go through the command filters
+        mess, cmd, args = self._process_command_filters(mess, cmd, args, False)
+        if mess is None:
+            log.info("Command %s blocked or deferred." % cmd)
+            return
 
         frm = mess.frm
         username = frm.person
@@ -273,13 +291,6 @@ class ErrBot(Backend, BotPluginManager):
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
-
-        try:
-            self.check_command_access(mess, cmd)
-        except ACLViolation as e:
-            if not self.bot_config.HIDE_RESTRICTED_ACCESS:
-                self.send_simple_reply(mess, str(e))
-            return
 
         f = self.re_commands[cmd] if match else self.commands[cmd]
 
@@ -365,60 +376,6 @@ class ErrBot(Backend, BotPluginManager):
                           (mess.body, tb))
             send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
 
-    def is_admin(self, usr):
-        """
-        an overridable check to see if a user is an administrator
-        """
-        return usr in self.bot_config.BOT_ADMINS
-
-    def check_command_access(self, mess, cmd):
-        """
-        Check command against ACL rules
-
-        Raises ACLViolation() if the command may not be executed in the given context
-        """
-        if hasattr(mess.frm, 'aclattr'):  # if the identity requires a special field to be used for acl
-            usr = mess.frm.aclattr
-        else:
-            usr = mess.frm.person  # default
-        typ = mess.type
-
-        if cmd not in self.bot_config.ACCESS_CONTROLS:
-            self.bot_config.ACCESS_CONTROLS[cmd] = self.bot_config.ACCESS_CONTROLS_DEFAULT
-
-        if ('allowusers' in self.bot_config.ACCESS_CONTROLS[cmd] and
-           usr not in self.bot_config.ACCESS_CONTROLS[cmd]['allowusers']):
-            raise ACLViolation("You're not allowed to access this command from this user")
-        if ('denyusers' in self.bot_config.ACCESS_CONTROLS[cmd] and
-           usr in self.bot_config.ACCESS_CONTROLS[cmd]['denyusers']):
-            raise ACLViolation("You're not allowed to access this command from this user")
-        if typ == 'groupchat':
-            if not hasattr(mess.frm, 'room'):
-                raise Exception('mess.frm is not a MUCIdentifier as it misses the "room" property. Class of frm : %s'
-                                % mess.frm.__class__)
-            room = str(mess.frm.room)
-            if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):
-                raise ACLViolation("You're not allowed to access this command from a chatroom")
-            if ('allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               room not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']):
-                raise ACLViolation("You're not allowed to access this command from this room")
-            if ('denyrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               room in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']):
-                raise ACLViolation("You're not allowed to access this command from this room")
-        else:
-            if ('allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               self.bot_config.ACCESS_CONTROLS[cmd]['allowprivate'] is False):
-                raise ACLViolation("You're not allowed to access this command via private message to me")
-
-        f = self.commands[cmd] if cmd in self.commands else self.re_commands[cmd]
-
-        if f._err_command_admin_only:
-            if typ == 'groupchat':
-                raise ACLViolation("You cannot administer the bot from a chatroom, message the bot directly")
-            if not self.is_admin(usr):
-                raise ACLViolation("This command requires bot-admin privileges")
-
     def unknown_command(self, _, cmd, args):
         """ Override the default unknown command behavior
         """
@@ -460,6 +417,13 @@ class ErrBot(Backend, BotPluginManager):
                     log.debug('Adding command : %s -> %s' % (name, value.__name__))
                     self.commands = commands
 
+    def inject_command_filters_from(self, instance_to_inject):
+        classname = instance_to_inject.__class__.__name__
+        for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
+            if getattr(method, '_err_command_filter', False):
+                log.debug('Adding command filter: %s' % name)
+                self.command_filters.append(method)
+
     def remove_commands_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
@@ -468,6 +432,12 @@ class ErrBot(Backend, BotPluginManager):
                     del (self.re_commands[name])
                 elif not getattr(value, '_err_re_command') and name in self.commands:
                     del (self.commands[name])
+
+    def remove_command_filters_from(self, instance_to_inject):
+        for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
+            if getattr(method, '_err_command_filter', False):
+                log.debug('Removing command filter: %s' % name)
+                self.command_filters.remove(method)
 
     def warn_admins(self, warning):
         for admin in self.bot_config.BOT_ADMINS:

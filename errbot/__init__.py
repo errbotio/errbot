@@ -235,3 +235,33 @@ def webhook(*args, **kwargs):
     if first is not None:
         return lambda method: decorate(method, first, **kwargs)
     return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)
+
+
+def cmdfilter(*args, **kwargs):
+    """
+    Decorator for command filters.
+
+    This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
+    classes to turn them into command filters.
+    Those filters are executed just before the execution.
+    It gives a mean to add transversal features like security, logging, audit etc.
+
+    These methods are expected to have a signature and a return a tuple like the following::
+
+        @cmdfilter
+        def some_command(self, msg, cmd, args, dry_run):
+            # if dry_run, it should just filter without acting on it (sending message, asking for an OTP etc...)
+            # or return None, None, None to defer its execution.
+            # otherwise can modify msg, cmd or args and return:
+            return msg, cmd, args
+
+    """
+    def decorate(func):
+        if not hasattr(func, '_err_command_filter'):  # don't override generated functions
+            setattr(func, '_err_command_filter', True)
+        return func
+
+    if len(args):
+        return decorate(args[0], **kwargs)
+    else:
+        return lambda func: decorate(func, **kwargs)

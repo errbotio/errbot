@@ -16,6 +16,7 @@ from errbot.backends import SimpleIdentifier, SimpleMUCOccupant   # noqa
 from errbot.backends.base import Backend, Message  # noqa
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.rendering import text
+from errbot.core_plugins.acls import ACLS
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 
@@ -49,6 +50,7 @@ class DummyBackend(ErrBot):
         super(DummyBackend, self).__init__(config)
         self.bot_identifier = self.build_identifier('err')
         self.inject_commands_from(self)
+        self.inject_command_filters_from(ACLS(self))
         self.md = text()  # We just want simple text for testing purposes
 
     def build_identifier(self, text_representation):

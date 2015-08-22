@@ -63,6 +63,7 @@ class BotPluginBase(StoreMixin):
         """
         self.init_storage()
         self._bot.inject_commands_from(self)
+        self._bot.inject_command_filters_from(self)
         self.is_activated = True
 
     def deactivate(self):
@@ -79,6 +80,7 @@ class BotPluginBase(StoreMixin):
             self.close_storage()
         except StoreNotOpenError:
             pass
+        self._bot.remove_command_filters_from(self)
         self._bot.remove_commands_from(self)
         self.is_activated = False
 

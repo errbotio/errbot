@@ -249,8 +249,8 @@ def cmdfilter(*args, **kwargs):
     These methods are expected to have a signature and a return a tuple like the following::
 
         @cmdfilter
-        def some_command(self, msg, cmd, args):
-            # can throw ACLViolation to block the command
+        def some_command(self, msg, cmd, args, dry_run):
+            # if dry_run, it should just filter without acting on it (sending message, asking for an OTP etc...)
             # or return None, None, None to defer its execution.
             # otherwise can modify msg, cmd or args and return:
             return msg, cmd, args

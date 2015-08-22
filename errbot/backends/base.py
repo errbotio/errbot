@@ -12,10 +12,6 @@ from errbot.utils import deprecated, compat_str
 log = logging.getLogger('errbot.backends.base')
 
 
-class ACLViolation(Exception):
-    """Exceptions raised when user is not allowed to execute given command due to ACLs"""
-
-
 class RoomError(Exception):
     """General exception class for MUC-related errors"""
 

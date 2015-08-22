@@ -21,7 +21,7 @@ import traceback
 
 from .bundled.threadpool import ThreadPool, WorkRequest
 
-from .backends.base import Backend, ACLViolation
+from .backends.base import Backend
 from .utils import (split_string_after,
                     get_class_that_defined_method, compat_str)
 from .streaming import Tee
@@ -263,19 +263,24 @@ class ErrBot(Backend, BotPluginManager):
                     self.send_simple_reply(mess, reply)
         return True
 
+    def _process_command_filters(self, msg, cmd, args, dry_run=False):
+        try:
+            for cmd_filter in self.command_filters:
+                msg, cmd, args = cmd_filter(msg, cmd, args, dry_run)
+                if msg is None:
+                    return None, None, None
+            return msg, cmd, args
+        except Exception:
+            log.exception("Exception in a filter command, blocking the command in doubt")
+            return None, None, None
+
     def _process_command(self, mess, cmd, args, match):
         """Process and execute a bot command"""
 
         # first it must go through the command filters
-        try:
-            for cmd_filter in self.command_filters:
-                mess, cmd, args = cmd_filter(mess, cmd, args)
-                if mess is None:
-                    log.info("Command %s deferred." % cmd)
-                    return
-        except ACLViolation as e:
-            if not self.bot_config.HIDE_RESTRICTED_ACCESS:
-                self.send_simple_reply(mess, str(e))
+        mess, cmd, args = self._process_command_filters(mess, cmd, args, False)
+        if mess is None:
+            log.info("Command %s blocked or deferred." % cmd)
             return
 
         frm = mess.frm

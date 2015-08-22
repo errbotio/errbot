@@ -1,7 +1,6 @@
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.utils import get_class_that_defined_method
-from errbot.backends.base import ACLViolation
 
 
 class Help(BotPlugin):
@@ -68,11 +67,8 @@ class Help(BotPlugin):
         Automatically assigned to the "help" command."""
 
         def may_access_command(cmd):
-            try:
-                self._bot.check_command_access(mess, cmd)
-                return True
-            except ACLViolation:
-                return False
+            mess, _, _ = self._bot._process_command_filters(mess, cmd, None, True)
+            return mess is not None
 
         usage = ''
         if not args:

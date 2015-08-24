@@ -25,7 +25,7 @@ class TestCommands(FullStackTest):
         self.assertCommand('!status', 'Yes I am alive')
 
     def test_status_plugins(self):
-        self.assertCommand('!status plugins', 'L = Loaded, U = Unloaded')
+        self.assertCommand('!status plugins', 'A = Activated, D = Deactivated')
 
     def test_status_load(self):
         self.assertCommand('!status load', 'Load ')
@@ -136,7 +136,7 @@ class TestCommands(FullStackTest):
         self.assertIn('Plugin configuration done.', self.bot.pop_message())
         self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
 
-    def test_load_reload_and_unload(self):
+    def test_activate_reload_and_deactivate(self):
         for command in ('activate', 'reload', 'deactivate'):
             self.bot.push_message("!plugin {}".format(command))
             m = self.bot.pop_message()
@@ -152,13 +152,13 @@ class TestCommands(FullStackTest):
         self.assertEqual('Plugin ChatRoom reloaded.', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
-        self.assertIn("[L] ChatRoom", self.bot.pop_message())
+        self.assertIn("[A] ChatRoom", self.bot.pop_message())
 
         self.bot.push_message('!plugin deactivate ChatRoom')
         self.assertEqual('Plugin ChatRoom deactivated.', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
-        self.assertIn("[U] ChatRoom", self.bot.pop_message())
+        self.assertIn("[D] ChatRoom", self.bot.pop_message())
 
         self.bot.push_message('!plugin deactivate ChatRoom')
         self.assertEqual('ChatRoom is already deactivated.', self.bot.pop_message())
@@ -167,7 +167,7 @@ class TestCommands(FullStackTest):
         self.assertEqual('Plugin ChatRoom activated.', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
-        self.assertIn("[L] ChatRoom", self.bot.pop_message())
+        self.assertIn("[A] ChatRoom", self.bot.pop_message())
 
         self.bot.push_message('!plugin activate ChatRoom')
         self.assertEqual('ChatRoom is already activated.', self.bot.pop_message())
@@ -184,7 +184,7 @@ class TestCommands(FullStackTest):
         self.assertEqual("Plugin ChatRoom is now blacklisted", self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
-        self.assertIn("[B,U] ChatRoom", self.bot.pop_message())
+        self.assertIn("[B,D] ChatRoom", self.bot.pop_message())
 
         # Needed else configuration for this plugin gets saved which screws up
         # other tests
@@ -209,7 +209,7 @@ class TestCommands(FullStackTest):
         self.assertEqual("Plugin ChatRoom is already blacklisted", self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
-        self.assertIn("[B,L] ChatRoom", self.bot.pop_message())
+        self.assertIn("[B,A] ChatRoom", self.bot.pop_message())
 
         self.bot.push_message('!plugin unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom removed from blacklist', self.bot.pop_message())
@@ -218,4 +218,4 @@ class TestCommands(FullStackTest):
         self.assertEqual('Plugin ChatRoom is not blacklisted', self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
-        self.assertIn("[L] ChatRoom", self.bot.pop_message())
+        self.assertIn("[A] ChatRoom", self.bot.pop_message())

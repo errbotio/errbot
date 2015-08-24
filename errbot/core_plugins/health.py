@@ -54,16 +54,16 @@ class Health(BotPlugin):
         for name in all_attempted:
             if name in all_blacklisted:
                 if name in all_loaded:
-                    plugins_statuses.append(('BL', name))
+                    plugins_statuses.append(('BA', name))
                 else:
-                    plugins_statuses.append(('BU', name))
+                    plugins_statuses.append(('BD', name))
             elif name in all_loaded:
-                plugins_statuses.append(('L', name))
+                plugins_statuses.append(('A', name))
             elif self._bot.get_plugin_obj_by_name(name) is not None and self._bot.get_plugin_obj_by_name(
                     name).get_configuration_template() is not None and self._bot.get_plugin_configuration(name) is None:
                 plugins_statuses.append(('C', name))
             else:
-                plugins_statuses.append(('U', name))
+                plugins_statuses.append(('D', name))
 
         return {'plugins_statuses': plugins_statuses}
 

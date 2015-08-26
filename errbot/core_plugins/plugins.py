@@ -159,13 +159,13 @@ class Plugins(BotPlugin):
 
         if len(args) == 1:
             response = ("Default configuration for this plugin (you can copy and paste "
-                        "this directly as a command):\n{prefix}plugin config {plugin_name} \n{config}").format(
-                prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(template_obj)))
+                        "this directly as a command):\n\n```\n{prefix}plugin config {plugin_name} \n{config}\n```").format(
+                prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(template_obj))
 
             current_config = self._bot.get_plugin_configuration(plugin_name)
             if current_config:
-                response += "\n\nCurrent configuration:\n{prefix}plugin config {plugin_name} \n{config}".format(
-                    prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(current_config)))
+                response += "\n\nCurrent configuration:\n\n```\n{prefix}plugin config {plugin_name} \n{config}\n```".format(
+                    prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(current_config))
             return response
 
         # noinspection PyBroadException

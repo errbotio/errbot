@@ -44,6 +44,7 @@ table {
   border-top-left-radius:5px;
   border-collapse: collapse;
   border-spacing: 0;
+  min-width: 50%;
 }
 
 td{
@@ -51,7 +52,8 @@ td{
   border:0px solid #999999;
   border-width:0px 0px 0px 0px;
   font-size:14px;
-  text-align:center;
+  text-align:left;
+  margin-left: 30px;
   font-family:Arial;
   color:#333333;
 }
@@ -83,6 +85,11 @@ tr:last-child td:first-child{
   border-bottom-left-radius:5px;
 }
 
+/* hack for demo purposes, left margin doesn't work */
+tr td:first-child{
+  text-align:center;
+}
+
 tr:nth-child(odd) td {
   background-color:#FFF3DC;
 }
@@ -91,7 +98,41 @@ tr:nth-child(even) td {
   background-color:#FFF7EC;
 }
 
+*[color="red"] {
+    color: red;
+}
 
+*[color="green"] {
+    color: green;
+}
+
+*[color="yellow"] {
+    color: orange;
+}
+
+*[color="blue"] {
+    color: blue;
+}
+
+*[bgcolor="red"] {
+    background-color: red;
+}
+
+*[bgcolor="green"] {
+    background-color: green;
+}
+
+*[bgcolor="yellow"] {
+    background-color: orange;
+}
+
+*[bgcolor="cyan"] {
+    background-color: cyan;
+}
+
+*[bgcolor="blue"] {
+    background-color: blue;
+}
 
 /*
 tr:last-child td{

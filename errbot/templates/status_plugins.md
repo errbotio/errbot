@@ -13,7 +13,13 @@
         **B**{color='red'},**D**
     {%- endif %}
 {%- endmacro %}
-With these plugins ({{ status('A').strip() }} = Activated, {{ status('D').strip() }} = Deactivated, {{ status('B').strip() }} = Blacklisted, {{ status('C').strip() }} = Needs to be configured):
-{% for state, name in plugins_statuses %}
-[{{ status(state).strip() }}] {{ name }}
+
+### Plugins
+
+Status  | Name                    
+------- | ----------------------- 
+{% for state, name in plugins_statuses %}{{ status(state).strip().ljust(7) }} | {{ name }}
 {% endfor %}
+
+{{ status('A').strip() }} = Activated, {{ status('D').strip() }} = Deactivated, {{ status('B').strip() }} = Blacklisted, {{ status('C').strip() }} = Needs to be configured
+

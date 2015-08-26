@@ -48,11 +48,17 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super(CommandBox, self).__init__()
 
         # Autocompleter
-        self.completer = QCompleter([prefix + name for name in commands], self)
+        self.completer = None
+        self.updateCompletion(commands)
+        self.autocompleteStart = None
+
+    def updateCompletion(self, commands):
+        if self.completer:
+            self.completer.activated.disconnect(self.onAutoComplete)
+        self.completer = QCompleter([self.prefix + name for name in commands], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setWidget(self)
         self.completer.activated.connect(self.onAutoComplete)
-        self.autocompleteStart = None
 
     def onAutoComplete(self, text):
         # Select the text from autocompleteStart until the current cursor
@@ -81,7 +87,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         if key == Qt.Key_Space and ctrl:
             # Pop-up the autocompleteList
             rect = self.cursorRect(self.textCursor())
-            rect.setSize(QtCore.QSize(100, 150))
+            rect.setSize(QtCore.QSize(300, 500))
             self.autocompleteStart = self.textCursor().position()
             self.completer.complete(rect)  # The popup is positioned in the next if block
 
@@ -177,14 +183,21 @@ class ChatApplication(QtGui.QApplication):
     def scroll_output_to_bottom(self):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
 
+    def update_commands(self, commands):
+        self.input.updateCompletion(commands)
+
 
 class GraphicBackend(TextBackend):
     def __init__(self, config):
         super().__init__(config)
         self.bot_identifier = self.build_identifier('Err')
         # create window and components
-        self.app = ChatApplication(self)
         self.md = xhtml()
+        self.app = ChatApplication(self)
+
+    def connect_callback(self):
+        super().connect_callback()
+        self.app.update_commands(self.commands)
 
     def send_command(self, text):
         self.app.new_message(text, False)

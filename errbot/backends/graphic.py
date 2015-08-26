@@ -109,7 +109,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         elif key == QtCore.Qt.Key_Return and ctrl:
             self.newCommand.emit(self.toPlainText())
             self.reset_history()
-        super(CommandBox, self).keyPressEvent(*args, **kwargs)
+        super().keyPressEvent(*args, **kwargs)
 
 
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
@@ -125,7 +125,7 @@ bg_path = os.path.join(err_path, 'err-bg.svg')
 css_path = os.path.join(err_path, 'backends', 'style', 'style.css')
 TOP = """
 <html>
-  <body style="background-image: url('%s');">
+  <body style="background-image: url('file://%s');">
 """ % bg_path
 BOTTOM = "</body></html>"
 
@@ -133,16 +133,15 @@ BOTTOM = "</body></html>"
 class ChatApplication(QtGui.QApplication):
     newAnswer = QtCore.Signal(str)
 
-    def __init__(self, *args, **kwargs):
-        backend = kwargs.pop('backend')
-        config = kwargs.pop('config')
-        super().__init__(*args, **kwargs)
+    def __init__(self, bot):
+        self.bot = bot
+        super().__init__(sys.argv)
         self.mainW = QtGui.QWidget()
-        self.mainW.setWindowTitle('Err...')
+        self.mainW.setWindowTitle('Errbot')
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
-        self.input = CommandBox(backend.cmd_history, backend.commands, config.BOT_PREFIX)
+        self.input = CommandBox(bot.cmd_history, bot.commands, bot.bot_config.BOT_PREFIX)
         self.output = QtWebKit.QWebView()
         self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css_path))
 
@@ -162,7 +161,7 @@ class ChatApplication(QtGui.QApplication):
         # connect signals/slots
         self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
         self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
-        self.input.newCommand.connect(lambda text: backend.send_command(text))
+        self.input.newCommand.connect(lambda text: bot.send_command(text))
         self.newAnswer.connect(self.new_message)
 
         self.mainW.show()
@@ -184,7 +183,7 @@ class GraphicBackend(TextBackend):
         super().__init__(config)
         self.bot_identifier = self.build_identifier('Err')
         # create window and components
-        self.app = ChatApplication(sys.argv, backend=self, config=self.bot_config)
+        self.app = ChatApplication(self)
         self.md = xhtml()
 
     def send_command(self, text):

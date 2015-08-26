@@ -1,5 +1,5 @@
 {% macro status(installed, public) -%}
-{% if installed %}*I*{% else %} {% endif %}{% if public %} {% else %}*P*{% endif %}{%- endmacro %}
+{% if installed %}**I**{% else %} {% endif %}{% if public %} {% else %}**P**{% endif %}{%- endmacro %}
 
 Status  | Name                    | Description
 ------- | ----------------------- | ------------

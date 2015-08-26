@@ -15,7 +15,7 @@ log = logging.getLogger('errbot.backends.graphic')
 try:
     from PySide import QtCore, QtGui, QtWebKit
     from PySide.QtGui import QCompleter
-    from PySide.QtCore import Qt, QObject
+    from PySide.QtCore import Qt
 except ImportError:
     log.exception("Could not start the graphical backend")
     log.fatal("""
@@ -97,13 +97,13 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         if key == Qt.Key_Up and ctrl:
             if self.history_index > 0:
                 self.history_index -= 1
-                self.setPlainText(BOT_PREFIX + '%s %s' % self.history[self.history_index])
+                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 key.ignore()
                 return
         elif key == Qt.Key_Down and ctrl:
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
-                self.setPlainText(BOT_PREFIX + '%s %s' % self.history[self.history_index])
+                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 key.ignore()
                 return
         elif key == QtCore.Qt.Key_Return and ctrl:
@@ -116,19 +116,18 @@ urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
 
 def htmlify(text, receiving):
-    tag = 'div'
-    if receiving:
-        style = 'background-color: rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);'
-    else:
-        style = 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
-    return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (
-        tag, style, text, tag)
+    return '<div class="%s">%s</div>' % ('receiving' if receiving else 'sending', text)
 
 
-INIT_PAGE = """<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head>
-<body style="background-image: url('%s'); background-repeat: no-repeat;
-background-position: center center; background-attachment:fixed;
-background-size: contain; margin:0;">"""
+err_path = os.path.dirname(errbot.__file__)
+icon_path = os.path.join(err_path, 'err.svg')
+bg_path = os.path.join(err_path, 'err-bg.svg')
+css_path = os.path.join(err_path, 'backends', 'style', 'style.css')
+TOP = """
+<html>
+  <body style="background-image: url('%s');">
+""" % bg_path
+BOTTOM = "</body></html>"
 
 
 class ChatApplication(QtGui.QApplication):
@@ -140,18 +139,16 @@ class ChatApplication(QtGui.QApplication):
         super().__init__(*args, **kwargs)
         self.mainW = QtGui.QWidget()
         self.mainW.setWindowTitle('Err...')
-
-        icon_path = os.path.join(os.path.dirname(errbot.__file__), 'err.svg')
-        bg_path = os.path.join(os.path.dirname(errbot.__file__), 'err-bg.svg')
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
         self.input = CommandBox(backend.cmd_history, backend.commands, config.BOT_PREFIX)
         self.output = QtWebKit.QWebView()
+        self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css_path))
 
         # init webpage
-        self.buffer = INIT_PAGE % (config.BOT_DATA_DIR, bg_path)
-        self.output.setHtml(self.buffer)
+        self.buffer = ""
+        self.update_webpage()
 
         # layout
         vbox.addWidget(self.output)
@@ -172,7 +169,11 @@ class ChatApplication(QtGui.QApplication):
 
     def new_message(self, text, receiving=True):
         self.buffer += htmlify(text, receiving)
-        self.output.setHtml(self.buffer)
+        self.update_webpage()
+
+    def update_webpage(self):
+        log.debug(TOP + self.buffer + BOTTOM)
+        self.output.setHtml(TOP + self.buffer + BOTTOM)
 
     def scroll_output_to_bottom(self):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))

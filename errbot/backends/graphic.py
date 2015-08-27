@@ -55,7 +55,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
     def updateCompletion(self, commands):
         if self.completer:
             self.completer.activated.disconnect(self.onAutoComplete)
-        self.completer = QCompleter([self.prefix + name for name in commands], self)
+        self.completer = QCompleter([(self.prefix + name).replace('_', ' ', 1) for name in commands], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setWidget(self)
         self.completer.activated.connect(self.onAutoComplete)
@@ -73,6 +73,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         event = args[0]
         key = event.key()
         ctrl = event.modifiers() == QtCore.Qt.ControlModifier
+        alt = event.modifiers() == QtCore.Qt.AltModifier
 
         # don't disturb the completer behavior
         if self.completer.popup().isVisible() and key in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab, Qt.Key_Backtab):
@@ -84,7 +85,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             self.completer.popup().hide()
             self.autocompleteStart = None
 
-        if key == Qt.Key_Space and ctrl:
+        if key == Qt.Key_Space and (ctrl or alt):
             # Pop-up the autocompleteList
             rect = self.cursorRect(self.textCursor())
             rect.setSize(QtCore.QSize(300, 500))
@@ -100,19 +101,19 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             # Select the first one of the matches
             self.completer.popup().setCurrentIndex(self.completer.completionModel().index(0, 0))
 
-        if key == Qt.Key_Up and ctrl:
+        if key == Qt.Key_Up and (ctrl or alt):
             if self.history_index > 0:
                 self.history_index -= 1
                 self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 key.ignore()
                 return
-        elif key == Qt.Key_Down and ctrl:
+        elif key == Qt.Key_Down and (ctrl or alt):
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
                 self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 key.ignore()
                 return
-        elif key == QtCore.Qt.Key_Return and ctrl:
+        elif key == QtCore.Qt.Key_Return and (ctrl or alt):
             self.newCommand.emit(self.toPlainText())
             self.reset_history()
         super().keyPressEvent(*args, **kwargs)
@@ -177,7 +178,6 @@ class ChatApplication(QtGui.QApplication):
         self.update_webpage()
 
     def update_webpage(self):
-        log.debug(TOP + self.buffer + BOTTOM)
         self.output.setHtml(TOP + self.buffer + BOTTOM)
 
     def scroll_output_to_bottom(self):

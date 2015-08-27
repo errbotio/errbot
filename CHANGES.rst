@@ -1,3 +1,10 @@
+v3.0.2
+======
+- multiple fixes for the graphic backend (it is waaay nicer now)
+- missing spots in doc and feedback for for activate/deactivate
+- aclattr fix for the slack backend
+- status uses more of the markdown goodies
+
 v3.0.1
 ======
 - bugfix for IRC backend not starting.

@@ -1,3 +1,10 @@
+v3.0.3
+======
+- fixed the missing path for relative imports in plugins.
+- better pre rendering on graphic backend
+- better !log tail rendering
+- add alt as an alternative modifier on graphic backend (it was problematic on MacOS)
+
 v3.0.2
 ======
 - multiple fixes for the graphic backend (it is waaay nicer now)

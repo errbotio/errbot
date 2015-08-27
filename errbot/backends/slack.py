@@ -126,7 +126,9 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
     nick = username
 
     # Override for ACLs
-    aclattr = username
+    @property
+    def aclattr(self):
+        return self.username.split('@')[0]
 
     @property
     def fullname(self):

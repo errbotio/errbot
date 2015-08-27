@@ -35,6 +35,18 @@ body {
   opacity:0.8;
 }
 
+pre {
+  white-space: pre-line; 
+  font-size:10px;
+  border-width:1px;
+  background-color:#DDDDDD;
+  border-color: #555555;
+  border-bottom-left-radius:5px;
+  border-bottom-right-radius:5px;
+  border-top-right-radius:5px;
+  border-top-left-radius:5px;
+ }
+
 table {
   margin:10px;
   box-shadow: 2px 2px 5px #999999;

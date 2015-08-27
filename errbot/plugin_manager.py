@@ -256,9 +256,9 @@ class BotPluginManager(PluginManager, StoreMixin):
             else:
                 paths += [extra_plugin_dir, ]
 
-        for entry in paths:
+        for entry in chain(builtins, paths):
             if entry not in sys.path:
-                log.debug("Add %s to paths")
+                log.debug("Add %s to sys.path" % entry)
                 sys.path.append(entry)  # so plugins can relatively import their repos
 
         dependencies_result = [check_dependencies(path) for path in paths]
@@ -417,7 +417,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             feedback = p.stdout.read().decode('utf-8')
             error_feedback = p.stderr.read().decode('utf-8')
             if p.wait():
-                return "Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback),
+                return "Could not load this plugin: \n\n%s\n\n---\n\n%s" % (feedback, error_feedback),
         self.add_plugin_repo(human_name, repo)
         return self.update_dynamic_plugins()
 

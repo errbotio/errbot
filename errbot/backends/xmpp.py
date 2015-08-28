@@ -244,7 +244,12 @@ class XMPPMUCRoom(MUCRoom):
         occupants = []
         try:
             for occupant in self.xep0045.rooms[str(self)].values():
-                occupants.append(XMPPMUCOccupant(occupant.node, occupant.domain, occupant.resource))
+                room = self._bot.build_identifier(occupant['room'])
+                nick = occupant['nick']
+                log.debug("room %s" % room)
+                log.debug("nick %s" % nick)
+
+                occupants.append(XMPPMUCOccupant(room.node, room.domain, nick))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants

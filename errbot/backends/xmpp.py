@@ -622,7 +622,7 @@ class XMPPBackend(ErrBot):
         :returns:
             A list of :class:`~errbot.backends.base.XMPPMUCRoom` instances.
         """
-        xep0045 = self.client.plugin['xep_0045']
+        xep0045 = self.conn.client.plugin['xep_0045']
         return [XMPPMUCRoom(room, self) for room in xep0045.getJoinedRooms()]
 
     def query_room(self, room):

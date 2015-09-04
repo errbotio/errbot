@@ -530,8 +530,8 @@ class XMPPBackend(ErrBot):
         super(XMPPBackend, self).send_message(mess)
         self.conn.client.send_message(mto=mess.to.person,
                                       mbody=self.md_text.convert(mess.body),
-                                      mtype=mess.type,
-                                      mhtml=self.md_xhtml.convert(mess.body))
+                                      mtype=mess.type)
+        # mhtml=self.md_xhtml.convert(mess.body)) This is too broken on clients.
 
     def serve_forever(self):
         self.conn.connect()

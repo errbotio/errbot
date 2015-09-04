@@ -528,22 +528,10 @@ class XMPPBackend(ErrBot):
 
     def send_message(self, mess):
         super(XMPPBackend, self).send_message(mess)
-        text = self.md_text.convert(mess.body)
-        HTML_TEMPLATE = """
-        <message>
-          <body>{text}</body>
-            <html xmlns='http://jabber.org/protocol/xhtml-im'>
-              <body xmlns='http://www.w3.org/1999/xhtml'>
-              {html}
-              </body>
-            </html>
-        </message>"""
-        html = HTML_TEMPLATE.format(text=text,
-                                    html=self.md_xhtml.convert(mess.body))
         self.conn.client.send_message(mto=mess.to.person,
-                                      mbody=text,
+                                      mbody=self.md_text.convert(mess.body),
                                       mtype=mess.type,
-                                      mhtml=html)
+                                      mhtml=self.md_xhtml.convert(mess.body))
 
     def serve_forever(self):
         self.conn.connect()

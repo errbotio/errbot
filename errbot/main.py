@@ -16,7 +16,8 @@ def setup_bot(backend_name, logger, config, restore=None):
     bot_config_defaults(config)
 
     if config.BOT_LOG_FILE:
-        hdlr = logging.FileHandler(config.BOT_LOG_FILE)
+        encoding = config.BOT_LOG_ENCODING if config.BOT_LOG_ENCODING else None
+        hdlr = logging.FileHandler(config.BOT_LOG_FILE, encoding=encoding)
         hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
         logger.addHandler(hdlr)
 

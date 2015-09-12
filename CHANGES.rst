@@ -1,6 +1,19 @@
 v3.1.0
 ======
 
+v3.0.3
+======
+- fixed the missing path for relative imports in plugins.
+- better pre rendering on graphic backend
+- better !log tail rendering
+- add alt as an alternative modifier on graphic backend (it was problematic on MacOS)
+
+v3.0.2
+======
+- multiple fixes for the graphic backend (it is waaay nicer now)
+- missing spots in doc and feedback for for activate/deactivate
+- aclattr fix for the slack backend
+- status uses more of the markdown goodies
 
 v3.0.1
 ======

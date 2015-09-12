@@ -9,10 +9,11 @@ before_script:
   - cp errbot/config-travisci.py config.py
 
 install:
-  - python setup.py develop
+  - pip install --upgrade pip
+  - pip install -e .
   - pip freeze
 
-script: python run_tests.py
+script: ./run_tests.py
 
 
 # New travis docker base build.

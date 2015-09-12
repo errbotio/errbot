@@ -16,6 +16,9 @@
 
 import os
 import sys
+
+if 'egg_info' not in sys.argv:
+    raise Exception("argv %s" % sys.argv)
 from platform import system
 from setuptools import setup, find_packages
 
@@ -52,13 +55,15 @@ else:
     deps += ['dnspython3', ]  # dnspython3 for SRV records
 
 # Extra dependencies for a development environment.
-if 'develop' in sys.argv:
-    deps += ['mock',
-             'nose',
-             'pep8',
-             'pytest',
-             'pytest-xdist',
-             'PyOpenSSL']
+# if 'develop' in sys.argv: <- we cannot do that as pip is doing that in 2 steps.
+# TODO(gbin): find another way to filter those out if we don't need them.
+
+deps += ['mock',
+         'nose',
+         'pep8',
+         'pytest',
+         'pytest-xdist',
+         'PyOpenSSL']
 
 if not ON_WINDOWS:
     deps += ['daemonize']

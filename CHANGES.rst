@@ -1,3 +1,10 @@
+v3.0.4
+======
+- Small setup.py cleanup
+- force XMPP to ascii rendering (xhtml-im is beyond broken)
+- Fixed !room list
+- Fixed !room occupants [room] on XMPP
+
 v3.0.3
 ======
 - fixed the missing path for relative imports in plugins.

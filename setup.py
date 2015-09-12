@@ -17,8 +17,6 @@
 import os
 import sys
 
-if 'egg_info' not in sys.argv:
-    raise Exception("argv %s" % sys.argv)
 from platform import system
 from setuptools import setup, find_packages
 

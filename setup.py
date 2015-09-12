@@ -16,7 +16,6 @@
 
 import os
 import sys
-from glob import glob
 from platform import system
 from setuptools import setup, find_packages
 

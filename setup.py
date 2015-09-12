@@ -74,17 +74,19 @@ def read(fname):
 if __name__ == "__main__":
     from version import VERSION
 
+    args = set(sys.argv)
+
     changes = read('CHANGES.rst')
 
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
 
-    if set(sys.argv) & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
+    if args & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
         raise Exception("err doesn't support binary distributions")
 
     # under python2 if we want to make a source distribution,
     # don't pre-convert the sources, leave them as py3.
-    if PY2 and ('install' in sys.argv or 'develop' in sys.argv):
+    if PY2 and args & {'install', 'develop'}:
         from py2conv import convert_to_python2
         convert_to_python2()
 

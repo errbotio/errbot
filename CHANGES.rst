@@ -2,32 +2,32 @@ v3.1.0
 ======
 
 v3.0.4
-======
+------
 - Small setup.py cleanup
 - force XMPP to ascii rendering (xhtml-im is beyond broken)
 - Fixed !room list
 - Fixed !room occupants [room] on XMPP
 
 v3.0.3
-======
+------
 - fixed the missing path for relative imports in plugins.
 - better pre rendering on graphic backend
 - better !log tail rendering
 - add alt as an alternative modifier on graphic backend (it was problematic on MacOS)
 
 v3.0.2
-======
+------
 - multiple fixes for the graphic backend (it is waaay nicer now)
 - missing spots in doc and feedback for for activate/deactivate
 - aclattr fix for the slack backend
 - status uses more of the markdown goodies
 
 v3.0.1
-======
+------
 - bugfix for IRC backend not starting.
 
 v3.0.0
-======
+------
 
 ``Release date: 2015-08-17``
 
@@ -38,7 +38,7 @@ This document includes all the changes since the last stable version (2.2.0).
 If you have any difficulty using this new release, feel free to jump into our `dev room on gitter <https://gitter.im/gbin/err>`_.
 
 New and noteworthy
-------------------
+~~~~~~~~~~~~~~~~~~
 
 - backends are now plugins too
 - new Slack backend (see the `config template <https://github.com/gbin/err/blob/master/errbot/config-template.py#L118>`_ for details)
@@ -57,7 +57,7 @@ See the screenshots below: Slack_, Hipchat_, IRC_, Gitter_ and finally Text_.
 - IRC: file transfer from the bot is now supported (DCC)
 
 Minor improvements
-------------------
+~~~~~~~~~~~~~~~~~~
 
 - hipchat endpoint can be used (#348)
 - XMPP server parameter can be overriden
@@ -65,7 +65,7 @@ Minor improvements
 - IRC backend: we have now a reconnection logic on disconnect and on kick (see ``IRC_RECONNECT_ON_DISCONNECT`` in the config file for example)
 
 Stuff that might break you
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - if you upgrade from a previous version, please install: ``pip install markdown ansi Pygments "pygments-markdown-lexer>=0.1.0.dev29"``
 - you need to add the type of backend you use in your config file instead of the command like. i.e. ``BACKEND = 'XMPP'``
@@ -77,7 +77,7 @@ Stuff that might break you
 - we removed the gtalk support as it is going away.
 
 Bugs squashed
--------------
+~~~~~~~~~~~~~
 
 - plugin loader do not traverse __pycache__ and dotted directory anymore
 - import error at install time.
@@ -99,7 +99,7 @@ since 3.0.0-rc1:
 - XMPP: allow slashes in resources
 
 Annex
------
+~~~~~
 
 .. _Slack:
 
@@ -131,9 +131,6 @@ Rendering under **Text** (for plugin development):
 
 .. image:: imgs/text.png
 
-
-Older history
-~~~~~~~~~~~~~
 
 v2.3.0-rc2 (2015-07-06)
 -----------------------

@@ -32,7 +32,7 @@ and how to speak to somebody.
 
 Lifecycle: identifiers are either created internally by the backend
 or externally by the plugins from
-:method:`~errbot.backends.base.Backend.build_identifier`.
+:func:`~errbot.backends.base.Backend.build_identifier`.
 
 There are 2 types of identifiers:
 
@@ -93,4 +93,4 @@ To help guide you, you can inherit from :class:`~errbot.backends.base.MUCRoom`
 and fill up the blanks from the NotImplementedError.
 
 Lifecycle: Those are created either internally by the backend or externally
-through :method:`~errbot.backends.base.Backend.join_room` from a string identifier.
+through :func:`~errbot.backends.base.Backend.join_room` from a string identifier.

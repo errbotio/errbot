@@ -30,6 +30,7 @@ Caveats
 The storing occurs when you *assign the key*. So for example:
 
 .. code-block:: python
+
     # THIS WON'T WORK
     d = {}
     self['FOO'] = d
@@ -38,6 +39,7 @@ The storing occurs when you *assign the key*. So for example:
 You need to do that instead:
 
 .. code-block:: python
+
     # THIS WORKS
     d = {}
     self['FOO'] = d
@@ -45,7 +47,3 @@ You need to do that instead:
     # later ...
     d['subkey'] = 'NONONONONONO'
     self['FOO'] = d  # restore the full key if something changed in memory.
-
-
-
-

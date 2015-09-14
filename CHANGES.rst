@@ -1,6 +1,13 @@
 v3.1.0
 ======
 
+v3.0.4
+======
+- Small setup.py cleanup
+- force XMPP to ascii rendering (xhtml-im is beyond broken)
+- Fixed !room list
+- Fixed !room occupants [room] on XMPP
+
 v3.0.3
 ======
 - fixed the missing path for relative imports in plugins.
@@ -98,31 +105,31 @@ Annex
 
 Rendering under **Slack**:
 
-.. image:: docs/imgs/slack.png
+.. image:: imgs/slack.png
 
 .. _Hipchat:
 
 Rendering under **Hipchat**:
 
-.. image:: docs/imgs/hipchat.png
+.. image:: imgs/hipchat.png
 
 .. _IRC:
 
 Rendering under **IRC**:
 
-.. image:: docs/imgs/IRC.png
+.. image:: imgs/IRC.png
 
 .. _Gitter:
 
 Rendering under **Gitter**:
 
-.. image:: docs/imgs/gitter.png
+.. image:: imgs/gitter.png
 
 .. _Text:
 
 Rendering under **Text** (for plugin development):
 
-.. image:: docs/imgs/text.png
+.. image:: imgs/text.png
 
 
 Older history

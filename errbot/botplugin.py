@@ -47,6 +47,10 @@ class BotPluginBase(StoreMixin):
         For exemple you can access:
         self.bot_config.BOT_DATA_DIR
         """
+        # if BOT_ADMINS is just an unique string make it a tuple for backwards
+        # compatibility
+        if isinstance(self._bot.bot_config.BOT_ADMINS, str):
+            self._bot.bot_config.BOT_ADMINS = (self._bot.bot_config.BOT_ADMINS,)
         return self._bot.bot_config
 
     def init_storage(self):

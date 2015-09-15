@@ -174,6 +174,16 @@ class TestBase(unittest.TestCase):
         self.assertEqual(str(resp.body), 'Response')
 
 
+class TestBaseConfig(unittest.TestCase):
+    def setUp(self):
+        self.dummy = DummyBackend(extra_config={'BOT_ADMINS': 'err@localhost'})
+
+    def test_BOT_ADMINS_unique_string(self):
+        dummy = self.dummy
+
+        self.assertEqual(dummy.bot_config.BOT_ADMINS, ('err@localhost',))
+
+
 class TestExecuteAndSend(unittest.TestCase):
     def setUp(self):
         self.dummy = DummyBackend()

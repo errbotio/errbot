@@ -1,3 +1,7 @@
+v3.0.5
+------
+- fixes pip 7.1.x installs for python 2.
+
 v3.0.4
 ------
 - Small setup.py cleanup

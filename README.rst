@@ -116,7 +116,7 @@ Depending on the backend you choose, additional requirements need to be installe
 +------------+-----------------------------------------------------------------------------------+
 | XMPP       | - ``sleekxmpp``                                                                   | 
 |            | - ``pyasn1``                                                                      | 
-|            | - ``pasn1-modules``                                                               | 
+|            | - ``paysn1-modules``                                                               | 
 |            | - ``dnspython3`` (py3)                                                            | 
 |            | - ``dnspython``  (py2)                                                            | 
 +------------+-----------------------------------------------------------------------------------+

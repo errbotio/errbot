@@ -96,7 +96,7 @@ if __name__ == "__main__":
     setup(
         name="err",
         version=VERSION,
-        packages=find_packages(src_root),
+        packages=find_packages(src_root, exclude=['tests']),
         scripts=['scripts/err.py'],
 
         install_requires=deps,

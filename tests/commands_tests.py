@@ -1,10 +1,11 @@
 # coding=utf-8
-
-# create a mock configuration
-from errbot.backends.test import FullStackTest
 from queue import Empty
-import unittest
 import re
+import logging
+
+from os import path, mkdir
+from shutil import rmtree
+from errbot.backends.test import FullStackTest
 
 
 class TestCommands(FullStackTest):
@@ -122,9 +123,23 @@ class TestCommands(FullStackTest):
         msg = self.bot.pop_message()
         self.assertIn('has been written in', msg)
         filename = re.search(r"'([A-Za-z0-9_\./\\-]*)'", msg).group(1)
-        # At least the backup should mention the installed plugin
 
+        # At least the backup should mention the installed plugin
         self.assertIn('err-helloworld', open(filename).read())
+
+        # Now try to clean the bot and restore
+        plugins_dir = path.join(self.bot.bot_config.BOT_DATA_DIR, 'plugins')
+        rmtree(plugins_dir)
+        mkdir(plugins_dir)
+        self.bot['repos'] = {}
+        self.bot['configs'] = {}
+
+        # emulates the restore environment
+        log = logging.getLogger(__name__)  # noqa
+        bot = self.bot  # noqa
+        with open(filename) as f:
+            exec(f.read())
+        self.assertCommand('!hello', 'Hello World !')
         self.bot.push_message('!repos uninstall err-helloworld')
 
     def test_encoding_preservation(self):

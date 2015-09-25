@@ -21,7 +21,7 @@ class Backup(BotPlugin):
             f.write('log.info("Installing plugins.")\n')
             f.write('if "repos" in bot:\n')
             f.write('  for repo in bot["repos"]:\n')
-            f.write('    errors = bot.install(repo)\n')
+            f.write('    errors = bot.install_repo(repo)\n')
             f.write('    for error in errors:\n')
             f.write('      log.error(error)\n')
 

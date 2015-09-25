@@ -60,12 +60,12 @@ def setup_bot(backend_name, logger, config, restore=None):
         # Prepare the context for the restore script
         if 'repos' in bot:
             log.fatal('You cannot restore onto a non empty bot.')
-        from errbot.plugin_manager import get_plugin_by_name  # noqa
+            sys.exit(-1)
         log.info('**** RESTORING the bot from %s' % restore)
         with open(restore) as f:
             exec(f.read())
         bot.close_storage()
-        print('Restore complete restore the bot normally')
+        print('Restore complete. You can restart the bot normally')
         sys.exit(0)
 
     errors = bot.update_dynamic_plugins()

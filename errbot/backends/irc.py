@@ -401,7 +401,8 @@ class IRCBackend(ErrBot):
         ssl = identity.get('ssl', False)
         username = identity.get('username', None)
 
-        enable_format('irc', IRC_CHRS, borders=not config.get('COMPACT_OUTPUT', True))
+        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else True
+        enable_format('irc', IRC_CHRS, borders=not compact)
 
         private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
         channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)

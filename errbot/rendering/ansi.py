@@ -256,7 +256,78 @@ class Table(object):
         return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
 
 
-def recurse(write, ct, element, table=None):
+class BorderlessTable(object):
+
+    def __init__(self,  ct):
+        self.headers = []
+        self.rows = []
+        self.in_headers = False
+        self.ct = ct
+
+    def next_row(self):
+        if self.in_headers:
+            self.headers.append([])  # is that exists ?
+        else:
+            self.rows.append([])
+
+    def add_col(self):
+        if not self.rows:
+            self.rows = [[]]
+        else:
+            self.rows[-1].append(('', 0))
+
+    def add_header(self):
+        if not self.headers:
+            self.headers = [[]]
+        else:
+            self.headers[-1].append(('', 0))
+
+    def begin_headers(self):
+        self.in_headers = True
+
+    def end_headers(self):
+        self.in_headers = False
+
+    def write(self, text):
+        cells = self.headers if self.in_headers else self.rows
+
+        text_cell, count = cells[-1][-1]
+        if isinstance(text, str):
+            text_cell += text
+            count += len(text)
+        else:
+            text_cell += str(text)  # This is a non space chr
+        cells[-1][-1] = text_cell, count
+
+    def __str__(self):
+        nbcols = max(len(row) for row in chain(self.headers, self.rows))
+        maxes = [0, ] * nbcols
+
+        for row in chain(self.headers, self.rows):
+            for i, el in enumerate(row):
+                _, length = el
+                if maxes[i] < length:
+                    maxes[i] = length
+
+        # add up margins
+        maxes = [m + 2 for m in maxes]
+
+        output = io.StringIO()
+        if self.headers:
+            for row in self.headers:
+                for i, header in enumerate(row):
+                    text, l = header
+                    output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
+                output.write('\n')
+        for row in self.rows:
+            for i, item in enumerate(row):
+                text, l = item
+                output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
+            output.write('\n')
+        return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
+
+
+def recurse(write, ct, element, table=None, borders=True):
     exit = []
     if element.text:
         text = element.text
@@ -322,7 +393,7 @@ def recurse(write, ct, element, table=None):
         write('      ')
         exit.append('\n')
     elif element.tag == 'table':
-        table = Table(ct)
+        table = Table(ct) if borders else BorderlessTable(ct)
         orig_write = write
         write = table.write
         text = None
@@ -342,7 +413,7 @@ def recurse(write, ct, element, table=None):
     if text:
         write(text)
     for e in element:
-        recurse(write, ct, e, table)
+        recurse(write, ct, e, table, borders)
     if element.tag == 'table':
         write = orig_write
         write(str(table))
@@ -358,19 +429,19 @@ def recurse(write, ct, element, table=None):
             write(tail)
 
 
-def translate(element, ct=ANSI_CHRS):
+def translate(element, ct=ANSI_CHRS, borders=True):
     f = io.StringIO()
 
     def write(ansi_obj):
         return f.write(str(ansi_obj))
-    recurse(write, ct, element)
+    recurse(write, ct, element, borders=borders)
     result = f.getvalue().rstrip('\n')  # remove the useless final \n
     return result + str(ct.fx_reset)
 
 
 # patch us in
-def enable_format(name, ct):
-    Markdown.output_formats[name] = partial(translate, ct=ct)
+def enable_format(name, ct, borders=True):
+    Markdown.output_formats[name] = partial(translate, ct=ct, borders=borders)
 
 for name, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
     enable_format(name, ct)

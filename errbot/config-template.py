@@ -290,3 +290,6 @@ REVERSE_CHATROOM_RELAY = {}
 
 # Allow messages sent in a chatroom to be directed at requester.
 #GROUPCHAT_NICK_PREFIXED = False
+
+# Disables table borders (IRC only for now). You can reenable them switching that to  False
+# COMPACT_OUTPUT = True

@@ -9,17 +9,36 @@ from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
 from errbot.rendering import ansi, text, xhtml, imtext
+from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 
+from markdown import Markdown
+from markdown.extensions.extra import ExtraExtension
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.text')
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
+
+
+enable_format('borderless', ANSI_CHRS, borders=False)
+
+
+def borderless_ansi():
+    """This makes a converter from markdown to ansi (console) format.
+    It can be called like this:
+    from errbot.rendering import ansi
+    md_converter = ansi()  # you need to cache the converter
+
+    ansi_txt = md_converter.convert(md_txt)
+    """
+    md = Markdown(output_format='borderless', extensions=[ExtraExtension(), AnsiExtension()])
+    md.stripTopLevelTags = False
+    return md
 
 
 class TextBackend(ErrBot):
@@ -32,6 +51,7 @@ class TextBackend(ErrBot):
         self.md_html = xhtml()  # for more debug feedback on md
         self.md_text = text()  # for more debug feedback on md
         self.md_ansi = ansi()
+        self.md_borderless_ansi = borderless_ansi()
         self.md_im = imtext()
         self.md_lexer = get_lexer_by_name("md", stripall=True)
         self.html_lexer = get_lexer_by_name("html", stripall=True)
@@ -82,7 +102,9 @@ class TextBackend(ErrBot):
         if ANSI:
             print(bar.format(mode='ANSI'))
             print(self.md_ansi.convert(mess.body))
-        print(bar.format(mode='IN  '))
+            print(bar.format(mode='BORDERLESS'))
+            print(self.md_borderless_ansi.convert(mess.body))
+        print(bar.format(mode='IM  '))
         print(self.md_im.convert(mess.body))
         print('\n\n')
 

@@ -182,11 +182,11 @@ You can verify this by giving the `!status` command, which should
 respond with something like the following::
 
     Yes I am alive...
-    With these plugins (L=Loaded, U=Unloaded, B=Blacklisted, C=Needs to be configured):
-    [L] ChatRoom
-    [L] HelloWorld
-    [L] VersionChecker
-    [L] Webserver
+    With these plugins (A=Activated, D=Deactivated, B=Blacklisted, C=Needs to be configured):
+    [A] ChatRoom
+    [A] HelloWorld
+    [A] VersionChecker
+    [A] Webserver
 
 If you don't see your plugin listed or it shows up as unloaded, make
 sure to start your bot with *DEBUG*-level logging enabled and pay

@@ -1,6 +1,7 @@
 from configparser import NoSectionError
 from itertools import chain
 import importlib
+import imp
 import inspect
 import logging
 import sys
@@ -12,6 +13,7 @@ from .utils import version2array, PY3, PY2, find_roots_with_extra, PLUGINS_SUBDI
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
+from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
 from .core_plugins.wsview import route
 from .storage import StoreMixin
 from .repos import KNOWN_PUBLIC_REPOS
@@ -24,7 +26,7 @@ CORE_PLUGINS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 try:
     from importlib import reload  # new in python 3.4
 except ImportError:
-    from imp import reload
+    from imp import reload  # noqa
 
 
 class IncompatiblePluginException(Exception):
@@ -108,8 +110,9 @@ class BotPluginManager(PluginManager, StoreMixin):
             self[self.CONFIGS] = {}
 
         self.setCategoriesFilter({"bots": BotPlugin})
-        plugin_locator = self._locatorDecide('plug', None)
-        self.setPluginLocator(plugin_locator, None)
+        locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug')])
+        locator.disableRecursiveScan()  # We do that ourselves
+        self.setPluginLocator(locator)
 
     def instanciateElement(self, element):
         """ Override the loading method to inject bot """
@@ -127,10 +130,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         return element(self)
 
     def get_plugin_by_name(self, name):
-        plugin = self.getPluginByName(name, 'bots')
-        if plugin is None:
-            return None
-        return plugin
+        return self.getPluginByName(name, 'bots')
 
     def get_plugin_obj_by_name(self, name):
         plugin = self.get_plugin_by_name(name)
@@ -226,24 +226,41 @@ class BotPluginManager(PluginManager, StoreMixin):
         """
         Completely reload the given plugin, including reloading of the module's code
         """
-        if name in self.get_all_active_plugin_names():
+        was_activated = name in self.get_all_active_plugin_names()
+
+        if was_activated:
             self.deactivate_plugin_by_name(name)
 
         plugin = self.get_plugin_by_name(name)
-        logging.critical(dir(plugin))
-        module = __import__(plugin.path.split(os.sep)[-1])
-        reload(module)
 
+        module_alias = plugin.plugin_object.__module__
+        module_old = __import__(module_alias)
+        f = module_old.__file__
+        if f.endswith('.pyc'):
+            f = f[:-1]  # py2 compat : load the .py
+        module_new = imp.load_source(module_alias, f)
         class_name = type(plugin.plugin_object).__name__
-        new_class = getattr(module, class_name)
+        new_class = getattr(module_new, class_name)
         plugin.plugin_object.__class__ = new_class
+
+        if was_activated:
+            self.activate_plugin(name)
 
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
         builtins = find_roots_with_extra(CORE_PLUGINS, extra_plugin_dir)
-        paths = builtins + path_list
-        for entry in paths:
+
+        paths = path_list
+        if extra_plugin_dir:
+            if isinstance(extra_plugin_dir, list):
+                paths += extra_plugin_dir
+            else:
+                paths += [extra_plugin_dir, ]
+
+        for entry in chain(builtins, paths):
             if entry not in sys.path:
-                sys.path.append(entry)  # so plugins can relatively import their submodules
+                log.debug("Add %s to sys.path" % entry)
+                sys.path.append(entry)  # so plugins can relatively import their repos
+
         dependencies_result = [check_dependencies(path) for path in paths]
         deps_to_install = set()
         if autoinstall_deps:
@@ -259,19 +276,17 @@ class BotPluginManager(PluginManager, StoreMixin):
         else:
             errors = [result[0] for result in dependencies_result if result is not None]
         self.setPluginPlaces(chain(builtins, path_list))
-        all_candidates = []
-
-        def add_candidate(candidate):
-            all_candidates.append(candidate)
-
         self.locatePlugins()
+
+        self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
+
         # noinspection PyBroadException
         try:
-            self.loadPlugins(add_candidate)
+            self.loadPlugins()
         except Exception:
             log.exception("Error while loading plugins")
 
-        return all_candidates, errors
+        return errors
 
     def get_all_active_plugin_objects(self):
         return [plug.plugin_object
@@ -339,11 +354,9 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        all_candidates, errors = self.update_plugin_places(
+        return self.update_plugin_places(
             [self.plugin_dir + os.sep + d for d in self.get(self.REPOS, {}).keys()],
             self.bot_config.BOT_EXTRA_PLUGIN_DIR, self.bot_config.AUTOINSTALL_DEPS)
-        self.all_candidates = all_candidates
-        return errors
 
     def activate_non_started_plugins(self):
         log.info('Activating all the plugins...')
@@ -376,13 +389,13 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.exception("Error loading %s" % name)
             return '%s failed to start : %s\n' % (name, e)
         self.get_plugin_obj_by_name(name).callback_connect()
-        return "Plugin %s activated" % name
+        return "Plugin %s activated." % name
 
     def deactivate_plugin(self, name):
         if name not in self.get_all_active_plugin_names():
             return "Plugin %s not in active list" % name
         self.deactivate_plugin_by_name(name)
-        return "Plugin %s deactivated" % name
+        return "Plugin %s deactivated." % name
 
     def install_repo(self, repo):
         if repo in KNOWN_PUBLIC_REPOS:
@@ -404,7 +417,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             feedback = p.stdout.read().decode('utf-8')
             error_feedback = p.stderr.read().decode('utf-8')
             if p.wait():
-                return "Could not load this plugin : \n%s\n---\n%s" % (feedback, error_feedback),
+                return "Could not load this plugin: \n\n%s\n\n---\n\n%s" % (feedback, error_feedback),
         self.add_plugin_repo(human_name, repo)
         return self.update_dynamic_plugins()
 

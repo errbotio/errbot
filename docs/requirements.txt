@@ -3,3 +3,5 @@ sphinx>=1.2
 sleekxmpp
 irc
 pyfire
+python-telegram-bot
+slackclient

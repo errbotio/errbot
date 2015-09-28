@@ -44,9 +44,9 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           fx_not_underline=NSC('\x0F'),
                           fx_normal=NSC('\x0F'),
                           fixed_width='',
-                          end_fixed_width='')
-
-enable_format('irc', IRC_CHRS)
+                          end_fixed_width='',
+                          inline_code='',
+                          end_inline_code='')
 
 try:
     import irc.connection
@@ -93,6 +93,7 @@ class IRCIdentifier(DeprecationBridgeIdentifier):
 
     # generic compatibility
     person = nick
+    client = ''  # TODO it should be possible to get more info here
 
     @property
     def fullname(self):
@@ -399,6 +400,9 @@ class IRCBackend(ErrBot):
         password = identity.get('password', None)
         ssl = identity.get('ssl', False)
         username = identity.get('username', None)
+
+        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else True
+        enable_format('irc', IRC_CHRS, borders=not compact)
 
         private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
         channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)

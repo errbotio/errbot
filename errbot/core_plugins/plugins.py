@@ -125,7 +125,6 @@ class Plugins(BotPlugin):
                             name = plugin.name
                             self.send(mess.frm, '/me is reloading plugin %s' % name)
                             self._bot.reload_plugin_by_name(plugin.name)
-                            self._bot.activate_plugin(plugin.name)
                             self.send(mess.frm, '%s reloaded and reactivated' % name)
         if core_to_update:
             self.send(mess.frm, "You have updated the core, I need to restart.", message_type=mess.type)
@@ -137,14 +136,14 @@ class Plugins(BotPlugin):
     def plugin_config(self, mess, args):
         """ configure or get the configuration / configuration template for a specific plugin
         ie.
-        !config ExampleBot
+        !plugin config ExampleBot
         could return a template if it is not configured:
         {'LOGIN': 'example@example.com', 'PASSWORD': 'password', 'DIRECTORY': '/toto'}
         Copy paste, adapt so can configure the plugin :
-        !config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
+        !plugin config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         It will then reload the plugin with this config.
         You can at any moment retreive the current values:
-        !config ExampleBot
+        !plugin config ExampleBot
         should return :
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
@@ -160,13 +159,15 @@ class Plugins(BotPlugin):
 
         if len(args) == 1:
             response = ("Default configuration for this plugin (you can copy and paste "
-                        "this directly as a command):\n{prefix}config {plugin_name} \n{config}").format(
-                prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(template_obj)))
+                        "this directly as a command):\n\n"
+                        "```\n{prefix}plugin config {plugin_name} \n{config}\n```").format(
+                prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(template_obj))
 
             current_config = self._bot.get_plugin_configuration(plugin_name)
             if current_config:
-                response += "\n\nCurrent configuration:\n{prefix}config {plugin_name} \n{config}".format(
-                    prefix=self._bot.prefix, plugin_name=plugin_name, config=md_escape(pformat(current_config)))
+                response += ("\n\nCurrent configuration:\n\n"
+                             "```\n{prefix}plugin config {plugin_name} \n{config}\n```").format(
+                    prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(current_config))
             return response
 
         # noinspection PyBroadException
@@ -205,52 +206,54 @@ class Plugins(BotPlugin):
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def plugin_reload(self, mess, args):
-        """reload a plugin"""
-        args = args.strip()
-        if not args:
+        """reload a plugin: reload the code of the plugin leaving the activation status intact."""
+        name = args.strip()
+        if not name:
             yield ("Please tell me which of the following plugins to reload:\n"
                    "{}".format(self.formatted_plugin_list(active_only=False)))
             return
-        if args not in self._bot.get_all_plugin_names():
+        if name not in self._bot.get_all_plugin_names():
             yield ("{} isn't a valid plugin name. The current plugins are:\n"
-                   "{}".format(args, self.formatted_plugin_list(active_only=False)))
+                   "{}".format(name, self.formatted_plugin_list(active_only=False)))
             return
 
-        yield self._bot.deactivate_plugin(args)  # Not needed but keeps the feedback to user consistent
-        self._bot.reload_plugin_by_name(args)
-        yield self._bot.activate_plugin(args)
+        if name not in self._bot.get_all_active_plugin_names():
+            yield (("Warning: plugin %s is currently not activated. " +
+                   "Use !plugin activate %s to activate it.") % (name, name))
+
+        self._bot.reload_plugin_by_name(name)
+
+        yield "Plugin %s reloaded." % name
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_load(self, mess, args):
-        """load a plugin"""
+    def plugin_activate(self, mess, args):
+        """activate a plugin. [calls .activate() on the plugin]"""
         args = args.strip()
         if not args:
-            return ("Please tell me which of the following plugins to reload:\n"
+            return ("Please tell me which of the following plugins to activate:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
         if args not in self._bot.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args in self._bot.get_all_active_plugin_names():
-            return "{} is already loaded".format(args)
+            return "{} is already activated.".format(args)
 
-        self._bot.reload_plugin_by_name(args)
-        r = self._bot.activate_plugin(args)
-        return r
+        return self._bot.activate_plugin(args)
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_unload(self, mess, args):
-        """unload a plugin"""
+    def plugin_deactivate(self, mess, args):
+        """deactivate a plugin. [calls .deactivate on the plugin]"""
         args = args.strip()
         if not args:
-            return ("Please tell me which of the following plugins to reload:\n"
+            return ("Please tell me which of the following plugins to deactivate:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
         if args not in self._bot.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
         if args not in self._bot.get_all_active_plugin_names():
-            return "{} is not currently loaded".format(args)
+            return "{} is already deactivated.".format(args)
 
         return self._bot.deactivate_plugin(args)
 

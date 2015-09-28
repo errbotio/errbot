@@ -1,19 +1,25 @@
 {% macro status(name) -%}
-    {% if name == 'L' -%}
-        **L**{color='green'}
-    {%- elif name == 'U' -%}
-        **U**
+    {% if name == 'A' -%}
+        **A**{color='green'}
+    {%- elif name == 'D' -%}
+        **D**
     {%- elif name == 'C' -%}
         **C**{color='yellow'}
     {%- elif name == 'B' -%}
         **B**{color='red'}
-    {%- elif name == 'BL' -%}
-        **B**{color='red'},**L**{color='green'}
-    {%- elif name == 'BU' -%}
-        **B**{color='red'},**U**
+    {%- elif name == 'BA' -%}
+        **B**{color='red'},**A**{color='green'}
+    {%- elif name == 'BD' -%}
+        **B**{color='red'},**D**
     {%- endif %}
 {%- endmacro %}
-With these plugins ({{ status('L').strip() }} = Loaded, {{ status('U').strip() }} = Unloaded, {{ status('B').strip() }} = Blacklisted, {{ status('C').strip() }} = Needs to be configured):
-{% for state, name in plugins_statuses %}
-[{{ status(state).strip() }}] {{ name }}
+
+### Plugins
+
+Status  | Name                    
+------- | ----------------------- 
+{% for state, name in plugins_statuses %}{{ status(state).strip().ljust(7) }} | {{ name }}
 {% endfor %}
+
+{{ status('A').strip() }} = Activated, {{ status('D').strip() }} = Deactivated, {{ status('B').strip() }} = Blacklisted, {{ status('C').strip() }} = Needs to be configured
+

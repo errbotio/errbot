@@ -8,7 +8,7 @@ from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom, RoomError, RoomDoesNotExistError, \
     UserDoesNotExistError
 from errbot.errBot import ErrBot
-from errbot.utils import deprecated, PY3
+from errbot.utils import deprecated, PY3, split_string_after
 from errbot.rendering import imtext
 
 
@@ -48,6 +48,9 @@ except SyntaxError:
 # link if you prefix it with a #. Other clients receive this link as a
 # token matching this regex.
 SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
+
+# Empirically determined message size limit.
+SLACK_MESSAGE_LIMIT = 4096
 
 USER_IS_BOT_HELPTEXT = (
     "Connected to Slack using a bot account, which cannot manage "
@@ -123,7 +126,9 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
     nick = username
 
     # Override for ACLs
-    aclattr = username
+    @property
+    def aclattr(self):
+        return self.username.split('@')[0]
 
     @property
     def fullname(self):
@@ -307,6 +312,8 @@ class SlackBackend(ErrBot):
             text = event['text']
             user = event['user']
 
+        text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
+
         msg = Message(text, type_=message_type)
         if message_type == 'chat':
             msg.frm = SlackIdentifier(self.sc, user, event['channel'])
@@ -393,9 +400,20 @@ class SlackBackend(ErrBot):
             else:
                 to_humanreadable = mess.to.username
                 to_channel_id = mess.to.channelid
+                if to_channel_id.startswith('C'):
+                    log.debug("This is a divert to private message, sending it directly to the user.")
+                    to_channel_id = self.get_im_channel(self.username_to_userid(to_humanreadable))
             log.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_channel_id))
             body = self.md.convert(mess.body)
-            self.sc.rtm_send_message(to_channel_id, body)
+            log.debug('Message size: %d' % len(body))
+            fixed_format = body.startswith('```\n')  # hack to fix the formatting
+            for part in split_string_after(body, min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)):
+                if fixed_format:
+                    if not part.startswith('```\n'):
+                        part = '```\n' + part
+                    if not part.endswith('```') and not part.endswith('```\n'):
+                        part += '\n```\n'
+                self.sc.rtm_send_message(to_channel_id, part)
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
@@ -439,9 +457,6 @@ class SlackBackend(ErrBot):
 
         return response
 
-    def is_admin(self, usr):
-        return usr.split('@')[0] in self.bot_config.BOT_ADMINS
-
     def shutdown(self):
         super().shutdown()
 
@@ -476,6 +491,11 @@ class SlackBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0}: {1}'.format(identifier.nick, message.body)
+
+    def remove_angle_brackets_from_uris(self, match_object):
+        if "://" in match_object.group():
+            return match_object.group().strip("<>")
+        return match_object.group()
 
 
 class SlackRoom(MUCRoom):

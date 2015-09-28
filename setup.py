@@ -16,7 +16,7 @@
 
 import os
 import sys
-from glob import glob
+
 from platform import system
 from setuptools import setup, find_packages
 
@@ -28,7 +28,7 @@ ON_WINDOWS = system() == 'Windows'
 if py_version < (2, 7):
     raise RuntimeError('Err requires Python 2.7 or later')
 
-if PY3 and py_version < (3, 4):
+if PY3 and py_version < (3, 3):
     raise RuntimeError('On Python 3, Err requires Python 3.3 or later')
 
 deps = ['webtest',
@@ -53,13 +53,15 @@ else:
     deps += ['dnspython3', ]  # dnspython3 for SRV records
 
 # Extra dependencies for a development environment.
-if 'develop' in sys.argv:
-    deps += ['mock',
-             'nose',
-             'pep8',
-             'pytest',
-             'pytest-xdist',
-             'PyOpenSSL']
+# if 'develop' in sys.argv: <- we cannot do that as pip is doing that in 2 steps.
+# TODO(gbin): find another way to filter those out if we don't need them.
+
+deps += ['mock',
+         'nose',
+         'pep8',
+         'pytest',
+         'pytest-xdist',
+         'PyOpenSSL']
 
 if not ON_WINDOWS:
     deps += ['daemonize']
@@ -75,24 +77,26 @@ def read(fname):
 if __name__ == "__main__":
     from version import VERSION
 
+    args = set(sys.argv)
+
     changes = read('CHANGES.rst')
 
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
 
-    if set(sys.argv) & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
+    if args & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
         raise Exception("err doesn't support binary distributions")
 
     # under python2 if we want to make a source distribution,
     # don't pre-convert the sources, leave them as py3.
-    if PY2 and ('install' in sys.argv or 'develop' in sys.argv):
+    if PY2 and args & {'install', 'develop', 'bdist_wheel'}:
         from py2conv import convert_to_python2
         convert_to_python2()
 
     setup(
         name="err",
         version=VERSION,
-        packages=find_packages(src_root),
+        packages=find_packages(src_root, exclude=['tests']),
         scripts=['scripts/err.py'],
 
         install_requires=deps,
@@ -103,10 +107,10 @@ if __name__ == "__main__":
 
         author="Guillaume BINET",
         author_email="gbin@gootz.net",
-        description="err is a plugin based team chatbot designed to be easily deployable, extensible and maintainable.",
+        description="Err is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description=''.join([read('README.rst'), '\n\n', changes]),
         license="GPL",
-        keywords="xmpp jabber chatbot bot plugin",
+        keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
         url="http://errbot.net/",
         classifiers=[
             "Development Status :: 5 - Production/Stable",

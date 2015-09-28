@@ -15,7 +15,7 @@ log = logging.getLogger('errbot.backends.graphic')
 try:
     from PySide import QtCore, QtGui, QtWebKit
     from PySide.QtGui import QCompleter
-    from PySide.QtCore import Qt, QObject
+    from PySide.QtCore import Qt
 except ImportError:
     log.exception("Could not start the graphical backend")
     log.fatal("""
@@ -48,11 +48,17 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super(CommandBox, self).__init__()
 
         # Autocompleter
-        self.completer = QCompleter([prefix + name for name in commands], self)
+        self.completer = None
+        self.updateCompletion(commands)
+        self.autocompleteStart = None
+
+    def updateCompletion(self, commands):
+        if self.completer:
+            self.completer.activated.disconnect(self.onAutoComplete)
+        self.completer = QCompleter([(self.prefix + name).replace('_', ' ', 1) for name in commands], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setWidget(self)
         self.completer.activated.connect(self.onAutoComplete)
-        self.autocompleteStart = None
 
     def onAutoComplete(self, text):
         # Select the text from autocompleteStart until the current cursor
@@ -67,6 +73,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         event = args[0]
         key = event.key()
         ctrl = event.modifiers() == QtCore.Qt.ControlModifier
+        alt = event.modifiers() == QtCore.Qt.AltModifier
 
         # don't disturb the completer behavior
         if self.completer.popup().isVisible() and key in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab, Qt.Key_Backtab):
@@ -78,10 +85,10 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             self.completer.popup().hide()
             self.autocompleteStart = None
 
-        if key == Qt.Key_Space and ctrl:
+        if key == Qt.Key_Space and (ctrl or alt):
             # Pop-up the autocompleteList
             rect = self.cursorRect(self.textCursor())
-            rect.setSize(QtCore.QSize(100, 150))
+            rect.setSize(QtCore.QSize(300, 500))
             self.autocompleteStart = self.textCursor().position()
             self.completer.complete(rect)  # The popup is positioned in the next if block
 
@@ -94,64 +101,60 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             # Select the first one of the matches
             self.completer.popup().setCurrentIndex(self.completer.completionModel().index(0, 0))
 
-        if key == Qt.Key_Up and ctrl:
+        if key == Qt.Key_Up and (ctrl or alt):
             if self.history_index > 0:
                 self.history_index -= 1
-                self.setPlainText(BOT_PREFIX + '%s %s' % self.history[self.history_index])
+                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 key.ignore()
                 return
-        elif key == Qt.Key_Down and ctrl:
+        elif key == Qt.Key_Down and (ctrl or alt):
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
-                self.setPlainText(BOT_PREFIX + '%s %s' % self.history[self.history_index])
+                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
                 key.ignore()
                 return
-        elif key == QtCore.Qt.Key_Return and ctrl:
+        elif key == QtCore.Qt.Key_Return and (ctrl or alt):
             self.newCommand.emit(self.toPlainText())
             self.reset_history()
-        super(CommandBox, self).keyPressEvent(*args, **kwargs)
+        super().keyPressEvent(*args, **kwargs)
 
 
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
 
 def htmlify(text, receiving):
-    tag = 'div'
-    if receiving:
-        style = 'background-color: rgba(251,247,243,0.5); border-color:rgba(251,227,223,0.5);'
-    else:
-        style = 'background-color : rgba(243,247,251,0.5); border-color: rgba(223,227,251,0.5);'
-    return '<%s style="margin:0px; padding:20px; border-style:solid; border-width: 0px 0px 1px 0px; %s"> %s </%s>' % (
-        tag, style, text, tag)
+    return '<div class="%s">%s</div>' % ('receiving' if receiving else 'sending', text)
 
 
-INIT_PAGE = """<html><head><link rel="stylesheet" type="text/css" href="%s/style/style.css" /></head>
-<body style="background-image: url('%s'); background-repeat: no-repeat;
-background-position: center center; background-attachment:fixed;
-background-size: contain; margin:0;">"""
+err_path = os.path.dirname(errbot.__file__)
+icon_path = os.path.join(err_path, 'err.svg')
+bg_path = os.path.join(err_path, 'err-bg.svg')
+css_path = os.path.join(err_path, 'backends', 'style', 'style.css')
+TOP = """
+<html>
+  <body style="background-image: url('file://%s');">
+""" % bg_path
+BOTTOM = "</body></html>"
 
 
 class ChatApplication(QtGui.QApplication):
     newAnswer = QtCore.Signal(str)
 
-    def __init__(self, *args, **kwargs):
-        backend = kwargs.pop('backend')
-        config = kwargs.pop('config')
-        super().__init__(*args, **kwargs)
+    def __init__(self, bot):
+        self.bot = bot
+        super().__init__(sys.argv)
         self.mainW = QtGui.QWidget()
-        self.mainW.setWindowTitle('Err...')
-
-        icon_path = os.path.join(os.path.dirname(errbot.__file__), 'err.svg')
-        bg_path = os.path.join(os.path.dirname(errbot.__file__), 'err-bg.svg')
+        self.mainW.setWindowTitle('Errbot')
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
-        self.input = CommandBox(backend.cmd_history, backend.commands, config.BOT_PREFIX)
+        self.input = CommandBox(bot.cmd_history, bot.commands, bot.bot_config.BOT_PREFIX)
         self.output = QtWebKit.QWebView()
+        self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css_path))
 
         # init webpage
-        self.buffer = INIT_PAGE % (config.BOT_DATA_DIR, bg_path)
-        self.output.setHtml(self.buffer)
+        self.buffer = ""
+        self.update_webpage()
 
         # layout
         vbox.addWidget(self.output)
@@ -165,17 +168,23 @@ class ChatApplication(QtGui.QApplication):
         # connect signals/slots
         self.output.page().mainFrame().contentsSizeChanged.connect(self.scroll_output_to_bottom)
         self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
-        self.input.newCommand.connect(lambda text: backend.send_command(text))
+        self.input.newCommand.connect(lambda text: bot.send_command(text))
         self.newAnswer.connect(self.new_message)
 
         self.mainW.show()
 
     def new_message(self, text, receiving=True):
         self.buffer += htmlify(text, receiving)
-        self.output.setHtml(self.buffer)
+        self.update_webpage()
+
+    def update_webpage(self):
+        self.output.setHtml(TOP + self.buffer + BOTTOM)
 
     def scroll_output_to_bottom(self):
         self.output.page().mainFrame().scroll(0, self.output.page().mainFrame().scrollBarMaximum(QtCore.Qt.Vertical))
+
+    def update_commands(self, commands):
+        self.input.updateCompletion(commands)
 
 
 class GraphicBackend(TextBackend):
@@ -183,8 +192,12 @@ class GraphicBackend(TextBackend):
         super().__init__(config)
         self.bot_identifier = self.build_identifier('Err')
         # create window and components
-        self.app = ChatApplication(sys.argv, backend=self, config=self.bot_config)
         self.md = xhtml()
+        self.app = ChatApplication(self)
+
+    def connect_callback(self):
+        super().connect_callback()
+        self.app.update_commands(self.commands)
 
     def send_command(self, text):
         self.app.new_message(text, False)

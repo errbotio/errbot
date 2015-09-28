@@ -9,6 +9,8 @@ from errbot.rendering import text
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.telegram')
 
+TELEGRAM_MESSAGE_SIZE_LIMIT = 1024
+
 try:
     import telegram
 except ImportError:
@@ -52,8 +54,8 @@ class TelegramBotFilter(object):
 
 class TelegramIdentifier(object):
 
-    def __init__(self, id_, first_name=None, last_name=None, username=None, title=None):
-        self._id = id_
+    def __init__(self, id, first_name=None, last_name=None, username=None, title=None):
+        self._id = id
         self._first_name = first_name
         self._last_name = last_name
         self._username = username
@@ -111,6 +113,7 @@ class TelegramBackend(ErrBot):
 
     def __init__(self, config):
         super().__init__(config)
+        config.MESSAGE_SIZE_LIMIT = TELEGRAM_MESSAGE_SIZE_LIMIT
         logging.getLogger('telegram.bot').addFilter(TelegramBotFilter())
 
         identity = config.BOT_IDENTITY
@@ -135,7 +138,7 @@ class TelegramBackend(ErrBot):
             return False
 
         self.bot_identifier = TelegramIdentifier(
-            id_=me.id,
+            id=me.id,
             first_name=me.first_name,
             last_name=me.last_name,
             username=me.username
@@ -146,11 +149,12 @@ class TelegramBackend(ErrBot):
         self.connect_callback()
 
         try:
-            offset = 0
+            offset = self.shelf.get('_telegram_updates_offset', 0)
             while True:
                 log.debug("Getting updates with offset %s", offset)
                 for update in self.telegram.getUpdates(offset=offset, timeout=60):
                     offset = update.update_id + 1
+                    self.shelf['_telegram_updates_offset'] = offset
                     log.debug("Processing update: %s", update)
                     if not hasattr(update, 'message'):
                         log.warning("Unknown update type (no message present)")
@@ -185,7 +189,7 @@ class TelegramBackend(ErrBot):
         if isinstance(message.chat, telegram.user.User):
             message_instance.type = "chat"
             message_instance.frm = TelegramIdentifier(
-                id_=message.from_user.id,
+                id=message.from_user.id,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
                 username=message.from_user.username
@@ -200,7 +204,7 @@ class TelegramBackend(ErrBot):
                 username=message.from_user.username
             )
             message_instance.to = TelegramIdentifier(
-                id_=message.chat.id,
+                id=message.chat.id,
                 title=message.chat.title
             )
 
@@ -226,7 +230,7 @@ class TelegramBackend(ErrBot):
         id_ = txtrep.strip()
         if not self._is_numeric(id_):
             raise ValueError("Telegram identifiers must be numeric")
-        return TelegramIdentifier(id_=id_)
+        return TelegramIdentifier(id=id_)
 
     def build_reply(self, mess, text=None, private=False):
         msg_type = mess.type

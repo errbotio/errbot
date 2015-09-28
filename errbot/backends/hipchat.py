@@ -427,14 +427,5 @@ class HipchatBackend(XMPPBackend):
 
         return HipChatMUCRoom(name, self)
 
-    def send_message(self, mess):
-        if mess.type == 'groupchat':
-            room_id = self.query_room(mess.to.node + '@' + mess.to.domain)
-            log.debug("room id = %s" % room_id)
-            body = self.md.convert(mess.body)
-            self.conn.hypchat.get_room(room_id).notification(body, format='html')
-        else:
-            super().send_message(mess)
-
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)

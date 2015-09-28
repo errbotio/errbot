@@ -1,0 +1,6 @@
+[Core]
+Name = I18N
+Module = i18n
+
+[Python]
+Version = 2+

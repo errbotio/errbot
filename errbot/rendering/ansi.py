@@ -11,6 +11,8 @@ import logging
 from markdown import Markdown
 from markdown.extensions import Extension
 from markdown.postprocessors import Postprocessor
+from markdown.extensions.fenced_code import FencedBlockPreprocessor
+
 from ansi.color import fg, bg, fx
 
 log = logging.getLogger(__name__)
@@ -63,6 +65,8 @@ CharacterTable = namedtuple('CharacterTable',
                              'fx_normal',
                              'fixed_width',
                              'end_fixed_width',
+                             'inline_code',
+                             'end_inline_code',
                              ])
 
 ANSI_CHRS = CharacterTable(fg_black=fg.black,
@@ -91,7 +95,10 @@ ANSI_CHRS = CharacterTable(fg_black=fg.black,
                            fx_not_underline=fx.not_underline,
                            fx_normal=fx.normal,
                            fixed_width='',
-                           end_fixed_width='')
+                           end_fixed_width='',
+                           inline_code='',
+                           end_inline_code='')
+
 
 # Pure Text doesn't have any graphical chrs.
 TEXT_CHRS = CharacterTable(fg_black='',
@@ -120,7 +127,10 @@ TEXT_CHRS = CharacterTable(fg_black='',
                            fx_not_underline='',
                            fx_normal='',
                            fixed_width='',
-                           end_fixed_width='')
+                           end_fixed_width='',
+                           inline_code='',
+                           end_inline_code='')
+
 
 # IMText have some formatting available
 IMTEXT_CHRS = CharacterTable(fg_black='',
@@ -149,7 +159,9 @@ IMTEXT_CHRS = CharacterTable(fg_black='',
                              fx_not_underline=NSC('_'),
                              fx_normal=NSC('*'),
                              fixed_width='```\n',
-                             end_fixed_width='```\n')
+                             end_fixed_width='```\n',
+                             inline_code='`',
+                             end_inline_code='`')
 
 
 class Table(object):
@@ -244,13 +256,83 @@ class Table(object):
         return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
 
 
-def recurse(write, ct, element, table=None):
+class BorderlessTable(object):
+
+    def __init__(self,  ct):
+        self.headers = []
+        self.rows = []
+        self.in_headers = False
+        self.ct = ct
+
+    def next_row(self):
+        if self.in_headers:
+            self.headers.append([])  # is that exists ?
+        else:
+            self.rows.append([])
+
+    def add_col(self):
+        if not self.rows:
+            self.rows = [[]]
+        else:
+            self.rows[-1].append(('', 0))
+
+    def add_header(self):
+        if not self.headers:
+            self.headers = [[]]
+        else:
+            self.headers[-1].append(('', 0))
+
+    def begin_headers(self):
+        self.in_headers = True
+
+    def end_headers(self):
+        self.in_headers = False
+
+    def write(self, text):
+        cells = self.headers if self.in_headers else self.rows
+
+        text_cell, count = cells[-1][-1]
+        if isinstance(text, str):
+            text_cell += text
+            count += len(text)
+        else:
+            text_cell += str(text)  # This is a non space chr
+        cells[-1][-1] = text_cell, count
+
+    def __str__(self):
+        nbcols = max(len(row) for row in chain(self.headers, self.rows))
+        maxes = [0, ] * nbcols
+
+        for row in chain(self.headers, self.rows):
+            for i, el in enumerate(row):
+                _, length = el
+                if maxes[i] < length:
+                    maxes[i] = length
+
+        # add up margins
+        maxes = [m + 2 for m in maxes]
+
+        output = io.StringIO()
+        if self.headers:
+            for row in self.headers:
+                for i, header in enumerate(row):
+                    text, l = header
+                    output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
+                output.write('\n')
+        for row in self.rows:
+            for i, item in enumerate(row):
+                text, l = item
+                output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
+            output.write('\n')
+        return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
+
+
+def recurse(write, ct, element, table=None, borders=True):
     exit = []
     if element.text:
         text = element.text
     else:
         text = ''
-
     items = element.items()
     for k, v in items:
         if k == 'color':
@@ -270,6 +352,9 @@ def recurse(write, ct, element, table=None):
     elif element.tag == 'strong':
         write(ct.fx_bold)
         exit.append(ct.fx_normal)
+    elif element.tag == 'code':
+        write(ct.inline_code)
+        exit.append(ct.end_inline_code)
     elif element.tag == 'em':
         write(ct.fx_underline)
         exit.append(ct.fx_not_underline)
@@ -308,7 +393,7 @@ def recurse(write, ct, element, table=None):
         write('      ')
         exit.append('\n')
     elif element.tag == 'table':
-        table = Table(ct)
+        table = Table(ct) if borders else BorderlessTable(ct)
         orig_write = write
         write = table.write
         text = None
@@ -328,7 +413,7 @@ def recurse(write, ct, element, table=None):
     if text:
         write(text)
     for e in element:
-        recurse(write, ct, e, table)
+        recurse(write, ct, e, table, borders)
     if element.tag == 'table':
         write = orig_write
         write(str(table))
@@ -344,19 +429,19 @@ def recurse(write, ct, element, table=None):
             write(tail)
 
 
-def translate(element, ct=ANSI_CHRS):
+def translate(element, ct=ANSI_CHRS, borders=True):
     f = io.StringIO()
 
     def write(ansi_obj):
         return f.write(str(ansi_obj))
-    recurse(write, ct, element)
+    recurse(write, ct, element, borders=borders)
     result = f.getvalue().rstrip('\n')  # remove the useless final \n
     return result + str(ct.fx_reset)
 
 
 # patch us in
-def enable_format(name, ct):
-    Markdown.output_formats[name] = partial(translate, ct=ct)
+def enable_format(name, ct, borders=True):
+    Markdown.output_formats[name] = partial(translate, ct=ct, borders=borders)
 
 for name, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
     enable_format(name, ct)
@@ -369,12 +454,44 @@ class AnsiPostprocessor(Postprocessor):
         return unescape(text)
 
 
+# This is an adapted FencedBlockPreprocessor that doesn't insert <code><pre>
+class AnsiPreprocessor(FencedBlockPreprocessor):
+    def run(self, lines):
+        """ Match and store Fenced Code Blocks in the HtmlStash. """
+        text = "\n".join(lines)
+        while 1:
+            m = self.FENCED_BLOCK_RE.search(text)
+            if m:
+                code = self._escape(m.group('code'))
+
+                placeholder = self.markdown.htmlStash.store(code, safe=False)
+                text = '%s\n%s\n%s' % (text[:m.start()],
+                                       placeholder,
+                                       text[m.end():])
+            else:
+                break
+        return text.split("\n")
+
+    def _escape(self, txt):
+        """ basic html escaping """
+        txt = txt.replace('&', '&amp;')
+        txt = txt.replace('<', '&lt;')
+        txt = txt.replace('>', '&gt;')
+        txt = txt.replace('"', '&quot;')
+        return txt
+
+
 class AnsiExtension(Extension):
     """(kinda hackish) This is just a private extension to postprocess the html text to ansi text"""
 
     def extendMarkdown(self, md, md_globals):
         md.registerExtension(self)
         md.postprocessors.add(
-            "unescape html", AnsiPostprocessor(), ">unescape"
+            "unescape_html", AnsiPostprocessor(), ">unescape"
         )
-        log.debug("Will apply those postprocessors:\n%s" % md.postprocessors)
+        md.preprocessors.add(
+            "ansi_fenced_codeblock", AnsiPreprocessor(md), "<fenced_code_block"
+        )
+        del(md.preprocessors['fenced_code_block'])  # remove the old fenced block
+        log.debug("Will apply those postprocessors:\n%s" % '\n'.join(md.postprocessors))
+        log.debug("Will apply those preprocessors:\n%s" % '\n'.join(md.preprocessors))

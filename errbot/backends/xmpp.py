@@ -34,32 +34,6 @@ except ImportError as _:
     sys.exit(-1)
 
 
-def verify_gtalk_cert(xmpp_client):
-    """
-        Hack specific for google apps domains with SRV entries.
-        It needs to fid the SSL certificate of google and not the one for your domain
-    """
-
-    hosts = resolver.get_SRV(xmpp_client.boundjid.server, 5222,
-                             xmpp_client.dns_service,
-                             resolver=resolver.default_resolver())
-    it_is_google = False
-    for host, _ in hosts:
-        if host.lower().find('google.com') > -1:
-            it_is_google = True
-
-    if it_is_google:
-        raw_cert = xmpp_client.socket.getpeercert(binary_form=True)
-        try:
-            if cert.verify('talk.google.com', raw_cert):
-                log.info('google cert found for %s', xmpp_client.boundjid.server)
-                return
-        except cert.CertificateError:
-            pass
-
-    log.error("invalid cert received for %s", xmpp_client.boundjid.server)
-
-
 class XMPPIdentifier(object):
     """
     This class is the parent and the basic contract of all the ways the backends
@@ -270,7 +244,12 @@ class XMPPMUCRoom(MUCRoom):
         occupants = []
         try:
             for occupant in self.xep0045.rooms[str(self)].values():
-                occupants.append(XMPPMUCOccupant(occupant.node, occupant.domain, occupant.resource))
+                room = self._bot.build_identifier(occupant['room'])
+                nick = occupant['nick']
+                log.debug("room %s" % room)
+                log.debug("nick %s" % nick)
+
+                occupants.append(XMPPMUCOccupant(room.node, room.domain, nick))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -345,15 +324,10 @@ class XMPPConnection(object):
         self.client.ca_certs = ca_cert  # Used for TLS certificate validation
 
         self.client.add_event_handler("session_start", self.session_start)
-        self.client.add_event_handler("ssl_invalid_cert", self.ssl_invalid_cert)
 
     def session_start(self, _):
         self.client.send_presence()
         self.client.get_roster()
-
-    def ssl_invalid_cert(self, _):
-        # Special quirk for google domains
-        verify_gtalk_cert(self.client)
 
     def connect(self):
         if not self.connected:
@@ -554,22 +528,10 @@ class XMPPBackend(ErrBot):
 
     def send_message(self, mess):
         super(XMPPBackend, self).send_message(mess)
-        text = self.md_text.convert(mess.body)
-        HTML_TEMPLATE = """
-        <message>
-          <body>{text}</body>
-            <html xmlns='http://jabber.org/protocol/xhtml-im'>
-              <body xmlns='http://www.w3.org/1999/xhtml'>
-              {html}
-              </body>
-            </html>
-        </message>"""
-        html = HTML_TEMPLATE.format(text=text,
-                                    html=self.md_xhtml.convert(mess.body))
         self.conn.client.send_message(mto=mess.to.person,
-                                      mbody=text,
-                                      mtype=mess.type,
-                                      mhtml=html)
+                                      mbody=self.md_text.convert(mess.body),
+                                      mtype=mess.type)
+        # mhtml=self.md_xhtml.convert(mess.body)) This is too broken on clients.
 
     def serve_forever(self):
         self.conn.connect()
@@ -587,7 +549,7 @@ class XMPPBackend(ErrBot):
             split_jid = txtrep.split('@')
             node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
             if domain.find('/') != -1:
-                domain, resource = domain.split('/')
+                domain, resource = domain.split('/', 1)
             else:
                 resource = None
         else:
@@ -648,7 +610,7 @@ class XMPPBackend(ErrBot):
         :returns:
             A list of :class:`~errbot.backends.base.XMPPMUCRoom` instances.
         """
-        xep0045 = self.client.plugin['xep_0045']
+        xep0045 = self.conn.client.plugin['xep_0045']
         return [XMPPMUCRoom(room, self) for room in xep0045.getJoinedRooms()]
 
     def query_room(self, room):

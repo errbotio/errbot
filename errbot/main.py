@@ -17,7 +17,7 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     if config.BOT_LOG_FILE:
         hdlr = logging.FileHandler(config.BOT_LOG_FILE)
-        hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+        hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
         logger.addHandler(hdlr)
 
     if config.BOT_LOG_SENTRY:
@@ -60,12 +60,12 @@ def setup_bot(backend_name, logger, config, restore=None):
         # Prepare the context for the restore script
         if 'repos' in bot:
             log.fatal('You cannot restore onto a non empty bot.')
-        from errbot.plugin_manager import get_plugin_by_name  # noqa
+            sys.exit(-1)
         log.info('**** RESTORING the bot from %s' % restore)
         with open(restore) as f:
             exec(f.read())
         bot.close_storage()
-        print('Restore complete restore the bot normally')
+        print('Restore complete. You can restart the bot normally')
         sys.exit(0)
 
     errors = bot.update_dynamic_plugins()

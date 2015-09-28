@@ -38,6 +38,7 @@ class BackendManager(PluginManager):
         self._config = config
         # set a locator that gets every possible backends as a first discovery pass.
         self._locator = PluginFileLocator(analyzers=[PluginFileAnalyzerWithInfoFile('AllBackendLocator', 'plug')])
+        self._locator.disableRecursiveScan()  # This is done below correctly with find_roots_with_extra
         super().__init__(plugin_locator=self._locator)
         self.setCategoriesFilter({'backend': ErrBot})
         if hasattr(config, 'BOT_EXTRA_BACKEND_DIR'):

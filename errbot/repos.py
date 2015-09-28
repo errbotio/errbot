@@ -134,4 +134,8 @@ KNOWN_PUBLIC_REPOS = {
         'https://github.com/charlesrg/err-stash.git',
         'Plugin to notify commits to Atlassian Stash Git repo to user or chatrooms.'
     ),
+    'err-coffeetime': (
+        'https://github.com/Ecno92/err-coffeetime.git',
+        'Tells which member of the group chat should bring the coffee.'
+    ),
 }

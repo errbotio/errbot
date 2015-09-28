@@ -259,6 +259,7 @@ class IRCConnection(SingleServerIRCBot):
                  ssl=False,
                  password=None,
                  username=None,
+                 nickserv_password=None,
                  private_rate=1,
                  channel_rate=1,
                  reconnect_on_kick=5,
@@ -274,6 +275,7 @@ class IRCConnection(SingleServerIRCBot):
         self._reconnect_on_kick = reconnect_on_kick
         self._pending_transfers = {}
 
+        self.nickserv_password = nickserv_password
         if username is None:
             username = nickname
         self.transfers = {}
@@ -289,6 +291,13 @@ class IRCConnection(SingleServerIRCBot):
 
     def on_welcome(self, _, e):
         log.info("IRC welcome %s" % e)
+
+        # try to identify with NickServ if there is a NickServ password in the
+        # config
+        if self.nickserv_password:
+            msg = 'identify %s' % self.nickserv_password
+            self.send_private_message('NickServ', msg)
+
         self.callback.connect_callback()
 
     def on_pubmsg(self, _, e):
@@ -400,6 +409,7 @@ class IRCBackend(ErrBot):
         password = identity.get('password', None)
         ssl = identity.get('ssl', False)
         username = identity.get('username', None)
+        nickserv_password = identity.get('nickserv_password', None)
 
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else True
         enable_format('irc', IRC_CHRS, borders=not compact)
@@ -418,6 +428,7 @@ class IRCBackend(ErrBot):
                                   ssl,
                                   password,
                                   username,
+                                  nickserv_password,
                                   private_rate,
                                   channel_rate,
                                   reconnect_on_kick,

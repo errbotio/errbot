@@ -97,7 +97,11 @@ if __name__ == "__main__":
         name="err",
         version=VERSION,
         packages=find_packages(src_root, exclude=['tests']),
-        scripts=['scripts/err.py'],
+        entry_points={
+            'console_scripts': [
+                'errbot = errbot.errbot:main'
+            ]
+        },
 
         install_requires=deps,
         tests_require=['nose', 'webtest', 'requests'],

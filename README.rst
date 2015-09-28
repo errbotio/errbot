@@ -144,17 +144,17 @@ connect to your chosen backend (XMPP, Hipchat, Slack ...) server.
 The first time you start Err, it is recommended to run it in foreground mode. This can
 be done with::
 
-    <path_to_install_directory>/scripts/err.py
+    <path_to_install_directory>/errbot/err.py
 
-In many cases, just typing err.py will be enough as it is generally added to the PATH
-automatically. Please pass -h or --help to err.py to get a list of supported parameters.
+In many cases, just typing ``errbot`` will be enough as it is generally added to the ``$PATH``
+automatically. Please pass -h or --help to ``errbot`` to get a list of supported parameters.
 Depending on your situation, you may need to pass --config or --backend when starting
 Err.
 
 If all that worked, you can now use the -d (or --daemon) parameter to run it in a
 detached mode::
 
-    <path_to_install_directory>/scripts/err.py --daemon
+    <path_to_install_directory>/errbot/err.py --daemon
 
 **Hacking on Err's code directly**
 

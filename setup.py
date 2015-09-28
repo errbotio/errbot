@@ -99,7 +99,7 @@ if __name__ == "__main__":
         packages=find_packages(src_root, exclude=['tests']),
         entry_points={
             'console_scripts': [
-                'errbot = errbot.errbot:main'
+                'errbot = errbot.err:main'
             ]
         },
 

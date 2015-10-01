@@ -9,12 +9,23 @@ from errbot.backends.test import FullStackTest
 
 
 class TestCommands(FullStackTest):
+
+    def setUp(self, *args, **kwargs):
+        kwargs['extra_plugin_dir'] = path.join(path.dirname(
+            path.realpath(__file__)), 'dummy_plugin')
+
+        super(TestCommands, self).setUp(*args, **kwargs)
+
     def test_root_help(self):
         self.assertCommand('!help', 'Available help')
 
     def test_help(self):
         self.assertCommand('!help Help', '!about')
         self.assertCommand('!help beurk', 'That command is not defined.')
+
+        # Ensure that help reports on re_commands.
+        self.assertCommand('!help foo', 'runs foo')  # Part of Dummy
+        self.assertCommand('!help re_foo', 'runs re_foo')  # Part of Dummy
 
     def test_about(self):
         self.assertCommand('!about', 'Err version')

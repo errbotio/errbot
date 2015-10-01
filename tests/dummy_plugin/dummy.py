@@ -1,4 +1,5 @@
-from errbot import BotPlugin, botcmd
+from __future__ import absolute_import
+from errbot import BotPlugin, botcmd, re_botcmd
 
 
 class DummyTest(BotPlugin):
@@ -6,4 +7,10 @@ class DummyTest(BotPlugin):
     """
     @botcmd
     def foo(self, msg, args):
+        """This runs foo."""
+        return 'bar'
+
+    @re_botcmd(pattern=ur"")
+    def re_foo(self, msg, match):
+        """This runs re_foo."""
         return 'bar'

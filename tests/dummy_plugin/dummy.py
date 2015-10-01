@@ -10,7 +10,7 @@ class DummyTest(BotPlugin):
         """This runs foo."""
         return 'bar'
 
-    @re_botcmd(pattern=ur"plz dont match this")
+    @re_botcmd(pattern=r"plz dont match this")
     def re_foo(self, msg, match):
         """This runs re_foo."""
         return 'bar'

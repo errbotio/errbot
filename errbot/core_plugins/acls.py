@@ -82,7 +82,7 @@ class ACLS(BotPlugin):
 
         """
         self.log.info("Check if %s is admin only command." % cmd)
-        f = self._bot.commands[cmd] if cmd in self._bot.commands else self._bot.re_commands[cmd]
+        f = self._bot.all_commands[cmd]
 
         if f._err_command_admin_only:
             if msg.type == 'groupchat':

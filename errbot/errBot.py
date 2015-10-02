@@ -85,6 +85,13 @@ class ErrBot(Backend, BotPluginManager):
         else:
             self.bot_alt_prefixes = bot_config.BOT_ALT_PREFIXES
 
+    @property
+    def all_commands(self):
+        """Return both commands and re_commands together."""
+        newd = dict(**self.commands)
+        newd.update(self.re_commands)
+        return newd
+
     def _dispatch_to_plugins(self, method, *args, **kwargs):
         """
         Dispatch the given method to all active plugins.
@@ -384,7 +391,7 @@ class ErrBot(Backend, BotPluginManager):
             part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
             part1 = 'Command "%s" not found.' % cmd
-        ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
+        ununderscore_keys = [m.replace('_', ' ') for m in self.all_commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
@@ -583,4 +590,5 @@ class ErrBot(Backend, BotPluginManager):
         return command.__doc__.replace('!', self.prefix)
 
     def get_command_classes(self):
-        return (get_class_that_defined_method(command) for command in self.commands.values())
+        return (get_class_that_defined_method(command)
+                for command in self.all_commands.values())

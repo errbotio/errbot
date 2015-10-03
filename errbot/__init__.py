@@ -4,6 +4,7 @@ import logging
 import re
 import shlex
 import sys
+import inspect
 
 from .core_plugins.wsview import bottle_app, WebView
 from .utils import compat_str
@@ -170,7 +171,11 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
                 parsed_args = err_command_parser.parse_args(args)
                 parsed_kwargs = vars(parsed_args)
 
-                return func(self, mess, **parsed_kwargs)
+                if inspect.isgeneratorfunction(func):
+                    for reply in func(self, mess, **parsed_kwargs):
+                        yield reply
+                else:
+                    yield func(self, mess, **parsed_kwargs)
 
             setattr(wrapper, '_err_command', True)
             setattr(wrapper, '_err_re_command', False)

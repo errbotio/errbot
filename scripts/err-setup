@@ -16,7 +16,13 @@
 
 import logging
 import curses
-import json
+
+import os
+
+# makes it compatible with tmux under iterm2
+if os.environ['TERM'] == 'screen-256color':
+    os.environ['TERM'] = 'xterm-256color'
+
 from npyscreen import *
 from errbot.wizard.gce import API
 

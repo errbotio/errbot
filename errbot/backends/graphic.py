@@ -148,7 +148,7 @@ class ChatApplication(QtGui.QApplication):
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
-        self.input = CommandBox(bot.cmd_history, bot.commands, bot.bot_config.BOT_PREFIX)
+        self.input = CommandBox(bot.cmd_history, bot.all_commands, bot.bot_config.BOT_PREFIX)
         self.output = QtWebKit.QWebView()
         self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css_path))
 
@@ -197,7 +197,7 @@ class GraphicBackend(TextBackend):
 
     def connect_callback(self):
         super().connect_callback()
-        self.app.update_commands(self.commands)
+        self.app.update_commands(self.all_commands)
 
     def send_command(self, text):
         self.app.new_message(text, False)

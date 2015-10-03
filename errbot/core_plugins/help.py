@@ -33,7 +33,7 @@ class Help(BotPlugin):
         description = 'Available commands:\n'
 
         clazz_commands = {}
-        for (name, command) in self._bot.commands.items():
+        for (name, command) in self._bot.all_commands.items():
             clazz = get_class_that_defined_method(command)
             clazz = str.__module__ + '.' + clazz.__name__  # makes the fuul qualified name
             commands = clazz_commands.get(clazz, [])
@@ -81,7 +81,7 @@ class Help(BotPlugin):
             description = '### Available commands\n\n'
 
             clazz_commands = {}
-            for (name, command) in self._bot.commands.items():
+            for (name, command) in self._bot.all_commands.items():
                 clazz = get_class_that_defined_method(command)
                 commands = clazz_commands.get(clazz, [])
                 if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name):
@@ -101,7 +101,7 @@ class Help(BotPlugin):
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self._bot.get_command_classes()):
             # filter out the commands related to this class
-            commands = [(name, command) for (name, command) in self._bot.commands.items() if
+            commands = [(name, command) for (name, command) in self._bot.all_commands.items() if
                         get_class_that_defined_method(command).__name__ == args]
             description = '### Available commands for %s\n\n' % args
             usage += '\n'.join(sorted([
@@ -113,8 +113,8 @@ class Help(BotPlugin):
             ]))
         else:
             description = ''
-            if args in self._bot.commands:
-                usage = (self._bot.commands[args].__doc__ or
+            if args in self._bot.all_commands:
+                usage = (self._bot.all_commands[args].__doc__ or
                          'undocumented').strip()
             else:
                 usage = self.MSG_HELP_UNDEFINED_COMMAND

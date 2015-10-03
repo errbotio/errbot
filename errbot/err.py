@@ -149,7 +149,8 @@ def yes_no_question(question):
         except ValueError:
             sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
 
-if __name__ == "__main__":
+
+def main():
 
     execution_dir = getcwd()
 
@@ -282,3 +283,6 @@ if __name__ == "__main__":
 
     main(backend, logger, config, restore)
     log.info('Process exiting')
+
+if __name__ == "__main__":
+    main()

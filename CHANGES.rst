@@ -105,31 +105,31 @@ Annex
 
 Rendering under **Slack**:
 
-.. image:: imgs/slack.png
+.. image:: docs/imgs/slack.png
 
 .. _Hipchat:
 
 Rendering under **Hipchat**:
 
-.. image:: imgs/hipchat.png
+.. image:: docs/imgs/hipchat.png
 
 .. _IRC:
 
 Rendering under **IRC**:
 
-.. image:: imgs/IRC.png
+.. image:: docs/imgs/IRC.png
 
 .. _Gitter:
 
 Rendering under **Gitter**:
 
-.. image:: imgs/gitter.png
+.. image:: docs/imgs/gitter.png
 
 .. _Text:
 
 Rendering under **Text** (for plugin development):
 
-.. image:: imgs/text.png
+.. image:: docs/imgs/text.png
 
 
 v2.3.0-rc2 (2015-07-06)

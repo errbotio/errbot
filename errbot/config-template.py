@@ -130,6 +130,7 @@ BOT_IDENTITY = {
     # 'server' : 'irc.freenode.net',
     # 'port': 6667,                  # optional
     # 'ssl': False,                  # optional
+    # 'nickserv_password': None,     # optional
 }
 
 # Set the admins of your bot. Only these users will have access

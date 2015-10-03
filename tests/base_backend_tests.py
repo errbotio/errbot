@@ -139,6 +139,11 @@ class DummyBackend(ErrBot):
 
     @arg_botcmd('--first-name', dest='first_name')
     @arg_botcmd('--last-name', dest='last_name')
+    def yields_first_name_last_name(self, mess, first_name=None, last_name=None):
+        yield "%s %s" % (first_name, last_name)
+
+    @arg_botcmd('--first-name', dest='first_name')
+    @arg_botcmd('--last-name', dest='last_name')
     def returns_first_name_last_name(self, mess, first_name=None, last_name=None):
         return "%s %s" % (first_name, last_name)
 
@@ -378,6 +383,14 @@ class BotCmds(unittest.TestCase):
         last_name = 'Bot'
         self.dummy.callback_message(
             self.makemessage("!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name))
+        )
+        self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
+
+    def test_arg_botcmd_yields_first_name_last_name(self):
+        first_name = 'Err'
+        last_name = 'Bot'
+        self.dummy.callback_message(
+            self.makemessage("!yields_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name))
         )
         self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
 

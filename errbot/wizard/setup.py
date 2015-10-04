@@ -275,6 +275,10 @@ class SetupWizard(NPSAppManaged):
         self.addFormClass('GCE_REGION', GCERegionForm)
         self.addFormClass('SECRET', SecretForm)
 
-if __name__ == '__main__':
+
+def setup():
     app = SetupWizard()
     app.run()
+
+if __name__ == '__main__':
+    setup()

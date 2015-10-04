@@ -25,7 +25,7 @@ if os.environ['TERM'] == 'screen-256color':
     os.environ['TERM'] = 'xterm-256color'
 
 from npyscreen import *  # noqa
-from errbot.wizard.gce import API
+from errbot.wizard.gce import API  # noqa
 
 log = logging.getLogger(__name__)
 

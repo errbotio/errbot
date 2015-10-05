@@ -119,7 +119,7 @@ def get_config(config_path):
         )
         log.info(
             'You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (
-                path.dirname(template.__file__) + sep + 'config-template.py', config_path + sep)
+                path.dirname(template.__file__) + sep + 'config-template.py', config_path)
         )
         exit(-1)
 

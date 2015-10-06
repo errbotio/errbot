@@ -99,13 +99,13 @@ class TextBackend(ErrBot):
             print(html)
         print(bar.format(mode='TEXT'))
         print(self.md_text.convert(mess.body))
+        print(bar.format(mode='IM  '))
+        print(self.md_im.convert(mess.body))
         if ANSI:
             print(bar.format(mode='ANSI'))
             print(self.md_ansi.convert(mess.body))
             print(bar.format(mode='BORDERLESS'))
             print(self.md_borderless_ansi.convert(mess.body))
-        print(bar.format(mode='IM  '))
-        print(self.md_im.convert(mess.body))
         print('\n\n')
 
     def build_identifier(self, text_representation):

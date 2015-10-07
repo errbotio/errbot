@@ -62,4 +62,3 @@ class SlackTests(unittest.TestCase):
         assert parts[0].endswith('```')
         assert parts[1].count('```') == 2
         assert parts[1].endswith('```\n')
-

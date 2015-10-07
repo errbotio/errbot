@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 try:
     from errbot.backends import slack
-except Exception:
+except SystemExit:
     log.exception("Can't import backends.slack for testing")
     slack = None
 
@@ -53,3 +53,13 @@ class SlackTests(unittest.TestCase):
         test_body = """``` foobar """
         parts = self.slack.prepare_message_body(test_body, 10000)
         assert parts == [test_body + "\n```\n"]
+
+        test_body = """closed ``` foobar ``` not closed ```"""
+        # ---------------------------------^ 21st char
+        parts = self.slack.prepare_message_body(test_body, 21)
+        assert len(parts) == 2
+        assert parts[0].count('```') == 2
+        assert parts[0].endswith('```')
+        assert parts[1].count('```') == 2
+        assert parts[1].endswith('```\n')
+

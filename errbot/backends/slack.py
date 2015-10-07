@@ -441,16 +441,16 @@ class SlackBackend(ErrBot):
             if parts[0].count('```') % 2 != 0:
                 parts[0] += '\n```\n'
         else:
-            for part in parts:
+            for i, part in enumerate(parts):
                 starts_with_code = part.startswith('```')
 
                 # If we're continuing a fixed block from the last part
                 if fixed_format and not starts_with_code:
-                    part = '```\n' + part
+                    parts[i] = '```\n' + part
 
                 # If we've got an open fixed block, close it out
                 if part.count('```') % 2 != 0:
-                    part += '\n```\n'
+                    parts[i] += '\n```\n'
 
         return parts
 

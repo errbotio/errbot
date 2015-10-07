@@ -406,19 +406,53 @@ class SlackBackend(ErrBot):
             log.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_channel_id))
             body = self.md.convert(mess.body)
             log.debug('Message size: %d' % len(body))
-            fixed_format = body.startswith('```\n')  # hack to fix the formatting
-            for part in split_string_after(body, min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)):
-                if fixed_format:
-                    if not part.startswith('```\n'):
-                        part = '```\n' + part
-                    if not part.endswith('```') and not part.endswith('```\n'):
-                        part += '\n```\n'
+
+            limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
+            parts = self.prepare_message_body(body, limit)
+
+            for part in parts:
                 self.sc.rtm_send_message(to_channel_id, part)
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
+
+    @staticmethod
+    def prepare_message_body(body, size_limit):
+        """
+        Returns the parts of a message chunked and ready for sending.
+
+        This is a staticmethod for easier testing.
+
+        Args:
+            body (str)
+            size_limit (int): chunk the body into sizes capped at this maximum
+
+        Returns:
+            [str]
+
+        """
+        fixed_format = body.startswith('```')  # hack to fix the formatting
+        parts = list(split_string_after(body, size_limit))
+
+        if len(parts) == 1:
+            # If we've got an open fixed block, close it out
+            if parts[0].count('```') % 2 != 0:
+                parts[0] += '\n```\n'
+        else:
+            for i, part in enumerate(parts):
+                starts_with_code = part.startswith('```')
+
+                # If we're continuing a fixed block from the last part
+                if fixed_format and not starts_with_code:
+                    parts[i] = '```\n' + part
+
+                # If we've got an open fixed block, close it out
+                if part.count('```') % 2 != 0:
+                    parts[i] += '\n```\n'
+
+        return parts
 
     def build_identifier(self, txtrep):
         """ #channelname/username

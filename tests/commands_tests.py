@@ -26,6 +26,7 @@ class TestCommands(FullStackTest):
         # Ensure that help reports on re_commands.
         self.assertCommand('!help foo', 'runs foo')  # Part of Dummy
         self.assertCommand('!help re_foo', 'runs re_foo')  # Part of Dummy
+        self.assertCommand('!help re foo', 'runs re_foo')  # Part of Dummy
 
     def test_about(self):
         self.assertCommand('!about', 'Err version')

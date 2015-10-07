@@ -433,19 +433,24 @@ class SlackBackend(ErrBot):
             [str]
 
         """
-        fixed_format = body.startswith('```\n')  # hack to fix the formatting
-        parts = split_string_after(body, size_limit)
+        fixed_format = body.startswith('```')  # hack to fix the formatting
+        parts = list(split_string_after(body, size_limit))
 
-        for part in parts:
-            starts_with_code = part.startswith('```')
-
-            # If we're continuing a fixed block from the last part
-            if fixed_format and not starts_with_code:
-                part = '```\n' + part
-
+        if len(parts) == 1:
             # If we've got an open fixed block, close it out
-            if part.count('```') % 2 != 0:
-                part += '\n```\n'
+            if parts[0].count('```') % 2 != 0:
+                parts[0] += '\n```\n'
+        else:
+            for part in parts:
+                starts_with_code = part.startswith('```')
+
+                # If we're continuing a fixed block from the last part
+                if fixed_format and not starts_with_code:
+                    part = '```\n' + part
+
+                # If we've got an open fixed block, close it out
+                if part.count('```') % 2 != 0:
+                    part += '\n```\n'
 
         return parts
 

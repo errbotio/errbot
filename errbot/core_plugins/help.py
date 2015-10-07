@@ -114,7 +114,7 @@ class Help(BotPlugin):
         else:
             description = ''
             all_commands = dict(self._bot.all_commands)
-            all_commands.merge(
+            all_commands.update(
                 {k.replace('_', ' '): v for k, v in all_commands.items()})
             if args in all_commands:
                 usage = (all_commands[args].__doc__ or 'undocumented').strip()

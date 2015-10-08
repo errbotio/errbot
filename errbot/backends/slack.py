@@ -312,6 +312,8 @@ class SlackBackend(ErrBot):
             text = event['text']
             user = event.get('user', 'Uxxx')
 
+        log.info("Event: %s" % event)
+        log.info("Text: %s" % text)
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
 
         msg = Message(text, type_=message_type)
@@ -324,6 +326,7 @@ class SlackBackend(ErrBot):
             msg.to = SlackMUCOccupant(self.sc, self.username_to_userid(self.sc.server.username),
                                       event['channel'])
 
+        log.info("Callback message: %s" % msg.__dict__)
         self.callback_message(msg)
 
     def userid_to_username(self, id_):

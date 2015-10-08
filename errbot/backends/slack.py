@@ -307,10 +307,10 @@ class SlackBackend(ErrBot):
 
         if 'message' in event:
             text = event['message']['text']
-            user = event['message']['user']
+            user = event['message'].get('user', 'Bot')
         else:
             text = event['text']
-            user = event['user']
+            user = event.get('user', 'Bot')
 
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
 

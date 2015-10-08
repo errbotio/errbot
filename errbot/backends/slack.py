@@ -75,12 +75,26 @@ class SlackAPIResponseError(RuntimeError):
         super().__init__(*args, **kwargs)
 
 
+class SlackMessage(Message):
+    """
+    A subclass of Message that incorporates attachments.
+
+    """
+    def __init__(self, *args, **kwargs):
+        self.attachments = None
+
+        if 'attachments' in kwargs:
+            self.attachments = kwargs.pop('attachments')
+
+        super(SlackMessage, self).__init__(*args, **kwargs)
+
+
 class SlackIdentifier(DeprecationBridgeIdentifier):
     # TODO(gbin): remove this deprecation warnings at one point.
 
     def __init__(self, sc, userid, channelid=None):
-        if userid[0] != 'U':
-            raise Exception('This is not a Slack userid: %s' % userid)
+        if userid[0] not in ['U', 'B']:
+            raise Exception('This is not a Slack user or bot id: %s' % userid)
 
         if channelid and channelid[0] not in ('D', 'C', 'G'):
             raise Exception('This is not a valid Slack channelid: %s' % channelid)
@@ -98,7 +112,8 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         """Convert a Slack user ID to their user name"""
         user = self._sc.server.users.find(self._userid)
         if user is None:
-            raise UserDoesNotExistError("Cannot find user with ID %s" % self._userid)
+            log.error("Cannot find user with ID %s" % self._userid)
+            return "<%s>" % self._userid
         return user.name
 
     @property
@@ -135,7 +150,8 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         """Convert a Slack user ID to their user name"""
         user = self._sc.server.users.find(self._userid)
         if user is None:
-            raise UserDoesNotExistError("Cannot find user with ID %s" % self._userid)
+            log.error("Cannot find user with ID %s" % self._userid)
+            return "<%s>" % self._userid
         return user.real_name
 
     def __unicode__(self):
@@ -307,16 +323,15 @@ class SlackBackend(ErrBot):
 
         if 'message' in event:
             text = event['message']['text']
-            user = event['message'].get('user', 'Uxxx')
+            user = event['message'].get('user', event.get('bot_id'))
         else:
             text = event['text']
-            user = event.get('user', 'Uxxx')
+            user = event.get('user', event.get('bot_id'))
 
-        log.info("Event: %s" % event)
-        log.info("Text: %s" % text)
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
 
-        msg = Message(text, type_=message_type)
+        msg = SlackMessage(
+            text, type_=message_type, attachments=event['attachments'])
         if message_type == 'chat':
             msg.frm = SlackIdentifier(self.sc, user, event['channel'])
             msg.to = SlackIdentifier(self.sc, self.username_to_userid(self.sc.server.username),
@@ -326,7 +341,6 @@ class SlackBackend(ErrBot):
             msg.to = SlackMUCOccupant(self.sc, self.username_to_userid(self.sc.server.username),
                                       event['channel'])
 
-        log.info("Callback message: %s" % msg.__dict__)
         self.callback_message(msg)
 
     def userid_to_username(self, id_):

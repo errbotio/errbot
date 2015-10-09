@@ -59,8 +59,11 @@ else:
 deps += ['mock',
          'nose',
          'pep8',
-         'pytest',
+         # Order matters here, pytest must come last. See also:
+         #   https://github.com/gbin/err/pull/496
+         #   https://bitbucket.org/pypa/setuptools/issues/196/tests_require-pytest-pytest-cov-breaks
          'pytest-xdist',
+         'pytest',
          'PyOpenSSL']
 
 if not ON_WINDOWS:

@@ -3,6 +3,7 @@ import logging
 import re
 import time
 import sys
+import pprint
 
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom, RoomError, RoomDoesNotExistError, \
@@ -330,8 +331,11 @@ class SlackBackend(ErrBot):
 
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
 
+        log.debug("Saw an event: %s" % pprint.pformat(event))
+
         msg = SlackMessage(
-            text, type_=message_type, attachments=event['attachments'])
+            text, type_=message_type, attachments=event.get('attachments'))
+
         if message_type == 'chat':
             msg.frm = SlackIdentifier(self.sc, user, event['channel'])
             msg.to = SlackIdentifier(self.sc, self.username_to_userid(self.sc.server.username),

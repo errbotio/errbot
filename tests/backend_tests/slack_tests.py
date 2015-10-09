@@ -36,6 +36,14 @@ class SlackTests(unittest.TestCase):
 
         self.slack = slack.SlackBackend(config)
 
+    def testSlackMessage(self):
+        m = slack.SlackMessage(
+            'foobar', type_='groupchat', attachments={1:1})
+        assert m.attachments == {1:1}
+
+        m = slack.SlackMessage('foobar2', type_='groupchat')
+        assert m.attachments is None
+
     def testPrepareMessageBody(self):
         test_body = """
         hey, this is some code:

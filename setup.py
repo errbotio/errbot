@@ -59,8 +59,8 @@ else:
 deps += ['mock',
          'nose',
          'pep8',
-         'pytest',
          'pytest-xdist',
+         'pytest',
          'PyOpenSSL']
 
 if not ON_WINDOWS:

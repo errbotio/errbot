@@ -44,6 +44,10 @@ For the IRC backend, you must install::
 
     irc
 
+For the Hipchat backend you must install::
+
+    hypchat
+
 Configuration
 -------------
 

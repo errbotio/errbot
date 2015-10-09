@@ -38,8 +38,8 @@ class SlackTests(unittest.TestCase):
 
     def testSlackMessage(self):
         m = slack.SlackMessage(
-            'foobar', type_='groupchat', attachments={1:1})
-        assert m.attachments == {1:1}
+            'foobar', type_='groupchat', attachments={1: 1})
+        assert m.attachments == {1: 1}
 
         m = slack.SlackMessage('foobar2', type_='groupchat')
         assert m.attachments is None

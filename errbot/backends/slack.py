@@ -76,20 +76,6 @@ class SlackAPIResponseError(RuntimeError):
         super().__init__(*args, **kwargs)
 
 
-class SlackMessage(Message):
-    """
-    A subclass of Message that incorporates attachments.
-
-    """
-    def __init__(self, *args, **kwargs):
-        self.attachments = None
-
-        if 'attachments' in kwargs:
-            self.attachments = kwargs.pop('attachments')
-
-        super(SlackMessage, self).__init__(*args, **kwargs)
-
-
 class SlackIdentifier(DeprecationBridgeIdentifier):
     # TODO(gbin): remove this deprecation warnings at one point.
 
@@ -235,20 +221,7 @@ class SlackBackend(ErrBot):
             try:
                 while True:
                     for message in self.sc.rtm_read():
-                        if 'type' not in message:
-                            log.debug("Ignoring non-event message: %s" % message)
-                            continue
-
-                        event_type = message['type']
-                        event_handler = getattr(self, '_%s_event_handler' % event_type, None)
-                        if event_handler is None:
-                            log.debug("No event handler available for %s, ignoring this event" % event_type)
-                            continue
-                        try:
-                            log.debug("Processing slack event: %s" % message)
-                            event_handler(message)
-                        except Exception:
-                            log.exception("%s event handler raised an exception" % event_type)
+                        self.process_message(message)
                     time.sleep(1)
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
@@ -260,6 +233,35 @@ class SlackBackend(ErrBot):
                 self.disconnect_callback()
         else:
             raise Exception('Connection failed, invalid token ?')
+
+    def process_message(self, message):
+        """
+        Process an incoming message from slack.
+
+        """
+        if 'type' not in message:
+            log.debug("Ignoring non-event message: %s" % message)
+            return
+
+        event_type = message['type']
+
+        event_handlers = {
+            'hello': self._hello_event_handler,
+            'presence_change': self._presence_change_event_handler,
+            'team_join': self._team_join_event_handler,
+            'message': self._message_event_handler,
+        }
+
+        event_handler = event_handlers.get(event_type)
+
+        if event_handler is None:
+            log.debug("No event handler available for %s, ignoring this event" % event_type)
+            return
+        try:
+            log.debug("Processing slack event: %s" % message)
+            event_handler(message)
+        except Exception:
+            log.exception("%s event handler raised an exception" % event_type)
 
     def _hello_event_handler(self, event):
         """Event handler for the 'hello' event"""
@@ -333,8 +335,10 @@ class SlackBackend(ErrBot):
 
         log.debug("Saw an event: %s" % pprint.pformat(event))
 
-        msg = SlackMessage(
-            text, type_=message_type, attachments=event.get('attachments'))
+        msg = Message(
+            text,
+            type_=message_type,
+            extras={'attachments': event.get('attachments')})
 
         if message_type == 'chat':
             msg.frm = SlackIdentifier(self.sc, user, event['channel'])

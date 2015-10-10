@@ -4,6 +4,8 @@ import logging
 import os
 from tempfile import mkdtemp
 
+import mock
+
 from errbot.errBot import bot_config_defaults
 
 log = logging.getLogger(__name__)
@@ -13,6 +15,21 @@ try:
 except SystemExit:
     log.exception("Can't import backends.slack for testing")
     slack = None
+
+if slack:
+    class TestSlackBackend(slack.SlackBackend):
+
+        def __init__(self, *args, **kwargs):
+            super(TestSlackBackend, self).__init__(*args, **kwargs)
+            self.test_msgs = []
+            self.sc = mock.MagicMock()
+
+        def callback_message(self, msg):
+            self.test_msgs.append(msg)
+
+        def username_to_userid(self, username, *args, **kwargs):
+            """Have to mock because we don't have a slack server."""
+            return 'Utest'
 
 
 @unittest.skipIf(not slack, "package slackclient not installed")
@@ -34,15 +51,33 @@ class SlackTests(unittest.TestCase):
         config.BOT_PREFIX = '!'
         config.CHATROOM_FN = 'blah'
 
-        self.slack = slack.SlackBackend(config)
+        self.slack = TestSlackBackend(config)
 
-    def testSlackMessage(self):
-        m = slack.SlackMessage(
-            'foobar', type_='groupchat', attachments={1: 1})
-        assert m.attachments == {1: 1}
+    def testBotMessageWithAttachments(self):
+        attachment = {
+            'title': 'sometitle',
+            'id': 1,
+            'fallback': ' *Host:* host-01', 'color': 'daa038',
+            'fields': [{'title': 'Metric', 'value': '1', 'short': True}],
+            'title_link': 'https://xx.com'
+        }
+        bot_id = 'B04HMXXXX'
+        bot_msg = {
+            'channel': 'C0XXXXY6P',
+            'icons': {'emoji': ':warning:', 'image_64': 'https://xx.com/26a0.png'},
+            'ts': '1444416645.000641',
+            'type': 'message',
+            'text': '',
+            'bot_id': bot_id,
+            'username': 'riemann',
+            'subtype': 'bot_message',
+            'attachments': [attachment]
+        }
 
-        m = slack.SlackMessage('foobar2', type_='groupchat')
-        assert m.attachments is None
+        self.slack.process_message(bot_msg)
+        msg = self.slack.test_msgs.pop()
+
+        self.assertEqual(msg.extras['attachments'], [attachment])
 
     def testPrepareMessageBody(self):
         test_body = """

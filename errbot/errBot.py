@@ -156,11 +156,6 @@ class ErrBot(Backend, BotPluginManager):
         log.debug("*** type = %s" % type_)
         log.debug("*** text = %s" % text)
 
-        # If a message format is not supported (eg. encrypted),
-        # txt will be None
-        if not text:
-            return False
-
         surpress_cmd_not_found = False
 
         prefixed = False  # Keeps track whether text was prefixed with a bot prefix

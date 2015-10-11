@@ -40,18 +40,27 @@ class Message(object):
     make sense in the context of other back-ends.
     """
 
-    def __init__(self, body='', type_='chat', frm=None, to=None, delayed=False):
+    def __init__(self,
+                 body='',
+                 type_='chat',
+                 frm=None,
+                 to=None,
+                 delayed=False,
+                 extras=None):
         """
         :param body:
             The plaintext body of the message.
         :param type_:
             The type of message (generally one of either 'chat' or 'groupchat').
+        :param extras:
+            Extra data attached by a backend
         """
         self._body = compat_str(body)
         self._type = type_
         self._from = frm
         self._to = to
         self._delayed = delayed
+        self._extras = extras or dict()
 
     @property
     def to(self):
@@ -144,6 +153,10 @@ class Message(object):
     @delayed.setter
     def delayed(self, delayed):
         self._delayed = delayed
+
+    @property
+    def extras(self):
+        return self._extras
 
     def __str__(self):
         return self._body

@@ -3,6 +3,7 @@ import logging
 import re
 import time
 import sys
+import pprint
 
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom, RoomError, RoomDoesNotExistError, \
@@ -79,8 +80,8 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
     # TODO(gbin): remove this deprecation warnings at one point.
 
     def __init__(self, sc, userid, channelid=None):
-        if userid[0] != 'U':
-            raise Exception('This is not a Slack userid: %s' % userid)
+        if userid[0] not in ['U', 'B']:
+            raise Exception('This is not a Slack user or bot id: %s' % userid)
 
         if channelid and channelid[0] not in ('D', 'C', 'G'):
             raise Exception('This is not a valid Slack channelid: %s' % channelid)
@@ -98,7 +99,8 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         """Convert a Slack user ID to their user name"""
         user = self._sc.server.users.find(self._userid)
         if user is None:
-            raise UserDoesNotExistError("Cannot find user with ID %s" % self._userid)
+            log.error("Cannot find user with ID %s" % self._userid)
+            return "<%s>" % self._userid
         return user.name
 
     @property
@@ -135,7 +137,8 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         """Convert a Slack user ID to their user name"""
         user = self._sc.server.users.find(self._userid)
         if user is None:
-            raise UserDoesNotExistError("Cannot find user with ID %s" % self._userid)
+            log.error("Cannot find user with ID %s" % self._userid)
+            return "<%s>" % self._userid
         return user.real_name
 
     def __unicode__(self):
@@ -218,20 +221,7 @@ class SlackBackend(ErrBot):
             try:
                 while True:
                     for message in self.sc.rtm_read():
-                        if 'type' not in message:
-                            log.debug("Ignoring non-event message: %s" % message)
-                            continue
-
-                        event_type = message['type']
-                        event_handler = getattr(self, '_%s_event_handler' % event_type, None)
-                        if event_handler is None:
-                            log.debug("No event handler available for %s, ignoring this event" % event_type)
-                            continue
-                        try:
-                            log.debug("Processing slack event: %s" % message)
-                            event_handler(message)
-                        except Exception:
-                            log.exception("%s event handler raised an exception" % event_type)
+                        self.process_message(message)
                     time.sleep(1)
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
@@ -243,6 +233,35 @@ class SlackBackend(ErrBot):
                 self.disconnect_callback()
         else:
             raise Exception('Connection failed, invalid token ?')
+
+    def process_message(self, message):
+        """
+        Process an incoming message from slack.
+
+        """
+        if 'type' not in message:
+            log.debug("Ignoring non-event message: %s" % message)
+            return
+
+        event_type = message['type']
+
+        event_handlers = {
+            'hello': self._hello_event_handler,
+            'presence_change': self._presence_change_event_handler,
+            'team_join': self._team_join_event_handler,
+            'message': self._message_event_handler,
+        }
+
+        event_handler = event_handlers.get(event_type)
+
+        if event_handler is None:
+            log.debug("No event handler available for %s, ignoring this event" % event_type)
+            return
+        try:
+            log.debug("Processing slack event: %s" % message)
+            event_handler(message)
+        except Exception:
+            log.exception("%s event handler raised an exception" % event_type)
 
     def _hello_event_handler(self, event):
         """Event handler for the 'hello' event"""
@@ -307,14 +326,20 @@ class SlackBackend(ErrBot):
 
         if 'message' in event:
             text = event['message']['text']
-            user = event['message']['user']
+            user = event['message'].get('user', event.get('bot_id'))
         else:
             text = event['text']
-            user = event['user']
+            user = event.get('user', event.get('bot_id'))
 
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
 
-        msg = Message(text, type_=message_type)
+        log.debug("Saw an event: %s" % pprint.pformat(event))
+
+        msg = Message(
+            text,
+            type_=message_type,
+            extras={'attachments': event.get('attachments')})
+
         if message_type == 'chat':
             msg.frm = SlackIdentifier(self.sc, user, event['channel'])
             msg.to = SlackIdentifier(self.sc, self.username_to_userid(self.sc.server.username),

@@ -221,7 +221,7 @@ class SlackBackend(ErrBot):
             try:
                 while True:
                     for message in self.sc.rtm_read():
-                        self.process_message(message)
+                        self._dispatch_slack_message(message)
                     time.sleep(1)
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
@@ -234,7 +234,7 @@ class SlackBackend(ErrBot):
         else:
             raise Exception('Connection failed, invalid token ?')
 
-    def process_message(self, message):
+    def _dispatch_slack_message(self, message):
         """
         Process an incoming message from slack.
 

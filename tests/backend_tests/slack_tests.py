@@ -74,7 +74,7 @@ class SlackTests(unittest.TestCase):
             'attachments': [attachment]
         }
 
-        self.slack.process_message(bot_msg)
+        self.slack._dispatch_slack_message(bot_msg)
         msg = self.slack.test_msgs.pop()
 
         self.assertEqual(msg.extras['attachments'], [attachment])

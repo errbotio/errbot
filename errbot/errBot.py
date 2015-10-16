@@ -57,7 +57,7 @@ def bot_config_defaults(config):
     if not hasattr(config, 'AUTOINSTALL_DEPS'):
         config.AUTOINSTALL_DEPS = False
     if not hasattr(config, 'DISABLED_PLUGINS'):
-        config.DIVERT_TO_PRIVATE = ()
+        config.DISABLED_PLUGINS = ()
 
 
 class ErrBot(Backend, BotPluginManager):

@@ -78,9 +78,9 @@ class Help(BotPlugin):
         # Normalize args to lowercase for ease of use
         args = args.lower() if args else ''
         usage = ''
+        description = ''
 
         if not args:
-            description = '### All commands\n\n'
             cls_commands = {}
 
             for (name, command) in self._bot.all_commands.items():
@@ -95,7 +95,8 @@ class Help(BotPlugin):
             for cls in sorted(set(cls_commands), key=lambda c: c.__name__):
                 usage += (
                     '\n\n'
-                    '**%s** - %s\n'
+                    '### %s\n\n'
+                    '%s\n'
                     % (cls.__name__, cls.__errdoc__ or ''))
 
                 for (name, command) in cls_commands[cls]:
@@ -104,32 +105,35 @@ class Help(BotPlugin):
 
                     cmd_name = name.replace('_', ' ')
                     cmd_doc = self._bot.get_doc(command).strip()
-                    usage += self._cmd_help_line(name, command)
+                    usage += '- ' + self._cmd_help_line(name, command) + '\n'
 
             usage += '\n\n'
 
         elif args in (get_name(cls) for cls in self._bot.get_command_classes()):
             # filter out the commands related to this class
+            [cls] = {
+                c for c in self._bot.get_command_classes()
+                if get_name(c) == args
+            }
             commands = [
                 (name, command) for (name, command)
                 in self._bot.all_commands.items() if
                 get_name(get_class_that_defined_method(command)) == args]
 
-            description = '### Available commands for %s\n\n' % args
+            description = '### %s\n\n%s\n\n' % (cls.__name__, cls.__errdoc__)
             usage += '\n'.join(sorted([
-                self._cmd_help_line(name, command)
+                '- ' + self._cmd_help_line(name, command)
                 for (name, command) in commands
                 if not command._err_command_hidden and
                 (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
             ]))
 
         else:
-            description = ''
             all_commands = dict(self._bot.all_commands)
             all_commands.update(
                 {k.replace('_', ' '): v for k, v in all_commands.items()})
             if args in all_commands:
-                usage = self._cmd_help_line(args, all_commands[args], True)
+                usage = '\n' + self._cmd_help_line(args, all_commands[args], True)
             else:
                 usage = self.MSG_HELP_UNDEFINED_COMMAND
 
@@ -138,9 +142,14 @@ class Help(BotPlugin):
         return ''.join(filter(None, [top, description, usage, bottom]))
 
     def _cmd_help_line(self, name, command, show_doc=False):
+        """
+        Returns:
+            str. a single line indicating the help representation of a command.
+
+        """
         cmd_name = name.replace('_', ' ')
         cmd_doc = textwrap.dedent(self._bot.get_doc(command)).strip()
-        help_str = "\n**{prefix}".format(prefix=self._bot.prefix)
+        help_str = "**{prefix}".format(prefix=self._bot.prefix)
 
         name = cmd_name
         patt = getattr(command, '_err_command_re_pattern', None)
@@ -155,5 +164,6 @@ class Help(BotPlugin):
                 cmd_doc = cmd_doc[:77] + "..."
 
         help_str += "{name}** - {doc}".format(name=name, doc=cmd_doc)
+        help_str = help_str.strip()
 
         return help_str

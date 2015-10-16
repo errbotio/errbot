@@ -56,6 +56,8 @@ def bot_config_defaults(config):
         config.GROUPCHAT_NICK_PREFIXED = False
     if not hasattr(config, 'AUTOINSTALL_DEPS'):
         config.AUTOINSTALL_DEPS = False
+    if not hasattr(config, 'DISABLED_PLUGINS'):
+        config.DIVERT_TO_PRIVATE = ()
 
 
 class ErrBot(Backend, BotPluginManager):
@@ -399,6 +401,11 @@ class ErrBot(Backend, BotPluginManager):
 
     def inject_commands_from(self, instance_to_inject):
         classname = instance_to_inject.__class__.__name__
+
+        if classname in self.bot_config.DISABLED_PLUGINS:
+            log.info("Not loading disabled plugin %r", classname)
+            return
+
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, '_err_command', False):
                 commands = self.re_commands if getattr(value, '_err_re_command') else self.commands

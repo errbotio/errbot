@@ -1,3 +1,5 @@
+import textwrap
+
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
 from errbot.utils import get_class_that_defined_method
@@ -70,57 +72,88 @@ class Help(BotPlugin):
             mess, _, _ = self._bot._process_command_filters(mess, cmd, None, True)
             return mess is not None
 
+        def get_name(named):
+            return named.__name__.lower()
+
+        # Normalize args to lowercase for ease of use
+        args = args.lower() if args else ''
         usage = ''
+
         if not args:
-            description = '### Available help\n\n'
-            command_classes = sorted(set(self._bot.get_command_classes()), key=lambda c: c.__name__)
-            usage = '\n'.join(
-                '- **' + self._bot.prefix + 'help %s** \- %s' %
-                (clazz.__name__, clazz.__errdoc__.strip() or '(undocumented)') for clazz in command_classes)
-        elif args == 'full':
-            description = '### Available commands\n\n'
+            description = '### All commands\n\n'
+            cls_commands = {}
 
-            clazz_commands = {}
             for (name, command) in self._bot.all_commands.items():
-                clazz = get_class_that_defined_method(command)
-                commands = clazz_commands.get(clazz, [])
-                if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name):
-                    commands.append((name, command))
-                    clazz_commands[clazz] = commands
+                cls = get_class_that_defined_method(command)
+                commands = cls_commands.get(cls, [])
 
-            for clazz in sorted(set(clazz_commands), key=lambda c: c.__name__):
-                usage += '\n\n**%s** \- %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
-                usage += '\n'.join(sorted(['**' +
-                                           self._bot.prefix +
-                                           '%s** %s' % (name.replace('_', ' ', 1),
-                                                        (self._bot.get_doc(command).strip()).split('\n', 1)[0])
-                                           for (name, command) in clazz_commands[clazz]
-                                           if name != 'help' and not command._err_command_hidden and
-                                           (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
-                                           ]))
+                if not (self.bot_config.HIDE_RESTRICTED_COMMANDS
+                        and not may_access_command(name)):
+                    commands.append((name, command))
+                    cls_commands[cls] = commands
+
+            for cls in sorted(set(cls_commands), key=lambda c: c.__name__):
+                usage += (
+                    '\n\n'
+                    '**%s** - %s\n'
+                    % (cls.__name__, cls.__errdoc__ or ''))
+
+                for (name, command) in cls_commands[cls]:
+                    if name == 'help' or command._err_command_hidden:
+                        continue
+
+                    cmd_name = name.replace('_', ' ')
+                    cmd_doc = self._bot.get_doc(command).strip()
+                    usage += self._cmd_help_line(name, command)
+
             usage += '\n\n'
-        elif args in (clazz.__name__ for clazz in self._bot.get_command_classes()):
+
+        elif args in (get_name(cls) for cls in self._bot.get_command_classes()):
             # filter out the commands related to this class
-            commands = [(name, command) for (name, command) in self._bot.all_commands.items() if
-                        get_class_that_defined_method(command).__name__ == args]
+            commands = [
+                (name, command) for (name, command)
+                in self._bot.all_commands.items() if
+                get_name(get_class_that_defined_method(command)) == args]
+
             description = '### Available commands for %s\n\n' % args
             usage += '\n'.join(sorted([
-                '- **' + self._bot.prefix + '%s** \- %s' % (name.replace('_', ' ', 1),
-                                                            (self._bot.get_doc(command).strip()).split('\n', 1)[0])
+                self._cmd_help_line(name, command)
                 for (name, command) in commands
                 if not command._err_command_hidden and
                 (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
             ]))
+
         else:
             description = ''
             all_commands = dict(self._bot.all_commands)
             all_commands.update(
                 {k.replace('_', ' '): v for k, v in all_commands.items()})
             if args in all_commands:
-                usage = (all_commands[args].__doc__ or 'undocumented').strip()
+                usage = self._cmd_help_line(args, all_commands[args], True)
             else:
                 usage = self.MSG_HELP_UNDEFINED_COMMAND
 
         top = self._bot.top_of_help_message()
         bottom = self._bot.bottom_of_help_message()
         return ''.join(filter(None, [top, description, usage, bottom]))
+
+    def _cmd_help_line(self, name, command, show_doc=False):
+        cmd_name = name.replace('_', ' ')
+        cmd_doc = textwrap.dedent(self._bot.get_doc(command)).strip()
+        help_str = "\n**{prefix}".format(prefix=self._bot.prefix)
+
+        name = cmd_name
+        patt = getattr(command, '_err_command_re_pattern', None)
+
+        if patt:
+            name = patt.pattern
+
+        if not show_doc:
+            cmd_doc = cmd_doc.split('\n')[0]
+
+            if len(cmd_doc) > 80:
+                cmd_doc = cmd_doc[:77] + "..."
+
+        help_str += "{name}** - {doc}".format(name=name, doc=cmd_doc)
+
+        return help_str

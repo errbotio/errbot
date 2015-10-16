@@ -209,7 +209,9 @@ class TestBackend(ErrBot):
         message.body = '{0} {1}'.format(identifier.nick, message.body)
 
     def pop_message(self, timeout=5, block=True):
-        return self.outgoing_message_queue.get(timeout=timeout, block=block)
+        got = self.outgoing_message_queue.get(timeout=timeout, block=block)
+        log.info("Got from queue: %r", got)
+        return got
 
     def push_message(self, msg):
         self.incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)

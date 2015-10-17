@@ -138,4 +138,8 @@ KNOWN_PUBLIC_REPOS = {
         'https://github.com/Ecno92/err-coffeetime.git',
         'Tells which member of the group chat should bring the coffee.'
     ),
+    'err-shellexec': (
+        'https://github.com/sarlalian/err-shellexec.',
+        'Allow users to run specifc shell scripts from chat.'
+    ),
 }

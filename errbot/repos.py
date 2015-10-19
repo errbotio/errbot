@@ -139,7 +139,7 @@ KNOWN_PUBLIC_REPOS = {
         'Tells which member of the group chat should bring the coffee.'
     ),
     'err-shellexec': (
-        'https://github.com/sarlalian/err-shellexec.',
+        'https://github.com/sarlalian/err-shellexec.git',
         'Allow users to run specifc shell scripts from chat.'
     ),
 }

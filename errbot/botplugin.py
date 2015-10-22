@@ -25,6 +25,10 @@ class BotPluginBase(StoreMixin):
             self._load_bot(bot)
         super(BotPluginBase, self).__init__()
 
+        # This may be set by the owning ErrBot instance as a
+        # `storage.RedisStorage` if redis is properly configured.
+        self.redis = None
+
     def _load_bot(self, bot):
         """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
         """

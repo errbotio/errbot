@@ -128,6 +128,22 @@ class TestMUCRoom(MUCRoom):
         return self._name == other._name
 
 
+class FakeRedisClient():
+
+    def __init__(self, *args, **kwargs):
+        self.state = {}
+
+    def set(self, key, val, **kwargs):
+        self.state[key] = val
+
+    def get(self, key, **kwargs):
+        return self.state.get(key)
+
+
+def get_fake_redis(*args, **kwargs):
+    return FakeRedisClient()
+
+
 class TestBackend(ErrBot):
     def __init__(self, config):
         config.BOT_LOG_LEVEL = logging.DEBUG
@@ -135,7 +151,7 @@ class TestBackend(ErrBot):
         config.BOT_IDENTITY = {'username': 'err'}  # we are testing with simple identfiers
         self.bot_identifier = self.build_identifier('Err')  # whatever
 
-        super().__init__(config)
+        super().__init__(config, get_redis_client=get_fake_redis)
         self.incoming_stanza_queue = Queue()
         self.outgoing_message_queue = Queue()
         self.sender = self.build_identifier(config.BOT_ADMINS[0])  # By default, assume this is the admin talking
@@ -259,6 +275,10 @@ class TestBot(object):
         tempdir = mkdtemp()
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+
+        config.REDIS_HOST = 'fake'
+        config.REDIS_PORT = 9000
+        config.REDIS_DB = 0
 
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')

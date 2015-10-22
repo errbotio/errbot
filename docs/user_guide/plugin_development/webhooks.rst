@@ -29,13 +29,12 @@ is to apply the :func:`~errbot.decorators.webhook` decorator to your
 method. Whatever it returns will be returned in response to the
 request::
 
-    import logging
     from errbot import BotPlugin, webhook
 
     class PluginExample(BotPlugin):
         @webhook
         def test(self, incoming_request):
-            logging.debug(repr(incoming_request))
+            self.log.debug(repr(incoming_request))
             return "OK"
 
 This will listen for POST requests on
@@ -48,13 +47,12 @@ response body.
 You can also set a custom URI pattern by providing the `uri_rule`
 parameter::
 
-    import logging
     from errbot import BotPlugin, webhook
 
     class PluginExample(BotPlugin):
         @webhook(r'/custom_uri/.*/')
         def test(self, incoming_request):
-            logging.debug(repr(incoming_request))
+            self.log.debug(repr(incoming_request))
             return "OK"
 
 .. note::

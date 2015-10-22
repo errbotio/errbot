@@ -22,5 +22,5 @@ minute when your plugin gets activated:
             self.log.debug('I am called every minute')
 
         def activate(self):
-            super(PluginExample, self).activate()
+            super().activate()
             self.start_poller(60, self.my_callback)

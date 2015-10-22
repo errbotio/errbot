@@ -229,7 +229,7 @@ class ErrBot(Backend, BotPluginManager):
         # Try to match one of the regex commands if the regular commands produced no match
         matched_on_re_command = False
         if not cmd:
-            if prefixed:
+            if prefixed or (type_ == "chat" and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
                 commands = self.re_commands
             else:
                 commands = {k: self.re_commands[k] for k in self.re_commands

@@ -246,3 +246,31 @@ class TestCommands(FullStackTest):
 
         self.bot.push_message("!status plugins")
         self.assertIn("A      │ ChatRoom", self.bot.pop_message())
+
+    def test_optional_prefix(self):
+        # Let's not leave any side effects
+        prefix_optional = self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT
+
+        self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT = False
+        self.assertCommand('!status', 'Yes I am alive')
+
+        self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT = True
+        self.assertCommand('!status', 'Yes I am alive')
+        self.assertCommand('status', 'Yes I am alive')
+
+        # Now reset our state so we don't bork the other tests
+        self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT = prefix_optional
+
+    def test_optional_prefix_re_cmd(self):
+        # Let's not leave any side effects
+        prefix_optional = self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT
+
+        self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT = False
+        self.assertCommand('!plz dont match this', 'bar')
+
+        self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT = True
+        self.assertCommand('!plz dont match this', 'bar')
+        self.assertCommand('plz dont match this', 'bar')
+
+        # Now reset our state so we don't bork the other tests
+        self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT = prefix_optional

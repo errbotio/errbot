@@ -96,10 +96,10 @@ class ErrBot(Backend, BotPluginManager):
         else:
             log.info(
                 "Couldn't enable redis; host/port/db: %s" %
-                (str(tuple(
+                (str([
                     self.bot_config.REDIS_HOST,
                     self.bot_config.REDIS_PORT,
-                    self.bot_config.REDIS_DB))))
+                    self.bot_config.REDIS_DB])))
 
     @property
     def all_commands(self):

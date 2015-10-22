@@ -90,8 +90,8 @@ BOT_LOG_SENTRY = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 
-# Execute commands in asynchronous mode. In this mode, Err will spawn 3 
-# seperate threads to handle commands, instead of blocking on each 
+# Execute commands in asynchronous mode. In this mode, Err will spawn 3
+# seperate threads to handle commands, instead of blocking on each
 # single command.
 BOT_ASYNC = True
 
@@ -202,7 +202,7 @@ BOT_PREFIX = '!'
 #   denyrooms: Deny command in these rooms
 #   allowprivate: Allow command from direct messages to the bot
 #   allowmuc: Allow command inside rooms
-# Rules listed in ACCESS_CONTROLS_DEFAULT are applied when a command cannot 
+# Rules listed in ACCESS_CONTROLS_DEFAULT are applied when a command cannot
 # be found inside ACCESS_CONTROLS
 #
 # Example:
@@ -270,7 +270,7 @@ REVERSE_CHATROOM_RELAY = {}
 # some whitespace to the XMPP server every 300 seconds to keep the TCP
 # connection alive. On some servers, or when running Err from behind
 # a NAT router, the default might not be fast enough and you will need
-# to set it to a lower value. 
+# to set it to a lower value.
 #
 # It has been reported that HipChat also times out without setting this
 # to a lower value (60 seems to work well with HipChat)
@@ -294,3 +294,6 @@ REVERSE_CHATROOM_RELAY = {}
 
 # Disables table borders (IRC only for now). You can reenable them switching that to  False
 # COMPACT_OUTPUT = True
+
+# Prevent ErrBot from saying anything if the command is unrecognized.
+# SUPPRESS_CMD_NOT_FOUND = False

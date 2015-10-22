@@ -94,9 +94,8 @@ class Help(BotPlugin):
 
             for cls in sorted(set(cls_commands), key=lambda c: c.__name__):
                 usage += (
-                    '\n\n'
-                    '### %s\n\n'
-                    '%s\n'
+                    '**%s**\n'
+                    '%s\n\n'
                     % (cls.__name__, cls.__errdoc__ or ''))
 
                 for (name, command) in cls_commands[cls]:
@@ -105,9 +104,10 @@ class Help(BotPlugin):
 
                     cmd_name = name.replace('_', ' ')
                     cmd_doc = self._bot.get_doc(command).strip()
-                    usage += '- ' + self._cmd_help_line(name, command) + '\n'
+                    usage += '* ' + self._cmd_help_line(name, command) + '\n'
 
-            usage += '\n\n'
+
+                usage += '\n\n' # end cls section
 
         elif args in (get_name(cls) for cls in self._bot.get_command_classes()):
             # filter out the commands related to this class
@@ -120,14 +120,16 @@ class Help(BotPlugin):
                 in self._bot.all_commands.items() if
                 get_name(get_class_that_defined_method(command)) == args]
 
-            description = '### %s\n\n%s\n\n' % (cls.__name__, cls.__errdoc__)
-            usage += '\n'.join(sorted([
-                '- ' + self._cmd_help_line(name, command)
+            description = '**%s**\n%s\n\n' % (cls.__name__, cls.__errdoc__)
+            pairs = sorted([
+                (name, command)
                 for (name, command) in commands
                 if not command._err_command_hidden and
                 (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
-            ]))
+            ])
 
+            for (name, command) in pairs:
+                usage += '* ' + self._cmd_help_line(name, command) + '\n'
         else:
             all_commands = dict(self._bot.all_commands)
             all_commands.update(
@@ -163,7 +165,7 @@ class Help(BotPlugin):
             if len(cmd_doc) > 80:
                 cmd_doc = cmd_doc[:77] + "..."
 
-        help_str += "{name}** - {doc}".format(name=name, doc=cmd_doc)
+        help_str += "{name}** {doc}".format(name=name, doc=cmd_doc)
         help_str = help_str.strip()
 
         return help_str

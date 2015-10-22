@@ -84,7 +84,9 @@ class ErrBot(Backend, BotPluginManager):
             self.bot_alt_prefixes = bot_config.BOT_ALT_PREFIXES
 
         self.redis_client = None
-        has_cfg = lambda c: getattr(self.bot_config, c, None) is not None
+
+        def has_cfg(c):
+            return getattr(self.bot_config, c, None) is not None
 
         if has_cfg('REDIS_HOST') and \
                 has_cfg('REDIS_PORT') and \

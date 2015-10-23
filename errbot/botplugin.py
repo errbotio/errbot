@@ -333,6 +333,23 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
+    def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
+                       groupchat_nick_reply=False):
+        """
+            Sends asynchronously a message to a room or a user.
+            Same as send but passing a template name and parameters instead of directly the markdown text.
+             if it is a room message_type needs to by 'groupchat' and user the room.
+             :param template_parameters: arguments for the template.
+             :param template_name: name of the template to use.
+             :param groupchat_nick_reply: if True it will mention the user in the chatroom.
+             :param message_type: 'chat' or 'groupchat'
+             :param in_reply_to: optionally, the original message this message is the answer to.
+             :param text: markdown formatted text to send to the user.
+             :param user: identifier of the user to which you want to send a message to. see build_identifier.
+        """
+        return self._bot.send_templated(user, template_name, template_parameters, in_reply_to, message_type,
+                                        groupchat_nick_reply)
+
     def build_identifier(self, txtrep):
         """
            Transform a textual representation of a user or room identifier to the correct

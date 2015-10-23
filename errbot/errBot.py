@@ -147,6 +147,23 @@ class ErrBot(Backend, BotPluginManager):
 
         self.send_message(mess)
 
+    def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
+                       groupchat_nick_reply=False):
+        """ Sends a simple message to the specified user using a template.
+            :param template_parameters: the parameters for the template.
+            :param template_name: the template name you want to use.
+            :param user:
+                an identifier from build_identifier or from an incoming message
+            :param in_reply_to:
+                the original message the bot is answering from
+            :param message_type:
+                chat or groupchat
+            :param groupchat_nick_reply:
+                authorized the prefixing with the nick form the user
+        """
+        text = self.process_template(template_name, template_parameters)
+        return self.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+
     def send_message(self, mess):
         """
         This needs to be overridden by the backends with a super() call.

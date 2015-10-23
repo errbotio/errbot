@@ -145,7 +145,7 @@ class ErrBot(Backend, BotPluginManager):
         if message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply:
             self.prefix_groupchat_reply(mess, in_reply_to.frm)
 
-        self.send_message(mess)
+        self.split_and_send_message(mess)
 
     def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
                        groupchat_nick_reply=False):
@@ -163,6 +163,12 @@ class ErrBot(Backend, BotPluginManager):
         """
         text = self.process_template(template_name, template_parameters)
         return self.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+
+    def split_and_send_message(self, mess):
+        for part in split_string_after(mess.body, self.bot_config.MESSAGE_SIZE_LIMIT):
+            partial_message = mess.clone()
+            partial_message.body = part
+            self.send_message(partial_message)
 
     def send_message(self, mess):
         """
@@ -183,8 +189,7 @@ class ErrBot(Backend, BotPluginManager):
         :param text: the markdown text of the message.
         :param mess: the message you are replying to.
         """
-        for part in split_string_after(text, self.bot_config.MESSAGE_SIZE_LIMIT):
-            self.send_message(self.build_reply(mess, part, private))
+        self.split_and_send_message(self.build_reply(mess, text, private))
 
     def process_message(self, mess):
         """Check if the given message is a command for the bot and act on it.

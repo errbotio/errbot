@@ -11,7 +11,7 @@ from markdown.extensions.extra import ExtraExtension
 from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream
 from errbot.errBot import ErrBot
-from errbot.utils import RateLimited
+from errbot.utils import rate_limited
 from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
 
 
@@ -268,10 +268,10 @@ class IRCConnection(SingleServerIRCBot):
         self.callback = callback
         # manually decorate functions
         if private_rate:
-            self.send_private_message = RateLimited(private_rate)(self.send_private_message)
+            self.send_private_message = rate_limited(private_rate)(self.send_private_message)
 
         if channel_rate:
-            self.send_public_message = RateLimited(channel_rate)(self.send_public_message)
+            self.send_public_message = rate_limited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
         self._pending_transfers = {}
 

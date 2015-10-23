@@ -232,22 +232,28 @@ def utf8(key):
     return key
 
 
-def RateLimited(minInterval):
-    def decorate(func):
-        lastTimeCalled = [0.0]
+def rate_limited(min_interval):
+    """
+    decorator to rate limit a function.
 
-        def rateLimitedFunction(*args, **kargs):
-            elapsed = time.time() - lastTimeCalled[0]
+    :param min_interval: minimum interval allowed between 2 consecutive calls.
+    :return: the decorated function
+    """
+    def decorate(func):
+        last_time_called = [0.0]
+
+        def rate_limited_function(*args, **kargs):
+            elapsed = time.time() - last_time_called[0]
             log.debug('Elapsed %f since last call' % elapsed)
-            leftToWait = minInterval - elapsed
-            if leftToWait > 0:
-                log.debug('Wait %f due to rate limiting...' % leftToWait)
-                time.sleep(leftToWait)
+            left_to_wait = min_interval - elapsed
+            if left_to_wait > 0:
+                log.debug('Wait %f due to rate limiting...' % left_to_wait)
+                time.sleep(left_to_wait)
             ret = func(*args, **kargs)
-            lastTimeCalled[0] = time.time()
+            last_time_called[0] = time.time()
             return ret
 
-        return rateLimitedFunction
+        return rate_limited_function
 
     return decorate
 

@@ -1,7 +1,6 @@
 import logging
 import os
 import shlex
-import warnings
 from threading import Timer, current_thread
 
 from .utils import PLUGINS_SUBDIR, recurse_check_structure
@@ -344,17 +343,6 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send_stream_request(user, fsource, name, size, stream_type)
 
-    def bare_send(self, xmppy_msg):
-        """
-            A bypass to send directly a crafted xmppy message.
-              Usefull to extend to bot in not forseen ways.
-        """
-        c = self._bot.connect()
-        if c:
-            return c.send(xmppy_msg)
-        logging.warning('Ignored a message as the bot is not connected yet')
-        return None  # the bot is not connected yet
-
     def join_room(self, room, username=None, password=None):
         """
         Join a room (MUC).
@@ -386,18 +374,6 @@ class BotPlugin(BotPluginBase):
             :class:`~errbot.backends.base.RoomDoesNotExistError` if the room doesn't exist.
         """
         return self._bot.query_room(room=room)
-
-    def invite_in_room(self, room, identifiers_to_invite):
-        """
-            Make the bot invite a list of identifiers to a room
-        """
-        warnings.warn(
-            "Using invite_in_room is deprecated, use invite from the "
-            "MUCRoom class instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        self.query_room(room).invite(identifiers_to_invite)
 
     def get_installed_plugin_repos(self):
         """

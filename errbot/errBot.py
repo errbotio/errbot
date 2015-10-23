@@ -447,7 +447,6 @@ class ErrBot(Backend, BotPluginManager):
         for admin in self.bot_config.BOT_ADMINS:
             self.send(admin, warning)
 
-
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """ Sends a simple message to the specified user.
             :param user:

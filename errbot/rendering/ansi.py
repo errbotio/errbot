@@ -258,11 +258,11 @@ class Table(object):
 
 class BorderlessTable(object):
 
-    def __init__(self,  ct):
+    def __init__(self, chr_table):
         self.headers = []
         self.rows = []
         self.in_headers = False
-        self.ct = ct
+        self.ct = chr_table
 
     def next_row(self):
         if self.in_headers:
@@ -327,8 +327,8 @@ class BorderlessTable(object):
         return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
 
 
-def recurse(write, ct, element, table=None, borders=True):
-    exit = []
+def recurse(write, chr_table, element, table=None, borders=True):
+    post_element = []
     if element.text:
         text = element.text
     else:
@@ -336,64 +336,64 @@ def recurse(write, ct, element, table=None, borders=True):
     items = element.items()
     for k, v in items:
         if k == 'color':
-            color_attr = getattr(ct, 'fg_' + v)
+            color_attr = getattr(chr_table, 'fg_' + v)
             if color_attr is None:
                 log.warn("there is no '%s' color in ansi" % v)
             write(color_attr)
-            exit.append(ct.fg_default)
+            post_element.append(chr_table.fg_default)
         elif k == 'bgcolor':
-            color_attr = getattr(ct, 'bg_' + v)
+            color_attr = getattr(chr_table, 'bg_' + v)
             if color_attr is None:
                 log.warn("there is no '%s' bgcolor in ansi" % v)
             write(color_attr)
-            exit.append(ct.bg_default)
+            post_element.append(chr_table.bg_default)
     if element.tag == 'img':
         text = dict(items)['src']
     elif element.tag == 'strong':
-        write(ct.fx_bold)
-        exit.append(ct.fx_normal)
+        write(chr_table.fx_bold)
+        post_element.append(chr_table.fx_normal)
     elif element.tag == 'code':
-        write(ct.inline_code)
-        exit.append(ct.end_inline_code)
+        write(chr_table.inline_code)
+        post_element.append(chr_table.end_inline_code)
     elif element.tag == 'em':
-        write(ct.fx_underline)
-        exit.append(ct.fx_not_underline)
+        write(chr_table.fx_underline)
+        post_element.append(chr_table.fx_not_underline)
     elif element.tag == 'p':
         write(' ')
-        exit.append('\n')
+        post_element.append('\n')
     elif element.tag == 'a':
-        exit.append(' (' + element.get('href') + ')')
+        post_element.append(' (' + element.get('href') + ')')
     elif element.tag == 'li':
         write('• ')
-        exit.append('\n')
+        post_element.append('\n')
     elif element.tag == 'hr':
         write('─' * 80)
         write('\n')
     elif element.tag == 'ul':  # ignore the text part
         text = None
     elif element.tag == 'h1':
-        write(ct.fx_bold)
+        write(chr_table.fx_bold)
         text = text.upper()
-        exit.append(ct.fx_normal)
-        exit.append('\n\n')
+        post_element.append(chr_table.fx_normal)
+        post_element.append('\n\n')
     elif element.tag == 'h2':
         write('\n')
         write('  ')
-        write(ct.fx_bold)
-        exit.append(ct.fx_normal)
-        exit.append('\n\n')
+        write(chr_table.fx_bold)
+        post_element.append(chr_table.fx_normal)
+        post_element.append('\n\n')
     elif element.tag == 'h3':
         write('\n')
         write('    ')
-        write(ct.fx_underline)
-        exit.append(ct.fx_not_underline)
-        exit.append('\n\n')
+        write(chr_table.fx_underline)
+        post_element.append(chr_table.fx_not_underline)
+        post_element.append('\n\n')
     elif element.tag in ('h4', 'h5', 'h6'):
         write('\n')
         write('      ')
-        exit.append('\n')
+        post_element.append('\n')
     elif element.tag == 'table':
-        table = Table(ct) if borders else BorderlessTable(ct)
+        table = Table(chr_table) if borders else BorderlessTable(chr_table)
         orig_write = write
         write = table.write
         text = None
@@ -413,7 +413,7 @@ def recurse(write, ct, element, table=None, borders=True):
     if text:
         write(text)
     for e in element:
-        recurse(write, ct, e, table, borders)
+        recurse(write, chr_table, e, table, borders)
     if element.tag == 'table':
         write = orig_write
         write(str(table))
@@ -421,7 +421,7 @@ def recurse(write, ct, element, table=None, borders=True):
     if element.tag == 'thead':
         table.end_headers()
 
-    for restore in exit:
+    for restore in post_element:
         write(restore)
     if element.tail:
         tail = element.tail.rstrip('\n')
@@ -429,22 +429,22 @@ def recurse(write, ct, element, table=None, borders=True):
             write(tail)
 
 
-def translate(element, ct=ANSI_CHRS, borders=True):
+def translate(element, chr_table=ANSI_CHRS, borders=True):
     f = io.StringIO()
 
     def write(ansi_obj):
         return f.write(str(ansi_obj))
-    recurse(write, ct, element, borders=borders)
+    recurse(write, chr_table, element, borders=borders)
     result = f.getvalue().rstrip('\n')  # remove the useless final \n
-    return result + str(ct.fx_reset)
+    return result + str(chr_table.fx_reset)
 
 
 # patch us in
-def enable_format(name, ct, borders=True):
-    Markdown.output_formats[name] = partial(translate, ct=ct, borders=borders)
+def enable_format(name, chr_table, borders=True):
+    Markdown.output_formats[name] = partial(translate, ct=chr_table, borders=borders)
 
-for name, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
-    enable_format(name, ct)
+for n, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
+    enable_format(n, ct)
 
 
 class AnsiPostprocessor(Postprocessor):

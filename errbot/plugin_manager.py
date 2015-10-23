@@ -116,16 +116,17 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def instanciateElement(self, element):
         """ Override the loading method to inject bot """
-        # check if we have a plugin not overridding __init__ incorrectly
-        sig = inspect.signature(element.__init__)
+        if PY3:
+            # check if we have a plugin not overridding __init__ incorrectly
+            sig = inspect.signature(element.__init__)
 
-        log.debug('plugin __init__(%s)' % sig.parameters)
-        if len(sig.parameters) == 1:
-            log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '
-                      'and forward them to super().__init__') % element.__name__)
-            obj = element()
-            obj._load_bot(self)  # sideload the bot
-            return obj
+            log.debug('plugin __init__(%s)' % sig.parameters)
+            if len(sig.parameters) == 1:
+                log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '
+                          'and forward them to super().__init__') % element.__name__)
+                obj = element()
+                obj._load_bot(self)  # sideload the bot
+                return obj
 
         return element(self)
 

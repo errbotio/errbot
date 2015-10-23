@@ -63,24 +63,6 @@ class TestUtils(unittest.TestCase):
         self.assertNotIn(key, persistent_object)
         self.assertEquals(len(persistent_object), 0)
 
-    @raises(SystemExit)
-    def test_pid(self):
-        from platform import system
-        from config import BOT_DATA_DIR
-
-        if system() != 'Windows':
-            pid_path = BOT_DATA_DIR + os.path.sep + 'err_test.pid'
-
-            from errbot.pid import PidFile
-
-            pidfile1 = PidFile(pid_path)
-            pidfile2 = PidFile(pid_path)
-
-            with pidfile1:
-                log.debug('ok locked the pid')
-                with pidfile2:
-                    log.fatal('Should never execute')
-
     def test_recurse_check_structure_valid(self):
         sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
         to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar"}, none=None, true=True,

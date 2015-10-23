@@ -69,8 +69,6 @@ ON_WINDOWS = system() == 'Windows'
 
 if not ON_WINDOWS:
     from daemonize import Daemonize
-    from pwd import getpwnam
-    from grp import getgrnam
     import code
     import traceback
     import signal
@@ -236,10 +234,6 @@ def main():
             pid = args['pidfile']
         else:
             pid = config.BOT_DATA_DIR + sep + 'err.pid'
-
-        from errbot.pid import PidFile
-
-        pidfile = PidFile(pid)
 
         # noinspection PyBroadException
         try:

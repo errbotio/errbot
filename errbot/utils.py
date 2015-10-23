@@ -10,7 +10,6 @@ from platform import system
 from functools import wraps
 from html import entities
 from itertools import starmap, repeat
-from xml.etree.ElementTree import tostring
 
 log = logging.getLogger(__name__)
 
@@ -21,6 +20,7 @@ ON_WINDOWS = system() == 'Windows'
 PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
 
 
+# noinspection PyPep8Naming
 class deprecated(object):
     """ deprecated decorator. emits a warning on a call on an old method and call the new method anyway """
     def __init__(self, new=None):
@@ -53,12 +53,6 @@ class deprecated(object):
         wrapper.__doc__ = old.__doc__
         wrapper.__dict__.update(old.__dict__)
         return wrapper
-
-
-@deprecated
-def get_sender_username(mess):
-    """Extract the sender's user name from a message"""
-    return mess.frm.person
 
 
 def format_timedelta(timedelta):

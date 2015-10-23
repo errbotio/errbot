@@ -9,6 +9,7 @@ from .storage import StoreMixin, StoreNotOpenError
 log = logging.getLogger(__name__)
 
 
+# noinspection PyAbstractClass
 class BotPluginBase(StoreMixin):
     """
      This class handle the basic needs of bot plugins like loading, unloading and creating a storage
@@ -141,6 +142,7 @@ class BotPluginBase(StoreMixin):
             self.program_next_poll(interval, method, args, kwargs)
 
 
+# noinspection PyAbstractClass
 class BotPlugin(BotPluginBase):
     @property
     def min_err_version(self):
@@ -190,17 +192,19 @@ class BotPlugin(BotPluginBase):
            same type of first element of the template (no mix typed is supported)
 
         In case of validation error it should raise a errbot.utils.ValidationException
+        :param configuration: the configuration to be checked.
         """
         recurse_check_structure(self.get_configuration_template(), configuration)  # default behavior
 
     def configure(self, configuration):
         """
-        By default, it will just store the current configuation in the self.config
+        By default, it will just store the current configuration in the self.config
         field of your plugin. If this plugin has no configuration yet, the framework
         will call this function anyway with None.
 
         This method will be called before activation so don't expect to be activated
         at that point.
+        :param configuration: injected configuration for the plugin.
         """
         self.config = configuration
 
@@ -313,6 +317,7 @@ class BotPlugin(BotPluginBase):
     def warn_admins(self, warning):
         """
             Sends a warning to the administrators of the bot
+            :param warning: mardown formatted text of the warning.
         """
         return self._bot.warn_admins(warning)
 
@@ -320,6 +325,11 @@ class BotPlugin(BotPluginBase):
         """
             Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
+             :param groupchat_nick_reply: if True it will mention the user in the chatroom.
+             :param message_type: 'chat' or 'groupchat'
+             :param in_reply_to: optionally, the original message this message is the answer to.
+             :param text: markdown formatted text to send to the user.
+             :param user: identifier of the user to which you want to send a message to. see build_identifier.
         """
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
@@ -327,17 +337,18 @@ class BotPlugin(BotPluginBase):
         """
            Transform a textual representation of a user or room identifier to the correct
            Identifier object you can set in Message.to and Message.frm.
+           :param txtrep: the textual representation of the identifier (it is backend dependent).
         """
         return self._bot.build_identifier(txtrep)
 
     def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):
         """
             Sends asynchronously a stream/file to a user.
-            user is the identifier of the person you want to send it to.
-            fsource is a file object you want to send.
-            name is an optional filename for it.
-            size is optional and is the espected size for it.
-            stream_type is optional for the mime_type of the content.
+            :param user: is the identifier of the person you want to send it to.
+            :param fsource: is a file object you want to send.
+            :param name: is an optional filename for it.
+            :param size: is optional and is the espected size for it.
+            :param stream_type: is optional for the mime_type of the content.
 
             It will return a Stream object on which you can monitor the progress of it.
         """
@@ -387,8 +398,13 @@ class BotPlugin(BotPluginBase):
 
             Note: it will call the method with the initial interval delay for the first time
             Also, you can program
-            for example : self.program_poller(self,30, fetch_stuff)
+            for example : self.program_poller(self, 30, fetch_stuff)
             where you have def fetch_stuff(self) in your plugin
+            :param kwargs: kwargs for the method to callback.
+            :param args: args for the method to callback.
+            :param method: method to callback.
+            :param interval: interval in seconds.
+
         """
         super(BotPlugin, self).start_poller(interval, method, args, kwargs)
 
@@ -398,6 +414,10 @@ class BotPlugin(BotPluginBase):
 
             If the method equals None -> it stops all the pollers
             you need to regive the same parameters as the original start_poller to match a specific poller to stop
+            :param kwargs: The initial kwargs you gave to start_poller.
+            :param args: The initial args you gave to start_poller.
+            :param method: The initial method you passed to start_poller.
+
         """
         super(BotPlugin, self).stop_poller(method, args, kwargs)
 
@@ -416,6 +436,7 @@ class ArgParserBase(object):
 
         If splitting fails for any reason it should return an exception
         of some kind.
+        :param args: string to parse
         """
         raise NotImplementedError()
 

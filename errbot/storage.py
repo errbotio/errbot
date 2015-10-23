@@ -70,4 +70,3 @@ class StoreMixin(MutableMapping):
 
     def __contains__(self, x):
         return x in self.shelf
-

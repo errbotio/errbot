@@ -64,9 +64,9 @@ class Help(BotPlugin):
 
         Automatically assigned to the "help" command."""
 
-        def may_access_command(cmd):
-            mess, _, _ = self._bot._process_command_filters(mess, cmd, None, True)
-            return mess is not None
+        def may_access_command(msg, cmd):
+            msg, _, _ = self._bot._process_command_filters(msg, cmd, None, True)
+            return msg is not None
 
         usage = ''
         if not args:
@@ -82,7 +82,7 @@ class Help(BotPlugin):
             for (name, command) in self._bot.all_commands.items():
                 clazz = get_class_that_defined_method(command)
                 commands = clazz_commands.get(clazz, [])
-                if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name):
+                if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name):
                     commands.append((name, command))
                     clazz_commands[clazz] = commands
 
@@ -94,7 +94,8 @@ class Help(BotPlugin):
                                                         (self._bot.get_doc(command).strip()).split('\n', 1)[0])
                                            for (name, command) in clazz_commands[clazz]
                                            if name != 'help' and not command._err_command_hidden and
-                                           (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                                           (not self.bot_config.HIDE_RESTRICTED_COMMANDS or
+                                            may_access_command(mess, name))
                                            ]))
             usage += '\n\n'
         elif args in (clazz.__name__ for clazz in self._bot.get_command_classes()):
@@ -107,7 +108,7 @@ class Help(BotPlugin):
                                                             (self._bot.get_doc(command).strip()).split('\n', 1)[0])
                 for (name, command) in commands
                 if not command._err_command_hidden and
-                (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(name))
+                (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name))
             ]))
         else:
             description = ''

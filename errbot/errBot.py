@@ -60,6 +60,7 @@ def bot_config_defaults(config):
         config.SUPPRESS_CMD_NOT_FOUND = False
 
 
+# noinspection PyAbstractClass
 class ErrBot(Backend, BotPluginManager):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
@@ -70,7 +71,7 @@ class ErrBot(Backend, BotPluginManager):
 
     def __init__(self, bot_config):
         log.debug("ErrBot init.")
-        super(ErrBot, self).__init__(bot_config)
+        super().__init__(bot_config)
         self._init_plugin_manager(bot_config)
         self.bot_config = bot_config
         self.prefix = bot_config.BOT_PREFIX
@@ -422,7 +423,6 @@ class ErrBot(Backend, BotPluginManager):
                     self.commands = commands
 
     def inject_command_filters_from(self, instance_to_inject):
-        classname = instance_to_inject.__class__.__name__
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(method, '_err_command_filter', False):
                 log.debug('Adding command filter: %s' % name)
@@ -447,23 +447,6 @@ class ErrBot(Backend, BotPluginManager):
         for admin in self.bot_config.BOT_ADMINS:
             self.send(admin, warning)
 
-    def top_of_help_message(self):
-        """Returns a string that forms the top of the help message
-
-        Override this method in derived class if you
-        want to add additional help text at the
-        beginning of the help message.
-        """
-        return ""
-
-    def bottom_of_help_message(self):
-        """Returns a string that forms the bottom of the help message
-
-        Override this method in derived class if you
-        want to add additional help text at the end
-        of the help message.
-        """
-        return ""
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """ Sends a simple message to the specified user.

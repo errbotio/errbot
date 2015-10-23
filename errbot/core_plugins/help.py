@@ -56,9 +56,7 @@ class Help(BotPlugin):
             ]))
         usage += '\n\n'
 
-        top = self._bot.top_of_help_message()
-        bottom = self._bot.bottom_of_help_message()
-        return ''.join(filter(None, [top, description, usage, bottom])).strip()
+        return ''.join(filter(None, [description, usage])).strip()
 
     @botcmd
     def help(self, mess, args):
@@ -121,6 +119,4 @@ class Help(BotPlugin):
             else:
                 usage = self.MSG_HELP_UNDEFINED_COMMAND
 
-        top = self._bot.top_of_help_message()
-        bottom = self._bot.bottom_of_help_message()
-        return ''.join(filter(None, [top, description, usage, bottom]))
+        return ''.join(filter(None, [description, usage]))

@@ -51,7 +51,7 @@ def route(obj):
     log.info("Checking %s for webhooks", classname)
     for name, func in getmembers(obj, ismethod):
         if getattr(func, '_err_webhook_uri_rule', False):
-            log.info("... Routing %s", func.__name__)
+            log.info("Webhook routing %s", func.__name__)
             for verb in func._err_webhook_methods:
                 wv = WebView(func,
                              func._err_webhook_form_param,

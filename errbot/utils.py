@@ -259,7 +259,10 @@ def rate_limited(min_interval):
 
 
 def split_string_after(str_, n):
-    """Yield chunks of length `n` from the given string"""
+    """Yield chunks of length `n` from the given string
+    :param n: length of the chunks.
+    :param str_: the given string.
+    """
     for start in range(0, len(str_), n):
         yield str_[start:start + n]
 
@@ -268,6 +271,9 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
     """Repeat calls to func with specified arguments.
 
     Example:  repeatfunc(random.random)
+    :param args: params to the function to call.
+    :param times: number of times to repeat.
+    :param func:  the function to repeatedly call.
     """
     if times is None:
         return starmap(func, repeat(args))
@@ -276,7 +282,7 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
 
 def find_roots(path, file_sig='*.plug'):
     """Collects all the paths from path recursively that contains files of type `file_sig`.
-       :param base:
+       :param path:
             a base path to walk from
        :param file_sig:
             the file pattern to look for
@@ -327,7 +333,8 @@ def get_class_that_defined_method(meth):
 
 def compat_str(s):
     """ Detect if s is a string and convert it to unicode if it is a byte or
-        py2 string """
+        py2 string
+        :param s: the string to ensure compatibility from."""
     if isinstance(s, str):
         return s
     elif isinstance(s, bytes):

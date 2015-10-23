@@ -166,11 +166,11 @@ IMTEXT_CHRS = CharacterTable(fg_black='',
 
 class Table(object):
 
-    def __init__(self,  ct):
+    def __init__(self, chr_table):
         self.headers = []
         self.rows = []
         self.in_headers = False
-        self.ct = ct
+        self.ct = chr_table
 
     def next_row(self):
         if self.in_headers:
@@ -441,7 +441,7 @@ def translate(element, chr_table=ANSI_CHRS, borders=True):
 
 # patch us in
 def enable_format(name, chr_table, borders=True):
-    Markdown.output_formats[name] = partial(translate, ct=chr_table, borders=borders)
+    Markdown.output_formats[name] = partial(translate, chr_table=chr_table, borders=borders)
 
 for n, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
     enable_format(n, ct)

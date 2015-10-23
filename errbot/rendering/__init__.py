@@ -82,8 +82,10 @@ def xhtml():
     return Markdown(output_format='xhtml', extensions=[ExtraExtension()])
 
 
-def md_escape(text):
-    """ Call this if you want to be sure your text won't be interpreted as markdown """
-    text = text.replace('{', '\{')
-    text = text.replace('}', '\}')
-    return text
+def md_escape(txt):
+    """ Call this if you want to be sure your text won't be interpreted as markdown
+    :param txt: bare text to escape.
+    """
+    txt = txt.replace('{', '\{')
+    txt = txt.replace('}', '\}')
+    return txt

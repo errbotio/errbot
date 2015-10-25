@@ -338,5 +338,6 @@ def compat_str(s):
     if isinstance(s, str):
         return s
     elif isinstance(s, bytes):
-        return s.decode()
-    return None
+        return s.decode('utf-8')
+    else:
+        return str(s)

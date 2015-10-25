@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from jinja2 import Template
 import requests
 import time
 import logging
@@ -68,13 +69,16 @@ def find_plugins():
                 else:
                     python = '2'
 
-                plugins[name] = {'repo': repo, 'path': plug['path'], 'documentation': doc, 'name': name, 'python': python}
+                plugins[name] = {'repo': repo,
+                                 'path': plug['path'],
+                                 'documentation': doc,
+                                 'name': name,
+                                 'python': python}
 
                 print('Catalog [%i/%i]: Added plugin %s.' % (i, total, parser['Core']['Name']))
     return plugins
 
 plugins = find_plugins()
-from jinja2 import Template
 template = Template(open('plugins.md').read())
 with open('Home.md', 'w') as out:
     out.write(template.render(plugins=plugins.values()))

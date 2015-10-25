@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from jinja2 import Template
 import requests
 import time
 import logging
@@ -16,18 +15,20 @@ def add_blacklisted(repo):
         f.write(repo)
         f.write('\n')
 
+
+def add_plugin(plugin):
+    with open('plugins.txt', 'a') as f:
+        f.write(repr(plugin))
+        f.write('\n')
+
 with open('blacklisted.txt', 'r') as f:
     BLACKLISTED = [line.strip() for line in f.readlines()]
 
 
 def find_plugins():
     url = 'https://api.github.com/search/repositories?q=err+in:name+language:python&sort=stars&order=desc'
-    while url:
+    while True:
         repo_req = requests.get(url)
-        n = repo_req.links['next']
-        url = n['url'] if n else None
-        log.debug('Next url: %s' % url)
-
         time.sleep(12)  # github has a rate limiter.
         repo_resp = repo_req.json()
         items = repo_resp['items']
@@ -74,12 +75,11 @@ def find_plugins():
                                  'documentation': doc,
                                  'name': name,
                                  'python': python}
-
+                add_plugin(plugins[name])
                 print('Catalog [%i/%i]: Added plugin %s.' % (i, total, parser['Core']['Name']))
-    return plugins
+        if 'next' not in repo_req.links:
+            break
+        url = repo_req.links['next']['url']
+        log.debug('Next url: %s' % url)
 
-plugins = find_plugins()
-template = Template(open('plugins.md').read())
-with open('Home.md', 'w') as out:
-    out.write(template.render(plugins=plugins.values()))
-log.info('done')
+find_plugins()

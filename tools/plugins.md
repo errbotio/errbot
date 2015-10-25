@@ -4,7 +4,7 @@ All errbot plugins found from github
 ====================================
 
 {% for plugin in plugins %}
-## {{loop.index}}\. [{{plugin.name}}](https://github.com/{{plugin.repo}}/blob/master/{{plugin.path}})
+## {{loop.index}}\. <img src="{{plugin.avatar_url}}" width="32">  [{{plugin.name}}](https://github.com/{{plugin.repo}}/blob/master/{{plugin.path}})
 
 {{plugin.documentation}}
 

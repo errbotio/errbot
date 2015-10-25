@@ -9,6 +9,8 @@ logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png'
+
 
 def add_blacklisted(repo):
     with open('blacklisted.txt', 'a') as f:
@@ -34,7 +36,9 @@ def check_repo(repo):
         log.debug('No plugin found in %s, blacklisting it.' % repo)
         add_blacklisted(repo)
         return
-
+    user = requests.get('https://api.github.com/users/' + repo.split('/')[0]).json()
+    time.sleep(12)  # github has a rate limiter.
+    avatar_url = user['avatar_url'] if 'avatar_url' in user else DEFAULT_AVATAR
     for plug in plug_items:
         f = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
         log.debug('Found a plugin:')
@@ -59,7 +63,8 @@ def check_repo(repo):
                   'path': plug['path'],
                   'documentation': doc,
                   'name': name,
-                  'python': python}
+                  'python': python,
+                  'avatar_url': avatar_url}
         add_plugin(plugin)
         print('Catalog added plugin %s.' % plugin['name'])
 

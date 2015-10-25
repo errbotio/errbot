@@ -18,7 +18,6 @@ def add_blacklisted(repo):
 with open('blacklisted.txt', 'r') as f:
     BLACKLISTED = [line.strip() for line in f.readlines()]
 
-print(BLACKLISTED)
 
 def find_plugins():
     url = 'https://api.github.com/search/repositories?q=err+in:name+language:python&sort=stars&order=desc'
@@ -74,8 +73,6 @@ def find_plugins():
                 print('Catalog [%i/%i]: Added plugin %s.' % (i, total, parser['Core']['Name']))
     return plugins
 
-
-# plugins = {'Skeleton': {'repo': 'zoni/err-skeleton', 'path': '/skeleton.plug', 'python': '3', 'name': 'Skeleton', 'documentation': 'An Err plugin skeleton'}} 
 plugins = find_plugins()
 from jinja2 import Template
 template = Template(open('plugins.md').read())

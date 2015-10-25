@@ -4,11 +4,12 @@ All errbot plugins found from github
 ====================================
 
 {% for plugin in plugins %}
-{{loop.index}}. [{{plugin.name}}](https://github.com/{{plugin.repo}}):
+## {{loop.index}}\. [{{plugin.name}}](https://github.com/{{plugin.repo}})
 
 {{plugin.documentation}}
 
 - Python {{plugin.python}}
 - Install: `!repos install https://github.com/{{plugin.repo}}.git`
 
+---
 {% endfor %}

@@ -99,7 +99,7 @@ if __name__ == "__main__":
     setup(
         name="err",
         version=VERSION,
-        packages=find_packages(src_root, exclude=['tests']),
+        packages=find_packages(src_root, exclude=['tests', 'tools']),
         entry_points={
             'console_scripts': [
                 'errbot = errbot.err:main',

@@ -78,6 +78,8 @@ questions, discuss anything related to Err as well as promote your own creations
 This is also the place where you will find announcements of new versions and other
 news related to the project.
 
+You also discover some plugins from the community on our `plugin list`_.
+
 Getting involved
 ----------------
 
@@ -122,3 +124,4 @@ Err is free software, available under the GPL-3 license. Please refer to the
 
 .. _`Google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _`GitHub page`: http://github.com/gbin/err/
+.. _`plugin list`: https://github.com/gbin/err/wiki

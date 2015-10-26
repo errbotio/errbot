@@ -20,6 +20,30 @@ webroute = route  # this allows plugins to expose dynamic webpages on err embedd
 webview = view  # this allows to use the templating system
 
 
+class ArgumentParseError(Exception):
+    """Raised when ArgumentParser couldn't parse given arguments."""
+
+
+class HelpRequested(Exception):
+    """Signals that -h/--help was used and help should be displayed to the user."""
+
+
+class ArgumentParser(argparse.ArgumentParser):
+    """
+    The python argparse.ArgumentParser, adapted for use within Err.
+    """
+
+    def error(self, message):
+        raise ArgumentParseError(message)
+
+    def print_help(self, file=None):
+        # Implementation note: Only easy way to do this appears to be
+        #   through raising an exception which we can catch later in
+        #   a place where we have the ability to return a message to
+        #   the user.
+        raise HelpRequested()
+
+
 def botcmd(*args, **kwargs):
     """
     Decorator for bot command functions
@@ -162,13 +186,24 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
 
         if not hasattr(func, '_err_command'):
 
-            err_command_parser = argparse.ArgumentParser(description=func.__doc__)
+            err_command_parser = ArgumentParser(
+                prog=name or func.__name__,
+                description=func.__doc__,
+            )
 
             @wraps(func)
             def wrapper(self, mess, args):
 
                 args = shlex.split(args)
-                parsed_args = err_command_parser.parse_args(args)
+                try:
+                    parsed_args = err_command_parser.parse_args(args)
+                except ArgumentParseError as e:
+                    yield "I'm sorry, I couldn't parse that; %s" % e
+                    yield err_command_parser.format_usage()
+                    return
+                except HelpRequested:
+                    yield err_command_parser.format_help()
+                    return
                 parsed_kwargs = vars(parsed_args)
 
                 if inspect.isgeneratorfunction(func):

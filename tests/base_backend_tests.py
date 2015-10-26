@@ -402,6 +402,23 @@ class BotCmds(unittest.TestCase):
         )
         self.assertEquals(value * count, self.dummy.pop_message().body)
 
+    def test_arg_botcmd_doesnt_raise_systemerror(self):
+        self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --invalid-parameter"))
+
+    def test_arg_botcdm_returns_errors_as_chat(self):
+        self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --invalid-parameter"))
+        self.assertIn(
+            "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter",
+            self.dummy.pop_message().body
+        )
+
+    def test_arg_botcmd_returns_help_message_as_chat(self):
+        self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --help"))
+        self.assertIn(
+            "usage: returns_first_name_last_name [-h] [--last-name LAST_NAME]",
+            self.dummy.pop_message().body
+        )
+
     def test_access_controls(self):
         tests = [
             dict(

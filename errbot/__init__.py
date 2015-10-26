@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import argparse
 from functools import wraps
 import logging
@@ -194,7 +196,10 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
             @wraps(func)
             def wrapper(self, mess, args):
 
-                args = shlex.split(args)
+                # Some clients automatically convert consecutive dashes into a fancy
+                # hyphen, which breaks long-form arguments. Undo this conversion to
+                # provide a better user experience.
+                args = shlex.split(args.replace('—', '--'))
                 try:
                     parsed_args = err_command_parser.parse_args(args)
                 except ArgumentParseError as e:

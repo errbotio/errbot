@@ -24,9 +24,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class DummyBackend(ErrBot):
-    outgoing_message_queue = Queue()
 
     def __init__(self, extra_config=None):
+        self.outgoing_message_queue = Queue()
         if extra_config is None:
             extra_config = {}
         # make up a config.
@@ -146,6 +146,11 @@ class DummyBackend(ErrBot):
     @arg_botcmd('--last-name', dest='last_name')
     def returns_first_name_last_name(self, mess, first_name=None, last_name=None):
         return "%s %s" % (first_name, last_name)
+
+    @arg_botcmd('--first-name', dest='first_name')
+    @arg_botcmd('--last-name', dest='last_name', unpack_args=False)
+    def returns_first_name_last_name_without_unpacking(self, mess, args):
+        return "%s %s" % (args.first_name, args.last_name)
 
     @arg_botcmd('value', type=str)
     @arg_botcmd('--count', dest='count', type=int)
@@ -401,6 +406,40 @@ class BotCmds(unittest.TestCase):
             self.makemessage("!returns_value_repeated_count_times %s --count %s" % (value, count))
         )
         self.assertEquals(value * count, self.dummy.pop_message().body)
+
+    def test_arg_botcmd_doesnt_raise_systemerror(self):
+        self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --invalid-parameter"))
+
+    def test_arg_botcdm_returns_errors_as_chat(self):
+        self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --invalid-parameter"))
+        self.assertIn(
+            "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter",
+            self.dummy.pop_message().body
+        )
+
+    def test_arg_botcmd_returns_help_message_as_chat(self):
+        self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --help"))
+        self.assertIn(
+            "usage: returns_first_name_last_name [-h] [--last-name LAST_NAME]",
+            self.dummy.pop_message().body
+        )
+
+    def test_arg_botcmd_undoes_fancy_unicode_dash_conversion(self):
+        first_name = 'Err'
+        last_name = 'Bot'
+        self.dummy.callback_message(
+            self.makemessage("!returns_first_name_last_name —first-name=%s —last-name=%s" % (first_name, last_name))
+        )
+        self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
+
+    def test_arg_botcmd_without_argument_unpacking(self):
+        first_name = 'Err'
+        last_name = 'Bot'
+        self.dummy.callback_message(
+            self.makemessage("!returns_first_name_last_name_without_unpacking --first-name=%s --last-name=%s"
+                             % (first_name, last_name))
+        )
+        self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
 
     def test_access_controls(self):
         tests = [

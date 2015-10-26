@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import argparse
 from functools import wraps
 import logging
@@ -18,6 +20,30 @@ log = logging.getLogger(__name__)
 
 webroute = route  # this allows plugins to expose dynamic webpages on err embedded webserver
 webview = view  # this allows to use the templating system
+
+
+class ArgumentParseError(Exception):
+    """Raised when ArgumentParser couldn't parse given arguments."""
+
+
+class HelpRequested(Exception):
+    """Signals that -h/--help was used and help should be displayed to the user."""
+
+
+class ArgumentParser(argparse.ArgumentParser):
+    """
+    The python argparse.ArgumentParser, adapted for use within Err.
+    """
+
+    def error(self, message):
+        raise ArgumentParseError(message)
+
+    def print_help(self, file=None):
+        # Implementation note: Only easy way to do this appears to be
+        #   through raising an exception which we can catch later in
+        #   a place where we have the ability to return a message to
+        #   the user.
+        raise HelpRequested()
 
 
 def botcmd(*args, **kwargs):
@@ -122,7 +148,7 @@ def re_botcmd(*args, **kwargs):
 
 
 def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
-               historize=True, template=None, **kwargs):
+               historize=True, template=None, unpack_args=True, **kwargs):
     """
     Decorator for argparse-based bot command functions
 
@@ -141,14 +167,18 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
     :param template: The template to use when using XHTML-IM output
+    :param unpack_args: Should the argparser arguments be "unpacked" and passed on the the bot
+        command individually? If this is True (the default) you must define all arguments in the
+        function separately. If this is False you must define a single argument `args` (or
+        whichever name you prefer) to receive the result of `ArgumentParser.parse_args()`.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into commands that can be given to the bot. The methods will be called
     with the original msg and the argparse parsed arguments. These methods are
-    expected to have a signature like the following::
+    expected to have a signature like the following (assuming `unpack_args=True`)::
 
         @arg_botcmd('value', type=str)
-        @arg_botcmd('--repeat-count', dest='repeat_count', type=int, default=2)
+        @arg_botcmd('--repeat-count', dest='repeat', type=int, default=2)
         def repeat_the_value(self, msg, value=None, repeat=None):
             return value * repeat
 
@@ -156,26 +186,57 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
     like sender, receiver, the plain-text and html body (if applicable), etc. `args` will
     be a string or list (depending on your value of `split_args_with`) of parameters that
     were given to the command by the user.
+
+    If you wish to use `unpack_args=False`, define the function like this::
+
+        @arg_botcmd('value', type=str)
+        @arg_botcmd('--repeat-count', dest='repeat', type=int, default=2, unpack_args=False)
+        def repeat_the_value(self, msg, args):
+            return arg.value * args.repeat
+
+    .. note::
+        The `unpack_args=False` only needs to be specified once, on the bottom `@args_botcmd`
+        statement.
     """
 
     def decorator(func):
 
         if not hasattr(func, '_err_command'):
 
-            err_command_parser = argparse.ArgumentParser(description=func.__doc__)
+            err_command_parser = ArgumentParser(
+                prog=name or func.__name__,
+                description=func.__doc__,
+            )
 
             @wraps(func)
             def wrapper(self, mess, args):
 
-                args = shlex.split(args)
-                parsed_args = err_command_parser.parse_args(args)
-                parsed_kwargs = vars(parsed_args)
+                # Some clients automatically convert consecutive dashes into a fancy
+                # hyphen, which breaks long-form arguments. Undo this conversion to
+                # provide a better user experience.
+                args = shlex.split(args.replace('—', '--'))
+                try:
+                    parsed_args = err_command_parser.parse_args(args)
+                except ArgumentParseError as e:
+                    yield "I'm sorry, I couldn't parse that; %s" % e
+                    yield err_command_parser.format_usage()
+                    return
+                except HelpRequested:
+                    yield err_command_parser.format_help()
+                    return
+
+                if unpack_args:
+                    func_args = []
+                    func_kwargs = vars(parsed_args)
+                else:
+                    func_args = [parsed_args]
+                    func_kwargs = {}
 
                 if inspect.isgeneratorfunction(func):
-                    for reply in func(self, mess, **parsed_kwargs):
+                    for reply in func(self, mess, *func_args, **func_kwargs):
                         yield reply
                 else:
-                    yield func(self, mess, **parsed_kwargs)
+                    yield func(self, mess, *func_args, **func_kwargs)
 
             setattr(wrapper, '_err_command', True)
             setattr(wrapper, '_err_re_command', False)

@@ -236,9 +236,8 @@ def webhook(*args, **kwargs):
         func._err_webhook_form_param = form_param
         func._err_webhook_raw = raw
         return func
-    first = compat_str(args[0])
-    if first is not None:
-        return lambda method: decorate(method, first, **kwargs)
+    if isinstance(args[0], (str, bytes)):
+        return lambda method: decorate(method, compat_str(args[0]), **kwargs)
     return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)
 
 

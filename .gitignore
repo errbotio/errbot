@@ -21,6 +21,7 @@ nohup.out
 
 # tools
 /tools/Home.md
+/tools/token
 
 *.log
 *.crt

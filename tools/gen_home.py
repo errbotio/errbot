@@ -22,17 +22,10 @@ with open('plugins.txt', 'r') as p:
 
     plugins = sorted(plugins, key=lambda plug: plug['name'])
 
-    for plugin in plugins:
-        if 'wikipedia' in plugin['avatar_url']:
-            print("Query avatar for %s" % plugin['repo'])
-            user = requests.get('https://api.github.com/users/' + plugin['repo'].split('/')[0]).json()
-            time.sleep(12)  # github has a rate limiter.
-            plugin['avatar_url'] = user['avatar_url'] if 'avatar_url' in user else DEFAULT_AVATAR
-            print("Got %s" % plugin['avatar_url'])
-
-    with open('Home.md', 'w') as out:
-        out.write(template.render(plugins=plugins))
-    with open('plugin-with-avatar.txt', 'w') as out:
+    with open('sorted-dedupped-plugins.txt', 'w') as out:
         for plugin in plugins:
             out.write(repr(plugin))
             out.write('\n')
+
+    with open('Home.md', 'w') as out:
+        out.write(template.render(plugins=plugins))

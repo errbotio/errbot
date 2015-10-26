@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import requests
-import time
+from requests.auth import HTTPBasicAuth
 import logging
+import time
 import configparser
 logging.basicConfig()
 
@@ -10,6 +11,18 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png'
+AUTH = HTTPBasicAuth('gbin', open('token', 'r').read().strip())
+
+# for authenticated requests the limit is 5000 req/hours
+PAUSE = 3600.0 / 5000.0
+
+# for searchs it is 50 request per minute
+SEARCH_PAUSE = 60.0 / 50.0
+
+user_cache = {}
+
+with open('user_cache', 'r') as f:
+    user_cache = eval(f.read())
 
 
 def add_blacklisted(repo):
@@ -27,19 +40,40 @@ with open('blacklisted.txt', 'r') as f:
     BLACKLISTED = [line.strip() for line in f.readlines()]
 
 
+def get_avatar_url(repo):
+    username = repo.split('/')[0]
+    if username in user_cache:
+        user = user_cache[username]
+    else:
+        time.sleep(PAUSE)
+        user_res = requests.get('https://api.github.com/users/' + username, auth=AUTH)
+        log.debug("User reqs before ratelimit %s/%s" % (
+            user_res.headers['X-RateLimit-Remaining'],
+            user_res.headers['X-RateLimit-Limit']))
+        user = user_res.json()
+        if 'avatar_url' in user:  # don't pollute the presistent cache
+            user_cache[username] = user
+            with open('user_cache', 'w') as f:
+                f.write(repr(user_cache))
+    return user['avatar_url'] if 'avatar_url' in user else DEFAULT_AVATAR
+
+
 def check_repo(repo):
     log.debug('Checking %s...' % repo)
-    code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo)
-    time.sleep(12)  # github has a rate limiter.
+    time.sleep(SEARCH_PAUSE)
+    code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo, auth=AUTH)
+    log.debug("Search before ratelimit %s/%s" % (
+        code_resp.headers['X-RateLimit-Remaining'],
+        code_resp.headers['X-RateLimit-Limit']))
     plug_items = code_resp.json()['items']
     if not plug_items:
         log.debug('No plugin found in %s, blacklisting it.' % repo)
         add_blacklisted(repo)
         return
-    user = requests.get('https://api.github.com/users/' + repo.split('/')[0]).json()
-    time.sleep(12)  # github has a rate limiter.
-    avatar_url = user['avatar_url'] if 'avatar_url' in user else DEFAULT_AVATAR
+    avatar_url = get_avatar_url(repo)
+
     for plug in plug_items:
+        time.sleep(PAUSE)
         f = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
         log.debug('Found a plugin:')
         log.debug('Repo:  %s' % repo)
@@ -72,9 +106,12 @@ def check_repo(repo):
 def find_plugins():
     url = 'https://api.github.com/search/repositories?q=err+in:name+language:python&sort=stars&order=desc'
     while True:
-        repo_req = requests.get(url)
-        time.sleep(12)  # github has a rate limiter.
+        time.sleep(PAUSE)
+        repo_req = requests.get(url, auth=AUTH)
         repo_resp = repo_req.json()
+        log.debug("Repo reqs before ratelimit %s/%s" % (
+            repo_req.headers['X-RateLimit-Remaining'],
+            repo_req.headers['X-RateLimit-Limit']))
         items = repo_resp['items']
 
         for i, item in enumerate(items):

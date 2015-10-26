@@ -38,6 +38,7 @@ features out of the box.
 
   features
 
+
 Sharing
 -------
 
@@ -49,9 +50,8 @@ install, uninstall and update plugins made available by the community. Making yo
 plugin available through this command only requires you to publish it as a publicly
 available Git repository and letting us know the URL so we can add it.
 
-Currently, we're also working on a web interface lightly inspired by Hubot's
-`script catalog <http://hubot-script-catalog.herokuapp.com/>`_, which should make
-this process even easier in the future.
+You may also discover plugins from the community on our `plugin list`_.
+
 
 Screenshots
 -----------
@@ -70,6 +70,7 @@ Screenshots
         </a>
     </div>
 
+
 Community
 ---------
 
@@ -78,7 +79,6 @@ questions, discuss anything related to Err as well as promote your own creations
 This is also the place where you will find announcements of new versions and other
 news related to the project.
 
-You also discover some plugins from the community on our `plugin list`_.
 
 Getting involved
 ----------------
@@ -87,6 +87,7 @@ Getting involved
   :maxdepth: 3
 
   contributing
+
 
 User guide
 ----------
@@ -100,6 +101,7 @@ User guide
   user_guide/sentry
   user_guide/backend_development/index
 
+
 API documentation
 -----------------
 
@@ -108,6 +110,7 @@ API documentation
 
   errbot
 
+
 Release history
 ---------------
 
@@ -115,6 +118,7 @@ Release history
   :maxdepth: 2
 
   changes
+
 
 License
 -------

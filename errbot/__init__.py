@@ -148,7 +148,7 @@ def re_botcmd(*args, **kwargs):
 
 
 def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
-               historize=True, template=None, **kwargs):
+               historize=True, template=None, unpack_args=True, **kwargs):
     """
     Decorator for argparse-based bot command functions
 
@@ -167,14 +167,18 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
     :param template: The template to use when using XHTML-IM output
+    :param unpack_args: Should the argparser arguments be "unpacked" and passed on the the bot
+        command individually? If this is True (the default) you must define all arguments in the
+        function separately. If this is False you must define a single argument `args` (or
+        whichever name you prefer) to receive the result of `ArgumentParser.parse_args()`.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into commands that can be given to the bot. The methods will be called
     with the original msg and the argparse parsed arguments. These methods are
-    expected to have a signature like the following::
+    expected to have a signature like the following (assuming `unpack_args=True`)::
 
         @arg_botcmd('value', type=str)
-        @arg_botcmd('--repeat-count', dest='repeat_count', type=int, default=2)
+        @arg_botcmd('--repeat-count', dest='repeat', type=int, default=2)
         def repeat_the_value(self, msg, value=None, repeat=None):
             return value * repeat
 
@@ -182,6 +186,17 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
     like sender, receiver, the plain-text and html body (if applicable), etc. `args` will
     be a string or list (depending on your value of `split_args_with`) of parameters that
     were given to the command by the user.
+
+    If you wish to use `unpack_args=False`, define the function like this::
+
+        @arg_botcmd('value', type=str)
+        @arg_botcmd('--repeat-count', dest='repeat', type=int, default=2, unpack_args=False)
+        def repeat_the_value(self, msg, args):
+            return arg.value * args.repeat
+
+    .. note::
+        The `unpack_args=False` only needs to be specified once, on the bottom `@args_botcmd`
+        statement.
     """
 
     def decorator(func):
@@ -209,13 +224,19 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
                 except HelpRequested:
                     yield err_command_parser.format_help()
                     return
-                parsed_kwargs = vars(parsed_args)
+
+                if unpack_args:
+                    func_args = []
+                    func_kwargs = vars(parsed_args)
+                else:
+                    func_args = [parsed_args]
+                    func_kwargs = {}
 
                 if inspect.isgeneratorfunction(func):
-                    for reply in func(self, mess, **parsed_kwargs):
+                    for reply in func(self, mess, *func_args, **func_kwargs):
                         yield reply
                 else:
-                    yield func(self, mess, **parsed_kwargs)
+                    yield func(self, mess, *func_args, **func_kwargs)
 
             setattr(wrapper, '_err_command', True)
             setattr(wrapper, '_err_re_command', False)

@@ -1,5 +1,22 @@
-v3.2.0
-======
+v3.2.0 (unreleased)
+-------------------
+
+features:
+
+- Official support for Python 3.5
+- Added send_templated() to the BotPlugin class
+- Various improvements to the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
+
+bugs:
+
+- Fixed various bugs with the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
+- Fixed warn_admins() on Telegram
+
+other:
+
+- Removed some dead code
+- Removed deprecated bare_send and invite_to_room bot methods
+
 
 v3.1.0 (2015-10-22)
 -------------------

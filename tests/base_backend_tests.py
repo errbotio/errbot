@@ -106,6 +106,10 @@ class DummyBackend(ErrBot):
         return {'args': args}
 
     @botcmd
+    def send_args_as_md(self, mess, args):
+        self.send_templated(mess.frm, 'args_as_md', {'args': args})
+
+    @botcmd
     def raises_exception(self, mess, args):
         raise Exception("Kaboom!")
 
@@ -218,6 +222,14 @@ class TestExecuteAndSend(unittest.TestCase):
         m = self.example_message
 
         dummy._execute_and_send(cmd='return_args_as_md', args=['foo', 'bar'], match=None, mess=m,
+                                template_name=dummy.return_args_as_md._err_command_template)
+        response = dummy.pop_message()
+        self.assertEqual("foobar", response.body)
+
+    def test_commands_can_send_templated(self):
+        dummy = self.dummy
+        m = self.example_message
+        dummy._execute_and_send(cmd='send_args_as_md', args=['foo', 'bar'], match=None, mess=m,
                                 template_name=dummy.return_args_as_md._err_command_template)
         response = dummy.pop_message()
         self.assertEqual("foobar", response.body)

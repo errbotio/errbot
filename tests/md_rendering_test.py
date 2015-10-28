@@ -1,7 +1,7 @@
 # vim: ts=4:sw=4
 import logging
 import unittest
-from errbot.rendering import ansi, text, md
+from errbot.rendering import ansi, text, md, md_escape
 
 log = logging.getLogger(__name__)
 
@@ -20,3 +20,9 @@ class MdRendering(unittest.TestCase):
         mdc = md()
         self.assertEquals(mdc.convert("woot"), "woot")
         self.assertEquals(mdc.convert("woot{stuff} really{otherstuff}"), "woot really")
+
+    def test_escaping(self):
+        mdc = text()
+        original = '#not a title\n*not italic*\n`not code`\ntoto{not annotation}'
+        escaped = md_escape(original)
+        self.assertEquals(original, mdc.convert(escaped))

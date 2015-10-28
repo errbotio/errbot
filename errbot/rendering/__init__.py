@@ -9,6 +9,12 @@ ATTR_RE = re.compile(AttrListTreeprocessor.BASE_RE)
 # Here are few helpers to simplify the conversion from markdown to various
 # backend formats.
 
+_md_escape_re = re.compile('|'.join(re.escape(c) for c in Markdown.ESCAPED_CHARS))
+
+
+def _md_escape_trans(match):
+    return '\\' + match.group(0)
+
 
 def ansi():
     """This makes a converter from markdown to ansi (console) format.
@@ -86,6 +92,4 @@ def md_escape(txt):
     """ Call this if you want to be sure your text won't be interpreted as markdown
     :param txt: bare text to escape.
     """
-    txt = txt.replace('{', '\{')
-    txt = txt.replace('}', '\}')
-    return txt
+    return _md_escape_re.sub(_md_escape_trans, txt)

@@ -30,7 +30,13 @@
             var s = document.getElementsByTagName('script')[0];
             s.parentNode.insertBefore(ga, s);
         })();
-    </script>
+
+        // Gitter button
+        ((window.gitter = {}).chat = {}).options = {
+             room: 'gbin/err'
+        };
+   </script>
+   <script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
 {% endblock %}
 
 {%- block sidebarlogo %}

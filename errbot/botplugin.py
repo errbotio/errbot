@@ -2,9 +2,13 @@ import logging
 import os
 import shlex
 from threading import Timer, current_thread
+from types import ModuleType
+from typing import Tuple, Callable, Mapping, Any, Sequence
+from io import IOBase
 
 from .utils import PLUGINS_SUBDIR, recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
+from errbot.backends.base import Message, Presence, Stream, MUCRoom
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +20,7 @@ class BotPluginBase(StoreMixin):
      It is the main contract between the plugins and the bot
     """
 
-    def __init__(self, bot=None):
+    def __init__(self, bot):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
@@ -32,7 +36,7 @@ class BotPluginBase(StoreMixin):
         self.plugin_dir = bot.plugin_dir
 
     @property
-    def mode(self):
+    def mode(self) -> str:
         """
         Get the current active backend.
 
@@ -41,7 +45,7 @@ class BotPluginBase(StoreMixin):
         return self._bot.mode
 
     @property
-    def bot_config(self):
+    def bot_config(self) -> ModuleType:
         """
         Get the bot configuration from config.py.
         For exemple you can access:
@@ -53,14 +57,14 @@ class BotPluginBase(StoreMixin):
             self._bot.bot_config.BOT_ADMINS = (self._bot.bot_config.BOT_ADMINS,)
         return self._bot.bot_config
 
-    def init_storage(self):
+    def init_storage(self) -> None:
         classname = self.__class__.__name__
         log.debug('Init storage for %s' % classname)
         filename = os.path.join(self.bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR, classname + '.db')
         log.debug('Loading %s' % filename)
         self.open_storage(filename)
 
-    def activate(self):
+    def activate(self) -> None:
         """
             Override if you want to do something at initialization phase (don't forget to
             super(Gnagna, self).activate())
@@ -70,7 +74,7 @@ class BotPluginBase(StoreMixin):
         self._bot.inject_command_filters_from(self)
         self.is_activated = True
 
-    def deactivate(self):
+    def deactivate(self) -> None:
         """
             Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
         """
@@ -88,7 +92,11 @@ class BotPluginBase(StoreMixin):
         self._bot.remove_commands_from(self)
         self.is_activated = False
 
-    def start_poller(self, interval, method, args=None, kwargs=None):
+    def start_poller(self,
+                     interval: float,
+                     method: Callable[..., None],
+                     args: Tuple=None,
+                     kwargs: Mapping=None):
         """ Starts a poller that will be called at a regular interval
 
         :param interval: interval in seconds
@@ -111,7 +119,10 @@ class BotPluginBase(StoreMixin):
         except Exception:
             log.exception('failed')
 
-    def stop_poller(self, method, args=None, kwargs=None):
+    def stop_poller(self,
+                    method: Callable[..., None],
+                    args: Tuple=None,
+                    kwargs: Mapping=None):
         if not kwargs:
             kwargs = {}
         if not args:
@@ -119,7 +130,11 @@ class BotPluginBase(StoreMixin):
         log.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
         self.current_pollers.remove((method, args, kwargs))
 
-    def program_next_poll(self, interval, method, args, kwargs):
+    def program_next_poll(self,
+                          interval: float,
+                          method: Callable[..., None],
+                          args: Tuple=None,
+                          kwargs: Mapping=None):
         t = Timer(interval=interval, function=self.poller,
                   kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t)  # save the timer to be able to kill it
@@ -127,7 +142,11 @@ class BotPluginBase(StoreMixin):
         t.setDaemon(True)  # so it is not locking on exit
         t.start()
 
-    def poller(self, interval, method, args, kwargs):
+    def poller(self,
+               interval: float,
+               method: Callable[..., None],
+               args: Tuple=None,
+               kwargs: Mapping=None):
         previous_timer = current_thread()
         if previous_timer in self.current_timers:
             log.debug('Previous timer found and removed')
@@ -145,7 +164,7 @@ class BotPluginBase(StoreMixin):
 # noinspection PyAbstractClass
 class BotPlugin(BotPluginBase):
     @property
-    def min_err_version(self):
+    def min_err_version(self) -> str:
         """
         If your plugin has a minimum version of err it needs to be on in order to run,
         please override accordingly this method, returning a string with the dotted
@@ -156,7 +175,7 @@ class BotPlugin(BotPluginBase):
         return None
 
     @property
-    def max_err_version(self):
+    def max_err_version(self) -> str:
         """
         If your plugin has a maximal version of err it needs to be on in order to run,
         please override accordingly this method, returning a string with the dotted
@@ -166,7 +185,7 @@ class BotPlugin(BotPluginBase):
         """
         return None
 
-    def get_configuration_template(self):
+    def get_configuration_template(self) -> Mapping:
         """
         If your plugin needs a configuration, override this method and return
         a configuration template.
@@ -178,7 +197,7 @@ class BotPlugin(BotPluginBase):
         """
         return None
 
-    def check_configuration(self, configuration):
+    def check_configuration(self, configuration: Mapping) -> None:
         """
         By default, this method will do only a BASIC check. You need to override
         it if you want to do more complex checks. It will be called before the
@@ -196,7 +215,7 @@ class BotPlugin(BotPluginBase):
         """
         recurse_check_structure(self.get_configuration_template(), configuration)  # default behavior
 
-    def configure(self, configuration):
+    def configure(self, configuration: Mapping) -> None:
         """
         By default, it will just store the current configuration in the self.config
         field of your plugin. If this plugin has no configuration yet, the framework
@@ -208,7 +227,7 @@ class BotPlugin(BotPluginBase):
         """
         self.config = configuration
 
-    def activate(self):
+    def activate(self) -> None:
         """
             Triggered on plugin activation.
 
@@ -217,16 +236,16 @@ class BotPlugin(BotPluginBase):
         """
         super(BotPlugin, self).activate()
 
-    def deactivate(self):
+    def deactivate(self) -> None:
         """
             Triggered on plugin deactivation.
 
             Override this method if you want to do something at tear-down phase
             (don't forget to `super().deactivate()`).
         """
-        super(BotPlugin, self).deactivate()
+        super().deactivate()
 
-    def callback_connect(self):
+    def callback_connect(self) -> None:
         """
             Triggered when the bot has successfully connected to the chat network.
 
@@ -234,19 +253,18 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_message(self, message):
+    def callback_message(self, message: Message) -> None:
         """
             Triggered on every message not coming from the bot itself.
 
             Override this method to get notified on *ANY* message.
 
             :param message:
-                An instance of :class:`~errbot.backends.base.Message`
                 representing the message that was received.
         """
         pass
 
-    def callback_presence(self, presence):
+    def callback_presence(self, presence: Presence) -> None:
         """
             Triggered on every presence change.
 
@@ -256,7 +274,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_stream(self, stream):
+    def callback_stream(self, stream: Stream) -> None:
         """
             Triggered asynchronously (in a different thread context) on every incoming stream
             request or file transfert requests.
@@ -268,7 +286,7 @@ class BotPlugin(BotPluginBase):
         """
         stream.reject()  # by default, reject the file as the plugin doesn't want it.
 
-    def callback_botmessage(self, message):
+    def callback_botmessage(self, message: Message):
         """
             Triggered on every message coming from the bot itself.
 
@@ -281,7 +299,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_joined(self, room):
+    def callback_room_joined(self, room: MUCRoom):
         """
             Triggered when the bot has joined a MUC.
 
@@ -291,7 +309,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_left(self, room):
+    def callback_room_left(self, room: MUCRoom):
         """
             Triggered when the bot has left a MUC.
 
@@ -301,7 +319,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_topic(self, room):
+    def callback_room_topic(self, room: MUCRoom):
         """
             Triggered when the topic in a MUC changes.
 
@@ -314,14 +332,19 @@ class BotPlugin(BotPluginBase):
     # Proxyfy some useful tools from the motherbot
     # this is basically the contract between the plugins and the main bot
 
-    def warn_admins(self, warning):
+    def warn_admins(self, warning: str) -> None:
         """
             Sends a warning to the administrators of the bot
             :param warning: mardown formatted text of the warning.
         """
-        return self._bot.warn_admins(warning)
+        self._bot.warn_admins(warning)
 
-    def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
+    def send(self,
+             user: object,
+             text: str,
+             in_reply_to: Message=None,
+             message_type: str='chat',
+             groupchat_nick_reply: bool=False) -> None:
         """
             Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
@@ -333,8 +356,13 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
-    def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
-                       groupchat_nick_reply=False):
+    def send_templated(self,
+                       user: Any,
+                       template_name: str,
+                       template_parameters: Mapping,
+                       in_reply_to: Message=None,
+                       message_type: str='chat',
+                       groupchat_nick_reply: bool=False) -> None:
         """
             Sends asynchronously a message to a room or a user.
             Same as send but passing a template name and parameters instead of directly the markdown text.
@@ -350,7 +378,7 @@ class BotPlugin(BotPluginBase):
         return self._bot.send_templated(user, template_name, template_parameters, in_reply_to, message_type,
                                         groupchat_nick_reply)
 
-    def build_identifier(self, txtrep):
+    def build_identifier(self, txtrep: str):
         """
            Transform a textual representation of a user or room identifier to the correct
            Identifier object you can set in Message.to and Message.frm.
@@ -358,7 +386,12 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.build_identifier(txtrep)
 
-    def send_stream_request(self, user, fsource, name=None, size=None, stream_type=None):
+    def send_stream_request(self,
+                            user: Any,
+                            fsource: IOBase,
+                            name: str=None,
+                            size: int=None,
+                            stream_type: str=None):
         """
             Sends asynchronously a stream/file to a user.
             :param user: is the identifier of the person you want to send it to.
@@ -371,7 +404,7 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send_stream_request(user, fsource, name, size, stream_type)
 
-    def join_room(self, room, username=None, password=None):
+    def join_room(self, room: str, username: str=None, password: str=None):
         """
         Join a room (MUC).
 
@@ -384,13 +417,13 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.join_room(room, username, password)
 
-    def rooms(self):
+    def rooms(self) -> Sequence[MUCRoom]:
         """
         The list of rooms the bot is currently in.
         """
         return self._bot.rooms()
 
-    def query_room(self, room):
+    def query_room(self, room: str) -> MUCRoom:
         """
         Query a room for information.
 
@@ -403,13 +436,17 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.query_room(room=room)
 
-    def get_installed_plugin_repos(self):
+    def get_installed_plugin_repos(self) -> Mapping:
         """
             Get the current installed plugin repos in a dictionary of name / url
         """
         return self._bot.get_installed_plugin_repos()
 
-    def start_poller(self, interval, method, args=None, kwargs=None):
+    def start_poller(self,
+                     interval: float,
+                     method: Callable[..., None],
+                     args: Tuple=None,
+                     kwargs: Mapping=None):
         """
             Start to poll a method at specific interval in seconds.
 
@@ -423,9 +460,12 @@ class BotPlugin(BotPluginBase):
             :param interval: interval in seconds.
 
         """
-        super(BotPlugin, self).start_poller(interval, method, args, kwargs)
+        super().start_poller(interval, method, args, kwargs)
 
-    def stop_poller(self, method=None, args=None, kwargs=None):
+    def stop_poller(self,
+                    method: Callable[..., None],
+                    args: Tuple=None,
+                    kwargs: Mapping=None):
         """
             stop poller(s).
 
@@ -436,7 +476,7 @@ class BotPlugin(BotPluginBase):
             :param method: The initial method you passed to start_poller.
 
         """
-        super(BotPlugin, self).stop_poller(method, args, kwargs)
+        super().stop_poller(method, args, kwargs)
 
 
 class ArgParserBase(object):
@@ -446,7 +486,7 @@ class ArgParserBase(object):
     :func:`~errbot.decorators.botcmd`).
     """
 
-    def parse_args(self, args):
+    def parse_args(self, args: str):
         """
         This method takes a string of un-split arguments and parses it,
         returning a list that is the result of splitting.
@@ -464,7 +504,7 @@ class SeparatorArgParser(ArgParserBase):
     :func:`str.split` does.
     """
 
-    def __init__(self, separator=None, maxsplit=-1):
+    def __init__(self, separator: str=None, maxsplit: int=-1):
         """
         :param separator:
             The separator on which arguments should be split. If sep is
@@ -476,7 +516,7 @@ class SeparatorArgParser(ArgParserBase):
         self.separator = separator
         self.maxsplit = maxsplit
 
-    def parse_args(self, args):
+    def parse_args(self, args: str):
         return args.split(self.separator, self.maxsplit)
 
 

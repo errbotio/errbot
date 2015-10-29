@@ -23,6 +23,8 @@ from setuptools import setup, find_packages
 py_version = sys.version_info[:2]
 PY2 = py_version[0] == 2
 PY3 = not PY2
+PY35 = py_version[:2] >= [3, 5]
+
 ON_WINDOWS = system() == 'Windows'
 
 if py_version < (2, 7):
@@ -51,6 +53,9 @@ if PY2:
              'backports.functools_lru_cache']
 else:
     deps += ['dnspython3', ]  # dnspython3 for SRV records
+    if not PY35:
+        deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
+
 
 # Extra dependencies for a development environment.
 # if 'develop' in sys.argv: <- we cannot do that as pip is doing that in 2 steps.

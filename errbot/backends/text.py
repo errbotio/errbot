@@ -47,7 +47,7 @@ class TextBackend(ErrBot):
         super().__init__(config)
         log.debug("Text Backend Init.")
         self.bot_identifier = self.build_identifier('Err')
-        self.rooms = set()
+        self._rooms = set()
         self.md_html = xhtml()  # for more debug feedback on md
         self.md_text = text()  # for more debug feedback on md
         self.md_ansi = ansi()
@@ -131,11 +131,11 @@ class TextBackend(ErrBot):
 
     def query_room(self, room):
         room = TextMUCRoom()
-        self.rooms.add(room)
+        self._rooms.add(room)
         return room
 
     def rooms(self):
-        return self.rooms
+        return self._rooms
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '{0} {1}'.format(identifier.nick, message.body)

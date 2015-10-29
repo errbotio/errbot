@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 py_version = sys.version_info[:2]
 PY2 = py_version[0] == 2
 PY3 = not PY2
-PY35 = py_version[:2] >= [3, 5]
+PY35 = py_version[:2] >= (3, 5)
 
 ON_WINDOWS = system() == 'Windows'
 

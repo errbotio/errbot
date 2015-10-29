@@ -53,8 +53,9 @@ if PY2:
              'backports.functools_lru_cache']
 else:
     deps += ['dnspython3', ]  # dnspython3 for SRV records
-    if not PY35:
-        deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
+
+if not PY35:
+    deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
 
 
 # Extra dependencies for a development environment.

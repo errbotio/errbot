@@ -38,6 +38,7 @@ features out of the box.
 
   features
 
+
 Sharing
 -------
 
@@ -49,9 +50,8 @@ install, uninstall and update plugins made available by the community. Making yo
 plugin available through this command only requires you to publish it as a publicly
 available Git repository and letting us know the URL so we can add it.
 
-Currently, we're also working on a web interface lightly inspired by Hubot's
-`script catalog <http://hubot-script-catalog.herokuapp.com/>`_, which should make
-this process even easier in the future.
+You may also discover plugins from the community on our `plugin list`_.
+
 
 Screenshots
 -----------
@@ -70,6 +70,7 @@ Screenshots
         </a>
     </div>
 
+
 Community
 ---------
 
@@ -78,6 +79,7 @@ questions, discuss anything related to Err as well as promote your own creations
 This is also the place where you will find announcements of new versions and other
 news related to the project.
 
+
 Getting involved
 ----------------
 
@@ -85,6 +87,7 @@ Getting involved
   :maxdepth: 3
 
   contributing
+
 
 User guide
 ----------
@@ -98,6 +101,7 @@ User guide
   user_guide/sentry
   user_guide/backend_development/index
 
+
 API documentation
 -----------------
 
@@ -105,6 +109,7 @@ API documentation
   :maxdepth: 3
 
   errbot
+
 
 Release history
 ---------------
@@ -114,6 +119,7 @@ Release history
 
   changes
 
+
 License
 -------
 
@@ -122,3 +128,4 @@ Err is free software, available under the GPL-3 license. Please refer to the
 
 .. _`Google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _`GitHub page`: http://github.com/gbin/err/
+.. _`plugin list`: https://github.com/gbin/err/wiki

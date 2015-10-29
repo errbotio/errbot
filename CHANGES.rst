@@ -1,5 +1,46 @@
-v3.1.0
-======
+v3.2.0 (unreleased)
+-------------------
+
+features:
+
+- Official support for Python 3.5
+- Added send_templated() to the BotPlugin class
+- Various improvements to the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
+
+bugs:
+
+- Fixed various bugs with the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
+- Fixed warn_admins() on Telegram
+
+other:
+
+- Removed some dead code
+- Removed deprecated bare_send and invite_to_room bot methods
+
+
+v3.1.0 (2015-10-22)
+-------------------
+
+features:
+
+- now setup will install 'errbot' in the path instead of 'err.py' (thx mr.Shu)
+- new SUPPRESS_CMD_NOT_FOUND to simply ignore a command if it is not found (thx James O'Beirne)
+- err-shellexec in the list of repos (thx Will Fife)
+- msg.extras is a new message property to get extra metadata that doesn't fit into a traditional message like attachments for Slack (thx James O'Beirne)
+- Terse output
+- IRC: now you can use nickserv to auth the bot (thx mr.Shu)
+- IRC: COMPACT_OUTPUT option allows you to remove the ascii art around the tables.
+- BOT_ADMINS: having a simple string instead of a tuple is possible too (thx mr.Shu)
+
+bugs:
+
+- better error message for unblacklisting (thx Sijis)
+- respect optional prefix for re_botcmd (thx Travis Veazey)
+- fix breakage on pytest on deps (thx Joel Perras)
+- !help foo bar for foo_bar fix + cosmetic (thx James O'Beirne)
+- fixed path report for config.py in case of problem
+- yield not work with @arg_botcmd (thx Andre Van Der Merwe)
+- backup/restore fixes
 
 v3.0.4
 ------

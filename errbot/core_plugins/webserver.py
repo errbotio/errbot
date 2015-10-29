@@ -36,6 +36,8 @@ def make_ssl_certificate(key_path, cert_path):
 
     The generated key will be written out to key_path, with the corresponding
     certificate itself being written to cert_path.
+    :param cert_path: path where to write the certificate.
+    :param key_path: path where to write the key.
     """
     cert = crypto.X509()
     cert.set_serial_number(int(random() * sys.maxsize))
@@ -100,6 +102,7 @@ class Webserver(BotPlugin):
         ssl = self.config['SSL']
         interfaces = [(host, port)]
         if ssl['enabled']:
+            # noinspection PyTypeChecker
             interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
         self.log.info('Firing up the Rocket')
         self.webserver = Rocket(interfaces=interfaces,

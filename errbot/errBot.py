@@ -58,8 +58,11 @@ def bot_config_defaults(config):
         config.AUTOINSTALL_DEPS = False
     if not hasattr(config, 'DISABLED_PLUGINS'):
         config.DISABLED_PLUGINS = ()
+    if not hasattr(config, 'SUPPRESS_CMD_NOT_FOUND'):
+        config.SUPPRESS_CMD_NOT_FOUND = False
 
 
+# noinspection PyAbstractClass
 class ErrBot(Backend, BotPluginManager):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
@@ -70,7 +73,7 @@ class ErrBot(Backend, BotPluginManager):
 
     def __init__(self, bot_config):
         log.debug("ErrBot init.")
-        super(ErrBot, self).__init__(bot_config)
+        super().__init__(bot_config)
         self._init_plugin_manager(bot_config)
         self.bot_config = bot_config
         self.prefix = bot_config.BOT_PREFIX
@@ -113,7 +116,68 @@ class ErrBot(Backend, BotPluginManager):
             except Exception:
                 log.exception("{} on {} crashed".format(method, plugin_name))
 
+    def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
+        """ Sends a simple message to the specified user.
+            :param user:
+                an identifier from build_identifier or from an incoming message
+            :param in_reply_to:
+                the original message the bot is answering from
+            :param text:
+                the markdown text you want to send
+            :param message_type:
+                chat or groupchat
+            :param groupchat_nick_reply:
+                authorized the prefixing with the nick form the user
+        """
+        s = compat_str(user)
+        if s is not None:
+            user = self.build_identifier(s)
+
+        mess = self.build_message(text)
+        mess.to = user
+
+        if in_reply_to:
+            mess.type = in_reply_to.type
+            mess.frm = in_reply_to.to
+        else:
+            mess.type = message_type
+            mess.frm = self.bot_identifier
+
+        nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
+        if message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply:
+            self.prefix_groupchat_reply(mess, in_reply_to.frm)
+
+        self.split_and_send_message(mess)
+
+    def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
+                       groupchat_nick_reply=False):
+        """ Sends a simple message to the specified user using a template.
+            :param template_parameters: the parameters for the template.
+            :param template_name: the template name you want to use.
+            :param user:
+                an identifier from build_identifier or from an incoming message
+            :param in_reply_to:
+                the original message the bot is answering from
+            :param message_type:
+                chat or groupchat
+            :param groupchat_nick_reply:
+                authorized the prefixing with the nick form the user
+        """
+        text = self.process_template(template_name, template_parameters)
+        return self.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+
+    def split_and_send_message(self, mess):
+        for part in split_string_after(mess.body, self.bot_config.MESSAGE_SIZE_LIMIT):
+            partial_message = mess.clone()
+            partial_message.body = part
+            self.send_message(partial_message)
+
     def send_message(self, mess):
+        """
+        This needs to be overridden by the backends with a super() call.
+        :param mess: the message to send.
+        :return: None
+        """
         for bot in self.get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:
@@ -122,12 +186,17 @@ class ErrBot(Backend, BotPluginManager):
                 log.exception("Crash in a callback_botmessage handler")
 
     def send_simple_reply(self, mess, text, private=False):
-        """Send a simple response to a message"""
-        self.send_message(self.build_reply(mess, text, private))
+        """Send a simple response to a given incoming message
+        :param private: if True will force a response in private.
+        :param text: the markdown text of the message.
+        :param mess: the message you are replying to.
+        """
+        self.split_and_send_message(self.build_reply(mess, text, private))
 
     def process_message(self, mess):
         """Check if the given message is a command for the bot and act on it.
         It return True for triggering the callback_messages on the .callback_messages on the plugins.
+        :param mess: the incoming message.
         """
         # Prepare to handle either private chats or group chats
         type_ = mess.type
@@ -158,7 +227,7 @@ class ErrBot(Backend, BotPluginManager):
         log.debug("*** type = %s" % type_)
         log.debug("*** text = %s" % text)
 
-        surpress_cmd_not_found = False
+        suppress_cmd_not_found = self.bot_config.SUPPRESS_CMD_NOT_FOUND
 
         prefixed = False  # Keeps track whether text was prefixed with a bot prefix
         only_check_re_command = False  # Becomes true if text is determed to not be a regular command
@@ -189,7 +258,7 @@ class ErrBot(Backend, BotPluginManager):
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
             # was said with trigger_message.
-            surpress_cmd_not_found = True
+            suppress_cmd_not_found = True
         elif not text.startswith(self.bot_config.BOT_PREFIX):
             only_check_re_command = True
         if text.startswith(self.bot_config.BOT_PREFIX):
@@ -231,7 +300,7 @@ class ErrBot(Backend, BotPluginManager):
         # Try to match one of the regex commands if the regular commands produced no match
         matched_on_re_command = False
         if not cmd:
-            if prefixed:
+            if prefixed or (type_ == "chat" and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
                 commands = self.re_commands
             else:
                 commands = {k: self.re_commands[k] for k in self.re_commands
@@ -257,7 +326,7 @@ class ErrBot(Backend, BotPluginManager):
             self._process_command(mess, cmd, args, match=None)
         elif not only_check_re_command:
             log.debug("Command not found")
-            if surpress_cmd_not_found:
+            if suppress_cmd_not_found:
                 log.debug("Surpressing command not found feedback")
             else:
                 reply = self.unknown_command(mess, command, args)
@@ -339,6 +408,15 @@ class ErrBot(Backend, BotPluginManager):
             self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
                                    template_name=f._err_command_template)
 
+    @staticmethod
+    def process_template(template_name, template_parameters):
+        # integrated templating
+        if template_name:
+            return tenv().get_template(template_name + '.md').render(**template_parameters)
+
+        # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
+        return str(template_parameters)
+
     def _execute_and_send(self, cmd, args, match, mess, template_name=None):
         """Execute a bot command and send output back to the caller
 
@@ -350,35 +428,24 @@ class ErrBot(Backend, BotPluginManager):
             the markdown output, if any
 
         """
-        def process_reply(reply_):
-            # integrated templating
-            if template_name:
-                reply_ = tenv().get_template(template_name + '.md').render(**reply_)
-
-            # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
-            return str(reply_)
-
-        def send_reply(reply_):
-            for part in split_string_after(reply_, self.bot_config.MESSAGE_SIZE_LIMIT):
-                self.send_simple_reply(mess, part, cmd in self.bot_config.DIVERT_TO_PRIVATE)
-
+        private = cmd in self.bot_config.DIVERT_TO_PRIVATE
         commands = self.re_commands if match else self.commands
         try:
             if inspect.isgeneratorfunction(commands[cmd]):
                 replies = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 for reply in replies:
                     if reply:
-                        send_reply(process_reply(reply))
+                        self.send_simple_reply(mess, self.process_template(template_name, reply), private)
             else:
                 reply = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 if reply:
-                    send_reply(process_reply(reply))
+                    self.send_simple_reply(mess, self.process_template(template_name, reply), private)
         except Exception as e:
             tb = traceback.format_exc()
             log.exception('An error happened while processing '
                           'a message ("%s"): %s"' %
                           (mess.body, tb))
-            send_reply(self.MSG_ERROR_OCCURRED + ':\n %s' % e)
+            self.send_simple_reply(mess, self.MSG_ERROR_OCCURRED + ':\n %s' % e, private)
 
     def unknown_command(self, _, cmd, args):
         """ Override the default unknown command behavior
@@ -427,7 +494,6 @@ class ErrBot(Backend, BotPluginManager):
                     self.commands = commands
 
     def inject_command_filters_from(self, instance_to_inject):
-        classname = instance_to_inject.__class__.__name__
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(method, '_err_command_filter', False):
                 log.debug('Adding command filter: %s' % name)
@@ -451,57 +517,6 @@ class ErrBot(Backend, BotPluginManager):
     def warn_admins(self, warning):
         for admin in self.bot_config.BOT_ADMINS:
             self.send(admin, warning)
-
-    def top_of_help_message(self):
-        """Returns a string that forms the top of the help message
-
-        Override this method in derived class if you
-        want to add additional help text at the
-        beginning of the help message.
-        """
-        return ""
-
-    def bottom_of_help_message(self):
-        """Returns a string that forms the bottom of the help message
-
-        Override this method in derived class if you
-        want to add additional help text at the end
-        of the help message.
-        """
-        return ""
-
-    def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
-        """ Sends a simple message to the specified user.
-            :param user:
-                an identifier from build_identifier or from an incoming message
-            :param in_reply_to:
-                the original message the bot is answering from
-            :param text:
-                the markdown text you want to send
-            :param message_type:
-                chat or groupchat
-            :param groupchat_nick_reply:
-                authorized the prefixing with the nick form the user
-        """
-        s = compat_str(user)
-        if s is not None:
-            user = self.build_identifier(s)
-
-        mess = self.build_message(text)
-        mess.to = user
-
-        if in_reply_to:
-            mess.type = in_reply_to.type
-            mess.frm = in_reply_to.to
-        else:
-            mess.type = message_type
-            mess.frm = self.bot_identifier
-
-        nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
-        if message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply:
-            self.prefix_groupchat_reply(mess, in_reply_to.frm)
-
-        self.send_message(mess)
 
     def callback_message(self, mess):
         """Processes for commands and dispatches the message to all the plugins."""

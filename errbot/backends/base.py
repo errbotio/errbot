@@ -62,6 +62,9 @@ class Message(object):
         self._delayed = delayed
         self._extras = extras or dict()
 
+    def clone(self):
+        return Message(self._body, self._type, self._from, self._to, self._delayed, self.extras)
+
     @property
     def to(self):
         """

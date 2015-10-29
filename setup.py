@@ -59,8 +59,11 @@ else:
 deps += ['mock',
          'nose',
          'pep8',
-         'pytest',
+         # Order matters here, pytest must come last. See also:
+         #   https://github.com/gbin/err/pull/496
+         #   https://bitbucket.org/pypa/setuptools/issues/196/tests_require-pytest-pytest-cov-breaks
          'pytest-xdist',
+         'pytest',
          'PyOpenSSL']
 
 if not ON_WINDOWS:
@@ -96,10 +99,11 @@ if __name__ == "__main__":
     setup(
         name="err",
         version=VERSION,
-        packages=find_packages(src_root, exclude=['tests']),
+        packages=find_packages(src_root, exclude=['tests', 'tools']),
         entry_points={
             'console_scripts': [
-                'errbot = errbot.err:main'
+                'errbot = errbot.err:main',
+                'err.py = errbot.err:main'
             ]
         },
 

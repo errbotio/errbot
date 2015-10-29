@@ -16,12 +16,11 @@ minute when your plugin gets activated:
    :emphasize-lines: 10
 
     from errbot import BotPlugin
-    import logging
 
     class PluginExample(BotPlugin):
         def my_callback(self):
-            logging.debug('I am called every minute')
+            self.log.debug('I am called every minute')
 
         def activate(self):
-            super(PluginExample, self).activate()
+            super().activate()
             self.start_poller(60, self.my_callback)

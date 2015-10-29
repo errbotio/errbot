@@ -10,7 +10,6 @@ from platform import system
 from functools import wraps
 from html import entities
 from itertools import starmap, repeat
-from xml.etree.ElementTree import tostring
 
 log = logging.getLogger(__name__)
 
@@ -21,6 +20,7 @@ ON_WINDOWS = system() == 'Windows'
 PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
 
 
+# noinspection PyPep8Naming
 class deprecated(object):
     """ deprecated decorator. emits a warning on a call on an old method and call the new method anyway """
     def __init__(self, new=None):
@@ -53,12 +53,6 @@ class deprecated(object):
         wrapper.__doc__ = old.__doc__
         wrapper.__dict__.update(old.__dict__)
         return wrapper
-
-
-@deprecated
-def get_sender_username(mess):
-    """Extract the sender's user name from a message"""
-    return mess.frm.person
 
 
 def format_timedelta(timedelta):
@@ -238,28 +232,37 @@ def utf8(key):
     return key
 
 
-def RateLimited(minInterval):
-    def decorate(func):
-        lastTimeCalled = [0.0]
+def rate_limited(min_interval):
+    """
+    decorator to rate limit a function.
 
-        def rateLimitedFunction(*args, **kargs):
-            elapsed = time.time() - lastTimeCalled[0]
+    :param min_interval: minimum interval allowed between 2 consecutive calls.
+    :return: the decorated function
+    """
+    def decorate(func):
+        last_time_called = [0.0]
+
+        def rate_limited_function(*args, **kargs):
+            elapsed = time.time() - last_time_called[0]
             log.debug('Elapsed %f since last call' % elapsed)
-            leftToWait = minInterval - elapsed
-            if leftToWait > 0:
-                log.debug('Wait %f due to rate limiting...' % leftToWait)
-                time.sleep(leftToWait)
+            left_to_wait = min_interval - elapsed
+            if left_to_wait > 0:
+                log.debug('Wait %f due to rate limiting...' % left_to_wait)
+                time.sleep(left_to_wait)
             ret = func(*args, **kargs)
-            lastTimeCalled[0] = time.time()
+            last_time_called[0] = time.time()
             return ret
 
-        return rateLimitedFunction
+        return rate_limited_function
 
     return decorate
 
 
 def split_string_after(str_, n):
-    """Yield chunks of length `n` from the given string"""
+    """Yield chunks of length `n` from the given string
+    :param n: length of the chunks.
+    :param str_: the given string.
+    """
     for start in range(0, len(str_), n):
         yield str_[start:start + n]
 
@@ -268,6 +271,9 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
     """Repeat calls to func with specified arguments.
 
     Example:  repeatfunc(random.random)
+    :param args: params to the function to call.
+    :param times: number of times to repeat.
+    :param func:  the function to repeatedly call.
     """
     if times is None:
         return starmap(func, repeat(args))
@@ -276,7 +282,7 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
 
 def find_roots(path, file_sig='*.plug'):
     """Collects all the paths from path recursively that contains files of type `file_sig`.
-       :param base:
+       :param path:
             a base path to walk from
        :param file_sig:
             the file pattern to look for
@@ -327,9 +333,11 @@ def get_class_that_defined_method(meth):
 
 def compat_str(s):
     """ Detect if s is a string and convert it to unicode if it is a byte or
-        py2 string """
+        py2 string
+        :param s: the string to ensure compatibility from."""
     if isinstance(s, str):
         return s
     elif isinstance(s, bytes):
-        return s.decode()
-    return None
+        return s.decode('utf-8')
+    else:
+        return str(s)

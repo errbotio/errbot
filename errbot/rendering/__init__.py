@@ -6,6 +6,8 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.extensions.attr_list import AttrListTreeprocessor
 
 ATTR_RE = re.compile(AttrListTreeprocessor.BASE_RE)
+MD_ESCAPE_RE = re.compile('|'.join(re.escape(c) for c in Markdown.ESCAPED_CHARS))
+
 # Here are few helpers to simplify the conversion from markdown to various
 # backend formats.
 
@@ -82,8 +84,8 @@ def xhtml():
     return Markdown(output_format='xhtml', extensions=[ExtraExtension()])
 
 
-def md_escape(text):
-    """ Call this if you want to be sure your text won't be interpreted as markdown """
-    text = text.replace('{', '\{')
-    text = text.replace('}', '\}')
-    return text
+def md_escape(txt):
+    """ Call this if you want to be sure your text won't be interpreted as markdown
+    :param txt: bare text to escape.
+    """
+    return MD_ESCAPE_RE.sub(lambda match: '\\' + match.group(0), txt)

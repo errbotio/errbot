@@ -57,7 +57,9 @@ class BackendManager(PluginManager):
             log.info('\t%10s  (%s)' % (plug.name, plug.path + '.py'))
 
     def instanciateElement(self, element):
-        """ Override the loading method to inject config """
+        """ Override the loading method to inject config
+        :param element: plugin class to load.
+        """
         log.debug("Class to load %s" % element.__name__)
         return element(self._config)
 

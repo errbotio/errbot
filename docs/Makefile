@@ -53,11 +53,11 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-gh-pages: clean apidoc dirhtml
+gh-pages: clean apidoc html
 	test -e $(PAGESDIR) && (cd $(PAGESDIR) && git pull) || git clone $(PAGESURL) $(PAGESDIR)
 	cd $(PAGESDIR) && git checkout gh-pages
-	rm -r $(PAGESDIR)/*
-	cp -r $(BUILDDIR)/dirhtml/* $(PAGESDIR)/
+	rm -rf $(PAGESDIR)/*
+	cp -r $(BUILDDIR)/html/* $(PAGESDIR)/
 	cp -r $(EXTRADIR)/* $(EXTRADIR)/.nojekyll $(PAGESDIR)/
 	cd $(PAGESDIR) && git add --all . && git commit --message "Sphinx autobuild"
 	@echo

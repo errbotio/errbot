@@ -116,16 +116,17 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def instanciateElement(self, element):
         """ Override the loading method to inject bot """
-        # check if we have a plugin not overridding __init__ incorrectly
-        args, argslist, kwargs, _ = inspect.getargspec(element.__init__)
+        if PY3:
+            # check if we have a plugin not overridding __init__ incorrectly
+            sig = inspect.signature(element.__init__)
 
-        log.debug('plugin __init__(args=%s, argslist=%s, kwargs=%s)' % (args, argslist, kwargs))
-        if len(args) == 1 and argslist is None and kwargs is None:
-            log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '
-                      'and forward them to super().__init__') % element.__name__)
-            obj = element()
-            obj._load_bot(self)  # sideload the bot
-            return obj
+            log.debug('plugin __init__(%s)' % sig.parameters)
+            if len(sig.parameters) == 1:
+                log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '
+                          'and forward them to super().__init__') % element.__name__)
+                obj = element()
+                obj._load_bot(self)  # sideload the bot
+                return obj
 
         return element(self)
 
@@ -365,8 +366,8 @@ class BotPluginManager(PluginManager, StoreMixin):
         for pluginInfo in self.getAllPlugins():
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
-                    errors += ('Notice: %s is blacklisted, use ' + self.prefix + 'load %s to unblacklist it\n') % (
-                        pluginInfo.name, pluginInfo.name)
+                    errors += ('Notice: %s is blacklisted, use %s plugin unblacklist %s to unblacklist it\n') % (
+                        self.prefix, pluginInfo.name, pluginInfo.name)
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     log.info('Activate plugin: %s' % pluginInfo.name)

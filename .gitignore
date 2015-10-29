@@ -19,6 +19,10 @@ nohup.out
 /data
 /config.py.*
 
+# tools
+/tools/Home.md
+/tools/token
+
 *.log
 *.crt
 

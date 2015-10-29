@@ -20,3 +20,4 @@ Plugins form the heart of Err. From the ground up, it is designed to be extended
   webhooks
   testing
   logging
+  backend_specifics

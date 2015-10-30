@@ -1,17 +1,41 @@
-Err - the pluggable chatbot
-===========================
+Errbot
+======
 
-*Err is a GPL3-licensed chatbot designed to be easily deployable, extensible
-and maintainable. Our goal is to make it easy for you to write your own plugins
-so you can make it do whatever you want.*
+*Errbot is a chatbot, a daemon that connects to your favorite chat service and bring
+your tools into the conversation.
+
+The goal of the project is to make it easy for you to write your own plugins so you 
+can make it do whatever you want: a deployment, retrieving some information online,
+trigger a tool via an API, troll a co-worker,...
+
+Errbot is being used in a lot of different contexts: chatops (tools for devops),
+online gaming chatrooms like EVE, video streaming chatrooms like livecoders.tv, 
+home security, etc.*
+
+Screenshots
+-----------
+
+.. raw:: html
+
+    <div class="screenshots">
+        <a href="_static/screenshots/help.png" class="fancybox" title="Showing output of the built-in help command">
+            <img src="_static/screenshots/thumb_help.png" width="155" height="150" alt="Showing output of the built-in help command" />
+        </a>
+        <a href="_static/screenshots/quota.png" class="fancybox" title="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts">
+            <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts" />
+        </a>
+        <a href="_static/screenshots/basecamp.png" class="fancybox" title="An older version of Err, running on Basecamp">
+            <img src="_static/screenshots/thumb_basecamp.png" width="181" height= "150" alt="An older version of Err, running on Basecamp" />
+        </a>
+    </div>
 
 Simple to build upon
 --------------------
 
-Extending Err and adding your own commands can be done by creating a plugin, which
-is merely a Python module containing a class derived from
-:class:`~errbot.botplugin.BotPlugin`, the docstrings will be automatically reused
-By the :ref:`\!help <builtin_help_function>` command::
+Extending Errbot and adding your own commands can be done by creating a plugin, which
+is simply a class derived from :class:`~errbot.botplugin.BotPlugin`. 
+The docstrings will be automatically reused by the :ref:`\!help <builtin_help_function>`
+command::
 
     from errbot import BotPlugin, botcmd
 
@@ -22,6 +46,8 @@ By the :ref:`\!help <builtin_help_function>` command::
         def hello(self, msg, args):
             """Say hello to the world."""
             return "Hello, world!"
+
+Once you said "!hello" in your chatroom, the bot will answer "Hello, world!".
 
 Batteries included
 ------------------
@@ -47,24 +73,6 @@ plugin available through this command only requires you to publish it as a publi
 available Git repository.
 
 You may also discover plugins from the community on our `plugin list`_ that we update from plugins found on github.
-
-
-Screenshots
------------
-
-.. raw:: html
-
-    <div class="screenshots">
-        <a href="_static/screenshots/help.png" class="fancybox" title="Showing output of the built-in help command">
-            <img src="_static/screenshots/thumb_help.png" width="155" height="150" alt="Showing output of the built-in help command" />
-        </a>
-        <a href="_static/screenshots/quota.png" class="fancybox" title="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts">
-            <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts" />
-        </a>
-        <a href="_static/screenshots/basecamp.png" class="fancybox" title="An older version of Err, running on Basecamp">
-            <img src="_static/screenshots/thumb_basecamp.png" width="181" height= "150" alt="An older version of Err, running on Basecamp" />
-        </a>
-    </div>
 
 
 Community

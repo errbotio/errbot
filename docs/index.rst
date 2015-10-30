@@ -9,7 +9,7 @@ can make it do whatever you want: a deployment, retrieving some information onli
 trigger a tool via an API, troll a co-worker,...
 
 Errbot is being used in a lot of different contexts: chatops (tools for devops),
-online gaming chatrooms like EVE, video streaming chatrooms like livecoders.tv, 
+online gaming chatrooms like EVE, video streaming chatrooms like `livecoding.tv <http://livecoding.tv>`_, 
 home security, etc.
 
 Screenshots

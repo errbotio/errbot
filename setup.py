@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 py_version = sys.version_info[:2]
 PY2 = py_version[0] == 2
 PY3 = not PY2
-PY35 = py_version[:2] >= (3, 5)
+PY35_OR_GREATER = py_version[:2] >= (3, 5)
 
 ON_WINDOWS = system() == 'Windows'
 
@@ -54,7 +54,7 @@ if PY2:
 else:
     deps += ['dnspython3', ]  # dnspython3 for SRV records
 
-if not PY35:
+if not PY35_OR_GREATER:
     deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
 
 

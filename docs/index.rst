@@ -1,7 +1,7 @@
 Err - the pluggable chatbot
 ===========================
 
-*Err is a GPL3-licensed chat-bot designed to be easily deployable, extensible
+*Err is a GPL3-licensed chatbot designed to be easily deployable, extensible
 and maintainable. Our goal is to make it easy for you to write your own plugins
 so you can make it do whatever you want.*
 
@@ -10,7 +10,8 @@ Simple to build upon
 
 Extending Err and adding your own commands can be done by creating a plugin, which
 is merely a Python module containing a class derived from
-:class:`~errbot.botplugin.BotPlugin`::
+:class:`~errbot.botplugin.BotPlugin`, the docstrings will be automatically reused
+By the :ref:`\!help <builtin_help_function>` command::
 
     from errbot import BotPlugin, botcmd
 
@@ -22,14 +23,10 @@ is merely a Python module containing a class derived from
             """Say hello to the world."""
             return "Hello, world!"
 
-By default, Err looks at your docstrings to automatically document commands for the
-built-in :ref:`\!help <builtin_help_function>` command. It will use the class' docstring as the description of
-your plugin and use the method docstrings as documentation for the bot commands.
-
 Batteries included
 ------------------
 
-We aim to give you all the tools you need to build the bot you want, without
+We aim to give you all the tools you need to build a customized bot safely, without
 having to worry about basic functionality. As such, Err comes with a wealth of
 features out of the box.
 
@@ -42,15 +39,14 @@ features out of the box.
 Sharing
 -------
 
-One of the principal goals of Err is to make it easy to not only create your own
-plugins with little effort, but to make it easy to share them with others as well.
+One of the main goals of Errbot is to make it easy to share your plugin with others as well.
 
 Err features a built-in *repositories command* (`!repos`) which can be used to
 install, uninstall and update plugins made available by the community. Making your
 plugin available through this command only requires you to publish it as a publicly
-available Git repository and letting us know the URL so we can add it.
+available Git repository.
 
-You may also discover plugins from the community on our `plugin list`_.
+You may also discover plugins from the community on our `plugin list`_ that we update from plugins found on github.
 
 
 Screenshots
@@ -74,10 +70,17 @@ Screenshots
 Community
 ---------
 
-Err has a `Google plus community`_, which is the best place to go for help and ask
-questions, discuss anything related to Err as well as promote your own creations.
+Err has a `Google plus community`_, which is the best place to discuss anything 
+related to Errbot as well as promote your own creations !
 This is also the place where you will find announcements of new versions and other
 news related to the project.
+
+You can also interact directly with the community online from the "Open Chat"
+button at the bottom of this page. Don't be shy and feel free to ask any question 
+there, we are more than happy to help you.
+
+If you think you hit a bug or the documentation is not clear enough,
+you can `open an issue`_ or even better, open a pull request.
 
 
 Getting involved
@@ -129,3 +132,4 @@ Err is free software, available under the GPL-3 license. Please refer to the
 .. _`Google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
 .. _`GitHub page`: http://github.com/gbin/err/
 .. _`plugin list`: https://github.com/gbin/err/wiki
+.. _`open an issue`: https://github.com/gbin/err/issues

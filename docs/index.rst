@@ -2,7 +2,7 @@ Errbot
 ======
 
 *Errbot is a chatbot, a daemon that connects to your favorite chat service and bring
-your tools into the conversation.
+your tools into the conversation.*
 
 The goal of the project is to make it easy for you to write your own plugins so you 
 can make it do whatever you want: a deployment, retrieving some information online,
@@ -10,7 +10,7 @@ trigger a tool via an API, troll a co-worker,...
 
 Errbot is being used in a lot of different contexts: chatops (tools for devops),
 online gaming chatrooms like EVE, video streaming chatrooms like livecoders.tv, 
-home security, etc.*
+home security, etc.
 
 Screenshots
 -----------

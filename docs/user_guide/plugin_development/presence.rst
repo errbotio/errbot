@@ -8,9 +8,6 @@ Presence describes the concept of a person's availability state, such as
 Callbacks for presence changes
 ------------------------------
 
-.. versionadded:: master
-    This is not yet available in a public release.
-
 Plugins may override :meth:`~errbot.botplugin.BotPlugin.callback_presence`
 in order to receive notifications of presence changes. You will receive
 a :class:`~errbot.backends.base.Presence` object for every presence change

@@ -109,10 +109,6 @@ like so:
             response = tenv().get_template('hello.md').render(name=args)
             self.send(msg.frm, response, message_type=msg.type)
 
-.. note::
-    In both cases a plain-text version of your template is automatically
-    generated for clients and back-ends that do not support Markdown.
-
 
 Trigger a callback with every message received
 ----------------------------------------------

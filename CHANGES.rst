@@ -17,6 +17,13 @@ other:
 - Removed some dead code
 - Removed deprecated bare_send and invite_to_room bot methods
 
+v3.1.1 (2015-10-26)
+-------------------
+
+bugs:
+
+- fix regression on !help (thx kromey)
+
 
 v3.1.0 (2015-10-22)
 -------------------

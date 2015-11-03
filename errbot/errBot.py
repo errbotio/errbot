@@ -506,15 +506,7 @@ class ErrBot(Backend, BotPluginManager):
                 # noinspection PyBroadException
                 try:
                     log.debug('Trigger callback_message on %s' % plugin.__class__.__name__)
-
-                    # backward compatibility from the time we needed conn
-                    if len(inspect.getargspec(plugin.callback_message).args) == 3:
-                        logging.warning('Deprecation: Plugin %s uses the old callback_message convention, '
-                                        'now the signature should be simply def callback_message(self, mess)'
-                                        % plugin.__class__.__name__)
-                        plugin.callback_message(None, mess)
-                    else:
-                        plugin.callback_message(mess)
+                    plugin.callback_message(mess)
                 except Exception:
                     log.exception("Crash in a callback_message handler")
 

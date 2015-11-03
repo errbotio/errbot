@@ -278,4 +278,8 @@ class Plugins(BotPlugin):
         if args not in self._bot.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
+
+        if args not in self._bot.get_all_active_plugin_names():
+            self._bot.activate_plugin(args)
+
         return self._bot.unblacklist_plugin(args)

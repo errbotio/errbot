@@ -260,10 +260,15 @@ class Plugins(BotPlugin):
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def plugin_blacklist(self, mess, args):
-        """Blacklist a plugin so that it will not be loaded automatically during bot startup"""
+        """Blacklist a plugin so that it will not be loaded automatically during bot startup.
+        If the plugin is currently activated, it will deactiveate it first."""
         if args not in self._bot.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
+
+        if args in self._bot.get_all_active_plugin_names():
+            self._bot.deactivate_plugin(args)
+
         return self._bot.blacklist_plugin(args)
 
     # noinspection PyUnusedLocal

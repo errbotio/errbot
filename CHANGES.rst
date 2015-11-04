@@ -12,6 +12,8 @@ bugs:
 - Fixed various bugs with the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
 - Fixed warn_admins() on Telegram
 - Slack ACLs now properly check against usernames starting with `@`
+- Slack identifiers can now be built from a bare `#channel` string (without a username part)
+- Slack identifiers can now be built from a `<#C12345>` or `<@username>` string (the webclient formats them like this automatically when chatting with the bot)
 
 other:
 

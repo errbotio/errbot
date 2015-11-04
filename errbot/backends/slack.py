@@ -79,11 +79,11 @@ class SlackAPIResponseError(RuntimeError):
 class SlackIdentifier(DeprecationBridgeIdentifier):
     # TODO(gbin): remove this deprecation warnings at one point.
 
-    def __init__(self, sc, userid, channelid=None):
-        if userid[0] not in ['U', 'B']:
+    def __init__(self, sc, userid=None, channelid=None):
+        if userid is not None and userid[0] not in ('U', 'B'):
             raise Exception('This is not a Slack user or bot id: %s' % userid)
 
-        if channelid and channelid[0] not in ('D', 'C', 'G'):
+        if channelid is not None and channelid[0] not in ('D', 'C', 'G'):
             raise Exception('This is not a valid Slack channelid: %s' % channelid)
 
         self._userid = userid
@@ -482,31 +482,58 @@ class SlackBackend(ErrBot):
         return parts
 
     def build_identifier(self, txtrep):
-        """ #channelname/username
-            or @username
+        """
+        Build an Identifier from the given string txtrep.
+
+        Supports strings with the following formats::
+
+            <#C12345>
+            <@U12345>
+            @user
+            #channel/user
+            #channel
         """
         log.debug("building an identifier from %s" % txtrep)
         txtrep = txtrep.strip()
         channelname = None
+        username = None
+        channelid = None
+        userid = None
 
-        if txtrep[0] == '@':
+        if txtrep[0] == "<" and txtrep[-1] == ">":
+            txtrep = txtrep[2:-1]
+            if txtrep.startswith('C') or txtrep.startswith('G'):
+                channelid = txtrep
+            else:
+                userid = txtrep
+        elif txtrep[0] == '@':
             username = txtrep[1:]
         elif txtrep[0] == '#':
             plainrep = txtrep[1:]
-            if '/' not in txtrep:
-                raise Exception("Unparseable slack identifier, " +
-                                "should be #channelname/username or @username : '%s'" % txtrep)
-            channelname, username = plainrep.split('/')
+            if '/' in txtrep:
+                channelname, username = plainrep.split('/', 1)
+            else:
+                channelname = plainrep
         else:
-            raise Exception("Unparseable slack identifier, " +
-                            "should be #channelname/username or @username : '%s'" % txtrep)
+            raise Exception(
+                "Unparseable slack identifier, should be of the format <#C12345>, <@U12345>, "
+                "@user, #channel/user or #channel. (Got '%s')" % txtrep)
 
-        userid = self.username_to_userid(username)
-        if channelname:
+        if userid is not None:
+            return SlackIdentifier(self.sc, userid, self.get_im_channel(userid))
+        if channelid is not None:
+            return SlackIdentifier(self.sc, None, channelid)
+        if username is not None:
+            userid = self.username_to_userid(username)
+            return SlackIdentifier(self.sc, userid, self.get_im_channel(userid))
+        if channelname is not None:
             channelid = self.channelname_to_channelid(channelname)
             return SlackMUCOccupant(self.sc, userid, channelid)
 
-        return SlackIdentifier(self.sc, userid, self.get_im_channel(userid))
+        raise Exception(
+            "You found a bug. I expected at least one of userid, channelid, username or channelname "
+            "to be resolved but none of them were. This shouldn't happen so, please file a bug."
+        )
 
     def build_reply(self, mess, text=None, private=False):
         msg_type = mess.type

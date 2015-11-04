@@ -144,9 +144,9 @@ connect to your chosen backend (XMPP, Hipchat, Slack ...) server.
 The first time you start Err, it is recommended to run it in foreground mode. This can
 be done with::
 
-    <path_to_install_directory>/errbot/err.py
+    errbot
 
-In many cases, just typing ``errbot`` will be enough as it is generally added to the ``$PATH``
+In many cases, just using ``errbot`` will be enough as it is generally added to the ``$PATH``
 automatically. Please pass -h or --help to ``errbot`` to get a list of supported parameters.
 Depending on your situation, you may need to pass --config or --backend when starting
 Err.
@@ -154,7 +154,7 @@ Err.
 If all that worked, you can now use the -d (or --daemon) parameter to run it in a
 detached mode::
 
-    <path_to_install_directory>/errbot/err.py --daemon
+    errbot --daemon
 
 **Hacking on Err's code directly**
 
@@ -165,6 +165,14 @@ is not possible to do so with Python 2.7. If you wish to develop or test with Er
 code under 2.7, you must run::
 
     python setup.py develop
+
+If you want to test your bot instance without havign to connect to a chat service, you can run it in text modeqith ::
+
+   errbot -T
+   
+Or in graphical mode (you'll need to install the dependency pyside for that):
+
+   errbot -G
 
 Interacting with the Bot
 ------------------------

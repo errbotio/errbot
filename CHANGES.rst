@@ -11,6 +11,7 @@ bugs:
 
 - Fixed various bugs with the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
 - Fixed warn_admins() on Telegram
+- Slack ACLs now properly check against usernames starting with `@`
 
 other:
 

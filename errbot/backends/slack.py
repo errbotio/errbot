@@ -130,7 +130,9 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
     # Override for ACLs
     @property
     def aclattr(self):
-        return self.username.split('@')[0]
+        # Note: Don't use str(self) here because that will return
+        # an incorrect format from SlackMUCOccupant.
+        return "@%s" % self.username
 
     @property
     def fullname(self):

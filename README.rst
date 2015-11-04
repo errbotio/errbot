@@ -170,7 +170,7 @@ If you want to test your bot instance without havign to connect to a chat servic
 
    errbot -T
    
-Or in graphical mode (you'll need to install the dependency pyside for that):
+Or in graphical mode (you'll need to install the dependency pyside for that)::
 
    errbot -G
 

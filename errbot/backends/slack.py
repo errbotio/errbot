@@ -496,6 +496,8 @@ class SlackBackend(ErrBot):
                                 "should be #channelname/username or @username : '%s'" % txtrep)
             channelname, username = plainrep.split('/')
         else:
+            username = txtrep
+        if not username or not len(username):
             raise Exception("Unparseable slack identifier, " +
                             "should be #channelname/username or @username : '%s'" % txtrep)
 

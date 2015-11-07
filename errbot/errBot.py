@@ -127,9 +127,10 @@ class ErrBot(Backend, BotPluginManager):
             :param groupchat_nick_reply:
                 authorized the prefixing with the nick form the user
         """
-        s = compat_str(user)
-        if s is not None:
-            user = self.build_identifier(s)
+        if not hasattr(user, 'person'):
+            s = compat_str(user)
+            if s is not None:
+                user = self.build_identifier(s)
 
         mess = self.build_message(text)
         mess.to = user

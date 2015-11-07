@@ -76,15 +76,18 @@ class SlackAPIResponseError(RuntimeError):
         super().__init__(*args, **kwargs)
 
 
+# TODO(gbin): remove this deprecation warnings at one point.
 class SlackIdentifier(DeprecationBridgeIdentifier):
-    # TODO(gbin): remove this deprecation warnings at one point.
+    """
+    This class describes a person on Slack's network.
+    """
 
     def __init__(self, sc, userid=None, channelid=None):
         if userid is not None and userid[0] not in ('U', 'B'):
-            raise Exception('This is not a Slack user or bot id: %s' % userid)
+            raise Exception('This is not a Slack user or bot id: %s (should start with U or B)' % userid)
 
         if channelid is not None and channelid[0] not in ('D', 'C', 'G'):
-            raise Exception('This is not a valid Slack channelid: %s' % channelid)
+            raise Exception('This is not a valid Slack channelid: %s (should start with D, C or G)' % channelid)
 
         self._userid = userid
         self._channelid = channelid

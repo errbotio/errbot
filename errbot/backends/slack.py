@@ -481,9 +481,10 @@ class SlackBackend(ErrBot):
 
         return parts
 
-    def build_identifier(self, txtrep):
+    @staticmethod
+    def extract_identifiers_from_string(text):
         """
-        Build an Identifier from the given string txtrep.
+        Parse a string for Slack user/channel IDs.
 
         Supports strings with the following formats::
 
@@ -492,32 +493,60 @@ class SlackBackend(ErrBot):
             @user
             #channel/user
             #channel
+
+        Returns the tuple (username, userid, channelname, channelid).
+        Some elements may come back as None.
         """
-        log.debug("building an identifier from %s" % txtrep)
-        txtrep = txtrep.strip()
+        exception_message = (
+            "Unparseable slack identifier, should be of the format `<#C12345>`, `<@U12345>`, "
+            "`@user`, `#channel/user` or `#channel`. (Got `%s`)"
+        )
+        text = text.strip()
+
+        if text == "":
+            raise ValueError(exception_message % "")
+
         channelname = None
         username = None
         channelid = None
         userid = None
 
-        if txtrep[0] == "<" and txtrep[-1] == ">":
-            txtrep = txtrep[2:-1]
-            if txtrep.startswith('C') or txtrep.startswith('G'):
-                channelid = txtrep
+        if text[0] == "<" and text[-1] == ">":
+            exception_message = (
+                "Unparseable slack ID, should start with U, B, C, G or D "
+                "(got `%s`)"
+            )
+            text = text[2:-1]
+            if text == "":
+                raise ValueError(exception_message % "")
+            if text[0] in ('U', 'B'):
+                userid = text
+            elif text[0] in ('C', 'G', 'D'):
+                channelid = text
             else:
-                userid = txtrep
-        elif txtrep[0] == '@':
-            username = txtrep[1:]
-        elif txtrep[0] == '#':
-            plainrep = txtrep[1:]
-            if '/' in txtrep:
+                raise ValueError(exception_message % text)
+        elif text[0] == '@':
+            username = text[1:]
+        elif text[0] == '#':
+            plainrep = text[1:]
+            if '/' in text:
                 channelname, username = plainrep.split('/', 1)
             else:
                 channelname = plainrep
         else:
-            raise Exception(
-                "Unparseable slack identifier, should be of the format <#C12345>, <@U12345>, "
-                "@user, #channel/user or #channel. (Got '%s')" % txtrep)
+            raise ValueError(exception_message % text)
+
+        return username, userid, channelname, channelid
+
+    def build_identifier(self, txtrep):
+        """
+        Build a :class:`SlackIdentifier` from the given string txtrep.
+
+        Supports strings with the formats accepted by
+        :func:`~extract_identifiers_from_string`.
+        """
+        log.debug("building an identifier from %s" % txtrep)
+        username, userid, channelname, channelid = self.extract_identifiers_from_string(txtrep)
 
         if userid is not None:
             return SlackIdentifier(self.sc, userid, self.get_im_channel(userid))

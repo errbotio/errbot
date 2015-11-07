@@ -161,7 +161,7 @@ class TestCommands(FullStackTest):
     def test_webserver_webhook_test(self):
         self.bot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', self.bot.pop_message())
-        self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
+        self.assertCommand("!webhook test /echo toto", 'Status code : 200')
 
     def test_activate_reload_and_deactivate(self):
         for command in ('activate', 'reload', 'deactivate'):

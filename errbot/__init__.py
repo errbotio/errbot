@@ -6,7 +6,7 @@ import logging
 import re
 import shlex
 import inspect
-from typing import Callable, Any
+from typing import Callable, Any, Tuple
 
 from .core_plugins.wsview import bottle_app, WebView
 from errbot.backends.base import Message
@@ -330,7 +330,19 @@ def arg_botcmd(*args,
     return decorator
 
 
-def webhook(*args, **kwargs):
+def _tag_webhook(func, uri_rule, methods, form_param, raw):
+    log.info("webhooks:  Flag to bind %s to %s" % (uri_rule, func.__name__))
+    func._err_webhook_uri_rule = uri_rule
+    func._err_webhook_methods = methods
+    func._err_webhook_form_param = form_param
+    func._err_webhook_raw = raw
+    return func
+
+
+def webhook(*args,
+            methods: Tuple[str]=('POST', 'GET'),
+            form_param: str=None,
+            raw: bool=False) -> Callable[[BotPlugin, Any], str]:
     """
     Decorator for webhooks
 
@@ -358,16 +370,17 @@ def webhook(*args, **kwargs):
             pass
     """
 
-    def decorate(func, uri_rule, methods=('POST', 'GET'), form_param=None, raw=False):
-        log.info("webhooks:  Flag to bind %s to %s" % (uri_rule, func.__name__))
-        func._err_webhook_uri_rule = uri_rule
-        func._err_webhook_methods = methods
-        func._err_webhook_form_param = form_param
-        func._err_webhook_raw = raw
-        return func
-    if isinstance(args[0], (str, bytes)):
-        return lambda method: decorate(method, compat_str(args[0]), **kwargs)
-    return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)
+    if isinstance(args[0], (str, bytes)):  # first param is uri_rule.
+        return lambda func: _tag_webhook(func,
+                                         compat_str(args[0]),
+                                         methods=methods,
+                                         form_param=form_param,
+                                         raw=raw)
+    return _tag_webhook(args[0],
+                        '/' + args[0].__name__,
+                        methods=methods,
+                        form_param=form_param,
+                        raw=raw)
 
 
 def cmdfilter(*args, **kwargs):

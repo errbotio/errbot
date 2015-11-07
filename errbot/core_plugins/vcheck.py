@@ -40,7 +40,7 @@ class VersionChecker(BotPlugin):
                 self.log.debug('A new version %s has been found, notify the admins !' % current_version)
                 self.warn_admins(
                     'Version {0} of err is available. http://pypi.python.org/pypi/err/{0}. You can disable this check '
-                    'by doing !unload VersionChecker followed by !blacklist VersionChecker'.format(current_version_txt)
+                    'by doing !plugin blacklist VersionChecker'.format(current_version_txt)
                 )
         except (HTTPError, URLError):
             self.log.info('Could not establish connection to retrieve latest version.')

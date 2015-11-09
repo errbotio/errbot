@@ -51,6 +51,18 @@ class TestWebhooks(FullStackTest):
         self.bot.push_message("!webstatus")
         assert "/echo" in self.bot.pop_message()
 
+    def test_trailing_no_slash_ok(self):
+        assert requests.post(
+            'http://localhost:{}/echo'.format(WEBSERVER_PORT),
+            JSONOBJECT
+        ).text == repr(json.loads(JSONOBJECT))
+
+    def test_trailing_slash_also_ok(self):
+        assert requests.post(
+            'http://localhost:{}/echo/'.format(WEBSERVER_PORT),
+            JSONOBJECT
+        ).text == repr(json.loads(JSONOBJECT))
+
     def test_json_is_automatically_decoded(self):
         assert requests.post(
             'http://localhost:{}/webhook1'.format(WEBSERVER_PORT),

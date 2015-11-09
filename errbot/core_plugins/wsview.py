@@ -12,7 +12,17 @@ from bottle import jinja2_template as template
 log = logging.getLogger(__name__)
 
 
+def strip_path():
+    # strip the trailing slashes on incoming requests
+    request.environ['PATH_INFO'] = request.environ['PATH_INFO'].rstrip('/')
+
+
 class DynamicBottle(Bottle):
+
+    def __init__(self, catchall=True, autojson=True):
+        super().__init__(catchall, autojson)
+        self.add_hook('before_request', strip_path)
+
     def del_route(self, route_name):
         deleted_route = None
         for route_ in self.routes[:]:

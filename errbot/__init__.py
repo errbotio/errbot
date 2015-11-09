@@ -372,12 +372,12 @@ def webhook(*args,
 
     if isinstance(args[0], (str, bytes)):  # first param is uri_rule.
         return lambda func: _tag_webhook(func,
-                                         compat_str(args[0]),
+                                         compat_str(args[0]).rstrip('/'),  # trailing / is also be stripped on incoming.
                                          methods=methods,
                                          form_param=form_param,
                                          raw=raw)
     return _tag_webhook(args[0],
-                        '/' + args[0].__name__,
+                        r'/' + args[0].__name__,
                         methods=methods,
                         form_param=form_param,
                         raw=raw)

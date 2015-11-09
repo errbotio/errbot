@@ -3,8 +3,21 @@ import logging
 import random
 import time
 from typing import Any, Mapping, BinaryIO, List, Union, Sequence
-from abc import ABC, abstractproperty
+from abc import abstractproperty
 from collections import deque, defaultdict
+
+try:
+    from abc import ABC
+except ImportError:
+    #  3.3 compatibility
+    from abc import ABCMeta
+
+    class ABC(metaclass=ABCMeta):
+        """Helper class that provides a standard way to create an ABC using
+        inheritance.
+        """
+        pass
+
 
 from errbot.utils import compat_str
 

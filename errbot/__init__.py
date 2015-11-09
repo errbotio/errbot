@@ -119,26 +119,17 @@ def botcmd(*args,
     be a string or list (depending on your value of `split_args_with`) of parameters that
     were given to the command by the user.
     """
-
-    if args:
-        return _tag_botcmd(args[0],
+    def decorator(func):
+        return _tag_botcmd(func,
                            _re=False,
                            _arg=False,
                            hidden=hidden,
-                           name=name or args[0].__name__,
+                           name=name or func.__name__,
                            split_args_with=split_args_with,
                            admin_only=admin_only,
                            historize=historize,
                            template=template)
-    return lambda func: _tag_botcmd(func,
-                                    _re=False,
-                                    _arg=False,
-                                    hidden=hidden,
-                                    name=name or func.__name__,
-                                    split_args_with=split_args_with,
-                                    admin_only=admin_only,
-                                    historize=historize,
-                                    template=template)
+    return decorator(args[0]) if args else decorator
 
 
 def re_botcmd(*args,
@@ -184,12 +175,12 @@ def re_botcmd(*args,
     be a :class:`re.MatchObject` containing the result of applying the regular expression on the
     user's input.
     """
-    if args:
-        return _tag_botcmd(args[0],
+    def decorator(func):
+        return _tag_botcmd(func,
                            _re=True,
                            _arg=False,
                            hidden=hidden,
-                           name=name or args[0].__name__,
+                           name=name or func.__name__,
                            admin_only=admin_only,
                            historize=historize,
                            template=template,
@@ -197,18 +188,7 @@ def re_botcmd(*args,
                            flags=flags,
                            matchall=matchall,
                            prefixed=prefixed)
-    return lambda func: _tag_botcmd(func,
-                                    _re=True,
-                                    _arg=False,
-                                    hidden=hidden,
-                                    name=name or func.__name__,
-                                    admin_only=admin_only,
-                                    historize=historize,
-                                    template=template,
-                                    pattern=pattern,
-                                    flags=flags,
-                                    matchall=matchall,
-                                    prefixed=prefixed)
+    return decorator(args[0]) if args else decorator
 
 
 def arg_botcmd(*args,

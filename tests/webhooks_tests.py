@@ -49,50 +49,62 @@ class TestWebhooks(FullStackTest):
 
     def test_webserver_plugin_ok(self):
         self.bot.push_message("!webstatus")
-        assert "/echo/" in self.bot.pop_message()
+        assert "/echo" in self.bot.pop_message()
+
+    def test_trailing_no_slash_ok(self):
+        assert requests.post(
+            'http://localhost:{}/echo'.format(WEBSERVER_PORT),
+            JSONOBJECT
+        ).text == repr(json.loads(JSONOBJECT))
+
+    def test_trailing_slash_also_ok(self):
+        assert requests.post(
+            'http://localhost:{}/echo/'.format(WEBSERVER_PORT),
+            JSONOBJECT
+        ).text == repr(json.loads(JSONOBJECT))
 
     def test_json_is_automatically_decoded(self):
         assert requests.post(
-            'http://localhost:{}/webhook1/'.format(WEBSERVER_PORT),
+            'http://localhost:{}/webhook1'.format(WEBSERVER_PORT),
             JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
 
     def test_json_on_custom_url_is_automatically_decoded(self):
         assert requests.post(
-            'http://localhost:{}/custom_webhook/'.format(WEBSERVER_PORT),
+            'http://localhost:{}/custom_webhook'.format(WEBSERVER_PORT),
             JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
 
     def test_post_form_data_on_webhook_without_form_param_is_automatically_decoded(self):
         assert requests.post(
-            'http://localhost:{}/webhook1/'.format(WEBSERVER_PORT),
+            'http://localhost:{}/webhook1'.format(WEBSERVER_PORT),
             data=JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
 
     def test_post_form_data_on_webhook_with_custom_url_and_without_form_param_is_automatically_decoded(self):
         assert requests.post(
-            'http://localhost:{}/custom_webhook/'.format(WEBSERVER_PORT),
+            'http://localhost:{}/custom_webhook'.format(WEBSERVER_PORT),
             data=JSONOBJECT
         ).text == repr(json.loads(JSONOBJECT))
 
     def test_webhooks_with_form_parameter_decode_json_automatically(self):
         form = {'form': JSONOBJECT}
         assert requests.post(
-            'http://localhost:{}/form/'.format(WEBSERVER_PORT),
+            'http://localhost:{}/form'.format(WEBSERVER_PORT),
             data=form
         ).text == repr(json.loads(JSONOBJECT))
 
     def test_webhooks_with_form_parameter_on_custom_url_decode_json_automatically(self):
         form = {'form': JSONOBJECT}
         assert requests.post(
-            'http://localhost:{}/custom_form/'.format(WEBSERVER_PORT),
+            'http://localhost:{}/custom_form'.format(WEBSERVER_PORT),
             data=form
         ).text, repr(json.loads(JSONOBJECT))
 
     def test_webhooks_with_raw_request(self):
         form = {'form': JSONOBJECT}
         assert requests.post(
-            'http://localhost:{}/raw/'.format(WEBSERVER_PORT),
+            'http://localhost:{}/raw'.format(WEBSERVER_PORT),
             data=form
         ).text == "<class 'bottle.LocalRequest'>"
 
@@ -129,16 +141,16 @@ class TestWebhooks(FullStackTest):
             sleep(0.1)
 
         assert requests.post(
-            'https://localhost:{}/webhook1/'.format(WEBSERVER_SSL_PORT),
+            'https://localhost:{}/webhook1'.format(WEBSERVER_SSL_PORT),
             JSONOBJECT,
             verify=False
         ).text == repr(json.loads(JSONOBJECT))
 
     def test_custom_headers_and_status_codes(self):
         assert requests.post(
-            'http://localhost:{}/webhook6/'.format(WEBSERVER_PORT)
+            'http://localhost:{}/webhook6'.format(WEBSERVER_PORT)
         ).headers['X-Powered-By'] == "Err"
 
         assert requests.post(
-            'http://localhost:{}/webhook7/'.format(WEBSERVER_PORT)
+            'http://localhost:{}/webhook7'.format(WEBSERVER_PORT)
         ).status_code == 403

@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from errbot.backends.base import RoomError
+from errbot.backends.base import RoomError, Identifier, MUCIdentifier
 from errbot.errBot import ErrBot
 from errbot.rendering import text
 
@@ -52,8 +52,7 @@ class TelegramBotFilter(object):
             return 0
 
 
-class TelegramIdentifier(object):
-
+class TelegramIdentifier(Identifier):
     def __init__(self, id, first_name=None, last_name=None, username=None, title=None):
         self._id = id
         self._first_name = first_name
@@ -100,9 +99,10 @@ class TelegramIdentifier(object):
 
     person = id
     nick = username
+    aclattr = id
 
 
-class TelegramMUCOccupant(TelegramIdentifier):
+class TelegramMUCOccupant(MUCIdentifier, TelegramIdentifier):
     """
     This class represents a person inside a MUC.
     """

@@ -10,8 +10,8 @@ from pygments.lexers import get_lexer_by_name
 
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
-from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
+from errbot.backends.test import TestIdentifier
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 
@@ -109,7 +109,7 @@ class TextBackend(ErrBot):
         print('\n\n')
 
     def build_identifier(self, text_representation):
-        return SimpleIdentifier(text_representation)
+        return TestIdentifier(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)

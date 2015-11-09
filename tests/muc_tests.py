@@ -1,7 +1,6 @@
 import os
 import errbot.backends.base
-from errbot.backends import SimpleMUCOccupant
-from errbot.backends.test import FullStackTest
+from errbot.backends.test import FullStackTest, TestMUCOccupant
 import logging
 import unittest
 log = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ class TestMUC(FullStackTest):
     def test_occupants(self):  # noqa
         room = self.bot.rooms()[0]
         assert len(room.occupants) == 1
-        assert SimpleMUCOccupant('err', 'testroom') in room.occupants
+        assert TestMUCOccupant('err', 'testroom') in room.occupants
 
     def test_topic(self):  # noqa
         room = self.bot.rooms()[0]

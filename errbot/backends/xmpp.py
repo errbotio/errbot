@@ -4,7 +4,7 @@ import warnings
 from threading import Thread
 from time import sleep
 
-from errbot.backends.base import Message, MUCRoom, Presence, RoomNotJoinedError
+from errbot.backends.base import Message, MUCRoom, Presence, RoomNotJoinedError, Identifier, MUCIdentifier
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from errbot.rendering import text, xhtml
@@ -34,7 +34,7 @@ except ImportError as _:
     sys.exit(-1)
 
 
-class XMPPIdentifier(object):
+class XMPPIdentifier(Identifier):
     """
     This class is the parent and the basic contract of all the ways the backends
     are identifying a person on their system.
@@ -77,15 +77,7 @@ class XMPPIdentifier(object):
     def client(self):
         return self._resource
 
-    @property
-    def stripped(self):
-        log.warning('stripped is deprecated, use .person on identifiers instead')
-        return self.person
-
-    @deprecated
-    def bare_match(self, other):
-        """ checks if 2 identifiers are equal, ignoring the resource """
-        return other.stripped == self.stripped
+    aclattr = person
 
     def __str__(self):
         answer = self._node + '@' + self._domain  # don't call .person: see below
@@ -293,7 +285,7 @@ class XMPPMUCRoom(MUCRoom):
                       .format(room, affiliation))
 
 
-class XMPPMUCOccupant(XMPPIdentifier):
+class XMPPMUCOccupant(MUCIdentifier, XMPPIdentifier):
     @property
     def person(self):
         return str(self)  # this is the full identifier.

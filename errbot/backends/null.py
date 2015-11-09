@@ -1,7 +1,7 @@
 import logging
 from time import sleep
 
-from errbot.backends import SimpleIdentifier
+from errbot.backends.test import TestIdentifier
 from errbot.errBot import ErrBot
 
 
@@ -48,7 +48,7 @@ class NullBackend(ErrBot):
         return self.conn
 
     def build_identifier(self, strrep):
-        return SimpleIdentifier(strrep)
+        return TestIdentifier(strrep)
 
     def join_room(self, room, username=None, password=None):
         pass  # just ignore that

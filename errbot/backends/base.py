@@ -2,367 +2,68 @@ import io
 import logging
 import random
 import time
-from typing import Any, Mapping, BinaryIO, List
-import warnings
+from typing import Any, Mapping, BinaryIO, List, Union, Sequence
+from abc import ABC, abstractproperty
 from collections import deque, defaultdict
 
-from errbot.utils import deprecated, compat_str
-
+from errbot.utils import compat_str
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.base')
 
 
-class RoomError(Exception):
-    """General exception class for MUC-related errors"""
-
-
-class RoomNotJoinedError(RoomError):
-    """Exception raised when performing MUC operations
-    that require the bot to have joined the room"""
-
-
-class RoomDoesNotExistError(RoomError):
-    """Exception that is raised when performing an operation
-    on a room that doesn't exist"""
-
-
-class UserDoesNotExistError(Exception):
-    """Exception that is raised when performing an operation
-    on a user that doesn't exist"""
-
-
-class Message(object):
-    """
-    A chat message.
-
-    This class represents chat messages that are sent or received by
-    the bot. It is modeled after XMPP messages so not all methods
-    make sense in the context of other back-ends.
+class Identifier(ABC):
+    """This is just use for type hinting representing the Identifier contract,
+    NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
+    To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
+     to make an identifier from a String.
     """
 
-    def __init__(self,
-                 body: str='',
-                 type_: str='chat',
-                 frm: Any=None,
-                 to: Any=None,
-                 delayed: bool=False,
-                 extras: Mapping=None):
+    @abstractproperty
+    def person(self) -> str:
         """
-        :param body:
-            The plaintext body of the message.
-        :param type_:
-            The type of message (generally one of either 'chat' or 'groupchat').
-        :param extras:
-            Extra data attached by a backend
+        :return: a backend specific unique identifier representing the person you are talking to.
         """
-        self._body = compat_str(body)
-        self._type = type_
-        self._from = frm
-        self._to = to
-        self._delayed = delayed
-        self._extras = extras or dict()
+        pass
 
-    def clone(self):
-        return Message(self._body, self._type, self._from, self._to, self._delayed, self.extras)
-
-    @property
-    def to(self) -> Any:
+    @abstractproperty
+    def client(self) -> str:
         """
-        Get the recipient of the message.
-
-        :returns:
-            A backend specific identifier representing the recipient.
+        :return: a backend specific unique identifier representing the device or client the person is using to talk.
         """
-        return self._to
+        pass
 
-    @to.setter
-    def to(self, to: Any):
-        """
-        Set the recipient of the message.
-
-        :param to:
-            An identifier from for example build_identifier().
-        """
-        if not hasattr(to, 'person'):
-            raise Exception('`to` not an Identifier as it misses ''the "person" property. `to` : %s (%s)'
-                            % (to, to.__class__))
-        self._to = to
-
-    @property
-    def type(self) -> str:
-        """
-        Get the type of the message.
-
-        :returns:
-            The message type as a string (generally one of either
-            'chat' or 'groupchat')
-        """
-        return self._type
-
-    @type.setter
-    def type(self, type_: str):
-        """
-        Set the type of the message.
-
-        :param type_:
-            The message type (generally one of either 'chat'
-            or 'groupchat').
-        """
-        self._type = type_
-
-    @property
-    def frm(self) -> Any:
-        """
-        Get the sender of the message.
-
-        :returns:
-            An :class:`~errbot.backends.base.Identifier` identifying
-            the sender.
-        """
-        return self._from
-
-    @frm.setter
-    def frm(self, from_: Any):
-        """
-        Set the sender of the message.
-
-        :param from_:
-            An identifier from build_identifier.
-        """
-        if not hasattr(from_, 'person'):
-            raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)'
-                            % (from_, from_.__class__))
-        self._from = from_
-
-    @property
-    def body(self) -> str:
-        """
-        Get the plaintext body of the message.
-
-        :returns:
-            The body as a string.
-        """
-        return self._body
-
-    @body.setter
-    def body(self, body: str):
-        self._body = body
-
-    @property
-    def delayed(self) -> bool:
-        return self._delayed
-
-    @delayed.setter
-    def delayed(self, delayed: bool):
-        self._delayed = delayed
-
-    @property
-    def extras(self) -> Mapping:
-        return self._extras
-
-    def __str__(self):
-        return self._body
-
-    # deprecated stuff ...
-
-
-ONLINE = 'online'
-OFFLINE = 'offline'
-AWAY = 'away'
-DND = 'dnd'
-
-
-class Presence(object):
-    """
-       This class represents a presence change for a user or a user in a chatroom.
-
-       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_presence`
-       when the presence of people changes.
-    """
-
-    def __init__(self, nick: str=None, identifier: Any=None, status: str=None, chatroom: Any=None, message: str=None):
-        if nick is None and identifier is None:
-            raise ValueError('Presence: nick and identifiers are both None')
-        if nick is None and chatroom is not None:
-            raise ValueError('Presence: nick is None when chatroom is not')
-        if status is None and message is None:
-            raise ValueError('Presence: at least a new status or a new status message mustbe present')
-        self._nick = nick
-        self._identifier = identifier
-        self._chatroom = chatroom
-        self._status = status
-        self._message = message
-
-    @property
-    def chatroom(self) -> Any:
-        """ Returns the identifier pointing the room in which the event occurred.
-            If it returns None, the event occurred outside of a chatroom.
-        """
-        return self._chatroom
-
-    @property
+    @abstractproperty
     def nick(self) -> str:
-        """ Returns a plain string of the presence nick.
-            (In some chatroom implementations, you cannot know the real identifier
-            of a person in it).
-            Can return None but then identifier won't be None.
         """
-        return self._nick
-
-    @property
-    def identifier(self) -> Any:
-        """ Returns the identifier of the event.
-            Can be None *only* if chatroom is not None
+        :return: a backend specific nick returning the nickname of this person if available.
         """
-        return self._identifier
+        pass
 
-    @property
-    def status(self) -> str:
-        """ Returns the status of the presence change.
-            It can be one of the constants ONLINE, OFFLINE, AWAY, DND, but
-            can also be custom statuses depending on backends.
-            It can be None if it is just an update of the status message (see get_message)
+    @abstractproperty
+    def aclattr(self) -> str:
         """
-        return self._status
-
-    @property
-    def message(self) -> str:
-        """ Returns a human readable message associated with the status if any.
-            like : "BRB, washing the dishes"
-            It can be None if it is only a general status update (see get_status)
+        :return: returns the unique identifier that will be used for ACL matches.
         """
-        return self._message
+        pass
 
-    def __str__(self):
-        response = ''
-        if self._nick:
-            response += 'Nick:%s ' % self._nick
-        if self._identifier:
-            response += 'Idd:%s ' % self._identifier
-        if self._status:
-            response += 'Status:%s ' % self._status
-        if self._chatroom:
-            response += 'Room:%s ' % self._chatroom
-        if self._message:
-            response += 'Msg:%s ' % self._message
-        return response
-
-    def __unicode__(self):
-        return str(self.__str__())
-
-STREAM_WAITING_TO_START = 'pending'
-STREAM_TRANSFER_IN_PROGRESS = 'in progress'
-STREAM_SUCCESSFULLY_TRANSFERED = 'success'
-STREAM_PAUSED = 'paused'
-STREAM_ERROR = 'error'
-STREAM_REJECTED = 'rejected'
-
-DEFAULT_REASON = 'unknown'
+    @abstractproperty
+    def fullname(self) -> str:
+        """
+        Some backends have the full name of a user.
+        :return: the fullname of this user if available.
+        """
+        pass
 
 
-class Stream(io.BufferedReader):
-    """
-       This class represents a stream request.
-
-       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_stream`
-       when an incoming stream is requested.
-    """
-
-    def __init__(self, identifier: Any, fsource: BinaryIO, name: str=None, size: int=None, stream_type: str=None):
-        super(Stream, self).__init__(fsource)
-        self._identifier = identifier
-        self._name = name
-        self._size = size
-        self._stream_type = stream_type
-        self._status = STREAM_WAITING_TO_START
-        self._reason = DEFAULT_REASON
-        self._transfered = 0
-
-    @property
-    def identifier(self) -> Any:
+class MUCIdentifier(Identifier):
+    @abstractproperty
+    def room(self) -> Any:  # this is MUCRoom defined below
         """
-           The identity the stream is coming from if it is an incoming request
-           or to if it is an outgoing request.
+        Some backends have the full name of a user.
+        :return: the fullname of this user if available.
         """
-        return self._identifier
-
-    @property
-    def name(self) -> str:
-        """
-            The name of the stream/file if it has one or None otherwise.
-            !! Be carefull of injections if you are using this name directly as a filename.
-        """
-        return self._name
-
-    @property
-    def size(self) -> int:
-        """
-            The expected size in bytes of the stream if it is known or None.
-        """
-        return self._size
-
-    @property
-    def transfered(self) -> int:
-        """
-            The currently transfered size.
-        """
-        return self._transfered
-
-    @property
-    def stream_type(self) -> str:
-        """
-            The mimetype of the stream if it is known or None.
-        """
-        return self._stream_type
-
-    @property
-    def status(self) -> str:
-        """
-            The status for this stream.
-        """
-        return self._status
-
-    def accept(self) -> None:
-        """
-            Signal that the stream has been accepted.
-        """
-        if self._status != STREAM_WAITING_TO_START:
-            raise ValueError("Invalid state, the stream is not pending.")
-        self._status = STREAM_TRANSFER_IN_PROGRESS
-
-    def reject(self) -> None:
-        """
-            Signal that the stream has been rejected.
-        """
-        if self._status != STREAM_WAITING_TO_START:
-            raise ValueError("Invalid state, the stream is not pending.")
-        self._status = STREAM_REJECTED
-
-    def error(self, reason=DEFAULT_REASON) -> None:
-        """
-            An internal plugin error prevented the transfer.
-        """
-        self._status = STREAM_ERROR
-        self._reason = reason
-
-    def success(self) -> None:
-        """
-            The streaming finished normally.
-        """
-        if self._status != STREAM_TRANSFER_IN_PROGRESS:
-            raise ValueError("Invalid state, the stream is not in progress.")
-        self._status = STREAM_SUCCESSFULLY_TRANSFERED
-
-    def clone(self, new_fsource: BinaryIO) -> Any:  # this is obviously a Stream but the compiler doesn't like it.
-        """
-            Creates a clone and with an alternative stream
-        """
-        return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
-
-    def ack_data(self, length: int) -> None:
-        """ Acknowledge data has been transfered. """
-        self._transfered = length
+        pass
 
 
 class MUCRoom(object):
@@ -454,7 +155,7 @@ class MUCRoom(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     @property
-    def occupants(self) -> List[Any]:
+    def occupants(self) -> List[MUCIdentifier]:
         """
         The room's occupants.
 
@@ -473,6 +174,368 @@ class MUCRoom(object):
             One or more identifiers to invite into the room.
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
+
+
+class RoomError(Exception):
+    """General exception class for MUC-related errors"""
+
+
+class RoomNotJoinedError(RoomError):
+    """Exception raised when performing MUC operations
+    that require the bot to have joined the room"""
+
+
+class RoomDoesNotExistError(RoomError):
+    """Exception that is raised when performing an operation
+    on a room that doesn't exist"""
+
+
+class UserDoesNotExistError(Exception):
+    """Exception that is raised when performing an operation
+    on a user that doesn't exist"""
+
+
+class Message(object):
+    """
+    A chat message.
+
+    This class represents chat messages that are sent or received by
+    the bot. It is modeled after XMPP messages so not all methods
+    make sense in the context of other back-ends.
+    """
+
+    def __init__(self,
+                 body: str='',
+                 type_: str='chat',
+                 frm: Identifier=None,
+                 to: Identifier=None,
+                 delayed: bool=False,
+                 extras: Mapping=None):
+        """
+        :param body:
+            The plaintext body of the message.
+        :param type_:
+            The type of message (generally one of either 'chat' or 'groupchat').
+        :param extras:
+            Extra data attached by a backend
+        """
+        self._body = compat_str(body)
+        self._type = type_
+        self._from = frm
+        self._to = to
+        self._delayed = delayed
+        self._extras = extras or dict()
+
+    def clone(self):
+        return Message(self._body, self._type, self._from, self._to, self._delayed, self.extras)
+
+    @property
+    def to(self) -> Identifier:
+        """
+        Get the recipient of the message.
+
+        :returns:
+            A backend specific identifier representing the recipient.
+        """
+        return self._to
+
+    @to.setter
+    def to(self, to: Identifier):
+        """
+        Set the recipient of the message.
+
+        :param to:
+            An identifier from for example build_identifier().
+        """
+        if not hasattr(to, 'person'):
+            raise Exception('`to` not an Identifier as it misses ''the "person" property. `to` : %s (%s)'
+                            % (to, to.__class__))
+        self._to = to
+
+    @property
+    def type(self) -> str:
+        """
+        Get the type of the message.
+
+        :returns:
+            The message type as a string (generally one of either
+            'chat' or 'groupchat')
+        """
+        return self._type
+
+    @type.setter
+    def type(self, type_: str):
+        """
+        Set the type of the message.
+
+        :param type_:
+            The message type (generally one of either 'chat'
+            or 'groupchat').
+        """
+        self._type = type_
+
+    @property
+    def frm(self) -> Identifier:
+        """
+        Get the sender of the message.
+
+        :returns:
+            An :class:`~errbot.backends.base.Identifier` identifying
+            the sender.
+        """
+        return self._from
+
+    @frm.setter
+    def frm(self, from_: Identifier):
+        """
+        Set the sender of the message.
+
+        :param from_:
+            An identifier from build_identifier.
+        """
+        if not hasattr(from_, 'person'):
+            raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)'
+                            % (from_, from_.__class__))
+        self._from = from_
+
+    @property
+    def body(self) -> str:
+        """
+        Get the plaintext body of the message.
+
+        :returns:
+            The body as a string.
+        """
+        return self._body
+
+    @body.setter
+    def body(self, body: str):
+        self._body = body
+
+    @property
+    def delayed(self) -> bool:
+        return self._delayed
+
+    @delayed.setter
+    def delayed(self, delayed: bool):
+        self._delayed = delayed
+
+    @property
+    def extras(self) -> Mapping:
+        return self._extras
+
+    def __str__(self):
+        return self._body
+
+    # deprecated stuff ...
+
+
+ONLINE = 'online'
+OFFLINE = 'offline'
+AWAY = 'away'
+DND = 'dnd'
+
+
+class Presence(object):
+    """
+       This class represents a presence change for a user or a user in a chatroom.
+
+       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_presence`
+       when the presence of people changes.
+    """
+
+    def __init__(self,
+                 nick: str=None,
+                 identifier: Identifier=None,
+                 status: str=None,
+                 chatroom: Identifier=None,
+                 message: str=None):
+        if nick is None and identifier is None:
+            raise ValueError('Presence: nick and identifiers are both None')
+        if nick is None and chatroom is not None:
+            raise ValueError('Presence: nick is None when chatroom is not')
+        if status is None and message is None:
+            raise ValueError('Presence: at least a new status or a new status message mustbe present')
+        self._nick = nick
+        self._identifier = identifier
+        self._chatroom = chatroom
+        self._status = status
+        self._message = message
+
+    @property
+    def chatroom(self) -> Identifier:
+        """ Returns the identifier pointing the room in which the event occurred.
+            If it returns None, the event occurred outside of a chatroom.
+        """
+        return self._chatroom
+
+    @property
+    def nick(self) -> str:
+        """ Returns a plain string of the presence nick.
+            (In some chatroom implementations, you cannot know the real identifier
+            of a person in it).
+            Can return None but then identifier won't be None.
+        """
+        return self._nick
+
+    @property
+    def identifier(self) -> Identifier:
+        """ Returns the identifier of the event.
+            Can be None *only* if chatroom is not None
+        """
+        return self._identifier
+
+    @property
+    def status(self) -> str:
+        """ Returns the status of the presence change.
+            It can be one of the constants ONLINE, OFFLINE, AWAY, DND, but
+            can also be custom statuses depending on backends.
+            It can be None if it is just an update of the status message (see get_message)
+        """
+        return self._status
+
+    @property
+    def message(self) -> str:
+        """ Returns a human readable message associated with the status if any.
+            like : "BRB, washing the dishes"
+            It can be None if it is only a general status update (see get_status)
+        """
+        return self._message
+
+    def __str__(self):
+        response = ''
+        if self._nick:
+            response += 'Nick:%s ' % self._nick
+        if self._identifier:
+            response += 'Idd:%s ' % self._identifier
+        if self._status:
+            response += 'Status:%s ' % self._status
+        if self._chatroom:
+            response += 'Room:%s ' % self._chatroom
+        if self._message:
+            response += 'Msg:%s ' % self._message
+        return response
+
+    def __unicode__(self):
+        return str(self.__str__())
+
+STREAM_WAITING_TO_START = 'pending'
+STREAM_TRANSFER_IN_PROGRESS = 'in progress'
+STREAM_SUCCESSFULLY_TRANSFERED = 'success'
+STREAM_PAUSED = 'paused'
+STREAM_ERROR = 'error'
+STREAM_REJECTED = 'rejected'
+
+DEFAULT_REASON = 'unknown'
+
+
+class Stream(io.BufferedReader):
+    """
+       This class represents a stream request.
+
+       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_stream`
+       when an incoming stream is requested.
+    """
+
+    def __init__(self,
+                 identifier: Identifier,
+                 fsource: BinaryIO,
+                 name: str=None,
+                 size: int=None,
+                 stream_type: str=None):
+        super(Stream, self).__init__(fsource)
+        self._identifier = identifier
+        self._name = name
+        self._size = size
+        self._stream_type = stream_type
+        self._status = STREAM_WAITING_TO_START
+        self._reason = DEFAULT_REASON
+        self._transfered = 0
+
+    @property
+    def identifier(self) -> Identifier:
+        """
+           The identity the stream is coming from if it is an incoming request
+           or to if it is an outgoing request.
+        """
+        return self._identifier
+
+    @property
+    def name(self) -> str:
+        """
+            The name of the stream/file if it has one or None otherwise.
+            !! Be carefull of injections if you are using this name directly as a filename.
+        """
+        return self._name
+
+    @property
+    def size(self) -> int:
+        """
+            The expected size in bytes of the stream if it is known or None.
+        """
+        return self._size
+
+    @property
+    def transfered(self) -> int:
+        """
+            The currently transfered size.
+        """
+        return self._transfered
+
+    @property
+    def stream_type(self) -> str:
+        """
+            The mimetype of the stream if it is known or None.
+        """
+        return self._stream_type
+
+    @property
+    def status(self) -> str:
+        """
+            The status for this stream.
+        """
+        return self._status
+
+    def accept(self) -> None:
+        """
+            Signal that the stream has been accepted.
+        """
+        if self._status != STREAM_WAITING_TO_START:
+            raise ValueError("Invalid state, the stream is not pending.")
+        self._status = STREAM_TRANSFER_IN_PROGRESS
+
+    def reject(self) -> None:
+        """
+            Signal that the stream has been rejected.
+        """
+        if self._status != STREAM_WAITING_TO_START:
+            raise ValueError("Invalid state, the stream is not pending.")
+        self._status = STREAM_REJECTED
+
+    def error(self, reason=DEFAULT_REASON) -> None:
+        """
+            An internal plugin error prevented the transfer.
+        """
+        self._status = STREAM_ERROR
+        self._reason = reason
+
+    def success(self) -> None:
+        """
+            The streaming finished normally.
+        """
+        if self._status != STREAM_TRANSFER_IN_PROGRESS:
+            raise ValueError("Invalid state, the stream is not in progress.")
+        self._status = STREAM_SUCCESSFULLY_TRANSFERED
+
+    def clone(self, new_fsource: BinaryIO) -> Any:  # this is obviously a Stream but the compiler doesn't like it.
+        """
+            Creates a clone and with an alternative stream
+        """
+        return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
+
+    def ack_data(self, length: int) -> None:
+        """ Acknowledge data has been transfered. """
+        self._transfered = length
 
 
 class Backend(object):
@@ -585,14 +648,14 @@ class Backend(object):
 
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
-    def prefix_groupchat_reply(self, message: Message, identifier: Any):
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
         """ Patches message with the conventional prefix to ping the specific contact
         For example:
         @gbin, you forgot the milk !
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def build_identifier(self, text_representation: str) -> Any:
+    def build_identifier(self, text_representation: str) -> Union[Identifier, MUCIdentifier]:
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def serve_once(self) -> None:
@@ -614,27 +677,6 @@ class Backend(object):
         """Connects the bot to server or returns current connection
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
-
-    def join_room(self, room: Any, username: str=None, password: str=None) -> MUCRoom:
-        """
-        Join a room (MUC).
-
-        :param room:
-            The identifier of the room to join.
-        :param username:
-            An optional username to use.
-        :param password:
-            An optional password to use (for password-protected rooms).
-
-        .. deprecated:: 2.2.0
-            Use the methods on :class:`MUCRoom` instead.
-        """
-        warnings.warn(
-            "Using join_room is deprecated, use query_room and the join "
-            "method on the resulting response instead.",
-            DeprecationWarning
-        )
-        self.query_room(room).join(username=username, password=password)
 
     def query_room(self, room: str) -> MUCRoom:
         """
@@ -660,7 +702,7 @@ class Backend(object):
     def mode(self) -> str:
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def rooms(self) -> List[MUCRoom]:
+    def rooms(self) -> Sequence[MUCRoom]:
         """
         Return a list of rooms the bot is currently in.
 

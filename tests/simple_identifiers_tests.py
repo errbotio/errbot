@@ -1,35 +1,35 @@
 import unittest
 
-from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
+from errbot.backends.test import TestIdentifier, TestMUCOccupant
 
 
 class TestSimpleIdentifiers(unittest.TestCase):
     def test_identifier_eq(self):
-        a = SimpleIdentifier("foo")
-        b = SimpleIdentifier("foo")
+        a = TestIdentifier("foo")
+        b = TestIdentifier("foo")
         self.assertTrue(a == b)
         self.assertEqual(a, b)
 
     def test_identifier_ineq(self):
-        a = SimpleIdentifier("foo")
-        b = SimpleIdentifier("bar")
+        a = TestIdentifier("foo")
+        b = TestIdentifier("bar")
         self.assertFalse(a == b)
         self.assertNotEqual(a, b)
 
     def test_mucidentifier_eq(self):
-        a = SimpleMUCOccupant("foo", "room")
-        b = SimpleMUCOccupant("foo", "room")
+        a = TestMUCOccupant("foo", "room")
+        b = TestMUCOccupant("foo", "room")
         self.assertTrue(a == b)
         self.assertEqual(a, b)
 
     def test_mucidentifier_ineq1(self):
-        a = SimpleMUCOccupant("foo", "room")
-        b = SimpleMUCOccupant("bar", "room")
+        a = TestMUCOccupant("foo", "room")
+        b = TestMUCOccupant("bar", "room")
         self.assertFalse(a == b)
         self.assertNotEqual(a, b)
 
     def test_mucidentifier_ineq2(self):
-        a = SimpleMUCOccupant("foo", "room1")
-        b = SimpleMUCOccupant("foo", "room2")
+        a = TestMUCOccupant("foo", "room1")
+        b = TestMUCOccupant("foo", "room2")
         self.assertFalse(a == b)
         self.assertNotEqual(a, b)

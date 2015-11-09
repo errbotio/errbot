@@ -1,4 +1,3 @@
-from abc import ABC
 import logging
 import sys
 import unittest

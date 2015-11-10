@@ -688,7 +688,6 @@ class Backend(ABC):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    @abstractmethod
     def connect(self) -> Any:
         """Connects the bot to server or returns current connection """
 
@@ -703,7 +702,6 @@ class Backend(ABC):
             An instance of :class:`~MUCRoom`.
         """
 
-    @abstractmethod
     def shutdown(self) -> None:
         pass
 

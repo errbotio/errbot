@@ -14,12 +14,12 @@ as soon as we can! Depending on our thoughts, we might decide to merge it in
 right away, or we may ask you to change certain parts before we will accept the
 change.
 
-In order to make the process as easy for everyone involved, please follow
+In order to make the process easy for everyone involved, please follow
 these guidelines as you open a pull request.
 
-* Make your changes on a seperate branch_, preferably giving it a descriptive name.
+* Make your changes on a separate branch_, preferably giving it a descriptive name.
 * Split your work up into smaller commits if possible, while making sure each commit
-  can still function on it's own. Do not commit work-in-progress code, commit it
+  can still function on its own. Do not commit work-in-progress code - commit it
   once it's working.
 * Run the test-suite before opening your pull request, and make sure all tests pass.
   You can run the tests with :command:`python run_tests.py` in the root of the
@@ -43,7 +43,7 @@ website, you can build the HTML locally as follows::
     make html
     # Then, open the generated _build/html/index.html in a browser
 
-To submit your changes back to us, please make your change in a seperate branch as
+To submit your changes back to us, please make your change in a separate branch as
 described in the previous section, then open a pull request with us.
 
 .. note::

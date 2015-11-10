@@ -12,7 +12,7 @@ import re  # noqa
 from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
 from errbot.errBot import ErrBot
-from errbot.backends.base import Backend, Message  # noqa
+from errbot.backends.base import Backend, Message, MUCRoom, Identifier, ONLINE
 from errbot.backends.test import TestIdentifier, TestMUCOccupant
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.rendering import text
@@ -24,6 +24,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class DummyBackend(ErrBot):
+
+    def send_presence(self, status: str = ONLINE, message: str = '') -> None:
+        pass
+
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
+        pass
+
+    def query_room(self, room: str) -> MUCRoom:
+        pass
 
     def __init__(self, extra_config=None):
         self.outgoing_message_queue = Queue()

@@ -8,7 +8,7 @@ from io import IOBase
 
 from .utils import PLUGINS_SUBDIR, recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, MUCRoom, Identifier
+from errbot.backends.base import Message, Presence, Stream, MUCRoom, Identifier, ONLINE
 
 log = logging.getLogger(__name__)
 
@@ -355,6 +355,16 @@ class BotPlugin(BotPluginBase):
              :param user: identifier of the user to which you want to send a message to. see build_identifier.
         """
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+
+    def send_presence(self, status: str = ONLINE, message: str = '') -> None:
+        """
+            Changes the presence/status of the bot.
+
+        :param status: One of the constant defined in base.py : ONLINE, OFFLINE, DND,...
+        :param message: Additional message
+        :return: None
+        """
+        self._bot.send_presence(status, message)
 
     def send_templated(self,
                        user: Identifier,

@@ -8,7 +8,8 @@ import struct
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream, Identifier, MUCIdentifier
+from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream, Identifier, MUCIdentifier, \
+    ONLINE
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
 from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
@@ -399,6 +400,14 @@ class IRCConnection(SingleServerIRCBot):
             log.debug("Partial chunk for file %s successfully transfered to %s (%d/%d), wait for more" %
                       (stream.name, stream.identifier, stream.transfered, stream.size))
 
+    def away(self, message=""):
+        """
+        Extend the original implementation to support AWAY.
+        To set an away message, set message to something.
+        To cancel an away message, leave message at empty string.
+        """
+        self.connection.send_raw(" ".join(["AWAY", message]).strip())
+
 
 class IRCBackend(ErrBot):
     def __init__(self, config):
@@ -448,6 +457,12 @@ class IRCBackend(ErrBot):
         body = self.md.convert(mess.body)
         for line in body.split('\n'):
             msg_func(msg_to, line)
+
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+        if status == ONLINE:
+            self.conn.away()  # cancels the away message
+        else:
+            self.conn.away('[%s] %s' % (status, message))
 
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)

@@ -340,12 +340,12 @@ class FullStackTest(unittest.TestCase, TestBot):
     For example, if you wanted to test the builtin `!about` command,
     you could write a test file with the following::
 
-        from errbot.backends.test import FullStackTest, push_message, pop_message
+        from errbot.backends.test import FullStackTest
 
         class TestCommands(FullStackTest):
             def test_about(self):
-                push_message('!about')
-                self.assertIn('Err version', pop_message())
+                self.push_message('!about')
+                self.assertIn('Err version', self.pop_message())
     """
 
     def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
@@ -376,7 +376,7 @@ def testbot(request):
     For example, if you wanted to test the builtin `!about` command,
     you could write a test file with the following::
 
-        from errbot.backends.test import testbot, push_message, pop_message
+        from errbot.backends.test import testbot
 
         def test_about(testbot):
             testbot.push_message('!about')
@@ -386,7 +386,7 @@ def testbot(request):
     by setting variables at module level or as class attributes (the
     latter taking precedence over the former). For example::
 
-        from errbot.backends.test import testbot, push_message, pop_message
+        from errbot.backends.test import testbot
 
         extra_plugin_dir = '/foo/bar'
 
@@ -396,7 +396,7 @@ def testbot(request):
 
     ..or::
 
-        from errbot.backends.test import testbot, push_message, pop_message
+        from errbot.backends.test import testbot
 
         extra_plugin_dir = '/foo/bar'
 

@@ -50,7 +50,7 @@ that class as bot commands.
 Here we define the class that makes up our plugin. The name of your
 class, `HelloWorld` in this case, is what will make up the name of
 your plugin. This name will be used in commands such as `!status`,
-`!load` and `!unload`
+`!plugin load` and `!plugin unload`
 
 The class' docstring is used to automatically populate the built-in
 command documentation. It will be visible when issuing the `!help`

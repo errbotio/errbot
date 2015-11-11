@@ -8,9 +8,8 @@ from threading import Thread
 
 import pytest
 
-from errbot.backends import SimpleIdentifier, SimpleMUCOccupant
 from errbot.rendering import text
-from errbot.backends.base import Message, MUCRoom
+from errbot.backends.base import Message, MUCRoom, Identifier, MUCIdentifier
 from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import setup_bot
@@ -24,6 +23,82 @@ QUIT_MESSAGE = '$STOP$'
 STZ_MSG = 1
 STZ_PRE = 2
 STZ_IQ = 3
+
+
+class TestIdentifier(Identifier):
+    """
+    This is an identifier just represented as a string.
+    DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
+    use self.build_identifier(identifier_as_string) instead.
+
+    Note to back-end implementors: You should provide a custom
+    <yourbackend>Identifier object that adheres to this interface.
+
+    You should not directly inherit from SimpleIdentifier, inherit
+    from object instead and make sure it includes all properties and
+    methods exposed by this class.
+    """
+    def __init__(self, person, client=None, nick=None, fullname=None):
+        self._person = person
+        self._client = client
+        self._nick = nick
+        self._fullname = fullname
+
+    @property
+    def person(self):
+        """This needs to return the part of the identifier pointing to a person."""
+        return self._person
+
+    @property
+    def client(self):
+        """This needs to return the part of the identifier pointing to a client from which a person is sending a message from.
+        Returns None is unspecified"""
+        return self._client
+
+    @property
+    def nick(self):
+        """This needs to return a short display name for this identifier e.g. gbin.
+        Returns None is unspecified"""
+        return self._nick
+
+    @property
+    def fullname(self):
+        """This needs to return a long display name for this identifier e.g. Guillaume Binet.
+        Returns None is unspecified"""
+        return self._fullname
+
+    aclattr = person
+
+    def __unicode__(self):
+        if self.client:
+            return self._person + "/" + self._client
+        return self._person
+    __str__ = __unicode__
+
+    def __eq__(self, other):
+        return self.person == other.person
+
+
+# noinspection PyAbstractClass
+class TestMUCOccupant(TestIdentifier, MUCIdentifier):
+    """ This is a MUC occupant represented as a string.
+        DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
+    """
+    def __init__(self, person, room):
+        super().__init__(person)
+        self._room = room
+
+    @property
+    def room(self):
+        return self._room
+
+    def __unicode__(self):
+        return self._person + '@' + self._room
+
+    __str__ = __unicode__
+
+    def __eq__(self, other):
+        return self.person == other.person and self.room == other.room
 
 
 class TestMUCRoom(MUCRoom):
@@ -42,7 +117,7 @@ class TestMUCRoom(MUCRoom):
         self._topic = topic
         self._bot = bot
         self._name = name
-        self._bot_mucid = SimpleMUCOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
+        self._bot_mucid = TestMUCOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
 
     @property
     def occupants(self):
@@ -183,7 +258,7 @@ class TestBackend(ErrBot):
         return
 
     def build_identifier(self, text_representation):
-        return SimpleIdentifier(text_representation)
+        return TestIdentifier(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         msg = self.build_message(text)

@@ -8,7 +8,7 @@ from io import IOBase
 
 from .utils import PLUGINS_SUBDIR, recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, MUCRoom
+from errbot.backends.base import Message, Presence, Stream, MUCRoom, Identifier
 
 log = logging.getLogger(__name__)
 
@@ -357,7 +357,7 @@ class BotPlugin(BotPluginBase):
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
     def send_templated(self,
-                       user: Any,
+                       user: Identifier,
                        template_name: str,
                        template_parameters: Mapping,
                        in_reply_to: Message=None,
@@ -387,7 +387,7 @@ class BotPlugin(BotPluginBase):
         return self._bot.build_identifier(txtrep)
 
     def send_stream_request(self,
-                            user: Any,
+                            user: Identifier,
                             fsource: IOBase,
                             name: str=None,
                             size: int=None,

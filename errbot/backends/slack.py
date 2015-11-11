@@ -5,9 +5,8 @@ import time
 import sys
 import pprint
 
-from errbot.backends import DeprecationBridgeIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError
+    UserDoesNotExistError, Identifier, MUCIdentifier
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated, PY3, split_string_after
 from errbot.rendering import imtext
@@ -76,8 +75,7 @@ class SlackAPIResponseError(RuntimeError):
         super().__init__(*args, **kwargs)
 
 
-# TODO(gbin): remove this deprecation warnings at one point.
-class SlackIdentifier(DeprecationBridgeIdentifier):
+class SlackIdentifier(Identifier):
     """
     This class describes a person on Slack's network.
     """
@@ -153,7 +151,7 @@ class SlackIdentifier(DeprecationBridgeIdentifier):
         return self.__unicode__()
 
 
-class SlackMUCOccupant(SlackIdentifier):
+class SlackMUCOccupant(MUCIdentifier, SlackIdentifier):
     """
     This class represents a person inside a MUC.
     """

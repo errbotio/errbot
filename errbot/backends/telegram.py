@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from errbot.backends.base import RoomError, Identifier, MUCIdentifier
+from errbot.backends.base import RoomError, Identifier, MUCIdentifier, ONLINE
 from errbot.errBot import ErrBot
 from errbot.rendering import text
 
@@ -110,7 +110,6 @@ class TelegramMUCOccupant(MUCIdentifier, TelegramIdentifier):
 
 
 class TelegramBackend(ErrBot):
-
     def __init__(self, config):
         super().__init__(config)
         config.MESSAGE_SIZE_LIMIT = TELEGRAM_MESSAGE_SIZE_LIMIT
@@ -221,6 +220,10 @@ class TelegramBackend(ErrBot):
                 "to %s: %s" % (mess.to.id, mess.body)
             )
             raise
+
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+        # It looks like telegram doesn't supports online presence for privacy reason.
+        pass
 
     def build_identifier(self, txtrep):
         """

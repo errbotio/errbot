@@ -4,7 +4,7 @@ import re
 import sys
 
 import errbot
-from errbot.backends.base import Message
+from errbot.backends.base import Message, ONLINE
 from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.rendering import xhtml
 
@@ -216,6 +216,9 @@ class GraphicBackend(TextBackend):
         if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
             content = self.md.convert(mess.body)
             self.app.newAnswer.emit(content)
+
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+        pass
 
     def serve_forever(self):
         self.connect_callback()  # notify that the connection occured

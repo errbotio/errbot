@@ -42,7 +42,6 @@ def borderless_ansi():
 
 
 class TextBackend(ErrBot):
-
     def __init__(self, config):
         super().__init__(config)
         log.debug("Text Backend Init.")
@@ -107,6 +106,9 @@ class TextBackend(ErrBot):
             print(bar.format(mode='BORDERLESS'))
             print(self.md_borderless_ansi.convert(mess.body))
         print('\n\n')
+
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+        log.debug("*** Changed presence to [%s] %s", (status, message))
 
     def build_identifier(self, text_representation):
         return TestIdentifier(text_representation)

@@ -356,7 +356,7 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
 
-    def send_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """
             Changes the presence/status of the bot.
 
@@ -364,7 +364,7 @@ class BotPlugin(BotPluginBase):
         :param message: Additional message
         :return: None
         """
-        self._bot.send_presence(status, message)
+        self._bot.change_presence(status, message)
 
     def send_templated(self,
                        user: Identifier,

@@ -446,7 +446,7 @@ class SlackBackend(ErrBot):
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
 
-    def send_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
     @staticmethod

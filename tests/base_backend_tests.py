@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class DummyBackend(ErrBot):
 
-    def send_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
     def prefix_groupchat_reply(self, message: Message, identifier: Identifier):

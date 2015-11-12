@@ -127,8 +127,8 @@ class Help(BotPlugin):
                 (name, command)
                 for (name, command) in commands
                 if not command._err_command_hidden and
-                (not self.bot_config.HIDE_RESTRICTED_COMMANDS
-                 or may_access_command(mess, name))
+                (not self.bot_config.HIDE_RESTRICTED_COMMANDS or
+                 may_access_command(mess, name))
             ])
 
             for (name, command) in pairs:

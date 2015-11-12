@@ -12,22 +12,22 @@ class WebTest(BotPlugin):
         log.debug(str(payload))
         return str(payload)
 
-    @webhook(r'/custom_webhook/')
+    @webhook(r'/custom_webhook')
     def webhook2(self, payload):
         log.debug(str(payload))
         return str(payload)
 
-    @webhook(r'/form/', form_param='form')
+    @webhook(r'/form', form_param='form')
     def webhook3(self, payload):
         log.debug(str(payload))
         return str(payload)
 
-    @webhook(r'/custom_form/', form_param='form')
+    @webhook(r'/custom_form', form_param='form')
     def webhook4(self, payload):
         log.debug(str(payload))
         return str(payload)
 
-    @webhook(r'/raw/', raw=True)
+    @webhook(r'/raw', raw=True)
     def webhook5(self, payload):
         log.debug(str(payload))
         return str(type(payload))

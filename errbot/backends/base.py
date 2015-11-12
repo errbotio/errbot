@@ -2,14 +2,191 @@ import io
 import logging
 import random
 import time
-import warnings
+from typing import Any, Mapping, BinaryIO, List, Union, Sequence
+from abc import abstractproperty
 from collections import deque, defaultdict
 
-from errbot.utils import deprecated, compat_str
+try:
+    from abc import ABC
+except ImportError:
+    #  3.3 compatibility
+    from abc import ABCMeta
 
+    class ABC(metaclass=ABCMeta):
+        """Helper class that provides a standard way to create an ABC using
+        inheritance.
+        """
+        pass
+
+
+from errbot.utils import compat_str
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.base')
+
+
+class Identifier(ABC):
+    """This is just use for type hinting representing the Identifier contract,
+    NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
+    To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
+     to make an identifier from a String.
+    """
+
+    @abstractproperty
+    def person(self) -> str:
+        """
+        :return: a backend specific unique identifier representing the person you are talking to.
+        """
+        pass
+
+    @abstractproperty
+    def client(self) -> str:
+        """
+        :return: a backend specific unique identifier representing the device or client the person is using to talk.
+        """
+        pass
+
+    @abstractproperty
+    def nick(self) -> str:
+        """
+        :return: a backend specific nick returning the nickname of this person if available.
+        """
+        pass
+
+    @abstractproperty
+    def aclattr(self) -> str:
+        """
+        :return: returns the unique identifier that will be used for ACL matches.
+        """
+        pass
+
+    @abstractproperty
+    def fullname(self) -> str:
+        """
+        Some backends have the full name of a user.
+        :return: the fullname of this user if available.
+        """
+        pass
+
+
+class MUCIdentifier(Identifier):
+    @abstractproperty
+    def room(self) -> Any:  # this is MUCRoom defined below
+        """
+        Some backends have the full name of a user.
+        :return: the fullname of this user if available.
+        """
+        pass
+
+
+class MUCRoom(object):
+    """
+    This class represents a Multi-User Chatroom.
+    """
+
+    def join(self, username: str=None, password: str=None) -> None:
+        """
+        Join the room.
+
+        If the room does not exist yet, this will automatically call
+        :meth:`create` on it first.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def leave(self, reason: str=None) -> None:
+        """
+        Leave the room.
+
+        :param reason:
+            An optional string explaining the reason for leaving the room.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def create(self) -> None:
+        """
+        Create the room.
+
+        Calling this on an already existing room is a no-op.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def destroy(self) -> None:
+        """
+        Destroy the room.
+
+        Calling this on a non-existing room is a no-op.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def exists(self) -> bool:
+        """
+        Boolean indicating whether this room already exists or not.
+
+        :getter:
+            Returns `True` if the room exists, `False` otherwise.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def joined(self) -> bool:
+        """
+        Boolean indicating whether this room has already been joined.
+
+        :getter:
+            Returns `True` if the room has been joined, `False` otherwise.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def topic(self) -> str:
+        """
+        The room topic.
+
+        :getter:
+            Returns the topic (a string) if one is set, `None` if no
+            topic has been set at all.
+
+            .. note::
+                Back-ends may return an empty string rather than `None`
+                when no topic has been set as a network may not
+                differentiate between no topic and an empty topic.
+        :raises:
+            :class:`~MUCNotJoinedError` if the room has not yet been joined.
+
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @topic.setter
+    def topic(self, topic: str) -> None:
+        """
+        Set the room's topic.
+
+        :param topic:
+            The topic to set.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    @property
+    def occupants(self) -> List[MUCIdentifier]:
+        """
+        The room's occupants.
+
+        :getter:
+            Returns a list of occupant identities.
+        :raises:
+            :class:`~MUCNotJoinedError` if the room has not yet been joined.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
+
+    def invite(self, *args) -> None:
+        """
+        Invite one or more people into the room.
+
+        :*args:
+            One or more identifiers to invite into the room.
+        """
+        raise NotImplementedError("It should be implemented specifically for your backend")
 
 
 class RoomError(Exception):
@@ -41,12 +218,12 @@ class Message(object):
     """
 
     def __init__(self,
-                 body='',
-                 type_='chat',
-                 frm=None,
-                 to=None,
-                 delayed=False,
-                 extras=None):
+                 body: str='',
+                 type_: str='chat',
+                 frm: Identifier=None,
+                 to: Identifier=None,
+                 delayed: bool=False,
+                 extras: Mapping=None):
         """
         :param body:
             The plaintext body of the message.
@@ -66,18 +243,17 @@ class Message(object):
         return Message(self._body, self._type, self._from, self._to, self._delayed, self.extras)
 
     @property
-    def to(self):
+    def to(self) -> Identifier:
         """
         Get the recipient of the message.
 
         :returns:
-            An :class:`~errbot.backends.base.Identifier` identifying
-            the recipient.
+            A backend specific identifier representing the recipient.
         """
         return self._to
 
     @to.setter
-    def to(self, to):
+    def to(self, to: Identifier):
         """
         Set the recipient of the message.
 
@@ -90,7 +266,7 @@ class Message(object):
         self._to = to
 
     @property
-    def type(self):
+    def type(self) -> str:
         """
         Get the type of the message.
 
@@ -101,7 +277,7 @@ class Message(object):
         return self._type
 
     @type.setter
-    def type(self, type_):
+    def type(self, type_: str):
         """
         Set the type of the message.
 
@@ -112,7 +288,7 @@ class Message(object):
         self._type = type_
 
     @property
-    def frm(self):
+    def frm(self) -> Identifier:
         """
         Get the sender of the message.
 
@@ -123,7 +299,7 @@ class Message(object):
         return self._from
 
     @frm.setter
-    def frm(self, from_):
+    def frm(self, from_: Identifier):
         """
         Set the sender of the message.
 
@@ -136,7 +312,7 @@ class Message(object):
         self._from = from_
 
     @property
-    def body(self):
+    def body(self) -> str:
         """
         Get the plaintext body of the message.
 
@@ -146,61 +322,25 @@ class Message(object):
         return self._body
 
     @body.setter
-    def body(self, body):
+    def body(self, body: str):
         self._body = body
 
     @property
-    def delayed(self):
+    def delayed(self) -> bool:
         return self._delayed
 
     @delayed.setter
-    def delayed(self, delayed):
+    def delayed(self, delayed: bool):
         self._delayed = delayed
 
     @property
-    def extras(self):
+    def extras(self) -> Mapping:
         return self._extras
 
     def __str__(self):
         return self._body
 
     # deprecated stuff ...
-
-    @deprecated(to)
-    def getTo(self):
-        """ will be removed on the next version """
-
-    @deprecated(to.fset)
-    def setTo(self, to):
-        """ will be removed on the next version """
-
-    @deprecated(type)
-    def getType(self):
-        """ will be removed on the next version """
-
-    @deprecated(type.fset)
-    def setType(self, type_):
-        """ will be removed on the next version """
-
-    @deprecated(frm)
-    def getFrom(self):
-        """ will be removed on the next version """
-
-    @deprecated(frm.fset)
-    def setFrom(self, from_):
-        """ will be removed on the next version """
-
-    @deprecated(body)
-    def getBody(self):
-        """ will be removed on the next version """
-
-    @deprecated(delayed)
-    def isDelayed(self):
-        """ will be removed on the next version """
-
-    @deprecated(delayed.fset)
-    def setDelayed(self, delayed):
-        """ will be removed on the next version """
 
 
 ONLINE = 'online'
@@ -217,7 +357,12 @@ class Presence(object):
        when the presence of people changes.
     """
 
-    def __init__(self, nick=None, identifier=None, status=None, chatroom=None, message=None):
+    def __init__(self,
+                 nick: str=None,
+                 identifier: Identifier=None,
+                 status: str=None,
+                 chatroom: Identifier=None,
+                 message: str=None):
         if nick is None and identifier is None:
             raise ValueError('Presence: nick and identifiers are both None')
         if nick is None and chatroom is not None:
@@ -231,14 +376,14 @@ class Presence(object):
         self._message = message
 
     @property
-    def chatroom(self):
+    def chatroom(self) -> Identifier:
         """ Returns the identifier pointing the room in which the event occurred.
             If it returns None, the event occurred outside of a chatroom.
         """
         return self._chatroom
 
     @property
-    def nick(self):
+    def nick(self) -> str:
         """ Returns a plain string of the presence nick.
             (In some chatroom implementations, you cannot know the real identifier
             of a person in it).
@@ -247,14 +392,14 @@ class Presence(object):
         return self._nick
 
     @property
-    def identifier(self):
+    def identifier(self) -> Identifier:
         """ Returns the identifier of the event.
             Can be None *only* if chatroom is not None
         """
         return self._identifier
 
     @property
-    def status(self):
+    def status(self) -> str:
         """ Returns the status of the presence change.
             It can be one of the constants ONLINE, OFFLINE, AWAY, DND, but
             can also be custom statuses depending on backends.
@@ -263,7 +408,7 @@ class Presence(object):
         return self._status
 
     @property
-    def message(self):
+    def message(self) -> str:
         """ Returns a human readable message associated with the status if any.
             like : "BRB, washing the dishes"
             It can be None if it is only a general status update (see get_status)
@@ -305,7 +450,12 @@ class Stream(io.BufferedReader):
        when an incoming stream is requested.
     """
 
-    def __init__(self, identifier, fsource, name=None, size=None, stream_type=None):
+    def __init__(self,
+                 identifier: Identifier,
+                 fsource: BinaryIO,
+                 name: str=None,
+                 size: int=None,
+                 stream_type: str=None):
         super(Stream, self).__init__(fsource)
         self._identifier = identifier
         self._name = name
@@ -316,7 +466,7 @@ class Stream(io.BufferedReader):
         self._transfered = 0
 
     @property
-    def identifier(self):
+    def identifier(self) -> Identifier:
         """
            The identity the stream is coming from if it is an incoming request
            or to if it is an outgoing request.
@@ -324,7 +474,7 @@ class Stream(io.BufferedReader):
         return self._identifier
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
             The name of the stream/file if it has one or None otherwise.
             !! Be carefull of injections if you are using this name directly as a filename.
@@ -332,34 +482,34 @@ class Stream(io.BufferedReader):
         return self._name
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
             The expected size in bytes of the stream if it is known or None.
         """
         return self._size
 
     @property
-    def transfered(self):
+    def transfered(self) -> int:
         """
             The currently transfered size.
         """
         return self._transfered
 
     @property
-    def stream_type(self):
+    def stream_type(self) -> str:
         """
             The mimetype of the stream if it is known or None.
         """
         return self._stream_type
 
     @property
-    def status(self):
+    def status(self) -> str:
         """
             The status for this stream.
         """
         return self._status
 
-    def accept(self):
+    def accept(self) -> None:
         """
             Signal that the stream has been accepted.
         """
@@ -367,7 +517,7 @@ class Stream(io.BufferedReader):
             raise ValueError("Invalid state, the stream is not pending.")
         self._status = STREAM_TRANSFER_IN_PROGRESS
 
-    def reject(self):
+    def reject(self) -> None:
         """
             Signal that the stream has been rejected.
         """
@@ -375,14 +525,14 @@ class Stream(io.BufferedReader):
             raise ValueError("Invalid state, the stream is not pending.")
         self._status = STREAM_REJECTED
 
-    def error(self, reason=DEFAULT_REASON):
+    def error(self, reason=DEFAULT_REASON) -> None:
         """
             An internal plugin error prevented the transfer.
         """
         self._status = STREAM_ERROR
         self._reason = reason
 
-    def success(self):
+    def success(self) -> None:
         """
             The streaming finished normally.
         """
@@ -390,125 +540,15 @@ class Stream(io.BufferedReader):
             raise ValueError("Invalid state, the stream is not in progress.")
         self._status = STREAM_SUCCESSFULLY_TRANSFERED
 
-    def clone(self, new_fsource):
+    def clone(self, new_fsource: BinaryIO) -> Any:  # this is obviously a Stream but the compiler doesn't like it.
         """
             Creates a clone and with an alternative stream
         """
         return Stream(self._identifier, new_fsource, self._name, self._size, self._stream_type)
 
-    def ack_data(self, length):
+    def ack_data(self, length: int) -> None:
         """ Acknowledge data has been transfered. """
         self._transfered = length
-
-
-class MUCRoom(object):
-    """
-    This class represents a Multi-User Chatroom.
-    """
-
-    def join(self, username=None, password=None):
-        """
-        Join the room.
-
-        If the room does not exist yet, this will automatically call
-        :meth:`create` on it first.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    def leave(self, reason=None):
-        """
-        Leave the room.
-
-        :param reason:
-            An optional string explaining the reason for leaving the room.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    def create(self):
-        """
-        Create the room.
-
-        Calling this on an already existing room is a no-op.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    def destroy(self):
-        """
-        Destroy the room.
-
-        Calling this on a non-existing room is a no-op.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    @property
-    def exists(self):
-        """
-        Boolean indicating whether this room already exists or not.
-
-        :getter:
-            Returns `True` if the room exists, `False` otherwise.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    @property
-    def joined(self):
-        """
-        Boolean indicating whether this room has already been joined.
-
-        :getter:
-            Returns `True` if the room has been joined, `False` otherwise.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    @property
-    def topic(self):
-        """
-        The room topic.
-
-        :getter:
-            Returns the topic (a string) if one is set, `None` if no
-            topic has been set at all.
-
-            .. note::
-                Back-ends may return an empty string rather than `None`
-                when no topic has been set as a network may not
-                differentiate between no topic and an empty topic.
-        :raises:
-            :class:`~MUCNotJoinedError` if the room has not yet been joined.
-
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    @topic.setter
-    def topic(self, topic):
-        """
-        Set the room's topic.
-
-        :param topic:
-            The topic to set.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    @property
-    def occupants(self):
-        """
-        The room's occupants.
-
-        :getter:
-            Returns a list of occupant identities.
-        :raises:
-            :class:`~MUCNotJoinedError` if the room has not yet been joined.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
-
-    def invite(self, *args):
-        """
-        Invite one or more people into the room.
-
-        :*args:
-            One or more identifiers to invite into the room.
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
 
 
 class Backend(object):
@@ -533,38 +573,38 @@ class Backend(object):
         self._reconnection_multiplier = 1.75  # Delay multiplier
         self._reconnection_jitter = (0, 3)    # Random jitter added to delay (min, max)
 
-    def send_message(self, mess):
+    def send_message(self, mess: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, mess: Message, text: str=None, private: bool=False):
         """ Should be implemented by the backend """
         raise NotImplementedError("build_reply should be implemented by the backend %s" % self.__class__)
 
-    def callback_presence(self, presence):
+    def callback_presence(self, presence: Presence) -> None:
         """
            Implemented by errBot.
         """
         pass
 
-    def callback_room_joined(self, room):
+    def callback_room_joined(self, room: MUCRoom) -> None:
         """
             See :class:`~errbot.errBot.ErrBot`
         """
         pass
 
-    def callback_room_left(self, room):
+    def callback_room_left(self, room: MUCRoom) -> None:
         """
             See :class:`~errbot.errBot.ErrBot`
         """
         pass
 
-    def callback_room_topic(self, room):
+    def callback_room_topic(self, room: MUCRoom) -> None:
         """
             See :class:`~errbot.errBot.ErrBot`
         """
         pass
 
-    def serve_forever(self):
+    def serve_forever(self) -> None:
         """
         Connect the back-end to the server and serve forever.
 
@@ -607,7 +647,7 @@ class Backend(object):
             self._reconnection_delay = self._reconnection_max_delay
         self._reconnection_delay += random.uniform(*self._reconnection_jitter)
 
-    def reset_reconnection_count(self):
+    def reset_reconnection_count(self) -> None:
         """
         Reset the reconnection count. Back-ends should call this after
         successfully connecting.
@@ -615,23 +655,23 @@ class Backend(object):
         self._reconnection_count = 0
         self._reconnection_delay = 1
 
-    def build_message(self, text):
+    def build_message(self, text: str) -> Message:
         """ You might want to override this one depending on your backend """
         return Message(body=text)
 
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
-    def prefix_groupchat_reply(self, message, identifier):
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
         """ Patches message with the conventional prefix to ping the specific contact
         For example:
         @gbin, you forgot the milk !
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def build_identifier(self, text_representation):
+    def build_identifier(self, text_representation: str) -> Union[Identifier, MUCIdentifier]:
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def serve_once(self):
+    def serve_once(self) -> None:
         """
         Connect the back-end to the server and serve a connection once
         (meaning until disconnected for any reason).
@@ -646,33 +686,12 @@ class Backend(object):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def connect(self):
+    def connect(self) -> Any:
         """Connects the bot to server or returns current connection
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def join_room(self, room, username=None, password=None):
-        """
-        Join a room (MUC).
-
-        :param room:
-            The identifier of the room to join.
-        :param username:
-            An optional username to use.
-        :param password:
-            An optional password to use (for password-protected rooms).
-
-        .. deprecated:: 2.2.0
-            Use the methods on :class:`MUCRoom` instead.
-        """
-        warnings.warn(
-            "Using join_room is deprecated, use query_room and the join "
-            "method on the resulting response instead.",
-            DeprecationWarning
-        )
-        self.query_room(room).join(username=username, password=password)
-
-    def query_room(self, room):
+    def query_room(self, room: str) -> MUCRoom:
         """
         Query a room for information.
 
@@ -683,20 +702,20 @@ class Backend(object):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         pass
 
-    def connect_callback(self):
+    def connect_callback(self) -> None:
         pass
 
-    def disconnect_callback(self):
+    def disconnect_callback(self) -> None:
         pass
 
     @property
-    def mode(self):
+    def mode(self) -> str:
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def rooms(self):
+    def rooms(self) -> Sequence[MUCRoom]:
         """
         Return a list of rooms the bot is currently in.
 

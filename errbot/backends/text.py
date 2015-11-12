@@ -10,8 +10,8 @@ from pygments.lexers import get_lexer_by_name
 
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
-from errbot.backends import SimpleIdentifier
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
+from errbot.backends.test import TestIdentifier
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
 
@@ -47,7 +47,7 @@ class TextBackend(ErrBot):
         super().__init__(config)
         log.debug("Text Backend Init.")
         self.bot_identifier = self.build_identifier('Err')
-        self.rooms = set()
+        self._rooms = set()
         self.md_html = xhtml()  # for more debug feedback on md
         self.md_text = text()  # for more debug feedback on md
         self.md_ansi = ansi()
@@ -109,7 +109,7 @@ class TextBackend(ErrBot):
         print('\n\n')
 
     def build_identifier(self, text_representation):
-        return SimpleIdentifier(text_representation)
+        return TestIdentifier(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)
@@ -131,11 +131,11 @@ class TextBackend(ErrBot):
 
     def query_room(self, room):
         room = TextMUCRoom()
-        self.rooms.add(room)
+        self._rooms.add(room)
         return room
 
     def rooms(self):
-        return self.rooms
+        return self._rooms
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '{0} {1}'.format(identifier.nick, message.body)

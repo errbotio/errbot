@@ -38,21 +38,21 @@ Our test, *test_myplugin.py*:
 .. code-block:: python
 
     import os
-    from errbot.backends.test import testbot, push_message, pop_message
+    from errbot.backends.test import testbot
 
 
     class TestMyPlugin(object):
         extra_plugin_dir = '.'
 
         def test_command(self, testbot):
-            push_message('!mycommand')
-            assert 'This is my awesome command' in pop_message()
+            testbot.push_message('!mycommand')
+            assert 'This is my awesome command' in testbot.pop_message()
 
-Lets walk through this line for line. First of all, we import :class:`~errbot.backends.test.testbot`, :func:`~errbot.backends.test.push_message` and :func:`~errbot.backends.test.pop_message` from the backends tests, there allow us to spin up a bot for testing purposes and interact with the message queue.
+Lets walk through this line for line. First of all, we import :class:`~errbot.backends.test.testbot` from the backends tests, to allow us to spin up a bot for testing purposes and interact with the message queue.
 
 Then we define our own test class and inside of it we set `extra_plugin_dir` to `.`, the current directory so that the test bot will pick up on your plugin.
 
-After that we define our first `test_` method which simply sends a command to the bot using :func:`~errbot.backends.test.push_message` and then asserts that the response we expect, *"This is my awesome command"* is in the message we receive from the bot which we get by calling :func:`~errbot.backends.test.pop_message`.
+After that we define our first `test_` method which simply sends a command to the bot using :func:`~errbot.backends.test.TestBot.push_message` and then asserts that the response we expect, *"This is my awesome command"* is in the message we receive from the bot which we get by calling :func:`~errbot.backends.test.TestBot.pop_message`.
 
 Helper methods
 --------------
@@ -176,19 +176,19 @@ All together now
     import os
     import unittest
     import myplugin
-    from errbot.backends.test import testbot, push_message, pop_message
+    from errbot.backends.test import testbot
     from errbot import plugin_manager
 
     class TestMyPluginBot(object):
         extra_plugin_dir = '.'
 
         def test_mycommand(self, testbot):
-            push_message('!mycommand')
-            assert 'This is my awesome command' in pop_message()
+            testbot.push_message('!mycommand')
+            assert 'This is my awesome command' in testbot.pop_message()
 
         def test_mycommand_another(self, testbot):
-            push_message('!mycommand another')
-            assert 'This is another awesome command' in pop_message()
+            testbot.push_message('!mycommand another')
+            assert 'This is another awesome command' in testbot.pop_message()
 
 
     class TestMyPluginStaticMethods(object):
@@ -215,7 +215,7 @@ PEP-8 and code coverage
 
 If you feel like it you can also add syntax checkers like `pep8` into the mix to validate your code behaves to certain stylistic best practices set out in PEP-8.
 
-First, install the pep8 for py.test_: :command:`pip instal pytest-pep8`.
+First, install the pep8 for py.test_: :command:`pip install pytest-pep8`.
 
 Then, simply add `--pep8` to the test invocation command: `py.test --pep8`.
 
@@ -246,7 +246,7 @@ In order to do that you'll need a `.travis.yml` similar to this:
       - 3.3
       - 3.4
     install:
-      - pip instal -q err pytest pytest-pep8 --use-wheel
+      - pip install -q err pytest pytest-pep8 --use-wheel
       - pip install -q coverage coveralls --use-wheel
     script:
       - coverage run --source myplugin -m py.test --pep8

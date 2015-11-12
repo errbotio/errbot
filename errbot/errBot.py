@@ -129,9 +129,10 @@ class ErrBot(Backend, BotPluginManager):
             :param groupchat_nick_reply:
                 authorized the prefixing with the nick form the user
         """
-        s = compat_str(user)
-        if s is not None:
-            user = self.build_identifier(s)
+        if not hasattr(user, 'person'):
+            s = compat_str(user)
+            if s is not None:
+                user = self.build_identifier(s)
 
         mess = self.build_message(text)
         mess.to = user
@@ -526,15 +527,7 @@ class ErrBot(Backend, BotPluginManager):
                 # noinspection PyBroadException
                 try:
                     log.debug('Trigger callback_message on %s' % plugin.__class__.__name__)
-
-                    # backward compatibility from the time we needed conn
-                    if len(inspect.getargspec(plugin.callback_message).args) == 3:
-                        logging.warning('Deprecation: Plugin %s uses the old callback_message convention, '
-                                        'now the signature should be simply def callback_message(self, mess)'
-                                        % plugin.__class__.__name__)
-                        plugin.callback_message(None, mess)
-                    else:
-                        plugin.callback_message(mess)
+                    plugin.callback_message(mess)
                 except Exception:
                     log.exception("Crash in a callback_message handler")
 

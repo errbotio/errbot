@@ -2,6 +2,7 @@
 import logging
 from datetime import timedelta
 import unittest
+from tempfile import mkdtemp
 from nose.tools import raises
 from errbot.utils import *
 from errbot.storage import StoreMixin
@@ -50,12 +51,12 @@ class TestUtils(unittest.TestCase):
         class MyPersistentClass(StoreMixin):
             pass
 
-        from config import BOT_DATA_DIR
+        tmpdir = mkdtemp()
 
         key = b'test' if PY2 else 'test'
 
         persistent_object = MyPersistentClass()
-        persistent_object.open_storage(BOT_DATA_DIR + os.path.sep + 'test.db')
+        persistent_object.open_storage(tmpdir + os.path.sep + 'test.db')
         persistent_object[key] = 'à value'
         self.assertEquals(persistent_object[key], 'à value')
         self.assertIn(key, persistent_object)

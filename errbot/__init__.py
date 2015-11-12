@@ -5,10 +5,11 @@ from functools import wraps
 import logging
 import re
 import shlex
-import sys
 import inspect
+from typing import Callable, Any, Tuple
 
 from .core_plugins.wsview import bottle_app, WebView
+from errbot.backends.base import Message
 from .utils import compat_str
 from .utils import PY2, PY3  # noqa gbin: this is now used by plugins
 from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser  # noqa
@@ -46,7 +47,53 @@ class ArgumentParser(argparse.ArgumentParser):
         raise HelpRequested()
 
 
-def botcmd(*args, **kwargs):
+def _tag_botcmd(func,
+                hidden=False,
+                name=None,
+                split_args_with='',
+                admin_only=False,
+                historize=True,
+                template=None,
+                _re=False,
+                pattern=None,          # re_cmd only
+                flags=0,               # re_cmd only
+                matchall=False,        # re_cmd_only
+                prefixed=True,         # re_cmd_only
+                _arg=False,
+                command_parser=None):  # arg_cmd only
+    """
+    Mark a method as a bot command.
+    """
+    if not hasattr(func, '_err_command'):  # don't override generated functions
+        func._err_command = True
+        func._err_command_hidden = hidden
+        func._err_command_name = name or func.__name__
+        func._err_command_split_args_with = split_args_with
+        func._err_command_admin_only = admin_only
+        func._err_command_historize = historize
+        func._err_command_template = template
+
+        # re_cmd
+        func._err_re_command = _re
+        if _re:
+            func._err_command_re_pattern = re.compile(pattern, flags=flags)
+            func._err_command_matchall = matchall
+            func._err_command_prefix_required = prefixed
+
+        # arg_cmd
+        func._err_arg_command = _arg
+        if _arg:
+            func._err_command_parser = command_parser
+    return func
+
+
+def botcmd(*args,
+           hidden: bool=False,
+           name: str=None,
+           split_args_with: str='',
+           admin_only: bool=False,
+           historize: bool=True,
+           template: str=None) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for bot command functions
 
@@ -57,7 +104,7 @@ def botcmd(*args, **kwargs):
     :param admin_only: Only allow the command to be executed by admins when `True`.
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
-    :param template: The template to use when using XHTML-IM output
+    :param template: The markdown template to use.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into commands that can be given to the bot. These methods are
@@ -72,26 +119,29 @@ def botcmd(*args, **kwargs):
     be a string or list (depending on your value of `split_args_with`) of parameters that
     were given to the command by the user.
     """
-
-    def decorate(func, hidden=False, name=None, split_args_with='', admin_only=False, historize=True, template=None):
-        if not hasattr(func, '_err_command'):  # don't override generated functions
-            setattr(func, '_err_command', True)
-            setattr(func, '_err_re_command', False)
-            setattr(func, '_err_command_hidden', hidden)
-            setattr(func, '_err_command_name', name or func.__name__)
-            setattr(func, '_err_command_split_args_with', split_args_with)
-            setattr(func, '_err_command_admin_only', admin_only)
-            setattr(func, '_err_command_historize', historize)
-            setattr(func, '_err_command_template', template)
-        return func
-
-    if len(args):
-        return decorate(args[0], **kwargs)
-    else:
-        return lambda func: decorate(func, **kwargs)
+    def decorator(func):
+        return _tag_botcmd(func,
+                           _re=False,
+                           _arg=False,
+                           hidden=hidden,
+                           name=name or func.__name__,
+                           split_args_with=split_args_with,
+                           admin_only=admin_only,
+                           historize=historize,
+                           template=template)
+    return decorator(args[0]) if args else decorator
 
 
-def re_botcmd(*args, **kwargs):
+def re_botcmd(*args,
+              hidden: bool=False,
+              name: str=None,
+              admin_only: bool=False,
+              historize: bool=True,
+              template: str=None,
+              pattern: str=None,
+              flags: int=0,
+              matchall: bool=False,
+              prefixed: bool=True) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for regex-based bot command functions
 
@@ -125,30 +175,30 @@ def re_botcmd(*args, **kwargs):
     be a :class:`re.MatchObject` containing the result of applying the regular expression on the
     user's input.
     """
-
-    def decorate(func, pattern, flags=0, matchall=False, prefixed=True, hidden=False, name=None, admin_only=False,
-                 historize=True, template=None):
-        if not hasattr(func, '_err_command'):  # don't override generated functions
-            setattr(func, '_err_command', True)
-            setattr(func, '_err_re_command', True)
-            setattr(func, '_err_command_re_pattern', re.compile(pattern, flags=flags))
-            setattr(func, '_err_command_matchall', matchall)
-            setattr(func, '_err_command_prefix_required', prefixed)
-            setattr(func, '_err_command_hidden', hidden)
-            setattr(func, '_err_command_name', name or func.__name__)
-            setattr(func, '_err_command_admin_only', admin_only)
-            setattr(func, '_err_command_historize', historize)
-            setattr(func, '_err_command_template', template)
-        return func
-
-    if len(args):
-        return decorate(args[0], **kwargs)
-    else:
-        return lambda func: decorate(func, **kwargs)
+    def decorator(func):
+        return _tag_botcmd(func,
+                           _re=True,
+                           _arg=False,
+                           hidden=hidden,
+                           name=name or func.__name__,
+                           admin_only=admin_only,
+                           historize=historize,
+                           template=template,
+                           pattern=pattern,
+                           flags=flags,
+                           matchall=matchall,
+                           prefixed=prefixed)
+    return decorator(args[0]) if args else decorator
 
 
-def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
-               historize=True, template=None, unpack_args=True, **kwargs):
+def arg_botcmd(*args,
+               hidden: bool=False,
+               name: str=None,
+               admin_only: bool=False,
+               historize: bool=True,
+               template: str=None,
+               unpack_args: bool=True,
+               **kwargs) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for argparse-based bot command functions
 
@@ -238,17 +288,15 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
                 else:
                     yield func(self, mess, *func_args, **func_kwargs)
 
-            setattr(wrapper, '_err_command', True)
-            setattr(wrapper, '_err_re_command', False)
-            setattr(wrapper, '_err_arg_command', True)
-            setattr(wrapper, '_err_command_hidden', hidden)
-            setattr(wrapper, '_err_command_name', name or wrapper.__name__)
-            setattr(wrapper, '_err_command_split_args_with', '')
-            setattr(wrapper, '_err_command_admin_only', admin_only)
-            setattr(wrapper, '_err_command_historize', historize)
-            setattr(wrapper, '_err_command_template', template)
-            setattr(wrapper, '_err_command_parser', err_command_parser)
-
+            _tag_botcmd(wrapper,
+                        _re=False,
+                        _arg=True,
+                        hidden=hidden,
+                        name=name or wrapper.__name__,
+                        admin_only=admin_only,
+                        historize=historize,
+                        template=template,
+                        command_parser=err_command_parser)
         else:
             # the function has already been wrapped
             # alias it so we can update it's arguments below
@@ -262,7 +310,19 @@ def arg_botcmd(*args, hidden=False, name=None, admin_only=False,
     return decorator
 
 
-def webhook(*args, **kwargs):
+def _tag_webhook(func, uri_rule, methods, form_param, raw):
+    log.info("webhooks:  Flag to bind %s to %s" % (uri_rule, func.__name__))
+    func._err_webhook_uri_rule = uri_rule
+    func._err_webhook_methods = methods
+    func._err_webhook_form_param = form_param
+    func._err_webhook_raw = raw
+    return func
+
+
+def webhook(*args,
+            methods: Tuple[str]=('POST', 'GET'),
+            form_param: str=None,
+            raw: bool=False) -> Callable[[BotPlugin, Any], str]:
     """
     Decorator for webhooks
 
@@ -290,16 +350,17 @@ def webhook(*args, **kwargs):
             pass
     """
 
-    def decorate(func, uri_rule, methods=('POST', 'GET'), form_param=None, raw=False):
-        log.info("webhooks:  Flag to bind %s to %s" % (uri_rule, func.__name__))
-        func._err_webhook_uri_rule = uri_rule
-        func._err_webhook_methods = methods
-        func._err_webhook_form_param = form_param
-        func._err_webhook_raw = raw
-        return func
-    if isinstance(args[0], (str, bytes)):
-        return lambda method: decorate(method, compat_str(args[0]), **kwargs)
-    return decorate(args[0], '/' + args[0].__name__ + '/', **kwargs)
+    if isinstance(args[0], (str, bytes)):  # first param is uri_rule.
+        return lambda func: _tag_webhook(func,
+                                         compat_str(args[0]).rstrip('/'),  # trailing / is also be stripped on incoming.
+                                         methods=methods,
+                                         form_param=form_param,
+                                         raw=raw)
+    return _tag_webhook(args[0],
+                        r'/' + args[0].__name__,
+                        methods=methods,
+                        form_param=form_param,
+                        raw=raw)
 
 
 def cmdfilter(*args, **kwargs):
@@ -323,7 +384,7 @@ def cmdfilter(*args, **kwargs):
     """
     def decorate(func):
         if not hasattr(func, '_err_command_filter'):  # don't override generated functions
-            setattr(func, '_err_command_filter', True)
+            func._err_command_filter = True
         return func
 
     if len(args):

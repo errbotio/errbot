@@ -107,7 +107,7 @@ class TestCommands(FullStackTest):
         self.bot.push_message('!plugin blacklist HelloWorld')
         self.assertEqual('Plugin HelloWorld is now blacklisted', self.bot.pop_message())
         self.bot.push_message('!plugin deactivate HelloWorld')
-        self.assertEqual('Plugin HelloWorld deactivated.', self.bot.pop_message())
+        self.assertEqual('HelloWorld is already deactivated.', self.bot.pop_message())
 
         self.bot.push_message('!hello')  # should not respond
         self.assertIn('Command "hello" not found', self.bot.pop_message())
@@ -115,7 +115,7 @@ class TestCommands(FullStackTest):
         self.bot.push_message('!plugin unblacklist HelloWorld')
         self.assertEqual('Plugin HelloWorld removed from blacklist', self.bot.pop_message())
         self.bot.push_message('!plugin activate HelloWorld')
-        self.assertEqual('Plugin HelloWorld activated.', self.bot.pop_message())
+        self.assertEqual('HelloWorld is already activated.', self.bot.pop_message())
 
         self.bot.push_message('!hello')  # should respond back
         self.assertEqual('Hello World !', self.bot.pop_message())
@@ -161,7 +161,7 @@ class TestCommands(FullStackTest):
     def test_webserver_webhook_test(self):
         self.bot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
         self.assertIn('Plugin configuration done.', self.bot.pop_message())
-        self.assertCommand("!webhook test /echo/ toto", 'Status code : 200')
+        self.assertCommand("!webhook test /echo toto", 'Status code : 200')
 
     def test_activate_reload_and_deactivate(self):
         for command in ('activate', 'reload', 'deactivate'):
@@ -236,7 +236,7 @@ class TestCommands(FullStackTest):
         self.assertEqual("Plugin ChatRoom is already blacklisted", self.bot.pop_message())
 
         self.bot.push_message("!status plugins")
-        self.assertIn("B,A    │ ChatRoom", self.bot.pop_message())
+        self.assertIn("B,D    │ ChatRoom", self.bot.pop_message())
 
         self.bot.push_message('!plugin unblacklist ChatRoom')
         self.assertEqual('Plugin ChatRoom removed from blacklist', self.bot.pop_message())

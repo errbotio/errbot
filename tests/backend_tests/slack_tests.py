@@ -105,3 +105,61 @@ class SlackTests(unittest.TestCase):
         assert parts[0].endswith('```')
         assert parts[1].count('```') == 2
         assert parts[1].endswith('```\n')
+
+    def test_extract_identifiers(self):
+        extract_from = self.slack.extract_identifiers_from_string
+
+        self.assertEqual(
+            extract_from("<@U12345>"),
+            (None, "U12345", None, None)
+        )
+
+        self.assertEqual(
+            extract_from("<@B12345>"),
+            (None, "B12345", None, None)
+        )
+
+        self.assertEqual(
+            extract_from("<#C12345>"),
+            (None, None, None, "C12345")
+        )
+
+        self.assertEqual(
+            extract_from("<#G12345>"),
+            (None, None, None, "G12345")
+        )
+
+        self.assertEqual(
+            extract_from("<#D12345>"),
+            (None, None, None, "D12345")
+        )
+
+        self.assertEqual(
+            extract_from("@person"),
+            ("person", None, None, None)
+        )
+
+        self.assertEqual(
+            extract_from("#general/someuser"),
+            ("someuser", None, "general", None)
+        )
+
+        self.assertEqual(
+            extract_from("#general"),
+            (None, None, "general", None)
+        )
+
+        with self.assertRaises(ValueError):
+            extract_from("")
+
+        with self.assertRaises(ValueError):
+            extract_from("general")
+
+        with self.assertRaises(ValueError):
+            extract_from("<>")
+
+        with self.assertRaises(ValueError):
+            extract_from("<C12345>")
+
+        with self.assertRaises(ValueError):
+            extract_from("<@I12345>")

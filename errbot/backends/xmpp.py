@@ -4,7 +4,7 @@ import warnings
 from threading import Thread
 from time import sleep
 
-from errbot.backends.base import Message, MUCRoom, Presence, RoomNotJoinedError
+from errbot.backends.base import Message, MUCRoom, Presence, RoomNotJoinedError, Identifier, MUCIdentifier
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from errbot.rendering import text, xhtml
@@ -34,7 +34,7 @@ except ImportError as _:
     sys.exit(-1)
 
 
-class XMPPIdentifier(object):
+class XMPPIdentifier(Identifier):
     """
     This class is the parent and the basic contract of all the ways the backends
     are identifying a person on their system.
@@ -77,15 +77,7 @@ class XMPPIdentifier(object):
     def client(self):
         return self._resource
 
-    @property
-    def stripped(self):
-        log.warning('stripped is deprecated, use .person on identifiers instead')
-        return self.person
-
-    @deprecated
-    def bare_match(self, other):
-        """ checks if 2 identifiers are equal, ignoring the resource """
-        return other.stripped == self.stripped
+    aclattr = person
 
     def __str__(self):
         answer = self._node + '@' + self._domain  # don't call .person: see below
@@ -293,7 +285,7 @@ class XMPPMUCRoom(MUCRoom):
                       .format(room, affiliation))
 
 
-class XMPPMUCOccupant(XMPPIdentifier):
+class XMPPMUCOccupant(MUCIdentifier, XMPPIdentifier):
     @property
     def person(self):
         return str(self)  # this is the full identifier.
@@ -528,7 +520,14 @@ class XMPPBackend(ErrBot):
 
     def send_message(self, mess):
         super(XMPPBackend, self).send_message(mess)
-        self.conn.client.send_message(mto=mess.to.person,
+
+        # if the message is of type groupchat, we need to strip
+        # the resource from the jid because it represents a user.
+        if mess.type == 'groupchat':
+            log.debug("This is a groupchat message, strip the resource.")
+            mess.to = XMPPIdentifier(mess.to.node, mess.to.domain, None)
+        log.debug("send_message to %s", mess.to)
+        self.conn.client.send_message(mto=str(mess.to),
                                       mbody=self.md_text.convert(mess.body),
                                       mtype=mess.type)
         # mhtml=self.md_xhtml.convert(mess.body)) This is too broken on clients.
@@ -563,8 +562,6 @@ class XMPPBackend(ErrBot):
         """Build a message for responding to another message.
         Message is NOT sent"""
         log.debug("build reply ...")
-        log.debug("mess.frm = %s" % str(mess.frm))
-        log.debug("mess.frm.person = %s" % mess.frm.person)
         msg_type = mess.type
         response = self.build_message(text)
 
@@ -574,6 +571,11 @@ class XMPPBackend(ErrBot):
             # but in case of a groupchat, we should only try to send to the MUC address
             # itself (bot@conference.domain.tld)
             response.to = self.build_identifier(mess.frm.person)
+        elif msg_type == 'chat':
+            # preserve from in case of a simple chat message.
+            # it is either a user to user or user_in_chatroom to user case.
+            # so we need resource.
+            response.to = mess.frm
         elif mess.to.person == self.bot_config.BOT_IDENTITY['username']:
             # This is a direct private message, not initiated through a MUC. Use
             # stripped to remove the resource so that the response goes to the

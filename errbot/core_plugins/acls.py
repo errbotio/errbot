@@ -29,10 +29,12 @@ class ACLS(BotPlugin):
 
         Return None, None, None if the command is blocked or deferred
         """
-        self.log.info("Check %s for ACLs." % cmd)
+        self.log.debug("Check %s for ACLs." % cmd)
 
         usr = get_acl_usr(msg)
         typ = msg.type
+
+        self.log.debug("Matching ACLs against username %s" % usr)
 
         if cmd not in self.bot_config.ACCESS_CONTROLS:
             self.bot_config.ACCESS_CONTROLS[cmd] = self.bot_config.ACCESS_CONTROLS_DEFAULT

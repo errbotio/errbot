@@ -1,4 +1,5 @@
 gbin/err
+kongluoxing/TomBot
 TheArchives/Inter
 Offbeatmammal/jsErrLog
 isagalaev/django_errorlog
@@ -270,3 +271,5 @@ alancleary/error-tolerant-real-valued-frequent-itemset-miner
 elkeschaper/Gc3pie_error_prone_workflow
 diego04/Simulator-for-Error-Correction-Detection-Encoding-Hamming-s-
 riteshnaik/Error-detection-and-correction-dealing-with-homophone-confusion
+Tian-hao/errorcorrection
+MarcusFlodihn/python-error-server

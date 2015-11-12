@@ -55,24 +55,20 @@ For Err=>2.3 you need to use : self.build_identifier("user@host.tld/resource") b
 Templating
 ----------
 
-It's possible to send `XHTML-IM
-<http://xmpp.org/extensions/xep-0071.html>`_ responses using `Jinja2
+It's possible to send `Markdown
+<http://daringfireball.net/projects/markdown/>`_ responses using `Jinja2
 <http://jinja.pocoo.org/>`_ templates.
 
 To do this, first create a directory called *templates* in the
 directory that also holds your plugin's *.plug* file.
 
-Inside this directory, you can place XHTML-IM templates (with a
-*.html* extension) that extend `base.html` and contain a block
-called `body` in place of the content you wish to show. For example
-this *hello.html*:
+Inside this directory, you can place Markdown templates (with a
+*.md* extension) in place of the content you wish to show. For 
+example this *hello.md*:
 
-.. code-block:: html
+.. code-block:: python
 
-    {% extends "base.html" %}
-    {% block body %}
-    <p style='font-weight:bold'>Hello, {{name}}!</p>
-    {% endblock %}
+    Hello, {{name}}!
 
 .. note::
     See the Jinja2 `Template Designer Documentation
@@ -81,7 +77,7 @@ this *hello.html*:
 
 Next, tell Err which template to use by specifying the `template`
 parameter to :func:`~errbot.decorators.botcmd` (leaving off the
-*.html* suffix).
+*.md* suffix).
 
 Finally, instead of returning a string, return a dictionary where
 the keys refer to the variables you're substituting inside the
@@ -110,12 +106,8 @@ like so:
         @botcmd(template="hello")
         def hello(self, msg, args):
             """Say hello to someone"""
-            response = tenv().get_template('hello.html').render(name=args)
+            response = tenv().get_template('hello.md').render(name=args)
             self.send(msg.frm, response, message_type=msg.type)
-
-.. note::
-    In both cases a plain-text version of your template is automatically
-    generated for clients and back-ends that do not support XHTML-IM.
 
 
 Trigger a callback with every message received

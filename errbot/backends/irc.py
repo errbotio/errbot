@@ -8,8 +8,7 @@ import struct
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-from errbot.backends import DeprecationBridgeIdentifier
-from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream
+from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream, Identifier, MUCIdentifier
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
 from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
@@ -76,7 +75,7 @@ def irc_md():
     return md
 
 
-class IRCIdentifier(DeprecationBridgeIdentifier):
+class IRCIdentifier(Identifier):
     # TODO(gbin): remove the deprecation warnings at one point.
 
     def __init__(self, nick, domain=None):
@@ -100,6 +99,8 @@ class IRCIdentifier(DeprecationBridgeIdentifier):
         # TODO: this should be possible to get
         return None
 
+    aclattr = person
+
     def __unicode__(self):
         return "%s!%s" % (self._nick, self._domain)
 
@@ -107,7 +108,7 @@ class IRCIdentifier(DeprecationBridgeIdentifier):
         return self.__unicode__()
 
 
-class IRCMUCOccupant(IRCIdentifier):
+class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
     def __init__(self, nick, room):
         super().__init__(nick)
         self._room = room

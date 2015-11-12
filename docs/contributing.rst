@@ -30,7 +30,7 @@ these guidelines as you open a pull request.
 Contributing documentation & making changes to the website
 ----------------------------------------------------------
 
-`errbot.net <http://www.errbot.net/>`_ is created using Sphinx_, which also doubles
+`errbot.io <http://www.errbot.io/>`_ is created using Sphinx_, which also doubles
 as a generator for our (API) documentation. The code for it is in the same repository
 as err itself, inside the docs_ folder. To make changes to the documentation or the
 website, you can build the HTML locally as follows::

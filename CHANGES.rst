@@ -253,18 +253,18 @@ New features:
 
 - Various changes to the test backend:
 
-  - `setUp <http://errbot.net/errbot.backends.test/#errbot.backends.test.FullStackTest.setUp>`_
+  - `setUp <http://errbot.io/errbot.backends.test/#errbot.backends.test.FullStackTest.setUp>`_
     method of `FullStackTest` now takes an `extra_plugin_dir` argument, deprecating the
     `extra_test_file` argument.
   - `popMessage` and `pushMessage` are now more pythonically called `pop_message` and
     `push_message`, though the old names continue to work.
-  - New `testbot <http://errbot.net/errbot.backends.test/#errbot.backends.test.testbot>`_ fixture
+  - New `testbot <http://errbot.io/errbot.backends.test/#errbot.backends.test.testbot>`_ fixture
     to write tests using `pytest <http://pytest.org/>`_.
 
 - Better display of active plugins in debug info (#262).
 - Allow optional username for IRC backend (#256).
 - *Raw* option for the webhook API.
-- `Regex-based <http://errbot.net/errbot.decorators/#errbot.decorators.re_botcmd>`_ bot commands.
+- `Regex-based <http://errbot.io/errbot.decorators/#errbot.decorators.re_botcmd>`_ bot commands.
 - Pretty-printed output of the !config command.
 
 Bugs fixed:

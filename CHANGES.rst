@@ -21,6 +21,21 @@ other:
 - Removed some dead code
 - Removed deprecated bare_send and invite_to_room bot methods
 
+v3.1.3 (2015-11-12)
+-------------------
+
+updated the version checker to errbot.io.
+
+v3.1.2 (2015-11-05)
+-------------------
+
+bugs:
+
+- XMPP: self.send on a mess.frm on XMPP was failing
+- XMPP: reply to a private message from a chatroom was failing
+- blacklist now deactivate automatically a plugin if activated
+- unblacklist new activate automatically a plugin
+
 v3.1.1 (2015-10-26)
 -------------------
 

@@ -90,7 +90,7 @@ class TestCommands(FullStackTest):
         self.assertCommand('!history', 'uptime')
 
     def test_plugin_cycle(self):
-        self.assertCommand('!repos install git://github.com/gbin/err-helloworld.git',
+        self.assertCommand('!repos install git://github.com/errbotio/err-helloworld.git',
                            'err-helloworld',
                            60)
         self.assertIn('reload', self.bot.pop_message())
@@ -128,7 +128,7 @@ class TestCommands(FullStackTest):
         self.assertIn('Command "hello" not found', self.bot.pop_message())
 
     def test_backup(self):
-        self.bot.push_message('!repos install git://github.com/gbin/err-helloworld.git')
+        self.bot.push_message('!repos install git://github.com/errbotio/err-helloworld.git')
         self.assertIn('err-helloworld', self.bot.pop_message(timeout=60))
         self.assertIn('reload', self.bot.pop_message())
         self.bot.push_message('!backup')

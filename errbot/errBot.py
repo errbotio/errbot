@@ -413,7 +413,7 @@ class ErrBot(Backend, BotPluginManager):
         if template_name:
             return tenv().get_template(template_name + '.md').render(**template_parameters)
 
-        # Reply should be all text at this point (See https://github.com/gbin/err/issues/96)
+        # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)
         return str(template_parameters)
 
     def _execute_and_send(self, cmd, args, match, mess, template_name=None):

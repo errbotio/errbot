@@ -1,4 +1,4 @@
-gbin/err
+errbotio/errbot
 kongluoxing/TomBot
 TheArchives/Inter
 Offbeatmammal/jsErrLog
@@ -80,7 +80,7 @@ yunojuno/python-errordite
 yllar/plugin.video.err.ee
 wchnicholas/NGSTagErrCorrect
 manoharan-lab/flyvbjerg-std-err
-gbin/err-plugins-tester
+errbotio/errbot-plugins-tester
 andreskaasik/plugin.video.err
 ianzapolsky/art_err_day
 willyrv/msmc-phasing-err

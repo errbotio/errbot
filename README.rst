@@ -22,7 +22,7 @@
 |
 
 .. image:: http://gbin.github.io/err/_static/err_speech.png
-   :target: http://errbot.net
+   :target: http://errbot.io
 
 
 Err
@@ -221,4 +221,4 @@ to create a "Hello, world!" plugin for Err::
 
 This plugin will create the command "!hello" which, when issued, returns "Hello, world!"
 to you. For more info on everything you can do with plugins, see the
-`plugin development guide <http://errbot.net/user_guide/plugin_development/>`_.
+`plugin development guide <http://errbot.io/user_guide/plugin_development/>`_.

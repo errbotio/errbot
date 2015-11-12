@@ -7,7 +7,7 @@ SPHINXBUILD   = sphinx-build
 SPHINXAPIDOC  = sphinx-apidoc
 PAPER         =
 BUILDDIR      = _build
-PAGESURL      = git@github.com:gbin/err.git
+PAGESURL      = git@github.com:gbin/errbot.git
 PAGESDIR      = _gh-pages
 EXTRADIR      = _extra
 

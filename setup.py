@@ -113,13 +113,13 @@ if __name__ == "__main__":
             '': ['*.txt', '*.rst', '*.plug', '*.md'],
         },
 
-        author="Guillaume BINET",
-        author_email="gbin@gootz.net",
-        description="Err is a chatbot designed to be simple to extend with plugins written in Python.",
+        author="errbot.io",
+        author_email="info@errbot.io",
+        description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description=''.join([read('README.rst'), '\n\n', changes]),
         license="GPL",
         keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
-        url="http://errbot.net/",
+        url="http://errbot.io/",
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Topic :: Communications :: Chat",

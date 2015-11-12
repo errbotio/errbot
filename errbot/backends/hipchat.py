@@ -381,6 +381,7 @@ class HipchatBackend(XMPPBackend):
             ca_cert=self.ca_cert,
             token=self.api_token,
             endpoint=self.api_endpoint,
+            server=self.server
         )
 
     @property

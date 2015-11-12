@@ -10,9 +10,9 @@ Currently, the following networks are supported:
   * IRC
   * Slack_
   * Telegram_
-  * Tox_ (maintained `separately <https://github.com/gbin/err-backend-tox>`__)
-  * Gitter_ (maintained `separately <https://github.com/gbin/err-backend-gitter>`__)
-  * CampFire_ (maintained `separately <https://github.com/gbin/err-backend-campfire>`__)
+  * Tox_ (maintained `separately <https://github.com/errbotio/err-backend-tox>`__)
+  * Gitter_ (maintained `separately <https://github.com/errbotio/err-backend-gitter>`__)
+  * CampFire_ (maintained `separately <https://github.com/errbotio/err-backend-campfire>`__)
 
 Core features
 ^^^^^^^^^^^^^
@@ -65,4 +65,4 @@ Extensive plugin framework
 .. _sleekxmpp: http://sleekxmpp.com/
 .. _irc: https://pypi.python.org/pypi/irc/
 .. _six: https://pypi.python.org/pypi/six/
-.. _`logged to Sentry`: https://github.com/gbin/err/wiki/Logging-with-Sentry
+.. _`logged to Sentry`: https://github.com/errbotio/errbot/wiki/Logging-with-Sentry

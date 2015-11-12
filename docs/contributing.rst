@@ -70,12 +70,12 @@ Getting help
 
 For general help with Err, we'd prefer you post in our `Google Plus community`_.
 
-.. _GitHub: https://github.com/gbin/err
-.. _fork: https://github.com/gbin/err/fork
+.. _GitHub: https://github.com/errbotio/errbot
+.. _fork: https://github.com/errbotio/errbot/fork
 .. _`pull request`: https://help.github.com/articles/using-pull-requests
 .. _branch: http://git-scm.com/book/en/Git-Branching
 .. _Sphinx: http://sphinx-doc.org/
-.. _docs: https://github.com/gbin/err/tree/master/docs/
-.. _repos.py: https://github.com/gbin/err/blob/master/errbot/repos.py
-.. _`issue tracker`: https://github.com/gbin/err/issues/
+.. _docs: https://github.com/errbotio/errbot/tree/master/docs/
+.. _repos.py: https://github.com/errbotio/errbot/blob/master/errbot/repos.py
+.. _`issue tracker`: https://github.com/errbotio/errbot/issues/
 .. _`Google Plus community`: https://plus.google.com/communities/117050256560830486288

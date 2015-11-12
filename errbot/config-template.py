@@ -32,13 +32,13 @@ import logging
 # 'Graphic'  - in a GUI window
 
 # Commercial backends:
-# 'Campfire' - see https://campfirenow.com/ (follow instructions from https://github.com/gbin/err-backend-campfire)
+# 'Campfire' - see https://campfirenow.com/ (follow instructions from https://github.com/errbotio/err-backend-campfire)
 # 'Hipchat'  - see https://www.hipchat.com/
 # 'Slack'    - see https://slack.com/
-# 'Gitter'   - see https://gitter.im/ (follow instructions from https://github.com/gbin/err-backend-gitter)
+# 'Gitter'   - see https://gitter.im/ (follow instructions from https://github.com/errbotio/err-backend-gitter)
 
 # Open protocols:
-# 'TOX'      - see https://tox.im/ (follow instructions from https://github.com/gbin/err-backend-tox)
+# 'TOX'      - see https://tox.im/ (follow instructions from https://github.com/errbotio/err-backend-tox)
 # 'IRC'      - for classic IRC or bridged services like https://gitter.im
 # 'XMPP'     - the Extensible Messaging and Presence Protocol (https://xmpp.org/)
 # 'Telegram' - cloud-based mobile and desktop messaging app with a focus

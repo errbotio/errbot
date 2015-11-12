@@ -3,35 +3,35 @@
 
 KNOWN_PUBLIC_REPOS = {
     'err-timemachine': (
-        'https://github.com/gbin/err-timemachine.git',
+        'https://github.com/errbotio/err-timemachine.git',
         'Log, index and search in message history'
     ),
     'err-gitbot': (
-        'https://github.com/gbin/err-gitbot.git',
+        'https://github.com/errbotio/err-gitbot.git',
         'a plugin that watchs your git repositories and shout in chatroom the last commits'
     ),
     'err-dictbot': (
-        'https://github.com/gbin/err-dictbot.git',
+        'https://github.com/errbotio/err-dictbot.git',
         'a plugin that gives you the definition of a word'
     ),
     'err-pollbot': (
-        'https://github.com/gbin/err-pollbot.git',
+        'https://github.com/errbotio/err-pollbot.git',
         'a voting plugin'
     ),
     'err-imagebot': (
-        'https://github.com/gbin/err-imagebot.git',
+        'https://github.com/errbotio/err-imagebot.git',
         'query google image, stockphotos, xkcd, dilbert, posters ... '
     ),
     'err-stalkerbot': (
-        'https://github.com/gbin/err-stalkerbot.git',
+        'https://github.com/errbotio/err-stalkerbot.git',
         'a bot that tell you the last time he saw somebody'
     ),
     'err-codebot': (
-        'https://github.com/gbin/err-codebot.git',
+        'https://github.com/errbotio/err-codebot.git',
         'can make the bot execute code snippet in C, CPP and Python'
     ),
     'err-tv': (
-        'https://github.com/gbin/err-tv.git',
+        'https://github.com/errbotio/err-tv.git',
         'a plugin that gives you all you need to know about your favorite tv show, next airdate, status etc ...'
     ),
     'err-weatherbot': (
@@ -39,27 +39,27 @@ KNOWN_PUBLIC_REPOS = {
         'query the local weather'
     ),
     'err-coderwall': (
-        'https://github.com/gbin/err-coderwall.git',
+        'https://github.com/errbotio/err-coderwall.git',
         'query users on coderwall'
     ),
     'err-nettools': (
-        'https://github.com/gbin/err-nettools.git',
+        'https://github.com/errbotio/err-nettools.git',
         'various network query utilities'
     ),
     'err-time': (
-        'https://github.com/gbin/err-time.git',
+        'https://github.com/errbotio/err-time.git',
         'gives the current time at a given place'
     ),
     'err-elizabot': (
-        'https://github.com/gbin/err-elizabot.git',
+        'https://github.com/errbotio/err-elizabot.git',
         'a classic electronic shrink'
     ),
     'err-calcbot': (
-        'https://github.com/gbin/err-calcbot.git',
+        'https://github.com/errbotio/err-calcbot.git',
         'a smart calculator, unit converter and math solver'
     ),
     'err-pypi': (
-        'https://github.com/gbin/err-pypi.git',
+        'https://github.com/errbotio/err-pypi.git',
         'some commands to query pypi'
     ),
     'err-reviewboard': (
@@ -75,11 +75,11 @@ KNOWN_PUBLIC_REPOS = {
         'An Err chatbot serving up Die Hard lines during the time of miracles..'
     ),
     'err-devops_borat': (
-        'https://github.com/gbin/err-devops_borat.git',
+        'https://github.com/errbotio/err-devops_borat.git',
         'random funny quotes about software development'
     ),
     'err-social': (
-        'https://github.com/gbin/err-social.git',
+        'https://github.com/errbotio/err-social.git',
         'For the moment a Google plus bridge'
     ),
     'err-rssfeed': (
@@ -91,7 +91,7 @@ KNOWN_PUBLIC_REPOS = {
         'Google Translate plugin for the err bot'
     ),
     'err-tourney': (
-        'https://github.com/gbin/err-tourney.git',
+        'https://github.com/errbotio/err-tourney.git',
         'a ranking and tournament system for err'
     ),
     'err-music': (
@@ -119,7 +119,7 @@ KNOWN_PUBLIC_REPOS = {
         'Output a random line of Goethe\'s "Faust" in sentence context (in German).'
     ),
     'err-sedbot': (
-        'https://github.com/gbin/err-sedbot.git',
+        'https://github.com/errbotio/err-sedbot.git',
         'errbot plugin for executing simple sed substitute commands'
     ),
     'err-dnsnative': (

@@ -14,6 +14,7 @@ bugs:
 - Slack ACLs now properly check against usernames starting with `@`
 - Slack identifiers can now be built from a bare `#channel` string (without a username part)
 - Slack identifiers can now be built from a `<#C12345>` or `<@username>` string (the webclient formats them like this automatically when chatting with the bot)
+- HipChat backend now respects the `server` option under `BOT_IDENTITY` (`#544 <https://github.com/errbotio/errbot/pull/544/>`_)
 
 other:
 

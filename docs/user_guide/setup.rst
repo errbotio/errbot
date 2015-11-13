@@ -19,7 +19,7 @@ Err may be installed directly from PyPi using `pip` (`easy_install` works too) b
 
 Or if you wish to try out the latest, bleeding edge version::
 
-    pip install https://github.com/gbin/err/archive/master.zip
+    pip install https://github.com/errbotio/errbot/archive/master.zip
 
 However, in these cases, installing into a dedicated `virtualenv`_ is recommended.
 

@@ -15,13 +15,13 @@
    :alt: License
 
 .. image:: https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg
-   :target: https://gitter.im/errbotio/errbot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge 
+   :target: https://gitter.im/errbotio/errbot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
    :alt: Join the chat at https://gitter.im/errbotio/errbot
 
 |
 |
 
-.. image:: http://gbin.github.io/err/_static/err_speech.png
+.. image:: http://errbot.io/_static/err.png
    :target: http://errbot.io
 
 

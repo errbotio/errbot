@@ -5,11 +5,11 @@ features:
 
 - Official support for Python 3.5
 - Added send_templated() to the BotPlugin class
-- Various improvements to the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
+- Various improvements to the ``@arg_botcmd`` decorator (`#516 <https://github.com/errbotio/errbot/pull/516>`_)
 
 bugs:
 
-- Fixed various bugs with the ``@arg_botcmd`` decorator (`#516 <https://github.com/gbin/err/pull/516>`_)
+- Fixed various bugs with the ``@arg_botcmd`` decorator (`#516 <https://github.com/errbotio/errbot/pull/516>`_)
 - Fixed warn_admins() on Telegram
 - Slack ACLs now properly check against usernames starting with `@`
 - Slack identifiers can now be built from a bare `#channel` string (without a username part)
@@ -102,25 +102,25 @@ We have decided to promote this release as the v3 \\o/.
 
 This document includes all the changes since the last stable version (2.2.0).
 
-If you have any difficulty using this new release, feel free to jump into our `dev room on gitter <https://gitter.im/gbin/err>`_.
+If you have any difficulty using this new release, feel free to jump into our `dev room on gitter <https://gitter.im/errbotio/errbot>`_.
 
 New and noteworthy
 ~~~~~~~~~~~~~~~~~~
 
 - backends are now plugins too
-- new Slack backend (see the `config template <https://github.com/gbin/err/blob/master/errbot/config-template.py#L118>`_ for details)
+- new Slack backend (see the `config template <https://github.com/errbotio/errbot/blob/master/errbot/config-template.py#L118>`_ for details)
 - new Telegram backend
-- new Gitter backend (see `the gitter backend repo <http://www.github.com/gbin/err-backend-gitter>`_ for more info about installing it)
+- new Gitter backend (see `the gitter backend repo <http://www.github.com/errbotio/err-backend-gitter>`_ for more info about installing it)
 - completely new rendering engine: now all text from either a plugin return or a template is **markdown extras**
 - you can test the various formatting under your backend with the ``!render test`` command.
 - the text backend exposes the original md, its html representation and ansi representation so plugin developers can anticipate what the rendering will look like under various backends
 See the screenshots below: Slack_, Hipchat_, IRC_, Gitter_ and finally Text_.
 
 - completely revamped backup/restore feature (see ``!help backup``).
-- Identifiers are now generic (and not tight to XMPP anymore) with common notions of ``.person`` ``.room`` (for MUCIdentifiers) ``.client`` ``.nick`` and ``.displayname`` see `this doc <https://github.com/gbin/err/blob/master/docs/user_guide/backend_development/index.rst#identifiers>`_ for details.
+- Identifiers are now generic (and not tight to XMPP anymore) with common notions of ``.person`` ``.room`` (for MUCIdentifiers) ``.client`` ``.nick`` and ``.displayname`` see `this doc <https://github.com/errbotio/errbot/blob/master/docs/user_guide/backend_development/index.rst#identifiers>`_ for details.
 - New ``!whoami`` command to debug identity problems for your plugins.
 - New ``!killbot`` command to stop your bot remotely in case of emergency.
-- New support for `argparse style command arguments <https://github.com/gbin/err/blob/master/docs/user_guide/plugin_development/botcommands.rst#argparse-argument-splitting>`_ with the ``@arg_botcmd`` decorator.
+- New support for `argparse style command arguments <https://github.com/errbotio/errbot/blob/master/docs/user_guide/plugin_development/botcommands.rst#argparse-argument-splitting>`_ with the ``@arg_botcmd`` decorator.
 - IRC: file transfer from the bot is now supported (DCC)
 
 Minor improvements
@@ -139,7 +139,7 @@ Stuff that might break you
 - XMPP properties ``.node``, ``.domain`` and ``.resource`` on identifiers are deprecated, a backward compatibility layer has been added but we highly encourage you to not rely on those but use the generic ones from now on: ``.person``, ``.client`` and for MUCOccupants ``.room`` on top of ``.person`` and ``.client``.
 - To create identifiers from a string (i.e. if you don't get it from the bot itself) you now have to use ``build_identifier(string)`` to make the backend parse it
 - command line parameter -c needs to be the full path of your config file, it allows us to have different set of configs to test the bot.
-- campfire and TOX backends are now external plugins: see `the tox backend repo <http://www.github.com/gbin/err-backend-tox>`_ and `the campfire backend repo <http://www.github.com/gbin/err-backend-campfire>`_ for more info about installing them.
+- campfire and TOX backends are now external plugins: see `the tox backend repo <http://www.github.com/errbotio/err-backend-tox>`_ and `the campfire backend repo <http://www.github.com/errbotio/err-backend-campfire>`_ for more info about installing them.
 - any output from plugin is now considered markdown, it might break some of your output if you had any markup characters (\#, \-, \* ...).
 - we removed the gtalk support as it is going away.
 
@@ -471,7 +471,7 @@ v1.6.5 (2012-09-10)
 
 Bugs:
 
-- https://github.com/gbin/err/issues/59 [Thx to https://github.com/bubba-h57 & https://github.com/zoni for helping to diagnose it]
+- https://github.com/errbotio/errbot/issues/59 [Thx to https://github.com/bubba-h57 & https://github.com/zoni for helping to diagnose it]
 
 Features:
 
@@ -550,9 +550,9 @@ Bugs:
 
 Features:
 
-- Added support for CampFire (see: https://github.com/gbin/err/wiki/Setup-with-CampFire)
-- Added support for Hipchat API with basic html messages (https://github.com/gbin/err/wiki/Setup-with-Hipchat)
-- Added support for webhooks (see: https://github.com/gbin/err/wiki/webhooks)
+- Added support for CampFire
+- Added support for Hipchat API with basic html messages
+- Added support for webhooks
 - Independent backends can be implemented
 - In order to simplify : now botcmd and BotPlugin are both imported from errbot (we left a big fat warning for the old deprecated spot, they will be removed in next release)
 - Better status report from !status (including Errors and non-configured plugins)
@@ -574,7 +574,7 @@ Bugs:
 
 Features:
 
-- Added XHTML-IM support with Jinja2 templating see https://github.com/gbin/err/wiki/xhtml-im-templating to get started.
+- Added XHTML-IM support with Jinja2 templating
 - Better presentation on the !repos command
 - load / unload of plugins is now persistent (they are blacklisted when unloaded)
 - Better presentation of the !status command : Now you can see loaded, blacklisted and Erroneous plugins from there
@@ -675,7 +675,7 @@ Bugs:
 
 Features:
 
-- Added a split_args_with to the botcmd decorator to ease the burden of parsing args on the plugin side (see https://github.com/gbin/err/wiki/plugin-dev)
+- Added a split_args_with to the botcmd decorator to ease the burden of parsing args on the plugin side
 - Added the pid, uid, gid parameters to the daemon group to be able to package it on linux distributions
 
 

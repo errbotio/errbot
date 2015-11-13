@@ -714,3 +714,5 @@ Features:
 v1.0.4 (2012-06-08)
 -------------------
 - First real release, fixups for Pypi compliance.
+
+.. v9.9.9 (leave that there so master doesn't complain)

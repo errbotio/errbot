@@ -15,20 +15,23 @@ class VersionChecker(BotPlugin):
     max_err_version = VERSION
 
     connected = False
-    actived = False
+    activated = False
 
     def activate(self):
-        self.actived = True
-        self.version_check()  # once at startup anyway
-        self.start_poller(3600 * 24, self.version_check)  # once every 24H
-        super(VersionChecker, self).activate()
+        if self.mode not in ('null', 'test', 'Dummy'):  # skip in all test confs.
+            self.activated = True
+            self.version_check()  # once at startup anyway
+            self.start_poller(3600 * 24, self.version_check)  # once every 24H
+            super(VersionChecker, self).activate()
+        else:
+            self.log.info('Skip version checking under %s mode' % self.mode)
 
     def deactivate(self):
-        self.actived = False
+        self.activated = False
         super(VersionChecker, self).deactivate()
 
     def version_check(self):
-        if not self.actived:
+        if not self.activated:
             self.log.debug('Version check disabled')
             return
         self.log.debug('Checking version')

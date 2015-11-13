@@ -6,9 +6,9 @@
     <script type="text/javascript">
         // GitHub pages offers no way to redirect to a canonical location, so we
         // have to make do with hacky javascript redirection :(
-        if (document.location.protocol != "file:" && document.location.host != "errbot.net") {
+        if (document.location.protocol != "file:" && document.location.host != "errbot.io") {
             var path = document.location.pathname.replace('/err/', '/');
-            document.location = "http://errbot.net" + path;
+            document.location = "http://errbot.io" + path;
         }
     </script>
     <link rel="icon" type="image/png" href="{{ pathto('_static/err.png', 1) }}"/>

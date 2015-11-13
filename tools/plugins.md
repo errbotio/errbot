@@ -1,4 +1,4 @@
-If you are looking for errbot documentation, it is there: [errbot.net](http://errbot.net/).
+If you are looking for errbot documentation, it is there: [errbot.io](http://errbot.io/).
 
 ### All errbot plugins found from github
 

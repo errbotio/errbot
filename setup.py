@@ -28,10 +28,10 @@ PY35_OR_GREATER = py_version[:2] >= (3, 5)
 ON_WINDOWS = system() == 'Windows'
 
 if py_version < (2, 7):
-    raise RuntimeError('Err requires Python 2.7 or later')
+    raise RuntimeError('Errbot requires Python 2.7 or later')
 
 if PY3 and py_version < (3, 3):
-    raise RuntimeError('On Python 3, Err requires Python 3.3 or later')
+    raise RuntimeError('On Python 3, Errbot requires Python 3.3 or later')
 
 deps = ['webtest',
         'setuptools',
@@ -119,13 +119,13 @@ if __name__ == "__main__":
             '': ['*.txt', '*.rst', '*.plug', '*.md'],
         },
 
-        author="Guillaume BINET",
-        author_email="gbin@gootz.net",
-        description="Err is a chatbot designed to be simple to extend with plugins written in Python.",
+        author="Guillaume Binet",
+        author_email="info@errbot.io",
+        description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description=''.join([read('README.rst'), '\n\n', changes]),
         license="GPL",
         keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
-        url="http://errbot.net/",
+        url="http://errbot.io/",
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Topic :: Communications :: Chat",
@@ -138,6 +138,7 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.3",
             "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
         ],
         src_root=src_root,
         platforms='any',

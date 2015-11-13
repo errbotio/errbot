@@ -9,7 +9,7 @@ from threading import Thread
 import pytest
 
 from errbot.rendering import text
-from errbot.backends.base import Message, MUCRoom, Identifier, MUCIdentifier
+from errbot.backends.base import Message, MUCRoom, Identifier, MUCIdentifier, ONLINE
 from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import setup_bot
@@ -204,6 +204,9 @@ class TestMUCRoom(MUCRoom):
 
 
 class TestBackend(ErrBot):
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+        pass
+
     def __init__(self, config):
         config.BOT_LOG_LEVEL = logging.DEBUG
         config.CHATROOM_PRESENCE = ('testroom',)  # we are testing with simple identfiers

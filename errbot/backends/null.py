@@ -1,5 +1,6 @@
 import logging
 from time import sleep
+from errbot.backends.base import ONLINE
 
 from errbot.backends.test import TestIdentifier
 from errbot.errBot import ErrBot
@@ -57,6 +58,9 @@ class NullBackend(ErrBot):
         if self.running:
             self.running = False
             super(NullBackend, self).shutdown()  # only once (hackish)
+
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+        pass
 
     @property
     def mode(self):

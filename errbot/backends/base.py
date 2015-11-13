@@ -3,7 +3,7 @@ import logging
 import random
 import time
 from typing import Any, Mapping, BinaryIO, List, Union, Sequence
-from abc import abstractproperty
+from abc import abstractproperty, abstractmethod
 from collections import deque, defaultdict
 
 try:
@@ -551,7 +551,7 @@ class Stream(io.BufferedReader):
         self._transfered = length
 
 
-class Backend(object):
+class Backend(ABC):
     """
     Implements the basic Bot logic (logic independent from the backend) and leaves
     you to implement the missing parts.
@@ -573,35 +573,36 @@ class Backend(object):
         self._reconnection_multiplier = 1.75  # Delay multiplier
         self._reconnection_jitter = (0, 3)    # Random jitter added to delay (min, max)
 
+    @abstractmethod
     def send_message(self, mess: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
+    @abstractmethod
+    def change_presence(self, status: str=ONLINE, message: str='') -> None:
+        """Signal a presence change for the bot. Should be overridden by backends with a super().send_message() call."""
+
+    @abstractmethod
     def build_reply(self, mess: Message, text: str=None, private: bool=False):
         """ Should be implemented by the backend """
-        raise NotImplementedError("build_reply should be implemented by the backend %s" % self.__class__)
 
+    @abstractmethod
     def callback_presence(self, presence: Presence) -> None:
-        """
-           Implemented by errBot.
-        """
+        """ Implemented by errBot. """
         pass
 
+    @abstractmethod
     def callback_room_joined(self, room: MUCRoom) -> None:
-        """
-            See :class:`~errbot.errBot.ErrBot`
-        """
+        """ See :class:`~errbot.errBot.ErrBot` """
         pass
 
+    @abstractmethod
     def callback_room_left(self, room: MUCRoom) -> None:
-        """
-            See :class:`~errbot.errBot.ErrBot`
-        """
+        """ See :class:`~errbot.errBot.ErrBot` """
         pass
 
+    @abstractmethod
     def callback_room_topic(self, room: MUCRoom) -> None:
-        """
-            See :class:`~errbot.errBot.ErrBot`
-        """
+        """ See :class:`~errbot.errBot.ErrBot` """
         pass
 
     def serve_forever(self) -> None:
@@ -661,15 +662,16 @@ class Backend(object):
 
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
 
+    @abstractmethod
     def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
         """ Patches message with the conventional prefix to ping the specific contact
         For example:
         @gbin, you forgot the milk !
         """
-        raise NotImplementedError("It should be implemented specifically for your backend")
 
+    @abstractmethod
     def build_identifier(self, text_representation: str) -> Union[Identifier, MUCIdentifier]:
-        raise NotImplementedError("It should be implemented specifically for your backend")
+        pass
 
     def serve_once(self) -> None:
         """
@@ -687,10 +689,9 @@ class Backend(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     def connect(self) -> Any:
-        """Connects the bot to server or returns current connection
-        """
-        raise NotImplementedError("It should be implemented specifically for your backend")
+        """Connects the bot to server or returns current connection """
 
+    @abstractmethod
     def query_room(self, room: str) -> MUCRoom:
         """
         Query a room for information.
@@ -700,21 +701,23 @@ class Backend(object):
         :returns:
             An instance of :class:`~MUCRoom`.
         """
-        raise NotImplementedError("It should be implemented specifically for your backend")
 
     def shutdown(self) -> None:
         pass
 
+    @abstractmethod
     def connect_callback(self) -> None:
         pass
 
+    @abstractmethod
     def disconnect_callback(self) -> None:
         pass
 
-    @property
+    @abstractproperty
     def mode(self) -> str:
-        raise NotImplementedError("It should be implemented specifically for your backend")
+        pass
 
+    @abstractproperty
     def rooms(self) -> Sequence[MUCRoom]:
         """
         Return a list of rooms the bot is currently in.
@@ -722,4 +725,3 @@ class Backend(object):
         :returns:
             A list of :class:`~errbot.backends.base.MUCRoom` instances.
         """
-        raise NotImplementedError("It should be implemented specifically for your backend")

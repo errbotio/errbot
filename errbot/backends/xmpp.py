@@ -532,6 +532,10 @@ class XMPPBackend(ErrBot):
                                       mtype=mess.type)
         # mhtml=self.md_xhtml.convert(mess.body)) This is too broken on clients.
 
+    def change_presence(self, status: str=ONLINE, message: str='') -> None:
+        log.debug("Change bot status to %s, message %s" % (status, message))
+        self.conn.client.send_presence(pshow=status, pstatus=message)
+
     def serve_forever(self):
         self.conn.connect()
 

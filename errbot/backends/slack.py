@@ -446,6 +446,9 @@ class SlackBackend(ErrBot):
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
 
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+        self.api_call('users.setPresence', data={'presence': 'auto' if status == ONLINE else 'away'})
+
     @staticmethod
     def prepare_message_body(body, size_limit):
         """

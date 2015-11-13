@@ -37,7 +37,7 @@ with directly on the command-line. It looks like this::
     Talk to  me >> _
 
 If you have `PySide <https://pypi.python.org/pypi/PySide>`_
-installed, you can also run this same mode in a seperate window
+installed, you can also run this same mode in a separate window
 using :option:`--graphic` (or :option:`-G`) instead of
 :option:`--text`. The advantage of this is that you do not have the
 bot's responses and log information mixed up together in the same

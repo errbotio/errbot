@@ -48,7 +48,7 @@ Extensive plugin framework
 * As well as a polling framework for plugins
 * An easy configuration framework
 * A test backend for unittests for plugins which can make assertions about issued commands and their responses
-* And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make seperate text and HTML versions of your command output yourself
+* And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make separate text and HTML versions of your command output yourself
 
 
 .. _Hipchat: https://www.hipchat.com/

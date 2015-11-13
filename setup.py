@@ -103,7 +103,7 @@ if __name__ == "__main__":
         convert_to_python2()
 
     setup(
-        name="err",
+        name="errbot",
         version=VERSION,
         packages=find_packages(src_root, exclude=['tests', 'tools']),
         entry_points={
@@ -119,7 +119,7 @@ if __name__ == "__main__":
             '': ['*.txt', '*.rst', '*.plug', '*.md'],
         },
 
-        author="Guillaume Binet",
+        author="errbot.io",
         author_email="info@errbot.io",
         description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description=''.join([read('README.rst'), '\n\n', changes]),

@@ -1,6 +1,6 @@
 
-.. image:: https://img.shields.io/travis/gbin/err/master.svg
-   :target: https://travis-ci.org/gbin/err/
+.. image:: https://img.shields.io/travis/errbotio/errbot/master.svg
+   :target: https://travis-ci.org/errbotio/errbot/
 
 .. image:: https://img.shields.io/pypi/v/err.svg
    :target: https://pypi.python.org/pypi/err
@@ -10,13 +10,13 @@
    :target: https://pypi.python.org/pypi/err
    :alt: Downloads
 
-.. image:: https://img.shields.io/github/license/gbin/err.svg
+.. image:: https://img.shields.io/github/license/errbotio/errbot.svg
    :target: https://pypi.python.org/pypi/err
    :alt: License
 
 .. image:: https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg
-   :target: https://gitter.im/gbin/err?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge 
-   :alt: Join the chat at https://gitter.im/gbin/err
+   :target: https://gitter.im/errbotio/errbot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge 
+   :alt: Join the chat at https://gitter.im/errbotio/errbot
 
 |
 |

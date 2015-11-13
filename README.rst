@@ -10,7 +10,7 @@
    :target: https://pypi.python.org/pypi/err
    :alt: Downloads
 
-.. image:: https://img.shields.io/github/license/errbotio/errbot.svg
+.. image:: https://img.shields.io/badge/License-GPLv3-green.svg
    :target: https://pypi.python.org/pypi/err
    :alt: License
 

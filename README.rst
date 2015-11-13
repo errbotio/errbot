@@ -1,6 +1,6 @@
 
-.. image:: https://img.shields.io/travis/gbin/err/master.svg
-   :target: https://travis-ci.org/gbin/err/
+.. image:: https://img.shields.io/travis/errbotio/errbot/master.svg
+   :target: https://travis-ci.org/errbotio/errbot/
 
 .. image:: https://img.shields.io/pypi/v/err.svg
    :target: https://pypi.python.org/pypi/err
@@ -10,19 +10,19 @@
    :target: https://pypi.python.org/pypi/err
    :alt: Downloads
 
-.. image:: https://img.shields.io/github/license/gbin/err.svg
+.. image:: https://img.shields.io/github/license/errbotio/errbot.svg
    :target: https://pypi.python.org/pypi/err
    :alt: License
 
 .. image:: https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg
-   :target: https://gitter.im/gbin/err?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge 
-   :alt: Join the chat at https://gitter.im/gbin/err
+   :target: https://gitter.im/errbotio/errbot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge 
+   :alt: Join the chat at https://gitter.im/errbotio/errbot
 
 |
 |
 
 .. image:: http://gbin.github.io/err/_static/err_speech.png
-   :target: http://errbot.net
+   :target: http://errbot.io
 
 
 Err
@@ -229,4 +229,4 @@ to create a "Hello, world!" plugin for Err::
 
 This plugin will create the command "!hello" which, when issued, returns "Hello, world!"
 to you. For more info on everything you can do with plugins, see the
-`plugin development guide <http://errbot.net/user_guide/plugin_development/>`_.
+`plugin development guide <http://errbot.io/user_guide/plugin_development/>`_.

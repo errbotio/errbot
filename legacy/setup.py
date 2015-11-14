@@ -8,7 +8,7 @@ setup(
     author="errbot.io",
     author_email="info@errbot.io",
     description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
-    long_description='LEGACY: please install the package called "errbot" instead.',
+    long_description='LEGACY: please install the package called "errbot" instead. https://pypi.python.org/pypi/errbot',
     license="GPL",
     keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
     url="http://errbot.io/",

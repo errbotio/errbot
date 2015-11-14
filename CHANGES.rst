@@ -1,11 +1,15 @@
-v3.2.0 (unreleased)
--------------------
+v3.2.0
+------
 
 features:
 
 - Official support for Python 3.5
-- Added send_templated() to the BotPlugin class
+- The API surface is now type hinted (https://www.python.org/dev/peps/pep-0484/) and base classes are tagged Abstract.
+- Added send_templated() to the BotPlugin class to be able to use send() with a template
 - Various improvements to the ``@arg_botcmd`` decorator (`#516 <https://github.com/errbotio/errbot/pull/516>`_)
+- Now the bot can set its own status/presence with change_presence
+- Non-standard hipchat server (thx Barak Schiller)
+
 
 bugs:
 
@@ -18,8 +22,11 @@ bugs:
 
 other:
 
+- various internal improvements and refactoring
 - Removed some dead code
 - Removed deprecated bare_send and invite_to_room bot methods
+- Doc improvements (thx Anita Woodruff)
+
 
 v3.1.3 (2015-11-12)
 -------------------

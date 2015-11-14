@@ -7,7 +7,7 @@
 nohup.out
 /build
 /dist
-/err.egg-info*
+/errbot.egg-info*
 /config-*.egg
 /config*.py
 /docs/_build

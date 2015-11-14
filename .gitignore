@@ -28,3 +28,8 @@ nohup.out
 
 # OS X
 .DS_Store
+
+# legacy stuff
+legacy/dist/
+legacy/err.egg-info/
+

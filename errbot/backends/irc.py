@@ -296,9 +296,9 @@ class IRCConnection(SingleServerIRCBot):
             connection_factory_kwargs['bind_address'] = self.bind_address
         if self.use_ipv6:
             connection_factory_kwargs['ipv6'] = True
-            
+
         connection_factory = irc.connection.Factory(**connection_factory_kwargs)
-        
+
         self.connection.connect(*args, connect_factory=connection_factory, **kwargs)
 
     def on_welcome(self, _, e):

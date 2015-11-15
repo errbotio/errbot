@@ -259,6 +259,8 @@ class IRCConnection(SingleServerIRCBot):
                  server,
                  port=6667,
                  ssl=False,
+                 bind_address=None,
+                 ipv6=False,
                  password=None,
                  username=None,
                  nickserv_password=None,
@@ -267,6 +269,8 @@ class IRCConnection(SingleServerIRCBot):
                  reconnect_on_kick=5,
                  reconnect_on_disconnect=5):
         self.use_ssl = ssl
+        self.use_ipv6 = ipv6
+        self.bind_address = bind_address
         self.callback = callback
         # manually decorate functions
         if private_rate:
@@ -284,12 +288,18 @@ class IRCConnection(SingleServerIRCBot):
         super().__init__([(server, port, password)], nickname, username, reconnection_interval=reconnect_on_disconnect)
 
     def connect(self, *args, **kwargs):
+        connection_factory_kwargs = {}
         if self.use_ssl:
             import ssl
-            ssl_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
-            self.connection.connect(*args, connect_factory=ssl_factory, **kwargs)
-        else:
-            self.connection.connect(*args, **kwargs)
+            connection_factory_kwargs['wrapper'] = ssl.wrap_socket
+        if self.bind_address is not None:
+            connection_factory_kwargs['bind_address'] = self.bind_address
+        if self.use_ipv6:
+            connection_factory_kwargs['ipv6'] = True
+            
+        connection_factory = irc.connection.Factory(**connection_factory_kwargs)
+        
+        self.connection.connect(*args, connect_factory=connection_factory, **kwargs)
 
     def on_welcome(self, _, e):
         log.info("IRC welcome %s" % e)
@@ -418,6 +428,8 @@ class IRCBackend(ErrBot):
         port = identity.get('port', 6667)
         password = identity.get('password', None)
         ssl = identity.get('ssl', False)
+        bind_address = identity.get('bind_address', None)
+        ipv6 = identity.get('ipv6', False)
         username = identity.get('username', None)
         nickserv_password = identity.get('nickserv_password', None)
 
@@ -436,6 +448,8 @@ class IRCBackend(ErrBot):
                                   server,
                                   port,
                                   ssl,
+                                  bind_address,
+                                  ipv6,
                                   password,
                                   username,
                                   nickserv_password,

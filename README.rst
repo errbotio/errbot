@@ -42,14 +42,14 @@ Features
 
 **Chat servers support**
 
-- `Slack <https://slack.com/>`_ (built-in support)
-- `Hipchat <http://www.hipchat.org/>`_ (built-in support)
-- `Telegram <https://www.telegram.org/>`_ (built-in support)
-- `XMPP <http://xmpp.org>`_ (built-in support)
-- IRC (built-in support)
-- `Gitter <https://gitter.im/>`_ (Follow the instructions from `here <https://github.com/errbotio/err-backend-gitter>`_ to install it)
-- `CampFire <https://campfirenow.com/>`_ (Follow the instructions from `here <https://github.com/errbotio/err-backend-campfire>`_ to install it)
-- `TOX <https://tox.im/>`_ (Follow the instructions from `here <https://github.com/errbotio/err-backend-tox>`_ to install it)
+- `Slack support <https://slack.com/>`_ (built-in)
+- `Hipchat support <http://www.hipchat.org/>`_ (built-in)
+- `Telegram support <https://www.telegram.org/>`_ (built-in)
+- `XMPP support <http://xmpp.org>`_ (built-in support)
+- IRC support (built-in)
+- `Gitter support <https://gitter.im/>`_ (Follow `gitter instructions <https://github.com/errbotio/err-backend-gitter>`_ to install it)
+- `CampFire <https://campfirenow.com/>`_ (Follow `campfire instructions <https://github.com/errbotio/err-backend-campfire>`_ to install it)
+- `TOX <https://tox.im/>`_ (Follow the `tox instructions from <https://github.com/errbotio/err-backend-tox>`_ to install it)
 
 **Administration**
 
@@ -77,7 +77,7 @@ After the initial installation and security setup, Err can be administered by ju
 Community and support
 ---------------------
 
-If you have a question or want to share your latest plugin creation: feel free to join the chat on `gitter <https://gitter.im/errbotio/errbot>`_. Errbot has also a `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_. You can ping us on Twitter with the hashtag ``#errbot``. 
+If you have a question or want to share your latest plugin creation: feel free to join the chat on `gitter team chat <https://gitter.im/errbotio/errbot>`_. Errbot has also a `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_. You can ping us on Twitter with the hashtag ``#errbot``. 
 But if you have a bug to report or wish to request a feature, please log them `here <https://github.com/errbotio/errbot/issues>`_.
 
 Contributions
@@ -109,23 +109,23 @@ Or if you wish to try out the latest, bleeding edge version::
 setup.py only installs the bare minimum dependencies needed to run Errbot.
 Depending on the backend you choose, additional requirements need to be installed.
 
-+------------+-----------------------------------------------------------------------------------+
-| Backend    | Extra dependencies                                                                | 
-+============+===================================================================================+ 
-| Slack      | - ``slackclient``                                                                 | 
-+------------+-----------------------------------------------------------------------------------+
-| XMPP       | - ``sleekxmpp``                                                                   | 
-|            | - ``pyasn1``                                                                      | 
-|            | - ``pyasn1-modules``                                                               | 
-|            | - ``dnspython3`` (py3)                                                            | 
-|            | - ``dnspython``  (py2)                                                            | 
-+------------+-----------------------------------------------------------------------------------+
-| Hipchat    | XMPP + ``hypchat``                                                                |
-+------------+-----------------------------------------------------------------------------------+
-| irc        | - ``irc``                                                                         | 
-+------------+-----------------------------------------------------------------------------------+
-| external   | See their ``requirements.txt``                                                    | 
-+------------+-----------------------------------------------------------------------------------+
++------------+------------------------------------+
+| Backend    | Extra dependencies                 |
++============+====================================+
+| Slack      | - ``slackclient``                  |
++------------+------------------------------------+
+| XMPP       | - ``sleekxmpp``                    |
+|            | - ``pyasn1``                       |
+|            | - ``pyasn1-modules``               |
+|            | - ``dnspython3`` (py3)             |
+|            | - ``dnspython``  (py2)             |
++------------+------------------------------------+
+| Hipchat    | XMPP + ``hypchat``                 |
++------------+------------------------------------+
+| irc        | - ``irc``                          |
++------------+------------------------------------+
+| external   | See their ``requirements.txt``     |
++------------+------------------------------------+
 
 **Configuration**
 

@@ -4,8 +4,11 @@ v3.2.0 (unreleased)
 features:
 
 - Official support for Python 3.5
-- Added send_templated() to the BotPlugin class
-- Various improvements to the ``@arg_botcmd`` decorator (`#516 <https://github.com/errbotio/errbot/pull/516>`_)
+- The API surface is now type hinted (https://www.python.org/dev/peps/pep-0484/) and base classes are tagged Abstract.
+- Added send_templated() to the BotPlugin class to be able to use send() with a template
+- Various improvements to the ``@arg_botcmd`` decorator.
+- Now the bot can set its own status/presence with change_presence
+- Non-standard hipchat server (thx Barak Schiller)
 
 bugs:
 
@@ -113,7 +116,8 @@ New and noteworthy
 - new Gitter backend (see `the gitter backend repo <http://www.github.com/errbotio/err-backend-gitter>`_ for more info about installing it)
 - completely new rendering engine: now all text from either a plugin return or a template is **markdown extras**
 - you can test the various formatting under your backend with the ``!render test`` command.
-- the text backend exposes the original md, its html representation and ansi representation so plugin developers can anticipate what the rendering will look like under various backends
+- the text backend exposes the original md, its html representation and ansi representation so plugin developers can anticipate what the rendering will look like under various backends.
+
 See the screenshots below: Slack_, Hipchat_, IRC_, Gitter_ and finally Text_.
 
 - completely revamped backup/restore feature (see ``!help backup``).

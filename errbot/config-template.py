@@ -130,7 +130,13 @@ BOT_IDENTITY = {
     # 'server' : 'irc.freenode.net',
     # 'port': 6667,                  # optional
     # 'ssl': False,                  # optional
+    # 'ipv6': False,                 # optional
     # 'nickserv_password': None,     # optional
+    ## Optional: Specify an IP address or hostname (vhost), and a
+    ## port, to use when making the connection. Leave port at 0
+    ## if you have no source port preference.
+    ##    example: 'bind_address': ('my-errbot.io', 0)
+    # 'bind_address': ('localhost', 0),
 }
 
 # Set the admins of your bot. Only these users will have access

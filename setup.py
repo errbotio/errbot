@@ -70,7 +70,9 @@ deps += ['mock',
          #   https://bitbucket.org/pypa/setuptools/issues/196/tests_require-pytest-pytest-cov-breaks
          'pytest-xdist',
          'pytest',
-         'PyOpenSSL']
+         'PyOpenSSL',
+         'docutils',  # for rst linting for pypi.
+         ]
 
 if not ON_WINDOWS:
     deps += ['daemonize']

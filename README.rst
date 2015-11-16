@@ -130,11 +130,13 @@ Depending on the backend you choose, additional requirements need to be installe
 **Configuration**
 
 After installing Errbot, you must create a data directory somewhere on your system where
-config and data may be stored. Find the installation directory of Errbot, then copy the
-file <install_directory>/errbot/config-template.py to your data directory as config.py
+config and data may be stored. Then you'll need a `config.py` file.
 
-(If you installed Errbot via pip, the installation directory will most likely be
-/usr/lib64/python<python_version_number>/site-packages/errbot)
+You create a template of the file with::
+
+    python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')"
+
+Or you can download it directly from github from `config.py <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_.
 
 Read the documentation within this file and edit the values as needed so the bot can
 connect to your chosen backend (XMPP, Hipchat, Slack ...) server.

@@ -2,16 +2,16 @@
 .. image:: https://img.shields.io/travis/errbotio/errbot/master.svg
    :target: https://travis-ci.org/errbotio/errbot/
 
-.. image:: https://img.shields.io/pypi/v/err.svg
-   :target: https://pypi.python.org/pypi/err
+.. image:: https://img.shields.io/pypi/v/errbot.svg
+   :target: https://pypi.python.org/pypi/errbot
    :alt: Latest Version
 
-.. image:: https://img.shields.io/pypi/dm/err.svg
-   :target: https://pypi.python.org/pypi/err
+.. image:: https://img.shields.io/pypi/dm/errbot.svg
+   :target: https://pypi.python.org/pypi/errbot
    :alt: Downloads
 
 .. image:: https://img.shields.io/badge/License-GPLv3-green.svg
-   :target: https://pypi.python.org/pypi/err
+   :target: https://pypi.python.org/pypi/errbot
    :alt: License
 
 .. image:: https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg

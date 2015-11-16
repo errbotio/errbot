@@ -91,15 +91,6 @@ If you think you hit a bug or the documentation is not clear enough,
 you can `open an issue`_ or even better, open a pull request.
 
 
-Getting involved
-----------------
-
-.. toctree::
-  :maxdepth: 3
-
-  contributing
-
-
 User guide
 ----------
 
@@ -120,6 +111,15 @@ API documentation
   :maxdepth: 3
 
   errbot
+
+
+Getting involved
+----------------
+
+.. toctree::
+  :maxdepth: 3
+
+  contributing
 
 
 Release history

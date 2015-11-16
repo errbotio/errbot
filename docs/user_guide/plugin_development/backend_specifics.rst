@@ -1,9 +1,13 @@
 Backend-specifics
 =================
 
-Err uses external libraries for most backends, which may offer additional functionality not exposed by Err in a generic, backend-agnostic fashion.
-It is possible to access the underlying client used by the backend you are using in order to provide functionality that isn't otherwise available.
-Additionally, interacting directly with the bot internals gives you the freedom to control Err in highly specific ways that may not be officially supported.
+Errbot uses external libraries for most backends, which may offer additional
+functionality not exposed by Errbot in a generic, backend-agnostic fashion.
+
+It is possible to access the underlying client used by the backend you are
+using in order to provide functionality that isn't otherwise available.
+Additionally, interacting directly with the bot internals gives you the freedom
+to control Errbot in highly specific ways that may not be officially supported.
 
 .. warning::
 	The following instructions describe how to interface directly with the underlying bot object and clients of backends.
@@ -46,7 +50,8 @@ Getting to the underlying client library
 ----------------------------------------
 
 Most of the backends use a third-party library in order to connect to their respective network.
-These libraries often support additional features which Err doesn't expose in a generic way so you may wish to make use of these in order to access advanced functionality.
+These libraries often support additional features which Errbot doesn't expose in a generic
+way so you may wish to make use of these in order to access advanced functionality.
 
 Backends set their own attribute(s) to point to the underlying libraries' client instance(s).
 The following table lists these attributes for the official backends, along with the library used by the backend:

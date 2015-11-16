@@ -4,7 +4,7 @@ Configuration
 Plugin configuration through the built-in `!config` command
 -----------------------------------------------------------
 
-Err can keep a simple python object for the configuration of your
+Errbot can keep a simple python object for the configuration of your
 plugin. This avoids the need for admins to configure settings in
 some kind of configuration file, instead allowing configuration to
 happen directly through chat commands.
@@ -93,7 +93,7 @@ and return the `CONFIG_TEMPLATE` in that function:
 Using custom configuration checks
 ---------------------------------
 
-By default, Err will check the supplied configuration against the
+By default, Errbot will check the supplied configuration against the
 configuration template, and raise an error if the structure of the
 two doesn't match.
 

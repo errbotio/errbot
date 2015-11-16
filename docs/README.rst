@@ -1,9 +1,9 @@
 Website and documentation
 =========================
 
-Err's website and documentation are built using `Sphinx`_. Useful references
-when contributing to the docs are the `reStructuredText Primer`_ and 
-`Inline markup`_ documents.
+Errbot's website and documentation are built using `Sphinx`_. Useful
+references when contributing to the docs are the `reStructuredText Primer`_
+and `Inline markup`_ documents.
 
 Requirements
 ------------

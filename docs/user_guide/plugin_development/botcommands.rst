@@ -27,7 +27,7 @@ array of strings instead of a string:
 Subcommands
 -----------
 
-If you put an _ in the name of the function, Err will create what
+If you put an _ in the name of the function, Errbot will create what
 looks like a subcommand for you. This is useful to group commands
 that belong to each other together.
 
@@ -77,7 +77,7 @@ Commands using regular expressions
 ----------------------------------
 
 In addition to the fixed commands created with the :func:`~errbot.decorators.botcmd`
-decorator, Err supports an alternative type of bot function which can be triggered
+decorator, Errbot supports an alternative type of bot function which can be triggered
 based on a regular expression. These are created using the
 :func:`~errbot.decorators.re_botcmd` decorator. There are two forms these can be
 used, with and without the usual bot prefix.
@@ -147,5 +147,5 @@ keywords that could show up anywhere in a conversation:
 
         @re_botcmd(pattern=r"(^| )cookies?( |$)", prefixed=False, flags=re.IGNORECASE)
         def listen_for_talk_of_cookies(self, msg, match):
-            """Talk of cookies gives Err a craving..."""
+            """Talk of cookies gives Errbot a craving..."""
             return "Somebody mentioned cookies? Om nom nom!"

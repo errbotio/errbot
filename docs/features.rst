@@ -1,7 +1,7 @@
 Multiple server back-ends
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Err has support for a number of different networks, and is architectured in a way
+Errbot has support for a number of different networks, and is architectured in a way
 that makes it relatively easy to write new back-ends in order to support more.
 Currently, the following networks are supported:
 

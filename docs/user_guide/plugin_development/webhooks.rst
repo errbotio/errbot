@@ -1,7 +1,7 @@
 Webhooks
 ========
 
-Err has a small integrated webserver that is capable of hooking up
+Errbot has a small integrated webserver that is capable of hooking up
 endpoints to methods inside your plugins.
 
 You must configure the *Webserver* plugin before this functionality
@@ -15,10 +15,9 @@ desired settings.
     connections and do not have a certificate.
 
 .. warning::
-    It is not recommended to expose Err's webserver directly to the
+    It is not recommended to expose Errbot's webserver directly to the
     network. Instead, we recommend placing it behind a webserver
-    such as `nginx <http://nginx.org/>`_ or `Apache
-    <https://httpd.apache.org/>`_.
+    such as `nginx <http://nginx.org/>`_ or `Apache <https://httpd.apache.org/>`_.
 
 
 Simple webhooks
@@ -121,7 +120,7 @@ custom header::
     class PluginExample(BotPlugin):
         @webhook
         def example(self, incoming_request):
-            response.set_header("X-Powered-By", "Err")
+            response.set_header("X-Powered-By", "Errbot")
             return "OK"
 
 Bottle also has various helpers such as the `abort()` method.

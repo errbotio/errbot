@@ -1,7 +1,9 @@
 Plugin development
 ==================
 
-Plugins form the heart of Err. From the ground up, it is designed to be extended entirely through plugins. In this guide we will explain the basics of writing simple plugins, which we then follow up on further with sets of recipes on a range of topics describing how to handle more advanced use-cases.
+Plugins form the heart of Errbot. From the ground up, it is designed to be extended entirely through plugins.
+In this guide we will explain the basics of writing simple plugins, which we then follow up on further
+with sets of recipes on a range of topics describing how to handle more advanced use-cases.
 
 
 .. toctree::

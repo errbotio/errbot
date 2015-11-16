@@ -22,7 +22,7 @@ explains it better:
     to do a proper post-mortem without any of the hassle of the standard user
     feedback loop.
 
-If that sounds like something you'd want to gift your precious Err instance with,
+If that sounds like something you'd want to gift your precious Errbot instance with,
 then do keep on reading :)
 
 Setting up Sentry itself
@@ -33,22 +33,22 @@ there are two options available to you. You can either get a
 `hosted account <https://www.getsentry.com/pricing/>`_, or grab the code and
 `run your own server <http://sentry.readthedocs.org/en/latest/index.html>`_ instead.
 
-Configuring Err to use Sentry
------------------------------
+Configuring Errbot to use Sentry
+--------------------------------
 
 Once you have an instance of Sentry available, you'll probably want to create a
-team specifically for Err first.
+team specifically for Errbot first.
 
 When you have, you should be able to access a page called "Client configuration".
 There, you will be presented with a so-called DNS value, which has the following format:
 
     http://0000000000000000:000000000000000000@sentry.domain.tld/0
 
-To setup Err with Sentry:
+To setup Errbot with Sentry:
 
 * Open up your bot's config.py
 * Set **BOT_LOG_SENTRY** to *True* and fill in **SENTRY_DSN** with the DNS value obtained previously
 * Optionally adjust **SENTRY_LOGLEVEL** to the desired level
-* Restart Err
+* Restart Errbot
 
 You should now see Exceptions and log messages show up in your Sentry stream.

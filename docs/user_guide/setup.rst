@@ -7,8 +7,8 @@ Prerequisites
 Errbot runs under Python 2.7 as well as Python 3.2+ on Linux, Windows and Mac.
 
 You need to have registered a user for the bot to use on the XMPP or IRC server that
-you wish to run Err on. A lot of plugins use multi user chatrooms (MUC) as well, so
-it is recommended (but not required) to have a least one MUC for Err to use as well.
+you wish to run Errbot on. A lot of plugins use multi user chatrooms (MUC) as well, so
+it is recommended (but not required) to have a least one MUC for Errbot to use as well.
 
 Installation
 ------------
@@ -30,7 +30,7 @@ of installing from PyPi.
 Extra dependencies
 ^^^^^^^^^^^^^^^^^^
 
-requirements.txt lists only the bare minimum list of dependencies needed to run Err.
+requirements.txt lists only the bare minimum list of dependencies needed to run Errbot.
 Depending on the backend you choose, additional requirements need to be installed.
 
 For the XMPP based backends you must also install::
@@ -75,7 +75,7 @@ connect to your favorite chat server.
 Starting the daemon
 -------------------
 
-The first time you start Err, it is recommended to run it in foreground mode. This can
+The first time you start Errbot, it is recommended to run it in foreground mode. This can
 be done with::
 
     errbot
@@ -97,7 +97,7 @@ Hacking on Errbot's code directly
 ------------------------------
 
 Errbot is written for Python 3. In order to run under Python 2.7 the code is run through
-3to2 at install time. This means that while it is possible to run Err under Python 3.3+
+3to2 at install time. This means that while it is possible to run Errbot under Python 3.3+
 directly from a source checkout, it is not possible to do so with Python 2.7.
 If you wish to develop or test with Errbot's code under 2.7, you must run::
 

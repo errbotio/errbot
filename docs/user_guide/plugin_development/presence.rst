@@ -11,7 +11,7 @@ Callbacks for presence changes
 Plugins may override :meth:`~errbot.botplugin.BotPlugin.callback_presence`
 in order to receive notifications of presence changes. You will receive
 a :class:`~errbot.backends.base.Presence` object for every presence change
-received by Err.
+received by Errbot.
 
 Here's an example which simply logs each presence change to the log
 when it includes a status message:

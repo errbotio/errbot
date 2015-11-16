@@ -1,7 +1,7 @@
 Interacting with the Bot
 ========================
 
-After starting Err, you should add the bot to your buddy list if you haven't already.
+After starting Errbot, you should add the bot to your buddy list if you haven't already.
 You can now send commands directly to the bot, or issue commands in a chatroom that
 the bot has also joined.
 
@@ -39,6 +39,6 @@ You will probably want to update your plugins periodically. This can be done wit
 
 .. note::
     Please pay attention when you install a plugin, it may have additional
-    dependencies. If the plugin contains a `requirements.txt` file then Err
-    wil automatically check the requirements listed within and warn you when
+    dependencies. If the plugin contains a `requirements.txt` file then Errbot
+    will automatically check the requirements listed within and warn you when
     you are missing any.

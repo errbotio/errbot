@@ -4,7 +4,7 @@ Setup
 Prerequisites
 -------------
 
-Err runs under Python 2.7 as well as Python 3.2+ on Linux, Windows and Mac.
+Errbot runs under Python 2.7 as well as Python 3.2+ on Linux, Windows and Mac.
 
 You need to have registered a user for the bot to use on the XMPP or IRC server that
 you wish to run Err on. A lot of plugins use multi user chatrooms (MUC) as well, so
@@ -13,9 +13,9 @@ it is recommended (but not required) to have a least one MUC for Err to use as w
 Installation
 ------------
 
-Err may be installed directly from PyPi using `pip` (`easy_install` works too) by issuing::
+Errbot may be installed directly from PyPi using `pip` (`easy_install` works too) by issuing::
 
-    pip install err
+    pip install errbot
 
 Or if you wish to try out the latest, bleeding edge version::
 
@@ -23,7 +23,7 @@ Or if you wish to try out the latest, bleeding edge version::
 
 However, in these cases, installing into a dedicated `virtualenv`_ is recommended.
 
-On some distributions, Err is available as a package via your usual package manager.
+On some distributions, Errbot is available as a package via your usual package manager.
 In these cases, it is generally recommended to use your distribution's package instead
 of installing from PyPi.
 
@@ -51,12 +51,26 @@ For the Hipchat backend you must install::
 Configuration
 -------------
 
-After installing Err, you must create a data directory somewhere on your system where
-config and data may be stored. Find the installation directory of Err, then copy the
-file :download:`config-template.py` to your data directory as *config.py*
+After installing Errbot, you must create a data directory somewhere on your system where
+config and data may be stored.
+
+You need to create there a config.py file to setup the basic parameters of your bot.
+
+
+Option 1: you can generate it directly from your errbot installation with::
+
+    python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')"
+
+Option 2: You can download a template from `this link <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_ 
+and rename it `config.py`.
+
+Option 3: Or you can download this same template from curl too::
+
+    curl -o config.py https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py
+
 
 Read the documentation within this file and edit the values as needed so the bot can
-connect to your chosen XMPP or IRC server.
+connect to your favorite chat server.
 
 Starting the daemon
 -------------------
@@ -64,30 +78,28 @@ Starting the daemon
 The first time you start Err, it is recommended to run it in foreground mode. This can
 be done with::
 
-    <path_to_install_directory>/scripts/err.py
+    errbot
 
-In many cases, just typing err.py will be enough as it is generally added to the PATH
-automatically. Please pass -h or --help to err.py to get a list of supported parameters.
-Depending on your situation, you may need to pass --config or --backend when starting
-Err.
+Please pass -h or --help to errbot to get a list of supported parameters.
+Depending on your situation, you may need to pass --config (or -c) pointing to config.py
+when starting Errbot.
 
-If all that worked, you can now use the -d (or --daemon) parameter to run it in a
+If all that worked out, you can now use the -d (or --daemon) parameter to run it in a
 detached mode::
 
-    <path_to_install_directory>/scripts/err.py --daemon
+    errbot --daemon
 
 If you are going to run your bot all the time then using some process control system
 such as `supervisor`_ is highly recommended. Installing and configuring such a system
 is outside the scope of this document however.
 
-Hacking on Err's code directly
+Hacking on Errbot's code directly
 ------------------------------
 
-It's important to know that as of version 2.0, Err is written for Python 3. In order
-to run under Python 2.7 the code is run through 3to2 at install time. This means that
-while it is possible to run Err under Python 3.2+ directly from a source checkout, it
-is not possible to do so with Python 2.7. If you wish to develop or test with Err's
-code under 2.7, you must run::
+Errbot is written for Python 3. In order to run under Python 2.7 the code is run through
+3to2 at install time. This means that while it is possible to run Err under Python 3.3+
+directly from a source checkout, it is not possible to do so with Python 2.7.
+If you wish to develop or test with Errbot's code under 2.7, you must run::
 
     python setup.py install
 

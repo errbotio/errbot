@@ -50,7 +50,7 @@ this with :func:`~errbot.botplugin.BotPlugin.send`:
         message_type="groupchat"
     )
 
-For Err=>2.3 you need to use : self.build_identifier("user@host.tld/resource") but the format of the identifier might be dependent on the backend you use.
+For errbot=>2.3 you need to use : self.build_identifier("user@host.tld/resource") but the format of the identifier might be dependent on the backend you use.
 
 Templating
 ----------
@@ -63,7 +63,7 @@ To do this, first create a directory called *templates* in the
 directory that also holds your plugin's *.plug* file.
 
 Inside this directory, you can place Markdown templates (with a
-*.md* extension) in place of the content you wish to show. For 
+*.md* extension) in place of the content you wish to show. For
 example this *hello.md*:
 
 .. code-block:: python
@@ -75,7 +75,7 @@ example this *hello.md*:
     <http://jinja.pocoo.org/docs/templates/>`_ for more information on
     the available template syntax.
 
-Next, tell Err which template to use by specifying the `template`
+Next, tell Errbot which template to use by specifying the `template`
 parameter to :func:`~errbot.decorators.botcmd` (leaving off the
 *.md* suffix).
 

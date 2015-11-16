@@ -1,10 +1,12 @@
 [Advanced] Backend development
 ==============================
 
-A backend is the glue code to connect Err to a chatting service.
-Starting with Err 2.3.0, backends can be developed out of the main repository. This documentation is there to guide you making a new backend for a chatting service but is also interesting to understand more core concepts of Err.
+A backend is the glue code to connect Errbot to a chatting service.
+Starting with Errbot 2.3.0, backends can be developed out of the main repository.
+This documentation is there to guide you making a new backend for a chatting
+service but is also interesting to understand more core concepts of Errbot.
 
-It is important to understand the core concepts of Err before
+It is important to understand the core concepts of Errbot before
 starting to work on a backend.
 
 Architecture

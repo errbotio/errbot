@@ -1,9 +1,12 @@
 Testing your plugins
 ====================
 
-Just as Err has tests that validates that it behaves correctly so should your plugin. Err is tested using Python's py.test_ module and because we already provide some utilities for that we highly advise you to use `py.test` too.
+Just as Errbot has tests that validates that it behaves correctly so should your plugin.
+Errbot is tested using Python's py.test_ module and because we already provide some
+utilities for that we highly advise you to use `py.test` too.
 
-We're going to write a simple plugin named `myplugin.py` with a `MyPlugin` class. It's tests will be stored in `test_myplugin.py` in the same directory.
+We're going to write a simple plugin named `myplugin.py` with a `MyPlugin` class.
+It's tests will be stored in `test_myplugin.py` in the same directory.
 
 Interacting with the bot
 ------------------------
@@ -31,7 +34,9 @@ And *myplugin.plug*:
     Description = my plugin
 
 
-This does absolutely nothing shocking, but how do you test it? We need to interact with the bot somehow, send it `!mycommand` and validate the reply. Fortunatly Err provides some help.
+This does absolutely nothing shocking, but how do you test it?
+We need to interact with the bot somehow, send it `!mycommand` and validate the reply.
+Fortunatly Errbot provides some help.
 
 Our test, *test_myplugin.py*:
 
@@ -246,7 +251,7 @@ In order to do that you'll need a `.travis.yml` similar to this:
       - 3.3
       - 3.4
     install:
-      - pip install -q err pytest pytest-pep8 --use-wheel
+      - pip install -q errbot pytest pytest-pep8 --use-wheel
       - pip install -q coverage coveralls --use-wheel
     script:
       - coverage run --source myplugin -m py.test --pep8

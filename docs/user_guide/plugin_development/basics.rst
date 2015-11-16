@@ -9,7 +9,7 @@ world!"* plugin as an example:
     from errbot import BotPlugin, botcmd
 
     class HelloWorld(BotPlugin):
-        """Example 'Hello, world!' plugin for Err"""
+        """Example 'Hello, world!' plugin for Errbot"""
 
         @botcmd
         def hello(self, msg, args):
@@ -45,7 +45,7 @@ that class as bot commands.
 .. code-block:: python
 
     class HelloWorld(BotPlugin):
-        """Example 'Hello, world!' plugin for Err"""
+        """Example 'Hello, world!' plugin for Errbot"""
 
 Here we define the class that makes up our plugin. The name of your
 class, `HelloWorld` in this case, is what will make up the name of
@@ -90,20 +90,20 @@ command.
 
 If we look at the function definition, we see it takes two parameters,
 `msg` and `args`. The first is a :class:`~errbot.backends.base.Message`
-object, which represents the full message object received by Err. The
+object, which represents the full message object received by Errbot. The
 second is a string (or a list, if using the `split_args_with`
 parameter of :func:`~errbot.decorators.botcmd`) with the arguments
 passed to the command.
 
-For example, if a user were to say `!hello Mister Err`, `args` would
-be the string `"Mister Err"`.
+For example, if a user were to say `!hello Mister Errbot`, `args` would
+be the string `"Mister Errbot"`.
 
 Finally, you can see we return with the string `Hello, world!`. This
-defines the response that Err should give. In this case, it makes all
+defines the response that Errbot should give. In this case, it makes all
 executions of the `!hello` command return the message *Hello, world!*.
 
 .. note::
-    If you return `None`, Err will not respond with any kind of
+    If you return `None`, Errbot will not respond with any kind of
     message when executing the command.
 
 
@@ -115,7 +115,7 @@ see it still won't load your plugin. What gives?
 
 As it turns out, you need to supply a file with some meta-data
 alongside your actual plugin file. This is a file that ends with the
-extension `.plug` and it is used by Err to identify and load plugins.
+extension `.plug` and it is used by Errbot to identify and load plugins.
 
 Lets go ahead and create ours. Place the following in a file called
 `helloworld.plug`:
@@ -141,7 +141,7 @@ Lets go ahead and create ours. Place the following in a file called
 
 Lets look at what this does. We see three sections, `[Core]` ,
 `[Python]` and `[Documentation]`. The `[Core]` section is what tells
-Err where it can actually find the code for this plugin.
+Errbot where it can actually find the code for this plugin.
 
 The key `Module` should point to a module that Python can find and
 import. Typically, this is the name of the file you placed your code
@@ -156,9 +156,9 @@ names can differ, doing so is not recommended.
     the same as the class name anyway, this has to do with technical
     limitations that we won't go into here.
 
-While the items from the `[Core]` section tell Err where to find the
-code, the `[Python]` section tells Err which versions of Python your
-plugin is compatible with. As you are probably aware, Err runs on
+While the items from the `[Core]` section tell Errbot where to find the
+code, the `[Python]` section tells Errbot which versions of Python your
+plugin is compatible with. As you are probably aware, Errbot runs on
 both 2.7 and 3.\ *x* versions of Python, but maintaining compatibilty
 to both can take some time and effort however. Effort you might not
 want to put into your own plugins.
@@ -175,7 +175,7 @@ Wrapping up
 -----------
 
 If you've followed along so far, you should now have a working
-*Hello, world!* plugin for Err. If you start your bot, it should load
+*Hello, world!* plugin for Errbot. If you start your bot, it should load
 your plugin automatically. 
 
 You can verify this by giving the `!status` command, which should
@@ -191,13 +191,13 @@ respond with something like the following::
 If you don't see your plugin listed or it shows up as unloaded, make
 sure to start your bot with *DEBUG*-level logging enabled and pay
 close attention to what it reports. You will most likely see an error
-being reported somewhere along the way while Err starts up.
+being reported somewhere along the way while Errbot starts up.
 
 
 Next steps
 ----------
 
 You now know enough to create very simple plugins, but we have barely
-scratched the surface of what Err can do. The rest of this guide will
+scratched the surface of what Errbot can do. The rest of this guide will
 be a recipe-style set of topics that cover all the advanced features
-Err has to offer.
+Errbot has to offer.

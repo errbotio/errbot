@@ -4,10 +4,10 @@ Contributing
 If you would like to contribute to the project, please do not hesitate to get
 involved! Here you can find how best to get started.
 
-Contributing to Err itself
---------------------------
+Contributing to Errbot itself
+-----------------------------
 
-All development on Err happens on GitHub_. If you'd like to get involved, just
+All development on Errbot happens on GitHub_. If you'd like to get involved, just
 fork_ the repository and make changes in your own repo. When you are satisfied
 with your changes, just open a `pull request`_ with us and we'll get it reviewed
 as soon as we can! Depending on our thoughts, we might decide to merge it in
@@ -32,7 +32,7 @@ Contributing documentation & making changes to the website
 
 `errbot.io <http://www.errbot.io/>`_ is created using Sphinx_, which also doubles
 as a generator for our (API) documentation. The code for it is in the same repository
-as err itself, inside the docs_ folder. To make changes to the documentation or the
+as Errbot itself, inside the docs_ folder. To make changes to the documentation or the
 website, you can build the HTML locally as follows::
 
     # Change directory into the docs folder
@@ -68,7 +68,8 @@ easier for us to figure out what is going on, as well.
 Getting help
 ============
 
-For general help with Err, we'd prefer you post in our `Google Plus community`_.
+For general help with Errbot, we'd prefer you post in our `Google Plus community`_
+or even better directly on the chat from the link below.
 
 .. _GitHub: https://github.com/errbotio/errbot
 .. _fork: https://github.com/errbotio/errbot/fork

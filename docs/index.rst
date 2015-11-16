@@ -21,10 +21,10 @@ Screenshots
         <a href="_static/screenshots/help.png" class="fancybox" title="Showing output of the built-in help command">
             <img src="_static/screenshots/thumb_help.png" width="155" height="150" alt="Showing output of the built-in help command" />
         </a>
-        <a href="_static/screenshots/quota.png" class="fancybox" title="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts">
-            <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Err running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts" />
+        <a href="_static/screenshots/quota.png" class="fancybox" title="Errbot running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts">
+            <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Errbot running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts" />
         </a>
-        <a href="_static/screenshots/basecamp.png" class="fancybox" title="An older version of Err, running on Basecamp">
+        <a href="_static/screenshots/basecamp.png" class="fancybox" title="An older version of Errbot, running on Basecamp">
             <img src="_static/screenshots/thumb_basecamp.png" width="181" height= "150" alt="An older version of Err, running on Basecamp" />
         </a>
     </div>
@@ -40,7 +40,7 @@ command::
     from errbot import BotPlugin, botcmd
 
     class HelloWorld(BotPlugin):
-        """Example 'Hello, world!' plugin for Err."""
+        """Example 'Hello, world!' plugin for Errbot."""
 
         @botcmd
         def hello(self, msg, args):
@@ -53,7 +53,7 @@ Batteries included
 ------------------
 
 We aim to give you all the tools you need to build a customized bot safely, without
-having to worry about basic functionality. As such, Err comes with a wealth of
+having to worry about basic functionality. As such, Errbot comes with a wealth of
 features out of the box.
 
 .. toctree::
@@ -67,7 +67,7 @@ Sharing
 
 One of the main goals of Errbot is to make it easy to share your plugin with others as well.
 
-Err features a built-in *repositories command* (`!repos`) which can be used to
+Errbot features a built-in *repositories command* (`!repos`) which can be used to
 install, uninstall and update plugins made available by the community. Making your
 plugin available through this command only requires you to publish it as a publicly
 available Git repository.
@@ -78,7 +78,7 @@ You may also discover plugins from the community on our `plugin list`_ that we u
 Community
 ---------
 
-Err has a `Google plus community`_, which is the best place to discuss anything 
+Errbot has a `Google plus community`_, which is the best place to discuss anything
 related to Errbot as well as promote your own creations !
 This is also the place where you will find announcements of new versions and other
 news related to the project.
@@ -134,7 +134,7 @@ Release history
 License
 -------
 
-Err is free software, available under the GPL-3 license. Please refer to the
+Errbot is free software, available under the GPL-3 license. Please refer to the
 :download:`full license text <gpl-3.0.txt>` for more details.
 
 .. _`Google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288

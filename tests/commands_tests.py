@@ -17,7 +17,7 @@ class TestCommands(FullStackTest):
         super(TestCommands, self).setUp(*args, **kwargs)
 
     def test_root_help(self):
-        self.assertCommand('!help', 'Available help')
+        self.assertCommand('!help', 'apropos')
 
     def test_help(self):
         self.assertCommand('!help Help', '!about')

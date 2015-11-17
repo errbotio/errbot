@@ -245,6 +245,9 @@ CHATROOM_RELAY = {}
 # For example: REVERSE_CHATROOM_RELAY = {_TEST_ROOM : ('gbin@localhost',)}
 REVERSE_CHATROOM_RELAY = {}
 
+# Optionally disable builtin plugins.
+DISABLED_PLUGINS = ()
+
 ##########################################################################
 # Miscellaneous configuration options                                    #
 ##########################################################################

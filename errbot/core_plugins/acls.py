@@ -67,8 +67,8 @@ class ACLS(BotPlugin):
         elif ('allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and
               self.bot_config.ACCESS_CONTROLS[cmd]['allowprivate'] is False):
             return self.access_denied(
-                    msg,
-                    "You're not allowed to access this command via private message to me", dry_run)
+                msg,
+                "You're not allowed to access this command via private message to me", dry_run)
 
         return msg, cmd, args
 
@@ -89,8 +89,8 @@ class ACLS(BotPlugin):
         if f._err_command_admin_only:
             if msg.type == 'groupchat':
                 return self.access_denied(
-                        msg,
-                        "You cannot administer the bot from a chatroom, message the bot directly", dry_run)
+                    msg,
+                    "You cannot administer the bot from a chatroom, message the bot directly", dry_run)
 
             if get_acl_usr(msg) not in self.bot_config.BOT_ADMINS:
                 return self.access_denied(msg, "This command requires bot-admin privileges", dry_run)

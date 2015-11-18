@@ -1,13 +1,10 @@
 from os import path
 
 from errbot import BotPlugin, botcmd
-from errbot.version import VERSION
 from errbot.utils import tail
 
 
 class Utils(BotPlugin):
-    min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
-    max_err_version = VERSION
 
     # noinspection PyUnusedLocal
     @botcmd

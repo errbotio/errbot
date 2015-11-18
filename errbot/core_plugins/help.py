@@ -4,9 +4,6 @@ from errbot.utils import get_class_that_defined_method
 
 
 class Help(BotPlugin):
-    min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
-    max_err_version = VERSION
-
     MSG_HELP_TAIL = 'Type help <command name> to get more info ' \
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'

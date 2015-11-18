@@ -2,7 +2,6 @@ from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 
 from errbot import BotPlugin
-from errbot.version import VERSION
 from errbot.utils import version2array
 
 HOME = 'http://version.errbot.io/'
@@ -11,8 +10,6 @@ installed_version = version2array(VERSION)
 
 
 class VersionChecker(BotPlugin):
-    min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
-    max_err_version = VERSION
 
     connected = False
     activated = False

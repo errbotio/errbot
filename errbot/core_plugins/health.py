@@ -4,14 +4,11 @@ import signal
 from datetime import datetime
 
 from errbot import BotPlugin, botcmd
-from errbot.version import VERSION
 from errbot.plugin_manager import global_restart
 from errbot.utils import format_timedelta
 
 
 class Health(BotPlugin):
-    min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
-    max_err_version = VERSION
 
     @botcmd(template='status')
     def status(self, mess, args):

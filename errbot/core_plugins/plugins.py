@@ -6,7 +6,6 @@ from pprint import pformat
 import shutil
 
 from errbot import BotPlugin, botcmd
-from errbot.version import VERSION
 from errbot.repos import KNOWN_PUBLIC_REPOS
 from errbot.rendering import md_escape
 from errbot.utils import which
@@ -14,8 +13,6 @@ from errbot.plugin_manager import check_dependencies, global_restart, PluginConf
 
 
 class Plugins(BotPlugin):
-    min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
-    max_err_version = VERSION
 
     @botcmd(admin_only=True)
     def repos_install(self, mess, args):

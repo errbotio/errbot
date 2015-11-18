@@ -1,4 +1,6 @@
-from configparser import NoSectionError
+""" Logic related to plugin loading and lifecycle """
+
+from configparser import NoSectionError, NoOptionError, ConfigParser
 from itertools import chain
 import importlib
 import imp
@@ -9,7 +11,8 @@ import os
 import subprocess
 import pip
 from .botplugin import BotPlugin
-from .utils import version2array, PY3, PY2, find_roots_with_extra, PLUGINS_SUBDIR, which, human_name_for_git_url
+from .utils import (version2array, PY3, PY2, find_roots_with_extra,
+                    PLUGINS_SUBDIR, which, human_name_for_git_url)
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -86,6 +89,95 @@ def check_dependencies(path):
         return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
+def check_python_plug_section(name: str, config: ConfigParser) -> bool:
+    """ Checks if we have the correct version to run this plugin.
+    Returns true if the plugin is loadable """
+    try:
+        python_version = config.get("Python", "Version")
+    except NoSectionError:
+        log.warning(
+            'Plugin %s has no section [Python]. Assuming this '
+            'plugin is runnning only under python 2.', name)
+        python_version = '2'
+
+    if python_version not in ('2', '2+', '3'):
+        log.warning(
+            'Plugin %s has an invalid Version specified in section [Python]. '
+            'The Version can only be 2, 2+ and 3', name)
+        return False
+
+    if python_version == '2' and PY3:
+        log.error(
+            '\nPlugin %s is made for python 2 only and you are running '
+            'err under python 3.\n\n'
+            'If the plugin can be run on python 2 and 3 please add this '
+            'section to its .plug descriptor :\n[Python]\nVersion=2+\n\n'
+            'Or if the plugin is Python 3 only:\n[Python]\nVersion=3\n\n', name)
+        return False
+
+    if python_version == '3' and PY2:
+        log.error('\nPlugin %s is made for python 3 and you are running err under python 2.')
+        return False
+    return True
+
+
+def check_errbot_version(name: str, min_version: str, max_version: str):
+    """ Checks if a plugin version between min_version and max_version is ok
+    for this errbot.
+    Raises IncompatiblePluginException if not.
+    """
+    log.info('Activating %s with min_err_version = %s and max_version = %s',
+             name, min_version, max_version)
+    current_version = version2array(VERSION)
+    if min_version and version2array(min_version) > current_version:
+        raise IncompatiblePluginException(
+            'The plugin %s asks for err with a minimal version of %s while err is version %s' % (
+                name, min_version, VERSION)
+        )
+
+    if max_version and version2array(max_version) < current_version:
+        raise IncompatiblePluginException(
+            'The plugin %s asks for err with a maximal version of %s while err is version %s' % (
+                name, max_version, VERSION)
+        )
+
+
+def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
+    """ Checks if we have the correct Errbot version.
+    Returns true if the plugin is loadable """
+
+     # Errbot version check
+    try:
+
+        try:
+            min_version = config.get("Errbot", "Min")
+        except NoOptionError:
+            log.debug('Plugin %s has no Min Option in [Errbot] section. '
+                      'Assuming this plugin is running on this Errbot'
+                      'version as min version.', name)
+            min_version = VERSION
+
+        try:
+            max_version = config.get("Errbot", "Max")
+        except NoOptionError:
+            log.debug('Plugin %s has no Min Option in [Errbot] section. '
+                      'Assuming this plugin is running on this Errbot'
+                      'version as max version.', name)
+            max_version = VERSION
+
+    except NoSectionError:
+        log.debug('Plugin %s has no section [Errbot]. Assuming this '
+                  'plugin is runnning on any Errbot version.', name)
+        min_version = VERSION
+        max_version = VERSION
+    try:
+        check_errbot_version(name, min_version, max_version)
+    except IncompatiblePluginException as ex:
+        log.error("Could not load plugin:\n%s", str(ex))
+        return False
+    return True
+
+
 def global_restart():
     python = sys.executable
     os.execl(python, python, *sys.argv)
@@ -140,65 +232,32 @@ class BotPluginManager(PluginManager, StoreMixin):
     def activate_plugin_with_version_check(self, name, config):
         pta_item = self.getPluginByName(name, 'bots')
         if pta_item is None:
-            logging.warning('Could not activate %s' % name)
+            log.warning('Could not activate %s', name)
             return None
 
-        try:
-            python_version = pta_item.details.get("Python", "Version")
-        except NoSectionError:
-            logging.warning(
-                'Plugin %s has no section [Python]. Assuming this '
-                'plugin is runnning only under python 2.' % name
-            )
-            python_version = '2'
-
-        if python_version not in ('2', '2+', '3'):
-            logging.warning(
-                'Plugin %s has an invalid Version specified in section [Python]. '
-                'The Version can only be 2, 2+ and 3' % name
-            )
+        if not check_python_plug_section(name, pta_item.details):
+            log.error('%s failed python version check.', name)
             return None
 
-        if python_version == '2' and PY3:
-            log.error(
-                '\nPlugin %s is made for python 2 only and you are running '
-                'err under python 3.\n\n'
-                'If the plugin can be run on python 2 and 3 please add this '
-                'section to its .plug descriptor :\n[Python]\nVersion=2+\n\n'
-                'Or if the plugin is Python 3 only:\n[Python]\nVersion=3\n\n' % name
-            )
-            return None
-
-        if python_version == '3' and PY2:
-            log.error('\nPlugin %s is made for python 3 and you are running err under python 2.')
+        if not check_errbot_plug_section(name, pta_item.details):
+            log.error('%s failed errbot version check.', name)
             return None
 
         obj = pta_item.plugin_object
-        min_version, max_version = obj.min_err_version, obj.max_err_version
-        log.info('Activating %s with min_err_version = %s and max_version = %s' % (name, min_version, max_version))
-        current_version = version2array(VERSION)
-        if min_version and version2array(min_version) > current_version:
-            raise IncompatiblePluginException(
-                'The plugin %s asks for err with a minimal version of %s while err is version %s' % (
-                    name, min_version, VERSION)
-            )
 
-        if max_version and version2array(max_version) < current_version:
-            raise IncompatiblePluginException(
-                'The plugin %s asks for err with a maximal version of %s while err is version %s' % (
-                    name, max_version, VERSION)
-            )
+        # Deprecated: old way to check for min/max versions
+        check_errbot_version(name, obj.min_err_version, obj.max_err_version)
 
         try:
             if obj.get_configuration_template() is not None and config is not None:
-                log.debug('Checking configuration for %s...' % name)
+                log.debug('Checking configuration for %s...', name)
                 obj.check_configuration(config)
-                log.debug('Configuration for %s checked OK.' % name)
+                log.debug('Configuration for %s checked OK.', name)
             obj.configure(config)  # even if it is None we pass it on
-        except Exception as e:
-            log.exception('Something is wrong with the configuration of the plugin %s' % name)
+        except Exception as ex:
+            log.exception('Something is wrong with the configuration of the plugin %s', name)
             obj.config = None
-            raise PluginConfigurationException(str(e))
+            raise PluginConfigurationException(str(ex))
         add_plugin_templates_path(pta_item.path)
         populate_doc(pta_item)
         try:
@@ -208,7 +267,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         except Exception:
             pta_item.activated = False  # Yapsy doesn't revert this in case of error
             remove_plugin_templates_path(pta_item.path)
-            log.error("Plugin %s failed at activation stage, deactivating it..." % name)
+            log.error("Plugin %s failed at activation stage, deactivating it...", name)
             self.deactivatePluginByName(name, "bots")
             raise
 

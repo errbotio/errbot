@@ -3,7 +3,6 @@ import logging
 
 from errbot import BotPlugin, botcmd, SeparatorArgParser, ShlexArgParser
 from errbot.backends.base import RoomNotJoinedError
-from errbot.version import VERSION
 from errbot.utils import compat_str, PY3
 
 # 2to3 hack
@@ -17,8 +16,6 @@ log.debug("LOADING CHATROOM")
 
 
 class ChatRoom(BotPlugin):
-    min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
-    max_err_version = VERSION
 
     connected = False
 

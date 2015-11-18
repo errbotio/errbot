@@ -6,7 +6,6 @@ from random import random
 from webtest import TestApp
 
 from errbot import botcmd, BotPlugin, webhook
-from errbot.version import VERSION
 from errbot.utils import PY3
 from errbot.core_plugins.wsview import bottle_app
 from errbot.bundled.rocket import Rocket
@@ -67,8 +66,6 @@ def make_ssl_certificate(key_path, cert_path):
 
 
 class Webserver(BotPlugin):
-    min_err_version = VERSION  # don't copy paste that for your plugin, it is just because it is a bundled plugin !
-    max_err_version = VERSION
 
     def __init__(self, bot):
         self.webserver = None

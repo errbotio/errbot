@@ -146,7 +146,7 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
     """ Checks if we have the correct Errbot version.
     Returns true if the plugin is loadable """
 
-     # Errbot version check
+    # Errbot version check
     try:
 
         try:

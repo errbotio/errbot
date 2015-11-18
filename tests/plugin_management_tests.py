@@ -8,6 +8,7 @@ from errbot.utils import find_roots, find_roots_with_extra
 
 CORE_PLUGINS = plugin_manager.CORE_PLUGINS
 
+
 def touch(name):
     with open(name, 'a'):
         os.utime(name, None)

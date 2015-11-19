@@ -160,7 +160,7 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
         try:
             max_version = config.get("Errbot", "Max")
         except NoOptionError:
-            log.debug('Plugin %s has no Min Option in [Errbot] section. '
+            log.debug('Plugin %s has no Max Option in [Errbot] section. '
                       'Assuming this plugin is running on this Errbot'
                       'version as max version.', name)
             max_version = VERSION

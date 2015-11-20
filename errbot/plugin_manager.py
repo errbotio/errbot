@@ -7,6 +7,9 @@ import logging
 import sys
 import os
 import subprocess
+from tarfile import TarFile
+from urllib.request import urlopen
+
 import pip
 from .botplugin import BotPlugin
 from .utils import version2array, PY3, PY2, find_roots_with_extra, PLUGINS_SUBDIR, which, human_name_for_git_url
@@ -410,7 +413,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         if repo.endswith('tar.gz'):
             tar = TarFile(fileobj=urlopen(repo))
             tar.extractall(path=self.plugin_dir)
-            human_name = args.split('/')[-1][:-7]
+            human_name = repo.split('/')[-1][:-7]
         else:
             human_name = human_name_for_git_url(repo)
             p = subprocess.Popen([git_path, 'clone', repo, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,

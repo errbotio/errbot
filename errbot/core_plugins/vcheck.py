@@ -3,6 +3,7 @@ from urllib.error import HTTPError, URLError
 
 from errbot import BotPlugin
 from errbot.utils import version2array
+from errbot.version import VERSION
 
 HOME = 'http://version.errbot.io/'
 

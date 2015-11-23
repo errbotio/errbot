@@ -137,7 +137,7 @@ License
 Errbot is free software, available under the GPL-3 license. Please refer to the
 :download:`full license text <gpl-3.0.txt>` for more details.
 
-.. _`Google plus community`: https://plus.google.com/b/101905029512356212669/communities/117050256560830486288
+.. _`Google plus community`: https://plus.google.com/communities/117050256560830486288
 .. _`GitHub page`: http://github.com/errbotio/errbot/
 .. _`plugin list`: https://github.com/errbotio/errbot/wiki
 .. _`open an issue`: https://github.com/errbotio/errbot/issues

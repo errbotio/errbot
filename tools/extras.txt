@@ -23,3 +23,4 @@ xsrender/Utility-Bots
 yalker24/urlcheck
 Kaytwo/lockbot
 nelsonam/meryl
+KenMercusLai/err-vocab

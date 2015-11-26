@@ -43,7 +43,7 @@ Features
 **Chat servers support**
 
 - `Slack support <https://slack.com/>`_ (built-in)
-- `Hipchat support <http://www.hipchat.org/>`_ (built-in)
+- `Hipchat support <http://www.hipchat.com/>`_ (built-in)
 - `Telegram support <https://www.telegram.org/>`_ (built-in)
 - `XMPP support <http://xmpp.org>`_ (built-in support)
 - IRC support (built-in)

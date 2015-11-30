@@ -97,7 +97,7 @@ If you can, we recommend to setup a `virtualenv <https://pypi.python.org/pypi/vi
 
 Errbot may be installed directly from PyPi using pip by issuing::
 
-    pip install err
+    pip install errbot
 
 Or if you wish to try out the latest, bleeding edge version::
 

@@ -77,8 +77,8 @@ After the initial installation and security setup, Err can be administered by ju
 Community and support
 ---------------------
 
-If you have a question or want to share your latest plugin creation: feel free to join the chat on `gitter team chat <https://gitter.im/errbotio/errbot>`_. Errbot has also a `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_. You can ping us on Twitter with the hashtag ``#errbot``. 
-But if you have a bug to report or wish to request a feature, please log them `here <https://github.com/errbotio/errbot/issues>`_.
+If you have a question or want to share your latest plugin creation: feel free to join the chat at `errbotio/errbot on Gitter <https://gitter.im/errbotio/errbot>`_. Errbot has also a `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_. You can ping us on Twitter with the hashtag ``#errbot``. 
+If you have a bug to report or wish to request a feature, please log them on our `github project page <https://github.com/errbotio/errbot/issues>`_.
 
 Contributions
 -------------

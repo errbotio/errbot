@@ -142,4 +142,8 @@ KNOWN_PUBLIC_REPOS = {
         'https://github.com/sarlalian/err-shellexec.git',
         'Allow users to run specifc shell scripts from chat.'
     ),
+    'err-stopwatch': (
+        'https://github.com/taoistmath/err-stopwatch.git',
+        'Plugin to track elapsed time. Can track multiple timers simultaneously.'
+    ),
 }

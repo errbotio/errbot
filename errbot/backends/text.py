@@ -2,6 +2,7 @@
 # vim: ts=4:sw=4
 import logging
 import sys
+from time import sleep
 
 from ansi.color import fg, fx
 from pygments import highlight
@@ -70,6 +71,7 @@ class TextBackend(ErrBot):
                 msg.frm = me
                 msg.to = self.bot_identifier
                 self.callback_message(msg)
+                sleep(.5)
         except EOFError:
             pass
         except KeyboardInterrupt:

@@ -702,9 +702,6 @@ class Backend(ABC):
             An instance of :class:`~MUCRoom`.
         """
 
-    def shutdown(self) -> None:
-        pass
-
     @abstractmethod
     def connect_callback(self) -> None:
         pass

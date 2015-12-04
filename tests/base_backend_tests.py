@@ -56,7 +56,7 @@ class DummyBackend(ErrBot):
 
         for key in extra_config:
             setattr(config, key, extra_config[key])
-        super(DummyBackend, self).__init__(config)
+        super().__init__(config)
         self.bot_identifier = self.build_identifier('err')
         self.inject_commands_from(self)
         self.inject_command_filters_from(ACLS(self))

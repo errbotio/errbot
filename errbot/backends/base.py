@@ -456,7 +456,7 @@ class Stream(io.BufferedReader):
                  name: str=None,
                  size: int=None,
                  stream_type: str=None):
-        super(Stream, self).__init__(fsource)
+        super().__init__(fsource)
         self._identifier = identifier
         self._name = name
         self._size = size

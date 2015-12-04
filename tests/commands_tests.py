@@ -14,7 +14,7 @@ class TestCommands(FullStackTest):
         kwargs['extra_plugin_dir'] = path.join(path.dirname(
             path.realpath(__file__)), 'dummy_plugin')
 
-        super(TestCommands, self).setUp(*args, **kwargs)
+        super().setUp(*args, **kwargs)
 
     def test_root_help(self):
         self.assertCommand('!help', 'Available help')

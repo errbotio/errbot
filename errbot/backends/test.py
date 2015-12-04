@@ -221,7 +221,7 @@ class TestBackend(ErrBot):
         self.md = text()
 
     def send_message(self, mess):
-        super(TestBackend, self).send_message(mess)
+        super().send_message(mess)
         self.outgoing_message_queue.put(self.md.convert(mess.body))
 
     def serve_forever(self):

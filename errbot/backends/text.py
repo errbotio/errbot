@@ -86,7 +86,7 @@ class TextBackend(ErrBot):
 
     def send_message(self, mess):
         bar = '\n╌╌[{mode}]' + ('╌' * 60)
-        super(TextBackend, self).send_message(mess)
+        super().send_message(mess)
         print(bar.format(mode='MD  '))
         if ANSI:
             print(highlight(mess.body, self.md_lexer, self.terminal_formatter))

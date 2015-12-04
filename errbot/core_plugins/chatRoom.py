@@ -49,7 +49,7 @@ class ChatRoom(BotPlugin):
 
     def deactivate(self):
         self.connected = False
-        super(ChatRoom, self).deactivate()
+        super().deactivate()
 
     @botcmd(split_args_with=SeparatorArgParser())
     def room_create(self, message, args):

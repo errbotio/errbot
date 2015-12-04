@@ -20,7 +20,7 @@ if slack:
     class TestSlackBackend(slack.SlackBackend):
 
         def __init__(self, *args, **kwargs):
-            super(TestSlackBackend, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
             self.test_msgs = []
             self.sc = mock.MagicMock()
 

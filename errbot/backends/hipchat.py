@@ -81,7 +81,7 @@ class HipChatMUCOccupant(XMPPMUCOccupant):
         # Quick fix to be able to all the parent.
         node_domain, resource = user['xmpp_jid'].split('/')
         node, domain = node_domain.split('@')
-        super(HipChatMUCOccupant, self).__init__(node, domain, resource)
+        super().__init__(node, domain, resource)
 
     def __str__(self):
         return self.name

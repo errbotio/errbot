@@ -20,13 +20,13 @@ class VersionChecker(BotPlugin):
             self.activated = True
             self.version_check()  # once at startup anyway
             self.start_poller(3600 * 24, self.version_check)  # once every 24H
-            super(VersionChecker, self).activate()
+            super().activate()
         else:
             self.log.info('Skip version checking under %s mode' % self.mode)
 
     def deactivate(self):
         self.activated = False
-        super(VersionChecker, self).deactivate()
+        super().deactivate()
 
     def version_check(self):
         if not self.activated:

@@ -460,7 +460,7 @@ class IRCBackend(ErrBot):
         self.md = irc_md()
 
     def send_message(self, mess):
-        super(IRCBackend, self).send_message(mess)
+        super().send_message(mess)
         if mess.type == 'chat':
             msg_func = self.conn.send_private_message
             msg_to = mess.to.person

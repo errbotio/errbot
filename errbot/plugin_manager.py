@@ -484,6 +484,25 @@ class BotPluginManager(PluginManager, StoreMixin):
         self.add_plugin_repo(human_name, repo)
         return self.update_dynamic_plugins()
 
+    def remove_plugin(self, plugin):
+        """
+        Deactivate and remove a plugin completely.
+        :param plugin: the plugin to remove
+        :return:
+        """
+        # First deactivate it if it was activated
+        if hasattr(plugin, 'is_activated') and plugin.is_activated:
+            self.deactivate_plugin(plugin.name)
+
+        # Remove it from the candidate list (so it doesn't appear as a failed plugin)
+        self.all_candidates.remove(plugin)
+
+        # Remove it from yapsy itself
+        for category, plugins in self.category_mapping.items():
+            if plugin in plugins:
+                log.debug('plugin found and removed from category %s', category)
+                plugins.remove(plugin)
+
     def shutdown(self):
         log.info('Shutdown.')
         self.close_storage()

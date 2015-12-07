@@ -294,6 +294,8 @@ class XMPPMUCOccupant(MUCIdentifier, XMPPIdentifier):
     def room(self):
         return self.node + '@' + self.domain
 
+    nick = XMPPIdentifier.resource
+
 
 class XMPPConnection(object):
     def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, bot=None):

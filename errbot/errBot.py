@@ -444,7 +444,7 @@ class ErrBot(Backend, BotPluginManager):
             log.exception('An error happened while processing '
                           'a message ("%s"): %s"' %
                           (mess.body, tb))
-            self.send_simple_reply(mess, self.MSG_ERROR_OCCURRED + ':\n %s' % e, private)
+            self.send_simple_reply(mess, self.MSG_ERROR_OCCURRED[:-1] + ':\n %s' % e, private)
 
     def unknown_command(self, _, cmd, args):
         """ Override the default unknown command behavior

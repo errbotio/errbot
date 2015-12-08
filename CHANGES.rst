@@ -1,3 +1,18 @@
+v3.2.2
+------
+
+bugs:
+
+- shutdown was not called properly anymore leading to possible plugin configuration loss.
+- fixed tarfile plugin install
+- fixed error reporting on webhook json parsing
+- fixed/hacked so the prompt on text mode appear after the asynchronous log entries
+
+features:
+
+- added a warning if the system encoding is not utf-8
+
+
 v3.2.1
 ------
 

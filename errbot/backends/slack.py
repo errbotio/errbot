@@ -334,7 +334,6 @@ class SlackBackend(ErrBot):
             text = event['text']
             user = event.get('user', event.get('bot_id'))
 
-
         mentioned = []
 
         for word in text.split(' '):
@@ -343,6 +342,7 @@ class SlackBackend(ErrBot):
                 mentioned.append(self.build_identifier(word.replace(':', '')))
 
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
+        text = re.sub('<@[^>]*>:*', '', text)
 
         log.debug("Saw an event: %s" % pprint.pformat(event))
 

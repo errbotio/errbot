@@ -334,6 +334,14 @@ class SlackBackend(ErrBot):
             text = event['text']
             user = event.get('user', event.get('bot_id'))
 
+
+        mentioned = []
+
+        for word in text.split(' '):
+            if word.startswith('<') or word.startswith('@') or word.startswith('#'):
+                log.debug('Someone mentioned')
+                mentioned.append(self.build_identifier(word.replace(':', '')))
+
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
 
         log.debug("Saw an event: %s" % pprint.pformat(event))
@@ -353,6 +361,9 @@ class SlackBackend(ErrBot):
                                       event['channel'])
 
         self.callback_message(msg)
+
+        if mentioned:
+            self.callback_mention(msg, mentioned)
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""

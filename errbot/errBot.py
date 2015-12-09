@@ -65,7 +65,7 @@ class ErrBot(Backend, BotPluginManager):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
     __errdoc__ = """ Commands related to the bot administration """
-    MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details.'
+    MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details'
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
 

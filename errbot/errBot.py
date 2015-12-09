@@ -525,13 +525,7 @@ class ErrBot(Backend, BotPluginManager):
                     log.exception("Crash in a callback_message handler")
 
     def callback_mention(self, mess, people):
-        for plugin in self.get_all_active_plugin_objects():
-            # noinspection PyBroadException
-            try:
-                log.debug('Trigger callback_mention on %s' % plugin.__class__.__name__)
-                plugin.callback_mention(mess, people)
-            except Exception:
-                log.exception("Crash in a callback_mention handler")
+        self._dispatch_to_plugins('callback_mention', mess, people)
 
     def callback_presence(self, pres):
         self._dispatch_to_plugins('callback_presence', pres)

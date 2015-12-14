@@ -45,7 +45,21 @@ class Plugins(BotPlugin):
         """
         if not args.strip():
             return "You should have a repo name as argument"
-        repos = self._bot.get(self._bot.REPOS, {})
+        repos = {}
+        _installed = self._bot.get_installed_plugin_repos()
+
+        # Fix to migrate exiting plugins into new format
+        for short_name, url in _installed.items():
+            name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
+
+            t_installed = {name: {
+                'path': url,
+                'documentation': 'Unavilable',
+                'python': None,
+                'avatar_url': None,
+                }
+            }
+            repos.update(t_installed)
         if args not in repos:
             return "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
 
@@ -127,7 +141,22 @@ class Plugins(BotPlugin):
                     'your system to be able to install git based plugins.')
 
         directories = set()
-        repos = self._bot.get(self._bot.REPOS, {})
+        repos = {}
+        _installed = self._bot.get_installed_plugin_repos()
+
+        # Fix to migrate exiting plugins into new format
+        for short_name, url in _installed.items():
+            name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
+
+            t_installed = {name: {
+                'path': url,
+                'documentation': 'Unavilable',
+                'python': None,
+                'avatar_url': None,
+                }
+            }
+            repos.update(t_installed)
+
         core_to_update = 'all' in args or 'core' in args
         if core_to_update:
             directories.add(path.dirname(__file__))

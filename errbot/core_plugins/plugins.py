@@ -73,8 +73,6 @@ class Plugins(BotPlugin):
 
         # Fix to migrate exiting plugins into new format
         for short_name, url in _installed.items():
-            #import ipdb; ipdb.set_trace()
-
             name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
 
             t_installed = {name: {

@@ -61,18 +61,57 @@ class Plugins(BotPlugin):
 
         return 'Plugins unloaded and repo %s removed' % args
 
+
     # noinspection PyUnusedLocal
     @botcmd(template='repos')
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
-        installed_repos = self._bot.get_installed_plugin_repos()
+
+        installed_repos = {}
+        _installed = self._bot.get_installed_plugin_repos()
+
+        # Fix to migrate exiting plugins into new format
+        for short_name, url in _installed.items():
+            #import ipdb; ipdb.set_trace()
+
+            name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
+
+            t_installed = {name: {
+                'path': url,
+                'documentation': 'Unavilable',
+                'python': None,
+                'avatar_url': None,
+                }
+            }
+            installed_repos.update(t_installed)
+
+
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
-        return {'repos': [
-            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name,
-             KNOWN_PUBLIC_REPOS[repo_name][1]
-             if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
-            for repo_name in all_names]}
+
+        repos = {'repos': []}
+
+        for repo_name in all_names:
+
+            installed = False
+            public = False
+
+            try:
+                description = KNOWN_PUBLIC_REPOS[repo_name].get('documentation', 'Unavailable')
+            except KeyError:
+                description = installed_repos[repo_name].get('path')
+
+            if repo_name in KNOWN_PUBLIC_REPOS:
+                public = True
+
+            if repo_name in installed_repos:
+                installed = True
+
+            # installed, public, name, desc
+            repos['repos'].append((installed, public, repo_name, description))
+
+        return repos
+
 
     @botcmd(split_args_with=' ', admin_only=True)
     def repos_update(self, mess, args):

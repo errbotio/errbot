@@ -380,23 +380,35 @@ class BotPluginManager(PluginManager, StoreMixin):
             t_name = '/'.join(url.split('/')[-2:])
             name = t_name.replace('.git', '')
 
-            t_installed = {name: {
+            t_repo = {name: {
                 'path': url,
                 'documentation': 'Unavilable',
                 'python': None,
                 'avatar_url': None,
                 }
             }
-            repos.update(t_installed)
+            repos.update(t_repo)
         return repos
+
+    def set_plugin_repos(self, repos):
+        self[self.REPOS] = repos
 
     def add_plugin_repo(self, name, url):
         if PY2:
             name = name.encode('utf-8')
             url = url.encode('utf-8')
         repos = self.get_installed_plugin_repos()
-        repos[name] = url
-        self[self.REPOS] = repos
+
+        t_installed = {name: {
+            'path': url,
+            'documentation': 'Unavilable',
+            'python': None,
+            'avatar_url': None,
+            }
+        }
+
+        repos.update(t_installed)
+        self.set_plugin_repos(repos)
 
     # plugin blacklisting management
     def get_blacklisted_plugin(self):

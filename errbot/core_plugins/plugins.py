@@ -59,7 +59,7 @@ class Plugins(BotPlugin):
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
-        self[self._bot.REPOS] = repos
+        self._bot.set_plugin_repos(repos)
 
         return 'Plugins unloaded and repo %s removed' % args
 

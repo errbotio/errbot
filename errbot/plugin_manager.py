@@ -368,7 +368,27 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     # Repo management
     def get_installed_plugin_repos(self):
-        return self.get(self.REPOS, {})
+
+        repos = self.get(self.REPOS, {})
+
+        if not repos:
+            return repos
+
+        # Fix to migrate exiting plugins into new format
+        for url in self.get(self.REPOS, repos).values():
+            if type(url) == dict: continue
+            t_name = '/'.join(url.split('/')[-2:])
+            name = t_name.replace('.git', '')
+
+            t_installed = {name: {
+                'path': url,
+                'documentation': 'Unavilable',
+                'python': None,
+                'avatar_url': None,
+                }
+            }
+            repos.update(t_installed)
+        return repos
 
     def add_plugin_repo(self, name, url):
         if PY2:

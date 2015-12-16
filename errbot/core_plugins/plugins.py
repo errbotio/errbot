@@ -45,21 +45,9 @@ class Plugins(BotPlugin):
         """
         if not args.strip():
             return "You should have a repo name as argument"
-        repos = {}
-        _installed = self._bot.get_installed_plugin_repos()
 
-        # Fix to migrate exiting plugins into new format
-        for short_name, url in _installed.items():
-            name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
+        repos = self._bot.get_installed_plugin_repos()
 
-            t_installed = {name: {
-                'path': url,
-                'documentation': 'Unavilable',
-                'python': None,
-                'avatar_url': None,
-                }
-            }
-            repos.update(t_installed)
         if args not in repos:
             return "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
 
@@ -82,22 +70,7 @@ class Plugins(BotPlugin):
         """ list the current active plugin repositories
         """
 
-        installed_repos = {}
-        _installed = self._bot.get_installed_plugin_repos()
-
-        # Fix to migrate exiting plugins into new format
-        for short_name, url in _installed.items():
-            name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
-
-            t_installed = {name: {
-                'path': url,
-                'documentation': 'Unavilable',
-                'python': None,
-                'avatar_url': None,
-                }
-            }
-            installed_repos.update(t_installed)
-
+        installed_repos = self._bot.get_installed_plugin_repos()
 
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
 

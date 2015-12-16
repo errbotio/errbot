@@ -462,13 +462,14 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def install_repo(self, repo):
         if repo in KNOWN_PUBLIC_REPOS:
-            repo = KNOWN_PUBLIC_REPOS[repo][0]  # replace it by the url
+            repo = KNOWN_PUBLIC_REPOS[repo]['path']  # replace it by the url
         git_path = which('git')
 
         if not git_path:
             return ('git command not found: You need to have git installed on '
                     'your system to be able to install git based plugins.', )
 
+        # TODO: Update download path of plugin.
         if repo.endswith('tar.gz'):
             tar = TarFile(fileobj=urlopen(repo))
             tar.extractall(path=self.plugin_dir)

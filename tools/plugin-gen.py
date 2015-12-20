@@ -96,14 +96,14 @@ def check_repo(repo):
             python = '2'
 
         plugin = {repo: {
-                          'path': plug['path'],
-                          'repo': 'https://github.com/{0}'.format(repo),
-                          'documentation': doc,
-                          'name': name,
-                          'python': python,
-                          'avatar_url': avatar_url,
-                      }
-                 }
+            'path': plug['path'],
+            'repo': 'https://github.com/{0}'.format(repo),
+            'documentation': doc,
+            'name': name,
+            'python': python,
+            'avatar_url': avatar_url,
+        }}
+
         plugins.update(plugin)
         print('Catalog added plugin %s.' % plugin['name'])
 

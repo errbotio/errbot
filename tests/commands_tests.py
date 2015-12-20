@@ -137,7 +137,7 @@ class TestCommands(FullStackTest):
         filename = re.search(r"'([A-Za-z0-9_\./\\-]*)'", msg).group(1)
 
         # At least the backup should mention the installed plugin
-        self.assertIn('err-helloworld', open(filename).read())
+        self.assertIn('errbotio/err-helloworld', open(filename).read())
 
         # Now try to clean the bot and restore
         plugins_dir = path.join(self.bot.bot_config.BOT_DATA_DIR, 'plugins')
@@ -152,7 +152,7 @@ class TestCommands(FullStackTest):
         with open(filename) as f:
             exec(f.read())
         self.assertCommand('!hello', 'Hello World !')
-        self.bot.push_message('!repos uninstall err-helloworld')
+        self.bot.push_message('!repos uninstall errbotio/err-helloworld')
 
     def test_encoding_preservation(self):
         self.bot.push_message('!echo へようこそ')

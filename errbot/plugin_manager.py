@@ -376,7 +376,8 @@ class BotPluginManager(PluginManager, StoreMixin):
 
         # Fix to migrate exiting plugins into new format
         for url in self.get(self.REPOS, repos).values():
-            if type(url) == dict: continue
+            if type(url) == dict:
+                continue
             t_name = '/'.join(url.split('/')[-2:])
             name = t_name.replace('.git', '')
 

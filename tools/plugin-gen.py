@@ -32,9 +32,8 @@ def add_blacklisted(repo):
 
 
 def add_plugin(plugin):
-    with open('plugins.txt', 'a') as f:
+    with open('repos.json', 'a') as f:
         f.write(repr(plugin))
-        f.write('\n')
 
 with open('blacklisted.txt', 'r') as f:
     BLACKLISTED = [line.strip() for line in f.readlines()]
@@ -72,6 +71,7 @@ def check_repo(repo):
         return
     avatar_url = get_avatar_url(repo)
 
+    plugins = {}
     for plug in plug_items:
         time.sleep(PAUSE)
         f = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
@@ -82,25 +82,32 @@ def check_repo(repo):
         parser.read_string(f.text)
         name = parser['Core']['Name']
         log.debug('Name: %s' % name)
+
         if 'Documentation' in parser:
             doc = parser['Documentation']['Description']
             log.debug('Documentation: %s' % doc)
         else:
             doc = ''
+
         if 'Python' in parser:
             python = parser['Python']['Version']
             log.debug('Python Version: %s' % python)
         else:
             python = '2'
 
-        plugin = {'repo': repo,
-                  'path': plug['path'],
-                  'documentation': doc,
-                  'name': name,
-                  'python': python,
-                  'avatar_url': avatar_url}
-        add_plugin(plugin)
+        plugin = {repo: {
+                          'path': plug['path'],
+                          'repo': 'https://github.com/{0}'.format(repo),
+                          'documentation': doc,
+                          'name': name,
+                          'python': python,
+                          'avatar_url': avatar_url,
+                      }
+                 }
+        plugins.update(plugin)
         print('Catalog added plugin %s.' % plugin['name'])
+
+    add_plugin(plugins)
 
 
 def find_plugins():

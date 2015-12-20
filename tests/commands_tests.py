@@ -14,7 +14,7 @@ class TestCommands(FullStackTest):
         kwargs['extra_plugin_dir'] = path.join(path.dirname(
             path.realpath(__file__)), 'dummy_plugin')
 
-        super(TestCommands, self).setUp(*args, **kwargs)
+        super().setUp(*args, **kwargs)
 
     def test_root_help(self):
         self.assertCommand('!help', 'Available help')
@@ -121,8 +121,8 @@ class TestCommands(FullStackTest):
         self.assertEqual('Hello World !', self.bot.pop_message())
 
         self.bot.push_message('!repos uninstall err-helloworld')
-        self.assertEqual('/me is unloading plugin HelloWorld', self.bot.pop_message())
-        self.assertEqual('Plugins unloaded and repo err-helloworld removed', self.bot.pop_message())
+        self.assertEqual('Removing HelloWorld...', self.bot.pop_message())
+        self.assertEqual('Repo err-helloworld removed.', self.bot.pop_message())
 
         self.bot.push_message('!hello')  # should not respond
         self.assertIn('Command "hello" not found', self.bot.pop_message())

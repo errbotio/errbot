@@ -41,6 +41,10 @@ if PY2 and "param='canary'" in foo_src:
     print('Either use python3 or install err using ./setup.py develop.')
     sys.exit(-1)
 
+if sys.getdefaultencoding().lower() != 'utf-8':
+    logging.warn('Starting errbot with a default system encoding other than \'utf-8\''
+                 ' might cause you a heap of troubles.'
+                 ' Your current encoding is set at \'%s\'' % sys.getdefaultencoding())
 
 log = logging.getLogger(__name__)
 

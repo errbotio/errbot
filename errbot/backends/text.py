@@ -2,6 +2,7 @@
 # vim: ts=4:sw=4
 import logging
 import sys
+from time import sleep
 
 from ansi.color import fg, fx
 from pygments import highlight
@@ -70,6 +71,7 @@ class TextBackend(ErrBot):
                 msg.frm = me
                 msg.to = self.bot_identifier
                 self.callback_message(msg)
+                sleep(.5)
         except EOFError:
             pass
         except KeyboardInterrupt:
@@ -84,7 +86,7 @@ class TextBackend(ErrBot):
 
     def send_message(self, mess):
         bar = '\n╌╌[{mode}]' + ('╌' * 60)
-        super(TextBackend, self).send_message(mess)
+        super().send_message(mess)
         print(bar.format(mode='MD  '))
         if ANSI:
             print(highlight(mess.body, self.md_lexer, self.terminal_formatter))
@@ -119,9 +121,6 @@ class TextBackend(ErrBot):
         response.to = mess.frm
         response.type = 'chat' if private else mess.type
         return response
-
-    def shutdown(self):
-        super(TextBackend, self).shutdown()
 
     @deprecated
     def join_room(self, room, username=None, password=None):

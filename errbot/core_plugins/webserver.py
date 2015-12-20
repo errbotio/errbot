@@ -87,7 +87,7 @@ class Webserver(BotPlugin):
         # it is a pain, just assume a default config if SSL is absent or set to None
         if configuration.get('SSL', None) is None:
             configuration['SSL'] = {'enabled': False, 'host': '0.0.0.0', 'port': 3142, 'certificate': "", 'key': ""}
-        super(Webserver, self).check_configuration(configuration)
+        super().check_configuration(configuration)
 
     def activate(self):
         if not self.config:
@@ -107,13 +107,13 @@ class Webserver(BotPlugin):
         self.webserver.start(background=True)
         self.log.debug('Liftoff!')
 
-        super(Webserver, self).activate()
+        super().activate()
 
     def deactivate(self):
         if self.webserver is not None:
             self.log.debug('Sending signal to stop the webserver')
             self.webserver.stop()
-        super(Webserver, self).deactivate()
+        super().deactivate()
 
     # noinspection PyUnusedLocal
     @botcmd(template='webstatus')

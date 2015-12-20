@@ -45,7 +45,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         self.history_index = 0
         self.history = history
         self.reset_history()
-        super(CommandBox, self).__init__()
+        super().__init__()
 
         # Autocompleter
         self.completer = None

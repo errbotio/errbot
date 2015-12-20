@@ -44,25 +44,26 @@ class Plugins(BotPlugin):
         """ uninstall a plugin repository by name.
         """
         if not args.strip():
-            return "You should have a repo name as argument"
+            yield "You should have a repo name as argument"
+            return
 
         repos = self._bot.get_installed_plugin_repos()
 
         if args not in repos:
-            return "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
+            yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
+            return
 
         plugin_path = path.join(self._bot.plugin_dir, args)
         for plugin in self._bot.getAllPlugins():
-            if plugin.path.startswith(plugin_path) and hasattr(plugin, 'is_activated') and plugin.is_activated:
-                self.send(mess.frm, '/me is unloading plugin %s' % plugin.name)
-                self._bot.deactivate_plugin(plugin.name)
+            if plugin.path.startswith(plugin_path):
+                yield 'Removing %s...' % plugin.name
+                self._bot.remove_plugin(plugin)
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
         self._bot.set_plugin_repos(repos)
 
-        return 'Plugins unloaded and repo %s removed' % args
-
+        yield 'Repo %s removed.' % args
 
     # noinspection PyUnusedLocal
     @botcmd(template='repos')
@@ -96,7 +97,6 @@ class Plugins(BotPlugin):
             repos['repos'].append((installed, public, repo_name, description))
 
         return repos
-
 
     @botcmd(split_args_with=' ', admin_only=True)
     def repos_update(self, mess, args):

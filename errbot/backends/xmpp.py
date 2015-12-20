@@ -294,6 +294,8 @@ class XMPPMUCOccupant(MUCIdentifier, XMPPIdentifier):
     def room(self):
         return self.node + '@' + self.domain
 
+    nick = XMPPIdentifier.resource
+
 
 class XMPPConnection(object):
     def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, bot=None):
@@ -396,7 +398,7 @@ XMPP_TO_ERR_STATUS = {'available': ONLINE,
 class XMPPBackend(ErrBot):
 
     def __init__(self, config):
-        super(XMPPBackend, self).__init__(config)
+        super().__init__(config)
         identity = config.BOT_IDENTITY
 
         self.jid = identity['username']  # backward compatibility
@@ -519,7 +521,7 @@ class XMPPBackend(ErrBot):
         self.disconnect_callback()
 
     def send_message(self, mess):
-        super(XMPPBackend, self).send_message(mess)
+        super().send_message(mess)
 
         # if the message is of type groupchat, we need to strip
         # the resource from the jid because it represents a user.

@@ -50,7 +50,7 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
 
 try:
     import irc.connection
-    from irc.client import ServerNotConnectedError
+    from irc.client import ServerNotConnectedError, NickMask
     from irc.bot import SingleServerIRCBot
 except ImportError as _:
     log.exception("Could not start the IRC backend")
@@ -79,39 +79,51 @@ def irc_md():
 class IRCIdentifier(Identifier):
     # TODO(gbin): remove the deprecation warnings at one point.
 
-    def __init__(self, nick, domain=None):
-        self._nick = nick
-        self._domain = domain
+    def __init__(self, mask):
+        self._nickmask = NickMask(mask)
 
     @property
     def nick(self):
-        return self._nick
+        return self._nickmask.nick
 
     @property
-    def domain(self):
-        return self._domain
+    def user(self):
+        return self._nickmask.user
+
+    @property
+    def host(self):
+        return self._nickmask.host
 
     # generic compatibility
     person = nick
-    client = ''  # TODO it should be possible to get more info here
+
+    @property
+    def client(self):
+        return self._nickmask.userhost
 
     @property
     def fullname(self):
         # TODO: this should be possible to get
         return None
 
-    aclattr = person
+    @property
+    def aclattr(self):
+        return self._nickmask.userhost
 
     def __unicode__(self):
-        return "%s!%s" % (self._nick, self._domain)
+        if self._nickmask.userhost:
+            return self._nickmask.userhost
+        elif self._nickmask.nick:
+            return self._nickmask.nick
+        return ""
 
     def __str__(self):
         return self.__unicode__()
 
 
 class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
-    def __init__(self, nick, room):
-        super().__init__(nick)
+    def __init__(self, mask, room):
+        super().__init__(mask)
         self._room = room
 
     @property
@@ -119,7 +131,11 @@ class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
         return self._room
 
     def __unicode__(self):
-        return "%s!%s %s" % (self._nick, self._domain, self._room)
+        if self._nickmask.userhost:
+            return "%s %s" % (self._nickmask.userhost, self._room)
+        elif self._nickmask.nick:
+            return "%s %s" % (self._nickmask.nick, self._room)
+        return " " + self._room
 
     def __str__(self):
         return self.__unicode__()
@@ -314,18 +330,17 @@ class IRCConnection(SingleServerIRCBot):
 
     def on_pubmsg(self, _, e):
         msg = Message(e.arguments[0], type_='groupchat')
-        nick = e.source.split('!')[0]
         room = e.target
         if room[0] != '#' and room[0] != '$':
             raise Exception('[%s] is not a room' % room)
-        msg.frm = IRCMUCOccupant(nick, room)
+        msg.frm = IRCMUCOccupant(e.source, room)
         msg.to = self.callback.bot_identifier
-        msg.nick = nick  # FIXME find the real nick in the channel
+        msg.nick = msg.frm.nick  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)
 
     def on_privmsg(self, _, e):
         msg = Message(e.arguments[0])
-        msg.frm = IRCIdentifier(e.source.split('!')[0])
+        msg.frm = IRCIdentifier(e.source)
         msg.to = IRCIdentifier(e.target)
         self.callback.callback_message(msg)
 
@@ -441,7 +456,8 @@ class IRCBackend(ErrBot):
         reconnect_on_kick = config.__dict__.get('IRC_RECONNECT_ON_KICK', 5)
         reconnect_on_disconnect = config.__dict__.get('IRC_RECONNECT_ON_DISCONNECT', 5)
 
-        self.bot_identifier = IRCIdentifier(nickname, server)
+        self.bot_identifier = IRCIdentifier(
+                nickname + '!' + nickname + '@' + server)
         super().__init__(config)
         self.conn = IRCConnection(self,
                                   nickname,
@@ -460,7 +476,7 @@ class IRCBackend(ErrBot):
         self.md = irc_md()
 
     def send_message(self, mess):
-        super(IRCBackend, self).send_message(mess)
+        super().send_message(mess)
         if mess.type == 'chat':
             msg_func = self.conn.send_private_message
             msg_to = mess.to.person
@@ -520,10 +536,6 @@ class IRCBackend(ErrBot):
         log.debug("Build identifier from [%s]" % txtrep)
         if txtrep.startswith('#'):
             return IRCMUCOccupant(None, txtrep)
-
-        if '!' in txtrep:
-            nick, domain = txtrep.split('!')
-            return IRCIdentifier(nick, domain)
 
         return IRCIdentifier(txtrep)
 

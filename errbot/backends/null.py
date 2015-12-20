@@ -57,7 +57,7 @@ class NullBackend(ErrBot):
     def shutdown(self):
         if self.running:
             self.running = False
-            super(NullBackend, self).shutdown()  # only once (hackish)
+            super().shutdown()  # only once (hackish)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass

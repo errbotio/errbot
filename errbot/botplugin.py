@@ -27,7 +27,7 @@ class BotPluginBase(StoreMixin):
         self.log = logging.getLogger("errbot.plugins.%s" % self.__class__.__name__)
         if bot is not None:
             self._load_bot(bot)
-        super(BotPluginBase, self).__init__()
+        super().__init__()
 
     def _load_bot(self, bot):
         """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
@@ -236,7 +236,7 @@ class BotPlugin(BotPluginBase):
             Override this method if you want to do something at initialization phase
             (don't forget to `super().activate()`).
         """
-        super(BotPlugin, self).activate()
+        super().activate()
 
     def deactivate(self) -> None:
         """

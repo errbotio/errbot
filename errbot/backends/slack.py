@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 import time
@@ -66,7 +65,7 @@ USER_IS_BOT_HELPTEXT = (
 class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
 
-    def __init__(self, *args, error='', **kwargs):
+    def __init__(self, error='', *args, **kwargs):
         """
         :param error:
             The 'error' key from the API response data
@@ -200,7 +199,7 @@ class SlackBackend(ErrBot):
         """
         if data is None:
             data = {}
-        response = json.loads(self.sc.server.api_call(method, **data).decode('utf-8'))
+        response = self.sc.server.api_call(method, **data).json()
         if raise_errors and not response['ok']:
             raise SlackAPIResponseError(
                 "Slack API call to %s failed: %s" % (method, response['error']),

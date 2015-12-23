@@ -1,0 +1,9 @@
+[Core]
+Name = Mention
+Module = mention
+
+[Documentation]
+Description = An Err mention test plugin
+
+[Python]
+Version = 3

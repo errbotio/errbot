@@ -336,15 +336,16 @@ class SlackBackend(ErrBot):
 
         mentioned = []
 
-        for word in text.split(' '):
+        for word in text.split():
             if word.startswith('<') or word.startswith('@') or word.startswith('#'):
                 log.debug('Someone mentioned')
                 mentioned.append(self.build_identifier(word.replace(':', '')))
+                text = re.sub('<@[^>]*>:*', '@%s' % mentioned[-1].username, text)
 
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
-        text = re.sub('<@[^>]*>:*', '', text)
 
         log.debug("Saw an event: %s" % pprint.pformat(event))
+        log.debug("Escaped IDs event text: %s" % text)
 
         msg = Message(
             text,

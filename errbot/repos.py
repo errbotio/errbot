@@ -16,7 +16,8 @@ def get_known_repos():
         'python': None
     }, ...
     '''
-    registry = urllib.request.urlopen('https://gist.githubusercontent.com/sijis/95ac411600f085818f22/raw/84ef97b1fbc5c00ebf46c1558d6fd83c07091e6a/repos.json').read()
+    registry_url = 'http://bit.ly/22pkjaq'
+    registry = urllib.request.urlopen(registry_url).read()
     return ast.literal_eval(registry.decode('utf-8'))
 
 KNOWN_PUBLIC_REPOS = get_known_repos()

@@ -516,13 +516,7 @@ class ErrBot(Backend, BotPluginManager):
         """Processes for commands and dispatches the message to all the plugins."""
         if self.process_message(mess):
             # Act only in the backend tells us that this message is OK to broadcast
-            for plugin in self.get_all_active_plugin_objects():
-                # noinspection PyBroadException
-                try:
-                    log.debug('Trigger callback_message on %s' % plugin.__class__.__name__)
-                    plugin.callback_message(mess)
-                except Exception:
-                    log.exception("Crash in a callback_message handler")
+            self._dispatch_to_plugins('callback_message', mess)
 
     def callback_presence(self, pres):
         self._dispatch_to_plugins('callback_presence', pres)

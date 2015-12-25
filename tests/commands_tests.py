@@ -90,42 +90,49 @@ class TestCommands(FullStackTest):
         self.assertCommand('!history', 'uptime')
 
     def test_plugin_cycle(self):
-        self.assertCommand('!repos install git://github.com/errbotio/err-helloworld.git',
-                           'err-helloworld',
-                           60)
-        self.assertIn('reload', self.bot.pop_message())
 
-        self.assertCommand('!help hello', 'this command says hello')
-        self.assertCommand('!hello', 'Hello World !')
+        plugins = [
+            # 'git://github.com/errbotio/err-helloworld.git',
+            'errbotio/err-helloworld',
+        ]
 
-        self.bot.push_message('!plugin reload HelloWorld')
-        self.assertEqual('Plugin HelloWorld reloaded.', self.bot.pop_message())
+        for plugin in plugins:
+            self.assertCommand('!repos install {0}'.format(plugin),
+                               'errbotio/err-helloworld',
+                               60)
+            self.assertIn('reload', self.bot.pop_message())
 
-        self.bot.push_message('!hello')  # should still respond
-        self.assertEqual('Hello World !', self.bot.pop_message())
+            self.assertCommand('!help hello', 'this command says hello')
+            self.assertCommand('!hello', 'Hello World !')
 
-        self.bot.push_message('!plugin blacklist HelloWorld')
-        self.assertEqual('Plugin HelloWorld is now blacklisted', self.bot.pop_message())
-        self.bot.push_message('!plugin deactivate HelloWorld')
-        self.assertEqual('HelloWorld is already deactivated.', self.bot.pop_message())
+            self.bot.push_message('!plugin reload HelloWorld')
+            self.assertEqual('Plugin HelloWorld reloaded.', self.bot.pop_message())
 
-        self.bot.push_message('!hello')  # should not respond
-        self.assertIn('Command "hello" not found', self.bot.pop_message())
+            self.bot.push_message('!hello')  # should still respond
+            self.assertEqual('Hello World !', self.bot.pop_message())
 
-        self.bot.push_message('!plugin unblacklist HelloWorld')
-        self.assertEqual('Plugin HelloWorld removed from blacklist', self.bot.pop_message())
-        self.bot.push_message('!plugin activate HelloWorld')
-        self.assertEqual('HelloWorld is already activated.', self.bot.pop_message())
+            self.bot.push_message('!plugin blacklist HelloWorld')
+            self.assertEqual('Plugin HelloWorld is now blacklisted', self.bot.pop_message())
+            self.bot.push_message('!plugin deactivate HelloWorld')
+            self.assertEqual('HelloWorld is already deactivated.', self.bot.pop_message())
 
-        self.bot.push_message('!hello')  # should respond back
-        self.assertEqual('Hello World !', self.bot.pop_message())
+            self.bot.push_message('!hello')  # should not respond
+            self.assertIn('Command "hello" not found', self.bot.pop_message())
 
-        self.bot.push_message('!repos uninstall err-helloworld')
-        self.assertEqual('Removing HelloWorld...', self.bot.pop_message())
-        self.assertEqual('Repo err-helloworld removed.', self.bot.pop_message())
+            self.bot.push_message('!plugin unblacklist HelloWorld')
+            self.assertEqual('Plugin HelloWorld removed from blacklist', self.bot.pop_message())
+            self.bot.push_message('!plugin activate HelloWorld')
+            self.assertEqual('HelloWorld is already activated.', self.bot.pop_message())
 
-        self.bot.push_message('!hello')  # should not respond
-        self.assertIn('Command "hello" not found', self.bot.pop_message())
+            self.bot.push_message('!hello')  # should respond back
+            self.assertEqual('Hello World !', self.bot.pop_message())
+
+            self.bot.push_message('!repos uninstall errbotio/err-helloworld')
+            self.assertEqual('Removing HelloWorld...', self.bot.pop_message())
+            self.assertEqual('Repo errbotio/err-helloworld removed.', self.bot.pop_message())
+
+            self.bot.push_message('!hello')  # should not respond
+            self.assertIn('Command "hello" not found', self.bot.pop_message())
 
     def test_backup(self):
         self.bot.push_message('!repos install git://github.com/errbotio/err-helloworld.git')

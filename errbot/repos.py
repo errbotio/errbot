@@ -16,7 +16,7 @@ def get_known_repos():
         'python': None
     }, ...
     '''
-    registry_url = 'http://bit.ly/22pkjaq'
+    registry_url = 'http://bit.ly/1kjdlRX'
     registry = urllib.request.urlopen(registry_url).read()
     return ast.literal_eval(registry.decode('utf-8'))
 

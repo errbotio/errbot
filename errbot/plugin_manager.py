@@ -506,7 +506,8 @@ class BotPluginManager(PluginManager, StoreMixin):
         if repo.endswith('tar.gz'):
             tar = TarFile(fileobj=urlopen(repo))
             tar.extractall(path=self.plugin_dir)
-            human_name = repo.split('/')[-1][:-7]
+            s = repo.split(':')[-1].split('/')[-2:]
+            human_name = '/'.join(s).rstrip('.tar.gz')
         else:
             human_name = human_name_for_git_url(repo)
             p = subprocess.Popen([git_path, 'clone', repo, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,

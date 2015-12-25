@@ -90,12 +90,8 @@ def get_class_for_method(meth):
 
 def human_name_for_git_url(url):
     # try to humanize the last part of the git url as much as we can
-    if url.find('/') > 0:
-        s = url.split('/')
-    else:
-        s = url.split(':')
-    last_part = str(s[-1]) if s[-1] else str(s[-2])
-    return last_part[:-4] if last_part.endswith('.git') else last_part
+    s = url.split(':')[-1].split('/')[-2:]
+    return str('/'.join(s).rstrip('.git'))
 
 
 def tail(f, window=20):

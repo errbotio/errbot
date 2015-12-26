@@ -3,12 +3,14 @@ If you are looking for errbot documentation, it is there: [errbot.io](http://err
 ### All errbot plugins found from github
 
 {% for plugin in plugins %}
-## {{loop.index}}\. <img src="{{plugin.avatar_url}}" width="32">  [{{plugin.name}}](https://github.com/{{plugin.repo}})
+{% set name = plugin[0] %}
+{% set values = plugin[1] %}
+## {{loop.index}}\. <img src="{{values.avatar_url}}" width="32">  [{{name}}]({{values.repo}})
 
-{{plugin.documentation}}
+{{values.documentation}}
 
-- Python {{plugin.python}}
-- Install: `!repos install https://github.com/{{plugin.repo}}.git`
+- Python {{values.python}}
+- Install: `!repos install {{values.repo}}`
 
 ---
 {% endfor %}

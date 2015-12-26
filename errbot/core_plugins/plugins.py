@@ -47,7 +47,8 @@ class Plugins(BotPlugin):
             yield "You should have a repo name as argument"
             return
 
-        repos = self._bot.get(self._bot.REPOS, {})
+        repos = self._bot.get_installed_plugin_repos()
+
         if args not in repos:
             yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
             return
@@ -60,7 +61,7 @@ class Plugins(BotPlugin):
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
-        self[self._bot.REPOS] = repos
+        self._bot.set_plugin_repos(repos)
 
         yield 'Repo %s removed.' % args
 
@@ -69,13 +70,33 @@ class Plugins(BotPlugin):
     def repos(self, mess, args):
         """ list the current active plugin repositories
         """
+
         installed_repos = self._bot.get_installed_plugin_repos()
+
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
-        return {'repos': [
-            (repo_name in installed_repos, repo_name in KNOWN_PUBLIC_REPOS, repo_name,
-             KNOWN_PUBLIC_REPOS[repo_name][1]
-             if repo_name in KNOWN_PUBLIC_REPOS else installed_repos[repo_name])
-            for repo_name in all_names]}
+
+        repos = {'repos': []}
+
+        for repo_name in all_names:
+
+            installed = False
+            public = False
+
+            try:
+                description = KNOWN_PUBLIC_REPOS[repo_name].get('documentation', 'Unavailable')
+            except KeyError:
+                description = installed_repos[repo_name].get('path')
+
+            if repo_name in KNOWN_PUBLIC_REPOS:
+                public = True
+
+            if repo_name in installed_repos:
+                installed = True
+
+            # installed, public, name, desc
+            repos['repos'].append((installed, public, repo_name, description))
+
+        return repos
 
     @botcmd(split_args_with=' ', admin_only=True)
     def repos_update(self, mess, args):
@@ -93,7 +114,22 @@ class Plugins(BotPlugin):
                     'your system to be able to install git based plugins.')
 
         directories = set()
-        repos = self._bot.get(self._bot.REPOS, {})
+        repos = {}
+        _installed = self._bot.get_installed_plugin_repos()
+
+        # Fix to migrate exiting plugins into new format
+        for short_name, url in _installed.items():
+            name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
+
+            t_installed = {name: {
+                'path': url,
+                'documentation': 'Unavilable',
+                'python': None,
+                'avatar_url': None,
+                }
+            }
+            repos.update(t_installed)
+
         core_to_update = 'all' in args or 'core' in args
         if core_to_update:
             directories.add(path.dirname(__file__))

@@ -368,15 +368,48 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     # Repo management
     def get_installed_plugin_repos(self):
-        return self.get(self.REPOS, {})
+
+        repos = self.get(self.REPOS, {})
+
+        if not repos:
+            return repos
+
+        # Fix to migrate exiting plugins into new format
+        for url in self.get(self.REPOS, repos).values():
+            if type(url) == dict:
+                continue
+            t_name = '/'.join(url.split('/')[-2:])
+            name = t_name.replace('.git', '')
+
+            t_repo = {name: {
+                'path': url,
+                'documentation': 'Unavilable',
+                'python': None,
+                'avatar_url': None,
+                }
+            }
+            repos.update(t_repo)
+        return repos
+
+    def set_plugin_repos(self, repos):
+        self[self.REPOS] = repos
 
     def add_plugin_repo(self, name, url):
         if PY2:
             name = name.encode('utf-8')
             url = url.encode('utf-8')
         repos = self.get_installed_plugin_repos()
-        repos[name] = url
-        self[self.REPOS] = repos
+
+        t_installed = {name: {
+            'path': url,
+            'documentation': 'Unavilable',
+            'python': None,
+            'avatar_url': None,
+            }
+        }
+
+        repos.update(t_installed)
+        self.set_plugin_repos(repos)
 
     # plugin blacklisting management
     def get_blacklisted_plugin(self):
@@ -462,17 +495,19 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def install_repo(self, repo):
         if repo in KNOWN_PUBLIC_REPOS:
-            repo = KNOWN_PUBLIC_REPOS[repo][0]  # replace it by the url
+            repo = KNOWN_PUBLIC_REPOS[repo]['path']  # replace it by the url
         git_path = which('git')
 
         if not git_path:
             return ('git command not found: You need to have git installed on '
                     'your system to be able to install git based plugins.', )
 
+        # TODO: Update download path of plugin.
         if repo.endswith('tar.gz'):
             tar = TarFile(fileobj=urlopen(repo))
             tar.extractall(path=self.plugin_dir)
-            human_name = repo.split('/')[-1][:-7]
+            s = repo.split(':')[-1].split('/')[-2:]
+            human_name = '/'.join(s).rstrip('.tar.gz')
         else:
             human_name = human_name_for_git_url(repo)
             p = subprocess.Popen([git_path, 'clone', repo, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,

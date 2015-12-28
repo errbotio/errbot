@@ -271,6 +271,7 @@ class BotPlugin(BotPluginBase):
             Triggered if there are mentioned people in message.
 
             Override this method to get notified when someone was mentioned in message.
+            [Note: This might not be implemented by all backends.]
 
             :param message:
                 representing the messige that was received.

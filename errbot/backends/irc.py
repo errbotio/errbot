@@ -304,6 +304,11 @@ class IRCConnection(SingleServerIRCBot):
         super().__init__([(server, port, password)], nickname, username, reconnection_interval=reconnect_on_disconnect)
 
     def connect(self, *args, **kwargs):
+        # Decode all input to UTF-8, but use a replacement character for
+        # unrecognized byte sequences
+        # (as described at https://pypi.python.org/pypi/irc)
+        self.connection.buffer_class.errors = 'replace'
+
         connection_factory_kwargs = {}
         if self.use_ssl:
             import ssl

@@ -266,6 +266,19 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
+    def callback_mention(self, message: Message, mentioned_people: Sequence[Identifier]) -> None:
+        """
+            Triggered if there are mentioned people in message.
+
+            Override this method to get notified when someone was mentioned in message.
+
+            :param message:
+                representing the messige that was received.
+            :param mentioned_people:
+                all mentioned people in this message.
+        """
+        pass
+
     def callback_presence(self, presence: Presence) -> None:
         """
             Triggered on every presence change.

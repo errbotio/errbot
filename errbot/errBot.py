@@ -524,6 +524,9 @@ class ErrBot(Backend, BotPluginManager):
                 except Exception:
                     log.exception("Crash in a callback_message handler")
 
+    def callback_mention(self, mess, people):
+        self._dispatch_to_plugins('callback_mention', mess, people)
+
     def callback_presence(self, pres):
         self._dispatch_to_plugins('callback_presence', pres)
 

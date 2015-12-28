@@ -14,3 +14,6 @@ class TestMentions(FullStackTest):
 
     def test_self_mention(self):
         self.assertCommand('I am telling you something @Err', 'Somebody mentioned me!')
+
+    def test_multiple_mentions(self):
+        self.assertCommand('I am telling you something @toto and @titi', 'Somebody mentioned toto,titi!')

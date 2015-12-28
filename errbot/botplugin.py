@@ -57,6 +57,15 @@ class BotPluginBase(StoreMixin):
             self._bot.bot_config.BOT_ADMINS = (self._bot.bot_config.BOT_ADMINS,)
         return self._bot.bot_config
 
+    @property
+    def bot_identifier(self) -> Identifier:
+        """
+        Get bot identifier on current active backend.
+
+        :return Identifier
+        """
+        return self._bot.bot_identifier
+
     def init_storage(self) -> None:
         classname = self.__class__.__name__
         log.debug('Init storage for %s' % classname)

@@ -3,6 +3,7 @@
 import logging
 import sys
 from time import sleep
+import re
 
 from ansi.color import fg, fx
 from pygments import highlight
@@ -71,6 +72,12 @@ class TextBackend(ErrBot):
                 msg.frm = me
                 msg.to = self.bot_identifier
                 self.callback_message(msg)
+
+                mentioned = [self.build_identifier(word[1:]) for word in re.findall(r"@[\w']+", entry)
+                             if word.startswith('@')]
+                if mentioned:
+                    self.callback_mention(msg, mentioned)
+
                 sleep(.5)
         except EOFError:
             pass
@@ -139,7 +146,7 @@ class TextBackend(ErrBot):
         return self._rooms
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '{0} {1}'.format(identifier.nick, message.body)
+        message.body = '@{0} {1}'.format(identifier.nick, message.body)
 
 
 class TextMUCRoom(MUCRoom):

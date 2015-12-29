@@ -239,15 +239,12 @@ class TestBackend(ErrBot):
                     msg.frm = self.sender
                     msg.to = self.bot_identifier  # To me only
 
-                    # implements the mentions.
-                    mentioned = []
-                    for word in entry.split():
-                        if word.startswith('@'):
-                            mentioned.append(self.build_identifier(word[1:]))
+                    self.callback_message(msg)
 
+                    # implements the mentions.
+                    mentioned = [self.build_identifier(word[1:]) for word in entry.split() if word.startswith('@')]
                     if mentioned:
                         self.callback_mention(msg, mentioned)
-                    self.callback_message(msg)
 
                 elif stanza_type is STZ_PRE:
                     log.info("Presence stanza received.")

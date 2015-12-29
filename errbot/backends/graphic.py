@@ -205,6 +205,12 @@ class GraphicBackend(TextBackend):
         msg.frm = self.build_identifier(self.bot_config.BOT_ADMINS[0])  # assume this is the admin talking
         msg.to = self.bot_identifier  # To me only
         self.callback_message(msg)
+        # implements the mentions.
+        mentioned = [self.build_identifier(word[1:]) for word in re.findall(r"@[\w']+", text)
+                     if word.startswith('@')]
+        if mentioned:
+            self.callback_mention(msg, mentioned)
+
         self.app.input.clear()
 
     def build_message(self, text):
@@ -235,4 +241,4 @@ class GraphicBackend(TextBackend):
         return 'graphic'
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '{0} {1}'.format(identifier.nick, message.body)
+        message.body = '@{0} {1}'.format(identifier.nick, message.body)

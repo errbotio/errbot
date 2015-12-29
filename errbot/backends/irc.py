@@ -4,6 +4,7 @@ import sys
 import threading
 import subprocess
 import struct
+import re
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
@@ -47,6 +48,8 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           end_fixed_width='',
                           inline_code='',
                           end_inline_code='')
+
+IRC_NICK_REGEX = r'[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+'
 
 try:
     import irc.connection
@@ -342,6 +345,13 @@ class IRCConnection(SingleServerIRCBot):
         msg.to = self.callback.bot_identifier
         msg.nick = msg.frm.nick  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)
+
+        possible_mentions = re.findall(IRC_NICK_REGEX, e.arguments[0])
+        room_users = self.channels[room].users()
+        mentions = filter(lambda x: x in room_users, possible_mentions)
+        if mentions:
+            mentions = [self.build_identifier(mention) for mention in mentions]
+            self.callback.callback_mention(msg, mentions)
 
     def on_privmsg(self, _, e):
         msg = Message(e.arguments[0])

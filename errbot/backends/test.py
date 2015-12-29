@@ -238,7 +238,14 @@ class TestBackend(ErrBot):
                     msg = Message(entry)
                     msg.frm = self.sender
                     msg.to = self.bot_identifier  # To me only
+
                     self.callback_message(msg)
+
+                    # implements the mentions.
+                    mentioned = [self.build_identifier(word[1:]) for word in entry.split() if word.startswith('@')]
+                    if mentioned:
+                        self.callback_mention(msg, mentioned)
+
                 elif stanza_type is STZ_PRE:
                     log.info("Presence stanza received.")
                     self.callback_presence(entry)
@@ -284,7 +291,7 @@ class TestBackend(ErrBot):
             return r
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '{0} {1}'.format(identifier.nick, message.body)
+        message.body = '@{0} {1}'.format(identifier.nick, message.body)
 
     def pop_message(self, timeout=5, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)

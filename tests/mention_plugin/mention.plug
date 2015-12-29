@@ -6,4 +6,4 @@ Module = mention
 Description = An Err mention test plugin
 
 [Python]
-Version = 3
+Version = 2+

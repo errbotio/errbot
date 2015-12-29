@@ -519,6 +519,7 @@ class ErrBot(Backend, BotPluginManager):
             self._dispatch_to_plugins('callback_message', mess)
 
     def callback_mention(self, mess, people):
+        log.debug("%s has/have been mentioned", ', '.join(str(p) for p in people))
         self._dispatch_to_plugins('callback_mention', mess, people)
 
     def callback_presence(self, pres):

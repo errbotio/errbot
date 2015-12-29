@@ -42,6 +42,7 @@ def borderless_ansi():
     md.stripTopLevelTags = False
     return md
 
+
 class TextBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)

@@ -36,7 +36,7 @@ class ChatRoom(BotPlugin):
                     self.log.exception("Joining room %s failed", repr(room))
 
     def _join_room(self, room):
-        if isinstance(room, tuple):
+        if isinstance(room, tuple) or isinstance(room, list):
             room_name = compat_str(room[0])
             room_password = compat_str(room[1])
             room, username, password = (room_name, self.bot_config.CHATROOM_FN, room_password)

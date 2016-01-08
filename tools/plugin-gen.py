@@ -108,7 +108,7 @@ def check_repo(repo):
             'avatar_url': avatar_url,
         }
 
-        plugins[repo] = plugin
+        plugins[repo+'~'+name] = plugin
         print('Catalog added plugin %s.' % plugin['name'])
 
     save_plugins()

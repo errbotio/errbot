@@ -24,3 +24,10 @@ yalker24/urlcheck
 Kaytwo/lockbot
 nelsonam/meryl
 KenMercusLai/err-vocab
+Navisite/cloudbot
+ilkka/jutibot
+chiel1980/docker-containers
+YaroslavMolchan/lctv
+vitorio/snarky-screening
+kaytwo/lockbot
+nelsonam/meryl

@@ -3,20 +3,22 @@ from jinja2 import Template
 import requests
 import time
 import ast
+import json
 
 template = Template(open('plugins.md').read())
 
 blacklisted = [repo.strip() for repo in open('blacklisted.txt', 'r').readlines()]
 
+PREFIX_LEN = len('https://github.com/')
 with open('repos.json', 'r') as p:
-    plugins = ast.literal_eval(p.read())
+    plugins = json.load(p)
 
     # Removes the weird forks of errbot itself and
     # blacklisted repos
-    for plugin, values in plugins.items():
-        if values['path'].startswith('errbot') or \
-           plugin in blacklisted:
-            plugins.pop(plugin)
+    plugins = {
+            plugin: values for plugin, values in plugins.items()
+            if not values['path'].startswith('errbot') and
+            values['repo'][PREFIX_LEN:] not in blacklisted}
 
     sorted_plugins = sorted(plugins.items())
 

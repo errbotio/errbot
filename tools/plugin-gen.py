@@ -5,12 +5,15 @@ from requests.auth import HTTPBasicAuth
 import logging
 import time
 import configparser
+import json
 logging.basicConfig()
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png'
+
+# token is generated from the personal tokens in github.
 AUTH = HTTPBasicAuth('gbin', open('token', 'r').read().strip())
 
 # for authenticated requests the limit is 5000 req/hours
@@ -30,10 +33,11 @@ def add_blacklisted(repo):
         f.write(repo)
         f.write('\n')
 
+plugins = {}
 
-def add_plugin(plugin):
-    with open('repos.json', 'a') as f:
-        f.write(repr(plugin))
+def save_plugins():
+    with open('repos.json', 'w') as f:
+        f.write(json.dumps(plugins))
 
 with open('blacklisted.txt', 'r') as f:
     BLACKLISTED = [line.strip() for line in f.readlines()]
@@ -71,7 +75,6 @@ def check_repo(repo):
         return
     avatar_url = get_avatar_url(repo)
 
-    plugins = {}
     for plug in plug_items:
         time.sleep(PAUSE)
         f = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
@@ -95,19 +98,19 @@ def check_repo(repo):
         else:
             python = '2'
 
-        plugin = {repo: {
+        plugin = {
             'path': plug['path'],
             'repo': 'https://github.com/{0}'.format(repo),
             'documentation': doc,
             'name': name,
             'python': python,
             'avatar_url': avatar_url,
-        }}
+        }
 
-        plugins.update(plugin)
+        plugins[repo] = plugin
         print('Catalog added plugin %s.' % plugin['name'])
 
-    add_plugin(plugins)
+    save_plugins()
 
 
 def find_plugins():

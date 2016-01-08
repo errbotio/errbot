@@ -35,6 +35,7 @@ def add_blacklisted(repo):
 
 plugins = {}
 
+
 def save_plugins():
     with open('repos.json', 'w') as f:
         f.write(json.dumps(plugins))

@@ -33,12 +33,15 @@ class ChatRoom(BotPlugin):
                     self.log.exception("Joining room %s failed", repr(room))
 
     def _join_room(self, room):
-        room_name = compat_str(room)
-        if room_name is not None:
-            room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
+        if isinstance(room, tuple) or isinstance(room, list):
+            room_name = compat_str(room[0])
+            room_password = compat_str(room[1])
+            room, username, password = (room_name, self.bot_config.CHATROOM_FN, room_password)
+            self.log.info("Joining room {} with username {} and password".format(room, username))
         else:
-            room, username, password = (room[0], self.bot_config.CHATROOM_FN, room[1])
-        self.log.info("Joining room {} with username {}".format(room, username))
+            room_name = compat_str(room)
+            room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
+            self.log.info("Joining room {} with username {}".format(room, username))
         try:
             self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
         except NotImplementedError:

@@ -52,7 +52,7 @@ def setup_bot(backend_name, logger, config, restore=None):
     try:
         bot = bpm.get_backend_by_name(backend_name)
     except Exception:
-        log.exception("Unable to configure the backend, please check if your config.py is correct.")
+        log.exception("Unable to load or configure the backend.")
         exit(-1)
 
     # restore the bot from the restore script

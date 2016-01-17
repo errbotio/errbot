@@ -2,6 +2,7 @@ import os
 import logging
 import sys
 
+import traceback
 from yapsy.PluginManager import PluginManager
 from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
 
@@ -80,11 +81,14 @@ class BackendManager(PluginManager):
         log.debug("Refilter the backend plugins...")
         self.locatePlugins()
         log.debug("Load the one remaining...")
-        self.loadPlugins()
-        log.debug("Find it back...")
-        plugins = self.getAllPlugins()
+        plugins = self.loadPlugins()
         if len(plugins) == 0:
             raise Exception("Could not find the backend '%s'." % name)
         if len(plugins) != 1:
             raise Exception("There are 2 backends with the name '%s'." % name)
+        if plugins[0].error is not None:
+            reason = plugins[0].error
+            formatted_error = "%s:\n%s" % (reason[0], ''.join(traceback.format_tb(plugins[0].error[2])))
+            raise Exception('Error loading backend %s:\nError:\n%s\n' % (name, formatted_error))
+
         return plugins[0].plugin_object

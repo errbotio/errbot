@@ -340,7 +340,11 @@ class TestBot(object):
     bot_thread = None
 
     def __init__(self, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None):
+        self.setup(extra_plugin_dir=extra_plugin_dir, loglevel=loglevel, extra_config=extra_config)
+
+    def setup(self, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None):
         """
+        :param extra_config: Piece of extra configuration you want to inject to the config.
         :param extra_plugin_dir: Path to a directory from which additional
             plugins should be loaded.
         :param loglevel: Logging verbosity. Expects one of the constants
@@ -461,7 +465,7 @@ class FullStackTest(unittest.TestCase, TestBot):
         if extra_plugin_dir is None and extra_test_file is not None:
             extra_plugin_dir = sep.join(abspath(extra_test_file).split(sep)[:-2])
 
-        TestBot.__init__(self, extra_plugin_dir=extra_plugin_dir, loglevel=loglevel, extra_config=extra_config)
+        self.setup(extra_plugin_dir=extra_plugin_dir, loglevel=loglevel, extra_config=extra_config)
         self.start()
 
     def tearDown(self):

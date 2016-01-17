@@ -1,6 +1,7 @@
 [Core]
 Name = Health
 Module = health
+Core = True
 
 [Documentation]
 Description = Core plugin for bot lifecycle and health related commands.

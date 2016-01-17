@@ -332,7 +332,7 @@ class TestBot(object):
     """
     bot_thread = None
 
-    def __init__(self, extra_plugin_dir=None, loglevel=logging.DEBUG):
+    def __init__(self, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None):
         """
         :param extra_plugin_dir: Path to a directory from which additional
             plugins should be loaded.
@@ -344,6 +344,11 @@ class TestBot(object):
         tempdir = mkdtemp()
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+
+        if extra_config is not None:
+            log.debug('Merging %s to the bot config.' % repr(extra_config))
+            for k, v in extra_config.items():
+                setattr(config, k, v)
 
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
@@ -433,7 +438,7 @@ class FullStackTest(unittest.TestCase, TestBot):
                 self.assertIn('Err version', self.pop_message())
     """
 
-    def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
+    def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG, extra_config=None):
         """
         :param extra_plugin_dir: Path to a directory from which additional
             plugins should be loaded.
@@ -442,11 +447,12 @@ class FullStackTest(unittest.TestCase, TestBot):
             Path to an additional plugin which should be loaded.
         :param loglevel: Logging verbosity. Expects one of the constants
             defined by the logging module.
+        :param extra_config: Piece of extra bot config in a dict.
         """
         if extra_plugin_dir is None and extra_test_file is not None:
             extra_plugin_dir = sep.join(abspath(extra_test_file).split(sep)[:-2])
 
-        TestBot.__init__(self, extra_plugin_dir=extra_plugin_dir, loglevel=loglevel)
+        TestBot.__init__(self, extra_plugin_dir=extra_plugin_dir, loglevel=loglevel, extra_config=extra_config)
         self.start()
 
     def tearDown(self):

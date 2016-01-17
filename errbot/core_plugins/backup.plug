@@ -1,6 +1,7 @@
 [Core]
 Name = Backup
 Module = backup
+Core = True
 
 [Documentation]
 Description = This core plugin manage import and export of data from Err.

@@ -92,6 +92,23 @@ def check_dependencies(path):
         return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
+def check_enabled_core_plugin(name: str, config: ConfigParser, core_plugin_list) -> bool:
+    """ Checks if the given plugin is core and if it is, if it is part of the enabled core_plugins_list.
+
+    :param name: The plugin name
+    :param config: Its config
+    :param core_plugin_list: the list from CORE_PLUGINS in the config.
+    :return: True if it is OK to load this plugin.
+    """
+    try:
+        core = config.get("Core", "Core")
+        if core.lower() == 'true' and name not in core_plugin_list:
+            return False
+    except NoOptionError:
+        pass
+    return True
+
+
 def check_python_plug_section(name: str, config: ConfigParser) -> bool:
     """ Checks if we have the correct version to run this plugin.
     Returns true if the plugin is loadable """
@@ -200,6 +217,11 @@ class BotPluginManager(PluginManager, StoreMixin):
     def _init_plugin_manager(self, bot_config):
         self.plugin_dir = os.path.join(bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR)
         self.open_storage(os.path.join(bot_config.BOT_DATA_DIR, 'core.db'))
+        if hasattr(bot_config, 'CORE_PLUGINS'):
+            self.core_plugins = bot_config.CORE_PLUGINS
+        else:
+            self.core_plugins = None
+
         # be sure we have a configs entry for the plugin configurations
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}
@@ -237,6 +259,11 @@ class BotPluginManager(PluginManager, StoreMixin):
         if pta_item is None:
             log.warning('Could not activate %s', name)
             return None
+
+        if self.core_plugins is not None:
+            if not check_enabled_core_plugin(name, pta_item.details, self.core_plugins):
+                log.warn('Core plugin "%s" has been skipped because it is not in CORE_PLUGINS in config.py.' % name)
+                return None
 
         if not check_python_plug_section(name, pta_item.details):
             log.error('%s failed python version check.', name)

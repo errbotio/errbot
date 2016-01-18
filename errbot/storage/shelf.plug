@@ -1,0 +1,6 @@
+[Core]
+Name = Shelf
+Module = shelf
+
+[Documentation]
+Description = This is the storage plugin for the traditional shelf store for errbot.

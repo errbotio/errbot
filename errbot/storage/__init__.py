@@ -2,7 +2,8 @@ from collections import MutableMapping
 import logging
 import shelve
 
-from .utils import PY2
+from errbot import PY2
+
 log = logging.getLogger(__name__)
 
 

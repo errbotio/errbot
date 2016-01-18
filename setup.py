@@ -122,11 +122,11 @@ if __name__ == "__main__":
         },
         extras_require={
             'graphic':  ['PySide', ],
-            'hipchat': ['hypchat', 'sleekxmpp', ],
+            'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
             'IRC': ['irc', ],
             'slack': ['slackclient', ],
             'telegram': ['python-telegram-bot', ],
-            'XMPP': ['sleekxmpp', ],
+            'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
         },
 
         author="errbot.io",

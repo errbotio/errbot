@@ -24,9 +24,11 @@ class StoreMixin(MutableMapping):
      This class handle the basic needs of bot plugins and core like loading, unloading and creating a storage
     """
 
-    def __init__(self):
+    def __init__(self, storage=None, storage_config=None):
         log.info('Init shelf of %s' % self.__class__.__name__)
         self.shelf = None
+        # if storage is None:
+        #    raise Exception("Storage not specified")
 
     def open_storage(self, path):
         if hasattr(self, 'shelf') and self.shelf is not None:

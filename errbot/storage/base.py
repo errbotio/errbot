@@ -42,14 +42,16 @@ class StoragePluginBase(object):
     Base to implement a storage plugin.
     This is a factory for the namespaces.
     """
+    def init(self, bot_config):
+        self._storage_config = getattr(bot_config, 'STORAGE_CONFIG', {})
+
     @abstractmethod
-    def open(self, namespace: str, config: Mapping[str, Any]) -> StorageBase:
+    def open(self, namespace: str) -> StorageBase:
         """
         Open the storage with the given namespace (core, or plugin name) and config.
         The caller of open will protect against double opens.
 
         :param namespace: a namespace to isolate the plugin storages.
-        :param config: the implementation dependent configuration.
         :return:
         """
         pass

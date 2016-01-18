@@ -27,8 +27,10 @@ class ShelfStorage(StorageBase):
 
 
 class ShelfStoragePlugin(StoragePluginBase):
-    def open(self, namespace: str, config: Mapping[str, Any]) -> StorageBase:
-        if 'basedir' not in config:
+
+    def open(self, namespace: str) -> StorageBase:
+        config = self._storage_config
+        if 'basedir' not in self.config:
             raise Exception('no basedir specified in the shelfstorage config.')
         if 'compatibilitymode' in config and config['compatibilitymode']:
             # originally errbot stores plugins per dir.

@@ -1,9 +1,13 @@
 from os import path, makedirs
 import logging
-from errbot.backend_manager import BackendManager
+
+from errbot.errBot import ErrBot
+from errbot.specific_plugin_manager import SpecificPluginManager
 import sys
 
 log = logging.getLogger(__name__)
+
+CORE_BACKENDS = path.join(path.dirname(path.abspath(__file__)), 'backends')
 
 
 def setup_bot(backend_name, logger, config, restore=None):
@@ -43,14 +47,18 @@ def setup_bot(backend_name, logger, config, restore=None):
         makedirs(d, mode=0o755)
 
     # instanciate the bot
-    bpm = BackendManager(config)
+    if hasattr(config, 'BOT_EXTRA_BACKEND_DIR'):
+        extra = config.BOT_EXTRA_BACKEND_DIR
+    else:
+        extra = []
+    bpm = SpecificPluginManager(config, 'backends', ErrBot, CORE_BACKENDS, extra)
 
     plug = bpm.get_candidate(backend_name)
 
     log.info("Found Backend plugin: '%s'\n\t\t\t\t\t\tDescription: %s" % (plug.name, plug.description))
 
     try:
-        bot = bpm.get_backend_by_name(backend_name)
+        bot = bpm.get_plugin_by_name(backend_name)
     except Exception:
         log.exception("Unable to load or configure the backend.")
         exit(-1)
@@ -77,7 +85,12 @@ def setup_bot(backend_name, logger, config, restore=None):
 def enumerate_backends(config):
     """ Returns all the backends found for the given config.
     """
-    bpm = BackendManager(config)
+    bpm = SpecificPluginManager(
+            config,
+            'backends',
+            ErrBot,
+            CORE_BACKENDS,
+            extra_search_dirs=())
     return [plug.name for (_, _, plug) in bpm.getPluginCandidates()]
 
 

@@ -24,5 +24,6 @@ class MemoryStorage(StorageBase):
 
 
 class MemoryStoragePlugin(StoragePluginBase):
-    def open(self, namespace: str, config: Mapping[str, Any]) -> StorageBase:
+
+    def open(self, namespace: str) -> StorageBase:
         return MemoryStorage(namespace)

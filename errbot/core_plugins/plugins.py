@@ -23,7 +23,7 @@ class Plugins(BotPlugin):
         """
         if not args.strip():
             return "You should have an urls/git repo argument"
-        errors = self._bot.install_repo(args)
+        errors = self._bot.plugin_manager.install_repo(args)
         if errors:
             self.send(mess.frm, 'Some plugins are generating errors:\n' + '\n'.join(errors),
                       message_type=mess.type)
@@ -34,7 +34,7 @@ class Plugins(BotPlugin):
                  "%s. Refreshing the plugins commands..." % args),
                 message_type=mess.type
             )
-        loading_errors = self._bot.activate_non_started_plugins()
+        loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
         if loading_errors:
             return loading_errors
         return "Plugins reloaded without any error."
@@ -47,21 +47,21 @@ class Plugins(BotPlugin):
             yield "You should have a repo name as argument"
             return
 
-        repos = self._bot.get_installed_plugin_repos()
+        repos = self._bot.plugin_manager.get_installed_plugin_repos()
 
         if args not in repos:
             yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
             return
 
-        plugin_path = path.join(self._bot.plugin_dir, args)
-        for plugin in self._bot.getAllPlugins():
+        plugin_path = path.join(self._bot.plugin_manager.plugin_dir, args)
+        for plugin in self._bot.plugin_manager.getAllPlugins():
             if plugin.path.startswith(plugin_path):
                 yield 'Removing %s...' % plugin.name
-                self._bot.remove_plugin(plugin)
+                self._bot.plugin_manager.remove_plugin(plugin)
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
-        self._bot.set_plugin_repos(repos)
+        self._bot.plugin_manager.set_plugin_repos(repos)
 
         yield 'Repo %s removed.' % args
 
@@ -184,9 +184,9 @@ class Plugins(BotPlugin):
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
         plugin_name = args[0]
-        if self._bot.is_plugin_blacklisted(plugin_name):
+        if self._bot.plugin_manager.is_plugin_blacklisted(plugin_name):
             return 'Load this plugin first with ' + self._bot.prefix + 'load %s' % plugin_name
-        obj = self._bot.get_plugin_obj_by_name(plugin_name)
+        obj = self._bot.plugin_manager.get_plugin_obj_by_name(plugin_name)
         if obj is None:
             return 'Unknown plugin or the plugin could not load %s' % plugin_name
         template_obj = obj.get_configuration_template()
@@ -199,7 +199,7 @@ class Plugins(BotPlugin):
                         "```\n{prefix}plugin config {plugin_name} \n{config}\n```").format(
                 prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(template_obj))
 
-            current_config = self._bot.get_plugin_configuration(plugin_name)
+            current_config = self._bot.plugin_manager.get_plugin_configuration(plugin_name)
             if current_config:
                 response += ("\n\nCurrent configuration:\n\n"
                              "```\n{prefix}plugin config {plugin_name} \n{config}\n```").format(
@@ -215,13 +215,13 @@ class Plugins(BotPlugin):
         if type(real_config_obj) != type(template_obj):
             return 'It looks fishy, your config type is not the same as the template !'
 
-        self._bot.set_plugin_configuration(plugin_name, real_config_obj)
-        self._bot.deactivate_plugin(plugin_name)
+        self._bot.plugin_manager.set_plugin_configuration(plugin_name, real_config_obj)
+        self._bot.plugin_manager.deactivate_plugin(plugin_name)
         try:
-            self._bot.activate_plugin(plugin_name)
+            self._bot.plugin_manager.activate_plugin(plugin_name)
         except PluginConfigurationException as ce:
             self.log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
-            self._bot.set_plugin_configuration(plugin_name, None)
+            self._bot.plugin_manager.set_plugin_configuration(plugin_name, None)
             return 'Incorrect plugin configuration: %s' % ce
         return 'Plugin configuration done.'
 
@@ -234,9 +234,9 @@ class Plugins(BotPlugin):
         (blacklisted) plugins.
         """
         if active_only:
-            all_plugins = self._bot.get_all_active_plugin_names()
+            all_plugins = self._bot.plugin_manager.get_all_active_plugin_names()
         else:
-            all_plugins = self._bot.get_all_plugin_names()
+            all_plugins = self._bot.plugin_manager.get_all_plugin_names()
         return "\n".join(("- " + plugin for plugin in all_plugins))
 
     # noinspection PyUnusedLocal
@@ -248,16 +248,16 @@ class Plugins(BotPlugin):
             yield ("Please tell me which of the following plugins to reload:\n"
                    "{}".format(self.formatted_plugin_list(active_only=False)))
             return
-        if name not in self._bot.get_all_plugin_names():
+        if name not in self._bot.plugin_manager.get_all_plugin_names():
             yield ("{} isn't a valid plugin name. The current plugins are:\n"
                    "{}".format(name, self.formatted_plugin_list(active_only=False)))
             return
 
-        if name not in self._bot.get_all_active_plugin_names():
+        if name not in self._bot.plugin_manager.get_all_active_plugin_names():
             yield (("Warning: plugin %s is currently not activated. " +
                    "Use !plugin activate %s to activate it.") % (name, name))
 
-        self._bot.reload_plugin_by_name(name)
+        self._bot.plugin_manager.reload_plugin_by_name(name)
 
         yield "Plugin %s reloaded." % name
 
@@ -269,13 +269,13 @@ class Plugins(BotPlugin):
         if not args:
             return ("Please tell me which of the following plugins to activate:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
-        if args not in self._bot.get_all_plugin_names():
+        if args not in self._bot.plugin_manager.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args in self._bot.get_all_active_plugin_names():
+        if args in self._bot.plugin_manager.get_all_active_plugin_names():
             return "{} is already activated.".format(args)
 
-        return self._bot.activate_plugin(args)
+        return self._bot.plugin_manager.activate_plugin(args)
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
@@ -285,37 +285,37 @@ class Plugins(BotPlugin):
         if not args:
             return ("Please tell me which of the following plugins to deactivate:\n"
                     "{}".format(self.formatted_plugin_list(active_only=False)))
-        if args not in self._bot.get_all_plugin_names():
+        if args not in self._bot.plugin_manager.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
-        if args not in self._bot.get_all_active_plugin_names():
+        if args not in self._bot.plugin_manager.get_all_active_plugin_names():
             return "{} is already deactivated.".format(args)
 
-        return self._bot.deactivate_plugin(args)
+        return self._bot.plugin_manager.deactivate_plugin(args)
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def plugin_blacklist(self, mess, args):
         """Blacklist a plugin so that it will not be loaded automatically during bot startup.
         If the plugin is currently activated, it will deactiveate it first."""
-        if args not in self._bot.get_all_plugin_names():
+        if args not in self._bot.plugin_manager.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
 
-        if args in self._bot.get_all_active_plugin_names():
-            self._bot.deactivate_plugin(args)
+        if args in self._bot.plugin_manager.get_all_active_plugin_names():
+            self._bot.plugin_manager.deactivate_plugin(args)
 
-        return self._bot.blacklist_plugin(args)
+        return self._bot.plugin_manager.blacklist_plugin(args)
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def plugin_unblacklist(self, mess, args):
         """Remove a plugin from the blacklist"""
-        if args not in self._bot.get_all_plugin_names():
+        if args not in self._bot.plugin_manager.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
 
-        if args not in self._bot.get_all_active_plugin_names():
-            self._bot.activate_plugin(args)
+        if args not in self._bot.plugin_manager.get_all_active_plugin_names():
+            self._bot.plugin_manager.activate_plugin(args)
 
-        return self._bot.unblacklist_plugin(args)
+        return self._bot.plugin_manager.unblacklist_plugin(args)

@@ -13,7 +13,7 @@ class TestMUC(FullStackTest):
                       extra_test_file)
 
     def test_plugin_methods(self):  # noqa
-        p = self.bot.get_plugin_obj_by_name('ChatRoom')
+        p = self.bot.plugin_manager.get_plugin_obj_by_name('ChatRoom')
         assert p is not None
 
         assert hasattr(p, 'rooms')
@@ -69,7 +69,7 @@ class TestMUC(FullStackTest):
         assert self.bot.rooms()[0].topic == "Err rocks!"
 
     def test_plugin_callbacks(self):  # noqa
-        p = self.bot.get_plugin_obj_by_name('RoomTest')
+        p = self.bot.plugin_manager.get_plugin_obj_by_name('RoomTest')
         assert p is not None
         p.purge()
 

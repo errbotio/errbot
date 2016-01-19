@@ -41,7 +41,7 @@ class SpecificPluginManager(PluginManager):
         self.setCategoriesFilter({category: base_class})
 
         all_plugins_paths = find_roots_with_extra(base_search_dir, extra_search_dirs)
-        log.info('%s search paths %s', (category, all_plugins_paths))
+        log.info('%s search paths %s', category, all_plugins_paths)
         self.setPluginPlaces(all_plugins_paths)
         for entry in all_plugins_paths:
             if entry not in sys.path:

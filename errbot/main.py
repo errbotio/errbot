@@ -2,19 +2,24 @@ from os import path, makedirs
 import logging
 
 from errbot.errBot import ErrBot
+from errbot.plugin_manager import BotPluginManager
 from errbot.specific_plugin_manager import SpecificPluginManager
 import sys
 
+from errbot.storage.base import StoragePluginBase
+from errbot.utils import PLUGINS_SUBDIR
+
 log = logging.getLogger(__name__)
 
-CORE_BACKENDS = path.join(path.dirname(path.abspath(__file__)), 'backends')
+HERE = path.dirname(path.abspath(__file__))
+CORE_BACKENDS = path.join(HERE, 'backends')
+CORE_STORAGE = path.join(HERE, 'storage')
 
 
 def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
-    from .utils import PLUGINS_SUBDIR
     from .errBot import bot_config_defaults
 
     bot_config_defaults(config)
@@ -41,24 +46,35 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     logger.setLevel(config.BOT_LOG_LEVEL)
 
-    # make the plugins subdir to store the plugin shelves
-    d = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
-    if not path.exists(d):
-        makedirs(d, mode=0o755)
+    # init the storage plugin
+    storage_name = getattr(config, 'STORAGE', 'Shelf')
+    extra_storage_plugins_dir = getattr(config, 'EXTRA_STORAGE_PLUGINS_DIR', None)
+    spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, extra_storage_plugins_dir)
+    storage_pluginfo = spm.get_candidate(storage_name)
+    log.info("Found Storage plugin: '%s'\nDescription: %s" % (storage_pluginfo.name, storage_pluginfo.description))
+    storage_plugin = spm.get_plugin_by_name(storage_name)
 
-    # instanciate the bot
-    if hasattr(config, 'BOT_EXTRA_BACKEND_DIR'):
-        extra = config.BOT_EXTRA_BACKEND_DIR
-    else:
-        extra = []
-    bpm = SpecificPluginManager(config, 'backends', ErrBot, CORE_BACKENDS, extra)
+    # init the botplugin manager
+    botplugins_dir = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
+    if not path.exists(botplugins_dir):
+        makedirs(botplugins_dir, mode=0o755)
+    botpm = BotPluginManager(storage_plugin,
+                             botplugins_dir,
+                             config.BOT_EXTRA_PLUGIN_DIR,
+                             config.AUTOINSTALL_DEPS)
 
-    plug = bpm.get_candidate(backend_name)
+    # init the backend manager & the bot
+    extra = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+    backendpm = SpecificPluginManager(config, 'backends', ErrBot, CORE_BACKENDS, extra)
 
-    log.info("Found Backend plugin: '%s'\n\t\t\t\t\t\tDescription: %s" % (plug.name, plug.description))
+    backend_plug = backendpm.get_candidate(backend_name)
+
+    log.info("Found Backend plugin: '%s'\n\t\t\t\t\t\tDescription: %s" % (backend_plug.name, backend_plug.description))
 
     try:
-        bot = bpm.get_plugin_by_name(backend_name)
+        bot = backendpm.get_plugin_by_name(backend_name)
+        bot.attach_plugin_manager(botpm)
+        bot.attach_storage_plugin(storage_plugin)
     except Exception:
         log.exception("Unable to load or configure the backend.")
         exit(-1)
@@ -76,7 +92,7 @@ def setup_bot(backend_name, logger, config, restore=None):
         print('Restore complete. You can restart the bot normally')
         sys.exit(0)
 
-    errors = bot.update_dynamic_plugins()
+    errors = bot.plugin_manager.update_dynamic_plugins()
     if errors:
         log.error('Some plugins failed to load:\n' + '\n'.join(errors))
     return bot

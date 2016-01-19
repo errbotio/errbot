@@ -15,7 +15,7 @@ from urllib.request import urlopen
 import pip
 from .botplugin import BotPlugin
 from .utils import (version2array, PY3, PY2, find_roots_with_extra,
-                    PLUGINS_SUBDIR, which, human_name_for_git_url)
+                    which, human_name_for_git_url)
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -194,20 +194,23 @@ class BotPluginManager(PluginManager, StoreMixin):
     CONFIGS = b'configs' if PY2 else 'configs'
     BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
-    # gbin: making an __init__ here will be tricky with the MRO
-    # use _init_plugin_manager directly.
+    def __init__(self, storage_plugin, plugin_dir, extra, autoinstall_deps):
+        self.bot = None
+        self.autoinstall_deps = autoinstall_deps
+        self.extra = extra
 
-    def _init_plugin_manager(self, bot_config):
-        self.plugin_dir = os.path.join(bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR)
-        self.open_storage(os.path.join(bot_config.BOT_DATA_DIR, 'core.db'))
+        self.open_storage(storage_plugin, 'core')
+        self.plugin_dir = plugin_dir
         # be sure we have a configs entry for the plugin configurations
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}
 
-        self.setCategoriesFilter({"bots": BotPlugin})
         locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug')])
         locator.disableRecursiveScan()  # We do that ourselves
-        self.setPluginLocator(locator)
+        super().__init__(categories_filter={"bots": BotPlugin}, plugin_locator=locator)
+
+    def attach_bot(self, bot):
+        self.bot = bot
 
     def instanciateElement(self, element):
         """ Override the loading method to inject bot """
@@ -220,10 +223,10 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '
                           'and forward them to super().__init__') % element.__name__)
                 obj = element()
-                obj._load_bot(self)  # sideload the bot
+                obj._load_bot(self.bot)  # sideload the bot
                 return obj
 
-        return element(self)
+        return element(self.bot)
 
     def get_plugin_by_name(self, name):
         return self.getPluginByName(name, 'bots')
@@ -452,7 +455,7 @@ class BotPluginManager(PluginManager, StoreMixin):
     def update_dynamic_plugins(self):
         return self.update_plugin_places(
             [self.plugin_dir + os.sep + d for d in self.get(self.REPOS, {}).keys()],
-            self.bot_config.BOT_EXTRA_PLUGIN_DIR, self.bot_config.AUTOINSTALL_DEPS)
+            self.extra, self.autoinstall_deps)
 
     def activate_non_started_plugins(self):
         log.info('Activating all the plugins...')

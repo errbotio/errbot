@@ -12,12 +12,20 @@ class MemoryStorage(StorageBase):
         self.root = ROOTS.get(namespace, {})
 
     def get(self, key: str) -> Any:
-        if key in self.root:
-            return self.root[key]
-        raise KeyError("%s doesn't exist." % key)
+        if key not in self.root:
+            raise KeyError("%s doesn't exist." % key)
+        return self.root[key]
 
     def set(self, key: str, value: Any) -> None:
         self.root[key] = value
+
+    def remove(self, key: str):
+        if key not in self.root:
+            raise KeyError("%s doesn't exist." % key)
+        del self.root[key]
+
+    def len(self):
+        return len(self.root)
 
     def close(self) -> None:
         ROOTS[self.namespace] = self.root

@@ -262,7 +262,7 @@ class TestBackend(ErrBot):
             log.debug("Trigger disconnect callback")
             self.disconnect_callback()
             log.debug("Trigger shutdown")
-            self.shutdown()
+            self.plugin_manager.shutdown()
 
     def connect(self):
         return
@@ -342,6 +342,7 @@ class TestBot(object):
         __import__('errbot.config-template')
         config = sys.modules['errbot.config-template']
         tempdir = mkdtemp()
+        config.STORAGE = 'Memory'
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
 

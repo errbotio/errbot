@@ -29,6 +29,24 @@ class StorageBase(object):
         pass
 
     @abstractmethod
+    def remove(self, key: str) -> None:
+        """
+        Remove key. Raises KeyError if the key doesn't exist.
+        The caller of get will protect against get on non open.
+
+        :param key: the key
+        """
+        pass
+
+    @abstractmethod
+    def len(self) -> int:
+        """
+
+        :return: the number of keys set.
+        """
+        pass
+
+    @abstractmethod
     def close(self) -> None:
         """
         Sync and close the storage.
@@ -42,7 +60,7 @@ class StoragePluginBase(object):
     Base to implement a storage plugin.
     This is a factory for the namespaces.
     """
-    def init(self, bot_config):
+    def __init__(self, bot_config):
         self._storage_config = getattr(bot_config, 'STORAGE_CONFIG', {})
 
     @abstractmethod

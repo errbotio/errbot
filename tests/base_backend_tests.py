@@ -5,7 +5,6 @@ from tempfile import mkdtemp
 from os.path import sep
 from errbot.errBot import bot_config_defaults
 
-
 import unittest  # noqa
 import os  # noqa
 import re  # noqa
@@ -15,8 +14,13 @@ from errbot.errBot import ErrBot
 from errbot.backends.base import Backend, Message, MUCRoom, Identifier, ONLINE
 from errbot.backends.test import TestIdentifier, TestMUCOccupant
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
+from errbot.main import CORE_STORAGE
+from errbot.plugin_manager import BotPluginManager
 from errbot.rendering import text
 from errbot.core_plugins.acls import ACLS
+from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.storage.base import StoragePluginBase
+from errbot.utils import PLUGINS_SUBDIR
 
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 
@@ -24,7 +28,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class DummyBackend(ErrBot):
-
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
@@ -58,9 +61,24 @@ class DummyBackend(ErrBot):
             setattr(config, key, extra_config[key])
         super().__init__(config)
         self.bot_identifier = self.build_identifier('err')
+        self.md = text()  # We just want simple text for testing purposes
+
+        # setup a memory based storage
+        spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, None)
+        storage_plugin = spm.get_plugin_by_name('Memory')
+
+        # setup the plugin_manager just internally
+        botplugins_dir = os.path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
+        if not os.path.exists(botplugins_dir):
+            os.makedirs(botplugins_dir, mode=0o755)
+
+        self.attach_plugin_manager(BotPluginManager(storage_plugin,
+                                                    botplugins_dir,
+                                                    config.BOT_EXTRA_PLUGIN_DIR,
+                                                    config.AUTOINSTALL_DEPS))
+        self.attach_storage_plugin(storage_plugin)
         self.inject_commands_from(self)
         self.inject_command_filters_from(ACLS(self))
-        self.md = text()  # We just want simple text for testing purposes
 
     def build_identifier(self, text_representation):
         return TestIdentifier(text_representation)
@@ -364,7 +382,7 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(self.makemessage("regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
         self.dummy.callback_message(self.makemessage(
-            "This command also allows extra text in front - regex command with capture group: Captured text"))
+                "This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
 
     def test_callback_message_with_re_botcmd_and_alt_prefixes(self):
@@ -382,12 +400,12 @@ class BotCmds(unittest.TestCase):
         self.dummy.callback_message(self.makemessage("regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
         self.dummy.callback_message(self.makemessage(
-            "This command also allows extra text in front - regex command with capture group: Captured text"))
+                "This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
         self.dummy.callback_message(self.makemessage("Err, regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
         self.dummy.callback_message(self.makemessage(
-            "Err This command also allows extra text in front - regex command with capture group: Captured text"))
+                "Err This command also allows extra text in front - regex command with capture group: Captured text"))
         self.assertEquals("Captured text", self.dummy.pop_message().body)
         self.dummy.callback_message(self.makemessage("!match_here"))
         self.assertEquals("1", self.dummy.pop_message().body)
@@ -408,7 +426,8 @@ class BotCmds(unittest.TestCase):
         first_name = 'Err'
         last_name = 'Bot'
         self.dummy.callback_message(
-            self.makemessage("!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name))
+                self.makemessage(
+                        "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name))
         )
         self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
 
@@ -416,7 +435,8 @@ class BotCmds(unittest.TestCase):
         first_name = 'Err'
         last_name = 'Bot'
         self.dummy.callback_message(
-            self.makemessage("!yields_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name))
+                self.makemessage(
+                        "!yields_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name))
         )
         self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
 
@@ -424,7 +444,7 @@ class BotCmds(unittest.TestCase):
         value = "Foo"
         count = 5
         self.dummy.callback_message(
-            self.makemessage("!returns_value_repeated_count_times %s --count %s" % (value, count))
+                self.makemessage("!returns_value_repeated_count_times %s --count %s" % (value, count))
         )
         self.assertEquals(value * count, self.dummy.pop_message().body)
 
@@ -434,22 +454,22 @@ class BotCmds(unittest.TestCase):
     def test_arg_botcdm_returns_errors_as_chat(self):
         self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --invalid-parameter"))
         self.assertIn(
-            "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter",
-            self.dummy.pop_message().body
+                "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter",
+                self.dummy.pop_message().body
         )
 
     def test_arg_botcmd_returns_help_message_as_chat(self):
         self.dummy.callback_message(self.makemessage("!returns_first_name_last_name --help"))
         self.assertIn(
-            "usage: returns_first_name_last_name [-h] [--last-name LAST_NAME]",
-            self.dummy.pop_message().body
+                "usage: returns_first_name_last_name [-h] [--last-name LAST_NAME]",
+                self.dummy.pop_message().body
         )
 
     def test_arg_botcmd_undoes_fancy_unicode_dash_conversion(self):
         first_name = 'Err'
         last_name = 'Bot'
         self.dummy.callback_message(
-            self.makemessage("!returns_first_name_last_name —first-name=%s —last-name=%s" % (first_name, last_name))
+                self.makemessage("!returns_first_name_last_name —first-name=%s —last-name=%s" % (first_name, last_name))
         )
         self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
 
@@ -457,78 +477,78 @@ class BotCmds(unittest.TestCase):
         first_name = 'Err'
         last_name = 'Bot'
         self.dummy.callback_message(
-            self.makemessage("!returns_first_name_last_name_without_unpacking --first-name=%s --last-name=%s"
-                             % (first_name, last_name))
+                self.makemessage("!returns_first_name_last_name_without_unpacking --first-name=%s --last-name=%s"
+                                 % (first_name, last_name))
         )
         self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
 
     def test_access_controls(self):
         tests = [
             dict(
-                message=self.makemessage("!command"),
-                acl={},
-                acl_default={},
-                expected_response="Regular command"
+                    message=self.makemessage("!command"),
+                    acl={},
+                    acl_default={},
+                    expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!regex command with prefix"),
-                acl={},
-                acl_default={},
-                expected_response="Regex command"
+                    message=self.makemessage("!regex command with prefix"),
+                    acl={},
+                    acl_default={},
+                    expected_response="Regex command"
             ),
             dict(
-                message=self.makemessage("!command"),
-                acl={},
-                acl_default={'allowmuc': False, 'allowprivate': False},
-                expected_response="You're not allowed to access this command via private message to me"
+                    message=self.makemessage("!command"),
+                    acl={},
+                    acl_default={'allowmuc': False, 'allowprivate': False},
+                    expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
-                message=self.makemessage("regex command without prefix"),
-                acl={},
-                acl_default={'allowmuc': False, 'allowprivate': False},
-                expected_response="You're not allowed to access this command via private message to me"
+                    message=self.makemessage("regex command without prefix"),
+                    acl={},
+                    acl_default={'allowmuc': False, 'allowprivate': False},
+                    expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
-                message=self.makemessage("!command"),
-                acl={},
-                acl_default={'allowmuc': True, 'allowprivate': False},
-                expected_response="You're not allowed to access this command via private message to me"
+                    message=self.makemessage("!command"),
+                    acl={},
+                    acl_default={'allowmuc': True, 'allowprivate': False},
+                    expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
-                message=self.makemessage("!command"),
-                acl={},
-                acl_default={'allowmuc': False, 'allowprivate': True},
-                expected_response="Regular command"
+                    message=self.makemessage("!command"),
+                    acl={},
+                    acl_default={'allowmuc': False, 'allowprivate': True},
+                    expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command"),
-                acl={'command': {'allowprivate': True}},
-                acl_default={'allowmuc': False, 'allowprivate': False},
-                expected_response="Regular command"
+                    message=self.makemessage("!command"),
+                    acl={'command': {'allowprivate': True}},
+                    acl_default={'allowmuc': False, 'allowprivate': False},
+                    expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
-                acl={'command': {'allowrooms': ('room',)}},
-                acl_default={},
-                expected_response="Regular command"
+                    message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
+                    acl={'command': {'allowrooms': ('room',)}},
+                    acl_default={},
+                    expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
-                acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
-                acl_default={},
-                expected_response="You're not allowed to access this command from this room",
+                    message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
+                    acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
+                    acl_default={},
+                    expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
-                acl={'command': {'denyrooms': ('room',)}},
-                acl_default={},
-                expected_response="You're not allowed to access this command from this room",
+                    message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
+                    acl={'command': {'denyrooms': ('room',)}},
+                    acl_default={},
+                    expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
-                acl={'command': {'denyrooms': ('anotherroom',)}},
-                acl_default={},
-                expected_response="Regular command"
+                    message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
+                    acl={'command': {'denyrooms': ('anotherroom',)}},
+                    acl_default={},
+                    expected_response="Regular command"
             ),
         ]
 
@@ -541,6 +561,6 @@ class BotCmds(unittest.TestCase):
             logger.info("** acl_default: {!r}".format(test['acl_default']))
             self.dummy.callback_message(test['message'])
             self.assertEqual(
-                test['expected_response'],
-                self.dummy.pop_message().body
+                    test['expected_response'],
+                    self.dummy.pop_message().body
             )

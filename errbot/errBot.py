@@ -61,7 +61,7 @@ def bot_config_defaults(config):
 
 
 # noinspection PyAbstractClass
-class ErrBot(Backend, BotPluginManager):
+class ErrBot(Backend):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
     __errdoc__ = """ Commands related to the bot administration """
@@ -72,7 +72,6 @@ class ErrBot(Backend, BotPluginManager):
     def __init__(self, bot_config):
         log.debug("ErrBot init.")
         super().__init__(bot_config)
-        self._init_plugin_manager(bot_config)
         self.bot_config = bot_config
         self.prefix = bot_config.BOT_PREFIX
         if bot_config.BOT_ASYNC:
@@ -87,6 +86,16 @@ class ErrBot(Backend, BotPluginManager):
             self.bot_alt_prefixes = tuple(prefix.lower() for prefix in bot_config.BOT_ALT_PREFIXES)
         else:
             self.bot_alt_prefixes = bot_config.BOT_ALT_PREFIXES
+        self.plugin_manager = None
+        self.storage_plugin = None
+
+    def attach_plugin_manager(self, plugin_manager):
+        self.plugin_manager = plugin_manager
+        plugin_manager.attach_bot(self)
+
+    def attach_storage_plugin(self, storage_plugin):
+        # the storage_plugin is needed by the plugins
+        self.storage_plugin = storage_plugin
 
     @property
     def all_commands(self):
@@ -105,7 +114,7 @@ class ErrBot(Backend, BotPluginManager):
         :param *args: Passed to the callback function.
         :param **kwargs: Passed to the callback function.
         """
-        for plugin in self.get_all_active_plugin_objects():
+        for plugin in self.plugin_manager.get_all_active_plugin_objects():
             plugin_name = plugin.__class__.__name__
             log.debug("Triggering {} on {}".format(method, plugin_name))
             # noinspection PyBroadException
@@ -177,7 +186,7 @@ class ErrBot(Backend, BotPluginManager):
         :param mess: the message to send.
         :return: None
         """
-        for bot in self.get_all_active_plugin_objects():
+        for bot in self.plugin_manager.get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:
                 bot.callback_botmessage(mess)
@@ -557,10 +566,10 @@ class ErrBot(Backend, BotPluginManager):
 
     def callback_stream(self, stream):
         log.info("Initiated an incoming transfer %s" % stream)
-        Tee(stream, self.get_all_active_plugin_objects()).start()
+        Tee(stream, self.plugin_manager.get_all_active_plugin_objects()).start()
 
     def signal_connect_to_all_plugins(self):
-        for bot in self.get_all_active_plugin_objects():
+        for bot in self.plugin_manager.get_all_active_plugin_objects():
             if hasattr(bot, 'callback_connect'):
                 # noinspection PyBroadException
                 try:
@@ -571,7 +580,7 @@ class ErrBot(Backend, BotPluginManager):
 
     def connect_callback(self):
         log.info('Activate internal commands')
-        loading_errors = self.activate_non_started_plugins()
+        loading_errors = self.plugin_manager.activate_non_started_plugins()
         log.info(loading_errors)
         log.info('Notifying connection to all the plugins...')
         self.signal_connect_to_all_plugins()
@@ -579,7 +588,7 @@ class ErrBot(Backend, BotPluginManager):
 
     def disconnect_callback(self):
         log.info('Disconnect callback, deactivating all the plugins.')
-        self.deactivate_all_plugins()
+        self.plugin_manager.deactivate_all_plugins()
 
     def get_doc(self, command):
         """Get command documentation

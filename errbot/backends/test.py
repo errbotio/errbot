@@ -262,7 +262,7 @@ class TestBackend(ErrBot):
             log.debug("Trigger disconnect callback")
             self.disconnect_callback()
             log.debug("Trigger shutdown")
-            self.plugin_manager.shutdown()
+            self.shutdown()
 
     def connect(self):
         return

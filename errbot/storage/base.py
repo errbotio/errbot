@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Mapping, Any
+from typing import Any, Tuple, Iterable
 
 
 class StorageBase(object):
@@ -43,6 +43,14 @@ class StorageBase(object):
         """
 
         :return: the number of keys set.
+        """
+        pass
+
+    @abstractmethod
+    def keys(self) -> Iterable[str]:
+        """
+
+        :return: an iterator on all the entries
         """
         pass
 

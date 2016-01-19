@@ -61,7 +61,7 @@ class StoreMixin(MutableMapping):
         return self.store.len()
 
     def __iter__(self):
-        for i in self.store.iter():
+        for i in self.store.keys():
             yield i
 
     def __contains__(self, x):

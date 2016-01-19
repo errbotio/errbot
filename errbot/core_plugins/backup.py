@@ -16,7 +16,7 @@ class Backup(BotPlugin):
             f.write('## This file is not executable on its own. use err.py -r FILE to restore your bot.\n\n')
             f.write('log.info("Restoring core configs.")\n')
             for key in self._bot.plugin_manager:  # don't mimic that in real plugins, this is core only.
-                f.write('bot.plugin_manager["'+key+'"] = ' + repr(self._bot[key]) + '\n')
+                f.write('bot.plugin_manager["'+key+'"] = ' + repr(self._bot.plugin_manager[key]) + '\n')
 
             f.write('log.info("Installing plugins.")\n')
             f.write('if "repos" in bot.plugin_manager:\n')
@@ -27,13 +27,13 @@ class Backup(BotPlugin):
 
             f.write('log.info("Restoring plugins data.")\n')
 
-            for plug in self._bot.getAllPlugins():
+            for plug in self._bot.plugin_manager.getAllPlugins():
                 pobj = plug.plugin_object
-                if pobj.shelf:
+                if pobj.store:
                     f.write('pobj = bot.plugin_manager.get_plugin_by_name("' + plug.name + '").plugin_object\n')
                     f.write('pobj.init_storage()\n')
 
-                    for key in pobj.shelf:
+                    for key in pobj:
                         f.write('pobj["'+key+'"] = ' + repr(pobj[key]) + '\n')
                     f.write('pobj.close_storage()\n')
 

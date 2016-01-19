@@ -43,9 +43,10 @@ class Health(BotPlugin):
     def status_plugins(self, mess, args):
         """ shows the plugin status
         """
-        all_blacklisted = self._bot.plugin_manager.get_blacklisted_plugin()
-        all_loaded = self._bot.plugin_manager.get_all_active_plugin_names()
-        all_attempted = sorted([p.name for p in self._bot.plugin_manager.all_candidates])
+        pm = self._bot.plugin_manager
+        all_blacklisted = pm.get_blacklisted_plugin()
+        all_loaded = pm.get_all_active_plugin_names()
+        all_attempted = sorted([p.name for p in pm.all_candidates])
         plugins_statuses = []
         for name in all_attempted:
             if name in all_blacklisted:
@@ -55,9 +56,8 @@ class Health(BotPlugin):
                     plugins_statuses.append(('BD', name))
             elif name in all_loaded:
                 plugins_statuses.append(('A', name))
-            elif self._bot.plugin_manager.get_plugin_obj_by_name(
-                    name) is not None and self._bot.plugin_manager.get_plugin_obj_by_name(
-                    name).get_configuration_template() is not None and self._bot.plugin_manager.get_plugin_configuration(
+            elif pm.get_plugin_obj_by_name(name) is not None \
+                    and pm.get_plugin_obj_by_name(name).get_configuration_template() is not None and pm.get_plugin_configuration(
                     name) is None:
                 plugins_statuses.append(('C', name))
             else:

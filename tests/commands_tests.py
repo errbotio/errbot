@@ -147,11 +147,14 @@ class TestCommands(FullStackTest):
         self.assertIn('errbotio/err-helloworld', open(filename).read())
 
         # Now try to clean the bot and restore
+        for p in self.bot.plugin_manager.get_all_active_plugin_objects():
+            p.close_storage()
+
         plugins_dir = path.join(self.bot.bot_config.BOT_DATA_DIR, 'plugins')
+        self.bot.plugin_manager['repos'] = {}
+        self.bot.plugin_manager['configs'] = {}
         rmtree(plugins_dir)
         mkdir(plugins_dir)
-        self.bot['repos'] = {}
-        self.bot['configs'] = {}
 
         # emulates the restore environment
         log = logging.getLogger(__name__)  # noqa

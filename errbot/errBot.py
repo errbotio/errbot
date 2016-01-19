@@ -602,3 +602,6 @@ class ErrBot(Backend):
     def get_command_classes(self):
         return (get_class_that_defined_method(command)
                 for command in self.all_commands.values())
+
+    def shutdown(self):
+        self.plugin_manager.shutdown()

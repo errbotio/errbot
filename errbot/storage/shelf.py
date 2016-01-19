@@ -27,17 +27,19 @@ class ShelfStorage(StorageBase):
     def len(self):
         return len(self.shelf)
 
+    def keys(self):
+        return self.keys()
+
     def close(self) -> None:
         self.shelf.close()
         self.shelf = None
-        log.debug('Closed shelf of %s' % self.__class__.__name__)
 
 
 class ShelfStoragePlugin(StoragePluginBase):
     def __init__(self, bot_config):
         super().__init__(bot_config)
         if 'basedir' not in self._storage_config:
-            self._storage_config['basedir'] = d
+            self._storage_config['basedir'] = bot_config.BOT_DATA_DIR
 
     def open(self, namespace: str) -> StorageBase:
         config = self._storage_config

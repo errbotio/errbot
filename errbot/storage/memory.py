@@ -27,6 +27,9 @@ class MemoryStorage(StorageBase):
     def len(self):
         return len(self.root)
 
+    def keys(self):
+        return self.root.keys()
+
     def close(self) -> None:
         ROOTS[self.namespace] = self.root
 

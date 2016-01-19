@@ -52,16 +52,14 @@ import logging
 # The current choices:
 
 # Debug:
-# 'local'        - local memory storage to test your bot in memory:
+# 'Memory'        - local memory storage to test your bot in memory:
 
 # Filesystem:
-# 'filestorage'  - python shelf (default)
+# 'Shelf'         - python shelf (default)
 
-# DBs:
-# 'redis'        - http://redis.io/
+# STORAGE = 'Shelf'  # defaults to filestorage (python shelf).
 
-# STORAGE = 'filestorage'  # defaults to filestorage (python shelf).
-
+# EXTRA_STORAGE_PLUGINS_DIR = None  # extra search path to find custom storage plugins
 
 # The location where all of Err's data should be stored. Make sure to set
 # this to a directory that is writable by the user running the bot.

@@ -57,8 +57,8 @@ class Health(BotPlugin):
             elif name in all_loaded:
                 plugins_statuses.append(('A', name))
             elif pm.get_plugin_obj_by_name(name) is not None \
-                    and pm.get_plugin_obj_by_name(name).get_configuration_template() is not None and pm.get_plugin_configuration(
-                    name) is None:
+                    and pm.get_plugin_obj_by_name(name).get_configuration_template() is not None \
+                    and pm.get_plugin_configuration(name) is None:
                 plugins_statuses.append(('C', name))
             else:
                 plugins_statuses.append(('D', name))

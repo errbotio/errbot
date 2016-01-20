@@ -69,4 +69,4 @@ class StoreMixin(MutableMapping):
             yield i
 
     def __contains__(self, x):
-        return x in self.shelf
+        return str(x) in self.shelf

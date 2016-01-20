@@ -62,6 +62,18 @@ class NullBackend(ErrBot):
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
+    def build_reply(self, mess, text=None, private=False):
+        pass
+
+    def prefix_groupchat_reply(self, message, identifier):
+        pass
+
+    def query_room(self, room):
+        pass
+
+    def rooms(self):
+        pass
+
     @property
     def mode(self):
         return 'null'

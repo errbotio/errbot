@@ -120,6 +120,14 @@ if __name__ == "__main__":
         package_data={
             '': ['*.txt', '*.rst', '*.plug', '*.md'],
         },
+        extras_require={
+            'graphic':  ['PySide', ],
+            'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
+            'IRC': ['irc', ],
+            'slack': ['slackclient', ],
+            'telegram': ['python-telegram-bot', ],
+            'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
+        },
 
         author="errbot.io",
         author_email="info@errbot.io",

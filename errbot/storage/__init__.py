@@ -40,7 +40,7 @@ class StoreMixin(MutableMapping):
         self._store = storage_plugin.open(namespace)
 
     def close_storage(self):
-        if not hasattr(self, 'store') or self._store is None:
+        if not hasattr(self, '_store') or self._store is None:
             raise StoreNotOpenError("Storage does not appear to have been opened yet")
         self._store.close()
         self._store = None

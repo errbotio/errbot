@@ -29,7 +29,7 @@ class Backup(BotPlugin):
 
             for plug in self._bot.plugin_manager.getAllPlugins():
                 pobj = plug.plugin_object
-                if pobj.store:
+                if pobj._store:
                     f.write('pobj = bot.plugin_manager.get_plugin_by_name("' + plug.name + '").plugin_object\n')
                     f.write('pobj.init_storage()\n')
 

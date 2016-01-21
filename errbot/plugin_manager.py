@@ -474,7 +474,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
         if errors:
-            self.warn_admins(errors)
+            self.bot.warn_admins(errors)
         return errors
 
     def activate_plugin(self, name):

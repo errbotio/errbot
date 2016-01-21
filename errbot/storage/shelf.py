@@ -19,7 +19,7 @@ class ShelfStorage(StorageBase):
     def remove(self, key: str):
         if key not in self.shelf:
             raise KeyError("%s doesn't exist." % key)
-        del self.root[key]
+        del self.shelf[key]
 
     def set(self, key: str, value: Any) -> None:
         self.shelf[key] = value
@@ -28,7 +28,7 @@ class ShelfStorage(StorageBase):
         return len(self.shelf)
 
     def keys(self):
-        return self.keys()
+        return self.shelf.keys()
 
     def close(self) -> None:
         self.shelf.close()

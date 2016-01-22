@@ -75,7 +75,8 @@ class DummyBackend(ErrBot):
         self.attach_plugin_manager(BotPluginManager(storage_plugin,
                                                     botplugins_dir,
                                                     config.BOT_EXTRA_PLUGIN_DIR,
-                                                    config.AUTOINSTALL_DEPS))
+                                                    config.AUTOINSTALL_DEPS,
+                                                    getattr(config, 'CORE_PLUGINS', None)))
         self.attach_storage_plugin(storage_plugin)
         self.inject_commands_from(self)
         self.inject_command_filters_from(ACLS(self))

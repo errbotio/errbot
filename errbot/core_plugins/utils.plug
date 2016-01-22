@@ -1,6 +1,7 @@
 [Core]
 Name = Utils
 Module = utils
+Core = True
 
 [Documentation]
 Description = Core Errbot utils commands.

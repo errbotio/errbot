@@ -61,7 +61,8 @@ def setup_bot(backend_name, logger, config, restore=None):
     botpm = BotPluginManager(storage_plugin,
                              botplugins_dir,
                              config.BOT_EXTRA_PLUGIN_DIR,
-                             config.AUTOINSTALL_DEPS)
+                             config.AUTOINSTALL_DEPS,
+                             getattr(config, 'CORE_PLUGINS', None))
 
     # init the backend manager & the bot
     extra = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])

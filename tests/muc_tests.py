@@ -2,15 +2,14 @@ import os
 import errbot.backends.base
 from errbot.backends.test import FullStackTest, TestMUCOccupant
 import logging
-import unittest
 log = logging.getLogger(__name__)
 
 
 class TestMUC(FullStackTest):
 
     def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
-        super().setUp(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_tests'),
-                      extra_test_file)
+        super().setUp(extra_plugin_dir=os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_tests'),
+                      extra_test_file=extra_test_file)
 
     def test_plugin_methods(self):  # noqa
         p = self.bot.plugin_manager.get_plugin_obj_by_name('ChatRoom')

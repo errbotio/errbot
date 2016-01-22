@@ -1,3 +1,4 @@
+import importlib
 import logging
 import sys
 import unittest
@@ -13,7 +14,6 @@ from errbot.backends.base import Message, MUCRoom, Identifier, MUCIdentifier, ON
 from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import setup_bot
-
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.test')
@@ -38,6 +38,7 @@ class TestIdentifier(Identifier):
     from object instead and make sure it includes all properties and
     methods exposed by this class.
     """
+
     def __init__(self, person, client=None, nick=None, fullname=None):
         self._person = person
         self._client = client
@@ -73,6 +74,7 @@ class TestIdentifier(Identifier):
         if self.client:
             return self._person + "/" + self._client
         return self._person
+
     __str__ = __unicode__
 
     def __eq__(self, other):
@@ -84,6 +86,7 @@ class TestMUCOccupant(TestIdentifier, MUCIdentifier):
     """ This is a MUC occupant represented as a string.
         DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
     """
+
     def __init__(self, person, room):
         super().__init__(person)
         self._room = room
@@ -318,6 +321,10 @@ class TestBackend(ErrBot):
         self._rooms = []
 
 
+class ShallowConfig(object):
+    pass
+
+
 class TestBot(object):
     """
     A minimal bot utilizing the TestBackend, for use with unit testing.
@@ -332,18 +339,29 @@ class TestBot(object):
     """
     bot_thread = None
 
-    def __init__(self, extra_plugin_dir=None, loglevel=logging.DEBUG):
+    def __init__(self, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None):
+        self.setup(extra_plugin_dir=extra_plugin_dir, loglevel=loglevel, extra_config=extra_config)
+
+    def setup(self, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None):
         """
+        :param extra_config: Piece of extra configuration you want to inject to the config.
         :param extra_plugin_dir: Path to a directory from which additional
             plugins should be loaded.
         :param loglevel: Logging verbosity. Expects one of the constants
             defined by the logging module.
         """
-        __import__('errbot.config-template')
-        config = sys.modules['errbot.config-template']
         tempdir = mkdtemp()
+
+        # This is for test isolation.
+        config = ShallowConfig()
+        config.__dict__.update(importlib.import_module('errbot.config-template').__dict__)
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+
+        if extra_config is not None:
+            log.debug('Merging %s to the bot config.' % repr(extra_config))
+            for k, v in extra_config.items():
+                setattr(config, k, v)
 
         # reset logging to console
         logging.basicConfig(format='%(levelname)s:%(message)s')
@@ -433,7 +451,7 @@ class FullStackTest(unittest.TestCase, TestBot):
                 self.assertIn('Err version', self.pop_message())
     """
 
-    def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
+    def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG, extra_config=None):
         """
         :param extra_plugin_dir: Path to a directory from which additional
             plugins should be loaded.
@@ -442,11 +460,12 @@ class FullStackTest(unittest.TestCase, TestBot):
             Path to an additional plugin which should be loaded.
         :param loglevel: Logging verbosity. Expects one of the constants
             defined by the logging module.
+        :param extra_config: Piece of extra bot config in a dict.
         """
         if extra_plugin_dir is None and extra_test_file is not None:
             extra_plugin_dir = sep.join(abspath(extra_test_file).split(sep)[:-2])
 
-        TestBot.__init__(self, extra_plugin_dir=extra_plugin_dir, loglevel=loglevel)
+        self.setup(extra_plugin_dir=extra_plugin_dir, loglevel=loglevel, extra_config=extra_config)
         self.start()
 
     def tearDown(self):
@@ -518,10 +537,10 @@ def testbot(request):
     kwargs = {}
 
     for attr, default in (('extra_plugin_dir', None), ('loglevel', logging.DEBUG),):
-            if hasattr(request, 'instance'):
-                kwargs[attr] = getattr(request.instance, attr, None)
-            if kwargs[attr] is None:
-                kwargs[attr] = getattr(request.module, attr, default)
+        if hasattr(request, 'instance'):
+            kwargs[attr] = getattr(request.instance, attr, None)
+        if kwargs[attr] is None:
+            kwargs[attr] = getattr(request.module, attr, default)
 
     bot = TestBot(**kwargs)
     bot.start()

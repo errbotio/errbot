@@ -1,6 +1,7 @@
 [Core]
 Name = Help
 Module = help
+Core = True
 
 [Documentation]
 Description = Core plugin of help related functions.

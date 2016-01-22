@@ -2,7 +2,8 @@ from collections import MutableMapping
 import logging
 import shelve
 
-from .utils import PY2
+from errbot import PY2
+
 log = logging.getLogger(__name__)
 
 
@@ -24,49 +25,53 @@ class StoreMixin(MutableMapping):
     """
 
     def __init__(self):
-        log.info('Init shelf of %s' % self.__class__.__name__)
-        self.shelf = None
+        log.info('Init storage of %s' % self.__class__.__name__)
+        self._store = None
 
-    def open_storage(self, path):
-        if hasattr(self, 'shelf') and self.shelf is not None:
+    @property
+    def shelf(self):
+        log.warn('Deprecated: you should use self instead of self.shelf to access your storage.')
+        return self
+
+    def open_storage(self, storage_plugin, namespace):
+        if hasattr(self, 'store') and self._store is not None:
             raise StoreAlreadyOpenError("Storage appears to be opened already")
-        log.debug("Opening storage file %s" % path)
-        self.shelf = shelve.DbfilenameShelf(path, protocol=2)
-        log.info('Opened shelf of %s at %s' % (self.__class__.__name__, path))
+        log.debug("Opening storage %s" % namespace)
+        self._store = storage_plugin.open(namespace)
 
     def close_storage(self):
-        if not hasattr(self, 'shelf') or self.shelf is None:
+        if not hasattr(self, '_store') or self._store is None:
             raise StoreNotOpenError("Storage does not appear to have been opened yet")
-        self.shelf.close()
-        self.shelf = None
-        log.debug('Closed shelf of %s' % self.__class__.__name__)
+        self._store.close()
+        self._store = None
+        log.debug('Closed store of %s' % self.__class__.__name__)
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
     def __getitem__(self, key):
-        return self.shelf.__getitem__(key)
+        return self._store.get(key)
 
     def __setitem__(self, key, item):
-        answer = self.shelf.__setitem__(key, item)
-        self.shelf.sync()
-        return answer
+        return self._store.set(key, item)
 
     def __delitem__(self, key):
-        answer = self.shelf.__delitem__(key)
-        self.shelf.sync()
-        return answer
+        return self._store.remove(key)
 
     def keys(self):
-        keys = self.shelf.keys()
+        keys = self._store.keys()
         if PY2:
             keys = [key.decode('utf-8') for key in keys]
         return keys
 
     def __len__(self):
-        return len(self.shelf)
+        return self._store.len()
 
     def __iter__(self):
-        for i in self.shelf:
+        for i in self._store.keys():
             yield i
 
     def __contains__(self, x):
-        return x in self.shelf
+        try:
+            self._store.get(x)
+            return True
+        except KeyError:
+            return False

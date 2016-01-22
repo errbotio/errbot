@@ -100,8 +100,9 @@ User guide
   user_guide/setup
   user_guide/interaction
   user_guide/plugin_development/index
-  user_guide/sentry
   user_guide/backend_development/index
+  user_guide/storage_development/index
+  user_guide/sentry
 
 
 API documentation

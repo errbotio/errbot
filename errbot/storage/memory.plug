@@ -1,0 +1,6 @@
+[Core]
+Name = Memory
+Module = memory
+
+[Documentation]
+Description = This is the storage plugin for an in-memory store (non-persistent).

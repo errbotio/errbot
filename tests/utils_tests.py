@@ -4,6 +4,11 @@ from datetime import timedelta
 import unittest
 from tempfile import mkdtemp
 from nose.tools import raises
+
+from errbot.errBot import bot_config_defaults
+from errbot.main import CORE_STORAGE
+from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.storage.base import StoragePluginBase
 from errbot.utils import *
 from errbot.storage import StoreMixin
 
@@ -48,15 +53,15 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(unescape_xml('&#32;'), ' ')
 
     def test_storage(self):
-        class MyPersistentClass(StoreMixin):
-            pass
-
-        tmpdir = mkdtemp()
-
         key = b'test' if PY2 else 'test'
+        config = sys.modules['errbot.config-template']
+        bot_config_defaults(config)
 
-        persistent_object = MyPersistentClass()
-        persistent_object.open_storage(tmpdir + os.path.sep + 'test.db')
+        spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, None)
+        storage_plugin = spm.get_plugin_by_name('Memory')
+
+        persistent_object = StoreMixin()
+        persistent_object.open_storage(storage_plugin, 'test')
         persistent_object[key] = 'à value'
         self.assertEquals(persistent_object[key], 'à value')
         self.assertIn(key, persistent_object)

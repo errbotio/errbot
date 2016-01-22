@@ -33,7 +33,7 @@ class BotPluginBase(StoreMixin):
         """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
         """
         self._bot = bot
-        self.plugin_dir = bot.plugin_dir
+        self.plugin_dir = bot.plugin_manager.plugin_dir
 
     @property
     def mode(self) -> str:
@@ -69,9 +69,7 @@ class BotPluginBase(StoreMixin):
     def init_storage(self) -> None:
         classname = self.__class__.__name__
         log.debug('Init storage for %s' % classname)
-        filename = os.path.join(self.bot_config.BOT_DATA_DIR, PLUGINS_SUBDIR, classname + '.db')
-        log.debug('Loading %s' % filename)
-        self.open_storage(filename)
+        self.open_storage(self._bot.storage_plugin, classname)
 
     def activate(self) -> None:
         """

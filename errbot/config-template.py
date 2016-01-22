@@ -23,7 +23,7 @@ import logging
 ##########################################################################
 
 # BACKEND selection.
-# This configures the type of chat server you wish to use Err with.
+# This configures the type of chat server you wish to use Errbot with.
 #
 # The current choices:
 
@@ -44,7 +44,22 @@ import logging
 # 'Telegram' - cloud-based mobile and desktop messaging app with a focus
 #              on security and speed. (https://telegram.org/)
 
-# BACKEND = 'XMPP'
+# BACKEND = 'XMPP'  # defaults to XMPP
+
+# STORAGE selection.
+# This configures the type of persistence you wish to use Errbot with.
+#
+# The current choices:
+
+# Debug:
+# 'Memory'        - local memory storage to test your bot in memory:
+
+# Filesystem:
+# 'Shelf'         - python shelf (default)
+
+# STORAGE = 'Shelf'  # defaults to filestorage (python shelf).
+
+# EXTRA_STORAGE_PLUGINS_DIR = None  # extra search path to find custom storage plugins
 
 # The location where all of Err's data should be stored. Make sure to set
 # this to a directory that is writable by the user running the bot.

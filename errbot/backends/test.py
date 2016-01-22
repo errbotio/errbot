@@ -357,6 +357,7 @@ class TestBot(object):
         config.__dict__.update(importlib.import_module('errbot.config-template').__dict__)
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+        config.STORAGE = 'Memory'
 
         if extra_config is not None:
             log.debug('Merging %s to the bot config.' % repr(extra_config))

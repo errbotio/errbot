@@ -9,7 +9,6 @@ from errbot.utils import format_timedelta
 
 
 class Health(BotPlugin):
-
     @botcmd(template='status')
     def status(self, mess, args):
         """ If I am alive I should be able to respond to this one
@@ -44,9 +43,10 @@ class Health(BotPlugin):
     def status_plugins(self, mess, args):
         """ shows the plugin status
         """
-        all_blacklisted = self._bot.get_blacklisted_plugin()
-        all_loaded = self._bot.get_all_active_plugin_names()
-        all_attempted = sorted([p.name for p in self._bot.all_candidates])
+        pm = self._bot.plugin_manager
+        all_blacklisted = pm.get_blacklisted_plugin()
+        all_loaded = pm.get_all_active_plugin_names()
+        all_attempted = sorted([p.name for p in pm.all_candidates])
         plugins_statuses = []
         for name in all_attempted:
             if name in all_blacklisted:
@@ -56,8 +56,9 @@ class Health(BotPlugin):
                     plugins_statuses.append(('BD', name))
             elif name in all_loaded:
                 plugins_statuses.append(('A', name))
-            elif self._bot.get_plugin_obj_by_name(name) is not None and self._bot.get_plugin_obj_by_name(
-                    name).get_configuration_template() is not None and self._bot.get_plugin_configuration(name) is None:
+            elif pm.get_plugin_obj_by_name(name) is not None \
+                    and pm.get_plugin_obj_by_name(name).get_configuration_template() is not None \
+                    and pm.get_plugin_configuration(name) is None:
                 plugins_statuses.append(('C', name))
             else:
                 plugins_statuses.append(('D', name))
@@ -76,7 +77,7 @@ class Health(BotPlugin):
     def restart(self, mess, args):
         """ Restart the bot. """
         self.send(mess.frm, "Deactivating all the plugins...")
-        self._bot.deactivate_all_plugins()
+        self._bot.plugin_manager.deactivate_all_plugins()
         self.send(mess.frm, "Restarting")
         self._bot.shutdown()
         global_restart()
@@ -92,7 +93,7 @@ class Health(BotPlugin):
             return "Use `!killbot really` if you really want to shutdown the bot."
 
         self.send(mess.frm, "Dave, I can see you are really upset about this...")
-        self._bot.deactivate_all_plugins()
+        self._bot.plugin_manager.deactivate_all_plugins()
         self.send(mess.frm, "I know I have made some very poor decisions recently...")
         self.send(mess.frm, "Daisy, Daaaaiseey...")
         self._bot.shutdown()

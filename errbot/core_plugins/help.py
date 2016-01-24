@@ -72,8 +72,9 @@ class Help(BotPlugin):
         # Normalize args to lowercase for ease of use
         args = args.lower() if args else ''
         usage = ''
-        description = ''
+        description = '### All commands\n'
 
+        # show all
         if not args:
             cls_commands = {}
             for (name, command) in self._bot.all_commands.items():
@@ -85,20 +86,17 @@ class Help(BotPlugin):
 
             for cls in sorted(set(cls_commands), key=lambda c: c.__name__):
                 # shows class and description
-                usage += (
-                    '**%s**\n'
-                    '%s\n\n'
-                    % (cls.__name__, cls.__errdoc__ or ''))
+                usage += '#### {name}\n*{doc}*\n'.format(
+                                           name=cls.__name__,
+                                           doc=cls.__errdoc__ or '',
+                                       )
 
                 for (name, command) in cls_commands[cls]:
                     if name == 'help' or command._err_command_hidden:
                         continue
-
-                    cmd_name = name.replace('_', ' ')
-                    cmd_doc = self._bot.get_doc(command).strip()
+                    # show individual commands
                     usage += self._cmd_help_line(name, command)
-
-            usage += '\n\n\n' # end cls section
+            usage += '\n\n' # end cls section
 
         elif args in (get_name(cls) for cls in self._bot.get_command_classes()):
             # filter out the commands related to this class
@@ -111,7 +109,10 @@ class Help(BotPlugin):
                 in self._bot.all_commands.items() if
                 get_name(get_class_that_defined_method(command)) == args]
 
-            description = '**%s**\n%s\n\n' % (cls.__name__, cls.__errdoc__)
+            description = '#### {name}\n*{doc}*\n'.format(
+                                       name=cls.__name__,
+                                       doc=cls.__errdoc__ or '',
+                                   )
             pairs = sorted([
                 (name, command)
                 for (name, command) in commands
@@ -120,7 +121,7 @@ class Help(BotPlugin):
             ])
 
             for (name, command) in pairs:
-                usage += '* ' + self._cmd_help_line(name, command) + '\n'
+                usage += self._cmd_help_line(name, command)
         else:
             description = ''
             all_commands = dict(self._bot.all_commands)
@@ -141,7 +142,6 @@ class Help(BotPlugin):
         cmd_name = name.replace('_', ' ')
         cmd_doc = textwrap.dedent(self._bot.get_doc(command)).strip()
         prefix = self._bot.prefix
-        help_str = ''
 
         name = cmd_name
         patt = getattr(command, '_err_command_re_pattern', None)
@@ -155,6 +155,6 @@ class Help(BotPlugin):
             if len(cmd_doc) > 80:
                 cmd_doc = '{doc}...'.format(doc=cmd_doc[:77])
 
-        help_str += '**{prefix}{name}** - {doc}\n\n'.format(prefix=prefix, name=name, doc=cmd_doc)
+        help_str = '- **{prefix}{name}** - {doc}\n'.format(prefix=prefix, name=name, doc=cmd_doc)
 
         return help_str

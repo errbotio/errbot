@@ -32,23 +32,23 @@ class Help(BotPlugin):
 
         description = 'Available commands:\n'
 
-        clazz_commands = {}
+        cls_commands = {}
         for (name, command) in self._bot.all_commands.items():
-            clazz = get_class_that_defined_method(command)
-            clazz = str.__module__ + '.' + clazz.__name__  # makes the fuul qualified name
-            commands = clazz_commands.get(clazz, [])
+            cls = get_class_that_defined_method(command)
+            cls = str.__module__ + '.' + cls.__name__  # makes the fuul qualified name
+            commands = cls_commands.get(cls, [])
             if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self._bot.check_command_access(mess, name)[0]:
                 commands.append((name, command))
-                clazz_commands[clazz] = commands
+                cls_commands[cls] = commands
 
         usage = ''
-        for clazz in sorted(clazz_commands):
+        for cls in sorted(cls_commands):
             usage += '\n'.join(sorted([
                 '\t' + self._bot.prefix + '%s: %s' % (
                     name.replace('_', ' ', 1),
                     (command.__doc__ or '(undocumented)').strip().split('\n', 1)[0]
                 )
-                for (name, command) in clazz_commands[clazz]
+                for (name, command) in cls_commands[cls]
                 if args is not None and
                 command.__doc__ is not None and
                 args.lower() in command.__doc__.lower() and
@@ -74,31 +74,31 @@ class Help(BotPlugin):
             command_classes = sorted(set(self._bot.get_command_classes()), key=lambda c: c.__name__)
             usage = '\n'.join(
                 '- **' + self._bot.prefix + 'help %s** \- %s' %
-                (clazz.__name__, clazz.__errdoc__.strip() or '(undocumented)') for clazz in command_classes)
+                (cls.__name__, cls.__errdoc__.strip() or '(undocumented)') for cls in command_classes)
         elif args == 'full':
             description = '### Available commands\n\n'
 
-            clazz_commands = {}
+            cls_commands = {}
             for (name, command) in self._bot.all_commands.items():
-                clazz = get_class_that_defined_method(command)
-                commands = clazz_commands.get(clazz, [])
+                cls = get_class_that_defined_method(command)
+                commands = cls_commands.get(cls, [])
                 if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name):
                     commands.append((name, command))
-                    clazz_commands[clazz] = commands
+                    cls_commands[cls] = commands
 
-            for clazz in sorted(set(clazz_commands), key=lambda c: c.__name__):
-                usage += '\n\n**%s** \- %s\n' % (clazz.__name__, clazz.__errdoc__ or '')
+            for cls in sorted(set(cls_commands), key=lambda c: c.__name__):
+                usage += '\n\n**%s** \- %s\n' % (cls.__name__, cls.__errdoc__ or '')
                 usage += '\n'.join(sorted(['**' +
                                            self._bot.prefix +
                                            '%s** %s' % (name.replace('_', ' ', 1),
                                                         (self._bot.get_doc(command).strip()).split('\n', 1)[0])
-                                           for (name, command) in clazz_commands[clazz]
+                                           for (name, command) in cls_commands[cls]
                                            if name != 'help' and not command._err_command_hidden and
                                            (not self.bot_config.HIDE_RESTRICTED_COMMANDS or
                                             may_access_command(mess, name))
                                            ]))
             usage += '\n\n'
-        elif args in (clazz.__name__ for clazz in self._bot.get_command_classes()):
+        elif args in (cls.__name__ for cls in self._bot.get_command_classes()):
             # filter out the commands related to this class
             commands = [(name, command) for (name, command) in self._bot.all_commands.items() if
                         get_class_that_defined_method(command).__name__ == args]

@@ -96,8 +96,7 @@ class Help(BotPlugin):
                         continue
                     # show individual commands
                     usage += self._cmd_help_line(name, command)
-            usage += '\n\n' # end cls section
-
+            usage += '\n\n'  # end cls section
         elif args in (get_name(cls) for cls in self._bot.get_command_classes()):
             # filter out the commands related to this class
             [cls] = {

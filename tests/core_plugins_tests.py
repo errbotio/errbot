@@ -17,7 +17,7 @@ class TestCorePlugins(FullStackTest):
         # we NEED utils otherwise the test locks at startup
 
     def test_help_is_still_here(self):
-        self.assertCommand('!help', 'Available help')
+        self.assertCommand('!help', 'All commands')
 
     def test_backup_help_not_here(self):
         self.assertCommand('!help backup', 'That command is not defined.')

@@ -125,7 +125,7 @@ in:
         def callback_message(self, mess):
             if mess.body.find('cookie') != -1:
                 self.send(
-                    mess.from,
+                    mess.frm,
                     "What what somebody said cookie!?",
                     message_type=mess.type
                 )

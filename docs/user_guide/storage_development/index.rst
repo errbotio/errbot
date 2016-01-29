@@ -14,7 +14,7 @@ Storage plugin are instanciated in 2 stages.
 
 The first stage is similar to the normal bot plugins:
 
-- Errbot scans errbot/storage and config.EXTRA_STORAGE_PLUGINS_DIR for .plug pointing
+- Errbot scans errbot/storage and config.BOT_EXTRA_STORAGE_PLUGINS_DIR for .plug pointing
   to plugins implementing :class:`~errbot.storage.base.StoragePluginBase`
 - Once the correct plugin from config.STORAGE is found, it is built with the bot config as its __init__ parameter.
 - By calling super().__init__ on :class:`~errbot.storage.base.StoragePluginBase` it will populate self._storage_config

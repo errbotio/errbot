@@ -48,7 +48,7 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     # init the storage plugin
     storage_name = getattr(config, 'STORAGE', 'Shelf')
-    extra_storage_plugins_dir = getattr(config, 'EXTRA_STORAGE_PLUGINS_DIR', None)
+    extra_storage_plugins_dir = getattr(config, 'BOT_EXTRA_STORAGE_PLUGINS_DIR', None)
     spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, extra_storage_plugins_dir)
     storage_pluginfo = spm.get_candidate(storage_name)
     log.info("Found Storage plugin: '%s'\nDescription: %s" % (storage_pluginfo.name, storage_pluginfo.description))

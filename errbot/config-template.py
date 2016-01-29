@@ -59,7 +59,7 @@ import logging
 
 # STORAGE = 'Shelf'  # defaults to filestorage (python shelf).
 
-# EXTRA_STORAGE_PLUGINS_DIR = None  # extra search path to find custom storage plugins
+# BOT_EXTRA_STORAGE_PLUGINS_DIR = None  # extra search path to find custom storage plugins
 
 # The location where all of Err's data should be stored. Make sure to set
 # this to a directory that is writable by the user running the bot.

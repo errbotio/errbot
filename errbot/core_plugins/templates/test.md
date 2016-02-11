@@ -67,8 +67,8 @@ Markdown extra (code) with brackets:
 
 ```json
 "employees":[
-    {"firstName":"John", "lastName":"Doe"}, 
-    {"firstName":"Anna", "lastName":"Smith"}, 
+    {"firstName":"John", "lastName":"Doe"},
+    {"firstName":"Anna", "lastName":"Smith"},
     {"firstName":"Peter","lastName":"Jones"}
 ]
 ```

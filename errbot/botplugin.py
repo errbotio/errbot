@@ -1,4 +1,5 @@
 import logging
+import inspect
 import shlex
 from threading import Timer, current_thread
 from types import ModuleType
@@ -7,6 +8,7 @@ from io import IOBase
 
 from .utils import recurse_check_structure, PY2
 from .storage import StoreMixin, StoreNotOpenError
+from .templating import add_plugin_templates_path, remove_plugin_templates_path
 from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
 
 log = logging.getLogger(__name__)
@@ -126,8 +128,16 @@ class BotPluginBase(StoreMixin):
 
     def init_storage(self) -> None:
         classname = self.__class__.__name__
-        log.debug('Init storage for %s' % classname)
+        log.debug('Init storage for {}'.format(classname))
         self.open_storage(self._bot.storage_plugin, classname)
+
+    def init_templating(self) -> None:
+        classname = self.__class__.__name__
+        log.debug('Init templating for {}'.format(classname))
+        self.tenv = add_plugin_templates_path(inspect.getfile(self.__class__))
+
+    def teardown_templating(self) -> None:
+        remove_plugin_templates_path(inspect.getfile(self.__class__))
 
     def activate(self) -> None:
         """
@@ -135,6 +145,7 @@ class BotPluginBase(StoreMixin):
             super(Gnagna, self).activate())
         """
         self.init_storage()
+        self.init_templating()
         self._bot.inject_commands_from(self)
         self._bot.inject_command_filters_from(self)
         self.is_activated = True
@@ -153,6 +164,7 @@ class BotPluginBase(StoreMixin):
             self.close_storage()
         except StoreNotOpenError:
             pass
+        self.teardown_templating()
         self._bot.remove_command_filters_from(self)
         self._bot.remove_commands_from(self)
         self.is_activated = False
@@ -160,6 +172,15 @@ class BotPluginBase(StoreMixin):
         for plugin in self._dynamic_plugins.values():
             self._bot.remove_command_filters_from(plugin)
             self._bot.remove_commands_from(plugin)
+
+    def process_template(self, template_name, template_parameters):
+        # integrated templating
+        if template_name:
+            log.debug('processing template "{}"'.format(template_name))
+            return self.tenv.get_template(template_name + '.md').render(**template_parameters)
+
+        # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)
+        return str(template_parameters)
 
     def start_poller(self,
                      interval: float,
@@ -432,7 +453,7 @@ class BotPlugin(BotPluginBase):
     def warn_admins(self, warning: str) -> None:
         """
             Sends a warning to the administrators of the bot
-            :param warning: mardown formatted text of the warning.
+            :param warning: markdown formatted text of the warning.
         """
         self._bot.warn_admins(warning)
 
@@ -455,7 +476,7 @@ class BotPlugin(BotPluginBase):
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
         if message_type is not None:
-            self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
+            self.log.warning("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def send_card(self,
@@ -522,8 +543,8 @@ class BotPlugin(BotPluginBase):
              :param text: markdown formatted text to send to the user.
              :param identifier: identifier of the user or room to which you want to send a message to.
         """
-        return self._bot.send_templated(identifier, template_name, template_parameters, in_reply_to, message_type,
-                                        groupchat_nick_reply)
+        text = self.process_template(template_name, template_parameters)
+        return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def build_identifier(self, txtrep: str) -> Identifier:
         """

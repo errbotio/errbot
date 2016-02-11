@@ -25,7 +25,6 @@ from .backends.base import Backend, Room, Identifier, Person, Message
 from threadpool import ThreadPool, WorkRequest
 from threading import RLock
 from .streaming import Tee
-from .templating import tenv
 from .utils import (split_string_after,
                     get_class_that_defined_method, compat_str)
 from .storage import StoreMixin
@@ -167,22 +166,6 @@ class ErrBot(Backend, StoreMixin):
             self.prefix_groupchat_reply(mess, in_reply_to.frm)
 
         self.split_and_send_message(mess)
-
-    def send_templated(self, identifier, template_name, template_parameters, in_reply_to=None,
-                       groupchat_nick_reply=False):
-        """ Sends a simple message to the specified user using a template.
-
-            :param template_parameters: the parameters for the template.
-            :param template_name: the template name you want to use.
-            :param identifier:
-                an identifier from build_identifier or from an incoming message, a room etc.
-            :param in_reply_to:
-                the original message the bot is answering from
-            :param groupchat_nick_reply:
-                authorized the prefixing with the nick form the user
-        """
-        text = self.process_template(template_name, template_parameters)
-        return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, mess):
         for part in split_string_after(mess.body, self.bot_config.MESSAGE_SIZE_LIMIT):
@@ -440,15 +423,6 @@ class ErrBot(Backend, StoreMixin):
             self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
                                    template_name=f._err_command_template)
 
-    @staticmethod
-    def process_template(template_name, template_parameters):
-        # integrated templating
-        if template_name:
-            return tenv().get_template(template_name + '.md').render(**template_parameters)
-
-        # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)
-        return str(template_parameters)
-
     def _execute_and_send(self, cmd, args, match, mess, template_name=None):
         """Execute a bot command and send output back to the caller
 
@@ -465,6 +439,7 @@ class ErrBot(Backend, StoreMixin):
         try:
             with self._gbl:
                 method = commands[cmd]
+            plugin = method.__self__
             # first check if we need to reattach a flow context
             flow, _ = self.flow_executor.check_inflight_flow_triggered(cmd, mess.frm)
             if flow:
@@ -479,11 +454,11 @@ class ErrBot(Backend, StoreMixin):
                 replies = method(mess, match) if match else method(mess, args)
                 for reply in replies:
                     if reply:
-                        self.send_simple_reply(mess, self.process_template(template_name, reply), private)
+                        self.send_simple_reply(mess, plugin.process_template(template_name, reply), private)
             else:
                 reply = method(mess, match) if match else method(mess, args)
                 if reply:
-                    self.send_simple_reply(mess, self.process_template(template_name, reply), private)
+                    self.send_simple_reply(mess, plugin.process_template(template_name, reply), private)
 
             # The command is a success, check if this has not made a flow progressed
             self.flow_executor.trigger(cmd, mess.frm, mess.ctx)
@@ -491,7 +466,7 @@ class ErrBot(Backend, StoreMixin):
         except CommandError as command_error:
             reason = command_error.reason
             if command_error.template:
-                reason = self.process_template(command_error.template, reason)
+                reason = plugin.process_template(command_error.template, reason)
             self.send_simple_reply(mess, reason, private)
 
         except Exception as e:

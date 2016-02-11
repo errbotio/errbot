@@ -16,10 +16,9 @@
 
 ### Plugins
 
-Status  | Name                    
-------- | ----------------------- 
+Status  | Name
+------- | -----------------------
 {% for state, name in plugins_statuses %}{{ status(state).strip().ljust(7) }} | {{ name }}
 {% endfor %}
 
 {{ status('A').strip() }} = Activated, {{ status('D').strip() }} = Deactivated, {{ status('B').strip() }} = Blacklisted, {{ status('C').strip() }} = Needs to be configured
-

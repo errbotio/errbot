@@ -174,6 +174,7 @@ class IRCMUCRoom(MUCRoom):
             time.sleep(.5)
         else:
             self.log.error("Timeout: Could not join %s", self.room)
+            return
 
         self._bot.callback_room_joined(self)
         log.info("Joined room {}".format(self.room))
@@ -196,6 +197,8 @@ class IRCMUCRoom(MUCRoom):
             time.sleep(.5)
         else:
             self.log.error("Timeout: Could not part %s", self.room)
+            return
+
         log.info("Left room {}".format(self.room))
         self._bot.callback_room_left(self)
 

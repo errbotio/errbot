@@ -199,8 +199,8 @@ class IRCMUCRoom(MUCRoom):
             self.log.error("Timeout: Could not part %s", self.room)
             return
 
-        log.info("Left room {}".format(self.room))
         self._bot.callback_room_left(self)
+        log.info("Left room {}".format(self.room))
 
     def create(self):
         """

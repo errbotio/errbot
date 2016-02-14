@@ -6,6 +6,7 @@ import subprocess
 import struct
 import re
 
+import time
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
@@ -144,6 +145,9 @@ class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
         return self.__unicode__()
 
 
+JOIN_TIMEOUT = 30
+
+
 class IRCMUCRoom(MUCRoom):
     def __init__(self, room, bot):
         self._bot = bot
@@ -163,6 +167,15 @@ class IRCMUCRoom(MUCRoom):
             password = ""
 
         self.connection.join(self.room, key=password)
+        for attempt in range(JOIN_TIMEOUT):
+            time.sleep(.5)
+            if self.joined:
+                break
+            time.sleep(.5)
+        else:
+            self.log.error("Timeout: Could not join %s", self.room)
+            return
+
         self._bot.callback_room_joined(self)
         log.info("Joined room {}".format(self.room))
 
@@ -177,8 +190,17 @@ class IRCMUCRoom(MUCRoom):
             reason = ""
 
         self.connection.part(self.room, reason)
-        log.info("Left room {}".format(self.room))
+        for attempt in range(JOIN_TIMEOUT):
+            time.sleep(.5)
+            if not self.joined:
+                break
+            time.sleep(.5)
+        else:
+            self.log.error("Timeout: Could not part %s", self.room)
+            return
+
         self._bot.callback_room_left(self)
+        log.info("Left room {}".format(self.room))
 
     def create(self):
         """

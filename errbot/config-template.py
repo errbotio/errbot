@@ -305,6 +305,12 @@ REVERSE_CHATROOM_RELAY = {}
 # try to gradually lower this value until it no longer happens.
 #XMPP_KEEPALIVE_INTERVAL = 300
 
+
+# XMPP supports some formatting with XEP-0071 (http://www.xmpp.org/extensions/xep-0071.html).
+# It is disabled by default because XMPP clients support has been found to be spotty.
+# Switch it to True to enable XHTML-IM formatting.
+# XMPP_XHTML_IM = False
+
 # Message rate limiting for the IRC backend. This will delay subsequent
 # messages by this many seconds (floats are supported). Setting these
 # to a value of 0 effectively disables rate limiting.

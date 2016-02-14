@@ -407,6 +407,7 @@ class XMPPBackend(ErrBot):
         self.feature = config.__dict__.get('XMPP_FEATURE_MECHANISMS', {})
         self.keepalive = config.__dict__.get('XMPP_KEEPALIVE_INTERVAL', None)
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
+        self.xhtmlim = config.__dict__.get('XMPP_XHTML_IM', False)
 
         # generic backend compatibility
         self.bot_identifier = self.build_identifier(self.jid)
@@ -529,10 +530,13 @@ class XMPPBackend(ErrBot):
             log.debug("This is a groupchat message, strip the resource.")
             mess.to = XMPPIdentifier(mess.to.node, mess.to.domain, None)
         log.debug("send_message to %s", mess.to)
+
+        mhtml = self.md_xhtml.convert(mess.body) if self.xhtmlim else None
+
         self.conn.client.send_message(mto=str(mess.to),
                                       mbody=self.md_text.convert(mess.body),
+                                      mhtml=mhtml,
                                       mtype=mess.type)
-        # mhtml=self.md_xhtml.convert(mess.body)) This is too broken on clients.
 
     def change_presence(self, status: str=ONLINE, message: str='') -> None:
         log.debug("Change bot status to %s, message %s" % (status, message))

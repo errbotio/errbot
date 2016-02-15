@@ -150,12 +150,15 @@ def main():
     # the source tree directly without installing it.
     sys.path.insert(0, execution_dir)
 
-    parser = argparse.ArgumentParser(description='The main entry point of the XMPP bot err.')
+    parser = argparse.ArgumentParser(description='The main entry point of the errbot.')
     parser.add_argument('-c', '--config', default=None,
                         help='Full path to your config.py (default: config.py in current working directory).')
     parser.add_argument('-r', '--restore', nargs='?', default=None, const='default',
                         help='Restores a bot from backup.py. (default: backup.py from the bot data directory).')
     parser.add_argument('-l', '--list', action='store_true', help='Lists all the backends found.')
+
+    from .version import VERSION
+    parser.add_argument('-v', '--version', action='version', version='Err version {}'.format(VERSION))
 
     backend_group = parser.add_mutually_exclusive_group()
     backend_group.add_argument('-X', '--xmpp', action='store_true', help='XMPP backend [DEFAULT]')

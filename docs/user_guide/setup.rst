@@ -94,7 +94,7 @@ such as `supervisor`_ is highly recommended. Installing and configuring such a s
 is outside the scope of this document however.
 
 Hacking on Errbot's code directly
-------------------------------
+---------------------------------
 
 Errbot is written for Python 3. In order to run under Python 2.7 the code is run through
 3to2 at install time. This means that while it is possible to run Errbot under Python 3.3+

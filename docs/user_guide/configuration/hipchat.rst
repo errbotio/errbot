@@ -1,0 +1,3 @@
+HipChat backend configuration
+=============================
+

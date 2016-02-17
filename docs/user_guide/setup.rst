@@ -51,26 +51,59 @@ For the Hipchat backend you must install::
 Configuration
 -------------
 
-After installing Errbot, you must create a data directory somewhere on your system where
-config and data may be stored.
+Once you have installed errbot,
+you will have to configure it to connect to your desired chat network.
+First, create a directory somewhere on your system
+where errbot may store its configuration and data.
 
-You need to create there a config.py file to setup the basic parameters of your bot.
+Once you have created the directory,
+change into it and copy the default configuration file into place.
+There are two ways to do this:
 
+1. You can generate it directly from your errbot installation with:
 
-Option 1: you can generate it directly from your errbot installation with::
+    `python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')`
 
-    python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')"
+2. Or you can download the template manually from `GitHub <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_ and save it as `config.py`.
 
-Option 2: You can download a template from `this link <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_ 
-and rename it `config.py`.
+   You could also do this on the command-line with the following command:
+    `curl -o config.py https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py`
 
-Option 3: Or you can download this same template from curl too::
+We will now have to edit the values in this file to setup the desired configuration for the bot.
+The example configuration you downloaded comes with extensive documenation of all the various options
+so we won't go into too much detail here,
+but we'll go through the options that you absolutely must change now
+so that you can quickly get started
+and make further tweaks to the configuration later on.
 
-    curl -o config.py https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py
+Please open `config.py` in your favorite editor now.
+The first setting we must change is `BOT_DATA_DIR`.
+This is the directory where the bot will store configuration data.
+Set this to the directory you created earlier.
 
+The default value for `BOT_LOG_FILE` likely points to a directory
+which doesn't exist on your system,
+so you must change this as well.
+One suggestion is to set the value as `BOT_LOG_FILE = BOT_DATA_DIR + '/errbot.log'`.
+This will make it write a file `errbot.log` in the same data directory
+that you configured above.
 
-Read the documentation within this file and edit the values as needed so the bot can
-connect to your favorite chat server.
+The final configuration we absolutely must do is setting up a correct `BACKEND`
+and configuring `BOT_IDENTITY` with the details of the account that you wish to use.
+
+The configuration for these settings differs depending on which chat network you wish to connect to,
+so please refer to the documentation for your desired network
+from the following list:
+
+.. toctree::
+  :maxdepth: 1
+
+  configuration/xmpp
+  configuration/irc
+  configuration/hipchat
+  configuration/slack
+  configuration/telegram
+
 
 Starting the daemon
 -------------------

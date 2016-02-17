@@ -1,0 +1,2 @@
+XMPP backend configuration
+==========================

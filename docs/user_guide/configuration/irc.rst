@@ -1,0 +1,3 @@
+IRC backend configuration
+=========================
+

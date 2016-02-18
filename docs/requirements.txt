@@ -1,4 +1,9 @@
 sphinx>=1.2
+
+# Necessary until https://github.com/hsoft/sphinx-autodoc-annotation/issues/2
+# is fixed and included into a new release.
+https://github.com/zoni/sphinx-autodoc-annotation/archive/issue-2.zip
+
 sleekxmpp
 irc
 pyfire

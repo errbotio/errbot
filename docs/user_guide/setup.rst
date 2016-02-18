@@ -13,7 +13,7 @@ it is recommended (but not required) to have a least one MUC for Errbot to use a
 Installation
 ------------
 
-Errbot may be installed directly from PyPi using `pip` (`easy_install` works too) by issuing::
+Errbot may be installed directly from PyPi using `pip`_ by issuing::
 
     pip install errbot
 
@@ -21,32 +21,57 @@ Or if you wish to try out the latest, bleeding edge version::
 
     pip install https://github.com/errbotio/errbot/archive/master.zip
 
-However, in these cases, installing into a dedicated `virtualenv`_ is recommended.
+However, installing into a `virtualenv`_ is **strongly** recommended.
+If you have virtualenv installed,
+you could instead do::
 
-On some distributions, Errbot is available as a package via your usual package manager.
-In these cases, it is generally recommended to use your distribution's package instead
-of installing from PyPi.
+    # Create the virtualenv
+    virtualenv --python /usr/bin/python3 /path/to/my/virtualenv
+    # Use pip from the virtualenv instead of the global pip
+    # to install errbot
+    /path/to/my/virtualenv/bin/pip install errbot
+
+On some distributions,
+Errbot is also available as a package
+via your usual package manager.
+In these cases, it is generally recommended to use your distribution's package
+instead of installing from PyPi
+but note that the version packaged with your distribution
+may be a few versions behind.
+
 
 Extra dependencies
 ^^^^^^^^^^^^^^^^^^
 
-requirements.txt lists only the bare minimum list of dependencies needed to run Errbot.
-Depending on the backend you choose, additional requirements need to be installed.
+Errbot's default dependency list
+contains only the bare minimum list of dependencies
+needed to run Errbot.
+Depending on the backend you choose,
+additional requirements need to be installed.
 
-For the XMPP based backends you must also install::
+This means that you will need to install some extra dependencies
+to make use of the backend suitable for the chat network you are using.
 
-    sleekxmpp
-    pyasn1
-    pyasn1-modules
-    dnspython3  # dnspython for Python 2.7
+* For XMPP servers::
 
-For the IRC backend, you must install::
+      pip install sleekxmpp pyasn1 pyasn1-modules
 
-    irc
+* For IRC servers::
 
-For the Hipchat backend you must install::
+      pip install irc
 
-    hypchat
+* For HipChat::
+
+      pip install sleekxmpp pyasn1 pyasn1-modules hypchat
+
+* For Slack::
+
+      pip install slackclient
+
+* For Telegram messenger::
+
+      pip install python-telegram-bot
+
 
 Configuration
 -------------
@@ -69,8 +94,8 @@ There are two ways to do this:
    You could also do this on the command-line with the following command:
     `curl -o config.py https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py`
 
-We will now have to edit the values in this file to setup the desired configuration for the bot.
-The example configuration you downloaded comes with extensive documenation of all the various options
+You will have to edit the values in this file to setup the desired configuration for the bot.
+The example configuration comes with extensive documenation of all the various options
 so we won't go into too much detail here,
 but we'll go through the options that you absolutely must change now
 so that you can quickly get started
@@ -113,18 +138,26 @@ be done with::
 
     errbot
 
+If you installed errbot into a virtualenv (as recommended),
+call it by prefixing the virtualenv `bin/` directory::
+
+    /path/to/my/virtualenv/bin/errbot
+
 Please pass -h or --help to errbot to get a list of supported parameters.
-Depending on your situation, you may need to pass --config (or -c) pointing to config.py
+Depending on your situation,
+you may need to pass --config (or -c)
+pointing to the directory holding your `config.py`
 when starting Errbot.
 
-If all that worked out, you can now use the -d (or --daemon) parameter to run it in a
-detached mode::
+If all that worked out,
+you can now use the -d (or --daemon) parameter to run it in a detached mode::
 
     errbot --daemon
 
 If you are going to run your bot all the time then using some process control system
 such as `supervisor`_ is highly recommended. Installing and configuring such a system
 is outside the scope of this document however.
+
 
 Hacking on Errbot's code directly
 ---------------------------------
@@ -138,5 +171,6 @@ If you wish to develop or test with Errbot's code under 2.7, you must run::
 
 Alternatively, you can also look into the `--editable` parameter of pip install.
 
-.. _virtualenv: https://pypi.python.org/pypi/virtualenv
+.. _virtualenv: https://virtualenv.pypa.io/en/latest/
+.. _pip: https://pip.pypa.io/en/stable/
 .. _supervisor: http://supervisord.org/

@@ -105,15 +105,6 @@ User guide
   user_guide/sentry
 
 
-API documentation
------------------
-
-.. toctree::
-  :maxdepth: 3
-
-  errbot
-
-
 Getting involved
 ----------------
 
@@ -121,6 +112,15 @@ Getting involved
   :maxdepth: 3
 
   contributing
+
+
+API documentation
+-----------------
+
+.. toctree::
+  :maxdepth: 3
+
+  errbot
 
 
 Release history

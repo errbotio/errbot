@@ -1,3 +1,15 @@
+v3.2.3
+------
+
+bugs:
+
+- IRC:    Use the NickMask helper for parsing IRC Identity and proper ACL (thx Marcus Carlsson)
+- IRC:    Fix random UnicodeDecodeErrors  (thx mr.Shu)
+- XMPP:   Fix join on MUCRoom with password (thx Mikko Lehto)
+- XMPP:   Fix join on Room list (from CHATROOM_PRESENCE for example) (thx Mikko Lehto)
+- Backup: NullBackend was missing few methods and was crashing.
+- IRC:    Synchronize join and joined events
+
 v3.2.2
 ------
 

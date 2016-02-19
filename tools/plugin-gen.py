@@ -64,7 +64,7 @@ def get_avatar_url(repo):
 
 
 def check_repo(repo):
-    log.debug('Checking %s...' % repo)
+    log.debug('Checking %s...', repo)
     time.sleep(SEARCH_PAUSE)
     code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo, auth=AUTH)
     log.debug("Search before ratelimit %s/%s" % (
@@ -72,7 +72,7 @@ def check_repo(repo):
         code_resp.headers['X-RateLimit-Limit']))
     plug_items = code_resp.json()['items']
     if not plug_items:
-        log.debug('No plugin found in %s, blacklisting it.' % repo)
+        log.debug('No plugin found in %s, blacklisting it.', repo)
         add_blacklisted(repo)
         return
     avatar_url = get_avatar_url(repo)
@@ -81,8 +81,8 @@ def check_repo(repo):
         time.sleep(PAUSE)
         f = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
         log.debug('Found a plugin:')
-        log.debug('Repo:  %s' % repo)
-        log.debug('File:  %s' % plug['path'])
+        log.debug('Repo:  %s', repo)
+        log.debug('File:  %s', plug['path'])
         parser = configparser.ConfigParser()
         parser.read_string(f.text)
         name = parser['Core']['Name']
@@ -145,8 +145,8 @@ def main():
     find_plugins()
     # Those are found by global search only available on github UI:
     # https://github.com/search?l=&q=Documentation+extension%3Aplug&ref=advsearch&type=Code&utf8=%E2%9C%93
-    with open('extras.txt', 'r') as f:
-        for repo in f:
+    with open('extras.txt', 'r') as extras:
+        for repo in extras:
             check_repo(repo.strip())
 
 if __name__ == "__main__":

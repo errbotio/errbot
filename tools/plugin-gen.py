@@ -126,11 +126,11 @@ def find_plugins():
         items = repo_resp['items']
 
         for i, item in enumerate(items):
-            repo = item['full_name']
-            if repo in BLACKLISTED:
-                log.debug('Skipping %s.' % repo)
+            repository = item['full_name']
+            if repository in BLACKLISTED:
+                log.debug('Skipping %s.' % repository)
                 continue
-            check_repo(repo)
+            check_repo(repository)
         if 'next' not in repo_req.links:
             break
         url = repo_req.links['next']['url']

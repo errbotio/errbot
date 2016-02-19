@@ -140,6 +140,7 @@ def find_plugins():
         url = repo_req.links['next']['url']
         log.debug('Next url: %s' % url)
 
+
 def main():
     find_plugins()
     # Those are found by global search only available on github UI:
@@ -150,4 +151,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

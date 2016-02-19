@@ -138,7 +138,7 @@ def find_plugins():
         if 'next' not in repo_req.links:
             break
         url = repo_req.links['next']['url']
-        log.debug('Next url: %s' % url)
+        log.debug('Next url: %s', url)
 
 
 def main():

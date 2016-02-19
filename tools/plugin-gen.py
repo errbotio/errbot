@@ -82,6 +82,12 @@ def rate_limit(resp):
 def check_repo(repo):
     log.debug('Checking %s...', repo)
     code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo, auth=AUTH)
+    if code_resp.status_code != 200:
+        log.error('Error getting https://api.github.com/search/code?q=extension:plug+repo:%s', repo)
+        log.error('code %d', code_resp.status_code)
+        log.error('content %d', code_resp.text)
+
+        return
     plug_items = code_resp.json()['items']
     if not plug_items:
         log.debug('No plugin found in %s, blacklisting it.', repo)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import requests
+import sys
 from requests.auth import HTTPBasicAuth
 import logging
 import time
@@ -120,6 +121,9 @@ def find_plugins():
         time.sleep(PAUSE)
         repo_req = requests.get(url, auth=AUTH)
         repo_resp = repo_req.json()
+        if repo_resp.get('message', None) == 'Bad credentials':
+            log.error('Invalid credentials, check your token file, see README.')
+            sys.exit(-1)
         log.debug("Repo reqs before ratelimit %s/%s" % (
             repo_req.headers['X-RateLimit-Remaining'],
             repo_req.headers['X-RateLimit-Limit']))

@@ -109,7 +109,7 @@ def check_repo(repo):
         }
 
         plugins[repo+'~'+name] = plugin
-        print('Catalog added plugin %s.' % plugin['name'])
+        log.debug('Catalog added plugin %s.', plugin['name'])
 
     save_plugins()
 
@@ -126,19 +126,24 @@ def find_plugins():
         items = repo_resp['items']
 
         for i, item in enumerate(items):
-            repository = item['full_name']
-            if repository in BLACKLISTED:
-                log.debug('Skipping %s.' % repository)
+            repo = item['full_name']
+            if repo in BLACKLISTED:
+                log.debug('Skipping %s.', repo)
                 continue
-            check_repo(repository)
+            check_repo(repo)
         if 'next' not in repo_req.links:
             break
         url = repo_req.links['next']['url']
         log.debug('Next url: %s' % url)
 
-find_plugins()
-# Those are found by global search only available on github UI:
-# https://github.com/search?l=&q=Documentation+extension%3Aplug&ref=advsearch&type=Code&utf8=%E2%9C%93
-with open('extras.txt', 'r') as f:
-    for repo in f:
-        check_repo(repo.strip())
+def main():
+    find_plugins()
+    # Those are found by global search only available on github UI:
+    # https://github.com/search?l=&q=Documentation+extension%3Aplug&ref=advsearch&type=Code&utf8=%E2%9C%93
+    with open('extras.txt', 'r') as f:
+        for repo in f:
+            check_repo(repo.strip())
+
+if __name__ == "__main__":
+    main()
+

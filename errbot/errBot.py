@@ -19,6 +19,7 @@ import inspect
 import logging
 import traceback
 
+from errbot.repo_manager import BotRepoManager
 from .bundled.threadpool import ThreadPool, WorkRequest
 
 from .backends.base import Backend
@@ -86,8 +87,12 @@ class ErrBot(Backend):
             self.bot_alt_prefixes = tuple(prefix.lower() for prefix in bot_config.BOT_ALT_PREFIXES)
         else:
             self.bot_alt_prefixes = bot_config.BOT_ALT_PREFIXES
+        self.repo_manager = None
         self.plugin_manager = None
         self.storage_plugin = None
+
+    def attach_repo_manager(self, repo_manager):
+        self.repo_manager = repo_manager
 
     def attach_plugin_manager(self, plugin_manager):
         self.plugin_manager = plugin_manager

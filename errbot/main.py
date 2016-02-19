@@ -3,6 +3,7 @@ import logging
 
 from errbot.errBot import ErrBot
 from errbot.plugin_manager import BotPluginManager
+from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
 import sys
 
@@ -58,8 +59,11 @@ def setup_bot(backend_name, logger, config, restore=None):
     botplugins_dir = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
     if not path.exists(botplugins_dir):
         makedirs(botplugins_dir, mode=0o755)
+
+    repo_manager = BotRepoManager(storage_plugin,
+                                  botplugins_dir)
     botpm = BotPluginManager(storage_plugin,
-                             botplugins_dir,
+                             repo_manager,
                              config.BOT_EXTRA_PLUGIN_DIR,
                              config.AUTOINSTALL_DEPS,
                              getattr(config, 'CORE_PLUGINS', None))
@@ -74,8 +78,9 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     try:
         bot = backendpm.get_plugin_by_name(backend_name)
-        bot.attach_plugin_manager(botpm)
         bot.attach_storage_plugin(storage_plugin)
+        bot.attach_repo_manager(repo_manager)
+        bot.attach_plugin_manager(botpm)
     except Exception:
         log.exception("Unable to load or configure the backend.")
         exit(-1)

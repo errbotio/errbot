@@ -18,6 +18,7 @@ from errbot.main import CORE_STORAGE
 from errbot.plugin_manager import BotPluginManager
 from errbot.rendering import text
 from errbot.core_plugins.acls import ACLS
+from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
@@ -72,12 +73,14 @@ class DummyBackend(ErrBot):
         if not os.path.exists(botplugins_dir):
             os.makedirs(botplugins_dir, mode=0o755)
 
+        repo_manager = BotRepoManager(storage_plugin, botplugins_dir)
+        self.attach_storage_plugin(storage_plugin)
+        self.attach_repo_manager(repo_manager)
         self.attach_plugin_manager(BotPluginManager(storage_plugin,
-                                                    botplugins_dir,
+                                                    repo_manager,
                                                     config.BOT_EXTRA_PLUGIN_DIR,
                                                     config.AUTOINSTALL_DEPS,
                                                     getattr(config, 'CORE_PLUGINS', None)))
-        self.attach_storage_plugin(storage_plugin)
         self.inject_commands_from(self)
         self.inject_command_filters_from(ACLS(self))
 

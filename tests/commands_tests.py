@@ -5,6 +5,9 @@ import logging
 
 from os import path, mkdir
 from shutil import rmtree
+
+import pytest
+
 from errbot.backends.test import FullStackTest
 
 
@@ -134,6 +137,7 @@ class TestCommands(FullStackTest):
             self.bot.push_message('!hello')  # should not respond
             self.assertIn('Command "hello" not found', self.bot.pop_message())
 
+    @pytest.mark.xfail
     def test_backup(self):
         self.bot.push_message('!repos install git://github.com/errbotio/err-helloworld.git')
         self.assertIn('err-helloworld', self.bot.pop_message(timeout=60))

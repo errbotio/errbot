@@ -7,7 +7,6 @@ import shutil
 
 from errbot import BotPlugin, botcmd
 from errbot.repos import KNOWN_PUBLIC_REPOS
-from errbot.rendering import md_escape
 from errbot.utils import which
 from errbot.plugin_manager import check_dependencies, global_restart, PluginConfigurationException
 

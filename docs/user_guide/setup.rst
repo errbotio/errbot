@@ -159,6 +159,29 @@ such as `supervisor`_ is highly recommended. Installing and configuring such a s
 is outside the scope of this document however.
 
 
+Upgrading
+---------
+
+Errbot comes bundled with a plugin which automatically performs a periodic update check.
+Whenever there is a new release on PyPI,
+this plugin will notify the users set in `BOT_ADMINS` about the new version.
+
+Assuming you originally installed errbot using pip (see `installation`_),
+you can upgrade errbot in much the same way.
+If you used a virtualenv::
+
+    /path/to/my/virtualenv/bin/pip install --upgrade errbot
+
+Or if you used pip without virtualenv::
+
+    pip install --upgrade errbot
+
+It's recommended that you review the changelog before performing an upgrade
+in case backwards-incompatible changes have been introduced in the new version.
+The changelog for the release you will be installing can always be found
+on `PyPI <https://pypi.python.org/pypi/errbot>`_.
+
+
 Hacking on Errbot's code directly
 ---------------------------------
 

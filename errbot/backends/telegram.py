@@ -148,12 +148,16 @@ class TelegramBackend(ErrBot):
         self.connect_callback()
 
         try:
-            offset = self.shelf.get('_telegram_updates_offset', 0)
+            offset = self['_telegram_updates_offset']
+        except KeyError:
+            offset = 0
+
+        try:
             while True:
                 log.debug("Getting updates with offset %s", offset)
                 for update in self.telegram.getUpdates(offset=offset, timeout=60):
                     offset = update.update_id + 1
-                    self.shelf['_telegram_updates_offset'] = offset
+                    self['_telegram_updates_offset'] = offset
                     log.debug("Processing update: %s", update)
                     if not hasattr(update, 'message'):
                         log.warning("Unknown update type (no message present)")

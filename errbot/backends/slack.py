@@ -625,7 +625,8 @@ class SlackBackend(ErrBot):
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0}: {1}'.format(identifier.nick, message.body)
 
-    def remove_angle_brackets_from_uris(self, match_object):
+    @staticmethod
+    def remove_angle_brackets_from_uris(match_object):
         if "://" in match_object.group():
             return match_object.group().strip("<>")
         return match_object.group()

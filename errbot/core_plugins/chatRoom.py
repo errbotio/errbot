@@ -67,18 +67,10 @@ class ChatRoom(BotPlugin):
 
         Examples (IRC):
         !room create #example-room
-
-        Example (TOX): (no room name at creation)
-        !room create
         """
-        if self.mode == 'tox':
-            if len(args) != 0:
-                return "You cannot specify a chatgroup name on TOX."
-            room = self.query_room(None)
-        else:
-            if len(args) < 1:
-                return "Please tell me which chatroom to create."
-            room = self.query_room(args[0])
+        if len(args) < 1:
+            return "Please tell me which chatroom to create."
+        room = self.query_room(args[0])
         room.create()
         return "Created the room {}".format(room)
 

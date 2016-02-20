@@ -7,7 +7,7 @@ from errbot import repo_manager
 from errbot.storage.memory import MemoryStoragePlugin
 
 
-class TestPluginManagement(unittest.TestCase):
+class TestRepoManagement(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -31,5 +31,3 @@ class TestPluginManagement(unittest.TestCase):
         self.assertIn(repo_manager.LAST_UPDATE, index_entry)
         self.assertIn('name1/err-reponame1~pluginname1', index_entry)
         self.assertIn('name2/err-reponame2~pluginname2', index_entry)
-
-

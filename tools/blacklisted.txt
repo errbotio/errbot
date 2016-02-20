@@ -330,3 +330,4 @@ doolingdavid/breast-cancer-rf-errors
 doolingdavid/lung-cancer-rf-errors
 juan5d/lab3-paracaidista-calculo-de-error
 EFXCIA/err-openstack
+TaqiOfficial/symfony-by-errors

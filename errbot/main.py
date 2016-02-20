@@ -81,6 +81,7 @@ def setup_bot(backend_name, logger, config, restore=None):
         bot.attach_storage_plugin(storage_plugin)
         bot.attach_repo_manager(repo_manager)
         bot.attach_plugin_manager(botpm)
+        bot.initialize_backend_storage()
     except Exception:
         log.exception("Unable to load or configure the backend.")
         exit(-1)

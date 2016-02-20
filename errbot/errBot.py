@@ -19,15 +19,13 @@ import inspect
 import logging
 import traceback
 
-from errbot.repo_manager import BotRepoManager
-from .bundled.threadpool import ThreadPool, WorkRequest
-
 from .backends.base import Backend
+from .bundled.threadpool import ThreadPool, WorkRequest
+from .streaming import Tee
+from .templating import tenv
 from .utils import (split_string_after,
                     get_class_that_defined_method, compat_str)
-from .streaming import Tee
-from .plugin_manager import BotPluginManager
-from .templating import tenv
+from .storage import StoreMixin
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +60,7 @@ def bot_config_defaults(config):
 
 
 # noinspection PyAbstractClass
-class ErrBot(Backend):
+class ErrBot(Backend, StoreMixin):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
     __errdoc__ = """ Commands related to the bot administration """
@@ -101,6 +99,15 @@ class ErrBot(Backend):
     def attach_storage_plugin(self, storage_plugin):
         # the storage_plugin is needed by the plugins
         self.storage_plugin = storage_plugin
+
+    def initialize_backend_storage(self):
+        """
+        Initialize storage for the backend to use.
+        """
+        log.debug("Initializing backend storage")
+        assert self.plugin_manager is not None
+        assert self.storage_plugin is not None
+        self.open_storage(self.storage_plugin, '%s_backend' % self.mode)
 
     @property
     def all_commands(self):
@@ -609,4 +616,5 @@ class ErrBot(Backend):
                 for command in self.all_commands.values())
 
     def shutdown(self):
+        self.close_storage()
         self.plugin_manager.shutdown()

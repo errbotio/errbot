@@ -484,6 +484,14 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.debug('plugin found and removed from category %s', category)
                 plugins.remove(plugin)
 
+    def remove_plugins_from_path(self, root):
+        """
+        Remove all the plugins that are in the filetree pointed by root.
+        """
+        for plugin in self.getAllPlugins():
+            if plugin.path.startswith(root):
+                self.remove_plugin(plugin)
+
     def shutdown(self):
         log.info('Shutdown.')
         self.close_storage()

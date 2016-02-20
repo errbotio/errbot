@@ -61,8 +61,8 @@ table {
 
 td{
   vertical-align:middle;
-  border:0px solid #999999;
-  border-width:0px 0px 0px 0px;
+  border:0 solid #999999;
+  border-width:0 0 0 0;
   font-size:14px;
   text-align:left;
   margin-left: 30px;
@@ -72,9 +72,9 @@ td{
 
 tr th{
   background:#9667b2;
-  border:0px solid #999999;
+  border:0 solid #999999;
   text-align:center;
-  border-width:0px 0px 0px 0px;
+  border-width:0 0 0 0;
   font-size:18px;
   font-family:Arial;
   font-weight:bold;

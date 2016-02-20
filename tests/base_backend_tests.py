@@ -73,7 +73,11 @@ class DummyBackend(ErrBot):
         if not os.path.exists(botplugins_dir):
             os.makedirs(botplugins_dir, mode=0o755)
 
-        repo_manager = BotRepoManager(storage_plugin, botplugins_dir)
+        # get it back from where we publish it.
+        repo_index_paths = (os.path.join(os.path.dirname(__file__), '..', 'docs', '_extra', 'repos.json'),)
+        repo_manager = BotRepoManager(storage_plugin,
+                                      botplugins_dir,
+                                      repo_index_paths)
         self.attach_storage_plugin(storage_plugin)
         self.attach_repo_manager(repo_manager)
         self.attach_plugin_manager(BotPluginManager(storage_plugin,

@@ -1,15 +1,23 @@
+import ast
+import logging
 import os
 import shutil
+import subprocess
 import urllib.request
-import ast
+from datetime import timedelta, datetime
 from os import path
 from tarfile import TarFile
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
-import subprocess
+import json
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
+from errbot.version import VERSION
 from .utils import PY2, which, human_name_for_git_url
+
+log = logging.getLogger(__name__)
 
 
 def get_known_repos():
@@ -30,28 +38,73 @@ def get_known_repos():
 
 KNOWN_PUBLIC_REPOS = get_known_repos()
 
-REPOS = b'repos' if PY2 else 'repos'
+INSTALLED_REPOS = b'installed_repos' if PY2 else 'installed_repos'
+
+REPO_INDEXES_CHECK_INTERVAL = timedelta(hours=1)
+
+REPO_INDEX = b'repo_index' if PY2 else 'repo_index'
+LAST_UPDATE = 'last_update'
 
 
 class BotRepoManager(StoreMixin):
     """
     Manages the repo list, git clones/updates or the repos.
     """
-    def __init__(self, storage_plugin, plugin_dir):
+    def __init__(self, storage_plugin, plugin_dir, plugin_indexes):
+        """
+        Make a repo manager.
+        :param storage_plugin: where the manager store its state.
+        :param plugin_dir: where on disk it will git clone the repos.
+        :param plugin_indexes: a list of URL / path to get the json repo index.
+        """
         super()
+        self.plugin_indexes = plugin_indexes
         self.storage_plugin = storage_plugin
         self.plugin_dir = plugin_dir
         self.open_storage(storage_plugin, 'repomgr')
 
+    def check_for_index_update(self):
+        if REPO_INDEX not in self:
+            log.info('No repo index, creating it.')
+            self[REPO_INDEX] = {LAST_UPDATE: 0}
+
+        if datetime.fromtimestamp(self[REPO_INDEX][LAST_UPDATE]) < datetime.now() - REPO_INDEXES_CHECK_INTERVAL:
+            log.debug('Index is too old, update it.')
+            self.index_update()
+
+    def index_update(self):
+        index = {LAST_UPDATE: datetime.now().timestamp()}
+        for source in reversed(self.plugin_indexes):
+            src_file = None
+            try:
+                if source.startswith('http'):
+                    log.debug('Update from remote source %s...', source)
+                    src_file = urlopen(url=source, timeout=10)
+                else:
+                    log.debug('Update from local source %s...', source)
+                    src_file = open(source, 'r')
+
+                index.update(json.loads(src_file.read()))
+            except (HTTPError, URLError, IOError):
+                log.exception('Could not update from source %s, keep the index as it is.', source)
+                break
+            finally:
+                if src_file:
+                    src_file.close()
+        else:
+            # nothing failed so ok, we can store the index.
+            self[REPO_INDEX] = index
+            log.debug('Stored %d repo entries.', len(index) - 1)
+
     def get_installed_plugin_repos(self):
 
-        repos = self.get(REPOS, {})
+        repos = self.get(INSTALLED_REPOS, {})
 
         if not repos:
             return repos
 
         # Fix to migrate exiting plugins into new format
-        for url in self.get(REPOS, repos).values():
+        for url in self.get(INSTALLED_REPOS, repos).values():
             if type(url) == dict:
                 continue
             t_name = '/'.join(url.split('/')[-2:])
@@ -82,15 +135,15 @@ class BotRepoManager(StoreMixin):
         }
 
         repos.update(t_installed)
-        self[REPOS] = repos
+        self[INSTALLED_REPOS] = repos
 
     def set_plugin_repos(self, repos):
         """ Used externally.
         """
-        self[REPOS] = repos
+        self[INSTALLED_REPOS] = repos
 
     def get_all_repos_paths(self):
-        return [self.plugin_dir + os.sep + d for d in self.get(REPOS, {}).keys()]
+        return [self.plugin_dir + os.sep + d for d in self.get(INSTALLED_REPOS, {}).keys()]
 
     def install_repo(self, repo):
         if repo in KNOWN_PUBLIC_REPOS:
@@ -120,6 +173,7 @@ class BotRepoManager(StoreMixin):
 
     def update_repos(self, repos):
         """
+        This git pulls the specified repos on disk.
         Yields tuples like (name, success, reason)
         """
         git_path = which('git')

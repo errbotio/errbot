@@ -3,7 +3,11 @@ import sys
 
 from errbot.backends.base import RoomError, Identifier, MUCIdentifier, ONLINE
 from errbot.errBot import ErrBot
+from errbot.main import CORE_STORAGE
 from errbot.rendering import text
+from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.storage import StoreMixin
+from errbot.storage.base import StoragePluginBase
 
 
 # Can't use __name__ because of Yapsy
@@ -109,7 +113,7 @@ class TelegramMUCOccupant(MUCIdentifier, TelegramIdentifier):
     room = TelegramIdentifier.id
 
 
-class TelegramBackend(ErrBot):
+class TelegramBackend(ErrBot, StoreMixin):
     def __init__(self, config):
         super().__init__(config)
         config.MESSAGE_SIZE_LIMIT = TELEGRAM_MESSAGE_SIZE_LIMIT
@@ -126,6 +130,18 @@ class TelegramBackend(ErrBot):
         self.telegram = None  # Will be initialized in serve_once
         self.bot_instance = None  # Will be set in serve_once
         self.md_converter = text()
+
+        # Initialize internal storage for the backend itself, which is
+        # needed for the bot to keep track of the getUpdates() offset.
+        # It is important for this storage to be local, not some shared DB
+        # otherwise two different instances will get conflicting offsets.
+        spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE)
+        storage_plugin = spm.get_plugin_by_name('Shelf')
+        self.open_storage(storage_plugin, 'TelegramBackend')
+
+    def shutdown(self):
+        self.close_storage()
+        super().shutdown()
 
     def serve_once(self):
         log.info("Initializing connection")
@@ -148,12 +164,16 @@ class TelegramBackend(ErrBot):
         self.connect_callback()
 
         try:
-            offset = self.shelf.get('_telegram_updates_offset', 0)
+            offset = self['_telegram_updates_offset']
+        except KeyError:
+            offset = 0
+
+        try:
             while True:
                 log.debug("Getting updates with offset %s", offset)
                 for update in self.telegram.getUpdates(offset=offset, timeout=60):
                     offset = update.update_id + 1
-                    self.shelf['_telegram_updates_offset'] = offset
+                    self['_telegram_updates_offset'] = offset
                     log.debug("Processing update: %s", update)
                     if not hasattr(update, 'message'):
                         log.warning("Unknown update type (no message present)")

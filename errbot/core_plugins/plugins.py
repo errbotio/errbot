@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 from ast import literal_eval
-import subprocess
 from os import path
 from pprint import pformat
-import shutil
 
 from errbot import BotPlugin, botcmd
 from errbot.repo_manager import KNOWN_PUBLIC_REPOS
-from errbot.utils import which
-from errbot.plugin_manager import check_dependencies, global_restart, PluginConfigurationException
+from errbot.plugin_manager import PluginConfigurationException
 
 
 class Plugins(BotPlugin):

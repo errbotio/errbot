@@ -131,7 +131,6 @@ class TestCommands(FullStackTest):
             self.assertEqual('Hello World !', self.bot.pop_message())
 
             self.bot.push_message('!repos uninstall errbotio/err-helloworld')
-            self.assertEqual('Removing HelloWorld...', self.bot.pop_message())
             self.assertEqual('Repo errbotio/err-helloworld removed.', self.bot.pop_message())
 
             self.bot.push_message('!hello')  # should not respond

@@ -37,8 +37,6 @@ class DynamicBottle(Bottle):
 
 bottle_app = DynamicBottle()
 
-route = bottle_app.route  # make that the default
-
 
 def try_decode_json(req):
     data = req.body.read().decode()

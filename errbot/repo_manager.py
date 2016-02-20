@@ -38,6 +38,7 @@ class BotRepoManager(StoreMixin):
     Manages the repo list, git clones/updates or the repos.
     """
     def __init__(self, storage_plugin, plugin_dir):
+        super()
         self.storage_plugin = storage_plugin
         self.plugin_dir = plugin_dir
         self.open_storage(storage_plugin, 'repomgr')

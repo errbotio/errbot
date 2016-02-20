@@ -276,7 +276,7 @@ class IRCMUCRoom(MUCRoom):
         occupants = []
         try:
             for nick in self._bot.conn.channels[self.room].users():
-                occupants.append(IRCMUCOccupant(nick=nick, room=self.room))
+                occupants.append(IRCMUCOccupant(nick, room=self.room))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants

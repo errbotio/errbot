@@ -389,5 +389,4 @@ def cmdfilter(*args, **kwargs):
 
     if len(args):
         return decorate(args[0], **kwargs)
-    else:
-        return lambda func: decorate(func, **kwargs)
+    return lambda func: decorate(func, **kwargs)

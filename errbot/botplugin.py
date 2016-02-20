@@ -33,7 +33,7 @@ class BotPluginBase(StoreMixin):
         """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
         """
         self._bot = bot
-        self.plugin_dir = bot.plugin_manager.plugin_dir
+        self.plugin_dir = bot.repo_manager.plugin_dir
 
     @property
     def mode(self) -> str:
@@ -468,12 +468,6 @@ class BotPlugin(BotPluginBase):
             :class:`~errbot.backends.base.RoomDoesNotExistError` if the room doesn't exist.
         """
         return self._bot.query_room(room=room)
-
-    def get_installed_plugin_repos(self) -> Mapping:
-        """
-            Get the current installed plugin repos in a dictionary of name / url
-        """
-        return self._bot.get_installed_plugin_repos()
 
     def start_poller(self,
                      interval: float,

@@ -6,7 +6,7 @@ from pprint import pformat
 import shutil
 
 from errbot import BotPlugin, botcmd
-from errbot.repos import KNOWN_PUBLIC_REPOS
+from errbot.repo_manager import KNOWN_PUBLIC_REPOS
 from errbot.utils import which
 from errbot.plugin_manager import check_dependencies, global_restart, PluginConfigurationException
 
@@ -22,7 +22,9 @@ class Plugins(BotPlugin):
         """
         if not args.strip():
             return "You should have an urls/git repo argument"
-        errors = self._bot.plugin_manager.install_repo(args)
+        self._bot.repo_manager.install_repo(args)
+
+        errors = self._bot.plugin_manager.update_dynamic_plugins()
         if errors:
             self.send(mess.frm, 'Some plugins are generating errors:\n' + '\n'.join(errors),
                       message_type=mess.type)
@@ -46,13 +48,13 @@ class Plugins(BotPlugin):
             yield "You should have a repo name as argument"
             return
 
-        repos = self._bot.plugin_manager.get_installed_plugin_repos()
+        repos = self._bot.repo_manager.get_installed_plugin_repos()
 
         if args not in repos:
             yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
             return
 
-        plugin_path = path.join(self._bot.plugin_manager.plugin_dir, args)
+        plugin_path = path.join(self._bot.repo_manager.plugin_dir, args)
         for plugin in self._bot.plugin_manager.getAllPlugins():
             if plugin.path.startswith(plugin_path):
                 yield 'Removing %s...' % plugin.name
@@ -60,7 +62,7 @@ class Plugins(BotPlugin):
 
         shutil.rmtree(plugin_path)
         repos.pop(args)
-        self._bot.plugin_manager.set_plugin_repos(repos)
+        self._bot.repo_manager.set_plugin_repos(repos)
 
         yield 'Repo %s removed.' % args
 
@@ -70,7 +72,7 @@ class Plugins(BotPlugin):
         """ list the current active plugin repositories
         """
 
-        installed_repos = self._bot.get_installed_plugin_repos()
+        installed_repos = self._bot.repo_manager.get_installed_plugin_repos()
 
         all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
 
@@ -114,7 +116,7 @@ class Plugins(BotPlugin):
 
         directories = set()
         repos = {}
-        _installed = self._bot.get_installed_plugin_repos()
+        _installed = self._bot.repo_manager.get_installed_plugin_repos()
 
         # Fix to migrate exiting plugins into new format
         for short_name, url in _installed.items():

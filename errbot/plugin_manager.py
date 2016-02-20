@@ -8,21 +8,15 @@ import inspect
 import logging
 import sys
 import os
-import subprocess
-from tarfile import TarFile
-from urllib.request import urlopen
-
 import pip
 from .botplugin import BotPlugin
-from .utils import (version2array, PY3, PY2, find_roots_with_extra,
-                    which, human_name_for_git_url)
+from .utils import (version2array, PY3, PY2, find_roots_with_extra)
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
 from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
 from .core_plugins.wsview import route
 from .storage import StoreMixin
-from .repos import KNOWN_PUBLIC_REPOS
 
 log = logging.getLogger(__name__)
 
@@ -207,17 +201,16 @@ class BotPluginManager(PluginManager, StoreMixin):
     """Customized yapsy PluginManager for ErrBot."""
 
     # Storage names
-    REPOS = b'repos' if PY2 else 'repos'
     CONFIGS = b'configs' if PY2 else 'configs'
     BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
 
-    def __init__(self, storage_plugin, plugin_dir, extra, autoinstall_deps, core_plugins):
+    def __init__(self, storage_plugin, repo_manager, extra, autoinstall_deps, core_plugins):
         self.bot = None
         self.autoinstall_deps = autoinstall_deps
         self.extra = extra
         self.open_storage(storage_plugin, 'core')
-        self.plugin_dir = plugin_dir
         self.core_plugins = core_plugins
+        self.repo_manager = repo_manager
 
         # be sure we have a configs entry for the plugin configurations
         if self.CONFIGS not in self:
@@ -392,51 +385,6 @@ class BotPluginManager(PluginManager, StoreMixin):
         for name in self.get_all_active_plugin_names():
             self.deactivatePluginByName(name, "bots")
 
-    # Repo management
-    def get_installed_plugin_repos(self):
-
-        repos = self.get(self.REPOS, {})
-
-        if not repos:
-            return repos
-
-        # Fix to migrate exiting plugins into new format
-        for url in self.get(self.REPOS, repos).values():
-            if type(url) == dict:
-                continue
-            t_name = '/'.join(url.split('/')[-2:])
-            name = t_name.replace('.git', '')
-
-            t_repo = {name: {
-                'path': url,
-                'documentation': 'Unavilable',
-                'python': None,
-                'avatar_url': None,
-                }
-            }
-            repos.update(t_repo)
-        return repos
-
-    def set_plugin_repos(self, repos):
-        self[self.REPOS] = repos
-
-    def add_plugin_repo(self, name, url):
-        if PY2:
-            name = name.encode('utf-8')
-            url = url.encode('utf-8')
-        repos = self.get_installed_plugin_repos()
-
-        t_installed = {name: {
-            'path': url,
-            'documentation': 'Unavilable',
-            'python': None,
-            'avatar_url': None,
-            }
-        }
-
-        repos.update(t_installed)
-        self.set_plugin_repos(repos)
-
     # plugin blacklisting management
     def get_blacklisted_plugin(self):
         return self.get(self.BL_PLUGINS, [])
@@ -476,9 +424,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
-        return self.update_plugin_places(
-            [self.plugin_dir + os.sep + d for d in self.get(self.REPOS, {}).keys()],
-            self.extra, self.autoinstall_deps)
+        return self.update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra, self.autoinstall_deps)
 
     def activate_non_started_plugins(self):
         log.info('Activating all the plugins...')
@@ -518,32 +464,6 @@ class BotPluginManager(PluginManager, StoreMixin):
             return "Plugin %s not in active list" % name
         self.deactivate_plugin_by_name(name)
         return "Plugin %s deactivated." % name
-
-    def install_repo(self, repo):
-        if repo in KNOWN_PUBLIC_REPOS:
-            repo = KNOWN_PUBLIC_REPOS[repo]['path']  # replace it by the url
-        git_path = which('git')
-
-        if not git_path:
-            return ('git command not found: You need to have git installed on '
-                    'your system to be able to install git based plugins.', )
-
-        # TODO: Update download path of plugin.
-        if repo.endswith('tar.gz'):
-            tar = TarFile(fileobj=urlopen(repo))
-            tar.extractall(path=self.plugin_dir)
-            s = repo.split(':')[-1].split('/')[-2:]
-            human_name = '/'.join(s).rstrip('.tar.gz')
-        else:
-            human_name = human_name_for_git_url(repo)
-            p = subprocess.Popen([git_path, 'clone', repo, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            feedback = p.stdout.read().decode('utf-8')
-            error_feedback = p.stderr.read().decode('utf-8')
-            if p.wait():
-                return "Could not load this plugin: \n\n%s\n\n---\n\n%s" % (feedback, error_feedback),
-        self.add_plugin_repo(human_name, repo)
-        return self.update_dynamic_plugins()
 
     def remove_plugin(self, plugin):
         """

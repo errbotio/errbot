@@ -104,6 +104,10 @@ class DummyBackend(ErrBot):
     def command(self, mess, args):
         return "Regular command"
 
+    @botcmd(admin_only=True)
+    def admin_command(self, mess, args):
+        return "Admin command"
+
     @re_botcmd(pattern=r'^regex command with prefix$', prefixed=True)
     def regex_command_with_prefix(self, mess, match):
         return "Regex command"
@@ -488,39 +492,49 @@ class BotCmds(unittest.TestCase):
 
     def test_access_controls(self):
         tests = [
+            # BOT_ADMINS scenarios
+            dict(
+                message=self.makemessage("!admin_command"),
+                bot_admins=('noterr'),
+                expected_response="Admin command",
+            ),
+            dict(
+                message=self.makemessage("!admin_command"),
+                bot_admins=(),
+                expected_response="This command requires bot-admin privileges",
+            ),
+            dict(
+                message=self.makemessage("!admin_command"),
+                bot_admins=('*err'),
+                expected_response="Admin command",
+            ),
+
+            # ACCESS_CONTROLS scenarios
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
-                    acl_default={},
                     expected_response="Regular command"
             ),
             dict(
                     message=self.makemessage("!regex command with prefix"),
-                    acl={},
-                    acl_default={},
                     expected_response="Regex command"
             ),
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
                     acl_default={'allowmuc': False, 'allowprivate': False},
                     expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
                     message=self.makemessage("regex command without prefix"),
-                    acl={},
                     acl_default={'allowmuc': False, 'allowprivate': False},
                     expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
                     acl_default={'allowmuc': True, 'allowprivate': False},
                     expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
                     acl_default={'allowmuc': False, 'allowprivate': True},
                     expected_response="Regular command"
             ),
@@ -533,36 +547,74 @@ class BotCmds(unittest.TestCase):
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'allowrooms': ('room',)}},
-                    acl_default={},
                     expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room_1")),
+                acl={'command': {'allowrooms': ('room_*',)}},
+                expected_response="Regular command"
             ),
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
-                    acl_default={},
                     expected_response="You're not allowed to access this command from this room",
             ),
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'denyrooms': ('room',)}},
-                    acl_default={},
                     expected_response="You're not allowed to access this command from this room",
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
+                acl={'command': {'denyrooms': ('*',)}},
+                expected_response="You're not allowed to access this command from this room",
             ),
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'denyrooms': ('anotherroom',)}},
-                    acl_default={},
                     expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'allowusers': ('noterr',)}},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'allowusers': ('err',)}},
+                expected_response="You're not allowed to access this command from this user",
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'allowusers': ('*err',)}},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'denyusers': ('err',)}},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'denyusers': ('noterr',)}},
+                expected_response="You're not allowed to access this command from this user"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'denyusers': ('*err',)}},
+                expected_response="You're not allowed to access this command from this user"
             ),
         ]
 
         for test in tests:
-            self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT = test['acl_default']
-            self.dummy.bot_config.ACCESS_CONTROLS = test['acl']
+            self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT = test.get('acl_default', {})
+            self.dummy.bot_config.ACCESS_CONTROLS = test.get('acl', {})
+            self.dummy.bot_config.BOT_ADMINS = test.get('bot_admins', ())
             logger = logging.getLogger(__name__)
             logger.info("** message: {}".format(test['message'].body))
-            logger.info("** acl: {!r}".format(test['acl']))
-            logger.info("** acl_default: {!r}".format(test['acl_default']))
+            logger.info("** bot_admins: {}".format(self.dummy.bot_config.BOT_ADMINS))
+            logger.info("** acl: {!r}".format(self.dummy.bot_config.ACCESS_CONTROLS))
+            logger.info("** acl_default: {!r}".format(self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT))
             self.dummy.callback_message(test['message'])
             self.assertEqual(
                     test['expected_response'],

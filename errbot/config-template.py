@@ -162,6 +162,8 @@ BOT_IDENTITY = {
 # Set the admins of your bot. Only these users will have access
 # to the admin-only commands.
 #
+# Unix-style glob patterns are supported, so 'gbin@localhost'
+# would be considered an admin if setting '*@localhost'.
 BOT_ADMINS = ('gbin@localhost',)
 
 # Chatrooms your bot should join on startup. For the IRC backend you
@@ -231,10 +233,14 @@ BOT_PREFIX = '!'
 # Rules listed in ACCESS_CONTROLS_DEFAULT are applied when a command cannot
 # be found inside ACCESS_CONTROLS
 #
+# The options allowusers, denyusers, allowrooms and denyrooms support
+# unix-style globbing similar to BOT_ADMINS.
+#
 # Example:
+#
 #ACCESS_CONTROLS_DEFAULT = {} # Allow everyone access by default
 #ACCESS_CONTROLS = {'status': {'allowrooms': ('someroom@conference.localhost',)},
-#                   'about': {'denyusers': ('baduser@localhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
+#                   'about': {'denyusers': ('*@evilhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
 #                   'uptime': {'allowusers': BOT_ADMINS},
 #                   'help': {'allowmuc': False},
 #                  }

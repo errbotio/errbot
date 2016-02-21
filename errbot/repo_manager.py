@@ -17,10 +17,13 @@ import re
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
-from errbot.version import VERSION
 from .utils import PY2, which, human_name_for_git_url
 
 log = logging.getLogger(__name__)
+
+
+def timestamp(dt):
+    return (dt - datetime(1970, 1, 1)).total_seconds() if PY2 else dt.timestamp()
 
 
 def get_known_repos():
@@ -96,7 +99,7 @@ class BotRepoManager(StoreMixin):
             self.index_update()
 
     def index_update(self):
-        index = {LAST_UPDATE: datetime.now().timestamp()}
+        index = {LAST_UPDATE: timestamp(datetime.now())}
         for source in reversed(self.plugin_indexes):
             src_file = None
             try:

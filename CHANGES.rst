@@ -1,4 +1,4 @@
-v3.2.0 (unreleased)
+v9.9.9 (unreleased)
 -------------------
 
 features:
@@ -9,6 +9,7 @@ features:
 - Various improvements to the ``@arg_botcmd`` decorator.
 - Now the bot can set its own status/presence with change_presence
 - Non-standard hipchat server (thx Barak Schiller)
+- Support unix-style globbing in `BOT_ADMINS` and `ACCESS_CONTROLS`
 
 bugs:
 

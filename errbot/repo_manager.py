@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import urllib.request
+from collections import namedtuple
 from datetime import timedelta, datetime
 from os import path
 from tarfile import TarFile
@@ -11,6 +12,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 import json
+
+import re
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
@@ -44,6 +47,26 @@ REPO_INDEXES_CHECK_INTERVAL = timedelta(hours=1)
 
 REPO_INDEX = b'repo_index' if PY2 else 'repo_index'
 LAST_UPDATE = 'last_update'
+
+RepoEntry = namedtuple('RepoEntry', 'entry_name, name, python, repo, path, avatar_url, documentation')
+find_words = re.compile(r"(\w[\w']*\w|\w)")
+
+
+def makeEntry(json_key, json_value):
+    return RepoEntry(entry_name=json_key.split('~')[0],
+                     name=json_value['name'],
+                     python=json_value['python'],
+                     repo=json_value['repo'],
+                     path=json_value['path'],
+                     avatar_url=json_value['avatar_url'],
+                     documentation=json_value['documentation'])
+
+
+def tokenizeJsonEntry(json_dict):
+    """
+    Returns all the words in a repo entry.
+    """
+    return set(find_words.findall(' '.join((word.lower() for word in json_dict.values()))))
 
 
 class BotRepoManager(StoreMixin):
@@ -95,6 +118,25 @@ class BotRepoManager(StoreMixin):
             # nothing failed so ok, we can store the index.
             self[REPO_INDEX] = index
             log.debug('Stored %d repo entries.', len(index) - 1)
+
+    def search_repos(self, query):
+        """
+        A simple search feature, keywords are AND and case insensitive on all the fields.
+
+        :param query: a string query
+        :return: an iterator of RepoEntry
+        """
+        # first see if we are up to date.
+        self.check_for_index_update()
+        if REPO_INDEX not in self:
+            log.error('No index.')
+            return
+        query_work_set = set(find_words.findall(query.lower()))
+        for key, entry in self[REPO_INDEX].items():
+            if key == LAST_UPDATE:
+                continue
+            if query_work_set.intersection(tokenizeJsonEntry(entry)):
+                yield makeEntry(key, entry)
 
     def get_installed_plugin_repos(self):
 

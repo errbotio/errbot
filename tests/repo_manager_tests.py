@@ -68,6 +68,47 @@ class TestRepoManagement(unittest.TestCase):
         manager.index_update()
         self.assertNotIn(repo_manager.REPO_INDEX, manager)
 
+    def test_tokenization(self):
+        e = {
+                "python": "2+",
+                "repo": "https://github.com/name/err-reponame1",
+                "path": "/plugin1.plug",
+                "avatar_url": "https://avatars.githubusercontent.com/u/588833?v=3",
+                "name": "PluginName1",
+                "documentation": "docs1"
+            }
+        words = {'https',
+                 'com',
+                 'name',
+                 'err',
+                 'docs1',
+                 'reponame1',
+                 'plug',
+                 '2',
+                 'plugin1',
+                 'avatars',
+                 'github',
+                 'githubusercontent',
+                 'u',
+                 'v',
+                 '3',
+                 '588833',
+                 'pluginname1'
+                 }
 
+        self.assertEquals(repo_manager.tokenizeJsonEntry(e), words)
 
+    def test_search(self):
+        manager = repo_manager.BotRepoManager(self.storage_plugin,
+                                              self.plugins_dir,
+                                              (os.path.join(self.assets, 'repos', 'simple.json'),))
 
+        a = [p for p in manager.search_repos('docs2')]
+        self.assertEqual(len(a), 1)
+        self.assertEqual(a[0].name, 'PluginName2')
+
+        a = [p for p in manager.search_repos('zorg')]
+        self.assertEqual(len(a), 0)
+
+        a = [p for p in manager.search_repos('plug')]
+        self.assertEqual(len(a), 2)

@@ -1,4 +1,6 @@
+import fnmatch
 from errbot import BotPlugin, cmdfilter
+
 BLOCK_COMMAND = (None, None, None)
 
 
@@ -6,6 +8,24 @@ def get_acl_usr(msg):
     if hasattr(msg.frm, 'aclattr'):  # if the identity requires a special field to be used for acl
         return msg.frm.aclattr
     return msg.frm.person  # default
+
+
+def glob(text, patterns):
+    """
+    Match text against the list of patterns according to unix glob rules.
+    Return True if a match is found, False otherwise.
+    """
+    return any(fnmatch.fnmatchcase(text, pattern) for pattern in patterns)
+
+
+def ciglob(text, patterns):
+    """
+    Case-insensitive version of glob.
+
+    Match text against the list of patterns according to unix glob rules.
+    Return True if a match is found, False otherwise.
+    """
+    return glob(text.lower(), [p.lower() for p in patterns])
 
 
 class ACLS(BotPlugin):
@@ -39,12 +59,12 @@ class ACLS(BotPlugin):
         if cmd not in self.bot_config.ACCESS_CONTROLS:
             self.bot_config.ACCESS_CONTROLS[cmd] = self.bot_config.ACCESS_CONTROLS_DEFAULT
 
-        if ('allowusers' in self.bot_config.ACCESS_CONTROLS[cmd] and
-           usr not in self.bot_config.ACCESS_CONTROLS[cmd]['allowusers']):
+        if ('allowusers' in self.bot_config.ACCESS_CONTROLS[cmd] and not
+           glob(usr, self.bot_config.ACCESS_CONTROLS[cmd]['allowusers'])):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
 
         if ('denyusers' in self.bot_config.ACCESS_CONTROLS[cmd] and
-           usr in self.bot_config.ACCESS_CONTROLS[cmd]['denyusers']):
+           glob(usr, self.bot_config.ACCESS_CONTROLS[cmd]['denyusers'])):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
 
         if typ == 'groupchat':
@@ -56,12 +76,12 @@ class ACLS(BotPlugin):
                self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):
                 return self.access_denied(msg, "You're not allowed to access this command from a chatroom", dry_run)
 
-            if ('allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               room not in self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms']):
+            if ('allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and not
+               glob(room, self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms'])):
                 return self.access_denied(msg, "You're not allowed to access this command from this room", dry_run)
 
             if ('denyrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               room in self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms']):
+               glob(room, self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms'])):
                 return self.access_denied(msg, "You're not allowed to access this command from this room", dry_run)
 
         elif ('allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and
@@ -92,7 +112,7 @@ class ACLS(BotPlugin):
                         msg,
                         "You cannot administer the bot from a chatroom, message the bot directly", dry_run)
 
-            if get_acl_usr(msg) not in self.bot_config.BOT_ADMINS:
+            if not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
                 return self.access_denied(msg, "This command requires bot-admin privileges", dry_run)
 
         return msg, cmd, args

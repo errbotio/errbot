@@ -173,7 +173,7 @@ class IRCMUCRoom(MUCRoom):
                 break
             time.sleep(.5)
         else:
-            self.log.error("Timeout: Could not join %s", self.room)
+            log.error("Timeout: Could not join %s", self.room)
             return
 
         self._bot.callback_room_joined(self)
@@ -196,7 +196,7 @@ class IRCMUCRoom(MUCRoom):
                 break
             time.sleep(.5)
         else:
-            self.log.error("Timeout: Could not part %s", self.room)
+            log.error("Timeout: Could not part %s", self.room)
             return
 
         self._bot.callback_room_left(self)
@@ -356,7 +356,12 @@ class IRCConnection(SingleServerIRCBot):
             msg = 'identify %s' % self.nickserv_password
             self.send_private_message('NickServ', msg)
 
-        self.callback.connect_callback()
+        # Must be done in a background thread, otherwise the join room
+        # from the ChatRoom plugin joining channels from CHATROOM_PRESENCE
+        # ends up blocking on connect.
+        t = threading.Thread(target=self.callback.connect_callback)
+        t.setDaemon(True)
+        t.start()
 
     def on_pubmsg(self, _, e):
         msg = Message(e.arguments[0], type_='groupchat')

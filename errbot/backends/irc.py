@@ -83,8 +83,9 @@ def irc_md():
 class IRCIdentifier(Identifier):
     # TODO(gbin): remove the deprecation warnings at one point.
 
-    def __init__(self, mask):
+    def __init__(self, mask, aclpattern):
         self._nickmask = NickMask(mask)
+        self._aclpattern = aclpattern
 
     @property
     def nick(self):
@@ -112,7 +113,11 @@ class IRCIdentifier(Identifier):
 
     @property
     def aclattr(self):
-        return self._nickmask.userhost
+        return self._aclpattern.format(
+            nick=self._nickmask.nick,
+            user=self._nickmask.user,
+            host=self._nickmask.host,
+        )
 
     def __unicode__(self):
         if self._nickmask.userhost:
@@ -126,8 +131,8 @@ class IRCIdentifier(Identifier):
 
 
 class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
-    def __init__(self, mask, room):
-        super().__init__(mask)
+    def __init__(self, mask, room, aclpattern):
+        super().__init__(mask, aclpattern)
         self._room = room
 
     @property
@@ -149,9 +154,10 @@ JOIN_TIMEOUT = 30
 
 
 class IRCMUCRoom(MUCRoom):
-    def __init__(self, room, bot):
+    def __init__(self, room, bot, aclpattern):
         self._bot = bot
         self.room = room
+        self.aclpattern = aclpattern
         self.connection = self._bot.conn.connection
 
     def join(self, username=None, password=None):
@@ -276,7 +282,7 @@ class IRCMUCRoom(MUCRoom):
         occupants = []
         try:
             for nick in self._bot.conn.channels[self.room].users():
-                occupants.append(IRCMUCOccupant(nick, room=self.room))
+                occupants.append(IRCMUCOccupant(nick, room=self.room, aclpattern=self.aclpattern))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -308,11 +314,13 @@ class IRCConnection(SingleServerIRCBot):
                  private_rate=1,
                  channel_rate=1,
                  reconnect_on_kick=5,
-                 reconnect_on_disconnect=5):
+                 reconnect_on_disconnect=5,
+                 aclpattern=None):
         self.use_ssl = ssl
         self.use_ipv6 = ipv6
         self.bind_address = bind_address
         self.callback = callback
+        self.aclpattern = aclpattern
         # manually decorate functions
         if private_rate:
             self.send_private_message = rate_limited(private_rate)(self.send_private_message)
@@ -363,7 +371,7 @@ class IRCConnection(SingleServerIRCBot):
         room = e.target
         if room[0] != '#' and room[0] != '$':
             raise Exception('[%s] is not a room' % room)
-        msg.frm = IRCMUCOccupant(e.source, room)
+        msg.frm = IRCMUCOccupant(e.source, room, aclpattern=self.aclpattern)
         msg.to = self.callback.bot_identifier
         msg.nick = msg.frm.nick  # FIXME find the real nick in the channel
         self.callback.callback_message(msg)
@@ -377,8 +385,8 @@ class IRCConnection(SingleServerIRCBot):
 
     def on_privmsg(self, _, e):
         msg = Message(e.arguments[0])
-        msg.frm = IRCIdentifier(e.source)
-        msg.to = IRCIdentifier(e.target)
+        msg.frm = IRCIdentifier(e.source, self.aclpattern)
+        msg.to = IRCIdentifier(e.target, self.aclpattern)
         self.callback.callback_message(msg)
 
     def on_kick(self, _, e):
@@ -488,28 +496,33 @@ class IRCBackend(ErrBot):
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else True
         enable_format('irc', IRC_CHRS, borders=not compact)
 
-        private_rate = config.__dict__.get('IRC_PRIVATE_RATE', 1)
-        channel_rate = config.__dict__.get('IRC_CHANNEL_RATE', 1)
-        reconnect_on_kick = config.__dict__.get('IRC_RECONNECT_ON_KICK', 5)
-        reconnect_on_disconnect = config.__dict__.get('IRC_RECONNECT_ON_DISCONNECT', 5)
+        self.aclpattern = getattr(config, 'IRC_ACL_PATTERN', '{nick}!{user}@{host}')
+        private_rate = getattr(config, 'IRC_PRIVATE_RATE', 1)
+        channel_rate = getattr(config, 'IRC_CHANNEL_RATE', 1)
+        reconnect_on_kick = getattr(config, 'IRC_RECONNECT_ON_KICK', 5)
+        reconnect_on_disconnect = getattr(config, 'IRC_RECONNECT_ON_DISCONNECT', 5)
 
         self.bot_identifier = IRCIdentifier(
-                nickname + '!' + nickname + '@' + server)
+            nickname + '!' + nickname + '@' + server,
+            self.aclpattern
+        )
         super().__init__(config)
-        self.conn = IRCConnection(self,
-                                  nickname,
-                                  server,
-                                  port,
-                                  ssl,
-                                  bind_address,
-                                  ipv6,
-                                  password,
-                                  username,
-                                  nickserv_password,
-                                  private_rate,
-                                  channel_rate,
-                                  reconnect_on_kick,
-                                  reconnect_on_disconnect)
+        self.conn = IRCConnection(callback=self,
+                                  nickname=nickname,
+                                  server=server,
+                                  port=port,
+                                  ssl=ssl,
+                                  bind_address=bind_address,
+                                  ipv6=ipv6,
+                                  password=password,
+                                  username=username,
+                                  nickserv_password=nickserv_password,
+                                  private_rate=private_rate,
+                                  channel_rate=channel_rate,
+                                  reconnect_on_kick=reconnect_on_kick,
+                                  reconnect_on_disconnect=reconnect_on_disconnect,
+                                  aclpattern=self.aclpattern,
+                                  )
         self.md = irc_md()
 
     def send_message(self, mess):
@@ -572,9 +585,9 @@ class IRCBackend(ErrBot):
     def build_identifier(self, txtrep):
         log.debug("Build identifier from [%s]" % txtrep)
         if txtrep.startswith('#'):
-            return IRCMUCOccupant(None, txtrep)
+            return IRCMUCOccupant(None, txtrep, aclpattern=self.aclpattern)
 
-        return IRCIdentifier(txtrep)
+        return IRCIdentifier(txtrep, self.aclpattern)
 
     def shutdown(self):
         super().shutdown()
@@ -588,7 +601,7 @@ class IRCBackend(ErrBot):
         :returns:
             An instance of :class:`~IRCMUCRoom`.
         """
-        return IRCMUCRoom(room, bot=self)
+        return IRCMUCRoom(room, bot=self, aclpattern=self.aclpattern)
 
     @property
     def mode(self):
@@ -603,7 +616,7 @@ class IRCBackend(ErrBot):
         """
 
         channels = self.conn.channels.keys()
-        return [IRCMUCRoom(channel, self) for channel in channels]
+        return [IRCMUCRoom(channel, self, aclpattern=self.aclpattern) for channel in channels]
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '{0}: {1}'.format(identifier.nick, message.body)

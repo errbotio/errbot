@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 import time
@@ -199,7 +200,7 @@ class SlackBackend(ErrBot):
         """
         if data is None:
             data = {}
-        response = self.sc.server.api_call(method, **data).json()
+        response = response = json.loads(self.sc.server.api_call(method, **data))
         if raise_errors and not response['ok']:
             raise SlackAPIResponseError(
                 "Slack API call to %s failed: %s" % (method, response['error']),

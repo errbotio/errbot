@@ -327,6 +327,15 @@ REVERSE_CHATROOM_RELAY = {}
                             # reconnect
 #IRC_RECONNECT_ON_DISCONNECT = 5  # Reconnect back to a channel after a disconenction (in seconds)
 
+# The pattern to build a user representation from for ACL matches.
+# The default is "{nick}!{user}@{host}" which results in "zoni!zoni@ams1.groenen.me"
+# for the user zoni connecting from ams1.groenen.me.
+# Available substitution variables:
+#   {nick}  ->  The nickname of the user
+#   {user}  ->  The username of the user
+#   {host}  ->  The hostname the user is connecting from
+#IRC_ACL_PATTERN = "{nick}!{user}@{host}"
+
 # Allow messages sent in a chatroom to be directed at requester.
 #GROUPCHAT_NICK_PREFIXED = False
 

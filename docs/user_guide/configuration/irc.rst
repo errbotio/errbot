@@ -37,7 +37,12 @@ Bot admins
 ----------
 
 You can set `BOT_ADMINS` to configure which IRC users are bot administrators.
-For example: `BOT_ADMINS = ('gbin', 'zoni')`
+For example: `BOT_ADMINS = ('gbin!gbin@*', '*!*@trusted.host.com')`
+
+.. note::
+
+    The default syntax for users on IRC is `{nick}!{user}@{host}` but this can
+    be changed by adjusting the `IRC_ACL_PATTERN` setting.
 
 
 Channels

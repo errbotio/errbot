@@ -125,6 +125,7 @@ class IRCIdentifier(Identifier):
 
 
 class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
+
     def __init__(self, mask, room):
         super().__init__(mask)
         self._room = room
@@ -143,12 +144,25 @@ class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
     def __str__(self):
         return self.__unicode__()
 
+    def __repr__(self):
+        return "<{} - {}>".format(self.__unicode__(), super().__repr__())
+
 
 class IRCMUCRoom(MUCRoom):
+
     def __init__(self, room, bot):
         self._bot = bot
         self.room = room
         self.connection = self._bot.conn.connection
+
+    def __unicode__(self):
+        return self.room
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __repr__(self):
+        return "<{} - {}>".format(self.__unicode__(), super().__repr__())
 
     def join(self, username=None, password=None):
         """
@@ -163,7 +177,6 @@ class IRCMUCRoom(MUCRoom):
             password = ""
 
         self.connection.join(self.room, key=password)
-        self._bot.callback_room_joined(self)
         log.info("Joined room {}".format(self.room))
 
     def leave(self, reason=None):
@@ -254,7 +267,7 @@ class IRCMUCRoom(MUCRoom):
         occupants = []
         try:
             for nick in self._bot.conn.channels[self.room].users():
-                occupants.append(IRCMUCOccupant(nick=nick, room=self.room))
+                occupants.append(IRCMUCOccupant(nick, self.room))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -272,6 +285,7 @@ class IRCMUCRoom(MUCRoom):
 
 
 class IRCConnection(SingleServerIRCBot):
+
     def __init__(self,
                  callback,
                  nickname,
@@ -299,12 +313,32 @@ class IRCConnection(SingleServerIRCBot):
             self.send_public_message = rate_limited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
         self._pending_transfers = {}
+        self.__recently_joined_to = set()
 
         self.nickserv_password = nickserv_password
         if username is None:
             username = nickname
         self.transfers = {}
         super().__init__([(server, port, password)], nickname, username, reconnection_interval=reconnect_on_disconnect)
+        # DEBUG HELPER
+        # Uncomment this to get an "All events" handler for any irc command/message sent
+        #  to the server, don't forget to uncomment __all_events too!.
+        #self.connection.add_global_handler("all_events", self.__all_events, 98)
+
+    # DEBUG HELPER
+    # If you need to check/debug some event fired from
+    #  the SingleServerIRCBot, this is a handy handler,
+    #  also comment the line on __init__ that fire this:
+    #
+    # def __all_events(self, c, e):
+    #    tmpl = (
+    #        "type: {type}, "
+    #        "source: {source}, "
+    #        "target: {target}, "
+    #        "arguments: {arguments}, "
+    #        "tags: {tags}"
+    #    )
+    #    print(tmpl.format(**vars(e)))
 
     def connect(self, *args, **kwargs):
         # Decode all input to UTF-8, but use a replacement character for
@@ -416,6 +450,20 @@ class IRCConnection(SingleServerIRCBot):
     def on_dcc_disconnect(self, dcc, event):
         self.transfers.pop(dcc)
 
+    def on_endofnames(self, c, e):
+        # e.arguments[0] contains the channel name.
+        # We filter that to avoid a misfire of the event.
+        room_name = e.arguments[0]
+        if room_name in self.__recently_joined_to:
+            self.__recently_joined_to.remove(room_name)
+            self.callback.callback_room_joined(IRCMUCRoom(room_name, self.callback))
+
+    def on_join(self, c, e):
+        self.__recently_joined_to.add(e.target)  # e.target contains the channel name
+        # We can't fire the room_joined event yet,
+        # because we don't have the occupants info.
+        # We need to wait to endofnames message.
+
     @staticmethod
     def send_chunk(stream, dcc):
         data = stream.read(4096)
@@ -450,8 +498,8 @@ class IRCConnection(SingleServerIRCBot):
 
 
 class IRCBackend(ErrBot):
-    def __init__(self, config):
 
+    def __init__(self, config):
         identity = config.BOT_IDENTITY
         nickname = identity['nickname']
         server = identity['server']
@@ -472,7 +520,7 @@ class IRCBackend(ErrBot):
         reconnect_on_disconnect = config.__dict__.get('IRC_RECONNECT_ON_DISCONNECT', 5)
 
         self.bot_identifier = IRCIdentifier(
-                nickname + '!' + nickname + '@' + server)
+            nickname + '!' + nickname + '@' + server)
         super().__init__(config)
         self.conn = IRCConnection(self,
                                   nickname,
@@ -566,7 +614,7 @@ class IRCBackend(ErrBot):
         :returns:
             An instance of :class:`~IRCMUCRoom`.
         """
-        return IRCMUCRoom(room, bot=self)
+        return IRCMUCRoom(room, self)
 
     @property
     def mode(self):

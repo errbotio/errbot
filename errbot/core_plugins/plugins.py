@@ -88,6 +88,16 @@ class Plugins(BotPlugin):
 
         return repos
 
+    @botcmd(template='repos2')
+    def repos_search(self, _, args):
+        """ Searches the repo index.
+        for example: !repos search jenkins
+        """
+        if not args:
+            # TODO(gbin): return all the repos.
+            return "Please specify a keyword."
+        return {'repos': self._bot.repo_manager.search_repos(args)}
+
     @botcmd(split_args_with=' ', admin_only=True)
     def repos_update(self, _, args):
         """ update the bot and/or plugins

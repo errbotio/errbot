@@ -320,25 +320,6 @@ class IRCConnection(SingleServerIRCBot):
             username = nickname
         self.transfers = {}
         super().__init__([(server, port, password)], nickname, username, reconnection_interval=reconnect_on_disconnect)
-        # DEBUG HELPER
-        # Uncomment this to get an "All events" handler for any irc command/message sent
-        #  to the server, don't forget to uncomment __all_events too!.
-        #self.connection.add_global_handler("all_events", self.__all_events, 98)
-
-    # DEBUG HELPER
-    # If you need to check/debug some event fired from
-    #  the SingleServerIRCBot, this is a handy handler,
-    #  also comment the line on __init__ that fire this:
-    #
-    # def __all_events(self, c, e):
-    #    tmpl = (
-    #        "type: {type}, "
-    #        "source: {source}, "
-    #        "target: {target}, "
-    #        "arguments: {arguments}, "
-    #        "tags: {tags}"
-    #    )
-    #    print(tmpl.format(**vars(e)))
 
     def connect(self, *args, **kwargs):
         # Decode all input to UTF-8, but use a replacement character for
@@ -356,7 +337,6 @@ class IRCConnection(SingleServerIRCBot):
             connection_factory_kwargs['ipv6'] = True
 
         connection_factory = irc.connection.Factory(**connection_factory_kwargs)
-
         self.connection.connect(*args, connect_factory=connection_factory, **kwargs)
 
     def on_welcome(self, _, e):
@@ -451,7 +431,7 @@ class IRCConnection(SingleServerIRCBot):
         self.transfers.pop(dcc)
 
     def on_endofnames(self, c, e):
-        # e.arguments[0] contains the channel name.
+        # The e.arguments[0] contains the channel name.
         # We filter that to avoid a misfire of the event.
         room_name = e.arguments[0]
         if room_name in self.__recently_joined_to:
@@ -459,10 +439,11 @@ class IRCConnection(SingleServerIRCBot):
             self.callback.callback_room_joined(IRCMUCRoom(room_name, self.callback))
 
     def on_join(self, c, e):
-        self.__recently_joined_to.add(e.target)  # e.target contains the channel name
         # We can't fire the room_joined event yet,
         # because we don't have the occupants info.
         # We need to wait to endofnames message.
+        room_name = e.target
+        self.__recently_joined_to.add(room_name)  # e.target contains the channel name
 
     @staticmethod
     def send_chunk(stream, dcc):

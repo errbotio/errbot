@@ -36,6 +36,7 @@ if PY3 and py_version < (3, 3):
 deps = ['webtest',
         'setuptools',
         'bottle',
+        'threadpool',
         'requests',
         'jinja2',
         'pyOpenSSL',

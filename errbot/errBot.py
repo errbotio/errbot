@@ -20,7 +20,7 @@ import logging
 import traceback
 
 from .backends.base import Backend
-from .bundled.threadpool import ThreadPool, WorkRequest
+from threadpool import ThreadPool, WorkRequest
 from .streaming import Tee
 from .templating import tenv
 from .utils import (split_string_after,

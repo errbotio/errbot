@@ -11,7 +11,7 @@ import re  # noqa
 from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
 from errbot.errBot import ErrBot
-from errbot.backends.base import Backend, Message, MUCRoom, Identifier, ONLINE
+from errbot.backends.base import Message, MUCRoom, Identifier, ONLINE
 from errbot.backends.test import TestIdentifier, TestMUCOccupant
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.main import CORE_STORAGE

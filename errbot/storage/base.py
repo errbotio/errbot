@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Tuple, Iterable
+from typing import Any, Iterable
 
 
 class StorageBase(object):

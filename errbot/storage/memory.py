@@ -1,4 +1,4 @@
-from typing import Any, Mapping
+from typing import Any
 
 from errbot.storage.base import StorageBase, StoragePluginBase
 

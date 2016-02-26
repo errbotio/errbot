@@ -1,6 +1,5 @@
 from collections import MutableMapping
 import logging
-import shelve
 
 from errbot import PY2
 

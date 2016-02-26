@@ -200,7 +200,7 @@ class SlackBackend(ErrBot):
         """
         if data is None:
             data = {}
-        response = response = json.loads(self.sc.server.api_call(method, **data))
+        response = json.loads(self.sc.server.api_call(method, **data))
         if raise_errors and not response['ok']:
             raise SlackAPIResponseError(
                 "Slack API call to %s failed: %s" % (method, response['error']),

@@ -1,4 +1,3 @@
-from uuid import uuid4
 import logging
 
 from errbot import BotPlugin, botcmd, SeparatorArgParser, ShlexArgParser

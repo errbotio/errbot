@@ -1,8 +1,6 @@
 # coding=utf-8
-import logging
 from datetime import timedelta
 import unittest
-from tempfile import mkdtemp
 from nose.tools import raises
 
 from errbot.errBot import bot_config_defaults

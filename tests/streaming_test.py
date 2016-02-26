@@ -1,4 +1,3 @@
-import unittest
 from io import BytesIO
 from errbot.backends.test import TestIdentifier
 from errbot.streaming import Tee
@@ -13,7 +12,7 @@ class StreamingClient(object):
 def test_streaming():
     canary = b'this is my test' * 1000
     source = Stream(TestIdentifier("gbin@gootz.net"), BytesIO(canary))
-    clients = [StreamingClient() for i in range(50)]
+    clients = [StreamingClient() for _ in range(50)]
     Tee(source, clients).run()
     for client in clients:
         assert client.response == canary

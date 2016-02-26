@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 from jinja2 import Template
-import requests
-import time
-import ast
 import json
 
 template = Template(open('plugins.md').read())

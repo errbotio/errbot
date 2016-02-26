@@ -1,12 +1,11 @@
 import logging
-import os
 import shlex
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Tuple, Callable, Mapping, Any, Sequence
+from typing import Tuple, Callable, Mapping, Sequence
 from io import IOBase
 
-from .utils import PLUGINS_SUBDIR, recurse_check_structure
+from .utils import recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import Message, Presence, Stream, MUCRoom, Identifier, ONLINE
 

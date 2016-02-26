@@ -119,7 +119,6 @@ if __name__ == "__main__":
         },
 
         install_requires=deps,
-        dependency_links=deps_links,
         tests_require=['nose', 'webtest', 'requests'],
         package_data={
             '': ['*.txt', '*.rst', '*.plug', '*.md'],

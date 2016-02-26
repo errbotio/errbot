@@ -25,8 +25,6 @@ class ChatRoom(BotPlugin):
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:
                 self.log.debug('Try to join room %s' % repr(room))
-                if 'password' not in self.bot_config.BOT_IDENTITY.keys():
-                    self.bot_config.BOT_IDENTITY['password']=None
                 try:
                     self._join_room(room)
                 except Exception:

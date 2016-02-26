@@ -9,11 +9,13 @@ import re
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream, Identifier, MUCIdentifier, \
-    ONLINE
+from errbot.backends.base import Message, MUCRoom, Stream, RoomError, \
+                                    RoomNotJoinedError, Stream, Identifier, \
+                                    MUCIdentifier, ONLINE
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
-from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
+from errbot.rendering.ansi import AnsiExtension, enable_format, \
+                                    CharacterTable, NSC
 
 
 # Can't use __name__ because of Yapsy
@@ -69,6 +71,8 @@ except ImportError as _:
     pip install irc
     """)
     sys.exit(-1)
+
+
 
 
 def irc_md():
@@ -267,9 +271,13 @@ class IRCMUCRoom(MUCRoom):
         occupants = []
         try:
             for nick in self._bot.conn.channels[self.room].users():
-                occupants.append(IRCMUCOccupant(nick, self.room))
+                # TODO: Check if here is mask as nick!user@host or
+                #       the nick required for mask param.
+                log.debug("type {} - str {}".format(type(nick), str(nick)))
+                occupants.append(IRCMUCOccupant(mask=nick, room=self.room))
         except KeyError:
-            raise RoomNotJoinedError("Must be in a room in order to see occupants.")
+            raise RoomNotJoinedError("Must be in a room in order to \
+                                     see occupants.")
         return occupants
 
     def invite(self, *args):
@@ -313,7 +321,8 @@ class IRCConnection(SingleServerIRCBot):
             self.send_public_message = rate_limited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
         self._pending_transfers = {}
-        self.__recently_joined_to = set()
+        self._recently_joined_lock=threading.Lock()
+        self._recently_joined_to = set()
 
         self.nickserv_password = nickserv_password
         if username is None:
@@ -430,20 +439,49 @@ class IRCConnection(SingleServerIRCBot):
     def on_dcc_disconnect(self, dcc, event):
         self.transfers.pop(dcc)
 
-    def on_endofnames(self, c, e):
-        # The e.arguments[0] contains the channel name.
-        # We filter that to avoid a misfire of the event.
-        room_name = e.arguments[0]
-        if room_name in self.__recently_joined_to:
-            self.__recently_joined_to.remove(room_name)
-            self.callback.callback_room_joined(IRCMUCRoom(room_name, self.callback))
+    def on_endofnames(self, connection, event):
+        """
+            Handler of the enfofnames IRC message/event.
 
-    def on_join(self, c, e):
+            The endofnames message is sent to the client when the server finish
+            to send the list of names of the room ocuppants.
+            This usually happens when you join to the room.
+            So in this case, we use this event to determine that our bot is
+            finally joined to the room.
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                the e.arguments[0] contains the channel name
+        """
+        # The event.arguments[0] contains the channel name.
+        # We filter that to avoid a misfire of the event.
+        room_name = event.arguments[0]
+        with self._recently_joined_lock:
+            if room_name in self._recently_joined_to:
+                self._recently_joined_to.remove(room_name)
+                self.callback.callback_room_joined(\
+                                    IRCMUCRoom(room_name, self.callback))
+
+    def on_join(self, connection, event):
+        """
+            Handler of the join IRC message/event
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                the event.target contains the channel name
+        """
         # We can't fire the room_joined event yet,
         # because we don't have the occupants info.
         # We need to wait to endofnames message.
-        room_name = e.target
-        self.__recently_joined_to.add(room_name)  # e.target contains the channel name
+        room_name = event.target
+        with self._recently_joined_lock:
+            self._recently_joined_to.add(room_name)
 
     @staticmethod
     def send_chunk(stream, dcc):

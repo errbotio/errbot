@@ -137,6 +137,7 @@ class ErrBot(Backend, StoreMixin):
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """ Sends a simple message to the specified user.
+
             :param user:
                 an identifier from build_identifier or from an incoming message
             :param in_reply_to:
@@ -172,6 +173,7 @@ class ErrBot(Backend, StoreMixin):
     def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
                        groupchat_nick_reply=False):
         """ Sends a simple message to the specified user using a template.
+
             :param template_parameters: the parameters for the template.
             :param template_name: the template name you want to use.
             :param user:
@@ -195,6 +197,7 @@ class ErrBot(Backend, StoreMixin):
     def send_message(self, mess):
         """
         This needs to be overridden by the backends with a super() call.
+
         :param mess: the message to send.
         :return: None
         """
@@ -207,6 +210,7 @@ class ErrBot(Backend, StoreMixin):
 
     def send_simple_reply(self, mess, text, private=False):
         """Send a simple response to a given incoming message
+
         :param private: if True will force a response in private.
         :param text: the markdown text of the message.
         :param mess: the message you are replying to.
@@ -216,6 +220,7 @@ class ErrBot(Backend, StoreMixin):
     def process_message(self, mess):
         """Check if the given message is a command for the bot and act on it.
         It return True for triggering the callback_messages on the .callback_messages on the plugins.
+
         :param mess: the incoming message.
         """
         # Prepare to handle either private chats or group chats

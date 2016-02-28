@@ -9,11 +9,12 @@
 {% set code_font = "'Droid Sans Mono', monospace" %}
 {% set normal_link_color = "#f07e2a" %}
 {% set normal_link_hover_color = "#f07e2a" %}
+{% set highlight_color = "#f07e2a" %}
 
 /* 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace; */
 
 @import url("basic.css");
-@import url(http://fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono);
+@import url(//fonts.googleapis.com/css?family=Open+Sans|Droid+Sans+Mono);
 
 /* -- page layout ----------------------------------------------------------- */
  
@@ -465,7 +466,9 @@ div.screenshots a {
         display: none;
     }
 
-
+    html body div.indexwrapper div.related ul li.right {
+        padding: 10px 0 20px;
+    }
 
 }
 
@@ -626,4 +629,72 @@ body #prev_next_links {
     margin: 40px 0 20px 0;
     padding: 0;
     text-align: center;
+}
+
+
+/* -- Gitter sidecar button ------------------------------------------------- */
+
+.gitter-open-chat-button {
+    background-color: {{ highlight_color }} !important;
+}
+
+
+/* -- Read the Docs version selector ---------------------------------------- */
+
+.rst-versions .rst-current-version {
+    color: #fff !important;
+    background: {{ highlight_color }} !important;
+}
+
+.rst-versions.rst-badge.shift-up .rst-current-version {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.rst-versions.rst-badge.shift-up .rst-current-version .fa-book {
+    float: none !important;
+}
+
+.rst-versions .rst-other-versions hr {
+    border-color: #fafafa !important;
+}
+
+.rst-versions.rst-badge .rst-current-version {
+    color: #fff !important;
+    background: {{ highlight_color }} !important;
+    position: fixed !important;
+    right: 35px !important;
+    top: 0 !important;
+    padding: 1px 15px !important;
+    border-bottom-left-radius: 0.5em;
+    border-bottom-right-radius: 0.5em;
+}
+
+.rst-versions .rst-other-versions {
+    color: #fff !important;
+    background: {{ highlight_color }} !important;
+    position: fixed !important;
+    right: 35px !important;
+    top: 30px !important;
+    border-top-left-radius: 0.5em;
+    border-bottom-left-radius: 0.5em;
+    border-bottom-right-radius: 0.5em;
+}
+
+.rst-versions a {
+    text-decoration: underline;
+    color: #fff !important;
+}
+
+.rst-versions .rst-other-versions dl dt {
+    text-decoration: underline;
+    font-style: italic;
+}
+
+.rst-versions .rst-other-versions a {
+    text-decoration: underline;
+}
+
+.rst-versions .rst-other-versions dl dd a {
+    text-decoration: none;
 }

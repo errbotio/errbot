@@ -233,11 +233,12 @@ def arg_botcmd(*args,
             return value * repeat
 
     The given `msg` will be the full message object that was received, which includes data
-    like sender, receiver, the plain-text and html body (if applicable), etc. `args` will
-    be a string or list (depending on your value of `split_args_with`) of parameters that
-    were given to the command by the user.
+    like sender, receiver, the plain-text and html body (if applicable), etc.
+    `value` will hold the value passed in place of the `value` argument and
+    `repeat` will hold the value passed in place of the `--repeat-count` argument.
 
-    If you wish to use `unpack_args=False`, define the function like this::
+    If you don't like this automatic *"unpacking"* of the arguments,
+    you can use `unpack_args=False` like this::
 
         @arg_botcmd('value', type=str)
         @arg_botcmd('--repeat-count', dest='repeat', type=int, default=2, unpack_args=False)

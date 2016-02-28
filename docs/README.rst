@@ -27,8 +27,14 @@ Publishing to GitHub pages
 
 The `make gh-pages` command can be used to build output for GitHub pages. This
 will pull down a copy of the repository and auto-commit to the gh-pages branch.
-
 The results of this can then be reviewed before being pushed.
+
+There is a `Jenkins job <https://jenkins.errbot.net/job/Publish%20errbot.io/>`_
+which will do all of the above automatically on commits.
+Whenever a new version of errbot is released, the version number on this Jenkins
+job will need to be updated
+(look for *"Branch Specifier"* under *"Branches to build"*).
+
 
 Including extra files with GitHub pages
 ---------------------------------------

@@ -12,7 +12,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import subprocess, sys, os
 sys.path.append(os.path.abspath('_themes'))
 sys.path.append(os.path.abspath('_themes/err'))
 sys.path.append(os.path.abspath('../'))
@@ -114,6 +114,11 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
     if name == "__init__":
         return False
     return skip
+
+# -- Apidoc --------------------------------------------------------------------
+
+def run_apidoc(_):
+    subprocess.check_call("sphinx-apidoc --separate -f -o . ../errbot", shell=True)
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -309,3 +314,4 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 
 def setup(app):
     app.connect("autodoc-skip-member", autodoc_skip_member)
+    app.connect("builder-inited", run_apidoc)

@@ -3,14 +3,6 @@
     <!doctype html>
 {% endblock %}
 {%- block extrahead %}
-    <script type="text/javascript">
-        // GitHub pages offers no way to redirect to a canonical location, so we
-        // have to make do with hacky javascript redirection :(
-        if (document.location.protocol != "file:" && document.location.host != "errbot.io") {
-            var path = document.location.pathname.replace('/err/', '/');
-            document.location = "http://errbot.io" + path;
-        }
-    </script>
     <link rel="icon" type="image/png" href="{{ pathto('_static/err.png', 1) }}"/>
     <link rel="apple-touch-icon" href="{{ pathto('_static/err.png', 1) }}"/>
     <link rel="stylesheet" href="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.css", 1) }}" type="text/css"
@@ -44,9 +36,9 @@
         <img class="logo" src="{{ pathto('_static/err_speech.png', 1) }}" width="220" height="135" alt="Logo of Err"/>
     </a>
     <div class="ghbuttons">
-        <iframe src="http://ghbtns.com/github-btn.html?user=errbotio&repo=errbot&type=watch&count=true"
+        <iframe src="//ghbtns.com/github-btn.html?user=errbotio&repo=errbot&type=watch&count=true"
                 allowtransparency="true" frameborder="0" scrolling="0" width="95" height="20"></iframe>
-        <iframe src="http://ghbtns.com/github-btn.html?user=errbotio&repo=errbot&type=fork&count=true" allowtransparency="true"
+        <iframe src="//ghbtns.com/github-btn.html?user=errbotio&repo=errbot&type=fork&count=true" allowtransparency="true"
                 frameborder="0" scrolling="0" width="95" height="20"></iframe>
     </div>
 {%- endblock %}

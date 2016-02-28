@@ -4,11 +4,8 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXAPIDOC  = sphinx-apidoc
 PAPER         =
 BUILDDIR      = _build
-PAGESURL      = git@github.com:errbotio/errbot.git
-PAGESDIR      = _gh-pages
 EXTRADIR      = _extra
 
 # User-friendly check for sphinx-build
@@ -23,7 +20,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext gh-pages apidoc
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -53,25 +50,12 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-gh-pages: clean apidoc html
-	test -e $(PAGESDIR) && (cd $(PAGESDIR) && git pull) || git clone $(PAGESURL) $(PAGESDIR)
-	cd $(PAGESDIR) && git checkout gh-pages
-	rm -rf $(PAGESDIR)/*
-	cp -r $(BUILDDIR)/html/* $(PAGESDIR)/
-	cp -r $(EXTRADIR)/* $(EXTRADIR)/.nojekyll $(PAGESDIR)/
-	cd $(PAGESDIR) && git add --all . && git commit --message "Sphinx autobuild"
-	@echo
-	@echo "GitHub pages are built and ready, just waiting to be pushed from the $(PAGESDIR) directory"
-
-apidoc:
-	$(SPHINXAPIDOC) --separate -f -o . ../errbot
-
-html: apidoc
+html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
-dirhtml: apidoc
+dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."

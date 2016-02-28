@@ -11,7 +11,6 @@ nohup.out
 /config-*.egg
 /config*.py
 /docs/_build
-/docs/_gh-pages
 /docs/errbot.rst
 /docs/errbot.*.rst
 /.cache

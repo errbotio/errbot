@@ -271,9 +271,6 @@ class IRCMUCRoom(MUCRoom):
         occupants = []
         try:
             for nick in self._bot.conn.channels[self.room].users():
-                # TODO: Check if here is mask as nick!user@host or
-                #       the nick required for mask param.
-                log.debug("type {} - str {}".format(type(nick), str(nick)))
                 occupants.append(IRCMUCOccupant(mask=nick, room=self.room))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to \

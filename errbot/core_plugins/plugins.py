@@ -95,7 +95,7 @@ class Plugins(BotPlugin):
         """
         if not args:
             # TODO(gbin): return all the repos.
-            return "Please specify a keyword."
+            return {'error': "Please specify a keyword."}
         return {'repos': self._bot.repo_manager.search_repos(args)}
 
     @botcmd(split_args_with=' ', admin_only=True)

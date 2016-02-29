@@ -633,7 +633,7 @@ class IRCBackend(ErrBot):
         :returns:
             An instance of :class:`~IRCMUCRoom`.
         """
-        return IRCMUCRoom(room, self)
+        return IRCMUCRoom(room, bot=self)
 
     @property
     def mode(self):

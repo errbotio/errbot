@@ -60,7 +60,7 @@ def setup_bot(backend_name, logger, config, restore=None):
     if not path.exists(botplugins_dir):
         makedirs(botplugins_dir, mode=0o755)
 
-    plugin_indexes = getattr(config, 'BOT_PLUGIN_INDEXES', ('http://errbot.io/repos.json',))
+    plugin_indexes = getattr(config, 'BOT_PLUGIN_INDEXES', ('http://repos.errbot.io/repos.json',))
     if type(plugin_indexes) is str:
         plugin_indexes = (plugin_indexes, )
 

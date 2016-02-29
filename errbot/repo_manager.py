@@ -95,7 +95,7 @@ class BotRepoManager(StoreMixin):
             self[REPO_INDEX] = {LAST_UPDATE: 0}
 
         if datetime.fromtimestamp(self[REPO_INDEX][LAST_UPDATE]) < datetime.now() - REPO_INDEXES_CHECK_INTERVAL:
-            log.debug('Index is too old, update it.')
+            log.info('Index is too old, update it.')
             self.index_update()
 
     def index_update(self):

@@ -45,16 +45,13 @@ def get_avatar_url(repo):
     if username in user_cache:
         user = user_cache[username]
     else:
-        time.sleep(PAUSE)
         user_res = requests.get('https://api.github.com/users/' + username, auth=AUTH)
-        log.debug("User reqs before ratelimit %s/%s" % (
-            user_res.headers['X-RateLimit-Remaining'],
-            user_res.headers['X-RateLimit-Limit']))
         user = user_res.json()
         if 'avatar_url' in user:  # don't pollute the presistent cache
             user_cache[username] = user
             with open('user_cache', 'w') as f:
                 f.write(repr(user_cache))
+        rate_limit(user_res)
     return user['avatar_url'] if 'avatar_url' in user else DEFAULT_AVATAR
 
 

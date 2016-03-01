@@ -1,3 +1,4 @@
+import collections
 import json
 import logging
 import re
@@ -193,14 +194,18 @@ class SlackBackend(ErrBot):
         :param data:
             A dictionary with data to pass along in the API request.
         :returns:
-            The JSON-decoded API response
+            A dictionary containing the (JSON-decoded) API response
         :raises:
             :class:`~SlackAPIResponseError` if raise_errors is True and the
             API responds with `{"ok": false}`
         """
         if data is None:
             data = {}
-        response = json.loads(self.sc.server.api_call(method, **data).decode('utf-8'))
+        response = self.sc.api_call(method, **data)
+        if not isinstance(response, collections.Mapping):
+            # Compatibility with SlackClient < 1.0.0
+            response = json.loads(response.decode('utf-8'))
+
         if raise_errors and not response['ok']:
             raise SlackAPIResponseError(
                 "Slack API call to %s failed: %s" % (method, response['error']),

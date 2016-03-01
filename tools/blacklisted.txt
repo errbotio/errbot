@@ -331,3 +331,11 @@ doolingdavid/lung-cancer-rf-errors
 juan5d/lab3-paracaidista-calculo-de-error
 EFXCIA/err-openstack
 TaqiOfficial/symfony-by-errors
+Upflask/Upflask-error-pages
+gbin/err-storage-tester
+mkramb/errorify
+HUAZHEYINy/ErrorTest
+fonfon/ImportError-demo
+jingxianwen/cloud-regime-error-metric
+iceterminal/saveErrorLog
+belzner/idle-errors-uap

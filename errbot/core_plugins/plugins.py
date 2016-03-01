@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from ast import literal_eval
-from os import path
 from pprint import pformat
+import os
+import shutil
 
 from errbot import BotPlugin, botcmd
 from errbot.plugin_manager import PluginConfigurationException
+from errbot.repo_manager import RepoException
 
 
 class Plugins(BotPlugin):
@@ -17,24 +19,27 @@ class Plugins(BotPlugin):
         or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
         """
         if not args.strip():
-            return "You should have an urls/git repo argument"
-        self._bot.repo_manager.install_repo(args)
-
-        errors = self._bot.plugin_manager.update_dynamic_plugins()
-        if errors:
-            self.send(mess.frm, 'Some plugins are generating errors:\n' + '\n'.join(errors),
-                      message_type=mess.type)
-        else:
-            self.send(
-                mess.frm,
-                ("A new plugin repository has been installed correctly from "
-                 "%s. Refreshing the plugins commands..." % args),
-                message_type=mess.type
-            )
-        loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
-        if loading_errors:
-            return loading_errors
-        return "Plugins reloaded without any error."
+            yield "You should have an urls/git repo argument"
+            return
+        try:
+            local_path = self._bot.repo_manager.install_repo(args)
+            errors = self._bot.plugin_manager.update_dynamic_plugins()
+            if errors is not None:
+                yield 'Some plugins are generating errors:\n' + '\n'.join(errors.values())
+                # if the load of the plugin failed, uninstall cleanly teh repo
+                for path in errors.keys():
+                    if path.startswith(local_path):
+                        yield 'Removing %s as it did not load correctly.' % local_path
+                        shutil.rmtree(local_path)
+            else:
+                yield ("A new plugin repository has been installed correctly from "
+                       "%s. Refreshing the plugins commands..." % args)
+            loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
+            if loading_errors:
+                yield loading_errors
+            yield "Plugins reloaded without any error."
+        except RepoException as re:
+            yield "Error installing the repo: %s" % re
 
     @botcmd(admin_only=True)
     def repos_uninstall(self, _, repo_name):
@@ -50,7 +55,7 @@ class Plugins(BotPlugin):
             yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
             return
 
-        plugin_path = path.join(self._bot.repo_manager.plugin_dir, repo_name)
+        plugin_path = os.path.join(self._bot.repo_manager.plugin_dir, repo_name)
         self._bot.plugin_manager.remove_plugins_from_path(plugin_path)
         self._bot.repo_manager.uninstall_repo(repo_name)
         yield 'Repo %s removed.' % repo_name

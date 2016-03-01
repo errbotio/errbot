@@ -343,8 +343,12 @@ class SlackBackend(ErrBot):
 
         for word in text.split():
             if word.startswith('<') or word.startswith('@') or word.startswith('#'):
+                try:
+                    identifier = self.build_identifier(word.replace(':', ''))
+                except ValueError:
+                    continue
                 log.debug('Someone mentioned')
-                mentioned.append(self.build_identifier(word.replace(':', '')))
+                mentioned.append(identifier)
                 text = re.sub('<@[^>]*>:*', '@%s' % mentioned[-1].username, text)
 
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)

@@ -45,16 +45,13 @@ def get_avatar_url(repo):
     if username in user_cache:
         user = user_cache[username]
     else:
-        time.sleep(PAUSE)
         user_res = requests.get('https://api.github.com/users/' + username, auth=AUTH)
-        log.debug("User reqs before ratelimit %s/%s" % (
-            user_res.headers['X-RateLimit-Remaining'],
-            user_res.headers['X-RateLimit-Limit']))
         user = user_res.json()
         if 'avatar_url' in user:  # don't pollute the presistent cache
             user_cache[username] = user
             with open('user_cache', 'w') as f:
                 f.write(repr(user_cache))
+        rate_limit(user_res)
     return user['avatar_url'] if 'avatar_url' in user else DEFAULT_AVATAR
 
 
@@ -70,11 +67,11 @@ def rate_limit(resp):
     remain = int(resp.headers['X-RateLimit-Remaining'])
     limit = int(resp.headers['X-RateLimit-Limit'])
     log.info('Rate limiter: %s allowed out of %d', remain, limit)
-    if remain > 0:
+    if remain > 1:  # margin by one request
         return
     reset = int(resp.headers['X-RateLimit-Reset'])
     ts = datetime.fromtimestamp(reset)
-    delay = (ts - datetime.now()).total_seconds() + .2  # small margin
+    delay = (ts - datetime.now()).total_seconds()
     log.info("Hit rate limit. Have to wait for %d seconds", delay)
     time.sleep(delay)
 
@@ -85,7 +82,7 @@ def check_repo(repo):
     if code_resp.status_code != 200:
         log.error('Error getting https://api.github.com/search/code?q=extension:plug+repo:%s', repo)
         log.error('code %d', code_resp.status_code)
-        log.error('content %d', code_resp.text)
+        log.error('content %s', code_resp.text)
 
         return
     plug_items = code_resp.json()['items']
@@ -126,7 +123,9 @@ def check_repo(repo):
             'avatar_url': avatar_url,
         }
 
-        plugins[repo+'~'+name] = plugin
+        repo_entry = plugins.get(repo, {})
+        repo_entry[name] = plugin
+        plugins[repo] = repo_entry
         log.debug('Catalog added plugin %s.', plugin['name'])
         rate_limit(plugfile_resp)
 

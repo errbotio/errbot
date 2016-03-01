@@ -4,7 +4,6 @@ from os import path
 from pprint import pformat
 
 from errbot import BotPlugin, botcmd
-from errbot.repo_manager import KNOWN_PUBLIC_REPOS
 from errbot.plugin_manager import PluginConfigurationException
 
 
@@ -63,30 +62,38 @@ class Plugins(BotPlugin):
 
         installed_repos = self._bot.repo_manager.get_installed_plugin_repos()
 
-        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
+        all_names = [name for name in installed_repos]
 
         repos = {'repos': []}
 
         for repo_name in all_names:
 
             installed = False
-            public = False
-
-            try:
-                description = KNOWN_PUBLIC_REPOS[repo_name].get('documentation', 'Unavailable')
-            except KeyError:
-                description = installed_repos[repo_name].get('path')
-
-            if repo_name in KNOWN_PUBLIC_REPOS:
-                public = True
 
             if repo_name in installed_repos:
                 installed = True
 
+            from_index = self._bot.repo_manager.get_repo_from_index(repo_name)
+
+            if from_index is not None:
+                description = '\n'.join(('%s: %s' % (plug.name, plug.documentation) for plug in from_index))
+            else:
+                description = 'No description.'
+
             # installed, public, name, desc
-            repos['repos'].append((installed, public, repo_name, description))
+            repos['repos'].append((installed, from_index is not None, repo_name, description))
 
         return repos
+
+    @botcmd(template='repos2')
+    def repos_search(self, _, args):
+        """ Searches the repo index.
+        for example: !repos search jenkins
+        """
+        if not args:
+            # TODO(gbin): return all the repos.
+            return {'error': "Please specify a keyword."}
+        return {'repos': self._bot.repo_manager.search_repos(args)}
 
     @botcmd(split_args_with=' ', admin_only=True)
     def repos_update(self, _, args):

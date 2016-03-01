@@ -27,6 +27,20 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 
 logging.basicConfig(level=logging.DEBUG)
 
+SIMPLE_JSON_PLUGINS_INDEX = """
+{"errbotio/err-helloworld":
+    {"HelloWorld":
+        {"path": "/helloWorld.plug",
+         "documentation": "let's say hello !",
+         "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=3",
+         "name": "HelloWorld",
+         "python": "2+",
+         "repo": "https://github.com/errbotio/err-helloworld"
+         }
+    }
+}
+"""
+
 
 class DummyBackend(ErrBot):
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
@@ -51,12 +65,17 @@ class DummyBackend(ErrBot):
         bot_config_defaults(config)
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+        config.BOT_PLUGIN_INDEXES = tempdir + sep + 'repos.json'
         config.BOT_EXTRA_PLUGIN_DIR = []
         config.BOT_LOG_LEVEL = logging.DEBUG
         config.BOT_IDENTITY = {'username': 'err@localhost'}
         config.BOT_ASYNC = False
         config.BOT_PREFIX = '!'
         config.CHATROOM_FN = 'blah'
+
+        # Writeout the made up repos file
+        with open(config.BOT_PLUGIN_INDEXES, "w") as index_file:
+            index_file.write(SIMPLE_JSON_PLUGINS_INDEX)
 
         for key in extra_config:
             setattr(config, key, extra_config[key])
@@ -73,7 +92,11 @@ class DummyBackend(ErrBot):
         if not os.path.exists(botplugins_dir):
             os.makedirs(botplugins_dir, mode=0o755)
 
-        repo_manager = BotRepoManager(storage_plugin, botplugins_dir)
+        # get it back from where we publish it.
+        repo_index_paths = (os.path.join(os.path.dirname(__file__), '..', 'docs', '_extra', 'repos.json'),)
+        repo_manager = BotRepoManager(storage_plugin,
+                                      botplugins_dir,
+                                      repo_index_paths)
         self.attach_storage_plugin(storage_plugin)
         self.attach_repo_manager(repo_manager)
         self.attach_plugin_manager(BotPluginManager(storage_plugin,

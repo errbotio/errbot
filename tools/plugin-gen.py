@@ -67,11 +67,11 @@ def rate_limit(resp):
     remain = int(resp.headers['X-RateLimit-Remaining'])
     limit = int(resp.headers['X-RateLimit-Limit'])
     log.info('Rate limiter: %s allowed out of %d', remain, limit)
-    if remain > 0:
+    if remain > 1:  # margin by one request
         return
     reset = int(resp.headers['X-RateLimit-Reset'])
     ts = datetime.fromtimestamp(reset)
-    delay = (ts - datetime.now()).total_seconds() + .2  # small margin
+    delay = (ts - datetime.now()).total_seconds()
     log.info("Hit rate limit. Have to wait for %d seconds", delay)
     time.sleep(delay)
 
@@ -82,7 +82,7 @@ def check_repo(repo):
     if code_resp.status_code != 200:
         log.error('Error getting https://api.github.com/search/code?q=extension:plug+repo:%s', repo)
         log.error('code %d', code_resp.status_code)
-        log.error('content %d', code_resp.text)
+        log.error('content %s', code_resp.text)
 
         return
     plug_items = code_resp.json()['items']

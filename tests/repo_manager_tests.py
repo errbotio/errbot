@@ -112,3 +112,7 @@ class TestRepoManagement(unittest.TestCase):
 
         a = [p for p in manager.search_repos('plug')]
         self.assertEqual(len(a), 2)
+
+    def test_git_url_name_guessing(self):
+        self.assertEqual(repo_manager.human_name_for_git_url('https://github.com/errbotio/err-imagebot.git'),
+                         'errbotio/err-imagebot')

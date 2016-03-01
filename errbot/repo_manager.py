@@ -29,7 +29,9 @@ def timestamp(dt):
 def human_name_for_git_url(url):
     # try to humanize the last part of the git url as much as we can
     s = url.split(':')[-1].split('/')[-2:]
-    return str('/'.join(s).rstrip('.git'))
+    if s[-1].endswith('.git'):
+        s[-1] = s[-1][:-4]
+    return str('/'.join(s))
 
 
 INSTALLED_REPOS = b'installed_repos' if PY2 else 'installed_repos'

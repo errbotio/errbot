@@ -18,8 +18,10 @@ class Plugins(BotPlugin):
         for example a git url : git@github.com:gbin/plugin.git
         or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
         """
-        if not args.strip():
-            yield "You should have an urls/git repo argument"
+        args = args.strip()
+        if not args:
+            yield "Please specify a repository listed in '!repos' or " \
+                  "give me the URL to a git repository that I should clone for you."
             return
         try:
             local_path = self._bot.repo_manager.install_repo(args)

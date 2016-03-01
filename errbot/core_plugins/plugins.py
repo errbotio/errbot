@@ -4,7 +4,6 @@ from os import path
 from pprint import pformat
 
 from errbot import BotPlugin, botcmd
-from errbot.repo_manager import KNOWN_PUBLIC_REPOS
 from errbot.plugin_manager import PluginConfigurationException
 
 
@@ -63,28 +62,19 @@ class Plugins(BotPlugin):
 
         installed_repos = self._bot.repo_manager.get_installed_plugin_repos()
 
-        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
+        all_names = [name for name in installed_repos]
 
         repos = {'repos': []}
 
         for repo_name in all_names:
 
             installed = False
-            public = False
-
-            try:
-                description = KNOWN_PUBLIC_REPOS[repo_name].get('documentation', 'Unavailable')
-            except KeyError:
-                description = installed_repos[repo_name].get('path')
-
-            if repo_name in KNOWN_PUBLIC_REPOS:
-                public = True
 
             if repo_name in installed_repos:
                 installed = True
 
             # installed, public, name, desc
-            repos['repos'].append((installed, public, repo_name, description))
+            repos['repos'].append((installed, True, repo_name, ''))
 
         return repos
 

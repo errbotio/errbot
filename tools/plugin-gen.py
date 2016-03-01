@@ -16,7 +16,7 @@ log.setLevel(logging.DEBUG)
 DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png'
 
 try:
-    user,token = open('token', 'r').read().strip().split(':')
+    user, token = open('token', 'r').read().strip().split(':')
     # token is generated from the personal tokens in github.
     AUTH = HTTPBasicAuth(user, token)
 except FileNotFoundError:
@@ -32,8 +32,9 @@ try:
     with open('user_cache', 'r') as f:
         user_cache = eval(f.read())
 except FileNotFoundError:
-    #File doesn't exist, so we continue on
-    log.info("No user cache existing, will be generating it for the first time.")
+    # File doesn't exist, so we continue on
+    log.info("No user cache existing, will be generating it for the " +
+             "first time.")
 
 
 def add_blacklisted(repo):

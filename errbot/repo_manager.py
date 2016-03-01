@@ -17,13 +17,19 @@ import re
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
-from .utils import PY2, which, human_name_for_git_url
+from .utils import PY2, which
 
 log = logging.getLogger(__name__)
 
 
 def timestamp(dt):
     return (dt - datetime(1970, 1, 1)).total_seconds() if PY2 else dt.timestamp()
+
+
+def human_name_for_git_url(url):
+    # try to humanize the last part of the git url as much as we can
+    s = url.split(':')[-1].split('/')[-2:]
+    return str('/'.join(s).rstrip('.git'))
 
 
 INSTALLED_REPOS = b'installed_repos' if PY2 else 'installed_repos'

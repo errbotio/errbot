@@ -88,12 +88,6 @@ def get_class_for_method(meth):
     return None
 
 
-def human_name_for_git_url(url):
-    # try to humanize the last part of the git url as much as we can
-    s = url.split(':')[-1].split('/')[-2:]
-    return str('/'.join(s).rstrip('.git'))
-
-
 def tail(f, window=20):
     return ''.join(f.readlines()[-window:])
 

@@ -229,7 +229,6 @@ class BotPluginManager(PluginManager, StoreMixin):
             # check if we have a plugin not overridding __init__ incorrectly
             sig = inspect.signature(element.__init__)
 
-            log.debug('plugin __init__(%s)' % sig.parameters)
             if len(sig.parameters) == 1:
                 log.warn(('Warning: %s needs to implement __init__(self, *args, **kwargs) '
                           'and forward them to super().__init__') % element.__name__)

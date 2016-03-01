@@ -21,9 +21,9 @@ try:
     AUTH = HTTPBasicAuth(user, token)
 except FileNotFoundError:
     log.fatal("No token found, cannot access the GitHub API")
-    sys.exit(-1)
 except ValueError:
     log.fatal("Token file cannot be properly read, should be of the form username:token")
+finally:
     sys.exit(-1)
 
 user_cache = {}

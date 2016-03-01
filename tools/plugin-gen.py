@@ -16,10 +16,14 @@ log.setLevel(logging.DEBUG)
 DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png'
 
 try:
+    user,token = open('token', 'r').read().strip().split(':')
     # token is generated from the personal tokens in github.
-    AUTH = HTTPBasicAuth('gbin', open('token', 'r').read().strip())
+    AUTH = HTTPBasicAuth(user, token)
 except FileNotFoundError:
     log.fatal("No token found, cannot access the GitHub API")
+    sys.exit(-1)
+except ValueError:
+    log.fatal("Token file cannot be properly read, should be of the form username:token")
     sys.exit(-1)
 
 user_cache = {}

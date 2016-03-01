@@ -104,12 +104,20 @@ class BotRepoManager(StoreMixin):
             self[REPO_INDEX] = index
             log.debug('Stored %d repo entries.', len(index) - 1)
 
-    def all_entries(self):
-        for repo_name, plugins in self[REPO_INDEX].items():
-            if repo_name == LAST_UPDATE:
-                continue
-            for plugin_name, plugin in plugins.items():
-                yield makeEntry(repo_name, plugin_name, plugin)
+    def get_repo_from_index(self, repo_name):
+        """
+        Retreive the list of plugins for the repo_name from the index.
+
+        :param repo_name: the name of hte repo
+        :return: a list of RepoEntry
+        """
+        plugins = self[REPO_INDEX].get(repo_name, None)
+        if plugins is None:
+            return None
+        result = []
+        for name, plugin in plugins.items():
+            result.append(makeEntry(repo_name, name, plugin))
+        return result
 
     def search_repos(self, query):
         """

@@ -73,8 +73,15 @@ class Plugins(BotPlugin):
             if repo_name in installed_repos:
                 installed = True
 
+            from_index = self._bot.repo_manager.get_repo_from_index(repo_name)
+
+            if from_index is not None:
+                description = '\n'.join(('%s: %s' % (plug.name, plug.documentation) for plug in from_index))
+            else:
+                description = 'No description.'
+
             # installed, public, name, desc
-            repos['repos'].append((installed, True, repo_name, ''))
+            repos['repos'].append((installed, from_index is not None, repo_name, description))
 
         return repos
 

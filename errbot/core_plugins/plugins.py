@@ -24,7 +24,7 @@ class Plugins(BotPlugin):
         try:
             local_path = self._bot.repo_manager.install_repo(args)
             errors = self._bot.plugin_manager.update_dynamic_plugins()
-            if errors is not None:
+            if errors:
                 yield 'Some plugins are generating errors:\n' + '\n'.join(errors.values())
                 # if the load of the plugin failed, uninstall cleanly teh repo
                 for path in errors.keys():

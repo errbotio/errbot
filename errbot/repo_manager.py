@@ -48,6 +48,7 @@ find_words = re.compile(r"(\w[\w']*\w|\w)")
 class RepoException(Exception):
     pass
 
+
 def makeEntry(repo_name, plugin_name, json_value):
     return RepoEntry(entry_name=repo_name,
                      name=plugin_name,

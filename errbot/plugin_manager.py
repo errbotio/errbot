@@ -59,6 +59,7 @@ def install_package(package):
         return sys.exc_info()
     return None
 
+
 def check_dependencies(path):
     """ This methods returns a pair of (message, packages missing).
     Or None if everything is OK.
@@ -348,13 +349,14 @@ class BotPluginManager(PluginManager, StoreMixin):
                         if error is not None:
                             errors[path] = ''.join(traceback.format_tb(error))
         else:
-            errors.update({path:result[0] for path, result in dependencies_result.items() if result is not None})
+            errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
         self.setPluginPlaces(chain(builtins, path_list))
         self.locatePlugins()
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 
-        errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2])) for pluginfo in self.loadPlugins() if pluginfo.error is not None})
+        errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2]))
+                       for pluginfo in self.loadPlugins() if pluginfo.error is not None})
         return errors
 
     def get_all_active_plugin_objects(self):

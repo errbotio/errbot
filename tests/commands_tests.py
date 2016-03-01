@@ -95,13 +95,12 @@ class TestCommands(FullStackTest):
     def test_plugin_cycle(self):
 
         plugins = [
-            # 'git://github.com/errbotio/err-helloworld.git',
             'errbotio/err-helloworld',
         ]
 
         for plugin in plugins:
             self.assertCommand('!repos install {0}'.format(plugin),
-                               'errbotio/err-helloworld',
+                               'A new plugin repository has been installed correctly from errbotio/err-helloworld',
                                60)
             self.assertIn('reload', self.bot.pop_message())
 
@@ -135,6 +134,11 @@ class TestCommands(FullStackTest):
 
             self.bot.push_message('!hello')  # should not respond
             self.assertIn('Command "hello" not found', self.bot.pop_message())
+
+    def test_broken_plugin(self):
+        self.assertCommand('!repos install https://github.com/errbotio/err-broken.git', 'import borken # fails')
+        self.assertIn('err-broken as it did not load correctly.', self.bot.pop_message())
+        self.assertIn('Plugins reloaded without any error.', self.bot.pop_message())
 
     @pytest.mark.xfail
     def test_backup(self):

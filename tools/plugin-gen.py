@@ -15,13 +15,21 @@ log.setLevel(logging.DEBUG)
 
 DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png'
 
-# token is generated from the personal tokens in github.
-AUTH = HTTPBasicAuth('gbin', open('token', 'r').read().strip())
+try:
+    # token is generated from the personal tokens in github.
+    AUTH = HTTPBasicAuth('gbin', open('token', 'r').read().strip())
+except FileNotFoundError:
+    log.fatal("No token found, cannot access the GitHub API")
+    sys.exit(-1)
 
 user_cache = {}
 
-with open('user_cache', 'r') as f:
-    user_cache = eval(f.read())
+try:
+    with open('user_cache', 'r') as f:
+        user_cache = eval(f.read())
+except FileNotFoundError:
+    #File doesn't exist, so we continue on
+    log.info("No user cache existing, will be generating it for the first time.")
 
 
 def add_blacklisted(repo):
@@ -36,8 +44,12 @@ def save_plugins():
     with open('repos.json', 'w') as f:
         f.write(json.dumps(plugins))
 
-with open('blacklisted.txt', 'r') as f:
-    BLACKLISTED = [line.strip() for line in f.readlines()]
+BLACKLISTED = []
+try:
+    with open('blacklisted.txt', 'r') as f:
+        BLACKLISTED = [line.strip() for line in f.readlines()]
+except FileNotFoundError:
+    log.info("No blacklisted.txt found, no plugins will be blacklisted.")
 
 
 def get_avatar_url(repo):

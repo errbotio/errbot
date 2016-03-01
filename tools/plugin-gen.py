@@ -123,7 +123,9 @@ def check_repo(repo):
             'avatar_url': avatar_url,
         }
 
-        plugins[repo+'~'+name] = plugin
+        repo_entry = plugins.get(repo, {})
+        repo_entry[name] = plugin
+        plugins[repo] = repo_entry
         log.debug('Catalog added plugin %s.', plugin['name'])
         rate_limit(plugfile_resp)
 

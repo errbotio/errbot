@@ -1,19 +1,19 @@
 {
 
-  "name2/err-reponame2~pluginname2": {
+  "name2/err-reponame2": {"pluginname2": {
     "python": "2+",
     "repo": "https://github.com/name/err-reponame2",
     "path": "/plugin2.plug",
     "avatar_url": "https://avatars.githubusercontent.com/u/588833?v=3",
     "name": "NewPluginName2",
     "documentation": "docs2"
-  },
-  "name3/err-reponame3~pluginname3": {
+  }},
+  "name3/err-reponame3": {"pluginname3": {
     "python": "2+",
     "repo": "https://github.com/name/err-reponame1",
     "path": "/plugin1.plug",
     "avatar_url": "https://avatars.githubusercontent.com/u/588833?v=3",
     "name": "PluginName1",
     "documentation": "docs1"
-  }
+  }}
 }

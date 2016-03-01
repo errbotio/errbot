@@ -37,9 +37,9 @@ RepoEntry = namedtuple('RepoEntry', 'entry_name, name, python, repo, path, avata
 find_words = re.compile(r"(\w[\w']*\w|\w)")
 
 
-def makeEntry(json_key, json_value):
-    return RepoEntry(entry_name=json_key.split('~')[0],
-                     name=json_value['name'],
+def makeEntry(repo_name, plugin_name, json_value):
+    return RepoEntry(entry_name=repo_name,
+                     name=plugin_name,
                      python=json_value['python'],
                      repo=json_value['repo'],
                      path=json_value['path'],
@@ -105,10 +105,11 @@ class BotRepoManager(StoreMixin):
             log.debug('Stored %d repo entries.', len(index) - 1)
 
     def all_entries(self):
-        for key, entry in self[REPO_INDEX].items():
-            if key == LAST_UPDATE:
+        for repo_name, plugins in self[REPO_INDEX].items():
+            if repo_name == LAST_UPDATE:
                 continue
-            yield makeEntry(key, entry)
+            for plugin_name, plugin in plugins.items():
+                yield makeEntry(repo_name, plugin_name, plugin)
 
     def search_repos(self, query):
         """
@@ -123,11 +124,12 @@ class BotRepoManager(StoreMixin):
             log.error('No index.')
             return
         query_work_set = set(find_words.findall(query.lower()))
-        for key, entry in self[REPO_INDEX].items():
-            if key == LAST_UPDATE:
+        for repo_name, plugins in self[REPO_INDEX].items():
+            if repo_name == LAST_UPDATE:
                 continue
-            if query_work_set.intersection(tokenizeJsonEntry(entry)):
-                yield makeEntry(key, entry)
+            for plugin_name, plugin in plugins.items():
+                if query_work_set.intersection(tokenizeJsonEntry(plugin)):
+                    yield makeEntry(repo_name, plugin_name, plugin)
 
     def get_installed_plugin_repos(self):
         return self.get(INSTALLED_REPOS, {})
@@ -149,11 +151,9 @@ class BotRepoManager(StoreMixin):
         self.check_for_index_update()
 
         # try to find if we have something with that name in our index
-        for entry in self.all_entries():
-            if repo == entry.entry_name:
-                human_name = repo
-                repo_url = entry.repo
-                break
+        if repo in self[REPO_INDEX]:
+            human_name = repo
+            repo_url = next(iter(self[REPO_INDEX][repo].values()))['repo']
         else:
             # This is a repo url, make up a plugin definition for it
             # TODO read the definition if possible.

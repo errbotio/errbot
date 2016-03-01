@@ -29,8 +29,8 @@ class TestRepoManagement(unittest.TestCase):
         index_entry = manager[repo_manager.REPO_INDEX]
 
         self.assertIn(repo_manager.LAST_UPDATE, index_entry)
-        self.assertIn('name1/err-reponame1~pluginname1', index_entry)
-        self.assertIn('name2/err-reponame2~pluginname2', index_entry)
+        self.assertIn('pluginname1', index_entry['name1/err-reponame1'])
+        self.assertIn('pluginname2', index_entry['name2/err-reponame2'])
 
     def test_index_merge(self):
         manager = repo_manager.BotRepoManager(self.storage_plugin,
@@ -42,13 +42,13 @@ class TestRepoManagement(unittest.TestCase):
         index_entry = manager[repo_manager.REPO_INDEX]
 
         # First they should be all here
-        self.assertIn('name1/err-reponame1~pluginname1', index_entry)
-        self.assertIn('name2/err-reponame2~pluginname2', index_entry)
-        self.assertIn('name3/err-reponame3~pluginname3', index_entry)
+        self.assertIn('pluginname1', index_entry['name1/err-reponame1'])
+        self.assertIn('pluginname2', index_entry['name2/err-reponame2'])
+        self.assertIn('pluginname3', index_entry['name3/err-reponame3'])
 
         # then it must be the correct one of the overriden one
 
-        self.assertEqual(index_entry['name2/err-reponame2~pluginname2']['name'], 'NewPluginName2')
+        self.assertEqual(index_entry['name2/err-reponame2']['pluginname2']['name'], 'NewPluginName2')
 
     def test_reverse_merge(self):
         manager = repo_manager.BotRepoManager(self.storage_plugin,
@@ -58,7 +58,7 @@ class TestRepoManagement(unittest.TestCase):
         manager.index_update()
 
         index_entry = manager[repo_manager.REPO_INDEX]
-        self.assertFalse(index_entry['name2/err-reponame2~pluginname2']['name'] == 'NewPluginName2')
+        self.assertFalse(index_entry['name2/err-reponame2']['pluginname2']['name'] == 'NewPluginName2')
 
     def test_no_update_if_one_fails(self):
         manager = repo_manager.BotRepoManager(self.storage_plugin,
@@ -105,7 +105,7 @@ class TestRepoManagement(unittest.TestCase):
 
         a = [p for p in manager.search_repos('docs2')]
         self.assertEqual(len(a), 1)
-        self.assertEqual(a[0].name, 'PluginName2')
+        self.assertEqual(a[0].name, 'pluginname2')
 
         a = [p for p in manager.search_repos('zorg')]
         self.assertEqual(len(a), 0)

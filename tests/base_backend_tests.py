@@ -28,14 +28,16 @@ LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated 
 logging.basicConfig(level=logging.DEBUG)
 
 SIMPLE_JSON_PLUGINS_INDEX = """
-{"errbotio/err-helloworld~HelloWorld":
-    {"path": "/helloWorld.plug",
-     "documentation": "let's say hello !",
-     "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=3",
-     "name": "HelloWorld",
-     "python": "2+",
-     "repo": "https://github.com/errbotio/err-helloworld"
-     }
+{"errbotio/err-helloworld":
+    {"HelloWorld":
+        {"path": "/helloWorld.plug",
+         "documentation": "let's say hello !",
+         "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=3",
+         "name": "HelloWorld",
+         "python": "2+",
+         "repo": "https://github.com/errbotio/err-helloworld"
+         }
+    }
 }
 """
 

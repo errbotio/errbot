@@ -171,10 +171,12 @@ class BotRepoManager(StoreMixin):
         """
         Install the repository from repo
 
-        :repo the url, git url or path on disk of a repository. It can point to either a git repo or
-        a .tar.gz of a plugin
-        :returns the path on disk where the repo has been installed on.
-        :raises RepoException if an error occured.
+        :param repo:
+            The url, git url or path on disk of a repository. It can point to either a git repo or
+             a .tar.gz of a plugin
+        :returns:
+            The path on disk where the repo has been installed on.
+        :raises: :class:`~RepoException` if an error occured.
         """
         self.check_for_index_update()
 

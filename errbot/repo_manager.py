@@ -45,6 +45,10 @@ RepoEntry = namedtuple('RepoEntry', 'entry_name, name, python, repo, path, avata
 find_words = re.compile(r"(\w[\w']*\w|\w)")
 
 
+class RepoException(Exception):
+    pass
+
+
 def makeEntry(repo_name, plugin_name, json_value):
     return RepoEntry(entry_name=repo_name,
                      name=plugin_name,
@@ -164,6 +168,16 @@ class BotRepoManager(StoreMixin):
         return [self.plugin_dir + os.sep + d for d in self.get(INSTALLED_REPOS, {}).keys()]
 
     def install_repo(self, repo):
+        """
+        Install the repository from repo
+
+        :param repo:
+            The url, git url or path on disk of a repository. It can point to either a git repo or
+             a .tar.gz of a plugin
+        :returns:
+            The path on disk where the repo has been installed on.
+        :raises: :class:`~RepoException` if an error occured.
+        """
         self.check_for_index_update()
 
         # try to find if we have something with that name in our index
@@ -178,8 +192,8 @@ class BotRepoManager(StoreMixin):
 
         git_path = which('git')
         if not git_path:
-            return ('git command not found: You need to have git installed on '
-                    'your system to be able to install git based plugins.', )
+            raise RepoException('git command not found: You need to have git installed on '
+                                'your system to be able to install git based plugins.', )
 
         # TODO: Update download path of plugin.
         if repo_url.endswith('tar.gz'):
@@ -194,10 +208,10 @@ class BotRepoManager(StoreMixin):
             feedback = p.stdout.read().decode('utf-8')
             error_feedback = p.stderr.read().decode('utf-8')
             if p.wait():
-                return "Could not load this plugin: \n\n%s\n\n---\n\n%s" % (feedback, error_feedback),
+                raise RepoException("Could not load this plugin: \n\n%s\n\n---\n\n%s" % (feedback, error_feedback))
 
         self.add_plugin_repo(human_name, repo_url)
-        return
+        return os.path.join(self.plugin_dir, human_name)
 
     def update_repos(self, repos):
         """

@@ -224,6 +224,7 @@ class TestBackend(ErrBot):
         self.md = text()
 
     def send_message(self, mess):
+        log.info("\n\n\nMESSAGE:\n%s\n\n\n", mess.body)
         super().send_message(mess)
         self.outgoing_message_queue.put(self.md.convert(mess.body))
 

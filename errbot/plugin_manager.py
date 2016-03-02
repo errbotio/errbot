@@ -1,5 +1,5 @@
 """ Logic related to plugin loading and lifecycle """
-
+import traceback
 from configparser import NoSectionError, NoOptionError, ConfigParser
 from itertools import chain
 import importlib
@@ -43,6 +43,8 @@ def populate_doc(plugin):
 
 
 def install_package(package):
+    """ Return an exc_info if it fails otherwise None.
+    """
     log.info("Installing package '%s'." % package)
     if hasattr(sys, 'real_prefix'):
         # this is a virtualenv, so we can use it directly
@@ -54,6 +56,8 @@ def install_package(package):
         globals()[package] = importlib.import_module(package)
     except:
         log.exception("Failed to load the dependent package")
+        return sys.exc_info()
+    return None
 
 
 def check_dependencies(path):
@@ -316,6 +320,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             self.activate_plugin(name)
 
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
+        """ It returns a dictionary of path -> error strings."""
         builtins = find_roots_with_extra(CORE_PLUGINS, extra_plugin_dir)
 
         paths = path_list
@@ -330,31 +335,28 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.debug("Add %s to sys.path" % entry)
                 sys.path.append(entry)  # so plugins can relatively import their repos
 
-        dependencies_result = [check_dependencies(path) for path in paths]
+        dependencies_result = {path: check_dependencies(path) for path in paths}
         deps_to_install = set()
+        errors = {}
         if autoinstall_deps:
-            for result in dependencies_result:
+            for path, result in dependencies_result.items():
                 if result:
-                    deps_to_install.update(result[1])
-            if deps_to_install:
-                for dep in deps_to_install:
-                    if dep.strip() != '':
+                    dep = result[1]
+                    if dep.strip() != '' and dep not in deps_to_install:
+                        deps_to_install.update(dep)
                         log.info("Trying to install an unmet dependency: '%s'" % dep)
-                        install_package(dep)
-            errors = []
+                        error = install_package(dep)
+                        if error is not None:
+                            errors[path] = ''.join(traceback.format_tb(error))
         else:
-            errors = [result[0] for result in dependencies_result if result is not None]
+            errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
         self.setPluginPlaces(chain(builtins, path_list))
         self.locatePlugins()
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 
-        # noinspection PyBroadException
-        try:
-            self.loadPlugins()
-        except Exception:
-            log.exception("Error while loading plugins")
-
+        errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2]))
+                       for pluginfo in self.loadPlugins() if pluginfo.error is not None})
         return errors
 
     def get_all_active_plugin_objects(self):
@@ -411,6 +413,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
+        """ It returns a dictionary of path -> error strings."""
         return self.update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra, self.autoinstall_deps)
 
     def activate_non_started_plugins(self):

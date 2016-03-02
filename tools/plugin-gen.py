@@ -34,7 +34,11 @@ plugins = {}
 
 def save_plugins():
     with open('repos.json', 'w') as f:
-        f.write(json.dumps(plugins))
+        json.dump(plugins,
+                  f,
+                  sort_keys=True,
+                  indent=2,
+                  separators=(',', ': '))
 
 with open('blacklisted.txt', 'r') as f:
     BLACKLISTED = [line.strip() for line in f.readlines()]

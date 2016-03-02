@@ -44,7 +44,8 @@ class VersionChecker(BotPlugin):
             if installed_version < current_version:
                 self.log.debug('A new version %s has been found, notify the admins !' % current_version)
                 self.warn_admins(
-                    'Version {0} of err is available. http://pypi.python.org/pypi/err/{0}. You can disable this check '
+                    'Version {0} of err is available. http://pypi.python.org/pypi/errbot/{0}.'
+                    ' You can disable this check '
                     'by doing !plugin blacklist VersionChecker'.format(current_version_txt)
                 )
         except (HTTPError, URLError):

@@ -1,3 +1,4 @@
+import collections
 import json
 import logging
 import re
@@ -66,7 +67,7 @@ USER_IS_BOT_HELPTEXT = (
 class SlackAPIResponseError(RuntimeError):
     """Slack API returned a non-OK response"""
 
-    def __init__(self, error='', *args, **kwargs):
+    def __init__(self, *args, error='', **kwargs):
         """
         :param error:
             The 'error' key from the API response data
@@ -193,14 +194,18 @@ class SlackBackend(ErrBot):
         :param data:
             A dictionary with data to pass along in the API request.
         :returns:
-            The JSON-decoded API response
+            A dictionary containing the (JSON-decoded) API response
         :raises:
             :class:`~SlackAPIResponseError` if raise_errors is True and the
             API responds with `{"ok": false}`
         """
         if data is None:
             data = {}
-        response = json.loads(self.sc.server.api_call(method, **data))
+        response = self.sc.api_call(method, **data)
+        if not isinstance(response, collections.Mapping):
+            # Compatibility with SlackClient < 1.0.0
+            response = json.loads(response.decode('utf-8'))
+
         if raise_errors and not response['ok']:
             raise SlackAPIResponseError(
                 "Slack API call to %s failed: %s" % (method, response['error']),
@@ -338,8 +343,12 @@ class SlackBackend(ErrBot):
 
         for word in text.split():
             if word.startswith('<') or word.startswith('@') or word.startswith('#'):
+                try:
+                    identifier = self.build_identifier(word.replace(':', ''))
+                except ValueError:
+                    continue
                 log.debug('Someone mentioned')
-                mentioned.append(self.build_identifier(word.replace(':', '')))
+                mentioned.append(identifier)
                 text = re.sub('<@[^>]*>:*', '@%s' % mentioned[-1].username, text)
 
         text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)

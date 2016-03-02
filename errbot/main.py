@@ -108,7 +108,7 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     errors = bot.plugin_manager.update_dynamic_plugins()
     if errors:
-        log.error('Some plugins failed to load:\n' + '\n'.join(errors))
+        log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
     return bot
 
 

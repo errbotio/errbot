@@ -53,7 +53,7 @@ class Backup(BotPlugin):
                 f.write('bot.repo_manager["'+key+'"] = ' + repr(value) + '\n')
 
             f.write('log.info("Installing plugins.")\n')
-            f.write('if "installed_repos" in bot.repo_manager:\n')
+            f.write('if "installed_repos" in bot.repo_manager.values():\n')
             f.write('  for repo in bot.repo_manager["installed_repos"]:\n')
             f.write('    log.error(bot.repo_manager.install_repo(repo))\n')
 

@@ -136,7 +136,7 @@ class TestCommands(FullStackTest):
             self.assertIn('Command "hello" not found', self.bot.pop_message())
 
     def test_broken_plugin(self):
-        self.assertCommand('!repos install https://github.com/errbotio/err-broken.git', 'import borken # fails')
+        self.assertCommand('!repos install https://github.com/errbotio/err-broken.git', 'import borken # fails', 60)
         self.assertIn('err-broken as it did not load correctly.', self.bot.pop_message())
         self.assertIn('Plugins reloaded without any error.', self.bot.pop_message())
 

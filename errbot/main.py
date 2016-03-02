@@ -16,6 +16,8 @@ HERE = path.dirname(path.abspath(__file__))
 CORE_BACKENDS = path.join(HERE, 'backends')
 CORE_STORAGE = path.join(HERE, 'storage')
 
+PLUGIN_DEFAULT_INDEX = 'http://version.errbot.io/repos.json'
+
 
 def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
@@ -60,7 +62,7 @@ def setup_bot(backend_name, logger, config, restore=None):
     if not path.exists(botplugins_dir):
         makedirs(botplugins_dir, mode=0o755)
 
-    plugin_indexes = getattr(config, 'BOT_PLUGIN_INDEXES', ('http://repos.errbot.io/repos.json',))
+    plugin_indexes = getattr(config, 'BOT_PLUGIN_INDEXES', (PLUGIN_DEFAULT_INDEX,))
     if type(plugin_indexes) is str:
         plugin_indexes = (plugin_indexes, )
 

@@ -17,7 +17,7 @@ import re
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
-from .utils import PY2, which
+from .utils import PY2, which, compat_str
 
 log = logging.getLogger(__name__)
 
@@ -99,8 +99,7 @@ class BotRepoManager(StoreMixin):
                 else:
                     log.debug('Update from local source %s...', source)
                     src_file = open(source, 'r')
-
-                index.update(json.loads(src_file.read()))
+                index.update(json.loads(compat_str(src_file.read())))
             except (HTTPError, URLError, IOError):
                 log.exception('Could not update from source %s, keep the index as it is.', source)
                 break

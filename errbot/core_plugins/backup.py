@@ -52,9 +52,8 @@ class Backup(BotPlugin):
             f.write('bot.repo_manager["installed_repos"] = ' + repr(self._bot['repos']) + '\n')
 
             f.write('log.info("Installing plugins.")\n')
-            f.write('if "installed_repos" in bot.repo_manager.values():\n')
-            f.write('  for repo in bot.repo_manager["installed_repos"]:\n')
-            f.write('    log.error(bot.repo_manager.install_repo(repo))\n')
+            f.write('for repo in bot.repo_manager["installed_repos"].values():\n')
+            f.write('  log.error(bot.repo_manager.install_repo(repo))\n')
 
             f.write('log.info("Restoring plugins data.")\n')
             f.write('bot.plugin_manager.update_dynamic_plugins()\n')

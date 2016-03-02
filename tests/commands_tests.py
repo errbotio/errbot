@@ -140,12 +140,12 @@ class TestCommands(FullStackTest):
         self.assertIn('err-broken as it did not load correctly.', self.bot.pop_message())
         self.assertIn('Plugins reloaded without any error.', self.bot.pop_message())
 
-    @pytest.mark.xfail
     def test_backup(self):
-        self.bot.push_message('!repos install git://github.com/errbotio/err-helloworld.git')
+        bot = self.bot  # used while restoring
+        bot.push_message('!repos install https://github.com/errbotio/err-helloworld.git')
         self.assertIn('err-helloworld', self.bot.pop_message(timeout=60))
         self.assertIn('reload', self.bot.pop_message())
-        self.bot.push_message('!backup')
+        bot.push_message('!backup')
         msg = self.bot.pop_message()
         self.assertIn('has been written in', msg)
         filename = re.search(r"'([A-Za-z0-9_\./\\-]*)'", msg).group(1)
@@ -157,17 +157,20 @@ class TestCommands(FullStackTest):
         for p in self.bot.plugin_manager.get_all_active_plugin_objects():
             p.close_storage()
 
+        self.assertCommand('!plugin deactivate HelloWorld', 'Plugin HelloWorld deactivated.')
+
         plugins_dir = path.join(self.bot.bot_config.BOT_DATA_DIR, 'plugins')
-        self.bot.plugin_manager['repos'] = {}
-        self.bot.plugin_manager['configs'] = {}
+        bot.repo_manager['installed_repos'] = {}
+        bot.plugin_manager['configs'] = {}
         rmtree(plugins_dir)
         mkdir(plugins_dir)
 
         # emulates the restore environment
         log = logging.getLogger(__name__)  # noqa
-        bot = self.bot  # noqa
         with open(filename) as f:
             exec(f.read())
+
+        self.assertCommand('!plugin activate HelloWorld', 'Plugin HelloWorld activated.')
         self.assertCommand('!hello', 'Hello World !')
         self.bot.push_message('!repos uninstall errbotio/err-helloworld')
 

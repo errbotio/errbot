@@ -22,7 +22,7 @@ with open('repos.json', 'r') as p:
                 pass
             filtered_plugins.append(plugin)
 
-    sorted_plugins = sorted(filtered_plugins, key = lambda plugin:plugin['name'])
+    sorted_plugins = sorted(filtered_plugins, key=lambda plugin: plugin['name'])
 
     with open('Home.md', 'w') as out:
         out.write(template.render(plugins=sorted_plugins))

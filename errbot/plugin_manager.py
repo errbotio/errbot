@@ -258,9 +258,6 @@ class BotPluginManager(PluginManager, StoreMixin):
 
         obj = pta_item.plugin_object
 
-        # Deprecated: old way to check for min/max versions
-        check_errbot_version(name, obj.min_err_version, obj.max_err_version)
-
         try:
             if obj.get_configuration_template() is not None and config is not None:
                 log.debug('Checking configuration for %s...', name)

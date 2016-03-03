@@ -51,9 +51,6 @@ class NullBackend(ErrBot):
     def build_identifier(self, strrep):
         return TestIdentifier(strrep)
 
-    def join_room(self, room, username=None, password=None):
-        pass  # just ignore that
-
     def shutdown(self):
         if self.running:
             self.running = False

@@ -387,20 +387,6 @@ class XMPPConnection(object):
     def del_event_handler(self, name, cb):
         self.client.del_event_handler(name, cb)
 
-    def join_room(self, room, username, password):
-        """
-        Attempt to join the given MUC
-
-        .. deprecated:: 2.2.0
-            Use the methods on :class:`XMPPMUCRoom` instead.
-        """
-        warnings.warn(
-            "Using join_room is deprecated, use join from the "
-            "MUCRoom class instead.",
-            DeprecationWarning
-        )
-        self._bot.query_room(room).join(username=username, password=password)
-
     def configure_room(self, room):
         """
         Configure the given MUC

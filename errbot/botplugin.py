@@ -2,7 +2,7 @@ import logging
 import shlex
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Tuple, Callable, Mapping, Sequence
+from typing import Tuple, Callable, Mapping, Sequence, Union
 from io import IOBase
 
 from .utils import recurse_check_structure
@@ -342,22 +342,27 @@ class BotPlugin(BotPluginBase):
         self._bot.warn_admins(warning)
 
     def send(self,
-             user: object,
+             user_or_room: Union[Identifier, MUCRoom],
              text: str,
              in_reply_to: Message=None,
-             message_type: str='chat',
+             message_type: str=None,
              groupchat_nick_reply: bool=False) -> None:
         """
             Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
 
              :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-             :param message_type: 'chat' or 'groupchat'
+             :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
              :param text: markdown formatted text to send to the user.
-             :param user: identifier of the user to which you want to send a message to. see build_identifier.
+             :param user_or_room: identifier of the user or a room to which you want to send a message to.
+                                   see build_identifier.
         """
-        return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+        if type(user_or_room) is str:
+            raise ValueError("user_or_send needs to be Identifier or MUCRoom, the old string behavior is not supported")
+        if message_type is not None:
+            self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
+        return self._bot.send(user_or_room, text, in_reply_to, groupchat_nick_reply)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """
@@ -374,7 +379,7 @@ class BotPlugin(BotPluginBase):
                        template_name: str,
                        template_parameters: Mapping,
                        in_reply_to: Message=None,
-                       message_type: str='chat',
+                       message_type: str=None,
                        groupchat_nick_reply: bool=False) -> None:
         """
             Sends asynchronously a message to a room or a user.
@@ -384,7 +389,7 @@ class BotPlugin(BotPluginBase):
              :param template_parameters: arguments for the template.
              :param template_name: name of the template to use.
              :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-             :param message_type: 'chat' or 'groupchat'
+             :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
              :param text: markdown formatted text to send to the user.
              :param user: identifier of the user to which you want to send a message to. see build_identifier.
@@ -392,12 +397,13 @@ class BotPlugin(BotPluginBase):
         return self._bot.send_templated(user, template_name, template_parameters, in_reply_to, message_type,
                                         groupchat_nick_reply)
 
-    def build_identifier(self, txtrep: str):
+    def build_identifier(self, txtrep: str) -> Identifier:
         """
-           Transform a textual representation of a user or room identifier to the correct
+           Transform a textual representation of a user identifier to the correct
            Identifier object you can set in Message.to and Message.frm.
 
            :param txtrep: the textual representation of the identifier (it is backend dependent).
+           :return: a user identifier.
         """
         return self._bot.build_identifier(txtrep)
 
@@ -419,19 +425,6 @@ class BotPlugin(BotPluginBase):
             It will return a Stream object on which you can monitor the progress of it.
         """
         return self._bot.send_stream_request(user, fsource, name, size, stream_type)
-
-    def join_room(self, room: str, username: str=None, password: str=None):
-        """
-        Join a room (MUC).
-
-        :param room:
-            The JID/identifier of the room to join.
-        :param username:
-            An optional username to use.
-        :param password:
-            An optional password to use (for password-protected rooms).
-        """
-        return self._bot.join_room(room, username, password)
 
     def rooms(self) -> Sequence[MUCRoom]:
         """

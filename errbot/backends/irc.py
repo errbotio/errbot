@@ -10,11 +10,13 @@ import time
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-from errbot.backends.base import Message, MUCRoom, RoomError, RoomNotJoinedError, Stream, Identifier, MUCIdentifier, \
-    ONLINE
+from errbot.backends.base import Message, MUCRoom, Stream, RoomError, \
+                                    RoomNotJoinedError, Stream, Identifier, \
+                                    MUCIdentifier, ONLINE
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
-from errbot.rendering.ansi import AnsiExtension, enable_format, CharacterTable, NSC
+from errbot.rendering.ansi import AnsiExtension, enable_format, \
+                                    CharacterTable, NSC
 
 
 # Can't use __name__ because of Yapsy
@@ -149,8 +151,8 @@ class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
     def __str__(self):
         return self.__unicode__()
 
-
-JOIN_TIMEOUT = 30
+    def __repr__(self):
+        return "<{} - {}>".format(self.__unicode__(), super().__repr__())
 
 
 class IRCMUCRoom(MUCRoom):
@@ -159,6 +161,15 @@ class IRCMUCRoom(MUCRoom):
         self.room = room
         self.aclpattern = aclpattern
         self.connection = self._bot.conn.connection
+
+    def __unicode__(self):
+        return self.room
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __repr__(self):
+        return "<{} - {}>".format(self.__unicode__(), super().__repr__())
 
     def join(self, username=None, password=None):
         """
@@ -173,16 +184,6 @@ class IRCMUCRoom(MUCRoom):
             password = ""
 
         self.connection.join(self.room, key=password)
-        for attempt in range(JOIN_TIMEOUT):
-            time.sleep(.5)
-            if self.joined:
-                break
-            time.sleep(.5)
-        else:
-            log.error("Timeout: Could not join %s", self.room)
-            return
-
-        self._bot.callback_room_joined(self)
         log.info("Joined room {}".format(self.room))
 
     def leave(self, reason=None):
@@ -284,7 +285,8 @@ class IRCMUCRoom(MUCRoom):
             for nick in self._bot.conn.channels[self.room].users():
                 occupants.append(IRCMUCOccupant(nick, room=self.room, aclpattern=self.aclpattern))
         except KeyError:
-            raise RoomNotJoinedError("Must be in a room in order to see occupants.")
+            raise RoomNotJoinedError("Must be in a room in order to \
+                                     see occupants.")
         return occupants
 
     def invite(self, *args):
@@ -300,6 +302,7 @@ class IRCMUCRoom(MUCRoom):
 
 
 class IRCConnection(SingleServerIRCBot):
+
     def __init__(self,
                  callback,
                  nickname,
@@ -329,6 +332,8 @@ class IRCConnection(SingleServerIRCBot):
             self.send_public_message = rate_limited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
         self._pending_transfers = {}
+        self._recently_joined_lock = threading.Lock()
+        self._recently_joined_to = set()
 
         self.nickserv_password = nickserv_password
         if username is None:
@@ -352,7 +357,6 @@ class IRCConnection(SingleServerIRCBot):
             connection_factory_kwargs['ipv6'] = True
 
         connection_factory = irc.connection.Factory(**connection_factory_kwargs)
-
         self.connection.connect(*args, connect_factory=connection_factory, **kwargs)
 
     def on_welcome(self, _, e):
@@ -451,6 +455,50 @@ class IRCConnection(SingleServerIRCBot):
     def on_dcc_disconnect(self, dcc, event):
         self.transfers.pop(dcc)
 
+    def on_endofnames(self, connection, event):
+        """
+            Handler of the enfofnames IRC message/event.
+
+            The endofnames message is sent to the client when the server finish
+            to send the list of names of the room ocuppants.
+            This usually happens when you join to the room.
+            So in this case, we use this event to determine that our bot is
+            finally joined to the room.
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                the e.arguments[0] contains the channel name
+        """
+        # The event.arguments[0] contains the channel name.
+        # We filter that to avoid a misfire of the event.
+        room_name = event.arguments[0]
+        with self._recently_joined_lock:
+            if room_name in self._recently_joined_to:
+                self._recently_joined_to.remove(room_name)
+                self.callback.callback_room_joined(
+                                    IRCMUCRoom(room_name, self.callback))
+
+    def on_join(self, connection, event):
+        """
+            Handler of the join IRC message/event
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                the event.target contains the channel name
+        """
+        # We can't fire the room_joined event yet,
+        # because we don't have the occupants info.
+        # We need to wait to endofnames message.
+        room_name = event.target
+        with self._recently_joined_lock:
+            self._recently_joined_to.add(room_name)
+
     @staticmethod
     def send_chunk(stream, dcc):
         data = stream.read(4096)
@@ -485,8 +533,8 @@ class IRCConnection(SingleServerIRCBot):
 
 
 class IRCBackend(ErrBot):
-    def __init__(self, config):
 
+    def __init__(self, config):
         identity = config.BOT_IDENTITY
         nickname = identity['nickname']
         server = identity['server']

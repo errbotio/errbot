@@ -41,13 +41,7 @@ class ChatRoom(BotPlugin):
             room_name = compat_str(room)
             room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
             self.log.info("Joining room {} with username {}".format(room, username))
-        try:
             self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
-        except NotImplementedError:
-            # Backward compatibility for backends which do not yet have a
-            # query_room implementation and still have a join_room method.
-            logging.warning("query_room not implemented on this backend, using legacy join_room instead")
-            self.join_room(room, username=username, password=password)
 
     def deactivate(self):
         self.connected = False

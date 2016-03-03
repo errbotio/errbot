@@ -19,7 +19,7 @@ import inspect
 import logging
 import traceback
 
-from .backends.base import Backend
+from .backends.base import Backend, MUCRoom, Identifier
 from threadpool import ThreadPool, WorkRequest
 from .streaming import Tee
 from .templating import tenv
@@ -135,7 +135,7 @@ class ErrBot(Backend, StoreMixin):
             except Exception:
                 log.exception("{} on {} crashed".format(method, plugin_name))
 
-    def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
+    def send(self, user_or_room, text, in_reply_to=None, groupchat_nick_reply=False):
         """ Sends a simple message to the specified user.
 
             :param user:
@@ -144,33 +144,24 @@ class ErrBot(Backend, StoreMixin):
                 the original message the bot is answering from
             :param text:
                 the markdown text you want to send
-            :param message_type:
-                chat or groupchat
             :param groupchat_nick_reply:
                 authorized the prefixing with the nick form the user
         """
-        if not hasattr(user, 'person'):
-            s = compat_str(user)
-            if s is not None:
-                user = self.build_identifier(s)
+        # protect a little bit the backends here
+        if not isinstance(user_or_room, (MUCRoom, Identifier)):
+            raise ValueError("user_or_room should be either a MUCRoom or an Identifier")
 
         mess = self.build_message(text)
-        mess.to = user
-
-        if in_reply_to:
-            mess.type = in_reply_to.type
-            mess.frm = in_reply_to.to
-        else:
-            mess.type = message_type
-            mess.frm = self.bot_identifier
+        mess.to = user_or_room
+        mess.frm = in_reply_to.to if in_reply_to else self.bot_identifier
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
-        if message_type == 'groupchat' and in_reply_to and nick_reply and groupchat_nick_reply:
+        if isinstance(user_or_room, MUCRoom) and in_reply_to and nick_reply and groupchat_nick_reply:
             self.prefix_groupchat_reply(mess, in_reply_to.frm)
 
         self.split_and_send_message(mess)
 
-    def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
+    def send_templated(self, user_or_room, template_name, template_parameters, in_reply_to=None,
                        groupchat_nick_reply=False):
         """ Sends a simple message to the specified user using a template.
 
@@ -180,13 +171,11 @@ class ErrBot(Backend, StoreMixin):
                 an identifier from build_identifier or from an incoming message
             :param in_reply_to:
                 the original message the bot is answering from
-            :param message_type:
-                chat or groupchat
             :param groupchat_nick_reply:
                 authorized the prefixing with the nick form the user
         """
         text = self.process_template(template_name, template_parameters)
-        return self.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+        return self.send(user_or_room, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, mess):
         for part in split_string_after(mess.body, self.bot_config.MESSAGE_SIZE_LIMIT):

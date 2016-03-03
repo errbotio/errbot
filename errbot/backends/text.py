@@ -129,10 +129,6 @@ class TextBackend(ErrBot):
         response.type = 'chat' if private else mess.type
         return response
 
-    @deprecated
-    def join_room(self, room, username=None, password=None):
-        return self.query_room(room)
-
     @property
     def mode(self):
         return 'text'

@@ -74,8 +74,6 @@ except ImportError as _:
     sys.exit(-1)
 
 
-
-
 def irc_md():
     """This makes a converter from markdown to mirc color format.
     """
@@ -334,7 +332,7 @@ class IRCConnection(SingleServerIRCBot):
             self.send_public_message = rate_limited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
         self._pending_transfers = {}
-        self._recently_joined_lock=threading.Lock()
+        self._recently_joined_lock = threading.Lock()
         self._recently_joined_to = set()
 
         self.nickserv_password = nickserv_password
@@ -480,7 +478,7 @@ class IRCConnection(SingleServerIRCBot):
         with self._recently_joined_lock:
             if room_name in self._recently_joined_to:
                 self._recently_joined_to.remove(room_name)
-                self.callback.callback_room_joined(\
+                self.callback.callback_room_joined(
                                     IRCMUCRoom(room_name, self.callback))
 
     def on_join(self, connection, event):

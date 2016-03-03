@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 from ast import literal_eval
-import subprocess
-from os import path
 from pprint import pformat
+import os
 import shutil
 
 from errbot import BotPlugin, botcmd
-from errbot.repos import KNOWN_PUBLIC_REPOS
-from errbot.rendering import md_escape
-from errbot.utils import which
-from errbot.plugin_manager import check_dependencies, global_restart, PluginConfigurationException
+from errbot.plugin_manager import PluginConfigurationException
+from errbot.repo_manager import RepoException
 
 
 class Plugins(BotPlugin):
@@ -21,155 +18,121 @@ class Plugins(BotPlugin):
         for example a git url : git@github.com:gbin/plugin.git
         or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
         """
-        if not args.strip():
-            return "You should have an urls/git repo argument"
-        errors = self._bot.plugin_manager.install_repo(args)
-        if errors:
-            self.send(mess.frm, 'Some plugins are generating errors:\n' + '\n'.join(errors),
-                      message_type=mess.type)
-        else:
-            self.send(
-                mess.frm,
-                ("A new plugin repository has been installed correctly from "
-                 "%s. Refreshing the plugins commands..." % args),
-                message_type=mess.type
-            )
-        loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
-        if loading_errors:
-            return loading_errors
-        return "Plugins reloaded without any error."
+        args = args.strip()
+        if not args:
+            yield "Please specify a repository listed in '!repos' or " \
+                  "give me the URL to a git repository that I should clone for you."
+            return
+        try:
+            local_path = self._bot.repo_manager.install_repo(args)
+            errors = self._bot.plugin_manager.update_dynamic_plugins()
+            if errors:
+                yield 'Some plugins are generating errors:\n' + '\n'.join(errors.values())
+                # if the load of the plugin failed, uninstall cleanly teh repo
+                for path in errors.keys():
+                    if path.startswith(local_path):
+                        yield 'Removing %s as it did not load correctly.' % local_path
+                        shutil.rmtree(local_path)
+            else:
+                yield ("A new plugin repository has been installed correctly from "
+                       "%s. Refreshing the plugins commands..." % args)
+            loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
+            if loading_errors:
+                yield loading_errors
+            yield "Plugins reloaded without any error."
+        except RepoException as re:
+            yield "Error installing the repo: %s" % re
 
     @botcmd(admin_only=True)
-    def repos_uninstall(self, mess, args):
+    def repos_uninstall(self, _, repo_name):
         """ uninstall a plugin repository by name.
         """
-        if not args.strip():
+        if not repo_name.strip():
             yield "You should have a repo name as argument"
             return
 
-        repos = self._bot.plugin_manager.get_installed_plugin_repos()
+        repos = self._bot.repo_manager.get_installed_plugin_repos()
 
-        if args not in repos:
+        if repo_name not in repos:
             yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
             return
 
-        plugin_path = path.join(self._bot.plugin_manager.plugin_dir, args)
-        for plugin in self._bot.plugin_manager.getAllPlugins():
-            if plugin.path.startswith(plugin_path):
-                yield 'Removing %s...' % plugin.name
-                self._bot.plugin_manager.remove_plugin(plugin)
+        plugin_path = os.path.join(self._bot.repo_manager.plugin_dir, repo_name)
+        self._bot.plugin_manager.remove_plugins_from_path(plugin_path)
+        self._bot.repo_manager.uninstall_repo(repo_name)
+        yield 'Repo %s removed.' % repo_name
 
-        shutil.rmtree(plugin_path)
-        repos.pop(args)
-        self._bot.plugin_manager.set_plugin_repos(repos)
-
-        yield 'Repo %s removed.' % args
-
-    # noinspection PyUnusedLocal
     @botcmd(template='repos')
-    def repos(self, mess, args):
+    def repos(self, _, args):
         """ list the current active plugin repositories
         """
 
-        installed_repos = self._bot.get_installed_plugin_repos()
+        installed_repos = self._bot.repo_manager.get_installed_plugin_repos()
 
-        all_names = sorted(set([name for name in KNOWN_PUBLIC_REPOS] + [name for name in installed_repos]))
+        all_names = [name for name in installed_repos]
 
         repos = {'repos': []}
 
         for repo_name in all_names:
 
             installed = False
-            public = False
-
-            try:
-                description = KNOWN_PUBLIC_REPOS[repo_name].get('documentation', 'Unavailable')
-            except KeyError:
-                description = installed_repos[repo_name].get('path')
-
-            if repo_name in KNOWN_PUBLIC_REPOS:
-                public = True
 
             if repo_name in installed_repos:
                 installed = True
 
+            from_index = self._bot.repo_manager.get_repo_from_index(repo_name)
+
+            if from_index is not None:
+                description = '\n'.join(('%s: %s' % (plug.name, plug.documentation) for plug in from_index))
+            else:
+                description = 'No description.'
+
             # installed, public, name, desc
-            repos['repos'].append((installed, public, repo_name, description))
+            repos['repos'].append((installed, from_index is not None, repo_name, description))
 
         return repos
 
+    @botcmd(template='repos2')
+    def repos_search(self, _, args):
+        """ Searches the repo index.
+        for example: !repos search jenkins
+        """
+        if not args:
+            # TODO(gbin): return all the repos.
+            return {'error': "Please specify a keyword."}
+        return {'repos': self._bot.repo_manager.search_repos(args)}
+
     @botcmd(split_args_with=' ', admin_only=True)
-    def repos_update(self, mess, args):
+    def repos_update(self, _, args):
         """ update the bot and/or plugins
         use : !repos update all
         to update everything
-        or : !repos update core
-        to update only the core
         or : !repos update repo_name repo_name ...
         to update selectively some repos
         """
-        git_path = which('git')
-        if not git_path:
-            return ('git command not found: You need to have git installed on '
-                    'your system to be able to install git based plugins.')
-
-        directories = set()
-        repos = {}
-        _installed = self._bot.get_installed_plugin_repos()
-
-        # Fix to migrate exiting plugins into new format
-        for short_name, url in _installed.items():
-            name = ('/'.join(url.split('/')[-2:])).replace('.git', '')
-
-            t_installed = {name: {
-                'path': url,
-                'documentation': 'Unavilable',
-                'python': None,
-                'avatar_url': None,
-                }
-            }
-            repos.update(t_installed)
-
-        core_to_update = 'all' in args or 'core' in args
-        if core_to_update:
-            directories.add(path.dirname(__file__))
-
         if 'all' in args:
-            directories.update([path.join(self._bot.plugin_dir, name) for name in repos])
+            results = self._bot.repo_manager.update_all_repos()
         else:
-            directories.update([path.join(self._bot.plugin_dir, name) for name in set(args).intersection(set(repos))])
+            results = self._bot.repo_manager.update_repos(args)
 
-        for d in directories:
-            self.send(mess.frm, "I am updating %s ..." % d, message_type=mess.type)
-            p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            feedback = p.stdout.read().decode('utf-8') + '\n' + '-' * 50 + '\n'
-            err = p.stderr.read().strip().decode('utf-8')
-            if err:
-                feedback += err + '\n' + '-' * 50 + '\n'
-            dep_err = check_dependencies(d)
-            if dep_err:
-                feedback += dep_err + '\n'
-            if p.wait():
-                self.send(mess.frm, "Update of %s failed...\n\n%s\n\n resuming..." % (d, feedback),
-                          message_type=mess.type)
+        yield "Start updating ... "
+
+        for d, success, feedback in results:
+            if success:
+                yield "Update of %s succeeded...\n\n%s\n\n" % (d, feedback)
             else:
-                self.send(mess.frm, "Update of %s succeeded...\n\n%s\n\n" % (d, feedback),
-                          message_type=mess.type)
-                if not core_to_update:
-                    for plugin in self._bot.getAllPlugins():
-                        if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
-                            name = plugin.name
-                            self.send(mess.frm, '/me is reloading plugin %s' % name)
-                            self._bot.reload_plugin_by_name(plugin.name)
-                            self.send(mess.frm, '%s reloaded and reactivated' % name)
-        if core_to_update:
-            self.send(mess.frm, "You have updated the core, I need to restart.", message_type=mess.type)
-            global_restart()
-        return "Done."
+                yield "Update of %s failed...\n\n%s" % (d, feedback)
 
-    # noinspection PyUnusedLocal
+            for plugin in self._bot.plugin_manager.getAllPlugins():
+                if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
+                    name = plugin.name
+                    yield '/me is reloading plugin %s' % name
+                    self._bot.plugin_manager.reload_plugin_by_name(plugin.name)
+                    yield '%s reloaded and reactivated' % name
+        yield "Done."
+
     @botcmd(split_args_with=' ', admin_only=True)
-    def plugin_config(self, mess, args):
+    def plugin_config(self, _, args):
         """ configure or get the configuration / configuration template for a specific plugin
         ie.
         !plugin config ExampleBot
@@ -239,9 +202,8 @@ class Plugins(BotPlugin):
             all_plugins = self._bot.plugin_manager.get_all_plugin_names()
         return "\n".join(("- " + plugin for plugin in all_plugins))
 
-    # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_reload(self, mess, args):
+    def plugin_reload(self, _, args):
         """reload a plugin: reload the code of the plugin leaving the activation status intact."""
         name = args.strip()
         if not name:
@@ -261,9 +223,8 @@ class Plugins(BotPlugin):
 
         yield "Plugin %s reloaded." % name
 
-    # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_activate(self, mess, args):
+    def plugin_activate(self, _, args):
         """activate a plugin. [calls .activate() on the plugin]"""
         args = args.strip()
         if not args:
@@ -277,9 +238,8 @@ class Plugins(BotPlugin):
 
         return self._bot.plugin_manager.activate_plugin(args)
 
-    # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_deactivate(self, mess, args):
+    def plugin_deactivate(self, _, args):
         """deactivate a plugin. [calls .deactivate on the plugin]"""
         args = args.strip()
         if not args:
@@ -293,9 +253,8 @@ class Plugins(BotPlugin):
 
         return self._bot.plugin_manager.deactivate_plugin(args)
 
-    # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_blacklist(self, mess, args):
+    def plugin_blacklist(self, _, args):
         """Blacklist a plugin so that it will not be loaded automatically during bot startup.
         If the plugin is currently activated, it will deactiveate it first."""
         if args not in self._bot.plugin_manager.get_all_plugin_names():
@@ -307,9 +266,8 @@ class Plugins(BotPlugin):
 
         return self._bot.plugin_manager.blacklist_plugin(args)
 
-    # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def plugin_unblacklist(self, mess, args):
+    def plugin_unblacklist(self, _, args):
         """Remove a plugin from the blacklist"""
         if args not in self._bot.plugin_manager.get_all_plugin_names():
             return ("{} isn't a valid plugin name. The current plugins are:\n"

@@ -88,12 +88,6 @@ def get_class_for_method(meth):
     return None
 
 
-def human_name_for_git_url(url):
-    # try to humanize the last part of the git url as much as we can
-    s = url.split(':')[-1].split('/')[-2:]
-    return str('/'.join(s).rstrip('.git'))
-
-
 def tail(f, window=20):
     return ''.join(f.readlines()[-window:])
 
@@ -256,6 +250,7 @@ def rate_limited(min_interval):
 
 def split_string_after(str_, n):
     """Yield chunks of length `n` from the given string
+
     :param n: length of the chunks.
     :param str_: the given string.
     """
@@ -267,6 +262,7 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
     """Repeat calls to func with specified arguments.
 
     Example:  repeatfunc(random.random)
+
     :param args: params to the function to call.
     :param times: number of times to repeat.
     :param func:  the function to repeatedly call.
@@ -278,6 +274,7 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
 
 def find_roots(path, file_sig='*.plug'):
     """Collects all the paths from path recursively that contains files of type `file_sig`.
+
        :param path:
             a base path to walk from
        :param file_sig:
@@ -301,6 +298,7 @@ def find_roots(path, file_sig='*.plug'):
 
 def find_roots_with_extra(base, extra, file_sig='*.plug'):
     """Collects all the paths from path recursively that contains files of type `file_sig`.
+
        :param base:
             a base path to walk from
        :param extra:
@@ -330,6 +328,7 @@ def get_class_that_defined_method(meth):
 def compat_str(s):
     """ Detect if s is a string and convert it to unicode if it is a byte or
         py2 string
+
         :param s: the string to ensure compatibility from."""
     if isinstance(s, str):
         return s

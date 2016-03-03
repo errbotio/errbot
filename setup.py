@@ -36,6 +36,8 @@ if PY3 and py_version < (3, 3):
 deps = ['webtest',
         'setuptools',
         'bottle',
+        'threadpool',
+        'rocket-errbot',
         'requests',
         'jinja2',
         'pyOpenSSL',
@@ -46,6 +48,7 @@ deps = ['webtest',
         'Pygments>=2.0.2',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
         ]
+
 
 if PY2:
     deps += ['dnspython',  # dnspython is needed for SRV records

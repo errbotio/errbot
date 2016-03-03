@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+from datetime import datetime
 
 import requests
+import sys
 from requests.auth import HTTPBasicAuth
 import logging
 import time
@@ -15,12 +17,6 @@ DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.p
 
 # token is generated from the personal tokens in github.
 AUTH = HTTPBasicAuth('gbin', open('token', 'r').read().strip())
-
-# for authenticated requests the limit is 5000 req/hours
-PAUSE = 3600.0 / 5000.0
-
-# for searchs it is 50 request per minute
-SEARCH_PAUSE = 60.0 / 50.0
 
 user_cache = {}
 
@@ -38,7 +34,11 @@ plugins = {}
 
 def save_plugins():
     with open('repos.json', 'w') as f:
-        f.write(json.dumps(plugins))
+        json.dump(plugins,
+                  f,
+                  sort_keys=True,
+                  indent=2,
+                  separators=(',', ': '))
 
 with open('blacklisted.txt', 'r') as f:
     BLACKLISTED = [line.strip() for line in f.readlines()]
@@ -49,53 +49,72 @@ def get_avatar_url(repo):
     if username in user_cache:
         user = user_cache[username]
     else:
-        time.sleep(PAUSE)
         user_res = requests.get('https://api.github.com/users/' + username, auth=AUTH)
-        log.debug("User reqs before ratelimit %s/%s" % (
-            user_res.headers['X-RateLimit-Remaining'],
-            user_res.headers['X-RateLimit-Limit']))
         user = user_res.json()
         if 'avatar_url' in user:  # don't pollute the presistent cache
             user_cache[username] = user
             with open('user_cache', 'w') as f:
                 f.write(repr(user_cache))
+        rate_limit(user_res)
     return user['avatar_url'] if 'avatar_url' in user else DEFAULT_AVATAR
 
 
+def rate_limit(resp):
+    """
+    Wait enough to be in the budget for this request.
+    :param resp: the http response from github
+    :return:
+    """
+    if 'X-RateLimit-Remaining' not in resp.headers:
+        log.info("No rate limit detected. Hum along...")
+        return
+    remain = int(resp.headers['X-RateLimit-Remaining'])
+    limit = int(resp.headers['X-RateLimit-Limit'])
+    log.info('Rate limiter: %s allowed out of %d', remain, limit)
+    if remain > 1:  # margin by one request
+        return
+    reset = int(resp.headers['X-RateLimit-Reset'])
+    ts = datetime.fromtimestamp(reset)
+    delay = (ts - datetime.now()).total_seconds()
+    log.info("Hit rate limit. Have to wait for %d seconds", delay)
+    time.sleep(delay)
+
+
 def check_repo(repo):
-    log.debug('Checking %s...' % repo)
-    time.sleep(SEARCH_PAUSE)
+    log.debug('Checking %s...', repo)
     code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo, auth=AUTH)
-    log.debug("Search before ratelimit %s/%s" % (
-        code_resp.headers['X-RateLimit-Remaining'],
-        code_resp.headers['X-RateLimit-Limit']))
+    if code_resp.status_code != 200:
+        log.error('Error getting https://api.github.com/search/code?q=extension:plug+repo:%s', repo)
+        log.error('code %d', code_resp.status_code)
+        log.error('content %s', code_resp.text)
+
+        return
     plug_items = code_resp.json()['items']
     if not plug_items:
-        log.debug('No plugin found in %s, blacklisting it.' % repo)
+        log.debug('No plugin found in %s, blacklisting it.', repo)
         add_blacklisted(repo)
         return
     avatar_url = get_avatar_url(repo)
 
     for plug in plug_items:
-        time.sleep(PAUSE)
-        f = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
+        plugfile_resp = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
         log.debug('Found a plugin:')
-        log.debug('Repo:  %s' % repo)
-        log.debug('File:  %s' % plug['path'])
+        log.debug('Repo:  %s', repo)
+        log.debug('File:  %s', plug['path'])
         parser = configparser.ConfigParser()
-        parser.read_string(f.text)
+        parser.read_string(plugfile_resp.text)
         name = parser['Core']['Name']
-        log.debug('Name: %s' % name)
+        log.debug('Name: %s', name)
 
         if 'Documentation' in parser:
             doc = parser['Documentation']['Description']
-            log.debug('Documentation: %s' % doc)
+            log.debug('Documentation: %s', doc)
         else:
             doc = ''
 
         if 'Python' in parser:
             python = parser['Python']['Version']
-            log.debug('Python Version: %s' % python)
+            log.debug('Python Version: %s', python)
         else:
             python = '2'
 
@@ -108,37 +127,49 @@ def check_repo(repo):
             'avatar_url': avatar_url,
         }
 
-        plugins[repo+'~'+name] = plugin
-        print('Catalog added plugin %s.' % plugin['name'])
+        repo_entry = plugins.get(repo, {})
+        repo_entry[name] = plugin
+        plugins[repo] = repo_entry
+        log.debug('Catalog added plugin %s.', plugin['name'])
+        rate_limit(plugfile_resp)
 
     save_plugins()
+    rate_limit(code_resp)
 
 
 def find_plugins():
     url = 'https://api.github.com/search/repositories?q=err+in:name+language:python&sort=stars&order=desc'
     while True:
-        time.sleep(PAUSE)
-        repo_req = requests.get(url, auth=AUTH)
-        repo_resp = repo_req.json()
+        repo_resp = requests.get(url, auth=AUTH)
+        repo_json = repo_resp.json()
+        if repo_json.get('message', None) == 'Bad credentials':
+            log.error('Invalid credentials, check your token file, see README.')
+            sys.exit(-1)
         log.debug("Repo reqs before ratelimit %s/%s" % (
-            repo_req.headers['X-RateLimit-Remaining'],
-            repo_req.headers['X-RateLimit-Limit']))
-        items = repo_resp['items']
+            repo_resp.headers['X-RateLimit-Remaining'],
+            repo_resp.headers['X-RateLimit-Limit']))
+        items = repo_json['items']
 
         for i, item in enumerate(items):
             repo = item['full_name']
             if repo in BLACKLISTED:
-                log.debug('Skipping %s.' % repo)
+                log.debug('Skipping %s.', repo)
                 continue
             check_repo(repo)
-        if 'next' not in repo_req.links:
+        if 'next' not in repo_resp.links:
             break
-        url = repo_req.links['next']['url']
-        log.debug('Next url: %s' % url)
+        url = repo_resp.links['next']['url']
+        log.debug('Next url: %s', url)
+        rate_limit(repo_resp)
 
-find_plugins()
-# Those are found by global search only available on github UI:
-# https://github.com/search?l=&q=Documentation+extension%3Aplug&ref=advsearch&type=Code&utf8=%E2%9C%93
-with open('extras.txt', 'r') as f:
-    for repo in f:
-        check_repo(repo.strip())
+
+def main():
+    find_plugins()
+    # Those are found by global search only available on github UI:
+    # https://github.com/search?l=&q=Documentation+extension%3Aplug&ref=advsearch&type=Code&utf8=%E2%9C%93
+    with open('extras.txt', 'r') as extras:
+        for repo in extras:
+            check_repo(repo.strip())
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,5 @@
 from collections import MutableMapping
 import logging
-import shelve
 
 from errbot import PY2
 
@@ -27,11 +26,6 @@ class StoreMixin(MutableMapping):
     def __init__(self):
         log.info('Init storage of %s' % self.__class__.__name__)
         self._store = None
-
-    @property
-    def shelf(self):
-        log.warn('Deprecated: you should use self instead of self.shelf to access your storage.')
-        return self
 
     def open_storage(self, storage_plugin, namespace):
         if hasattr(self, 'store') and self._store is not None:

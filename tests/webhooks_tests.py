@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import pytest
 import requests
 import socket
 from errbot.backends.test import FullStackTest

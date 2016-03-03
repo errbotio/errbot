@@ -11,13 +11,14 @@ import re  # noqa
 from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
 from errbot.errBot import ErrBot
-from errbot.backends.base import Backend, Message, MUCRoom, Identifier, ONLINE
+from errbot.backends.base import Message, MUCRoom, Identifier, ONLINE
 from errbot.backends.test import TestIdentifier, TestMUCOccupant
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.main import CORE_STORAGE
 from errbot.plugin_manager import BotPluginManager
 from errbot.rendering import text
 from errbot.core_plugins.acls import ACLS
+from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
@@ -25,6 +26,20 @@ from errbot.utils import PLUGINS_SUBDIR
 LONG_TEXT_STRING = "This is a relatively long line of output, but I am repeated multiple times.\n"
 
 logging.basicConfig(level=logging.DEBUG)
+
+SIMPLE_JSON_PLUGINS_INDEX = """
+{"errbotio/err-helloworld":
+    {"HelloWorld":
+        {"path": "/helloWorld.plug",
+         "documentation": "let's say hello !",
+         "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=3",
+         "name": "HelloWorld",
+         "python": "2+",
+         "repo": "https://github.com/errbotio/err-helloworld"
+         }
+    }
+}
+"""
 
 
 class DummyBackend(ErrBot):
@@ -50,12 +65,17 @@ class DummyBackend(ErrBot):
         bot_config_defaults(config)
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
+        config.BOT_PLUGIN_INDEXES = tempdir + sep + 'repos.json'
         config.BOT_EXTRA_PLUGIN_DIR = []
         config.BOT_LOG_LEVEL = logging.DEBUG
         config.BOT_IDENTITY = {'username': 'err@localhost'}
         config.BOT_ASYNC = False
         config.BOT_PREFIX = '!'
         config.CHATROOM_FN = 'blah'
+
+        # Writeout the made up repos file
+        with open(config.BOT_PLUGIN_INDEXES, "w") as index_file:
+            index_file.write(SIMPLE_JSON_PLUGINS_INDEX)
 
         for key in extra_config:
             setattr(config, key, extra_config[key])
@@ -72,12 +92,18 @@ class DummyBackend(ErrBot):
         if not os.path.exists(botplugins_dir):
             os.makedirs(botplugins_dir, mode=0o755)
 
+        # get it back from where we publish it.
+        repo_index_paths = (os.path.join(os.path.dirname(__file__), '..', 'docs', '_extra', 'repos.json'),)
+        repo_manager = BotRepoManager(storage_plugin,
+                                      botplugins_dir,
+                                      repo_index_paths)
+        self.attach_storage_plugin(storage_plugin)
+        self.attach_repo_manager(repo_manager)
         self.attach_plugin_manager(BotPluginManager(storage_plugin,
-                                                    botplugins_dir,
+                                                    repo_manager,
                                                     config.BOT_EXTRA_PLUGIN_DIR,
                                                     config.AUTOINSTALL_DEPS,
                                                     getattr(config, 'CORE_PLUGINS', None)))
-        self.attach_storage_plugin(storage_plugin)
         self.inject_commands_from(self)
         self.inject_command_filters_from(ACLS(self))
 
@@ -100,6 +126,10 @@ class DummyBackend(ErrBot):
     @botcmd
     def command(self, mess, args):
         return "Regular command"
+
+    @botcmd(admin_only=True)
+    def admin_command(self, mess, args):
+        return "Admin command"
 
     @re_botcmd(pattern=r'^regex command with prefix$', prefixed=True)
     def regex_command_with_prefix(self, mess, match):
@@ -485,39 +515,49 @@ class BotCmds(unittest.TestCase):
 
     def test_access_controls(self):
         tests = [
+            # BOT_ADMINS scenarios
+            dict(
+                message=self.makemessage("!admin_command"),
+                bot_admins=('noterr'),
+                expected_response="Admin command",
+            ),
+            dict(
+                message=self.makemessage("!admin_command"),
+                bot_admins=(),
+                expected_response="This command requires bot-admin privileges",
+            ),
+            dict(
+                message=self.makemessage("!admin_command"),
+                bot_admins=('*err'),
+                expected_response="Admin command",
+            ),
+
+            # ACCESS_CONTROLS scenarios
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
-                    acl_default={},
                     expected_response="Regular command"
             ),
             dict(
                     message=self.makemessage("!regex command with prefix"),
-                    acl={},
-                    acl_default={},
                     expected_response="Regex command"
             ),
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
                     acl_default={'allowmuc': False, 'allowprivate': False},
                     expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
                     message=self.makemessage("regex command without prefix"),
-                    acl={},
                     acl_default={'allowmuc': False, 'allowprivate': False},
                     expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
                     acl_default={'allowmuc': True, 'allowprivate': False},
                     expected_response="You're not allowed to access this command via private message to me"
             ),
             dict(
                     message=self.makemessage("!command"),
-                    acl={},
                     acl_default={'allowmuc': False, 'allowprivate': True},
                     expected_response="Regular command"
             ),
@@ -530,36 +570,74 @@ class BotCmds(unittest.TestCase):
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'allowrooms': ('room',)}},
-                    acl_default={},
                     expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room_1")),
+                acl={'command': {'allowrooms': ('room_*',)}},
+                expected_response="Regular command"
             ),
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
-                    acl_default={},
                     expected_response="You're not allowed to access this command from this room",
             ),
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'denyrooms': ('room',)}},
-                    acl_default={},
                     expected_response="You're not allowed to access this command from this room",
+            ),
+            dict(
+                message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
+                acl={'command': {'denyrooms': ('*',)}},
+                expected_response="You're not allowed to access this command from this room",
             ),
             dict(
                     message=self.makemessage("!command", type="groupchat", from_=TestMUCOccupant("someone", "room")),
                     acl={'command': {'denyrooms': ('anotherroom',)}},
-                    acl_default={},
                     expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'allowusers': ('noterr',)}},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'allowusers': ('err',)}},
+                expected_response="You're not allowed to access this command from this user",
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'allowusers': ('*err',)}},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'denyusers': ('err',)}},
+                expected_response="Regular command"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'denyusers': ('noterr',)}},
+                expected_response="You're not allowed to access this command from this user"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'command': {'denyusers': ('*err',)}},
+                expected_response="You're not allowed to access this command from this user"
             ),
         ]
 
         for test in tests:
-            self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT = test['acl_default']
-            self.dummy.bot_config.ACCESS_CONTROLS = test['acl']
+            self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT = test.get('acl_default', {})
+            self.dummy.bot_config.ACCESS_CONTROLS = test.get('acl', {})
+            self.dummy.bot_config.BOT_ADMINS = test.get('bot_admins', ())
             logger = logging.getLogger(__name__)
             logger.info("** message: {}".format(test['message'].body))
-            logger.info("** acl: {!r}".format(test['acl']))
-            logger.info("** acl_default: {!r}".format(test['acl_default']))
+            logger.info("** bot_admins: {}".format(self.dummy.bot_config.BOT_ADMINS))
+            logger.info("** acl: {!r}".format(self.dummy.bot_config.ACCESS_CONTROLS))
+            logger.info("** acl_default: {!r}".format(self.dummy.bot_config.ACCESS_CONTROLS_DEFAULT))
             self.dummy.callback_message(test['message'])
             self.assertEqual(
                     test['expected_response'],

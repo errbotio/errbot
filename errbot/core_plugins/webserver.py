@@ -8,7 +8,7 @@ from webtest import TestApp
 from errbot import botcmd, BotPlugin, webhook
 from errbot.utils import PY3
 from errbot.core_plugins.wsview import bottle_app
-from errbot.bundled.rocket import Rocket
+from rocket import Rocket
 
 if PY3:
     from urllib.request import unquote

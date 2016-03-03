@@ -19,14 +19,13 @@ import inspect
 import logging
 import traceback
 
-from .bundled.threadpool import ThreadPool, WorkRequest
-
 from .backends.base import Backend
+from threadpool import ThreadPool, WorkRequest
+from .streaming import Tee
+from .templating import tenv
 from .utils import (split_string_after,
                     get_class_that_defined_method, compat_str)
-from .streaming import Tee
-from .plugin_manager import BotPluginManager
-from .templating import tenv
+from .storage import StoreMixin
 
 log = logging.getLogger(__name__)
 
@@ -61,7 +60,7 @@ def bot_config_defaults(config):
 
 
 # noinspection PyAbstractClass
-class ErrBot(Backend):
+class ErrBot(Backend, StoreMixin):
     """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
     """
     __errdoc__ = """ Commands related to the bot administration """
@@ -86,8 +85,12 @@ class ErrBot(Backend):
             self.bot_alt_prefixes = tuple(prefix.lower() for prefix in bot_config.BOT_ALT_PREFIXES)
         else:
             self.bot_alt_prefixes = bot_config.BOT_ALT_PREFIXES
+        self.repo_manager = None
         self.plugin_manager = None
         self.storage_plugin = None
+
+    def attach_repo_manager(self, repo_manager):
+        self.repo_manager = repo_manager
 
     def attach_plugin_manager(self, plugin_manager):
         self.plugin_manager = plugin_manager
@@ -96,6 +99,15 @@ class ErrBot(Backend):
     def attach_storage_plugin(self, storage_plugin):
         # the storage_plugin is needed by the plugins
         self.storage_plugin = storage_plugin
+
+    def initialize_backend_storage(self):
+        """
+        Initialize storage for the backend to use.
+        """
+        log.debug("Initializing backend storage")
+        assert self.plugin_manager is not None
+        assert self.storage_plugin is not None
+        self.open_storage(self.storage_plugin, '%s_backend' % self.mode)
 
     @property
     def all_commands(self):
@@ -125,6 +137,7 @@ class ErrBot(Backend):
 
     def send(self, user, text, in_reply_to=None, message_type='chat', groupchat_nick_reply=False):
         """ Sends a simple message to the specified user.
+
             :param user:
                 an identifier from build_identifier or from an incoming message
             :param in_reply_to:
@@ -160,6 +173,7 @@ class ErrBot(Backend):
     def send_templated(self, user, template_name, template_parameters, in_reply_to=None, message_type='chat',
                        groupchat_nick_reply=False):
         """ Sends a simple message to the specified user using a template.
+
             :param template_parameters: the parameters for the template.
             :param template_name: the template name you want to use.
             :param user:
@@ -183,6 +197,7 @@ class ErrBot(Backend):
     def send_message(self, mess):
         """
         This needs to be overridden by the backends with a super() call.
+
         :param mess: the message to send.
         :return: None
         """
@@ -195,6 +210,7 @@ class ErrBot(Backend):
 
     def send_simple_reply(self, mess, text, private=False):
         """Send a simple response to a given incoming message
+
         :param private: if True will force a response in private.
         :param text: the markdown text of the message.
         :param mess: the message you are replying to.
@@ -204,6 +220,7 @@ class ErrBot(Backend):
     def process_message(self, mess):
         """Check if the given message is a command for the bot and act on it.
         It return True for triggering the callback_messages on the .callback_messages on the plugins.
+
         :param mess: the incoming message.
         """
         # Prepare to handle either private chats or group chats
@@ -604,4 +621,5 @@ class ErrBot(Backend):
                 for command in self.all_commands.values())
 
     def shutdown(self):
+        self.close_storage()
         self.plugin_manager.shutdown()

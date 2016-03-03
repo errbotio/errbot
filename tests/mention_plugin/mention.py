@@ -1,4 +1,4 @@
-from errbot import BotPlugin, botcmd
+from errbot import BotPlugin
 
 
 class MentionTestPlugin(BotPlugin):

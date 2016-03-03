@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Mapping
+from typing import Any
 import shelve
 import os
 

@@ -3,6 +3,7 @@ import logging
 
 from errbot.errBot import ErrBot
 from errbot.plugin_manager import BotPluginManager
+from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
 import sys
 
@@ -14,6 +15,8 @@ log = logging.getLogger(__name__)
 HERE = path.dirname(path.abspath(__file__))
 CORE_BACKENDS = path.join(HERE, 'backends')
 CORE_STORAGE = path.join(HERE, 'storage')
+
+PLUGIN_DEFAULT_INDEX = 'http://version.errbot.io/repos.json'
 
 
 def setup_bot(backend_name, logger, config, restore=None):
@@ -58,8 +61,16 @@ def setup_bot(backend_name, logger, config, restore=None):
     botplugins_dir = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
     if not path.exists(botplugins_dir):
         makedirs(botplugins_dir, mode=0o755)
+
+    plugin_indexes = getattr(config, 'BOT_PLUGIN_INDEXES', (PLUGIN_DEFAULT_INDEX,))
+    if type(plugin_indexes) is str:
+        plugin_indexes = (plugin_indexes, )
+
+    repo_manager = BotRepoManager(storage_plugin,
+                                  botplugins_dir,
+                                  plugin_indexes)
     botpm = BotPluginManager(storage_plugin,
-                             botplugins_dir,
+                             repo_manager,
                              config.BOT_EXTRA_PLUGIN_DIR,
                              config.AUTOINSTALL_DEPS,
                              getattr(config, 'CORE_PLUGINS', None))
@@ -74,8 +85,10 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     try:
         bot = backendpm.get_plugin_by_name(backend_name)
-        bot.attach_plugin_manager(botpm)
         bot.attach_storage_plugin(storage_plugin)
+        bot.attach_repo_manager(repo_manager)
+        bot.attach_plugin_manager(botpm)
+        bot.initialize_backend_storage()
     except Exception:
         log.exception("Unable to load or configure the backend.")
         exit(-1)
@@ -95,7 +108,7 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     errors = bot.plugin_manager.update_dynamic_plugins()
     if errors:
-        log.error('Some plugins failed to load:\n' + '\n'.join(errors))
+        log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
     return bot
 
 
@@ -113,5 +126,5 @@ def enumerate_backends(config):
 
 def main(bot_class, logger, config, restore=None):
     bot = setup_bot(bot_class, logger, config, restore)
-    log.debug('serve from %s' % bot)
+    log.debug('Start serving commands from the %s backend' % bot.mode)
     bot.serve_forever()

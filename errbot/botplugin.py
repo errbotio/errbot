@@ -169,29 +169,6 @@ class BotPluginBase(StoreMixin):
 
 # noinspection PyAbstractClass
 class BotPlugin(BotPluginBase):
-    @property
-    def min_err_version(self) -> str:
-        """
-        DEPRECATED: see :doc:`user_guide/plugin_development/plugin_compatibility_settings`
-        If your plugin has a minimum version of err it needs to be on in order to run,
-        please override accordingly this method, returning a string with the dotted
-        minimum version. It MUST be in a 3 dotted numbers format or None
-
-        For example: "1.2.2"
-        """
-        return None
-
-    @property
-    def max_err_version(self) -> str:
-        """
-        DEPRECATED: see :doc:`user_guide/plugin_development/plugin_compatibility_settings`
-        If your plugin has a maximal version of err it needs to be on in order to run,
-        please override accordingly this method, returning a string with the dotted
-        maximal version. It MUST be in a 3 dotted numbers format or None
-
-        For example: "1.2.2"
-        """
-        return None
 
     def get_configuration_template(self) -> Mapping:
         """

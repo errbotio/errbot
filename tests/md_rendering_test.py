@@ -19,7 +19,7 @@ class MdRendering(unittest.TestCase):
     def test_mde2md(self):
         mdc = md()
         self.assertEquals(mdc.convert("woot"), "woot")
-        self.assertEquals(mdc.convert("woot{stuff} really{otherstuff}"), "woot really")
+        self.assertEquals(mdc.convert("woot{:stuff} really{:otherstuff}"), "woot really")
 
     def test_escaping(self):
         mdc = text()

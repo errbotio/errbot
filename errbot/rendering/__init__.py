@@ -3,9 +3,9 @@ import re
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
-from markdown.extensions.attr_list import AttrListTreeprocessor
 
-ATTR_RE = re.compile(AttrListTreeprocessor.BASE_RE)
+# Attribute regexp looks for extendend syntax: {: ... }
+ATTR_RE = re.compile(r'\{\:([^\}]*)\}')
 MD_ESCAPE_RE = re.compile('|'.join(re.escape(c) for c in Markdown.ESCAPED_CHARS))
 
 # Here are few helpers to simplify the conversion from markdown to various

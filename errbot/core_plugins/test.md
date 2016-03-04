@@ -32,14 +32,14 @@ Paragraph in h6
 
 Markdown extra (colors):
 Red paragraph
-{color='red'}
+{:color='red'}
 
-Inline `blue text`{color='blue'}
-Inline `green text`{color='green'}
+Inline `blue text`{:color='blue'}
+Inline `green text`{:color='green'}
 
-Inline *emphasis blue text*{color='blue'}
+Inline *emphasis blue text*{:color='blue'}
 
-Inline `yellow on cyan`{color='yellow' bgcolor='cyan'}
+Inline `yellow on cyan`{:color='yellow' bgcolor='cyan'}
 
 Markdown extra (table):
 
@@ -52,3 +52,13 @@ Special characters:
 Copyright: &copy;
 Natural amp: &
 Less : <
+
+Markdown extra (code) with brackets:
+
+```json
+"employees":[
+    {"firstName":"John", "lastName":"Doe"}, 
+    {"firstName":"Anna", "lastName":"Smith"}, 
+    {"firstName":"Peter","lastName":"Jones"}
+]
+```

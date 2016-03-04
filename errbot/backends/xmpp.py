@@ -573,10 +573,9 @@ class XMPPBackend(ErrBot):
             mess.to = XMPPIdentifier(mess.to.node, mess.to.domain, None)
         log.debug("send_message to %s", mess.to)
 
-        mhtml = self.md_xhtml.convert(mess.body) if self.xhtmlim else None
+        # We need to unescape the unicode characters (not the markup incompatible ones)
+        mhtml = unescape(self.md_xhtml.convert(mess.body)) if self.xhtmlim else None
 
-        # xhtml-im doesn't support HTML entities
-        mhtml = unescape(mhtml)
         self.conn.client.send_message(mto=str(mess.to),
                                       mbody=self.md_text.convert(mess.body),
                                       mhtml=mhtml,

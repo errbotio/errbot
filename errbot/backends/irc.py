@@ -12,7 +12,7 @@ from markdown.extensions.extra import ExtraExtension
 
 from errbot.backends.base import Message, Room, Stream, RoomError, \
                                     RoomNotJoinedError, Stream, Identifier, \
-                                    Occupant, ONLINE
+                                    RoomOccupant, ONLINE
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
 from errbot.rendering.ansi import AnsiExtension, enable_format, \
@@ -132,7 +132,7 @@ class IRCIdentifier(Identifier):
         return self.__unicode__()
 
 
-class IRCMUCOccupant(Occupant, IRCIdentifier):
+class IRCMUCOccupant(RoomOccupant, IRCIdentifier):
     def __init__(self, mask, room, aclpattern):
         super().__init__(mask, aclpattern)
         self._room = room

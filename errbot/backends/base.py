@@ -6,6 +6,8 @@ from typing import Any, Mapping, BinaryIO, List, Union, Sequence
 from abc import abstractproperty, abstractmethod
 from collections import deque, defaultdict
 
+import inspect
+
 try:
     from abc import ABC
 except ImportError:
@@ -19,7 +21,7 @@ except ImportError:
         pass
 
 
-from errbot.utils import compat_str
+from errbot.utils import compat_str, deprecated
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.base')
@@ -267,9 +269,6 @@ class Message(object):
         :param to:
             An identifier from for example build_identifier().
         """
-        if not hasattr(to, 'person'):
-            raise Exception('`to` not an Identifier as it misses ''the "person" property. `to` : %s (%s)'
-                            % (to, to.__class__))
         self._to = to
 
     @property
@@ -291,9 +290,6 @@ class Message(object):
         :param from_:
             An identifier from build_identifier.
         """
-        if not hasattr(from_, 'person'):
-            raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)'
-                            % (from_, from_.__class__))
         self._from = from_
 
     @property
@@ -327,11 +323,17 @@ class Message(object):
 
     @property
     def is_direct(self) -> bool:
-        return isinstance(self.frm, Person) and isinstance(self.to, Person)
+        return isinstance(self.to, Person)
 
     @property
     def is_group(self) -> bool:
-        return isinstance(self.frm, Room) or isinstance(self.to, Room)
+        return isinstance(self.to, Room)
+
+    @property
+    def type(self):
+        msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back))
+        log.warn(msg + 'msg.type is deprecated and will be removed soon ! Use msg.is_direct or msg.is_group.')
+        return 'chat' if self.is_direct else 'groupchat'
 
 ONLINE = 'online'
 OFFLINE = 'offline'
@@ -348,18 +350,14 @@ class Presence(object):
     """
 
     def __init__(self,
-                 nick: str=None,
-                 occupant: RoomOccupant=None,
+                 identifier: Identifier,
                  status: str=None,
                  message: str=None):
-        if nick is None and identifier is None:
-            raise ValueError('Presence: nick and identifiers are both None')
-        if nick is None and chatroom is not None:
-            raise ValueError('Presence: nick is None when chatroom is not')
+        if identifier is None:
+            raise ValueError('Presence: identifiers is None')
         if status is None and message is None:
             raise ValueError('Presence: at least a new status or a new status message mustbe present')
-        self._nick = nick
-        self._occupant = occupant
+        self._identifier = identifier
         self._status = status
         self._message = message
 
@@ -370,14 +368,14 @@ class Presence(object):
             of a person in it).
             Can return None but then identifier won't be None.
         """
-        return self._nick
+        return self._identifier.nick
 
     @property
     def occupant(self) -> RoomOccupant:
         """ Returns the identifier of the event.
             Can be None *only* if chatroom is not None
         """
-        return self._occupant
+        return self._identifier
 
     @property
     def status(self) -> str:
@@ -400,8 +398,8 @@ class Presence(object):
         response = ''
         if self._nick:
             response += 'Nick:%s ' % self._nick
-        if self._occupant:
-            response += 'Idd:%s ' % self._occupant
+        if self._identifier:
+            response += 'Idd:%s ' % self._identifier
         if self._status:
             response += 'Status:%s ' % self._status
         if self._message:

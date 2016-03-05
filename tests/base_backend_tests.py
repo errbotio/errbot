@@ -12,7 +12,7 @@ from queue import Queue, Empty  # noqa
 from mock import patch  # noqa
 from errbot.errBot import ErrBot
 from errbot.backends.base import Message, Room, Identifier, ONLINE
-from errbot.backends.test import TestIdentifier, TestMUCOccupant
+from errbot.backends.test import TestIdentifier, TestOccupant
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.main import CORE_STORAGE
 from errbot.plugin_manager import BotPluginManager
@@ -385,12 +385,12 @@ class BotCmds(unittest.TestCase):
 
         # Groupchat should still require the prefix
         m.type = "groupchat"
-        m.frm = TestMUCOccupant("someone", "room")
+        m.frm = TestOccupant("someone", "room")
         self.dummy.callback_message(m)
         self.assertRaises(Empty, self.dummy.pop_message, *[], **{'block': False})
 
         m = self.makemessage("!return_args_as_str one two",
-                             from_=TestMUCOccupant("someone", "room"),
+                             from_=TestOccupant("someone", "room"),
                              type="groupchat")
         self.dummy.callback_message(m)
         self.assertEquals("one two", self.dummy.pop_message().body)
@@ -567,32 +567,32 @@ class BotCmds(unittest.TestCase):
                     expected_response="Regular command"
             ),
             dict(
-                    message=self.makemessage("!command", from_=TestMUCOccupant("someone", "room")),
+                    message=self.makemessage("!command", from_=TestOccupant("someone", "room")),
                     acl={'command': {'allowrooms': ('room',)}},
                     expected_response="Regular command"
             ),
             dict(
-                message=self.makemessage("!command", from_=TestMUCOccupant("someone", "room_1")),
+                message=self.makemessage("!command", from_=TestOccupant("someone", "room_1")),
                 acl={'command': {'allowrooms': ('room_*',)}},
                 expected_response="Regular command"
             ),
             dict(
-                    message=self.makemessage("!command", from_=TestMUCOccupant("someone", "room")),
+                    message=self.makemessage("!command", from_=TestOccupant("someone", "room")),
                     acl={'command': {'allowrooms': ('anotherroom@localhost',)}},
                     expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                    message=self.makemessage("!command", from_=TestMUCOccupant("someone", "room")),
+                    message=self.makemessage("!command", from_=TestOccupant("someone", "room")),
                     acl={'command': {'denyrooms': ('room',)}},
                     expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                message=self.makemessage("!command", from_=TestMUCOccupant("someone", "room")),
+                message=self.makemessage("!command", from_=TestOccupant("someone", "room")),
                 acl={'command': {'denyrooms': ('*',)}},
                 expected_response="You're not allowed to access this command from this room",
             ),
             dict(
-                    message=self.makemessage("!command", from_=TestMUCOccupant("someone", "room")),
+                    message=self.makemessage("!command", from_=TestOccupant("someone", "room")),
                     acl={'command': {'denyrooms': ('anotherroom',)}},
                     expected_response="Regular command"
             ),

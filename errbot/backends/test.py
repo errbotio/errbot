@@ -82,7 +82,7 @@ class TestIdentifier(Identifier):
 
 
 # noinspection PyAbstractClass
-class TestMUCOccupant(TestIdentifier, RoomOccupant):
+class TestOccupant(TestIdentifier, RoomOccupant):
     """ This is a MUC occupant represented as a string.
         DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
     """
@@ -120,7 +120,7 @@ class TestRoom(Room):
         self._topic = topic
         self._bot = bot
         self._name = name
-        self._bot_mucid = TestMUCOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
+        self._bot_mucid = TestOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
 
     @property
     def occupants(self):

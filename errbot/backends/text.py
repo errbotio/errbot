@@ -15,7 +15,6 @@ from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
 from errbot.backends.test import TestIdentifier
 from errbot.errBot import ErrBot
-from errbot.utils import deprecated
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
@@ -61,7 +60,7 @@ class TextBackend(ErrBot):
     def serve_forever(self):
         me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
-        self.callback_presence(Presence(identifier=me, status=ONLINE))
+        self.callback_presence(Presence(occupant=me, status=ONLINE))
         try:
             while True:
                 if ANSI:
@@ -126,7 +125,6 @@ class TextBackend(ErrBot):
         response = self.build_message(text)
         response.frm = self.bot_identifier
         response.to = mess.frm
-        response.type = 'chat' if private else mess.type
         return response
 
     @property

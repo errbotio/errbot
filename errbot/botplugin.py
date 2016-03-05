@@ -394,7 +394,7 @@ class BotPlugin(BotPluginBase):
              :param text: markdown formatted text to send to the user.
              :param identifier: identifier of the user or room to which you want to send a message to.
         """
-        return self._bot.send_templated(user, template_name, template_parameters, in_reply_to, message_type,
+        return self._bot.send_templated(identifier, template_name, template_parameters, in_reply_to, message_type,
                                         groupchat_nick_reply)
 
     def build_identifier(self, txtrep: str) -> Identifier:

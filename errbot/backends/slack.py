@@ -7,9 +7,9 @@ import sys
 import pprint
 
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError, Identifier, RoomOccupant
+    UserDoesNotExistError, RoomOccupant, Person
 from errbot.errBot import ErrBot
-from errbot.utils import deprecated, PY3, split_string_after
+from errbot.utils import PY3, split_string_after
 from errbot.rendering import imtext
 
 
@@ -76,7 +76,7 @@ class SlackAPIResponseError(RuntimeError):
         super().__init__(*args, **kwargs)
 
 
-class SlackIdentifier(Identifier):
+class SlackPerson(Person):
     """
     This class describes a person on Slack's network.
     """
@@ -152,14 +152,20 @@ class SlackIdentifier(Identifier):
         return self.__unicode__()
 
 
-class SlackRoomOccupant(RoomOccupant, SlackIdentifier):
+class SlackRoomOccupant(RoomOccupant, SlackPerson):
     """
     This class represents a person inside a MUC.
     """
-    room = SlackIdentifier.channelname
+    def __init__(self, sc, userid, channelid, bot):
+        super().__init__(sc, userid, channelid)
+        self._room = SlackRoom(channelid=channelid, bot=bot)
+
+    @property
+    def room(self):
+        return self._room
 
     def __unicode__(self):
-        return "#%s/%s" % (self.room, self.username)
+        return "#%s/%s" % (self._room.name, self.username)
 
     def __str__(self):
         return self.__unicode__()
@@ -220,7 +226,7 @@ class SlackBackend(ErrBot):
         if not self.auth['ok']:
             raise SlackAPIResponseError(error="Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
         log.debug("Token accepted")
-        self.bot_identifier = SlackIdentifier(self.sc, self.auth["user_id"])
+        self.bot_identifier = SlackPerson(self.sc, self.auth["user_id"])
 
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
@@ -279,7 +285,7 @@ class SlackBackend(ErrBot):
     def _presence_change_event_handler(self, event):
         """Event handler for the 'presence_change' event"""
 
-        idd = SlackIdentifier(self.sc, event['user'])
+        idd = SlackPerson(self.sc, event['user'])
         presence = event['presence']
         # According to https://api.slack.com/docs/presence, presence can
         # only be one of 'active' and 'away'
@@ -300,18 +306,10 @@ class SlackBackend(ErrBot):
     def _message_event_handler(self, event):
         """Event handler for the 'message' event"""
         channel = event['channel']
-        if channel.startswith('C'):
-            log.debug("Handling message from a public channel")
-            message_type = 'groupchat'
-        elif channel.startswith('G'):
-            log.debug("Handling message from a private group")
-            message_type = 'groupchat'
-        elif channel.startswith('D'):
-            log.debug("Handling message from a user")
-            message_type = 'chat'
-        else:
-            log.warning("Unknown message type! Unable to handle")
+        if channel[0] not in 'CGD':
+            log.warning("Unknown message type! Unable to handle %s", channel)
             return
+
         subtype = event.get('subtype', None)
 
         if subtype == "message_deleted":
@@ -360,14 +358,13 @@ class SlackBackend(ErrBot):
             text,
             extras={'attachments': event.get('attachments')})
 
-        if message_type == 'chat':
-            msg.frm = SlackIdentifier(self.sc, user, event['channel'])
-            msg.to = SlackIdentifier(self.sc, self.username_to_userid(self.sc.server.username),
-                                     event['channel'])
+        if channel.startswith('D'):
+            msg.frm = SlackPerson(self.sc, user, event['channel'])
+            msg.to = SlackPerson(self.sc, self.username_to_userid(self.sc.server.username),
+                                 event['channel'])
         else:
-            msg.frm = SlackRoomOccupant(self.sc, user, event['channel'])
-            msg.to = SlackRoomOccupant(self.sc, self.username_to_userid(self.sc.server.username),
-                                       event['channel'])
+            msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
+            msg.to = SlackRoom(channelid=event['channel'], bot=self)
 
         self.callback_message(msg)
 
@@ -442,15 +439,15 @@ class SlackBackend(ErrBot):
         super().send_message(mess)
         to_humanreadable = "<unknown>"
         try:
-            if mess.type == 'groupchat':
-                to_humanreadable = mess.to.username
-                to_channel_id = mess.to.channelid
+            if mess.is_group:
+                to_channel_id = mess.to.id
+                to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
             else:
                 to_humanreadable = mess.to.username
                 to_channel_id = mess.to.channelid
                 if to_channel_id.startswith('C'):
                     log.debug("This is a divert to private message, sending it directly to the user.")
-                    to_channel_id = self.get_im_channel(self.username_to_userid(to_humanreadable))
+                    to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
             log.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_channel_id))
             body = self.md.convert(mess.body)
             log.debug('Message size: %d' % len(body))
@@ -573,15 +570,15 @@ class SlackBackend(ErrBot):
         username, userid, channelname, channelid = self.extract_identifiers_from_string(txtrep)
 
         if userid is not None:
-            return SlackIdentifier(self.sc, userid, self.get_im_channel(userid))
+            return SlackPerson(self.sc, userid, self.get_im_channel(userid))
         if channelid is not None:
-            return SlackIdentifier(self.sc, None, channelid)
+            return SlackPerson(self.sc, None, channelid)
         if username is not None:
             userid = self.username_to_userid(username)
-            return SlackIdentifier(self.sc, userid, self.get_im_channel(userid))
+            return SlackPerson(self.sc, userid, self.get_im_channel(userid))
         if channelname is not None:
             channelid = self.channelname_to_channelid(channelname)
-            return SlackRoomOccupant(self.sc, userid, channelid)
+            return SlackRoomOccupant(self.sc, userid, channelid, bot=self)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "
@@ -589,13 +586,9 @@ class SlackBackend(ErrBot):
         )
 
     def build_reply(self, mess, text=None, private=False):
-        msg_type = mess.type
         response = self.build_message(text)
-
         response.frm = self.bot_identifier
-        response.to = mess.frm
-        response.type = 'chat' if private else msg_type
-
+        response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
         return response
 
     def shutdown(self):
@@ -798,7 +791,7 @@ class SlackRoom(Room):
     @property
     def occupants(self):
         members = self._channel_info['members']
-        return [SlackRoomOccupant(self.sc, self._bot.userid_to_username(m), self._name) for m in members]
+        return [SlackRoomOccupant(self.sc, self._bot.userid_to_username(m), self._name, self._bot) for m in members]
 
     def invite(self, *args):
         users = {user['name']: user['id'] for user in self._bot.api_call('users.list')['members']}

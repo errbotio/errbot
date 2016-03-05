@@ -34,6 +34,7 @@ if slack:
         def channelid_to_channelname(self, channelid):
             return 'meh'
 
+
 @unittest.skipIf(not slack, "package slackclient not installed")
 class SlackTests(unittest.TestCase):
     def setUp(self):

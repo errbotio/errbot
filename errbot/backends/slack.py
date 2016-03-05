@@ -151,6 +151,9 @@ class SlackPerson(Person):
     def __str__(self):
         return self.__unicode__()
 
+    def __eq__(self, other):
+        return other.userid == self.userid
+
 
 class SlackRoomOccupant(RoomOccupant, SlackPerson):
     """
@@ -169,6 +172,12 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
 
     def __str__(self):
         return self.__unicode__()
+
+    def __eq__(self, other):
+        if not isinstance(other, RoomOccupant):
+            log.warn('tried to compare a SlackRoomOccupant with a SlackPerson %s vs %s', self, other)
+            return False
+        return other.room.id == self.room.id and other.userid == self.userid
 
 
 class SlackBackend(ErrBot):
@@ -462,6 +471,9 @@ class SlackBackend(ErrBot):
                 "An exception occurred while trying to send the following message "
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
+
+    def __hash__(self):
+        return 0  # this is a singleton anyway
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         self.api_call('users.setPresence', data={'presence': 'auto' if status == ONLINE else 'away'})
@@ -811,3 +823,6 @@ class SlackRoom(Room):
                     raise RoomError("Unable to invite people. " + USER_IS_BOT_HELPTEXT)
                 elif response['error'] != "already_in_channel":
                     raise SlackAPIResponseError(error="Slack API call to %s failed: %s" % (method, response['error']))
+
+    def __eq__(self, other):
+        return self.id == other.id

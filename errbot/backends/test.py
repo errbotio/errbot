@@ -10,7 +10,7 @@ from threading import Thread
 import pytest
 
 from errbot.rendering import text
-from errbot.backends.base import Message, MUCRoom, Identifier, MUCIdentifier, ONLINE
+from errbot.backends.base import Message, Room, Person, RoomOccupant, ONLINE
 from errbot.core_plugins.wsview import reset_app
 from errbot.errBot import ErrBot
 from errbot.main import setup_bot
@@ -25,7 +25,7 @@ STZ_PRE = 2
 STZ_IQ = 3
 
 
-class TestIdentifier(Identifier):
+class TestPerson(Person):
     """
     This is an identifier just represented as a string.
     DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
@@ -82,7 +82,7 @@ class TestIdentifier(Identifier):
 
 
 # noinspection PyAbstractClass
-class TestMUCOccupant(TestIdentifier, MUCIdentifier):
+class TestOccupant(TestPerson, RoomOccupant):
     """ This is a MUC occupant represented as a string.
         DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
     """
@@ -104,7 +104,7 @@ class TestMUCOccupant(TestIdentifier, MUCIdentifier):
         return self.person == other.person and self.room == other.room
 
 
-class TestMUCRoom(MUCRoom):
+class TestRoom(Room):
     def invite(self, *args):
         pass
 
@@ -120,7 +120,7 @@ class TestMUCRoom(MUCRoom):
         self._topic = topic
         self._bot = bot
         self._name = name
-        self._bot_mucid = TestMUCOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
+        self._bot_mucid = TestOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
 
     @property
     def occupants(self):
@@ -272,7 +272,7 @@ class TestBackend(ErrBot):
         return
 
     def build_identifier(self, text_representation):
-        return TestIdentifier(text_representation)
+        return TestPerson(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         msg = self.build_message(text)
@@ -291,7 +291,7 @@ class TestBackend(ErrBot):
         try:
             return [r for r in self._rooms if str(r) == str(room)][0]
         except IndexError:
-            r = TestMUCRoom(room, bot=self)
+            r = TestRoom(room, bot=self)
             return r
 
     def prefix_groupchat_reply(self, message, identifier):

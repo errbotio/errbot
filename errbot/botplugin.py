@@ -2,12 +2,12 @@ import logging
 import shlex
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Tuple, Callable, Mapping, Sequence
+from typing import Tuple, Callable, Mapping, Sequence, Union
 from io import IOBase
 
 from .utils import recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, MUCRoom, Identifier, ONLINE
+from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE
 
 log = logging.getLogger(__name__)
 
@@ -301,7 +301,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_joined(self, room: MUCRoom):
+    def callback_room_joined(self, room: Room):
         """
             Triggered when the bot has joined a MUC.
 
@@ -311,7 +311,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_left(self, room: MUCRoom):
+    def callback_room_left(self, room: Room):
         """
             Triggered when the bot has left a MUC.
 
@@ -321,7 +321,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_topic(self, room: MUCRoom):
+    def callback_room_topic(self, room: Room):
         """
             Triggered when the topic in a MUC changes.
 
@@ -342,22 +342,27 @@ class BotPlugin(BotPluginBase):
         self._bot.warn_admins(warning)
 
     def send(self,
-             user: object,
+             identifier: Identifier,
              text: str,
              in_reply_to: Message=None,
-             message_type: str='chat',
+             message_type: str=None,
              groupchat_nick_reply: bool=False) -> None:
         """
             Sends asynchronously a message to a room or a user.
              if it is a room message_type needs to by 'groupchat' and user the room.
 
              :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-             :param message_type: 'chat' or 'groupchat'
+             :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
              :param text: markdown formatted text to send to the user.
-             :param user: identifier of the user to which you want to send a message to. see build_identifier.
+             :param identifier: identifier of the user or a room to which you want to send a message to.
+                                see build_identifier, room_join.
         """
-        return self._bot.send(user, text, in_reply_to, message_type, groupchat_nick_reply)
+        if not isinstance(identifier, Identifier):
+            raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
+        if message_type is not None:
+            self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
+        return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """
@@ -370,11 +375,11 @@ class BotPlugin(BotPluginBase):
         self._bot.change_presence(status, message)
 
     def send_templated(self,
-                       user: Identifier,
+                       identifier: Identifier,
                        template_name: str,
                        template_parameters: Mapping,
                        in_reply_to: Message=None,
-                       message_type: str='chat',
+                       message_type: str=None,
                        groupchat_nick_reply: bool=False) -> None:
         """
             Sends asynchronously a message to a room or a user.
@@ -384,20 +389,21 @@ class BotPlugin(BotPluginBase):
              :param template_parameters: arguments for the template.
              :param template_name: name of the template to use.
              :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-             :param message_type: 'chat' or 'groupchat'
+             :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
              :param text: markdown formatted text to send to the user.
-             :param user: identifier of the user to which you want to send a message to. see build_identifier.
+             :param identifier: identifier of the user or room to which you want to send a message to.
         """
         return self._bot.send_templated(user, template_name, template_parameters, in_reply_to, message_type,
                                         groupchat_nick_reply)
 
-    def build_identifier(self, txtrep: str):
+    def build_identifier(self, txtrep: str) -> Identifier:
         """
-           Transform a textual representation of a user or room identifier to the correct
+           Transform a textual representation of a user identifier to the correct
            Identifier object you can set in Message.to and Message.frm.
 
            :param txtrep: the textual representation of the identifier (it is backend dependent).
+           :return: a user identifier.
         """
         return self._bot.build_identifier(txtrep)
 
@@ -420,26 +426,13 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send_stream_request(user, fsource, name, size, stream_type)
 
-    def join_room(self, room: str, username: str=None, password: str=None):
-        """
-        Join a room (MUC).
-
-        :param room:
-            The JID/identifier of the room to join.
-        :param username:
-            An optional username to use.
-        :param password:
-            An optional password to use (for password-protected rooms).
-        """
-        return self._bot.join_room(room, username, password)
-
-    def rooms(self) -> Sequence[MUCRoom]:
+    def rooms(self) -> Sequence[Room]:
         """
         The list of rooms the bot is currently in.
         """
         return self._bot.rooms()
 
-    def query_room(self, room: str) -> MUCRoom:
+    def query_room(self, room: str) -> Room:
         """
         Query a room for information.
 

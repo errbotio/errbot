@@ -6,8 +6,8 @@ import time
 import sys
 import pprint
 
-from errbot.backends.base import Message, Presence, ONLINE, AWAY, MUCRoom, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError, Identifier, MUCIdentifier
+from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
+    UserDoesNotExistError, Identifier, RoomOccupant
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated, PY3, split_string_after
 from errbot.rendering import imtext
@@ -152,7 +152,7 @@ class SlackIdentifier(Identifier):
         return self.__unicode__()
 
 
-class SlackMUCOccupant(MUCIdentifier, SlackIdentifier):
+class SlackRoomOccupant(RoomOccupant, SlackIdentifier):
     """
     This class represents a person inside a MUC.
     """
@@ -358,7 +358,6 @@ class SlackBackend(ErrBot):
 
         msg = Message(
             text,
-            type_=message_type,
             extras={'attachments': event.get('attachments')})
 
         if message_type == 'chat':
@@ -366,9 +365,9 @@ class SlackBackend(ErrBot):
             msg.to = SlackIdentifier(self.sc, self.username_to_userid(self.sc.server.username),
                                      event['channel'])
         else:
-            msg.frm = SlackMUCOccupant(self.sc, user, event['channel'])
-            msg.to = SlackMUCOccupant(self.sc, self.username_to_userid(self.sc.server.username),
-                                      event['channel'])
+            msg.frm = SlackRoomOccupant(self.sc, user, event['channel'])
+            msg.to = SlackRoomOccupant(self.sc, self.username_to_userid(self.sc.server.username),
+                                       event['channel'])
 
         self.callback_message(msg)
 
@@ -582,7 +581,7 @@ class SlackBackend(ErrBot):
             return SlackIdentifier(self.sc, userid, self.get_im_channel(userid))
         if channelname is not None:
             channelid = self.channelname_to_channelid(channelname)
-            return SlackMUCOccupant(self.sc, userid, channelid)
+            return SlackRoomOccupant(self.sc, userid, channelid)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "
@@ -601,10 +600,6 @@ class SlackBackend(ErrBot):
 
     def shutdown(self):
         super().shutdown()
-
-    @deprecated
-    def join_room(self, room, username=None, password=None):
-        return self.query_room(room)
 
     @property
     def mode(self):
@@ -641,7 +636,7 @@ class SlackBackend(ErrBot):
         return match_object.group()
 
 
-class SlackRoom(MUCRoom):
+class SlackRoom(Room):
     def __init__(self, name=None, channelid=None, bot=None):
         if channelid is not None and name is not None:
             raise ValueError("channelid and name are mutually exclusive")
@@ -803,7 +798,7 @@ class SlackRoom(MUCRoom):
     @property
     def occupants(self):
         members = self._channel_info['members']
-        return [SlackMUCOccupant(self.sc, self._bot.userid_to_username(m), self._name) for m in members]
+        return [SlackRoomOccupant(self.sc, self._bot.userid_to_username(m), self._name) for m in members]
 
     def invite(self, *args):
         users = {user['name']: user['id'] for user in self._bot.api_call('users.list')['members']}

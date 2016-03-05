@@ -41,13 +41,7 @@ class ChatRoom(BotPlugin):
             room_name = compat_str(room)
             room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
             self.log.info("Joining room {} with username {}".format(room, username))
-        try:
             self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
-        except NotImplementedError:
-            # Backward compatibility for backends which do not yet have a
-            # query_room implementation and still have a join_room method.
-            logging.warning("query_room not implemented on this backend, using legacy join_room instead")
-            self.join_room(room, username=username, password=password)
 
     def deactivate(self):
         self.connected = False
@@ -236,16 +230,16 @@ class ChatRoom(BotPlugin):
 
     def callback_message(self, mess):
         try:
-            mess_type = mess.type
-            if mess_type == 'chat':
+            if mess.is_direct:
                 username = mess.frm.person
                 if username in self.bot_config.CHATROOM_RELAY:
                     self.log.debug('Message to relay from %s.' % username)
                     body = mess.body
                     rooms = self.bot_config.CHATROOM_RELAY[username]
-                    for room in rooms:
-                        self.send(room, body, message_type='groupchat')
-            elif mess_type == 'groupchat':
+                    for roomstr in rooms:
+                        room = self.room_join(roomstr)
+                        self.send(room, body)
+            elif mess.is_group:
                 fr = mess.frm
                 chat_room = fr.room
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:

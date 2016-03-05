@@ -9,7 +9,7 @@ from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
 from errbot.backends.base import RoomDoesNotExistError
-from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
+from errbot.backends.xmpp import XMPPRoomOccupant, XMPPRoom, XMPPBackend, XMPPConnection
 
 
 # Can't use __name__ because of Yapsy
@@ -61,7 +61,7 @@ def hipchat_html():
     return Markdown(output_format='xhtml', extensions=[ExtraExtension(), HipchatExtension()])
 
 
-class HipChatMUCOccupant(XMPPMUCOccupant):
+class HipChatMUCRoomOccupant(XMPPRoomOccupant):
     """
     An occupant of a Multi-User Chatroom.
 
@@ -87,7 +87,7 @@ class HipChatMUCOccupant(XMPPMUCOccupant):
         return self.name
 
 
-class HipChatMUCRoom(XMPPMUCRoom):
+class HipChatMUCRoom(XMPPRoom):
     """
     This class represents a Multi-User Chatroom.
     """
@@ -284,7 +284,7 @@ class HipChatMUCRoom(XMPPMUCRoom):
         participants = self.room.participants(expand="items")['items']
         occupants = []
         for p in participants:
-            occupants.append(HipChatMUCOccupant(p))
+            occupants.append(HipChatMUCRoomOccupant(p))
         return occupants
 
     def invite(self, *args):

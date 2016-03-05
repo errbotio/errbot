@@ -6,6 +6,8 @@ from typing import Any, Mapping, BinaryIO, List, Union, Sequence
 from abc import abstractproperty, abstractmethod
 from collections import deque, defaultdict
 
+import inspect
+
 try:
     from abc import ABC
 except ImportError:
@@ -19,13 +21,24 @@ except ImportError:
         pass
 
 
-from errbot.utils import compat_str
+from errbot.utils import compat_str, deprecated
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.base')
 
 
 class Identifier(ABC):
+    """This is just use for type hinting representing the Identifier contract,
+    NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
+    To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
+     to make an identifier from a String.
+
+     The semantics is anything you can talk to: Person, Room, RoomOccupant etc.
+    """
+    pass
+
+
+class Person(Identifier):
     """This is just use for type hinting representing the Identifier contract,
     NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
     To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
@@ -69,9 +82,9 @@ class Identifier(ABC):
         pass
 
 
-class MUCIdentifier(Identifier):
+class RoomOccupant(Identifier):
     @abstractproperty
-    def room(self) -> Any:  # this is MUCRoom defined below
+    def room(self) -> Any:  # this is oom defined below
         """
         Some backends have the full name of a user.
         :return: the fullname of this user if available.
@@ -79,7 +92,7 @@ class MUCIdentifier(Identifier):
         pass
 
 
-class MUCRoom(object):
+class Room(Identifier):
     """
     This class represents a Multi-User Chatroom.
     """
@@ -168,7 +181,7 @@ class MUCRoom(object):
         raise NotImplementedError("It should be implemented specifically for your backend")
 
     @property
-    def occupants(self) -> List[MUCIdentifier]:
+    def occupants(self) -> List[RoomOccupant]:
         """
         The room's occupants.
 
@@ -219,7 +232,6 @@ class Message(object):
 
     def __init__(self,
                  body: str='',
-                 type_: str='chat',
                  frm: Identifier=None,
                  to: Identifier=None,
                  delayed: bool=False,
@@ -227,20 +239,17 @@ class Message(object):
         """
         :param body:
             The plaintext body of the message.
-        :param type_:
-            The type of message (generally one of either 'chat' or 'groupchat').
         :param extras:
             Extra data attached by a backend
         """
         self._body = compat_str(body)
-        self._type = type_
         self._from = frm
         self._to = to
         self._delayed = delayed
         self._extras = extras or dict()
 
     def clone(self):
-        return Message(self._body, self._type, self._from, self._to, self._delayed, self.extras)
+        return Message(self._body, self._from, self._to, self._delayed, self.extras)
 
     @property
     def to(self) -> Identifier:
@@ -260,32 +269,7 @@ class Message(object):
         :param to:
             An identifier from for example build_identifier().
         """
-        if not hasattr(to, 'person'):
-            raise Exception('`to` not an Identifier as it misses ''the "person" property. `to` : %s (%s)'
-                            % (to, to.__class__))
         self._to = to
-
-    @property
-    def type(self) -> str:
-        """
-        Get the type of the message.
-
-        :returns:
-            The message type as a string (generally one of either
-            'chat' or 'groupchat')
-        """
-        return self._type
-
-    @type.setter
-    def type(self, type_: str):
-        """
-        Set the type of the message.
-
-        :param type_:
-            The message type (generally one of either 'chat'
-            or 'groupchat').
-        """
-        self._type = type_
 
     @property
     def frm(self) -> Identifier:
@@ -306,9 +290,6 @@ class Message(object):
         :param from_:
             An identifier from build_identifier.
         """
-        if not hasattr(from_, 'person'):
-            raise Exception('`from_` not an Identifier as it misses the "person" property. from_ : %s (%s)'
-                            % (from_, from_.__class__))
         self._from = from_
 
     @property
@@ -340,8 +321,19 @@ class Message(object):
     def __str__(self):
         return self._body
 
-    # deprecated stuff ...
+    @property
+    def is_direct(self) -> bool:
+        return isinstance(self.to, Person)
 
+    @property
+    def is_group(self) -> bool:
+        return isinstance(self.to, Room)
+
+    @property
+    def type(self):
+        msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back))
+        log.warn(msg + 'msg.type is deprecated and will be removed soon ! Use msg.is_direct or msg.is_group.')
+        return 'chat' if self.is_direct else 'groupchat'
 
 ONLINE = 'online'
 OFFLINE = 'offline'
@@ -358,29 +350,16 @@ class Presence(object):
     """
 
     def __init__(self,
-                 nick: str=None,
-                 identifier: Identifier=None,
+                 identifier: Identifier,
                  status: str=None,
-                 chatroom: Identifier=None,
                  message: str=None):
-        if nick is None and identifier is None:
-            raise ValueError('Presence: nick and identifiers are both None')
-        if nick is None and chatroom is not None:
-            raise ValueError('Presence: nick is None when chatroom is not')
+        if identifier is None:
+            raise ValueError('Presence: identifiers is None')
         if status is None and message is None:
             raise ValueError('Presence: at least a new status or a new status message mustbe present')
-        self._nick = nick
         self._identifier = identifier
-        self._chatroom = chatroom
         self._status = status
         self._message = message
-
-    @property
-    def chatroom(self) -> Identifier:
-        """ Returns the identifier pointing the room in which the event occurred.
-            If it returns None, the event occurred outside of a chatroom.
-        """
-        return self._chatroom
 
     @property
     def nick(self) -> str:
@@ -389,10 +368,10 @@ class Presence(object):
             of a person in it).
             Can return None but then identifier won't be None.
         """
-        return self._nick
+        return self._identifier.nick
 
     @property
-    def identifier(self) -> Identifier:
+    def occupant(self) -> RoomOccupant:
         """ Returns the identifier of the event.
             Can be None *only* if chatroom is not None
         """
@@ -423,8 +402,6 @@ class Presence(object):
             response += 'Idd:%s ' % self._identifier
         if self._status:
             response += 'Status:%s ' % self._status
-        if self._chatroom:
-            response += 'Room:%s ' % self._chatroom
         if self._message:
             response += 'Msg:%s ' % self._message
         return response
@@ -591,17 +568,17 @@ class Backend(ABC):
         pass
 
     @abstractmethod
-    def callback_room_joined(self, room: MUCRoom) -> None:
+    def callback_room_joined(self, room: Room) -> None:
         """ See :class:`~errbot.errBot.ErrBot` """
         pass
 
     @abstractmethod
-    def callback_room_left(self, room: MUCRoom) -> None:
+    def callback_room_left(self, room: Room) -> None:
         """ See :class:`~errbot.errBot.ErrBot` """
         pass
 
     @abstractmethod
-    def callback_room_topic(self, room: MUCRoom) -> None:
+    def callback_room_topic(self, room: Room) -> None:
         """ See :class:`~errbot.errBot.ErrBot` """
         pass
 
@@ -670,7 +647,7 @@ class Backend(ABC):
         """
 
     @abstractmethod
-    def build_identifier(self, text_representation: str) -> Union[Identifier, MUCIdentifier]:
+    def build_identifier(self, text_representation: str) -> Identifier:
         pass
 
     def serve_once(self) -> None:
@@ -692,14 +669,14 @@ class Backend(ABC):
         """Connects the bot to server or returns current connection """
 
     @abstractmethod
-    def query_room(self, room: str) -> MUCRoom:
+    def query_room(self, room: str) -> Room:
         """
         Query a room for information.
 
         :param room:
             The room to query for.
         :returns:
-            An instance of :class:`~MUCRoom`.
+            An instance of :class:`~Room`.
         """
 
     @abstractmethod
@@ -715,10 +692,10 @@ class Backend(ABC):
         pass
 
     @abstractproperty
-    def rooms(self) -> Sequence[MUCRoom]:
+    def rooms(self) -> Sequence[Room]:
         """
         Return a list of rooms the bot is currently in.
 
         :returns:
-            A list of :class:`~errbot.backends.base.MUCRoom` instances.
+            A list of :class:`~errbot.backends.base.Room` instances.
         """

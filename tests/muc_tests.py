@@ -1,6 +1,6 @@
 import os
 import errbot.backends.base
-from errbot.backends.test import FullStackTest, TestMUCOccupant
+from errbot.backends.test import FullStackTest, TestOccupant
 import logging
 log = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class TestMUC(FullStackTest):
 
         r1 = rooms[0]
         assert str(r1) == "testroom"
-        assert issubclass(r1.__class__, errbot.backends.base.MUCRoom)
+        assert issubclass(r1.__class__, errbot.backends.base.Room)
 
         r2 = self.bot.query_room('testroom2')
         assert not r2.exists
@@ -57,7 +57,7 @@ class TestMUC(FullStackTest):
     def test_occupants(self):  # noqa
         room = self.bot.rooms()[0]
         assert len(room.occupants) == 1
-        assert TestMUCOccupant('err', 'testroom') in room.occupants
+        assert TestOccupant('err', 'testroom') in room.occupants
 
     def test_topic(self):  # noqa
         room = self.bot.rooms()[0]

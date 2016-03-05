@@ -10,9 +10,9 @@ import time
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-from errbot.backends.base import Message, MUCRoom, Stream, RoomError, \
+from errbot.backends.base import Message, Room, Stream, RoomError, \
                                     RoomNotJoinedError, Stream, Identifier, \
-                                    MUCIdentifier, ONLINE
+                                    RoomOccupant, ONLINE
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
 from errbot.rendering.ansi import AnsiExtension, enable_format, \
@@ -132,7 +132,7 @@ class IRCIdentifier(Identifier):
         return self.__unicode__()
 
 
-class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
+class IRCMUCOccupant(RoomOccupant, IRCIdentifier):
     def __init__(self, mask, room, aclpattern):
         super().__init__(mask, aclpattern)
         self._room = room
@@ -155,7 +155,7 @@ class IRCMUCOccupant(MUCIdentifier, IRCIdentifier):
         return "<{} - {}>".format(self.__unicode__(), super().__repr__())
 
 
-class IRCMUCRoom(MUCRoom):
+class IRCMUCRoom(Room):
     def __init__(self, room, bot, aclpattern):
         self._bot = bot
         self.room = room

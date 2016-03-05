@@ -12,10 +12,9 @@ from pygments.lexers import get_lexer_by_name
 
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
-from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
-from errbot.backends.test import TestIdentifier
+from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
+from errbot.backends.test import TestPerson
 from errbot.errBot import ErrBot
-from errbot.utils import deprecated
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
@@ -61,7 +60,7 @@ class TextBackend(ErrBot):
     def serve_forever(self):
         me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
-        self.callback_presence(Presence(identifier=me, status=ONLINE))
+        self.callback_presence(Presence(occupant=me, status=ONLINE))
         try:
             while True:
                 if ANSI:
@@ -120,25 +119,20 @@ class TextBackend(ErrBot):
         log.debug("*** Changed presence to [%s] %s", (status, message))
 
     def build_identifier(self, text_representation):
-        return TestIdentifier(text_representation)
+        return TestPerson(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
         response.to = mess.frm
-        response.type = 'chat' if private else mess.type
         return response
-
-    @deprecated
-    def join_room(self, room, username=None, password=None):
-        return self.query_room(room)
 
     @property
     def mode(self):
         return 'text'
 
     def query_room(self, room):
-        room = TextMUCRoom()
+        room = TextRoom()
         self._rooms.add(room)
         return room
 
@@ -149,7 +143,7 @@ class TextBackend(ErrBot):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)
 
 
-class TextMUCRoom(MUCRoom):
+class TextRoom(Room):
 
     def __init__(self):
         self.topic_ = ''

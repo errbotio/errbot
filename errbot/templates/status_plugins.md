@@ -1,16 +1,16 @@
 {% macro status(name) -%}
     {% if name == 'A' -%}
-        **A**{color='green'}
+        **A**{:color='green'}
     {%- elif name == 'D' -%}
         **D**
     {%- elif name == 'C' -%}
-        **C**{color='yellow'}
+        **C**{:color='yellow'}
     {%- elif name == 'B' -%}
-        **B**{color='red'}
+        **B**{:color='red'}
     {%- elif name == 'BA' -%}
-        **B**{color='red'},**A**{color='green'}
+        **B**{:color='red'},**A**{:color='green'}
     {%- elif name == 'BD' -%}
-        **B**{color='red'},**D**
+        **B**{:color='red'},**D**
     {%- endif %}
 {%- endmacro %}
 

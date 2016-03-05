@@ -230,16 +230,16 @@ class ChatRoom(BotPlugin):
 
     def callback_message(self, mess):
         try:
-            mess_type = mess.type
-            if mess_type == 'chat':
+            if mess.is_direct:
                 username = mess.frm.person
                 if username in self.bot_config.CHATROOM_RELAY:
                     self.log.debug('Message to relay from %s.' % username)
                     body = mess.body
                     rooms = self.bot_config.CHATROOM_RELAY[username]
-                    for room in rooms:
-                        self.send(room, body, message_type='groupchat')
-            elif mess_type == 'groupchat':
+                    for roomstr in rooms:
+                        room = self.room_join(roomstr)
+                        self.send(room, body)
+            elif mess.is_group:
                 fr = mess.frm
                 chat_room = fr.room
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:

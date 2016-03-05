@@ -9,7 +9,7 @@ from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
 from errbot.backends.base import RoomDoesNotExistError
-from errbot.backends.xmpp import XMPPMUCOccupant, XMPPMUCRoom, XMPPBackend, XMPPConnection
+from errbot.backends.xmpp import XMPPMUCOccupant, XMPPRoom, XMPPBackend, XMPPConnection
 
 
 # Can't use __name__ because of Yapsy
@@ -87,7 +87,7 @@ class HipChatMUCOccupant(XMPPMUCOccupant):
         return self.name
 
 
-class HipChatMUCRoom(XMPPMUCRoom):
+class HipChatMUCRoom(XMPPRoom):
     """
     This class represents a Multi-User Chatroom.
     """

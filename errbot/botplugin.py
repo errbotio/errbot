@@ -7,7 +7,7 @@ from io import IOBase
 
 from .utils import recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, MUCRoom, Identifier, ONLINE
+from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE
 
 log = logging.getLogger(__name__)
 
@@ -301,7 +301,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_joined(self, room: MUCRoom):
+    def callback_room_joined(self, room: Room):
         """
             Triggered when the bot has joined a MUC.
 
@@ -311,7 +311,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_left(self, room: MUCRoom):
+    def callback_room_left(self, room: Room):
         """
             Triggered when the bot has left a MUC.
 
@@ -321,7 +321,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_topic(self, room: MUCRoom):
+    def callback_room_topic(self, room: Room):
         """
             Triggered when the topic in a MUC changes.
 
@@ -342,7 +342,7 @@ class BotPlugin(BotPluginBase):
         self._bot.warn_admins(warning)
 
     def send(self,
-             user_or_room: Union[Identifier, MUCRoom],
+             identifier: Union[Identifier],
              text: str,
              in_reply_to: Message=None,
              message_type: str=None,
@@ -355,14 +355,14 @@ class BotPlugin(BotPluginBase):
              :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
              :param text: markdown formatted text to send to the user.
-             :param user_or_room: identifier of the user or a room to which you want to send a message to.
-                                   see build_identifier.
+             :param identifier: identifier of the user or a room to which you want to send a message to.
+                                see build_identifier, room_join.
         """
         if type(user_or_room) is str:
-            raise ValueError("user_or_send needs to be Identifier or MUCRoom, the old string behavior is not supported")
+            raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
         if message_type is not None:
             self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
-        return self._bot.send(user_or_room, text, in_reply_to, groupchat_nick_reply)
+        return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """
@@ -375,7 +375,7 @@ class BotPlugin(BotPluginBase):
         self._bot.change_presence(status, message)
 
     def send_templated(self,
-                       user: Identifier,
+                       identifier: Identifier,
                        template_name: str,
                        template_parameters: Mapping,
                        in_reply_to: Message=None,
@@ -392,7 +392,7 @@ class BotPlugin(BotPluginBase):
              :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
              :param text: markdown formatted text to send to the user.
-             :param user: identifier of the user to which you want to send a message to. see build_identifier.
+             :param identifier: identifier of the user or room to which you want to send a message to. see build_identifier.
         """
         return self._bot.send_templated(user, template_name, template_parameters, in_reply_to, message_type,
                                         groupchat_nick_reply)
@@ -426,13 +426,13 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send_stream_request(user, fsource, name, size, stream_type)
 
-    def rooms(self) -> Sequence[MUCRoom]:
+    def rooms(self) -> Sequence[Room]:
         """
         The list of rooms the bot is currently in.
         """
         return self._bot.rooms()
 
-    def query_room(self, room: str) -> MUCRoom:
+    def query_room(self, room: str) -> Room:
         """
         Query a room for information.
 

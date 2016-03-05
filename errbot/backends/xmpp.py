@@ -3,12 +3,55 @@ import sys
 import warnings
 from threading import Thread
 from time import sleep
+from html.entities import entitydefs
+from html import _invalid_codepoints, _invalid_charrefs
 
-from errbot.backends.base import Message, MUCRoom, Presence, RoomNotJoinedError, Identifier, MUCIdentifier
+import re
+
+from errbot.backends.base import Message, Room, Presence, RoomNotJoinedError, Identifier, Occupant
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from errbot.rendering import text, xhtml
 
+SAFE_ENTITIES = {e: entitydefs[e] for e in entitydefs if e not in ('amp', 'quot', 'apos', 'gt', 'lt')}
+
+
+def _replace_charref(s):
+    s = s.group(1)
+    if s[0] == '#':
+        # numeric charref
+        if s[1] in 'xX':
+            num = int(s[2:].rstrip(';'), 16)
+        else:
+            num = int(s[1:].rstrip(';'))
+        if num in _invalid_charrefs:
+            return _invalid_charrefs[num]
+        if 0xD800 <= num <= 0xDFFF or num > 0x10FFFF:
+            return '\uFFFD'
+        if num in _invalid_codepoints:
+            return ''
+        return chr(num)
+    else:
+        # named charref
+        if s in SAFE_ENTITIES:
+            return SAFE_ENTITIES[s]
+        # find the longest matching name (as defined by the standard)
+        for x in range(len(s)-1, 1, -1):
+            if s[:x] in SAFE_ENTITIES:
+                return SAFE_ENTITIES[s[:x]] + s[x:]
+        else:
+            return '&' + s
+
+
+_charref = re.compile(r'&(#[0-9]+;?'
+                      r'|#[xX][0-9a-fA-F]+;?'
+                      r'|[^\t\n\f <&#;]{1,32};?)')
+
+
+def unescape(s):
+    if '&' not in s:
+        return s
+    return _charref.sub(_replace_charref, s)
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.xmpp')
@@ -87,8 +130,14 @@ class XMPPIdentifier(Identifier):
     def __unicode__(self):
         return str(self.__str__())
 
+    def __eq__(self, other):
+        if not isinstance(other, XMPPIdentifier):
+            log.debug("Weird, you are comparing an XMPPIdentifier to a %s", type(other))
+            return False
+        return self._domain == other._domain and self._node == other._node and self._resource == other._resource
 
-class XMPPMUCRoom(MUCRoom):
+
+class XMPPRoom(Room):
     def __init__(self, name, bot):
         self._bot = bot
         self._name = name
@@ -284,7 +333,7 @@ class XMPPMUCRoom(MUCRoom):
                       .format(room, affiliation))
 
 
-class XMPPMUCOccupant(MUCIdentifier, XMPPIdentifier):
+class XMPPMUCOccupant(Occupant, XMPPIdentifier):
     @property
     def person(self):
         return str(self)  # this is the full identifier.
@@ -481,7 +530,7 @@ class XMPPBackend(ErrBot):
         if topic == "":
             topic = None
         self._room_topics[room] = topic
-        room = XMPPMUCRoom(event.values['mucroom'], self)
+        room = XMPPRoom(event.values['mucroom'], self)
         self.callback_room_topic(room)
 
     def user_changed_status(self, event):
@@ -516,7 +565,8 @@ class XMPPBackend(ErrBot):
             mess.to = XMPPIdentifier(mess.to.node, mess.to.domain, None)
         log.debug("send_message to %s", mess.to)
 
-        mhtml = self.md_xhtml.convert(mess.body) if self.xhtmlim else None
+        # We need to unescape the unicode characters (not the markup incompatible ones)
+        mhtml = unescape(self.md_xhtml.convert(mess.body)) if self.xhtmlim else None
 
         self.conn.client.send_message(mto=str(mess.to),
                                       mbody=self.md_text.convert(mess.body),
@@ -608,7 +658,7 @@ class XMPPBackend(ErrBot):
             A list of :class:`~errbot.backends.base.XMPPMUCRoom` instances.
         """
         xep0045 = self.conn.client.plugin['xep_0045']
-        return [XMPPMUCRoom(room, self) for room in xep0045.getJoinedRooms()]
+        return [XMPPRoom(room, self) for room in xep0045.getJoinedRooms()]
 
     def query_room(self, room):
         """
@@ -619,7 +669,7 @@ class XMPPBackend(ErrBot):
         :returns:
             An instance of :class:`~XMPPMUCRoom`.
         """
-        return XMPPMUCRoom(room, self)
+        return XMPPRoom(room, self)
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)

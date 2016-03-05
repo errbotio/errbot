@@ -12,7 +12,7 @@ from pygments.lexers import get_lexer_by_name
 
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
-from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, MUCRoom
+from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
 from errbot.backends.test import TestIdentifier
 from errbot.errBot import ErrBot
 from errbot.utils import deprecated
@@ -134,7 +134,7 @@ class TextBackend(ErrBot):
         return 'text'
 
     def query_room(self, room):
-        room = TextMUCRoom()
+        room = TextRoom()
         self._rooms.add(room)
         return room
 
@@ -145,7 +145,7 @@ class TextBackend(ErrBot):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)
 
 
-class TextMUCRoom(MUCRoom):
+class TextRoom(Room):
 
     def __init__(self):
         self.topic_ = ''

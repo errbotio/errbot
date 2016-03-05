@@ -52,7 +52,6 @@ class ACLS(BotPlugin):
         self.log.debug("Check %s for ACLs." % cmd)
 
         usr = get_acl_usr(msg)
-        typ = msg.type
 
         self.log.debug("Matching ACLs against username %s" % usr)
 
@@ -67,7 +66,7 @@ class ACLS(BotPlugin):
            glob(usr, self.bot_config.ACCESS_CONTROLS[cmd]['denyusers'])):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
 
-        if typ == 'groupchat':
+        if msg.is_group:
             if not hasattr(msg.frm, 'room'):
                 raise Exception('msg.frm is not a MUCIdentifier as it misses the "room" property. Class of frm : %s'
                                 % msg.frm.__class__)
@@ -107,7 +106,7 @@ class ACLS(BotPlugin):
         f = self._bot.all_commands[cmd]
 
         if f._err_command_admin_only:
-            if msg.type == 'groupchat':
+            if msg.is_group:
                 return self.access_denied(
                         msg,
                         "You cannot administer the bot from a chatroom, message the bot directly", dry_run)

@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from errbot.backends.base import RoomError, Identifier, MUCIdentifier, ONLINE
+from errbot.backends.base import RoomError, Identifier, Occupant, ONLINE
 from errbot.errBot import ErrBot
 from errbot.rendering import text
 
@@ -102,7 +102,7 @@ class TelegramIdentifier(Identifier):
     aclattr = id
 
 
-class TelegramMUCOccupant(MUCIdentifier, TelegramIdentifier):
+class TelegramMUCOccupant(Occupant, TelegramIdentifier):
     """
     This class represents a person inside a MUC.
     """

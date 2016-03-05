@@ -31,6 +31,8 @@ if slack:
             """Have to mock because we don't have a slack server."""
             return 'Utest'
 
+        def channelid_to_channelname(self, channelid):
+            return 'meh'
 
 @unittest.skipIf(not slack, "package slackclient not installed")
 class SlackTests(unittest.TestCase):

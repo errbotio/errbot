@@ -342,7 +342,7 @@ class BotPlugin(BotPluginBase):
         self._bot.warn_admins(warning)
 
     def send(self,
-             identifier: Union[Identifier],
+             identifier: Identifier,
              text: str,
              in_reply_to: Message=None,
              message_type: str=None,
@@ -358,7 +358,7 @@ class BotPlugin(BotPluginBase):
              :param identifier: identifier of the user or a room to which you want to send a message to.
                                 see build_identifier, room_join.
         """
-        if type(user_or_room) is str:
+        if type(identifier) is str:
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
         if message_type is not None:
             self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
@@ -392,7 +392,7 @@ class BotPlugin(BotPluginBase):
              :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
              :param text: markdown formatted text to send to the user.
-             :param identifier: identifier of the user or room to which you want to send a message to. see build_identifier.
+             :param identifier: identifier of the user or room to which you want to send a message to.
         """
         return self._bot.send_templated(user, template_name, template_parameters, in_reply_to, message_type,
                                         groupchat_nick_reply)

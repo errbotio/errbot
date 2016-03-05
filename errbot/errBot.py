@@ -156,26 +156,26 @@ class ErrBot(Backend, StoreMixin):
         mess.frm = in_reply_to.to if in_reply_to else self.bot_identifier
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
-        if isinstance(user_or_room, Room) and in_reply_to and nick_reply and groupchat_nick_reply:
+        if isinstance(identifier, Room) and in_reply_to and nick_reply and groupchat_nick_reply:
             self.prefix_groupchat_reply(mess, in_reply_to.frm)
 
         self.split_and_send_message(mess)
 
-    def send_templated(self, user_or_room, template_name, template_parameters, in_reply_to=None,
+    def send_templated(self, identifier, template_name, template_parameters, in_reply_to=None,
                        groupchat_nick_reply=False):
         """ Sends a simple message to the specified user using a template.
 
             :param template_parameters: the parameters for the template.
             :param template_name: the template name you want to use.
-            :param user:
-                an identifier from build_identifier or from an incoming message
+            :param identifier:
+                an identifier from build_identifier or from an incoming message, a room etc.
             :param in_reply_to:
                 the original message the bot is answering from
             :param groupchat_nick_reply:
                 authorized the prefixing with the nick form the user
         """
         text = self.process_template(template_name, template_parameters)
-        return self.send(user_or_room, text, in_reply_to, groupchat_nick_reply)
+        return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, mess):
         for part in split_string_after(mess.body, self.bot_config.MESSAGE_SIZE_LIMIT):
@@ -227,7 +227,8 @@ class ErrBot(Backend, StoreMixin):
             log.debug("Message from history, ignore it")
             return False
 
-        if (mess.is_direct and frm == self.bot_identifier) or (mess.is_group and frm.nick == self.bot_config.CHATROOM_FN):
+        if (mess.is_direct and frm == self.bot_identifier) or \
+                (mess.is_group and frm.nick == self.bot_config.CHATROOM_FN):
             log.debug("Ignoring message from self")
             return False
 

@@ -76,8 +76,7 @@ def setup_bot(backend_name, logger, config, restore=None):
                              getattr(config, 'CORE_PLUGINS', None))
 
     # init the backend manager & the bot
-    extra = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
-    backendpm = SpecificPluginManager(config, 'backends', ErrBot, CORE_BACKENDS, extra)
+    backendpm = bpm_from_config(config)
 
     backend_plug = backendpm.get_candidate(backend_name)
 
@@ -112,15 +111,21 @@ def setup_bot(backend_name, logger, config, restore=None):
     return bot
 
 
-def enumerate_backends(config):
-    """ Returns all the backends found for the given config.
-    """
-    bpm = SpecificPluginManager(
+def bpm_from_config(config):
+    """Creates a backend plugin manager from a given config."""
+    extra = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+    return SpecificPluginManager(
             config,
             'backends',
             ErrBot,
             CORE_BACKENDS,
-            extra_search_dirs=())
+            extra_search_dirs=extra)
+
+
+def enumerate_backends(config):
+    """ Returns all the backends found for the given config.
+    """
+    bpm = bpm_from_config(config)
     return [plug.name for (_, _, plug) in bpm.getPluginCandidates()]
 
 

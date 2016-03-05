@@ -1,8 +1,8 @@
-Multiple server back-ends
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Multiple server backends
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-Errbot has support for a number of different networks, and is architectured in a way
-that makes it relatively easy to write new back-ends in order to support more.
+Errbot has support for a number of different networks and is architectured in a way
+that makes it easy to write new backends in order to support more.
 Currently, the following networks are supported:
 
   * XMPP *(Any standards-compliant XMPP/Jabber server should work - Google Talk/Hangouts included)*
@@ -13,6 +13,8 @@ Currently, the following networks are supported:
   * Tox_ (maintained `separately <https://github.com/errbotio/err-backend-tox>`__)
   * Gitter_ (maintained `separately <https://github.com/errbotio/err-backend-gitter>`__)
   * CampFire_ (maintained `separately <https://github.com/errbotio/err-backend-campfire>`__)
+  * Skype_ (maintained `separately <https://github.com/errbotio/errbot-backend-skype>`__)
+
 
 Core features
 ^^^^^^^^^^^^^
@@ -58,6 +60,7 @@ Extensive plugin framework
 .. _Tox: https://tox.im/
 .. _Telegram: https://telegram.org/
 .. _Gitter: http://gitter.im/
+.. _Skype: http://www.skype.com/en/
 .. _yapsy: http://yapsy.sourceforge.net/
 .. _jinja2: http://jinja.pocoo.org/
 .. _bottle: http://bottlepy.org/

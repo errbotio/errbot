@@ -7,7 +7,7 @@ from io import IOBase
 
 from .utils import recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, MUCRoom, Identifier, ONLINE
+from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE
 
 log = logging.getLogger(__name__)
 
@@ -301,7 +301,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_joined(self, room: MUCRoom):
+    def callback_room_joined(self, room: Room):
         """
             Triggered when the bot has joined a MUC.
 
@@ -311,7 +311,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_left(self, room: MUCRoom):
+    def callback_room_left(self, room: Room):
         """
             Triggered when the bot has left a MUC.
 
@@ -321,7 +321,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_topic(self, room: MUCRoom):
+    def callback_room_topic(self, room: Room):
         """
             Triggered when the topic in a MUC changes.
 
@@ -342,7 +342,7 @@ class BotPlugin(BotPluginBase):
         self._bot.warn_admins(warning)
 
     def send(self,
-             user_or_room: Union[Identifier, MUCRoom],
+             user_or_room: Union[Identifier, Room],
              text: str,
              in_reply_to: Message=None,
              message_type: str=None,
@@ -426,13 +426,13 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.send_stream_request(user, fsource, name, size, stream_type)
 
-    def rooms(self) -> Sequence[MUCRoom]:
+    def rooms(self) -> Sequence[Room]:
         """
         The list of rooms the bot is currently in.
         """
         return self._bot.rooms()
 
-    def query_room(self, room: str) -> MUCRoom:
+    def query_room(self, room: str) -> Room:
         """
         Query a room for information.
 

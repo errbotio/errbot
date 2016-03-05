@@ -19,7 +19,7 @@ import inspect
 import logging
 import traceback
 
-from .backends.base import Backend, MUCRoom, Identifier
+from .backends.base import Backend, Room, Identifier, Person
 from threadpool import ThreadPool, WorkRequest
 from .streaming import Tee
 from .templating import tenv
@@ -148,7 +148,7 @@ class ErrBot(Backend, StoreMixin):
                 authorized the prefixing with the nick form the user
         """
         # protect a little bit the backends here
-        if not isinstance(user_or_room, (MUCRoom, Identifier)):
+        if not isinstance(user_or_room, (Room, Identifier)):
             raise ValueError("user_or_room should be either a MUCRoom or an Identifier")
 
         mess = self.build_message(text)
@@ -156,7 +156,7 @@ class ErrBot(Backend, StoreMixin):
         mess.frm = in_reply_to.to if in_reply_to else self.bot_identifier
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
-        if isinstance(user_or_room, MUCRoom) and in_reply_to and nick_reply and groupchat_nick_reply:
+        if isinstance(user_or_room, Room) and in_reply_to and nick_reply and groupchat_nick_reply:
             self.prefix_groupchat_reply(mess, in_reply_to.frm)
 
         self.split_and_send_message(mess)
@@ -213,7 +213,7 @@ class ErrBot(Backend, StoreMixin):
         :param mess: the incoming message.
         """
         # Prepare to handle either private chats or group chats
-        type_ = mess.type
+
         frm = mess.frm
         text = mess.body
         if not hasattr(mess.frm, 'person'):
@@ -227,18 +227,12 @@ class ErrBot(Backend, StoreMixin):
             log.debug("Message from history, ignore it")
             return False
 
-        if type_ not in ("groupchat", "chat"):
-            log.debug("unhandled message type %s" % mess)
+        if (mess.is_direct and frm == self.bot_identifier) or (mess.is_group and frm.nick == self.bot_config.CHATROOM_FN):
+            log.debug("Ignoring message from self")
             return False
-
-        if (frm.person == self.bot_identifier.person or
-            type_ == "groupchat" and mess.frm.nick == self.bot_config.CHATROOM_FN):  # noqa
-                log.debug("Ignoring message from self")
-                return False
 
         log.debug("*** frm = %s" % frm)
         log.debug("*** username = %s" % username)
-        log.debug("*** type = %s" % type_)
         log.debug("*** text = %s" % text)
 
         suppress_cmd_not_found = self.bot_config.SUPPRESS_CMD_NOT_FOUND
@@ -267,7 +261,7 @@ class ErrBot(Backend, StoreMixin):
                 l = len(sep)
                 if text[:l] == sep:
                     text = text[l:]
-        elif type_ == "chat" and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
+        elif mess.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
             log.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
@@ -314,7 +308,7 @@ class ErrBot(Backend, StoreMixin):
         # Try to match one of the regex commands if the regular commands produced no match
         matched_on_re_command = False
         if not cmd:
-            if prefixed or (type_ == "chat" and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
+            if prefixed or (mess.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
                 commands = self.re_commands
             else:
                 commands = {k: self.re_commands[k] for k in self.re_commands

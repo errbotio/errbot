@@ -8,7 +8,7 @@ from html import _invalid_codepoints, _invalid_charrefs
 
 import re
 
-from errbot.backends.base import Message, MUCRoom, Presence, RoomNotJoinedError, Identifier, MUCIdentifier
+from errbot.backends.base import Message, Room, Presence, RoomNotJoinedError, Identifier, Occupant
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
 from errbot.rendering import text, xhtml
@@ -130,8 +130,14 @@ class XMPPIdentifier(Identifier):
     def __unicode__(self):
         return str(self.__str__())
 
+    def __eq__(self, other):
+        if not isinstance(other, XMPPIdentifier):
+            log.debug("Weird, you are comparing an XMPPIdentifier to a %s", type(other))
+            return False
+        return self._domain == other._domain and self._node == other._node and self._resource == other._resource
 
-class XMPPMUCRoom(MUCRoom):
+
+class XMPPRoom(Room):
     def __init__(self, name, bot):
         self._bot = bot
         self._name = name
@@ -327,7 +333,7 @@ class XMPPMUCRoom(MUCRoom):
                       .format(room, affiliation))
 
 
-class XMPPMUCOccupant(MUCIdentifier, XMPPIdentifier):
+class XMPPMUCOccupant(Occupant, XMPPIdentifier):
     @property
     def person(self):
         return str(self)  # this is the full identifier.
@@ -524,7 +530,7 @@ class XMPPBackend(ErrBot):
         if topic == "":
             topic = None
         self._room_topics[room] = topic
-        room = XMPPMUCRoom(event.values['mucroom'], self)
+        room = XMPPRoom(event.values['mucroom'], self)
         self.callback_room_topic(room)
 
     def user_changed_status(self, event):
@@ -652,7 +658,7 @@ class XMPPBackend(ErrBot):
             A list of :class:`~errbot.backends.base.XMPPMUCRoom` instances.
         """
         xep0045 = self.conn.client.plugin['xep_0045']
-        return [XMPPMUCRoom(room, self) for room in xep0045.getJoinedRooms()]
+        return [XMPPRoom(room, self) for room in xep0045.getJoinedRooms()]
 
     def query_room(self, room):
         """
@@ -663,7 +669,7 @@ class XMPPBackend(ErrBot):
         :returns:
             An instance of :class:`~XMPPMUCRoom`.
         """
-        return XMPPMUCRoom(room, self)
+        return XMPPRoom(room, self)
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)

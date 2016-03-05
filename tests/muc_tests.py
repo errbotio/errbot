@@ -24,7 +24,7 @@ class TestMUC(FullStackTest):
 
         r1 = rooms[0]
         assert str(r1) == "testroom"
-        assert issubclass(r1.__class__, errbot.backends.base.MUCRoom)
+        assert issubclass(r1.__class__, errbot.backends.base.Room)
 
         r2 = self.bot.query_room('testroom2')
         assert not r2.exists

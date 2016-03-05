@@ -13,7 +13,7 @@ from pygments.lexers import get_lexer_by_name
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
-from errbot.backends.test import TestIdentifier
+from errbot.backends.test import TestPerson
 from errbot.errBot import ErrBot
 
 from markdown import Markdown
@@ -119,7 +119,7 @@ class TextBackend(ErrBot):
         log.debug("*** Changed presence to [%s] %s", (status, message))
 
     def build_identifier(self, text_representation):
-        return TestIdentifier(text_representation)
+        return TestPerson(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)

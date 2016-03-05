@@ -1,18 +1,18 @@
 import unittest
 
-from errbot.backends.test import TestIdentifier, TestOccupant
+from errbot.backends.test import TestPerson, TestOccupant
 
 
 class TestSimpleIdentifiers(unittest.TestCase):
     def test_identifier_eq(self):
-        a = TestIdentifier("foo")
-        b = TestIdentifier("foo")
+        a = TestPerson("foo")
+        b = TestPerson("foo")
         self.assertTrue(a == b)
         self.assertEqual(a, b)
 
     def test_identifier_ineq(self):
-        a = TestIdentifier("foo")
-        b = TestIdentifier("bar")
+        a = TestPerson("foo")
+        b = TestPerson("bar")
         self.assertFalse(a == b)
         self.assertNotEqual(a, b)
 

@@ -1,5 +1,5 @@
 from io import BytesIO
-from errbot.backends.test import TestIdentifier
+from errbot.backends.test import TestPerson
 from errbot.streaming import Tee
 from errbot.backends.base import Stream
 
@@ -11,7 +11,7 @@ class StreamingClient(object):
 
 def test_streaming():
     canary = b'this is my test' * 1000
-    source = Stream(TestIdentifier("gbin@gootz.net"), BytesIO(canary))
+    source = Stream(TestPerson("gbin@gootz.net"), BytesIO(canary))
     clients = [StreamingClient() for _ in range(50)]
     Tee(source, clients).run()
     for client in clients:

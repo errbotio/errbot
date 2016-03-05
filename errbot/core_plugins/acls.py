@@ -1,5 +1,6 @@
 import fnmatch
 from errbot import BotPlugin, cmdfilter
+from errbot.backends.base import RoomOccupant
 
 BLOCK_COMMAND = (None, None, None)
 
@@ -67,9 +68,8 @@ class ACLS(BotPlugin):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
 
         if msg.is_group:
-            if not hasattr(msg.frm, 'room'):
-                raise Exception('msg.frm is not a MUCIdentifier as it misses the "room" property. Class of frm : %s'
-                                % msg.frm.__class__)
+            if not isinstance(msg.frm, RoomOccupant):
+                raise Exception('msg.frm is not a RoomOccupant Class of frm : %s' % msg.frm.__class__)
             room = str(msg.frm.room)
             if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
                self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):

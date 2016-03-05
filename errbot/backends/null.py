@@ -2,7 +2,7 @@ import logging
 from time import sleep
 from errbot.backends.base import ONLINE
 
-from errbot.backends.test import TestIdentifier
+from errbot.backends.test import TestPerson
 from errbot.errBot import ErrBot
 
 
@@ -49,7 +49,7 @@ class NullBackend(ErrBot):
         return self.conn
 
     def build_identifier(self, strrep):
-        return TestIdentifier(strrep)
+        return TestPerson(strrep)
 
     def shutdown(self):
         if self.running:

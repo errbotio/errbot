@@ -60,7 +60,7 @@ class TextBackend(ErrBot):
     def serve_forever(self):
         me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
-        self.callback_presence(Presence(occupant=me, status=ONLINE))
+        self.callback_presence(Presence(identifier=me, status=ONLINE))
         try:
             while True:
                 if ANSI:

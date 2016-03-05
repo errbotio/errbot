@@ -358,7 +358,7 @@ class BotPlugin(BotPluginBase):
              :param identifier: identifier of the user or a room to which you want to send a message to.
                                 see build_identifier, room_join.
         """
-        if type(identifier) is str:
+        if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
         if message_type is not None:
             self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")

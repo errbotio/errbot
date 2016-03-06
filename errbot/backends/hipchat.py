@@ -2,13 +2,14 @@
 # vim: ts=4:sw=4
 import logging
 import sys
+from functools import lru_cache
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
-from errbot.backends.base import RoomDoesNotExistError
+from errbot.backends.base import RoomDoesNotExistError, Message
 from errbot.backends.xmpp import XMPPRoomOccupant, XMPPRoom, XMPPBackend, XMPPConnection
 
 
@@ -61,7 +62,7 @@ def hipchat_html():
     return Markdown(output_format='xhtml', extensions=[ExtraExtension(), HipchatExtension()])
 
 
-class HipChatMUCRoomOccupant(XMPPRoomOccupant):
+class HipChatRoomOccupant(XMPPRoomOccupant):
     """
     An occupant of a Multi-User Chatroom.
 
@@ -69,35 +70,34 @@ class HipChatMUCRoomOccupant(XMPPRoomOccupant):
     https://www.hipchat.com/docs/apiv2/method/get_all_participants
     with the link to self expanded.
     """
-    def __init__(self, user):
+    def __init__(self, node=None, domain=None, resource=None, room=None, hipchat_user=None):
         """
-        :param user:
+        :param hipchat_user:
             A user object as returned by
             https://www.hipchat.com/docs/apiv2/method/get_all_participants
             with the link to self expanded.
         """
-        for k, v in user.items():
-            setattr(self, k, v)
-        # Quick fix to be able to all the parent.
-        node_domain, resource = user['xmpp_jid'].split('/')
-        node, domain = node_domain.split('@')
-        super().__init__(node, domain, resource)
-
-    def __str__(self):
-        return self.name
+        if hipchat_user:
+            for k, v in hipchat_user.items():
+                setattr(self, k, v)
+            # Quick fix to be able to all the parent.
+            node_domain, resource = hipchat_user['xmpp_jid'].split('/')
+            node, domain = node_domain.split('@')
+        super().__init__(node, domain, resource, room)
 
 
-class HipChatMUCRoom(XMPPRoom):
+class HipChatRoom(XMPPRoom):
     """
     This class represents a Multi-User Chatroom.
     """
 
-    def __init__(self, name, bot):
+    def __init__(self, room_jid, name, bot):
         """
             :param name:
                 The name of the room
             """
-        super().__init__(name, bot)
+        super().__init__(room_jid, bot)
+        self.name = name
         self.hypchat = bot.conn.hypchat
 
     @property
@@ -284,7 +284,7 @@ class HipChatMUCRoom(XMPPRoom):
         participants = self.room.participants(expand="items")['items']
         occupants = []
         for p in participants:
-            occupants.append(HipChatMUCRoomOccupant(p))
+            occupants.append(HipChatRoomOccupant(p))
         return occupants
 
     def invite(self, *args):
@@ -384,6 +384,23 @@ class HipchatBackend(XMPPBackend):
             server=self.server
         )
 
+    def incoming_message(self, xmppmsg):
+        """Callback for message events"""
+        msg = Message(xmppmsg['body'])
+        if 'html' in xmppmsg.keys():
+            msg.html = xmppmsg['html']
+        msg.frm = self.build_identifier(xmppmsg['from'].full)
+        msg.to = self.build_identifier(xmppmsg['to'].full)
+        log.debug("incoming_message frm : %s" % msg.frm)
+        if xmppmsg['type'] == 'groupchat':
+            room = self.query_room(msg.to.node + '@' + msg.to.domain)
+            msg.frm = HipChatRoomOccupant(msg.frm.node, msg.frm.domain, msg.frm.resource, room)
+            msg.to = room
+
+        msg.nick = xmppmsg['mucnick']
+        msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
+        self.callback_message(msg)
+
     @property
     def mode(self):
         return 'hipchat'
@@ -393,7 +410,7 @@ class HipchatBackend(XMPPBackend):
         Return a list of rooms the bot is currently in.
 
         :returns:
-            A list of :class:`~HipChatMUCRoom` instances.
+            A list of :class:`~HipChatRoom` instances.
         """
         xep0045 = self.conn.client.plugin['xep_0045']
         rooms = {}
@@ -403,9 +420,10 @@ class HipchatBackend(XMPPBackend):
 
         joined_rooms = []
         for room in xep0045.getJoinedRooms():
-            joined_rooms.append(HipChatMUCRoom(rooms[room], self))
+            joined_rooms.append(HipChatRoom(rooms[room], self))
         return joined_rooms
 
+    @lru_cache(50)
     def query_room(self, room):
         """
         Query a room for information.
@@ -413,7 +431,7 @@ class HipchatBackend(XMPPBackend):
         :param room:
             The name (preferred) or XMPP JID of the room to query for.
         :returns:
-            An instance of :class:`~HipChatMUCRoom`.
+            An instance of :class:`~HipChatRoom`.
         """
         if room.endswith('@conf.hipchat.com'):
             log.debug("Room specified by JID, looking up room name")
@@ -426,7 +444,10 @@ class HipchatBackend(XMPPBackend):
         else:
             name = room
 
-        return HipChatMUCRoom(name, self)
+        return HipChatRoom(room, name, self)
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)
+
+    def __hash__(self):
+        return 0  # it is a singleton anyway

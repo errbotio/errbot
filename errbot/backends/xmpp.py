@@ -76,7 +76,7 @@ except ImportError as _:
     sys.exit(-1)
 
 
-class XMPPPerson(Person):
+class XMPPIdentifier(Identifier):
     """
     This class is the parent and the basic contract of all the ways the backends
     are identifying a person on their system.
@@ -119,8 +119,6 @@ class XMPPPerson(Person):
     def client(self):
         return self._resource
 
-    aclattr = person
-
     def __str__(self):
         answer = self._node + '@' + self._domain  # don't call .person: see below
         if self._resource:
@@ -131,20 +129,28 @@ class XMPPPerson(Person):
         return str(self.__str__())
 
     def __eq__(self, other):
-        if not isinstance(other, XMPPPerson):
+        if not isinstance(other, XMPPIdentifier):
             log.debug("Weird, you are comparing an XMPPIdentifier to a %s", type(other))
             return False
         return self._domain == other._domain and self._node == other._node and self._resource == other._resource
 
 
-class XMPPRoom(Room):
-    def __init__(self, name, bot):
-        self._bot = bot
-        self._name = name
-        self.xep0045 = self._bot.conn.client.plugin['xep_0045']
+class XMPPPerson(XMPPIdentifier, Person):
+    aclattr = XMPPIdentifier.person
 
-    def __str__(self):
-        return "%s" % self._name
+    def __eq__(self, other):
+        if not isinstance(other, XMPPPerson):
+            log.debug("Weird, you are comparing an XMPPPerson to a %s", type(other))
+            return False
+        return self._domain == other._domain and self._node == other._node
+
+
+class XMPPRoom(XMPPIdentifier, Room):
+    def __init__(self, room_jid, bot):
+        self._bot = bot
+        self.xep0045 = self._bot.conn.client.plugin['xep_0045']
+        node, domain, resource = split_identifier(room_jid)
+        super().__init__(node, domain, resource)
 
     def join(self, username=None, password=None):
         """
@@ -284,12 +290,9 @@ class XMPPRoom(Room):
         occupants = []
         try:
             for occupant in self.xep0045.rooms[str(self)].values():
-                room = self._bot.build_identifier(occupant['room'])
+                room_node, room_domain, _ = split_identifier(occupant['room'])
                 nick = occupant['nick']
-                log.debug("room %s" % room)
-                log.debug("nick %s" % nick)
-
-                occupants.append(XMPPRoomOccupant(room.node, room.domain, nick, self))
+                occupants.append(XMPPRoomOccupant(room_node, room_domain, nick, self))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
@@ -431,6 +434,17 @@ XMPP_TO_ERR_STATUS = {'available': ONLINE,
                       'away': AWAY,
                       'dnd': DND,
                       'unavailable': OFFLINE}
+
+
+def split_identifier(txtrep):
+    split_jid = txtrep.split('@')
+    node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
+    if domain.find('/') != -1:
+        domain, resource = domain.split('/', 1)
+    else:
+        resource = None
+
+    return node, domain, resource
 
 
 class XMPPBackend(ErrBot):
@@ -583,18 +597,7 @@ class XMPPBackend(ErrBot):
             self.shutdown()
 
     def build_identifier(self, txtrep):
-        if txtrep.find('@') != -1:
-            split_jid = txtrep.split('@')
-            node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
-            if domain.find('/') != -1:
-                domain, resource = domain.split('/', 1)
-            else:
-                resource = None
-        else:
-            node = txtrep
-            domain = None
-            resource = None
-
+        node, domain, resource = split_identifier(txtrep)
         return XMPPPerson(node, domain, resource)
 
     def build_reply(self, mess, text=None, private=False):

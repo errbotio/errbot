@@ -49,7 +49,7 @@ class Utils(BotPlugin):
         return '\n'.join(answer)
 
     # noinspection PyUnusedLocal
-    @botcmd
+    @botcmd(admin_only=True)
     def log_tail(self, mess, args):
         """ Display a tail of the log of n lines or 40 by default
         use : !log tail 10

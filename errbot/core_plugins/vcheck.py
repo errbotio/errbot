@@ -1,5 +1,6 @@
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
+import threading
 
 from errbot import BotPlugin
 from errbot.utils import version2array
@@ -28,11 +29,7 @@ class VersionChecker(BotPlugin):
         self.activated = False
         super().deactivate()
 
-    def version_check(self):
-        if not self.activated:
-            self.log.debug('Version check disabled')
-            return
-        self.log.debug('Checking version')
+    def _async_vcheck(self):
         # noinspection PyBroadException
         try:
             current_version_txt = urlopen(url=HOME + '?' + VERSION,
@@ -48,6 +45,13 @@ class VersionChecker(BotPlugin):
                 )
         except (HTTPError, URLError):
             self.log.info('Could not establish connection to retrieve latest version.')
+
+    def version_check(self):
+        if not self.activated:
+            self.log.debug('Version check disabled')
+            return
+        self.log.debug('Checking version in background.')
+        threading.Thread(target=self._async_vcheck).start()
 
     def callback_connect(self):
         if not self.connected:

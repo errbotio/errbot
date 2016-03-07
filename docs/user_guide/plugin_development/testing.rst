@@ -182,7 +182,6 @@ All together now
     import unittest
     import myplugin
     from errbot.backends.test import testbot
-    from errbot import plugin_manager
 
     class TestMyPluginBot(object):
         extra_plugin_dir = '.'
@@ -208,7 +207,7 @@ All together now
         extra_plugin_dir = '.'
 
         def test_mycommand_another_helper(self):
-            plugin = plugin_manager.get_plugin_obj_by_name('MyPlugin')
+            plugin = self._bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
             expected = "This is another awesome command"
             result = plugin.mycommand_another_helper()
             assert result == expected

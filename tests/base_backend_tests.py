@@ -9,7 +9,6 @@ import unittest  # noqa
 import os  # noqa
 import re  # noqa
 from queue import Queue, Empty  # noqa
-from mock import patch  # noqa
 from errbot.errBot import ErrBot
 from errbot.backends.base import Message, Room, Identifier, ONLINE
 from errbot.backends.test import TestPerson, TestOccupant, TestRoom

@@ -348,15 +348,14 @@ class BotPlugin(BotPluginBase):
              message_type: str=None,
              groupchat_nick_reply: bool=False) -> None:
         """
-            Sends asynchronously a message to a room or a user.
-             if it is a room message_type needs to by 'groupchat' and user the room.
+            Send a message to a room or a user.
 
-             :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-             :param message_type: DEPRECATED
-             :param in_reply_to: optionally, the original message this message is the answer to.
-             :param text: markdown formatted text to send to the user.
-             :param identifier: identifier of the user or a room to which you want to send a message to.
-                                see build_identifier, room_join.
+            :param groupchat_nick_reply: if True the message will mention the user in the chatroom.
+            :param message_type: this parameter is deprecated and will be removed in a future version.
+            :param in_reply_to: the original message this message is a reply to (optional).
+            :param text: markdown formatted text to send to the user.
+            :param identifier: An Identifier representing the user or room to message.
+                               Identifiers may be created with :func:`build_identifier`.
         """
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")

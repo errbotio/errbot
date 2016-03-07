@@ -327,18 +327,24 @@ def webhook(*args,
     """
     Decorator for webhooks
 
-    :param uri_rule: A regular expression against which the called URL should
-        match in order for the webhook to trigger. If left undefined then the URL
-        `/<method_name>/` will be used instead.
-    :param methods: A tuple of allowed HTTP methods. By default, only GET and POST
+    :param uri_rule:
+        The URL to use for this webhook, as per Bottle request routing syntax.
+        For more information, see:
+
+        * http://bottlepy.org/docs/dev/tutorial.html#request-routing
+        * http://bottlepy.org/docs/dev/routing.html
+    :param methods:
+        A tuple of allowed HTTP methods. By default, only GET and POST
         are allowed.
-    :param form_param: The key who's contents will be passed to your method's `payload`
-        parameter. This is used for example when using the `application/x-www-form-urlencoded`
+    :param form_param:
+        The key who's contents will be passed to your method's `payload` parameter.
+        This is used for example when using the `application/x-www-form-urlencoded`
         mimetype.
-    :param raw: Boolean to overrides the request decoding (including form_param) and
-        passes the raw http request to your method's `payload`.
-        The passed type in payload will provide the BaseRequest interface as defined here:
-        http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest
+    :param raw:
+        When set to true, this overrides the request decoding (including form_param) and
+        passes the raw http request to your method's `payload` parameter.
+        The value of payload will be a Bottle
+        `BaseRequest <http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest>`_.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into webhooks which can be reached on Err's built-in webserver.

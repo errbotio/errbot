@@ -24,16 +24,17 @@ Simple webhooks
 ---------------
 
 All you need to do for a plugin of yours to listen to a specific URI
-is to apply the :func:`~errbot.decorators.webhook` decorator to your
-method. Whatever it returns will be returned in response to the
-request::
+is to apply the :func:`~errbot.webhook` decorator to your method.
+Whatever it returns will be returned in response to the request:
+
+.. code-block:: python
 
     from errbot import BotPlugin, webhook
 
     class PluginExample(BotPlugin):
         @webhook
-        def test(self, incoming_request):
-            self.log.debug(repr(incoming_request))
+        def test(self, request):
+            self.log.debug(repr(request))
             return "OK"
 
 This will listen for POST requests on
@@ -43,21 +44,32 @@ response body.
 .. note::
     If you return `None`, an empty 200 response will be sent.
 
+
 You can also set a custom URI pattern by providing the `uri_rule`
-parameter::
+parameter:
+
+.. code-block:: python
 
     from errbot import BotPlugin, webhook
 
     class PluginExample(BotPlugin):
-        @webhook(r'/custom_uri/.*/')
-        def test(self, incoming_request):
-            self.log.debug(repr(incoming_request))
-            return "OK"
+        @webhook('/example/<name>/<action>/')
+        def test(self, request, name, action):
+            return "User %s is performing %s" % (name, action)
 
-.. note::
-    If the incoming request is of mimetype JSON, it will
-    automatically be decoded so that `incoming_request` is a
-    dictionary of the JSON data.
+Refer to the documentation on Bottle's
+`request routing <http://bottlepy.org/docs/dev/routing.html>`_
+for details on the supported syntax
+(Errbot uses Bottle internally).
+
+
+Handling JSON request
+---------------------
+
+If an incoming request has the MIME media type set to `application/json`
+the request will automatically be decoded as JSON.
+You will receive the result of calling `json.loads()` on `request` automatically
+so that you won't have to do this yourself.
 
 
 Handling form-encoded requests
@@ -65,21 +77,22 @@ Handling form-encoded requests
 
 Form-encoded requests (those with an
 *application/x-www-form-urlencoded* mimetype) are very simple to
-handle as well, you just need to specify the `form_param` parameter. 
+handle as well, you just need to specify the `form_param` parameter.
 
-A good example for this is the GitHub format that posts a form with
-a *payload* parameter::
+A good example for this is the GitHub format which posts a form with
+a *payload* parameter:
+
+.. code-block:: python
 
     from errbot import BotPlugin, webhook
 
     class Github(BotPlugin):
-        @webhook(r'/github/', form_param = 'payload')
+        @webhook('/github/', form_param = 'payload')
         def notification(self, payload):
             for room in self.bot_config.CHATROOM_PRESENCE:
                 self.send(
-                    room,
+                    self.build_identifier(room),
                     'Commit on %s!' % payload['repository']['name'],
-                    message_type='groupchat'
                 )
 
 
@@ -92,7 +105,9 @@ request itself. By setting the `raw` parameter of the
 :func:`~errbot.decorators.webhook` decorator to `True`, you will
 be able to get the
 `bottle.BaseRequest <http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest>`_
-which contains all the details about the actual request::
+which contains all the details about the actual request:
+
+.. code-block:: python
 
     from errbot import BotPlugin, webhook
 
@@ -112,7 +127,9 @@ different status code can all be done by manipulating the
 object. The bottle docs on `the response object
 <http://bottlepy.org/docs/dev/tutorial.html#the-response-object>`_
 explain this in more detail. Here's an example of setting a 
-custom header::
+custom header:
+
+.. code-block:: python
 
     from errbot import BotPlugin, webhook
     from bottle import response
@@ -125,7 +142,9 @@ custom header::
 
 Bottle also has various helpers such as the `abort()` method.
 Using this method we could, for example, return a 403 forbidden
-response like so::
+response like so:
+
+.. code-block:: python
 
     from errbot import BotPlugin, webhook
     from bottle import abort

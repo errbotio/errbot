@@ -27,8 +27,8 @@ sleep", followed by a 10 second wait, followed by "Waking up".
             yield "Waking up"
 
 
-Sending a message to a specific user or MUC
--------------------------------------------
+Sending a message to a specific user or room
+--------------------------------------------
 
 Sometimes, you may wish to send a message to a specific user or a
 groupchat, for example from pollers or on webhook events. You can do
@@ -36,21 +36,19 @@ this with :func:`~errbot.botplugin.BotPlugin.send`:
 
 .. code-block:: python
 
-    # To send to a user
     self.send(
-        "user@host.tld/resource",
+        self.build_identifier("user@host.tld/resource"),
         "Boo! Bet you weren't expecting me, were you?",
-        message_type="chat"
     )
 
-    # Or to send to a MUC
-    self.send(
-        "room@conference.host.tld",
-        "Boo! Bet you weren't expecting me, were you?",
-        message_type="groupchat"
-    )
+:func:`~errbot.botplugin.BotPlugin.send` requires a valid
+:class:`~errbot.backends.base.Identifier` instance to send to.
+:func:`~errbot.botplugin.BotPlugin.build_identifier`
+can be used to build such an identifier.
+The format(s) supported by `build_identifier` will differ depending on which backend you are using.
+For example, on Slack it may support `#channel` and `@user`,
+for XMPP it includes `user@host.tld/resource`, etc.
 
-For errbot=>2.3 you need to use : self.build_identifier("user@host.tld/resource") but the format of the identifier might be dependent on the backend you use.
 
 Templating
 ----------
@@ -107,7 +105,7 @@ like so:
         def hello(self, msg, args):
             """Say hello to someone"""
             response = tenv().get_template('hello.md').render(name=args)
-            self.send(msg.frm, response, message_type=msg.type)
+            self.send(msg.frm, response)
 
 
 Trigger a callback with every message received
@@ -127,5 +125,4 @@ in:
                 self.send(
                     mess.frm,
                     "What what somebody said cookie!?",
-                    message_type=mess.type
                 )

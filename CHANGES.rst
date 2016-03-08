@@ -1,8 +1,9 @@
-v4.0.0 (unreleased)
--------------------
+v4.0.0 (unreleased, v9.9.9)
+---------------------------
 
-New and noteworthy
-~~~~~~~~~~~~~~~~~~
+
+v4 New and noteworthy
+~~~~~~~~~~~~~~~~~~~~~
 
 - storage are now plugins too: It means you can adapt errbot to your own database.
 
@@ -25,29 +26,9 @@ It means also that now, you can just do ``self.send(self.find_room(...), "Messag
 
 features:
 
-- Official support for Python 3.5
-- The API surface is now type hinted (https://www.python.org/dev/peps/pep-0484/) and base classes are tagged Abstract.
-- Added send_templated() to the BotPlugin class to be able to use send() with a template
-- Various improvements to the ``@arg_botcmd`` decorator.
-- Now the bot can set its own status/presence with change_presence
-- Non-standard hipchat server (thx Barak Schiller)
 - Support unix-style globbing in `BOT_ADMINS` and `ACCESS_CONTROLS`
 
 bugs:
-
-- Fixed various bugs with the ``@arg_botcmd`` decorator (`#516 <https://github.com/errbotio/errbot/pull/516>`_)
-- Fixed warn_admins() on Telegram
-- Slack ACLs now properly check against usernames starting with `@`
-- Slack identifiers can now be built from a bare `#channel` string (without a username part)
-- Slack identifiers can now be built from a `<#C12345>` or `<@username>` string (the webclient formats them like this automatically when chatting with the bot)
-- HipChat backend now respects the `server` option under `BOT_IDENTITY` (`#544 <https://github.com/errbotio/errbot/pull/544/>`_)
-- The IRC backend will no longer throw UnicodeDecodeError but replaces characters which cannot be decoded as UTF-8 (`#570 <https://github.com/errbotio/errbot/pull/570>`_, Mr. Shu)
-- Fixed a bug that would prevent the bot from joining password-protected rooms (`#578 <https://github.com/errbotio/errbot/pull/578>`_, Mikko Lehto)
-
-other:
-
-- Removed some dead code
-- Removed deprecated bare_send and invite_to_room bot methods
 
 v3.2.3 (2016-02-18)
 -------------------
@@ -195,8 +176,8 @@ This document includes all the changes since the last stable version (2.2.0).
 
 If you have any difficulty using this new release, feel free to jump into our `dev room on gitter <https://gitter.im/errbotio/errbot>`_.
 
-New and noteworthy
-~~~~~~~~~~~~~~~~~~
+v3 New and noteworthy
+~~~~~~~~~~~~~~~~~~~~~
 
 - backends are now plugins too
 - new Slack backend (see the `config template <https://github.com/errbotio/errbot/blob/master/errbot/config-template.py#L118>`_ for details)

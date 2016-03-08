@@ -242,8 +242,8 @@ BOT_PREFIX = '!'
 #   denyrooms: Deny command in these rooms
 #   allowprivate: Allow command from direct messages to the bot
 #   allowmuc: Allow command inside rooms
-# Rules listed in ACCESS_CONTROLS_DEFAULT are applied when a command cannot
-# be found inside ACCESS_CONTROLS
+# Rules listed in ACCESS_CONTROLS_DEFAULT are applied by default and merged
+# with any commands found in ACCESS_CONTROLS.
 #
 # The options allowusers, denyusers, allowrooms and denyrooms support
 # unix-style globbing similar to BOT_ADMINS.

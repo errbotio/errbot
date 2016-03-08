@@ -562,6 +562,18 @@ class BotCmds(unittest.TestCase):
             ),
             dict(
                     message=self.makemessage("!command"),
+                    acl={'command': {'allowprivate': False}},
+                    acl_default={'allowmuc': False, 'allowprivate': True},
+                    expected_response="You're not allowed to access this command via private message to me"
+            ),
+            dict(
+                    message=self.makemessage("!command"),
+                    acl={'command': {'allowmuc': True}},
+                    acl_default={'allowmuc': True, 'allowprivate': False},
+                    expected_response="You're not allowed to access this command via private message to me"
+            ),
+            dict(
+                    message=self.makemessage("!command"),
                     acl={'command': {'allowprivate': True}},
                     acl_default={'allowmuc': False, 'allowprivate': False},
                     expected_response="Regular command"

@@ -271,7 +271,6 @@ class SlackBackend(ErrBot):
         event_handlers = {
             'hello': self._hello_event_handler,
             'presence_change': self._presence_change_event_handler,
-            'team_join': self._team_join_event_handler,
             'message': self._message_event_handler,
         }
 
@@ -308,9 +307,6 @@ class SlackBackend(ErrBot):
             )
             status = ONLINE
         self.callback_presence(Presence(identifier=idd, status=status))
-
-    def _team_join_event_handler(self, event):
-        self.sc.parse_user_data((event['user'],))
 
     def _message_event_handler(self, event):
         """Event handler for the 'message' event"""

@@ -68,6 +68,7 @@ if not PY35_OR_GREATER:
 deps += ['mock',
          'nose',
          'pep8',
+         'flaky',
          # Order matters here, pytest must come last. See also:
          #   https://github.com/errbotio/errbot/pull/496
          #   https://bitbucket.org/pypa/setuptools/issues/196/tests_require-pytest-pytest-cov-breaks

@@ -1,16 +1,14 @@
 # coding=utf-8
-from queue import Empty
 import re
 import logging
-
+from errbot.backends.test import FullStackTest
+from flaky import flaky
 from os import path, mkdir
+from queue import Empty
 from shutil import rmtree
 
-import pytest
 
-from errbot.backends.test import FullStackTest
-
-
+@flaky
 class TestCommands(FullStackTest):
 
     def setUp(self, *args, **kwargs):

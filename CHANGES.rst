@@ -11,7 +11,7 @@ We already implemented a couple:
   + `in-memory <https://github.com/errbotio/errbot/blob/master/errbot/storage/memory.plug>`_ for tests.
   + `shelf <https://github.com/errbotio/errbot/blob/master/errbot/storage/memory.plug>`_ for backward compatibility.
   + `SQL <https://github.com/errbotio/err-storage-sql>`_ that supports a bunch of DBs from MySQL, Postgres, Redshift etc.
-  + `Firbase <https://github.com/errbotio/err-storage-firebase>`_ for the popular Google DB.
+  + `Firebase <https://github.com/errbotio/err-storage-firebase>`_ for the popular Google DB.
 
 - Persons, RoomOccupant and Room are now all equal and are usable to send a message to somebody, somebody in a Room or a Room.
 
@@ -24,11 +24,43 @@ For example: A Message sent from a room will have a RoomOccupant as frm and a Ro
 
 It means also that now, you can just do ``self.send(self.find_room(...), "Message")``, something that was not possible under Errbot 3.
 
+- Plugin git repositories are now fetched from a public index and you can query them with ``!repos query [keyword]``
+- Those plugin Git repositories and indexes are composable and overridable. Thx to Sijia Aviles for the POC of the feature.
+
+- Core plugins filter: Now you can filter out core plugins to forbid them to be loaded at all. It is useful to
+   unclutter !help and to lock dock a bot instance.
+
+- On v3.2 branch: Backup can now backup as a v4 with !backupv4 format to port you data to your new v4 bot.
+
+- Better help (thx Sijis for the port)
+
+- XMPP: you can reenable XHTML-IM optionally now.
+
+
 features:
 
 - Support unix-style globbing in `BOT_ADMINS` and `ACCESS_CONTROLS`
+- IRC: mention callcack (thx mr. Shu)
+- A new Skype backend is now available (thx Nick Groenen)
 
 bugs:
+
+- IPV6 fixes for IRC (thx Mike Burke)
+- Text mode: Now you get the prompt after the logs
+- Slack: Identifier fixes (thx Asen Lekov)
+- IRC: Join async notification fix.
+- Plugins cannot fail to install and leave a git repo forbidding the reinstall later
+- !log tail is now admin only (thx Nicolas Sebrecht)
+
+documentation:
+
+- configuration guides for all the backends
+
+refactor:
+
+- removed all bundled dependencies.
+- removed deprecated fields and method.
+- The Version checker is now asynchronous so the bot boots faster.
 
 v3.2.3 (2016-02-18)
 -------------------

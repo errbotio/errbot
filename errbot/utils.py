@@ -315,6 +315,17 @@ def collect_roots(base_paths, file_sig='*.plug'):
             result |= find_roots(path_or_list, file_sig)
     return result
 
+def ensure_sys_path_contains(paths):
+    """ Ensure that os.path contains paths
+       :param base_paths:
+            a list of base paths to walk from
+            elements can be a string or a list/tuple of strings
+    """
+    for entry in paths:
+        if isinstance(entry, (list, tuple)):
+            ensure_sys_path_contains(entry)
+        elif entry is not None and entry not in sys.path:
+            sys.path.append(entry)
 
 def get_class_that_defined_method(meth):
     for cls in inspect.getmro(type(meth.__self__)):

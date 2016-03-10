@@ -10,7 +10,7 @@ import sys
 import os
 import pip
 from .botplugin import BotPlugin
-from .utils import (version2array, PY3, PY2, collect_roots)
+from .utils import (version2array, PY3, PY2, collect_roots, ensure_sys_path_contains)
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -318,13 +318,17 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
         """ It returns a dictionary of path -> error strings."""
-        paths = collect_roots((CORE_PLUGINS, extra_plugin_dir, path_list))
+        repo_roots = (CORE_PLUGINS, extra_plugin_dir, path_list)
+
+        paths = collect_roots(repo_roots)
         log.debug("All plugin roots:")
         for entry in paths:
             log.debug("-> %s", entry)
             if entry not in sys.path:
                 log.debug("Add %s to sys.path", entry)
-                sys.path.append(entry)  # so plugins can relatively import their repos
+                sys.path.append(entry)
+        # so plugins can relatively import their repos
+        ensure_sys_path_contains(repo_roots)
 
         dependencies_result = {path: check_dependencies(path) for path in paths}
         deps_to_install = set()

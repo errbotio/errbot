@@ -1,6 +1,8 @@
 import fnmatch
 from errbot import BotPlugin, cmdfilter
 from errbot.backends.base import RoomOccupant
+from errbot.utils import compat_str
+
 
 BLOCK_COMMAND = (None, None, None)
 
@@ -16,7 +18,7 @@ def glob(text, patterns):
     Match text against the list of patterns according to unix glob rules.
     Return True if a match is found, False otherwise.
     """
-    return any(fnmatch.fnmatchcase(text, pattern) for pattern in patterns)
+    return any(fnmatch.fnmatchcase(compat_str(text), compat_str(pattern)) for pattern in patterns)
 
 
 def ciglob(text, patterns):

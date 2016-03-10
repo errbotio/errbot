@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from errbot.backends.base import RoomError, Identifier, RoomOccupant, ONLINE
+from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, ONLINE, Room
 from errbot.errBot import ErrBot
 from errbot.rendering import text
 
@@ -53,17 +53,30 @@ class TelegramBotFilter(object):
 
 
 class TelegramIdentifier(Identifier):
-    def __init__(self, id, first_name=None, last_name=None, username=None, title=None):
+    def __init__(self, id):
         self._id = id
-        self._first_name = first_name
-        self._last_name = last_name
-        self._username = username
-        self._title = title
+
+    @property
+    def id(self):
+        return self._id
 
     def __unicode__(self):
         return str(self._id)
 
+    def __eq__(self, other):
+        return self._id == other.id
+
     __str__ = __unicode__
+
+    aclattr = id
+
+
+class TelegramPerson(TelegramIdentifier, Person):
+    def __init__(self, id, first_name=None, last_name=None, username=None):
+        super().__init__(id)
+        self._first_name = first_name
+        self._last_name = last_name
+        self._username = username
 
     @property
     def id(self):
@@ -92,21 +105,71 @@ class TelegramIdentifier(Identifier):
     def client(self):
         return None
 
+    person = id
+    nick = username
+
+
+class TelegramRoom(TelegramIdentifier, Room):
+    def __init__(self, id, title=None):
+        super().__init__(id)
+        self._title = title
+
+    @property
+    def id(self):
+        return self._id
+
     @property
     def title(self):
         """Return the groupchat title (only applies to groupchats)"""
         return self._title
 
-    person = id
-    nick = username
-    aclattr = id
+    def join(self, username: str=None, password: str=None):
+        raise RoomsNotSupportedError()
+
+    def create(self):
+        raise RoomsNotSupportedError()
+
+    def leave(self, reason: str=None):
+        raise RoomsNotSupportedError()
+
+    def destroy(self):
+        raise RoomsNotSupportedError()
+
+    @property
+    def joined(self):
+        raise RoomsNotSupportedError()
+
+    @property
+    def exists(self):
+        raise RoomsNotSupportedError()
+
+    @property
+    def topic(self):
+        raise RoomsNotSupportedError()
+
+    @property
+    def occupants(self):
+        raise RoomsNotSupportedError()
+
+    def invite(self, *args):
+        raise RoomsNotSupportedError()
 
 
-class TelegramMUCOccupant(RoomOccupant, TelegramIdentifier):
+class TelegramMUCOccupant(TelegramPerson, RoomOccupant):
     """
     This class represents a person inside a MUC.
     """
-    room = TelegramIdentifier.id
+    def __init__(self, id, room, first_name=None, last_name=None, username=None):
+        super().__init__(id=id, first_name=first_name, last_name=last_name, username=username)
+        self._room = room
+
+    @property
+    def room(self):
+        return self._room
+
+    @property
+    def username(self):
+        return self._username
 
 
 class TelegramBackend(ErrBot):
@@ -136,7 +199,7 @@ class TelegramBackend(ErrBot):
             log.error("Connection failure: %s", e.message)
             return False
 
-        self.bot_identifier = TelegramIdentifier(
+        self.bot_identifier = TelegramPerson(
             id=me.id,
             first_name=me.first_name,
             last_name=me.last_name,
@@ -190,8 +253,7 @@ class TelegramBackend(ErrBot):
 
         message_instance = self.build_message(message.text)
         if isinstance(message.chat, telegram.user.User):
-            message_instance.type = "chat"
-            message_instance.frm = TelegramIdentifier(
+            message_instance.frm = TelegramPerson(
                 id=message.from_user.id,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
@@ -199,18 +261,15 @@ class TelegramBackend(ErrBot):
             )
             message_instance.to = self.bot_identifier
         else:
-            message_instance.type = "groupchat"
+            room = TelegramRoom(id=message.chat.id, title=message.chat.title)
             message_instance.frm = TelegramMUCOccupant(
                 id=message.from_user.id,
+                room=room,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
                 username=message.from_user.username
             )
-            message_instance.to = TelegramIdentifier(
-                id=message.chat.id,
-                title=message.chat.title
-            )
-
+            message_instance.to = room
         self.callback_message(message_instance)
 
     def send_message(self, mess):
@@ -231,26 +290,25 @@ class TelegramBackend(ErrBot):
 
     def build_identifier(self, txtrep):
         """
-        Convert a textual representation into a :class:`~TelegramIdentifier`.
+        Convert a textual representation into a :class:`~TelegramPerson` or :class:`~TelegramRoom`.
         """
         log.debug("building an identifier from %s" % txtrep)
         id_ = txtrep.strip()
         if not self._is_numeric(id_):
             raise ValueError("Telegram identifiers must be numeric")
-        return TelegramIdentifier(id=id_)
+        id_ = int(id_)
+        if id_ > 0:
+            return TelegramPerson(id=id_)
+        else:
+            return TelegramRoom(id=id_)
 
     def build_reply(self, mess, text=None, private=False):
-        msg_type = mess.type
         response = self.build_message(text)
-
         response.frm = self.bot_identifier
         if private:
-            response.type = 'chat'
             response.to = mess.frm
         else:
-            response.type = msg_type
-            response.to = mess.frm if mess.type == 'chat' else mess.to
-
+            response.to = mess.frm if mess.is_direct else mess.to
         return response
 
     @property

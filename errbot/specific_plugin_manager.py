@@ -5,7 +5,7 @@ import traceback
 from yapsy.PluginManager import PluginManager
 from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
 
-from .utils import find_roots_with_extra
+from .utils import collect_roots
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class SpecificPluginManager(PluginManager):
         super().__init__(plugin_locator=self._locator)
         self.setCategoriesFilter({category: base_class})
 
-        all_plugins_paths = find_roots_with_extra(base_search_dir, extra_search_dirs)
+        all_plugins_paths = collect_roots((base_search_dir, extra_search_dirs))
         log.info('%s search paths %s', category, all_plugins_paths)
         self.setPluginPlaces(all_plugins_paths)
         for entry in all_plugins_paths:

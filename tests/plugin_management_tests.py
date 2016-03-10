@@ -4,7 +4,7 @@ import tempfile
 from configparser import ConfigParser
 
 from errbot import plugin_manager
-from errbot.utils import find_roots, find_roots_with_extra
+from errbot.utils import find_roots, collect_roots
 
 CORE_PLUGINS = plugin_manager.CORE_PLUGINS
 
@@ -37,23 +37,29 @@ class TestPluginManagement(unittest.TestCase):
         self.assertIn(b, roots)
         self.assertNotIn(c, roots)
 
-    def test_builtin(self):
+    def test_collect_roots(self):
         toto = tempfile.mkdtemp()
         touch(os.path.join(toto, 'toto.plug'))
         touch(os.path.join(toto, 'titi.plug'))
         titi = tempfile.mkdtemp()
         touch(os.path.join(titi, 'tata.plug'))
-        self.assertEquals(find_roots_with_extra(CORE_PLUGINS, None), [CORE_PLUGINS])
-        self.assertEquals(find_roots_with_extra(CORE_PLUGINS, toto), [CORE_PLUGINS, toto])
-        self.assertEquals(find_roots_with_extra(CORE_PLUGINS, [toto, titi]), [CORE_PLUGINS, toto, titi])
-        self.assertEquals(find_roots_with_extra(CORE_PLUGINS, [toto, titi, 'nothing']), [CORE_PLUGINS, toto, titi])
+        tutu = tempfile.mkdtemp()
+        subtutu = os.path.join(tutu, 'subtutu')
+        os.mkdir(subtutu)
+        touch(os.path.join(subtutu, 'tutu.plug'))
+
+        self.assertEquals(collect_roots((CORE_PLUGINS, None)), {CORE_PLUGINS, })
+        self.assertEquals(collect_roots((CORE_PLUGINS, toto)), {CORE_PLUGINS, toto})
+        self.assertEquals(collect_roots((CORE_PLUGINS, [toto, titi])), {CORE_PLUGINS, toto, titi})
+        self.assertEquals(collect_roots((CORE_PLUGINS, toto, titi, 'nothing')), {CORE_PLUGINS, toto, titi})
+        self.assertEquals(collect_roots((toto, tutu)), {toto, subtutu})
 
     def test_ignore_dotted_directories(self):
         root = tempfile.mkdtemp()
         a = os.path.join(root, '.invisible')
         os.mkdir(a)
         touch(os.path.join(a, 'toto.plug'))
-        self.assertEquals(find_roots_with_extra(CORE_PLUGINS, root), [CORE_PLUGINS])
+        self.assertEquals(collect_roots((CORE_PLUGINS, root)), {CORE_PLUGINS, })
 
     def test_errbot_version_check(self):
         real_version = plugin_manager.VERSION

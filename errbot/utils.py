@@ -296,26 +296,24 @@ def find_roots(path, file_sig='*.plug'):
     return roots
 
 
-def find_roots_with_extra(base, extra, file_sig='*.plug'):
-    """Collects all the paths from path recursively that contains files of type `file_sig`.
+def collect_roots(base_paths, file_sig='*.plug'):
+    """Collects all the paths from base_paths recursively that contains files of type `file_sig`.
 
-       :param base:
-            a base path to walk from
-       :param extra:
-            a extra dorectory or directories to walk from
+       :param base_paths:
+            a list of base paths to walk from
+            elements can be a string or a list/tuple of strings
+
        :param file_sig:
             the file pattern to look for
        :return: a set of paths
     """
-    # adds the extra plugin dir from the setup for developers convenience
-    all_base_and_extra = [base]
-    if extra:
-        if isinstance(extra, list):
-            for path in extra:
-                all_base_and_extra.extend(find_roots(path, file_sig))
-        else:
-            all_base_and_extra.extend(find_roots(extra, file_sig))
-    return all_base_and_extra
+    result = set()
+    for path_or_list in base_paths:
+        if isinstance(path_or_list, (list, tuple)):
+            result |= collect_roots(base_paths=path_or_list, file_sig=file_sig)
+        elif path_or_list is not None:
+            result |= find_roots(path_or_list, file_sig)
+    return result
 
 
 def get_class_that_defined_method(meth):

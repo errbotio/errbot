@@ -10,7 +10,7 @@ import sys
 import os
 import pip
 from .botplugin import BotPlugin
-from .utils import (version2array, PY3, PY2, find_roots_with_extra)
+from .utils import (version2array, PY3, PY2, collect_roots)
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -318,18 +318,12 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
         """ It returns a dictionary of path -> error strings."""
-        builtins = find_roots_with_extra(CORE_PLUGINS, extra_plugin_dir)
-
-        paths = path_list
-        if extra_plugin_dir:
-            if isinstance(extra_plugin_dir, list):
-                paths += extra_plugin_dir
-            else:
-                paths += [extra_plugin_dir, ]
-
-        for entry in chain(builtins, paths):
+        paths = collect_roots((CORE_PLUGINS, extra_plugin_dir, path_list))
+        log.debug("All plugin roots:")
+        for entry in paths:
+            log.debug("-> %s", entry)
             if entry not in sys.path:
-                log.debug("Add %s to sys.path" % entry)
+                log.debug("Add %s to sys.path", entry)
                 sys.path.append(entry)  # so plugins can relatively import their repos
 
         dependencies_result = {path: check_dependencies(path) for path in paths}
@@ -347,7 +341,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                             errors[path] = ''.join(traceback.format_tb(error))
         else:
             errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
-        self.setPluginPlaces(chain(builtins, path_list))
+        self.setPluginPlaces(paths)
         self.locatePlugins()
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]

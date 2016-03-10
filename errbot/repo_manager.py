@@ -167,7 +167,7 @@ class BotRepoManager(StoreMixin):
         self[INSTALLED_REPOS] = repos
 
     def get_all_repos_paths(self):
-        return [self.plugin_dir + os.sep + d for d in self.get(INSTALLED_REPOS, {}).keys()]
+        return [os.path.join(self.plugin_dir, d) for d in self.get(INSTALLED_REPOS, {}).keys()]
 
     def install_repo(self, repo):
         """

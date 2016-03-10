@@ -8,6 +8,7 @@ from errbot.errBot import bot_config_defaults
 import unittest  # noqa
 import os  # noqa
 import re  # noqa
+from collections import OrderedDict
 from queue import Queue, Empty  # noqa
 from errbot.errBot import ErrBot
 from errbot.backends.base import Message, Room, Identifier, ONLINE
@@ -531,7 +532,7 @@ class BotCmds(unittest.TestCase):
                 expected_response="Admin command",
             ),
 
-            # ACCESS_CONTROLS scenarios
+            # ACCESS_CONTROLS scenarios WITHOUT wildcards (<4.0 format)
             dict(
                     message=self.makemessage("!command"),
                     expected_response="Regular command"
@@ -648,6 +649,32 @@ class BotCmds(unittest.TestCase):
             dict(
                 message=self.makemessage("!command"),
                 acl={'command': {'denyusers': ('*err',)}},
+                expected_response="You're not allowed to access this command from this user"
+            ),
+
+            # ACCESS_CONTROLS scenarios WITH wildcards (>=4.0 format)
+            dict(
+                message=self.makemessage("!command"),
+                acl={'DummyBackend:command': {'denyusers': ('noterr',)}},
+                expected_response="You're not allowed to access this command from this user"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'*:command': {'denyusers': ('noterr',)}},
+                expected_response="You're not allowed to access this command from this user"
+            ),
+            dict(
+                message=self.makemessage("!command"),
+                acl={'DummyBackend:*': {'denyusers': ('noterr',)}},
+                expected_response="You're not allowed to access this command from this user"
+            ),
+            # Overlapping globs should use first match
+            dict(
+                message=self.makemessage("!command"),
+                acl=OrderedDict([
+                    ('DummyBackend:*', {'denyusers': ('noterr',)}),
+                    ('DummyBackend:command', {'denyusers': ()})
+                ]),
                 expected_response="You're not allowed to access this command from this user"
             ),
         ]

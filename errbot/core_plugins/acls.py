@@ -53,13 +53,22 @@ class ACLS(BotPlugin):
         Return None, None, None if the command is blocked or deferred
         """
         self.log.debug("Check %s for ACLs." % cmd)
+        f = self._bot.all_commands[cmd]
+        cmd_str = "{plugin}:{command}".format(
+            plugin=type(f.__self__).__name__,
+            command=cmd,
+        )
 
         usr = get_acl_usr(msg)
         acl = self.bot_config.ACCESS_CONTROLS_DEFAULT.copy()
-        if cmd in self.bot_config.ACCESS_CONTROLS:
-            acl.update(self.bot_config.ACCESS_CONTROLS[cmd])
+        for pattern, acls in self.bot_config.ACCESS_CONTROLS.items():
+            if ':' not in pattern:
+                pattern = '*:{command}'.format(command=pattern)
+            if ciglob(cmd_str, (pattern,)):
+                acl.update(acls)
+                break
 
-        self.log.info("Matching ACL %s against username %s for command %s" % (acl, usr, cmd))
+        self.log.info("Matching ACL %s against username %s for command %s" % (acl, usr, cmd_str))
 
         if 'allowusers' in acl and not glob(usr, acl['allowusers']):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)

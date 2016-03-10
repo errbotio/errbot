@@ -241,7 +241,7 @@ class ChatRoom(BotPlugin):
                         self.send(room, body)
             elif mess.is_group:
                 fr = mess.frm
-                chat_room = fr.room
+                chat_room = str(fr.room)
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                     users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
                     self.log.debug('Message to relay to %s.' % users_to_relay_to)

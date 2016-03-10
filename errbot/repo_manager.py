@@ -83,6 +83,9 @@ class BotRepoManager(StoreMixin):
         self.plugin_dir = plugin_dir
         self.open_storage(storage_plugin, 'repomgr')
 
+    def shutdown(self):
+        self.close_storage()
+
     def check_for_index_update(self):
         if REPO_INDEX not in self:
             log.info('No repo index, creating it.')

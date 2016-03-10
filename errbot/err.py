@@ -15,6 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import inspect
+import os
 import sys
 import logging
 import argparse
@@ -248,7 +249,7 @@ def main():
                 from errbot.main import main
                 main(backend, logger, config)
 
-            daemon = Daemonize(app="err", pid=pid, action=action)
+            daemon = Daemonize(app="err", pid=pid, action=action, chdir=os.getcwd())
             daemon.start()
         except Exception:
             log.exception('Failed to daemonize the process')

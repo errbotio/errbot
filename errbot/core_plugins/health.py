@@ -1,9 +1,9 @@
 import gc
 import os
 import signal
-from datetime import datetime
 
-from errbot import BotPlugin, botcmd
+from datetime import datetime
+from errbot import BotPlugin, botcmd, arg_botcmd
 from errbot.plugin_manager import global_restart
 from errbot.utils import format_timedelta
 
@@ -84,18 +84,23 @@ class Health(BotPlugin):
         return "I'm restarting..."
 
     # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
-    def killbot(self, mess, args):
-        """ Shutdown the bot.
-        Useful when the things are going crazy and you down have access to the machine.
+    @arg_botcmd('--confirm', dest="confirmed", action="store_true",
+                help="confirm you want to shut down", admin_only=True)
+    @arg_botcmd('--kill', dest="kill", action="store_true",
+                help="kill the bot instantly, don't shut down gracefully", admin_only=True)
+    def shutdown(self, mess, confirmed, kill):
         """
-        if args != "really":
-            return "Use `!killbot really` if you really want to shutdown the bot."
+        Shutdown the bot.
 
-        self.send(mess.frm, "Dave, I can see you are really upset about this...")
-        self._bot.plugin_manager.deactivate_all_plugins()
-        self.send(mess.frm, "I know I have made some very poor decisions recently...")
-        self.send(mess.frm, "Daisy, Daaaaiseey...")
-        self._bot.shutdown()
-        self.log.debug("Exiting")
-        os.kill(os.getpid(), signal.SIGTERM)
+        Useful when the things are going crazy and you don't have access to the machine.
+        """
+        if not confirmed:
+            yield "Please provide `--confirm` to confirm you really want me to shut down."
+            return
+
+        if kill:
+            yield "Killing myself right now!"
+            os.kill(os.getpid(), signal.SIGKILL)
+        else:
+            yield "Roger that. I am shutting down."
+            os.kill(os.getpid(), signal.SIGINT)

@@ -607,3 +607,4 @@ class ErrBot(Backend, StoreMixin):
     def shutdown(self):
         self.close_storage()
         self.plugin_manager.shutdown()
+        self.repo_manager.shutdown()

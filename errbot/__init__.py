@@ -376,8 +376,9 @@ def cmdfilter(*args, **kwargs):
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into command filters.
-    Those filters are executed just before the execution.
-    It gives a mean to add transversal features like security, logging, audit etc.
+
+    These filters are executed just before the execution of a command and provide
+    the means to add features such as custom security, logging, auditing, etc.
 
     These methods are expected to have a signature and a return a tuple like the following::
 

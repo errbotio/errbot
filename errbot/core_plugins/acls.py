@@ -53,43 +53,45 @@ class ACLS(BotPlugin):
         Return None, None, None if the command is blocked or deferred
         """
         self.log.debug("Check %s for ACLs." % cmd)
+        f = self._bot.all_commands[cmd]
+        cmd_str = "{plugin}:{command}".format(
+            plugin=type(f.__self__).__name__,
+            command=cmd,
+        )
 
         usr = get_acl_usr(msg)
+        acl = self.bot_config.ACCESS_CONTROLS_DEFAULT.copy()
+        for pattern, acls in self.bot_config.ACCESS_CONTROLS.items():
+            if ':' not in pattern:
+                pattern = '*:{command}'.format(command=pattern)
+            if ciglob(cmd_str, (pattern,)):
+                acl.update(acls)
+                break
 
-        self.log.debug("Matching ACLs against username %s" % usr)
+        self.log.info("Matching ACL %s against username %s for command %s" % (acl, usr, cmd_str))
 
-        if cmd not in self.bot_config.ACCESS_CONTROLS:
-            self.bot_config.ACCESS_CONTROLS[cmd] = self.bot_config.ACCESS_CONTROLS_DEFAULT
-
-        if ('allowusers' in self.bot_config.ACCESS_CONTROLS[cmd] and not
-           glob(usr, self.bot_config.ACCESS_CONTROLS[cmd]['allowusers'])):
+        if 'allowusers' in acl and not glob(usr, acl['allowusers']):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
-
-        if ('denyusers' in self.bot_config.ACCESS_CONTROLS[cmd] and
-           glob(usr, self.bot_config.ACCESS_CONTROLS[cmd]['denyusers'])):
+        if 'denyusers' in acl and glob(usr, acl['denyusers']):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
-
         if msg.is_group:
             if not isinstance(msg.frm, RoomOccupant):
-                raise Exception('msg.frm is not a RoomOccupant Class of frm : %s' % msg.frm.__class__)
+                raise Exception('msg.frm is not a RoomOccupant. Class of frm: %s' % msg.frm.__class__)
             room = str(msg.frm.room)
-            if ('allowmuc' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               self.bot_config.ACCESS_CONTROLS[cmd]['allowmuc'] is False):
+            if 'allowmuc' in acl and acl['allowmuc'] is False:
                 return self.access_denied(msg, "You're not allowed to access this command from a chatroom", dry_run)
 
-            if ('allowrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and not
-               glob(room, self.bot_config.ACCESS_CONTROLS[cmd]['allowrooms'])):
+            if 'allowrooms' in acl and not glob(room, acl['allowrooms']):
                 return self.access_denied(msg, "You're not allowed to access this command from this room", dry_run)
 
-            if ('denyrooms' in self.bot_config.ACCESS_CONTROLS[cmd] and
-               glob(room, self.bot_config.ACCESS_CONTROLS[cmd]['denyrooms'])):
+            if 'denyrooms' in acl and glob(room, acl['denyrooms']):
                 return self.access_denied(msg, "You're not allowed to access this command from this room", dry_run)
-
-        elif ('allowprivate' in self.bot_config.ACCESS_CONTROLS[cmd] and
-              self.bot_config.ACCESS_CONTROLS[cmd]['allowprivate'] is False):
+        elif 'allowprivate' in acl and acl['allowprivate'] is False:
             return self.access_denied(
                     msg,
-                    "You're not allowed to access this command via private message to me", dry_run)
+                    "You're not allowed to access this command via private message to me",
+                    dry_run
+            )
 
         return msg, cmd, args
 

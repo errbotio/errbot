@@ -242,11 +242,21 @@ BOT_PREFIX = '!'
 #   denyrooms: Deny command in these rooms
 #   allowprivate: Allow command from direct messages to the bot
 #   allowmuc: Allow command inside rooms
-# Rules listed in ACCESS_CONTROLS_DEFAULT are applied when a command cannot
-# be found inside ACCESS_CONTROLS
+# Rules listed in ACCESS_CONTROLS_DEFAULT are applied by default and merged
+# with any commands found in ACCESS_CONTROLS.
 #
 # The options allowusers, denyusers, allowrooms and denyrooms support
 # unix-style globbing similar to BOT_ADMINS.
+#
+# Command names also support unix-style globs and can optionally be restricted
+# to a specific plugin by prefixing the command with the name of a plugin,
+# separated by a colon. For example, `Health:status` will match the `!status`
+# command of the `Health` plugin and `Health:*` will match all commands defined
+# by the `Health` plugin.
+#
+# Please note that the first command match found will be used so if you have
+# overlapping patterns you must used an OrderedDict instead of a regular dict:
+# https://docs.python.org/3.4/library/collections.html#collections.OrderedDict
 #
 # Example:
 #
@@ -255,6 +265,8 @@ BOT_PREFIX = '!'
 #                   'about': {'denyusers': ('*@evilhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
 #                   'uptime': {'allowusers': BOT_ADMINS},
 #                   'help': {'allowmuc': False},
+#                   'help': {'allowmuc': False},
+#                   'ChatRoom:*': {'allowusers': BOT_ADMINS},
 #                  }
 
 # Uncomment and set this to True to hide the restricted commands from

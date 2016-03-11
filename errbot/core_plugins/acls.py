@@ -109,13 +109,7 @@ class ACLS(BotPlugin):
         self.log.info("Check if %s is admin only command." % cmd)
         f = self._bot.all_commands[cmd]
 
-        if f._err_command_admin_only:
-            if msg.is_group:
-                return self.access_denied(
-                        msg,
-                        "You cannot administer the bot from a chatroom, message the bot directly", dry_run)
-
-            if not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
-                return self.access_denied(msg, "This command requires bot-admin privileges", dry_run)
+        if f._err_command_admin_only and not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
+            return self.access_denied(msg, "This command requires bot-admin privileges", dry_run)
 
         return msg, cmd, args

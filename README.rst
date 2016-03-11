@@ -95,11 +95,15 @@ Installation
 
 If you can, we recommend to setup a `virtualenv <https://pypi.python.org/pypi/virtualenv>`_.
 
-Errbot may be installed directly from PyPi using pip by issuing::
+Errbot may be installed directly from PyPi using pip by issuing:
+
+.. code:: bash
 
     pip install errbot
 
-Or if you wish to try out the latest, bleeding edge version::
+Or if you wish to try out the latest, bleeding edge version:
+
+.. code:: bash
 
     pip install https://github.com/errbotio/errbot/archive/master.zip
 
@@ -132,7 +136,9 @@ Depending on the backend you choose, additional requirements need to be installe
 After installing Errbot, you must create a data directory somewhere on your system where
 config and data may be stored. Then you'll need a `config.py` file.
 
-You create a template of the file with::
+You create a template of the file with:
+
+.. code:: python
 
     python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')"
 
@@ -144,7 +150,9 @@ connect to your chosen backend (XMPP, Hipchat, Slack ...) server.
 **Starting the daemon**
 
 The first time you start Errbot, it is recommended to run it in foreground mode. This can
-be done with::
+be done with:
+
+.. code:: bash
 
     errbot
 
@@ -154,7 +162,9 @@ Depending on your situation, you may need to pass --config or --backend when sta
 Errbot.
 
 If all that worked, you can now use the -d (or --daemon) parameter to run it in a
-detached mode::
+detached mode:
+
+.. code:: bash
 
     errbot --daemon
 
@@ -164,15 +174,21 @@ It's important to know that Errbot is written for Python 3 but can run under 2.7
 to run it under Python 2.7 the code is run through 3to2 at install time. This means that
 while it is possible to run Errbot under Python 3.3+ directly from a source checkout, it
 is not possible to do so with Python 2.7. If you wish to develop or test with Errbot's
-code under 2.7, you must run::
+code under 2.7, you must run:
+
+.. code:: bash
 
     python setup.py develop
 
-If you want to test your bot instance without havign to connect to a chat service, you can run it in text modeqith ::
+If you want to test your bot instance without havign to connect to a chat service, you can run it in text mode with:
+
+.. code:: bash
 
    errbot -T
    
-Or in graphical mode (you'll need to install the dependency pyside for that)::
+Or in graphical mode (you'll need to install the dependency pyside for that):
+
+.. code:: bash
 
    errbot -G
 
@@ -183,29 +199,41 @@ After starting Errbot, you should add the bot to your buddy list if you haven't 
 You can now send commands directly to the bot, or issue commands in a chatroom that
 the bot has also joined.
 
-To get a list of all available commands, you can issue::
+To get a list of all available commands, you can issue:
+
+.. code:: bash
 
     !help full
 
-If you just wish to know more about a specific command you can issue::
+If you just wish to know more about a specific command you can issue:
+
+.. code:: bash
 
     !help command
 
 **Managing plugins**
 
-To get a list of public plugin repos you can issue::
+To get a list of public plugin repos you can issue:
+
+.. code:: bash
 
     !repos
 
-To install a plugin from this list, issue::
+To install a plugin from this list, issue:
+
+.. code:: bash
 
     !repos install <name of plugin>
 
-You can always uninstall a plugin again with::
+You can always uninstall a plugin again with:
+
+.. code:: bash
 
     !repos uninstall <plugin>
 
-You will probably want to update your plugins periodically. This can be done with::
+You will probably want to update your plugins periodically. This can be done with:
+
+.. code:: bash
 
     !repos update all
 
@@ -217,7 +245,9 @@ Writing plugins
 ---------------
 
 Writing your own plugins is extremely simple. As an example, this is all it takes
-to create a "Hello, world!" plugin for Errbot::
+to create a "Hello, world!" plugin for Errbot:
+
+.. code:: python
 
    from errbot import BotPlugin, botcmd
    

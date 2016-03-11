@@ -93,23 +93,13 @@ class ACLS(BotPlugin):
                     dry_run
             )
 
-        return msg, cmd, args
-
-    @cmdfilter
-    def admin(self, msg, cmd, args, dry_run):
-        """
-        Check command against the is_admin criteria.
-
-        :param msg: The original message the commands is coming from.
-        :param cmd: The command name
-        :param args: Its arguments.
-        :param dry_run: pass True to not act on the check (messages / deferred auth etc.)
-
-        """
         self.log.info("Check if %s is admin only command." % cmd)
-        f = self._bot.all_commands[cmd]
-
-        if f._err_command_admin_only and not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
-            return self.access_denied(msg, "This command requires bot-admin privileges", dry_run)
+        if f._err_command_admin_only:
+            if not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
+                return self.access_denied(msg, "This command requires bot-admin privileges", dry_run)
+            # For security reasons, admin-only commands are direct-message only UNLESS
+            # specifically overridden by setting allowmuc to True for such commands.
+            if msg.is_group and not acl.get("allowmuc", False):
+                return self.access_denied(msg, "This command may only be issued through a direct message", dry_run)
 
         return msg, cmd, args

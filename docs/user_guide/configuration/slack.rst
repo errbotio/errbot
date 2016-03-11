@@ -33,6 +33,13 @@ You can set `BOT_ADMINS` to configure which Slack users are bot administrators.
 Make sure to include the `@` sign.
 For example: `BOT_ADMINS = ('@gbin', '@zoni')`
 
+Bot mentions using @
+--------------------
+
+To enable using the bot's name in `BOT_ALT_PREFIXES` for @mentions in Slack, you must use the bot's SlackID.
+
+1. Find the bot's Slack ID. You can obtain this using Slack's [API tester](https://api.slack.com/methods/users.list) or by inspecting the errbot debug logs (by setting `BOT_LOG_LEVEL = logging.DEBUG`). It should look like `U023BECGF`.
+2. Enter this ID in `BOT_ALT_PREFIXES` in the form: `<@ID_NUMBER>`. For the example above it would be `<@U023BECGF>`.
 
 Channels/groups
 ---------------

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import configparser
+import errno
 import jinja2
 import os
 import re
@@ -32,6 +33,7 @@ def new_plugin_wizard(directory=None):
         validation_regex=r'^[a-zA-Z][a-zA-Z0-9 _-]*$'
     ).strip()
     module_name = name.lower().replace(' ', '_')
+    directory_name = name.lower().replace(' ', '-')
     class_name = "".join([s.capitalize() for s in name.lower().split(' ')])
 
     description = ask(
@@ -73,9 +75,17 @@ def new_plugin_wizard(directory=None):
     if errbot_max_version != "":
         plug["Errbot"]["Max"] = errbot_max_version
 
-    plug_path = os.path.join(directory, module_name+".plug")
-    py_path = os.path.join(directory, module_name+".py")
-    if os.path.exists(plug_path) or os.path.exists(py_path):
+    plugin_path = os.path.join(directory, "errbot-%s" % directory_name)
+    plugfile_path = os.path.join(plugin_path, module_name+".plug")
+    pyfile_path = os.path.join(plugin_path, module_name+".py")
+
+    try:
+        os.mkdir(plugin_path, mode=0o700)
+    except IOError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+    if os.path.exists(plugfile_path) or os.path.exists(pyfile_path):
         print(
             "Warning: A plugin with this name was already found at {path}\n"
             "If you continue, these will be overwritten.".format(
@@ -87,13 +97,13 @@ def new_plugin_wizard(directory=None):
             valid_responses=["overwrite"],
         )
 
-    with open(plug_path, 'w') as f:
+    with open(plugfile_path, 'w') as f:
         plug.write(f)
 
-    with open(py_path, 'w') as f:
+    with open(pyfile_path, 'w') as f:
         f.write(render_plugin(locals()))
 
-    print("Success! You'll find your new plugin at '%s'" % py_path)
+    print("Success! You'll find your new plugin inside '%s'" % plugin_path)
 
 
 def ask(question, valid_responses=None, validation_regex=None):

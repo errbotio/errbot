@@ -24,8 +24,8 @@ def new_plugin_wizard(directory=None):
     else:
         print("This wizard will create a new plugin for you in '%s'." % directory)
 
-    if not os.path.isdir(directory):
-        print("Error: The path '%s' does not exist or is not a directory." % directory)
+    if os.path.exists(directory) and not os.path.isdir(directory):
+        print("Error: The path '%s' exists but it isn't a directory" % directory)
         sys.exit(1)
 
     name = ask(
@@ -82,12 +82,12 @@ def new_plugin_wizard(directory=None):
     if errbot_max_version != "":
         plug["Errbot"]["Max"] = errbot_max_version
 
-    plugin_path = os.path.join(directory, "errbot-%s" % directory_name)
+    plugin_path = directory
     plugfile_path = os.path.join(plugin_path, module_name+".plug")
     pyfile_path = os.path.join(plugin_path, module_name+".py")
 
     try:
-        os.mkdir(plugin_path, mode=0o700)
+        os.makedirs(plugin_path, mode=0o700)
     except IOError as e:
         if e.errno != errno.EEXIST:
             raise
@@ -110,7 +110,7 @@ def new_plugin_wizard(directory=None):
     with open(pyfile_path, 'w') as f:
         f.write(render_plugin(locals()))
 
-    print("Success! You'll find your new plugin inside '%s'" % plugin_path)
+    print("Success! You'll find your new plugin at '%s'" % plugfile_path)
     print("(Don't forget to include a LICENSE file if you are going to publish your plugin)")
 
 

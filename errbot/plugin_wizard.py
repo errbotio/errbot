@@ -7,6 +7,7 @@ import re
 import sys
 
 from errbot import PY2
+from errbot.version import VERSION
 
 if PY2:
     input = raw_input
@@ -41,11 +42,19 @@ def new_plugin_wizard(directory=None):
         valid_responses=['2', '2+', '3']
     )
     errbot_min_version = ask(
-        "Which minimum version of errbot will your plugin work with? Leave blank to support any version"
+        "Which minimum version of errbot will your plugin work with? "
+        "Leave blank to support any version or input CURRENT to select the "
+        "current version (%s)" % VERSION
     ).strip()
+    if errbot_min_version.upper() == "CURRENT":
+        errbot_min_version = VERSION
     errbot_max_version = ask(
-        "Which maximum version of errbot will your plugin work with? Leave blank to support any version"
+        "Which maximum version of errbot will your plugin work with? "
+        "Leave blank to support any version or input CURRENT to select the "
+        "current version (%s)" % VERSION
     ).strip()
+    if errbot_max_version.upper() == "CURRENT":
+        errbot_max_version = VERSION
 
     plug = configparser.ConfigParser()
     plug["Core"] = {

@@ -111,6 +111,7 @@ def new_plugin_wizard(directory=None):
         f.write(render_plugin(locals()))
 
     print("Success! You'll find your new plugin inside '%s'" % plugin_path)
+    print("(Don't forget to include a LICENSE file if you are going to publish your plugin)")
 
 
 def ask(question, valid_responses=None, validation_regex=None):

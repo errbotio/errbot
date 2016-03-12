@@ -454,7 +454,8 @@ class SlackBackend(ErrBot):
                 if to_channel_id.startswith('C'):
                     log.debug("This is a divert to private message, sending it directly to the user.")
                     to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
-            log.debug('Sending %s message to %s (%s)' % (mess.type, to_humanreadable, to_channel_id))
+            msgtype = "direct" if mess.is_direct else "channel"
+            log.debug('Sending %s message to %s (%s)' % (msgtype, to_humanreadable, to_channel_id))
             body = self.md.convert(mess.body)
             log.debug('Message size: %d' % len(body))
 

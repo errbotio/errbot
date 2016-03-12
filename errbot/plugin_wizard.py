@@ -39,10 +39,17 @@ def new_plugin_wizard(directory=None):
     description = ask(
         "What may I use as a short (one-line) description of your plugin?"
     )
+    if PY2:
+        default_python_version = "2+"
+    else:
+        default_python_version = "3"
     python_version = ask(
-        "Which python version will your plugin work with? 2, 2+ or 3?",
-        valid_responses=['2', '2+', '3']
+        "Which python version will your plugin work with? 2, 2+ or 3? I will default to "
+        "{version} if you leave this blank.".format(version=default_python_version),
+        valid_responses=['2', '2+', '3', '']
     )
+    if python_version.strip() == "":
+        python_version = default_python_version
     errbot_min_version = ask(
         "Which minimum version of errbot will your plugin work with? "
         "Leave blank to support any version or input CURRENT to select the "

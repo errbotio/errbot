@@ -21,6 +21,7 @@ import logging
 import argparse
 from os import path, sep, getcwd, access, W_OK
 from platform import system
+from .plugin_wizard import new_plugin_wizard
 from .version import VERSION
 
 PY3 = sys.version_info[0] == 3
@@ -161,6 +162,8 @@ def main():
     mode_selection.add_argument('-r', '--restore', nargs='?', default=None, const='default',
                                 help='restore a bot from backup.py (default: backup.py from the bot data directory)')
     mode_selection.add_argument('-l', '--list', action='store_true', help='list all available backends')
+    mode_selection.add_argument('--new-plugin', nargs='?', default=None, const='current_dir',
+                                help='create a new plugin in the specified directory')
     mode_selection.add_argument('-T', '--text', dest="backend", action='store_const', const="Text",
                                 help='force local text backend')
     mode_selection.add_argument('-G', '--graphic', dest="backend", action='store_const', const="Graphic",
@@ -173,6 +176,19 @@ def main():
                                   help='Specify the pid file for the daemon (default: current bot data directory)')
 
     args = vars(parser.parse_args())  # create a dictionary of args
+
+    # This must come BEFORE the config is loaded below, to avoid printing
+    # logs as a side effect of config loading.
+    if args['new_plugin']:
+        directory = os.getcwd() if args['new_plugin'] == "current_dir" else args['new_plugin']
+        logging.getLogger('').setLevel(level=1000)  # Avoid logging stuff
+        try:
+            new_plugin_wizard(directory)
+        except KeyboardInterrupt:
+            sys.exit(1)
+        finally:
+            sys.exit(0)
+
     config_path = args['config']
     # setup the environment to be able to import the config.py
     if config_path:

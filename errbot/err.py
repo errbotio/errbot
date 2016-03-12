@@ -187,6 +187,9 @@ def main():
             new_plugin_wizard(directory)
         except KeyboardInterrupt:
             sys.exit(1)
+        except Exception as e:
+            sys.stderr.write(str(e) + "\n")
+            sys.exit(1)
         finally:
             sys.exit(0)
 

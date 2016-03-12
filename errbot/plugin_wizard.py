@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import configparser
+import jinja2
 import os
 import re
-import requests
 import sys
 
 from errbot import PY2
@@ -24,16 +24,6 @@ def new_plugin_wizard(directory=None):
 
     if not os.path.isdir(directory):
         print("Error: The path '%s' does not exist or is not a directory." % directory)
-        sys.exit(1)
-
-    try:
-        plugin_code = download_plugin_skeleton()
-    except requests.HTTPError as e:
-        print(
-            "Error: I couldn't download the plugin skeleton from GitHub "
-            "which is needed to write out a new plugin file for you."
-        )
-        print("Details: {!s}".format(e))
         sys.exit(1)
 
     name = ask(
@@ -91,11 +81,8 @@ def new_plugin_wizard(directory=None):
     with open(plug_path, 'w') as f:
         plug.write(f)
 
-    plugin_code = plugin_code.replace("class Skeleton(", "class %s(" % class_name)
-    plugin_code = plugin_code.replace("Fill in your plugin description here.", description)
-
     with open(py_path, 'w') as f:
-        f.write(plugin_code)
+        f.write(render_plugin(locals()))
 
     print("Success! You'll find your new plugin at '%s'" % py_path)
 
@@ -126,15 +113,16 @@ def ask(question, valid_responses=None, validation_regex=None):
     return response
 
 
-def download_plugin_skeleton():
+def render_plugin(values):
     """
-    Download the plugin skeleton from https://github.com/errbotio/plugin-skeleton.
-
-    Returns the contents of skeleton.py from the one on GitHub.
+    Render the Jinja template for the plugin with the given values.
     """
-    response = requests.get("https://github.com/errbotio/plugin-skeleton/raw/master/skeleton.py")
-    response.raise_for_status()
-    return response.text
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
+        auto_reload=False,
+    )
+    template = env.get_template("new_plugin_template.py")
+    return template.render(**values)
 
 
 if __name__ == "__main__":

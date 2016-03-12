@@ -129,6 +129,7 @@ def render_plugin(values):
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
         auto_reload=False,
+        keep_trailing_newline=True,
     )
     template = env.get_template("new_plugin_template.py")
     return template.render(**values)

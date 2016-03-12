@@ -400,35 +400,6 @@ class XMPPConnection(object):
     def del_event_handler(self, name, cb):
         self.client.del_event_handler(name, cb)
 
-    def configure_room(self, room):
-        """
-        Configure the given MUC
-
-        Currently this simply sets the default room configuration as
-        received by the server. May be extended in the future to set
-        a custom room configuration instead.
-
-        .. deprecated:: 2.2.0
-            Use the methods on :class:`XMPPMUCRoom` instead.
-        """
-        warnings.warn(
-            "Using configure_room is deprecated, use configure from the "
-            "MUCRoom class instead.",
-            DeprecationWarning
-        )
-        self._bot.query_room(room).configure()
-
-    def invite_in_room(self, room, jids_to_invite):
-        """
-        .. deprecated:: 2.2.0
-            Use the methods on :class:`XMPPMUCRoom` instead.
-        """
-        warnings.warn(
-            "Using invite_in_room is deprecated, use invite from the "
-            "MUCRoom class instead.",
-            DeprecationWarning,
-        )
-        self._bot.query_room(room).invite(jids_to_invite)
 
 XMPP_TO_ERR_STATUS = {'available': ONLINE,
                       'away': AWAY,

@@ -181,7 +181,8 @@ def main():
     # logs as a side effect of config loading.
     if args['new_plugin']:
         directory = os.getcwd() if args['new_plugin'] == "current_dir" else args['new_plugin']
-        logging.getLogger('').setLevel(level=1000)  # Avoid logging stuff
+        for handler in logging.getLogger().handlers:
+            logger.removeHandler(handler)
         try:
             new_plugin_wizard(directory)
         except KeyboardInterrupt:

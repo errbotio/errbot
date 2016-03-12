@@ -1,6 +1,6 @@
 [Core]
 Name = Telegram
-Module = telegram
+Module = telegram_messenger
 
 [Documentation]
 Description = This is the Telegram backend for Err.

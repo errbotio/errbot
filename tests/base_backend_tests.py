@@ -514,6 +514,7 @@ class BotCmds(unittest.TestCase):
         self.assertEquals("%s %s" % (first_name, last_name), self.dummy.pop_message().body)
 
     def test_access_controls(self):
+        testroom = TestRoom("room", bot=self.dummy)
         tests = [
             # BOT_ADMINS scenarios
             dict(
@@ -529,6 +530,24 @@ class BotCmds(unittest.TestCase):
             dict(
                 message=self.makemessage("!admin_command"),
                 bot_admins=('*err'),
+                expected_response="Admin command",
+            ),
+
+            # admin_only commands SHOULD be private-message only by default
+            dict(
+                message=self.makemessage("!admin_command",
+                                         from_=TestOccupant('noterr', room=testroom),
+                                         to=testroom),
+                bot_admins=('noterr'),
+                expected_response="This command may only be issued through a direct message",
+            ),
+            # But MAY be sent via groupchat IF 'allowmuc' is specifically set to True.
+            dict(
+                message=self.makemessage("!admin_command",
+                                         from_=TestOccupant('noterr', room=testroom),
+                                         to=testroom),
+                bot_admins=('noterr'),
+                acl={'admin_command': {'allowmuc': True}},
                 expected_response="Admin command",
             ),
 

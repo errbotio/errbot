@@ -96,7 +96,7 @@ class TestOccupant(TestPerson, RoomOccupant):
         return self._room
 
     def __unicode__(self):
-        return self._person + '@' + self._room
+        return self._person + '@' + str(self._room)
 
     __str__ = __unicode__
 

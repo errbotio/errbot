@@ -30,7 +30,7 @@ class TestCommands(FullStackTest):
         self.assertCommand('!help re foo', 'runs re_foo')  # Part of Dummy
 
     def test_about(self):
-        self.assertCommand('!about', 'Err version')
+        self.assertCommand('!about', 'Errbot version')
 
     def test_uptime(self):
         self.assertCommand('!uptime', 'I\'ve been up for')
@@ -67,7 +67,7 @@ class TestCommands(FullStackTest):
         self.assertCommand('!plugin config Webserver', 'localhost')
 
     def test_apropos(self):
-        self.assertCommand('!apropos about', '!about: Returns some')
+        self.assertCommand('!apropos about', '!about: Return information about')
 
     def test_logtail(self):
         self.assertCommand('!log tail', 'DEBUG')

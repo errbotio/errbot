@@ -11,14 +11,10 @@ class Help(BotPlugin):
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
     # noinspection PyUnusedLocal
-    @botcmd
+    @botcmd(template='about')
     def about(self, mess, args):
-        """ Returns some information about this err instance"""
-
-        result = 'Err version %s \n\n' % VERSION
-        result += ('Authors: Mondial Telecom, Guillaume BINET, Tali PETROVER, '
-                   'Ben VAN DAELE, Paul LABEDAN and others.\n\n')
-        return result
+        """Return information about this Errbot instance and version"""
+        return {'version': VERSION}
 
     # noinspection PyUnusedLocal
     @botcmd

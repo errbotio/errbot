@@ -126,7 +126,7 @@ class IRCPerson(Person):
         return self.person == other.person
 
 
-class IRCOccupant(IRCPerson, RoomOccupant):
+class IRCRoomOccupant(IRCPerson, RoomOccupant):
     def __init__(self, mask, room):
         super().__init__(mask)
         self._room = room
@@ -136,7 +136,7 @@ class IRCOccupant(IRCPerson, RoomOccupant):
         return self._room
 
     def __unicode__(self):
-        return "%s\n%s" % (self._nickmask, self._room)
+        return "%s" % self._nickmask
 
     def __str__(self):
         return self.__unicode__()
@@ -263,7 +263,7 @@ class IRCRoom(Room):
         occupants = []
         try:
             for nick in self._bot.conn.channels[self.room].users():
-                occupants.append(IRCOccupant(nick, room=self.room))
+                occupants.append(IRCRoomOccupant(nick, room=self.room))
         except KeyError:
             raise RoomNotJoinedError("Must be in a room in order to \
                                      see occupants.")
@@ -365,7 +365,7 @@ class IRCConnection(SingleServerIRCBot):
         if room_name[0] != '#' and room_name[0] != '$':
             raise Exception('[%s] is not a room' % room_name)
         room = IRCRoom(room_name, self.bot)
-        msg.frm = IRCOccupant(e.source, room)
+        msg.frm = IRCRoomOccupant(e.source, room)
         msg.to = room
         msg.nick = msg.frm.nick  # FIXME find the real nick in the channel
         self.bot.callback_message(msg)
@@ -583,22 +583,17 @@ class IRCBackend(ErrBot):
         return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)
 
     def build_reply(self, mess, text=None, private=False):
-        log.debug("Build reply.")
-        log.debug("Orig From %s" % mess.frm)
-        log.debug("Orig To %s" % mess.to)
-
         response = self.build_message(text)
-
         if mess.is_group:
-            response.frm = IRCOccupant(str(self.bot_identifier), mess.frm.room)
-            response.to = mess.frm.room
+            if private:
+                response.frm = self.bot_identifier
+                response.to = IRCPerson(str(mess.frm))
+            else:
+                response.frm = IRCRoomOccupant(str(self.bot_identifier), mess.frm.room)
+                response.to = mess.frm.room
         else:
             response.frm = self.bot_identifier
             response.to = mess.frm
-
-        log.debug("Response From %s" % response.frm)
-        log.debug("Response To %s" % response.to)
-
         return response
 
     def serve_forever(self):
@@ -620,12 +615,12 @@ class IRCBackend(ErrBot):
     def build_identifier(self, txtrep):
         log.debug("Build identifier from [%s]" % txtrep)
         if txtrep.startswith('#'):
-            return IRCOccupant(None, txtrep)
+            return IRCRoomOccupant(None, txtrep)
 
         # Occupants are represented as 2 lines, one is the IRC mask and the second is the Room.
         if '\n' in txtrep:
             m, r = txtrep.split('\n')
-            return IRCOccupant(m, IRCRoom(r, self))
+            return IRCRoomOccupant(m, IRCRoom(r, self))
         return IRCPerson(txtrep)
 
     def shutdown(self):

@@ -19,7 +19,7 @@ import inspect
 import logging
 import traceback
 
-from .backends.base import Backend, Room, Identifier, Person
+from .backends.base import Backend, Room, Identifier, Person, Message
 from threadpool import ThreadPool, WorkRequest
 from .streaming import Tee
 from .templating import tenv
@@ -611,3 +611,10 @@ class ErrBot(Backend, StoreMixin):
         self.close_storage()
         self.plugin_manager.shutdown()
         self.repo_manager.shutdown()
+
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
+        if message.body.startswith('#'):
+            # Markdown heading, insert an extra newline to ensure the
+            # markdown rendering doesn't break.
+            message.body = "\n" + message.body
+

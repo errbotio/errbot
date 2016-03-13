@@ -632,4 +632,5 @@ class XMPPBackend(ErrBot):
         return XMPPRoom(room, self)
 
     def prefix_groupchat_reply(self, message, identifier):
+        super().prefix_groupchat_reply(message, identifier)
         message.body = '@{0} {1}'.format(identifier.nick, message.body)

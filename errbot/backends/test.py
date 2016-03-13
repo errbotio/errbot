@@ -295,6 +295,7 @@ class TestBackend(ErrBot):
             return r
 
     def prefix_groupchat_reply(self, message, identifier):
+        super().prefix_groupchat_reply(message, identifier)
         message.body = '@{0} {1}'.format(identifier.nick, message.body)
 
     def pop_message(self, timeout=5, block=True):

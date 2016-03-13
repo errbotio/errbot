@@ -419,6 +419,8 @@ def split_identifier(txtrep):
 
 
 class XMPPBackend(ErrBot):
+    room_factory = XMPPRoom
+    roomoccupant_factory = XMPPRoomOccupant
 
     def __init__(self, config):
         super().__init__(config)
@@ -462,15 +464,19 @@ class XMPPBackend(ErrBot):
 
     def incoming_message(self, xmppmsg):
         """Callback for message events"""
+        if xmppmsg['type'] == "error":
+            log.warning("Received error message: %s", xmppmsg)
+            return
+
         msg = Message(xmppmsg['body'])
         if 'html' in xmppmsg.keys():
             msg.html = xmppmsg['html']
         msg.frm = self.build_identifier(xmppmsg['from'].full)
         msg.to = self.build_identifier(xmppmsg['to'].full)
-        log.debug("incoming_message frm : %s" % msg.frm)
+        log.debug("incoming_message from: %s", msg.frm)
         if xmppmsg['type'] == 'groupchat':
-            room = XMPPRoom(msg.frm.node + '@' + msg.frm.domain, self)
-            msg.frm = XMPPRoomOccupant(msg.frm.node, msg.frm.domain, msg.frm.resource, room)
+            room = self.room_factory(msg.frm.node + '@' + msg.frm.domain, self)
+            msg.frm = self.roomoccupant_factory(msg.frm.node, msg.frm.domain, msg.frm.resource, room)
             msg.to = room
 
         msg.nick = xmppmsg['mucnick']
@@ -588,7 +594,7 @@ class XMPPBackend(ErrBot):
             # it is either a user to user or user_in_chatroom to user case.
             # so we need resource.
             response.to = mess.frm
-        elif mess.to.person == self.bot_config.BOT_IDENTITY['username']:
+        elif hasattr(mess.to, 'person') and mess.to.person == self.bot_config.BOT_IDENTITY['username']:
             # This is a direct private message, not initiated through a MUC. Use
             # stripped to remove the resource so that the response goes to the
             # client with the highest priority

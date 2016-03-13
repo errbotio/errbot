@@ -10,7 +10,11 @@ from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
 from errbot.backends.base import Room, RoomDoesNotExistError, Message
-from errbot.backends.xmpp import XMPPRoomOccupant, XMPPBackend, XMPPConnection
+from errbot.backends.xmpp import (
+    XMPPPerson, XMPPRoomOccupant,
+    XMPPBackend, XMPPConnection,
+    split_identifier
+)
 
 
 # Can't use __name__ because of Yapsy
@@ -350,7 +354,7 @@ class HipchatClient(XMPPConnection):
 
         See also: https://www.hipchat.com/docs/apiv2/method/get_all_users
         """
-        result = self.hypchat.users(expand='items')
+        result = self.hypchat.users(guests=True)
         users = result['items']
         next_link = 'next' in result['links']
         while next_link:
@@ -361,6 +365,9 @@ class HipchatClient(XMPPConnection):
 
 
 class HipchatBackend(XMPPBackend):
+    room_factory = HipChatRoom
+    roomoccupant_factory = HipChatRoomOccupant
+
     def __init__(self, config):
         self.api_token = config.BOT_IDENTITY['token']
         self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
@@ -384,23 +391,6 @@ class HipchatBackend(XMPPBackend):
             endpoint=self.api_endpoint,
             server=self.server
         )
-
-    def incoming_message(self, xmppmsg):
-        """Callback for message events"""
-        msg = Message(xmppmsg['body'])
-        if 'html' in xmppmsg.keys():
-            msg.html = xmppmsg['html']
-        msg.frm = self.build_identifier(xmppmsg['from'].full)
-        msg.to = self.build_identifier(xmppmsg['to'].full)
-        log.debug("incoming_message frm : %s" % msg.frm)
-        if xmppmsg['type'] == 'groupchat':
-            room = self.query_room(msg.to.node + '@' + msg.to.domain)
-            msg.frm = HipChatRoomOccupant(msg.frm.node, msg.frm.domain, msg.frm.resource, room)
-            msg.to = room
-
-        msg.nick = xmppmsg['mucnick']
-        msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
-        self.callback_message(msg)
 
     @property
     def mode(self):
@@ -427,7 +417,7 @@ class HipchatBackend(XMPPBackend):
                 pass
         return joined_rooms
 
-    @lru_cache(50)
+    @lru_cache(1024)
     def query_room(self, room):
         """
         Query a room for information.
@@ -449,6 +439,31 @@ class HipchatBackend(XMPPBackend):
             name = room
 
         return HipChatRoom(name, self)
+
+    def build_reply(self, mess, text=None, private=False):
+        response = super().build_reply(mess=mess, text=text, private=private)
+        if mess.frm == response.to:
+            # HipChat violates the XMPP spec :( This results in a valid XMPP JID
+            # but HipChat mangles them into stuff like
+            # "132302_961351@chat.hipchat.com/none||proxy|pubproxy-b100.hipchat.com|5292"
+            # so we request the user's proper JID through their API and use that here
+            # so that private responses originating from a room (IE, DIVERT_TO_PRIVATE)
+            # work correctly.
+            node, domain, resource = split_identifier(self.username_to_jid(response.to.client))
+            response.to = XMPPPerson(node=node, domain=domain, resource=resource)
+        return response
+
+    @lru_cache(1024)
+    def username_to_jid(self, username):
+        """
+        Convert a HipChat username to their JID
+        """
+        try:
+            user = [u for u in self.conn.users if u['name'] == username][0]
+            userdetail = self.conn.hypchat.get_user("%s" % user['id'])
+            return userdetail['xmpp_jid']
+        except IndexError:
+            return None
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)

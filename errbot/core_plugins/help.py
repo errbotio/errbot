@@ -63,7 +63,12 @@ class Help(BotPlugin):
         Automatically assigned to the "help" command."""
 
         def may_access_command(msg, cmd):
-            msg, _, _ = self._bot._process_command_filters(msg, cmd, None, True)
+            msg, _, _ = self._bot._process_command_filters(
+                msg=msg,
+                cmd=cmd,
+                args=None,
+                dry_run=True
+            )
             return msg is not None
 
         def get_name(named):
@@ -92,7 +97,7 @@ class Help(BotPlugin):
                                        )
 
                 for (name, command) in cls_commands[cls]:
-                    if name == 'help' or command._err_command_hidden:
+                    if command._err_command_hidden:
                         continue
                     # show individual commands
                     usage += self._cmd_help_line(name, command)

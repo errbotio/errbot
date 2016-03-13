@@ -36,7 +36,7 @@ class ACLS(BotPlugin):
     """
 
     def access_denied(self, msg, reason, dry_run):
-        if not dry_run or not self.bot_config.HIDE_RESTRICTED_ACCESS:
+        if not dry_run and not self.bot_config.HIDE_RESTRICTED_ACCESS:
             self._bot.send_simple_reply(msg, reason)
         return BLOCK_COMMAND
 

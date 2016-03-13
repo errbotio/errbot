@@ -156,7 +156,7 @@ class ErrBot(Backend, StoreMixin):
         mess.frm = in_reply_to.to if in_reply_to else self.bot_identifier
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
-        if isinstance(identifier, Room) and in_reply_to and nick_reply and groupchat_nick_reply:
+        if isinstance(identifier, Room) and in_reply_to and (nick_reply or groupchat_nick_reply):
             self.prefix_groupchat_reply(mess, in_reply_to.frm)
 
         self.split_and_send_message(mess)
@@ -204,7 +204,10 @@ class ErrBot(Backend, StoreMixin):
         :param text: the markdown text of the message.
         :param mess: the message you are replying to.
         """
-        self.split_and_send_message(self.build_reply(mess, text, private))
+        reply = self.build_reply(mess, text, private)
+        if isinstance(reply.to, Room) and self.bot_config.GROUPCHAT_NICK_PREFIXED:
+            self.prefix_groupchat_reply(reply, mess.frm)
+        self.split_and_send_message(reply)
 
     def process_message(self, mess):
         """Check if the given message is a command for the bot and act on it.

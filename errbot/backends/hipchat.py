@@ -466,7 +466,7 @@ class HipchatBackend(XMPPBackend):
             return None
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '@{0} {1}'.format(identifier.nick, message.body)
+        message.body = '@{0}: {1}'.format(identifier.nick, message.body)
 
     def __hash__(self):
         return 0  # it is a singleton anyway

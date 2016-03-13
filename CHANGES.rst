@@ -1,11 +1,7 @@
-v9.9.9 (master/unreleased)
---------------------------
-
-
 v4.0.0 (2016-03-13)
 -------------------
 
-This is the next major release of errbot with significant changes under the hood.
+This is a major release of errbot with significant changes under the hood and some new features.
 
 
 New features

@@ -24,6 +24,7 @@ class Plugins(BotPlugin):
                   "give me the URL to a git repository that I should clone for you."
             return
         try:
+            yield "Installing %s..." % args
             local_path = self._bot.repo_manager.install_repo(args)
             errors = self._bot.plugin_manager.update_dynamic_plugins()
             if errors:
@@ -39,7 +40,7 @@ class Plugins(BotPlugin):
             loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
             if loading_errors:
                 yield loading_errors
-            yield "Plugins reloaded without any error."
+            yield "Plugins reloaded."
         except RepoException as re:
             yield "Error installing the repo: %s" % re
 

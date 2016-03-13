@@ -617,4 +617,3 @@ class ErrBot(Backend, StoreMixin):
             # Markdown heading, insert an extra newline to ensure the
             # markdown rendering doesn't break.
             message.body = "\n" + message.body
-

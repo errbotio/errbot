@@ -9,8 +9,8 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
-from errbot.backends.base import RoomDoesNotExistError, Message
-from errbot.backends.xmpp import XMPPRoomOccupant, XMPPRoom, XMPPBackend, XMPPConnection
+from errbot.backends.base import Room, RoomDoesNotExistError, Message
+from errbot.backends.xmpp import XMPPRoomOccupant, XMPPBackend, XMPPConnection
 
 
 # Can't use __name__ because of Yapsy
@@ -86,19 +86,20 @@ class HipChatRoomOccupant(XMPPRoomOccupant):
         super().__init__(node, domain, resource, room)
 
 
-class HipChatRoom(XMPPRoom):
+class HipChatRoom(Room):
     """
     This class represents a Multi-User Chatroom.
     """
 
-    def __init__(self, room_jid, name, bot):
+    def __init__(self, name, bot):
         """
-            :param name:
-                The name of the room
-            """
-        super().__init__(room_jid, bot)
+        :param name:
+            The name of the room
+        """
         self.name = name
         self.hypchat = bot.conn.hypchat
+        self.xep0045 = bot.conn.client.plugin['xep_0045']
+        self._bot = bot
 
     @property
     def room(self):
@@ -420,7 +421,10 @@ class HipchatBackend(XMPPBackend):
 
         joined_rooms = []
         for room in xep0045.getJoinedRooms():
-            joined_rooms.append(HipChatRoom(rooms[room], self))
+            try:
+                joined_rooms.append(HipChatRoom(rooms[room], self))
+            except KeyError:
+                pass
         return joined_rooms
 
     @lru_cache(50)
@@ -444,7 +448,7 @@ class HipchatBackend(XMPPBackend):
         else:
             name = room
 
-        return HipChatRoom(room, name, self)
+        return HipChatRoom(name, self)
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)

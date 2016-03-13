@@ -88,6 +88,7 @@ class ErrBot(Backend, StoreMixin):
         self.repo_manager = None
         self.plugin_manager = None
         self.storage_plugin = None
+        self._plugin_errors_during_startup = None
 
     def attach_repo_manager(self, repo_manager):
         self.repo_manager = repo_manager
@@ -584,8 +585,16 @@ class ErrBot(Backend, StoreMixin):
 
     def connect_callback(self):
         log.info('Activate internal commands')
-        loading_errors = self.plugin_manager.activate_non_started_plugins()
-        log.info(loading_errors)
+        if self._plugin_errors_during_startup:
+            errors = "Some plugins failed to start during bot startup:\n\n{errors}".format(
+                errors=self._plugin_errors_during_startup
+            )
+        else:
+            errors = ""
+        errors += self.plugin_manager.activate_non_started_plugins()
+        if errors:
+            self.warn_admins(errors)
+        log.info(errors)
         log.info('Notifying connection to all the plugins...')
         self.signal_connect_to_all_plugins()
         log.info('Plugin activation done.')

@@ -97,10 +97,15 @@ class TestCommands(FullStackTest):
         ]
 
         for plugin in plugins:
-            self.assertCommand('!repos install {0}'.format(plugin),
-                               'A new plugin repository has been installed correctly from errbotio/err-helloworld',
-                               60)
-            self.assertIn('reload', self.bot.pop_message())
+            self.assertCommand(
+                '!repos install {0}'.format(plugin),
+                'Installing {0}...'.format(plugin)
+            ),
+            self.assertIn(
+                'A new plugin repository has been installed correctly from errbotio/err-helloworld',
+                self.bot.pop_message(timeout=60)
+            )
+            self.assertIn('Plugins reloaded', self.bot.pop_message())
 
             self.assertCommand('!help hello', 'this command says hello')
             self.assertCommand('!hello', 'Hello World !')
@@ -134,13 +139,19 @@ class TestCommands(FullStackTest):
             self.assertIn('Command "hello" not found', self.bot.pop_message())
 
     def test_broken_plugin(self):
-        self.assertCommand('!repos install https://github.com/errbotio/err-broken.git', 'import borken # fails', 60)
+        self.assertCommand(
+            '!repos install https://github.com/errbotio/err-broken.git',
+            'Installing',
+            60
+        )
+        self.assertIn('import borken # fails', self.bot.pop_message())
         self.assertIn('err-broken as it did not load correctly.', self.bot.pop_message())
-        self.assertIn('Plugins reloaded without any error.', self.bot.pop_message())
+        self.assertIn('Plugins reloaded.', self.bot.pop_message())
 
     def test_backup(self):
         bot = self.bot  # used while restoring
         bot.push_message('!repos install https://github.com/errbotio/err-helloworld.git')
+        self.assertIn('Installing', self.bot.pop_message())
         self.assertIn('err-helloworld', self.bot.pop_message(timeout=60))
         self.assertIn('reload', self.bot.pop_message())
         bot.push_message('!backup')

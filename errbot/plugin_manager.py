@@ -83,7 +83,7 @@ def check_dependencies(path):
                 except Exception:
                     missing_pkg.append(stripped)
         if missing_pkg:
-            return (('You need those dependencies for %s: ' % path) + ','.join(missing_pkg),
+            return (('You need these dependencies for %s: ' % path) + ','.join(missing_pkg),
                     missing_pkg)
         return None
     except Exception:
@@ -336,13 +336,14 @@ class BotPluginManager(PluginManager, StoreMixin):
         if autoinstall_deps:
             for path, result in dependencies_result.items():
                 if result:
-                    dep = result[1]
-                    if dep.strip() != '' and dep not in deps_to_install:
-                        deps_to_install.update(dep)
-                        log.info("Trying to install an unmet dependency: '%s'" % dep)
-                        error = install_package(dep)
-                        if error is not None:
-                            errors[path] = ''.join(traceback.format_tb(error))
+                    deps = result[1]
+                    for dep in deps:
+                        if dep.strip() != '' and dep not in deps_to_install:
+                            deps_to_install.update(dep)
+                            log.info("Trying to install an unmet dependency: '%s'" % dep)
+                            error = install_package(dep)
+                            if error is not None:
+                                errors[path] = ''.join(traceback.format_tb(error))
         else:
             errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
         self.setPluginPlaces(paths)
@@ -426,9 +427,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                     self.activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
             except Exception as e:
                 log.exception("Error loading %s" % pluginInfo.name)
-                errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
-        if errors:
-            self.bot.warn_admins(errors)
+                errors += 'Error: %s failed to start: %s\n' % (pluginInfo.name, e)
         return errors
 
     def activate_plugin(self, name):

@@ -598,7 +598,10 @@ class SlackBackend(ErrBot):
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
-        response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
+        if private:
+            response.to = mess.frm
+        else:
+            response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
         return response
 
     def shutdown(self):

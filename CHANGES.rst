@@ -10,6 +10,7 @@ v4 New and noteworthy
 We already implemented a couple:
   + `in-memory <https://github.com/errbotio/errbot/blob/master/errbot/storage/memory.plug>`_ for tests.
   + `shelf <https://github.com/errbotio/errbot/blob/master/errbot/storage/memory.plug>`_ for backward compatibility.
+  + `redis <https://github.com/sijis/err-storage-redis>_`
   + `SQL <https://github.com/errbotio/err-storage-sql>`_ that supports a bunch of DBs from MySQL, Postgres, Redshift etc.
   + `Firebase <https://github.com/errbotio/err-storage-firebase>`_ for the popular Google DB.
 

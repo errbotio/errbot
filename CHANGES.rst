@@ -1,20 +1,141 @@
-v4.0.0 (unreleased, v9.9.9)
----------------------------
+v9.9.9 (master/unreleased)
+--------------------------
 
 
-v4 New and noteworthy
+v4.0.0 (2016-03-13)
+-------------------
+
+This is the next major release of errbot with significant changes under the hood.
+
+
+New features
+~~~~~~~~~~~~
+
+- Storage is now implemented as a plugin as well, similar to command plugins and backends.
+  This means you can now select different storage implementations or even write your own.
+
+The following storage backends are currently available:
+
+  + The traditional Python `shelf` storage.
+  + In-memory storage for tests or ephemeral storage.
+  + `SQL storage <https://github.com/errbotio/err-storage-sql>`_ which supports relational databases such as MySQL, Postgres, Redshift etc.
+  + `Firebase storage <https://github.com/errbotio/err-storage-firebase>`_ for the Google Firebase DB.
+  + `Redis storage <https://github.com/errbotio/err-storage-redis>`_ (thanks Sijis Aviles!) which uses the Redis in-memory data structure store.
+
+- Unix-style glob support in `BOT_ADMINS` and `ACCESS_CONTROLS` (see the updated `config-template.py` for documentation).
+
+- The ability to apply ACLs to all commands exposed by a plugin (see the updated `config-template.py` for documentation).
+
+- The mention_callcack() on IRC (mr. Shu).
+
+- A new (externally maintained) `Skype backend <https://github.com/errbotio/errbot-backend-skype>`_.
+
+- The ability to disable core plugins (such as `!help`, `!status`, etc) from loading (see `CORE_PLUGINS` in the updated `config-template.py`).
+
+- Added a `--new-plugin` flag to `errbot` which can create an emply plugin skeleton for you.
+
+- IPv6 configuration support on IRC (Mike Burke)
+
+- More flexible access controls on IRC based on nickmasks (in part thanks to Marcus Carlsson).
+  IRC users, see the new `IRC_ACL_PATTERN` in `config-template.py`.
+
+- A new `callback_mention()` for plugins (not available on all backends).
+
+- Admins are now notified about plugin startup errors which happen during bot startup
+
+- The repos listed by the `!repos` command are now fetched from a public index and can be
+  queried with `!repos query [keyword]`. Additionally, it is now possible to add your own
+  index(es) to this list as well in case you wish to maintain a private index (special
+  thanks to Sijis Aviles for the initial proof-of-concept implementation).
+
+
+Bugs fixed
+~~~~~~~~~~
+
+- IRC backend no longer crashes on invalid UTF-8 characters but instead replaces
+  them (mr. Shu).
+
+- Fixed joining password-protected rooms (Mikko Lehto)
+
+- Compatibility to API changes introduced in slackclient-1.0.0 (used by the Slack backend).
+
+- Corrected room joining on IRC (Ezequiel Hector Brizuela).
+
+- Fixed *"team_join event handler raised an exception"* on Slack.
+
+- Fixed `DIVERT_TO_PRIVATE` on HipChat.
+
+- Fixed `DIVERT_TO_PRIVATE` on Slack.
+
+- Fixed `GROUPCHAT_NICK_PREFIXED` not prefixing the user on regular commands.
+
+- Fixed `HIDE_RESTRICTED_ACCESS` from accidentally sending messages when issuing `!help`.
+
+- Fixed `DIVERT_TO_PRIVATE` on IRC.
+
+- Fixed markdown rendering breaking with `GROUPCHAT_NICK_PREFIXED` enabled.
+
+- Fixed `AttributeError` with `AUTOINSTALL_DEPS` enabled.
+
+- IRC backend now cleanly disconnects from IRC servers instead of just cutting the connection.
+
+- Text mode now displays the prompt beneath the log output
+
+- Plugins which fail to install no longer remain behind, obstructing a new installation attempt
+
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+- The underlying implementation of Identifiers has been drastically refactored
+  to be more clear and correct. This makes it a lot easier to construct Identifiers
+  and send messages to specific people or rooms.
+
+- The file format for `--backup` and `--restore` has changed between 3.x and 4.0
+  On the v3.2 branch, backup can now backup using the new v4 format with `!backupv4` to
+  make it possible to use with `--restore` on errbot 4.0.
+
+A number of features which had previously been deprecated have now been removed.
+These include:
+
+- `configure_room` and `invite_in_room` in `XMPPBackend` (use the
+  equivalent functions on the `XMPPRoom` object instead)
+
+- The `--xmpp`, `--hipchat`, `--slack` and `--irc` command-line options
+  from `errbot` (set a proper `BACKEND` in `config.py` instead).
+
+
+Miscellaneous changes
 ~~~~~~~~~~~~~~~~~~~~~
 
-- storage are now plugins too: It means you can adapt errbot to your own database.
+- Version information is now specified in plugin `.plug` files instead of in
+  the Python class of the plugin.
 
-We already implemented a couple:
-  + `in-memory <https://github.com/errbotio/errbot/blob/master/errbot/storage/memory.plug>`_ for tests.
-  + `shelf <https://github.com/errbotio/errbot/blob/master/errbot/storage/memory.plug>`_ for backward compatibility.
-  + `redis <https://github.com/sijis/err-storage-redis>_`
-  + `SQL <https://github.com/errbotio/err-storage-sql>`_ that supports a bunch of DBs from MySQL, Postgres, Redshift etc.
-  + `Firebase <https://github.com/errbotio/err-storage-firebase>`_ for the popular Google DB.
+- Updated `!help` output, more similar to Hubot's help output (James O'Beirne and Sijis Aviles).
 
-- Persons, RoomOccupant and Room are now all equal and are usable to send a message to somebody, somebody in a Room or a Room.
+- XHTML-IM output can now be enabled on XMPP again.
+
+- New `--version` flag on `errbot` (mr. Shu).
+
+- Made `!log tail` admin only (Nicolas Sebrecht).
+
+- Made the version checker asynchronous, improving startup times.
+
+- Optionally allow bot configuration from groupchat
+
+- `Message.type` is now deprecated in favor of `Message.is_direct` and `Message.is_group`.
+
+- Some bundled dependencies have been refactored out into external dependencies.
+
+- Many improvements have been made to the documention, both in docstrings internally as well
+  as the user guide on the website at http://errbot.io.
+
+
+Further info on identifier changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Person, RoomOccupant and Room are now all equal and can be used as-is to send a message
+  to a person, a person in a Room or a Room itself.
 
 The relationship is as follow:
 
@@ -23,45 +144,11 @@ The relationship is as follow:
 
 For example: A Message sent from a room will have a RoomOccupant as frm and a Room as to.
 
-It means also that now, you can just do ``self.send(self.find_room(...), "Message")``, something that was not possible under Errbot 3.
+This means that you can now do things like:
 
-- Plugin git repositories are now fetched from a public index and you can query them with ``!repos query [keyword]``
-- Those plugin Git repositories and indexes are composable and overridable. Thx to Sijia Aviles for the POC of the feature.
+- `self.send(msg.frm, "Message")`
+- `self.send(self.query_room("#general"), "Hello everyone")`
 
-- Core plugins filter: Now you can filter out core plugins to forbid them to be loaded at all. It is useful to
-   unclutter !help and to lock dock a bot instance.
-
-- On v3.2 branch: Backup can now backup as a v4 with !backupv4 format to port you data to your new v4 bot.
-
-- Better help (thx Sijis for the port)
-
-- XMPP: you can reenable XHTML-IM optionally now.
-
-
-features:
-
-- Support unix-style globbing in `BOT_ADMINS` and `ACCESS_CONTROLS`
-- IRC: mention callcack (thx mr. Shu)
-- A new Skype backend is now available (thx Nick Groenen)
-
-bugs:
-
-- IPV6 fixes for IRC (thx Mike Burke)
-- Text mode: Now you get the prompt after the logs
-- Slack: Identifier fixes (thx Asen Lekov)
-- IRC: Join async notification fix.
-- Plugins cannot fail to install and leave a git repo forbidding the reinstall later
-- !log tail is now admin only (thx Nicolas Sebrecht)
-
-documentation:
-
-- configuration guides for all the backends
-
-refactor:
-
-- removed all bundled dependencies.
-- removed deprecated fields and method.
-- The Version checker is now asynchronous so the bot boots faster.
 
 v3.2.3 (2016-02-18)
 -------------------

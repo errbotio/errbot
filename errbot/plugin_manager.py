@@ -83,7 +83,7 @@ def check_dependencies(path):
                 except Exception:
                     missing_pkg.append(stripped)
         if missing_pkg:
-            return (('You need those dependencies for %s: ' % path) + ','.join(missing_pkg),
+            return (('You need these dependencies for %s: ' % path) + ','.join(missing_pkg),
                     missing_pkg)
         return None
     except Exception:
@@ -426,9 +426,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                     self.activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
             except Exception as e:
                 log.exception("Error loading %s" % pluginInfo.name)
-                errors += 'Error: %s failed to start : %s\n' % (pluginInfo.name, e)
-        if errors:
-            self.bot.warn_admins(errors)
+                errors += 'Error: %s failed to start: %s\n' % (pluginInfo.name, e)
         return errors
 
     def activate_plugin(self, name):

@@ -599,7 +599,10 @@ class IRCBackend(ErrBot):
     def serve_forever(self):
         try:
             self.conn.start()
+        except KeyboardInterrupt:
+            log.info("Interrupt received, shutting down")
         finally:
+            self.conn.disconnect("Shutting down")
             log.debug("Trigger disconnect callback")
             self.disconnect_callback()
             log.debug("Trigger shutdown")

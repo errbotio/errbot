@@ -134,7 +134,7 @@ def check_python_plug_section(name: str, config: ConfigParser) -> bool:
         return False
 
     if python_version == '3' and PY2:
-        log.error('\nPlugin %s is made for python 3 and you are running err under python 2.')
+        log.error('\nPlugin %s is made for python 3 and you are running err under python 2.', name)
         return False
     return True
 

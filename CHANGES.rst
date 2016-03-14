@@ -1,3 +1,10 @@
+v3.2.4
+------
+
+features:
+
+- added the !backupv4 command to ease the transition to Errbot 4.0.1+
+
 v3.2.3
 ------
 

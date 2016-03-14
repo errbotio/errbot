@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import configparser
 import errno
 import jinja2
 import os
@@ -11,7 +10,10 @@ from errbot import PY2
 from errbot.version import VERSION
 
 if PY2:
+    from backports.configparser import ConfigParser
     input = raw_input
+else:
+    from configparser import ConfigParser
 
 
 def new_plugin_wizard(directory=None):
@@ -65,7 +67,7 @@ def new_plugin_wizard(directory=None):
     if errbot_max_version.upper() == "CURRENT":
         errbot_max_version = VERSION
 
-    plug = configparser.ConfigParser()
+    plug = ConfigParser()
     plug["Core"] = {
         "Name": name,
         "Module": module_name,

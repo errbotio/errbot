@@ -6,7 +6,7 @@ import os
 import re
 import sys
 
-from errbot import PY2
+from errbot import PY2, PY3
 from errbot.version import VERSION
 
 if PY2:
@@ -89,7 +89,8 @@ def new_plugin_wizard(directory=None):
     pyfile_path = os.path.join(plugin_path, module_name+".py")
 
     try:
-        os.makedirs(plugin_path, mode=0o700)
+        if PY3 or (PY2 and not os.path.isdir(plugin_path)):
+            os.makedirs(plugin_path, mode=0o700)
     except IOError as e:
         if e.errno != errno.EEXIST:
             raise

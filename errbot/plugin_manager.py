@@ -216,6 +216,16 @@ class BotPluginManager(PluginManager, StoreMixin):
         self.core_plugins = core_plugins
         self.repo_manager = repo_manager
 
+        # if this is the old format migrate the entries in repo_manager
+        ex_entry = b'repos' if PY2 else 'repos'
+        if ex_entry in self:
+            log.info('You are migrating from v3 to v4, porting your repo info...')
+            for name, url in self[ex_entry].items():
+                log.info('Plugin %s from URL %s.', (name, url))
+                repo_manager.add_plugin_repo(name, url)
+            log.info('update successful, removing old entry.')
+            del(self[ex_entry])
+
         # be sure we have a configs entry for the plugin configurations
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}

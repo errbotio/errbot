@@ -53,7 +53,8 @@ deps = ['webtest',
 if PY2:
     deps += ['dnspython',  # dnspython is needed for SRV records
              'config',
-             'backports.functools_lru_cache']
+             'backports.functools_lru_cache',
+             'configparser', ]  # This is a backport from Python 3
 else:
     deps += ['dnspython3', ]  # dnspython3 for SRV records
 

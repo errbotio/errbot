@@ -10,6 +10,7 @@ lib3to2_input_sources = ["errbot", "scripts", "tests"]
 # Avoid running config templates through lib3to2. For background info,
 # see https://github.com/errbotio/errbot/issues/339
 lib3to2_exclude = glob(os.path.join("errbot", "config-*.py"))
+lib3to2_exclude += glob(os.path.join("errbot", "templates", "*"))
 PY2 = py_version[0] == 2
 
 

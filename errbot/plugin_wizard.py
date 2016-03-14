@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import configparser
 import errno
 import jinja2
 import os
@@ -11,7 +10,10 @@ from errbot import PY2
 from errbot.version import VERSION
 
 if PY2:
+    from backports.configparser import ConfigParser
     input = raw_input
+else:
+    from configparser import ConfigParser
 
 
 def new_plugin_wizard(directory=None):
@@ -65,7 +67,7 @@ def new_plugin_wizard(directory=None):
     if errbot_max_version.upper() == "CURRENT":
         errbot_max_version = VERSION
 
-    plug = configparser.ConfigParser()
+    plug = ConfigParser()
     plug["Core"] = {
         "Name": name,
         "Module": module_name,
@@ -93,14 +95,13 @@ def new_plugin_wizard(directory=None):
             raise
 
     if os.path.exists(plugfile_path) or os.path.exists(pyfile_path):
-        print(
-            "Warning: A plugin with this name was already found at {path}\n"
-            "If you continue, these will be overwritten.".format(
-                path=os.path.join(directory, module_name+".{py,plug}")
-            )
-        )
         ask(
-            "Press Ctrl+C to abort now or type in 'overwrite' to confirm overwriting of these files.",
+            "Warning: A plugin with this name was already found at {path}\n"
+            "If you continue, these will be overwritten.\n"
+            "Press Ctrl+C to abort now or type in 'overwrite' to confirm overwriting of these files."
+            "".format(
+                path=os.path.join(directory, module_name+".{py,plug}")
+            ),
             valid_responses=["overwrite"],
         )
 

@@ -1,3 +1,12 @@
+v4.0.1 (2016-03-14)
+-------------------
+Hotfixes for 4.0.0.
+
+bugs:
+
+- v4 doesn't migrate plugin repos entries from v3.
+- py2 compatibility.
+
 v4.0.0 (2016-03-13)
 -------------------
 

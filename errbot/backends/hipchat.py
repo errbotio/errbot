@@ -442,7 +442,7 @@ class HipchatBackend(XMPPBackend):
 
     def build_reply(self, mess, text=None, private=False):
         response = super().build_reply(mess=mess, text=text, private=private)
-        if mess.frm == response.to:
+        if mess.is_group and mess.frm == response.to:
             # HipChat violates the XMPP spec :( This results in a valid XMPP JID
             # but HipChat mangles them into stuff like
             # "132302_961351@chat.hipchat.com/none||proxy|pubproxy-b100.hipchat.com|5292"

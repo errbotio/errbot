@@ -355,7 +355,7 @@ class SlackBackend(ErrBot):
                 mentioned.append(identifier)
                 text = re.sub('<@[^>]*>:*', '@%s' % mentioned[-1].username, text)
 
-        text = re.sub("<[^>]*>", self.remove_angle_brackets_from_uris, text)
+        text = self.sanitize_uris(text)
 
         log.debug("Saw an event: %s" % pprint.pformat(event))
         log.debug("Escaped IDs event text: %s" % text)
@@ -637,10 +637,20 @@ class SlackBackend(ErrBot):
         message.body = '@{0}: {1}'.format(identifier.nick, message.body)
 
     @staticmethod
-    def remove_angle_brackets_from_uris(match_object):
-        if "://" in match_object.group():
-            return match_object.group().strip("<>")
-        return match_object.group()
+    def sanitize_uris(text):
+        """
+        Sanitizes URI's present within a slack message. e.g.
+        <mailto:example@example.org|example@example.org>,
+        <http://example.org|example.org>
+        <http://example.org>
+
+        :returns:
+            string
+        """
+        text = re.sub(r'<([^\|>]+)\|([^\|>]+)>', r'\2', text)
+        text = re.sub(r'<(http([^\>]+))>', r'\1', text)
+
+        return text
 
 
 class SlackRoom(Room):

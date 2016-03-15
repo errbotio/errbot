@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
-import configparser
 import errno
 import jinja2
 import os
 import re
 import sys
 
-from errbot import PY2
+from errbot import PY2, PY3
 from errbot.version import VERSION
 
 if PY2:
+    from backports.configparser import ConfigParser
     input = raw_input
+else:
+    from configparser import ConfigParser
 
 
 def new_plugin_wizard(directory=None):
@@ -65,7 +67,7 @@ def new_plugin_wizard(directory=None):
     if errbot_max_version.upper() == "CURRENT":
         errbot_max_version = VERSION
 
-    plug = configparser.ConfigParser()
+    plug = ConfigParser()
     plug["Core"] = {
         "Name": name,
         "Module": module_name,
@@ -87,20 +89,20 @@ def new_plugin_wizard(directory=None):
     pyfile_path = os.path.join(plugin_path, module_name+".py")
 
     try:
-        os.makedirs(plugin_path, mode=0o700)
+        if PY3 or (PY2 and not os.path.isdir(plugin_path)):
+            os.makedirs(plugin_path, mode=0o700)
     except IOError as e:
         if e.errno != errno.EEXIST:
             raise
 
     if os.path.exists(plugfile_path) or os.path.exists(pyfile_path):
-        print(
-            "Warning: A plugin with this name was already found at {path}\n"
-            "If you continue, these will be overwritten.".format(
-                path=os.path.join(directory, module_name+".{py,plug}")
-            )
-        )
         ask(
-            "Press Ctrl+C to abort now or type in 'overwrite' to confirm overwriting of these files.",
+            "Warning: A plugin with this name was already found at {path}\n"
+            "If you continue, these will be overwritten.\n"
+            "Press Ctrl+C to abort now or type in 'overwrite' to confirm overwriting of these files."
+            "".format(
+                path=os.path.join(directory, module_name+".{py,plug}")
+            ),
             valid_responses=["overwrite"],
         )
 

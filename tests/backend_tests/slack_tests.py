@@ -198,8 +198,8 @@ class SlackTests(unittest.TestCase):
             sanitize(
                 "Multiple uris <mailto:test@example.org|test@example.org>, "
                 "<mailto:other@example.org|other@example.org> and "
-                "<http://www.example.org> and "
+                "<http://www.example.org>, <https://example.com> and "
                 "<http://subdomain.example.org|subdomain.example.org>."),
             "Multiple uris test@example.org, other@example.org and "
-            "http://www.example.org and subdomain.example.org."
+            "http://www.example.org, https://example.com and subdomain.example.org."
         )

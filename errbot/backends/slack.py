@@ -648,7 +648,7 @@ class SlackBackend(ErrBot):
             string
         """
         text = re.sub(r'<([^\|>]+)\|([^\|>]+)>', r'\2', text)
-        text = re.sub(r'<(http(.*))>', r'\1', text)
+        text = re.sub(r'<(http([^\>]+))>', r'\1', text)
 
         return text
 

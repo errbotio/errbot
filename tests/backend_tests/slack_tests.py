@@ -37,6 +37,7 @@ if slack:
 
 @unittest.skipIf(not slack, "package slackclient not installed")
 class SlackTests(unittest.TestCase):
+
     def setUp(self):
         # make up a config.
         tempdir = mkdtemp()
@@ -166,3 +167,39 @@ class SlackTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             extract_from("<@I12345>")
+
+    def test_uri_sanitization(self):
+        sanitize = self.slack.sanitize_uris
+
+        self.assertEqual(
+            sanitize(
+                "The email is <mailto:test@example.org|test@example.org>."),
+            "The email is test@example.org."
+        )
+
+        self.assertEqual(
+            sanitize(
+                "Pretty URL Testing: <http://example.org|example.org> with "
+                "more text"),
+            "Pretty URL Testing: example.org with more text"
+        )
+
+        self.assertEqual(
+            sanitize("URL <http://example.org>"),
+            "URL http://example.org"
+        )
+
+        self.assertEqual(
+            sanitize("Normal &lt;text&gt; that shouldn't be affected"),
+            "Normal &lt;text&gt; that shouldn't be affected"
+        )
+
+        self.assertEqual(
+            sanitize(
+                "Multiple uris <mailto:test@example.org|test@example.org>, "
+                "<mailto:other@example.org|other@example.org> and "
+                "<http://www.example.org> and "
+                "<http://subdomain.example.org|subdomain.example.org>."),
+            "Multiple uris test@example.org, other@example.org and "
+            "http://www.example.org and subdomain.example.org."
+        )

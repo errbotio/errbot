@@ -1,3 +1,13 @@
+v4.0.2 (2016-03-15)
+-------------------
+Hotfixes
+
+bugs:
+
+- configparser needs to be pinned to a 3.5.0b2 beta
+- Hipchat regression on Identifiers
+- Slack: avoid URI expansion.
+
 v4.0.1 (2016-03-14)
 -------------------
 Hotfixes for 4.0.0.

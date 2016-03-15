@@ -12,6 +12,7 @@ before_script:
 install:
   - pip install --upgrade pip
   - pip install -e .
+  - pip install slackclient  # Optional dependency but Slack tests are skipped without it
   - pip freeze
 
 script: ./run_tests.py

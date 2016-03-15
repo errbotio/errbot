@@ -639,8 +639,8 @@ class SlackBackend(ErrBot):
     @staticmethod
     def sanitize_uris(text):
         """
-        Sanitizes URI's present within a slack message. e.g. 
-        <mailto:example@example.org|example@example.org>, 
+        Sanitizes URI's present within a slack message. e.g.
+        <mailto:example@example.org|example@example.org>,
         <http://example.org|example.org>
         <http://example.org>
 
@@ -651,6 +651,7 @@ class SlackBackend(ErrBot):
         text = re.sub(r'<(http(.*))>', r'\1', text)
 
         return text
+
 
 class SlackRoom(Room):
     def __init__(self, name=None, channelid=None, bot=None):

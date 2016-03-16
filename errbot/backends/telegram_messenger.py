@@ -293,10 +293,9 @@ class TelegramBackend(ErrBot):
         Convert a textual representation into a :class:`~TelegramPerson` or :class:`~TelegramRoom`.
         """
         log.debug("building an identifier from %s" % txtrep)
-        id_ = txtrep.strip()
-        if not self._is_numeric(id_):
+        if not self._is_numeric(txtrep):
             raise ValueError("Telegram identifiers must be numeric")
-        id_ = int(id_)
+        id_ = int(txtrep)
         if id_ > 0:
             return TelegramPerson(id=id_)
         else:

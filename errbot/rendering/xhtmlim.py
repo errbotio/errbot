@@ -27,6 +27,7 @@ _invalid_codepoints = {
     0xcfffe, 0xcffff, 0xdfffe, 0xdffff, 0xefffe, 0xeffff, 0xffffe, 0xfffff,
     0x10fffe, 0x10ffff
 }
+
 _invalid_charrefs = {
     0x00: '\ufffd',  # REPLACEMENT CHARACTER
     0x0d: '\r',      # CARRIAGE RETURN
@@ -63,6 +64,7 @@ _invalid_charrefs = {
     0x9e: '\u017e',  # LATIN SMALL LETTER Z WITH CARON
     0x9f: '\u0178',  # LATIN CAPITAL LETTER Y WITH DIAERESIS
 }
+
 
 def _replace_charref(s):
     s = s.group(1)

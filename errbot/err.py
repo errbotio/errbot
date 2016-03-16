@@ -15,6 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import inspect
+import locale
 import os
 import sys
 import logging
@@ -44,7 +45,7 @@ if PY2 and "param='canary'" in foo_src:
     print('Either use python3 or install err using ./setup.py develop.')
     sys.exit(-1)
 
-if sys.getdefaultencoding().lower() != 'utf-8':
+if locale.getpreferredencoding().lower() != 'utf-8':
     logging.warning('Starting errbot with a default system encoding other than \'utf-8\''
                     ' might cause you a heap of troubles.'
                     ' Your current encoding is set at \'%s\'' % sys.getdefaultencoding())

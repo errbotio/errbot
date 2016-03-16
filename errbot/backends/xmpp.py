@@ -1,57 +1,13 @@
 import logging
 import sys
-import warnings
 from threading import Thread
 from time import sleep
-from html.entities import entitydefs
-from html import _invalid_codepoints, _invalid_charrefs
-
-import re
 
 from errbot.backends.base import Message, Room, Presence, RoomNotJoinedError, Identifier, RoomOccupant, Person
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.errBot import ErrBot
-from errbot.rendering import text, xhtml
+from errbot.rendering import text, xhtml, xhtmlim
 
-SAFE_ENTITIES = {e: entitydefs[e] for e in entitydefs if e not in ('amp', 'quot', 'apos', 'gt', 'lt')}
-
-
-def _replace_charref(s):
-    s = s.group(1)
-    if s[0] == '#':
-        # numeric charref
-        if s[1] in 'xX':
-            num = int(s[2:].rstrip(';'), 16)
-        else:
-            num = int(s[1:].rstrip(';'))
-        if num in _invalid_charrefs:
-            return _invalid_charrefs[num]
-        if 0xD800 <= num <= 0xDFFF or num > 0x10FFFF:
-            return '\uFFFD'
-        if num in _invalid_codepoints:
-            return ''
-        return chr(num)
-    else:
-        # named charref
-        if s in SAFE_ENTITIES:
-            return SAFE_ENTITIES[s]
-        # find the longest matching name (as defined by the standard)
-        for x in range(len(s)-1, 1, -1):
-            if s[:x] in SAFE_ENTITIES:
-                return SAFE_ENTITIES[s[:x]] + s[x:]
-        else:
-            return '&' + s
-
-
-_charref = re.compile(r'&(#[0-9]+;?'
-                      r'|#[xX][0-9a-fA-F]+;?'
-                      r'|[^\t\n\f <&#;]{1,32};?)')
-
-
-def unescape(s):
-    if '&' not in s:
-        return s
-    return _charref.sub(_replace_charref, s)
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.xmpp')
@@ -551,7 +507,7 @@ class XMPPBackend(ErrBot):
         log.debug("send_message to %s", mess.to)
 
         # We need to unescape the unicode characters (not the markup incompatible ones)
-        mhtml = unescape(self.md_xhtml.convert(mess.body)) if self.xhtmlim else None
+        mhtml = xhtmlim.unescape(self.md_xhtml.convert(mess.body)) if self.xhtmlim else None
 
         self.conn.client.send_message(mto=str(mess.to),
                                       mbody=self.md_text.convert(mess.body),

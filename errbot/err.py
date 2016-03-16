@@ -231,7 +231,7 @@ def main():
         raise Exception("The data directory '%s' should be writable for the bot" % config.BOT_DATA_DIR)
 
     if (not ON_WINDOWS) and args['daemon']:
-        if args['text']:
+        if args['backend'] == "Text":
             raise Exception('You cannot run in text and daemon mode at the same time')
         if args['restore']:
             raise Exception('You cannot restore a backup in daemon mode.')
@@ -247,6 +247,7 @@ def main():
                 main(backend, logger, config)
 
             daemon = Daemonize(app="err", pid=pid, action=action, chdir=os.getcwd())
+            log.info("Daemonizing")
             daemon.start()
         except Exception:
             log.exception('Failed to daemonize the process')

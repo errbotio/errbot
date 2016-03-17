@@ -1,5 +1,15 @@
 v9.9.9 (master/unreleased)
 --------------------------
+v4.0.3 (2016-03-17)
+-------------------
+Hotfixes
+
+bugs:
+
+- XMPP backend compatibility with python 2.7
+- Telegram startup error
+- daemonize regression
+- UTF-8 detection
 
 v4.0.2 (2016-03-15)
 -------------------

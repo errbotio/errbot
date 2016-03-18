@@ -10,7 +10,7 @@ from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomErro
     UserDoesNotExistError, RoomOccupant, Person
 from errbot.errBot import ErrBot
 from errbot.utils import PY3, split_string_after
-from errbot.rendering import imtext
+from errbot.rendering.slack import slack_markdown_converter
 
 
 # Can't use __name__ because of Yapsy
@@ -193,7 +193,7 @@ class SlackBackend(ErrBot):
             )
             sys.exit(1)
         self.sc = None  # Will be initialized in serve_once
-        self.md = imtext()
+        self.md = slack_markdown_converter()
 
     def api_call(self, method, data=None, raise_errors=True):
         """
@@ -463,7 +463,12 @@ class SlackBackend(ErrBot):
             parts = self.prepare_message_body(body, limit)
 
             for part in parts:
-                self.sc.rtm_send_message(to_channel_id, part)
+                self.api_call('chat.postMessage', data={
+                    'channel': to_channel_id,
+                    'text': part,
+                    'unfurl_media': "true",
+                    'as_user': "true",
+                })
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "

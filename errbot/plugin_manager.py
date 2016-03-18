@@ -9,6 +9,8 @@ import logging
 import sys
 import os
 import pip
+
+from errbot.flow import BotFlow
 from .botplugin import BotPlugin
 from .utils import (version2array, PY3, PY2, collect_roots, ensure_sys_path_contains)
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
@@ -22,6 +24,9 @@ log = logging.getLogger(__name__)
 
 CORE_PLUGINS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             'core_plugins')
+
+BOTPLUGIN_TAG = 'botplugin'
+BOTFLOW_TAG = 'botflow'
 
 try:
     from importlib import reload  # new in python 3.4
@@ -230,9 +235,9 @@ class BotPluginManager(PluginManager, StoreMixin):
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}
 
-        locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug')])
+        locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'), PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
         locator.disableRecursiveScan()  # We do that ourselves
-        super().__init__(categories_filter={"bots": BotPlugin}, plugin_locator=locator)
+        super().__init__(categories_filter={BOTPLUGIN_TAG: BotPlugin, BOTFLOW_TAG: BotFlow}, plugin_locator=locator)
 
     def attach_bot(self, bot):
         self.bot = bot
@@ -241,14 +246,14 @@ class BotPluginManager(PluginManager, StoreMixin):
         return element(self.bot)
 
     def get_plugin_by_name(self, name):
-        return self.getPluginByName(name, 'bots')
+        return self.getPluginByName(name, BOTPLUGIN_TAG)
 
     def get_plugin_obj_by_name(self, name):
         plugin = self.get_plugin_by_name(name)
         return None if plugin is None else plugin.plugin_object
 
     def activate_plugin_with_version_check(self, name, config):
-        pta_item = self.getPluginByName(name, 'bots')
+        pta_item = self.getPluginByName(name, BOTPLUGIN_TAG)
         if pta_item is None:
             log.warning('Could not activate %s', name)
             return None
@@ -281,23 +286,23 @@ class BotPluginManager(PluginManager, StoreMixin):
         add_plugin_templates_path(pta_item.path)
         populate_doc(pta_item)
         try:
-            obj = self.activatePluginByName(name, "bots")
+            obj = self.activatePluginByName(name, BOTPLUGIN_TAG)
             route(obj)
             return obj
         except Exception:
             pta_item.activated = False  # Yapsy doesn't revert this in case of error
             remove_plugin_templates_path(pta_item.path)
             log.error("Plugin %s failed at activation stage, deactivating it...", name)
-            self.deactivatePluginByName(name, "bots")
+            self.deactivatePluginByName(name, BOTPLUGIN_TAG)
             raise
 
     def deactivate_plugin_by_name(self, name):
         # TODO handle the "un"routing.
 
-        pta_item = self.getPluginByName(name, 'bots')
+        pta_item = self.getPluginByName(name, BOTPLUGIN_TAG)
         remove_plugin_templates_path(pta_item.path)
         try:
-            return self.deactivatePluginByName(name, "bots")
+            return self.deactivatePluginByName(name, BOTPLUGIN_TAG)
         except Exception:
             add_plugin_templates_path(pta_item.path)
             raise
@@ -378,7 +383,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
-            self.deactivatePluginByName(name, "bots")
+            self.deactivatePluginByName(name, BOTPLUGIN_TAG)
 
     # plugin blacklisting management
     def get_blacklisted_plugin(self):

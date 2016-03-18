@@ -1,6 +1,8 @@
 from collections import MutableMapping
 from typing import Mapping, Union
 
+from yapsy.IPlugin import IPlugin
+
 from errbot import Message
 from errbot.backends.base import Identifier
 
@@ -37,7 +39,7 @@ class Node(object):
 
     def connect(self, node_or_command, predicate):
         node_to_connect_to = node_or_command if isinstance(node_or_command, Node) else Node(node_or_command)
-        self.chidren[predicate] = node_to_connect_to
+        self.children.append((predicate, node_to_connect_to))
         return node_to_connect_to
 
     def predicate_for_node(self, node):
@@ -52,12 +54,14 @@ class Node(object):
 
 class Flow(Node):
     def __init__(self, error_predicate, success_predicate, description):
+        super().__init__()
         self.error_predicate = error_predicate
         self.success_predicate = success_predicate
         self.description = description
 
 
-class InvalidState(object):
+
+class InvalidState(Exception):
     pass
 
 
@@ -83,3 +87,17 @@ class FlowInstance(object):
 
         self._current_step = next_step
         # TODO: error / success predicates
+
+class BotFlow(IPlugin):
+    pass
+
+
+def botflow(*args, **kwargs):
+    def decorate(func):
+        if not hasattr(func, '_err_flow'):  # don't override generated functions
+            func._err_flow = True
+        return func
+
+    if len(args):
+        return decorate(args[0], **kwargs)
+    return lambda func: decorate(func, **kwargs)

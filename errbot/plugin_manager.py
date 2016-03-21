@@ -372,14 +372,14 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def get_all_active_plugin_objects(self):
         return [plug.plugin_object
-                for plug in self.getAllPlugins()
+                for plug in self.getPluginsOfCategory(BOTPLUGIN_TAG)
                 if hasattr(plug, 'is_activated') and plug.is_activated]
 
     def get_all_active_plugin_names(self):
         return [p.name for p in self.getAllPlugins() if hasattr(p, 'is_activated') and p.is_activated]
 
     def get_all_plugin_names(self):
-        return [p.name for p in self.getAllPlugins()]
+        return [p.name for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)]
 
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
@@ -428,10 +428,10 @@ class BotPluginManager(PluginManager, StoreMixin):
         return self.update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra, self.autoinstall_deps)
 
     def activate_non_started_plugins(self):
-        log.info('Activating all the plugins...')
+        log.info('Activate bot plugins...')
         configs = self[self.CONFIGS]
         errors = ''
-        for pluginInfo in self.getAllPlugins():
+        for pluginInfo in self.getPluginsOfCategory(BOTPLUGIN_TAG):
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
                     errors += 'Notice: %s is blacklisted, use %s plugin unblacklist %s to unblacklist it\n' % (
@@ -443,6 +443,28 @@ class BotPluginManager(PluginManager, StoreMixin):
             except Exception as e:
                 log.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start: %s\n' % (pluginInfo.name, e)
+
+        log.debug('Activate flow plugins ...')
+        for pluginInfo in self.getPluginsOfCategory(BOTFLOW_TAG):
+            try:
+                if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
+                    name = pluginInfo.name
+
+                    log.info('Activate flow: %s' % name)
+
+                    pta_item = self.getPluginByName(name, BOTFLOW_TAG)
+                    if pta_item is None:
+                         log.warning('Could not activate %s', name)
+                         continue
+                    try:
+                        self.activatePluginByName(name, BOTFLOW_TAG)
+                    except Exception as e:
+                        pta_item.activated = False  # Yapsy doesn't revert this in case of error
+                        log.error("Plugin %s failed at activation stage with e, deactivating it...", e, name)
+                        self.deactivatePluginByName(name, BOTFLOW_TAG)
+            except Exception as e:
+                log.exception("Error loading flow %s" % pluginInfo.name)
+                errors += 'Error: flow %s failed to start: %s\n' % (pluginInfo.name, e)
         return errors
 
     def activate_plugin(self, name):

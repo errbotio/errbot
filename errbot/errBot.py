@@ -501,11 +501,24 @@ class ErrBot(Backend, StoreMixin):
                     log.debug('Adding command : %s -> %s' % (name, value.__name__))
                     self.commands = commands
 
+    def inject_flows_from(self, instance_to_inject):
+        classname = instance_to_inject.__class__.__name__
+        for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
+            if getattr(value, '_err_flow', False):
+                log.debug('Found new flow %s: %s', classname, name)
+                # TODO(gbin)
+
     def inject_command_filters_from(self, instance_to_inject):
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(method, '_err_command_filter', False):
                 log.debug('Adding command filter: %s' % name)
                 self.command_filters.append(method)
+
+    def remove_flows_from(self, instance_to_inject):
+        for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
+            if getattr(value, '_err_flow', False):
+                log.debug('Remove flow %s', name)
+                # TODO(gbin)
 
     def remove_commands_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):

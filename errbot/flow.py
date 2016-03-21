@@ -91,6 +91,22 @@ class FlowInstance(object):
 class BotFlow(IPlugin):
     def __init__(self, bot):
         self._bot = bot
+        self.is_activated = False
+
+    def activate(self) -> None:
+        """
+            Override if you want to do something at initialization phase (don't forget to
+            super(Gnagna, self).activate())
+        """
+        self._bot.inject_flows_from(self)
+        self.is_activated = True
+
+    def deactivate(self) -> None:
+        """
+            Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
+        """
+        self._bot.remove_flows_from(self)
+        self.is_activated = False
 
     def get_command(self, command_name:str):
         self._bot.commands.get(command_name, None)

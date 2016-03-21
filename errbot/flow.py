@@ -89,15 +89,12 @@ class FlowInstance(object):
         # TODO: error / success predicates
 
 class BotFlow(IPlugin):
-    pass
+    def __init__(self, bot):
+        self._bot = bot
+
+    def get_command(self, command_name:str):
+        self._bot.commands.get(command_name, None)
 
 
-def botflow(*args, **kwargs):
-    def decorate(func):
-        if not hasattr(func, '_err_flow'):  # don't override generated functions
-            func._err_flow = True
-        return func
 
-    if len(args):
-        return decorate(args[0], **kwargs)
-    return lambda func: decorate(func, **kwargs)
+

@@ -1,12 +1,14 @@
 import io
-from errbot import BotPlugin, botcmd
+import json
+
+from errbot import BotPlugin, botcmd, arg_botcmd
 from errbot.flow import Node, Flow
 
 
 
-
-
-class Utils(BotPlugin):
+class Flows(BotPlugin):
+    """ Management commands related to flows / conversations.
+    """
 
     def recurse_node(self, response: io.StringIO, stack, f:Node):
         if f in stack:
@@ -21,7 +23,7 @@ class Utils(BotPlugin):
             self.recurse_node(response, stack + [f], sf)
 
     # noinspection PyUnusedLocal
-    @botcmd
+    @botcmd(admin_only=True)
     def flows(self, mess, args):
         """ Displays the list of setup flows.
         """
@@ -36,3 +38,20 @@ class Utils(BotPlugin):
                     response.write(name + ": " + flow.description + "\n")
             return response.getvalue()
 
+    @arg_botcmd('json_payload', type=str, nargs='?', default=None)
+    @arg_botcmd('flow_name', type=str)
+    def flows_start(self, mess, flow_name=None, json_payload=None):
+        """ Manually start a flow within the context of the calling user.
+        You can prefeed the flow data with a json payload.
+        """
+        if not flow_name:
+            return "You need to specify a flow to manually start"
+
+        context = {}
+        if json_payload:
+            try:
+                context=json.loads(json_payload)
+            except Exception as e:
+                return "Cannot parse json %s: %s" % (json_payload, e)
+        self._bot.flow_executor.start_flow(flow_name, mess.frm, context)
+        return "Flow %s started ..." % flow_name

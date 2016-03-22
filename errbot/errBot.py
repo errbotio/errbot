@@ -90,7 +90,7 @@ class ErrBot(Backend, StoreMixin):
         self.plugin_manager = None
         self.storage_plugin = None
         self._plugin_errors_during_startup = None
-        self.flow_executor = FlowExecutor()
+        self.flow_executor = FlowExecutor(self)
 
     def attach_repo_manager(self, repo_manager):
         self.repo_manager = repo_manager

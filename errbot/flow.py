@@ -1,5 +1,6 @@
-from collections import MutableMapping
-from typing import Mapping, Union
+import logging
+from collections import MutableMapping, Iterable
+from typing import Mapping, Union, List
 
 from threadpool import ThreadPool, WorkRequest
 from yapsy.IPlugin import IPlugin
@@ -7,10 +8,12 @@ from yapsy.IPlugin import IPlugin
 from errbot import Message
 from errbot.backends.base import Identifier
 
+log = logging.getLogger(__name__)
+
 
 class FlowContext(MutableMapping):
-    def __init__(self):
-        self.ctx = {}
+    def __init__(self, ctx=None):
+        self.ctx = {} if ctx is None else ctx
 
     def __getitem__(self, key):
         return self.ctx.__getitem__(key)
@@ -29,8 +32,9 @@ class FlowContext(MutableMapping):
 
 
 class FlowMessage(Message, FlowContext):
-    def __init__(self, frm: Identifier=None):
+    def __init__(self, frm: Identifier=None, initial_ctx = None):
         super().__init__(frm=frm)
+        FlowContext.__init__(self, initial_ctx)
 
 
 class Node(object):
@@ -69,30 +73,36 @@ class InvalidState(Exception):
 
 
 class FlowInstance(object):
-    def __init__(self, root: Flow, initial_context):
+    def __init__(self, root: Flow, requestor: Identifier, initial_context):
         self._root = root
         self._current_step = self._root
-        self._context = initial_context
+        self.context = FlowMessage(requestor, initial_context)
 
     def execute(self):
         return self._current_step.command(self.context, None)
 
-    def next_possible_steps(self):
-        return [node for predicate, node in self._current_step.children if predicate(self._context)]
+    def next_autosteps(self) -> List[Node]:
+        return [node for predicate, node in self._current_step.children if predicate(self.context)]
+
+    def next_steps(self) -> List[Node]:
+        return [node for predicate, node in self._current_step.children]
 
     def advance(self, next_step: Node):
         predicate = self._current_step.predicate_for_node(next_step)
         if predicate is None:
             raise ValueError("There is no such children: %s" % next_step)
 
-        if not predicate(self._context):
+        if not predicate(self.context):
             raise InvalidState("It is not possible to advance to this step because its predicate is false")
 
         self._current_step = next_step
         # TODO: error / success predicates
+    def __str__(self):
+        return "FlowInstance of %s" % self._root
 
 class BotFlow(IPlugin):
     def __init__(self, bot):
+        super().__init__()
         self._bot = bot
         self.is_activated = False
 
@@ -119,19 +129,36 @@ class FlowExecutor(object):
     """
     This is a instance that can monitor and execute flow instances.
     """
-    def __init__(self):
+    def __init__(self, bot):
         self.flows = {}
         self.in_flight = []
         self._pool = ThreadPool(5)
+        self._bot = bot
 
     def add_flow(self, flow: Flow):
         self.flows[flow.name] = flow
 
-    def start_flow(self, name, initial_context: FlowMessage):
+    def start_flow(self, name: str, requestor:Identifier, initial_context: Mapping):
         if name not in self.flows:
             raise ValueError("Flow %s doesn't exist" % name)
-        flow_instance = FlowInstance(self.flows[name], initial_context)
-        self.in_flight.append(FlowInstance, flow_instance)
+        flow_instance = FlowInstance(self.flows[name], requestor, initial_context)
+        self.in_flight.append(flow_instance)
+        self._pool.putRequest(WorkRequest(self.execute, args=(flow_instance, )))
+
+    def execute(self, flow_instance: FlowInstance):
+        autosteps = flow_instance.next_autosteps()
+        steps = flow_instance.next_steps()
+        # !flows start poll_setup {\"title\":\"yeah!\"}
+        log.debug("Steps triggered automatically %s", ','.join(str(node) for node in autosteps))
+        log.debug("All possible next steps: %s", ','.join(str(node) for node in steps))
+        if len(autosteps):  # TODO: fork if there is more than 2 autosteps possible
+            for autostep in autosteps:
+                log.debug("Proceeding automatically with step %s", autostep)
+                try:
+                    self._bot.send(flow_instance.context.frm, self._bot.commands[autostep.command](flow_instance.context, None))
+                except Exception as e:
+                    log.exception("Flow %s crashed at %s", flow_instance, autostep)
+                    self._bot.send(flow_instance.context.frm, "Flow %s crashed at %s with %s" % (flow_instance, autostep, e))
 
 
 

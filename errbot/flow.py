@@ -1,6 +1,7 @@
 from collections import MutableMapping
 from typing import Mapping, Union
 
+from threadpool import ThreadPool, WorkRequest
 from yapsy.IPlugin import IPlugin
 
 from errbot import Message
@@ -53,8 +54,9 @@ class Node(object):
 
 
 class Flow(Node):
-    def __init__(self, error_predicate, success_predicate, description):
+    def __init__(self, name, error_predicate, success_predicate, description):
         super().__init__()
+        self.name = name
         self.error_predicate = error_predicate
         self.success_predicate = success_predicate
         self.description = description
@@ -111,6 +113,24 @@ class BotFlow(IPlugin):
     def get_command(self, command_name:str):
         self._bot.commands.get(command_name, None)
 
+
+class FlowExecutor(object):
+    """
+    This is a instance that can monitor and execute flow instances.
+    """
+    def __init__(self):
+        self.flows = {}
+        self.in_flight = []
+        self._pool = ThreadPool(5)
+
+    def add_flow(self, flow: Flow):
+        self.flows[flow.name] = flow
+
+    def start_flow(self, name, initial_context: FlowMessage):
+        if name not in self.flows:
+            raise ValueError("Flow %s doesn't exist" % name)
+        flow_instance = FlowInstance(self.flows[name], initial_context)
+        self.in_flight.append(FlowInstance, flow_instance)
 
 
 

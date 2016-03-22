@@ -19,6 +19,7 @@ import inspect
 import logging
 import traceback
 
+from errbot.flow import FlowExecutor, Flow
 from .backends.base import Backend, Room, Identifier, Person, Message
 from threadpool import ThreadPool, WorkRequest
 from .streaming import Tee
@@ -89,6 +90,7 @@ class ErrBot(Backend, StoreMixin):
         self.plugin_manager = None
         self.storage_plugin = None
         self._plugin_errors_during_startup = None
+        self.flow_executor = FlowExecutor()
 
     def attach_repo_manager(self, repo_manager):
         self.repo_manager = repo_manager
@@ -503,10 +505,13 @@ class ErrBot(Backend, StoreMixin):
 
     def inject_flows_from(self, instance_to_inject):
         classname = instance_to_inject.__class__.__name__
-        for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_err_flow', False):
+        for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
+            if getattr(method, '_err_flow', False):
                 log.debug('Found new flow %s: %s', classname, name)
-                # TODO(gbin)
+                flow = Flow(name, None, None, method.__doc__)
+                self.flow_executor.add_flow(flow)
+
+
 
     def inject_command_filters_from(self, instance_to_inject):
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):

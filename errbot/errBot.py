@@ -509,6 +509,11 @@ class ErrBot(Backend, StoreMixin):
             if getattr(method, '_err_flow', False):
                 log.debug('Found new flow %s: %s', classname, name)
                 flow = Flow(name, None, None, method.__doc__)
+                try:
+                    method(flow)
+                except Exception:
+                    log.exception("Exception initializing a flow")
+
                 self.flow_executor.add_flow(flow)
 
 

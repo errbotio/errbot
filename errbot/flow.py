@@ -50,7 +50,7 @@ class Node(object):
         return None
 
     def __str__(self):
-        return self.command.__name__
+        return self.command
 
 
 class Flow(Node):
@@ -60,7 +60,8 @@ class Flow(Node):
         self.error_predicate = error_predicate
         self.success_predicate = success_predicate
         self.description = description
-
+    def __str__(self):
+        return self.name
 
 
 class InvalidState(Exception):

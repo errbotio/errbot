@@ -12,6 +12,22 @@ from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ON
 log = logging.getLogger(__name__)
 
 
+class CommandError(Exception):
+    """
+    Use this class to report a logical error from your commands.
+    """
+    def __init__(self, reason:str, template:str = None):
+        """
+        :param reason: the reason for the error in the command.
+        :param template: apply this specific template to report the error.
+        """
+        self.reason = reason
+        self.template = template
+
+    def __str__(self):
+        return str(self.reason)
+
+
 # noinspection PyAbstractClass
 class BotPluginBase(StoreMixin):
     """

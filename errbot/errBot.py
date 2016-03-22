@@ -19,6 +19,7 @@ import inspect
 import logging
 import traceback
 
+from errbot import CommandError
 from errbot.flow import FlowExecutor, Flow
 from .backends.base import Backend, Room, Identifier, Person, Message
 from threadpool import ThreadPool, WorkRequest
@@ -455,6 +456,12 @@ class ErrBot(Backend, StoreMixin):
                 reply = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 if reply:
                     self.send_simple_reply(mess, self.process_template(template_name, reply), private)
+        except CommandError as command_error:
+            reason = command_error.reason
+            if command_error.template:
+                reason = self.process_template(command_error.template, reason)
+            self.send_simple_reply(mess, reason, private)
+
         except Exception as e:
             tb = traceback.format_exc()
             log.exception('An error happened while processing '

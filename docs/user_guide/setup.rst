@@ -87,7 +87,7 @@ There are two ways to do this:
 
 1. You can generate it directly from your errbot installation with:
 
-    `python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')`
+    `python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')"`
 
 2. Or you can download the template manually from `GitHub <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_ and save it as `config.py`.
 

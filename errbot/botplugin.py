@@ -16,7 +16,7 @@ class CommandError(Exception):
     """
     Use this class to report a logical error from your commands.
     """
-    def __init__(self, reason:str, template:str = None):
+    def __init__(self, reason: str, template: str = None):
         """
         :param reason: the reason for the error in the command.
         :param template: apply this specific template to report the error.

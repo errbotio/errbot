@@ -235,7 +235,8 @@ class BotPluginManager(PluginManager, StoreMixin):
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}
 
-        locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'), PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
+        locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'),
+                                     PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
         locator.disableRecursiveScan()  # We do that ourselves
         super().__init__(categories_filter={BOTPLUGIN_TAG: BotPlugin, BOTFLOW_TAG: BotFlow}, plugin_locator=locator)
 
@@ -454,8 +455,8 @@ class BotPluginManager(PluginManager, StoreMixin):
 
                     pta_item = self.getPluginByName(name, BOTFLOW_TAG)
                     if pta_item is None:
-                         log.warning('Could not activate %s', name)
-                         continue
+                        log.warning('Could not activate %s', name)
+                        continue
                     try:
                         self.activatePluginByName(name, BOTFLOW_TAG)
                     except Exception as e:

@@ -523,8 +523,6 @@ class ErrBot(Backend, StoreMixin):
 
                 self.flow_executor.add_flow(flow)
 
-
-
     def inject_command_filters_from(self, instance_to_inject):
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(method, '_err_command_filter', False):

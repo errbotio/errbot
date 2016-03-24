@@ -32,7 +32,7 @@ class FlowContext(MutableMapping):
 
 
 class FlowMessage(Message, FlowContext):
-    def __init__(self, frm: Identifier=None, initial_ctx = None):
+    def __init__(self, frm: Identifier=None, initial_ctx=None):
         super().__init__(frm=frm)
         FlowContext.__init__(self, initial_ctx)
 
@@ -64,6 +64,7 @@ class Flow(Node):
         self.error_predicate = error_predicate
         self.success_predicate = success_predicate
         self.description = description
+
     def __str__(self):
         return self.name
 
@@ -97,8 +98,10 @@ class FlowInstance(object):
 
         self._current_step = next_step
         # TODO: error / success predicates
+
     def __str__(self):
-        return "FlowInstance of %s" % self._root
+        return "FlowInstance of %s (%s) with params %s" % (self._root, self.context.frm, dict(self.context))
+
 
 class BotFlow(IPlugin):
     def __init__(self, bot):
@@ -121,7 +124,7 @@ class BotFlow(IPlugin):
         self._bot.remove_flows_from(self)
         self.is_activated = False
 
-    def get_command(self, command_name:str):
+    def get_command(self, command_name: str):
         self._bot.commands.get(command_name, None)
 
 
@@ -138,7 +141,7 @@ class FlowExecutor(object):
     def add_flow(self, flow: Flow):
         self.flows[flow.name] = flow
 
-    def start_flow(self, name: str, requestor:Identifier, initial_context: Mapping):
+    def start_flow(self, name: str, requestor: Identifier, initial_context: Mapping):
         if name not in self.flows:
             raise ValueError("Flow %s doesn't exist" % name)
         flow_instance = FlowInstance(self.flows[name], requestor, initial_context)
@@ -146,21 +149,26 @@ class FlowExecutor(object):
         self._pool.putRequest(WorkRequest(self.execute, args=(flow_instance, )))
 
     def execute(self, flow_instance: FlowInstance):
-        autosteps = flow_instance.next_autosteps()
-        steps = flow_instance.next_steps()
-        # !flows start poll_setup {\"title\":\"yeah!\"}
-        log.debug("Steps triggered automatically %s", ','.join(str(node) for node in autosteps))
-        log.debug("All possible next steps: %s", ','.join(str(node) for node in steps))
-        if len(autosteps):  # TODO: fork if there is more than 2 autosteps possible
+        while True:
+            autosteps = flow_instance.next_autosteps()
+
+            if not autosteps:
+                log.debug("Flow: Nothing left to do.")
+                break
+
+            steps = flow_instance.next_steps()
+            # !flows start poll_setup {\"title\":\"yeah!\",\"options\":[\"foo\",\"bar\",\"baz\"]}
+            log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))
+            log.debug("All possible next steps: %s", ', '.join(str(node) for node in steps))
+
             for autostep in autosteps:
                 log.debug("Proceeding automatically with step %s", autostep)
                 try:
-                    result = flow_instance.context.frm, self._bot.commands[autostep.command](flow_instance.context, None)
-                    log.debug('Step result %s', result)  # TODO: make it chainable.
+                    result = self._bot.commands[autostep.command](flow_instance.context, None)
+                    log.debug('Step result %s: %s', flow_instance.context.frm, result)
 
                 except Exception as e:
-                    log.exception("Flow %s errored at %s", flow_instance, autostep)
-                    self._bot.send(flow_instance.context.frm, "Flow %s errored at %s with %s" % (flow_instance, autostep, e))
-
-
-
+                    log.exception('%s errored at %s', flow_instance, autostep)
+                    self._bot.send(flow_instance.context.frm,
+                                   '%s errored at %s with "%s"' % (flow_instance, autostep, e))
+                flow_instance.advance(autostep)  # TODO: this is only true for a single step, make it forkable.

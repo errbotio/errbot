@@ -5,12 +5,11 @@ from errbot import BotPlugin, botcmd, arg_botcmd
 from errbot.flow import Node, Flow
 
 
-
 class Flows(BotPlugin):
     """ Management commands related to flows / conversations.
     """
 
-    def recurse_node(self, response: io.StringIO, stack, f:Node):
+    def recurse_node(self, response: io.StringIO, stack, f: Node):
         if f in stack:
             response.write("%s⥀\n" % ("\t" * len(stack)))
             return
@@ -50,7 +49,7 @@ class Flows(BotPlugin):
         context = {}
         if json_payload:
             try:
-                context=json.loads(json_payload)
+                context = json.loads(json_payload)
             except Exception as e:
                 return "Cannot parse json %s: %s" % (json_payload, e)
         self._bot.flow_executor.start_flow(flow_name, mess.frm, context)

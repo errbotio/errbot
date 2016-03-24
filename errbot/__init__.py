@@ -16,7 +16,8 @@ from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandErr
 from .flow import Flow, BotFlow
 from .core_plugins.wsview import route, view  # noqa
 
-__all__ = ['BotPlugin', 'CommandError', 'webhook', 'webroute', 'webview', 'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'Flow']
+__all__ = ['BotPlugin', 'CommandError', 'webhook', 'webroute', 'webview',
+           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'Flow']
 
 log = logging.getLogger(__name__)
 

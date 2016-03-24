@@ -155,10 +155,12 @@ class FlowExecutor(object):
             for autostep in autosteps:
                 log.debug("Proceeding automatically with step %s", autostep)
                 try:
-                    self._bot.send(flow_instance.context.frm, self._bot.commands[autostep.command](flow_instance.context, None))
+                    result = flow_instance.context.frm, self._bot.commands[autostep.command](flow_instance.context, None)
+                    log.debug('Step result %s', result)  # TODO: make it chainable.
+
                 except Exception as e:
-                    log.exception("Flow %s crashed at %s", flow_instance, autostep)
-                    self._bot.send(flow_instance.context.frm, "Flow %s crashed at %s with %s" % (flow_instance, autostep, e))
+                    log.exception("Flow %s errored at %s", flow_instance, autostep)
+                    self._bot.send(flow_instance.context.frm, "Flow %s errored at %s with %s" % (flow_instance, autostep, e))
 
 
 

@@ -456,6 +456,10 @@ class ErrBot(Backend, StoreMixin):
                 reply = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 if reply:
                     self.send_simple_reply(mess, self.process_template(template_name, reply), private)
+
+            # Check if this has not trigered a flow
+            self.flow_executor.trigger(cmd, mess.frm)
+
         except CommandError as command_error:
             reason = command_error.reason
             if command_error.template:

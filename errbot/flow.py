@@ -11,32 +11,6 @@ from errbot.backends.base import Identifier
 log = logging.getLogger(__name__)
 
 
-class FlowContext(MutableMapping):
-    def __init__(self, ctx=None):
-        self.ctx = {} if ctx is None else ctx
-
-    def __getitem__(self, key):
-        return self.ctx.__getitem__(key)
-
-    def __iter__(self):
-        return self.ctx.__iter__()
-
-    def __len__(self):
-        return self.ctx.__len__()
-
-    def __setitem__(self, key, value):
-        return self.ctx.__setitem__(key, value)
-
-    def __delitem__(self, key):
-        return self.ctx.__delitem__(key)
-
-
-class FlowMessage(Message, FlowContext):
-    def __init__(self, frm: Identifier=None, initial_ctx=None):
-        super().__init__(frm=frm)
-        FlowContext.__init__(self, initial_ctx)
-
-
 class FlowNode(object):
     def __init__(self, command=None):  # None = start node
         self.command = command
@@ -75,13 +49,14 @@ class Flow(object):
     def __init__(self, root: FlowRoot, requestor: Identifier, initial_context):
         self._root = root
         self._current_step = self._root
-        self.context = FlowMessage(requestor, initial_context)
+        self.ctx = dict(initial_context)
+        self.requestor = requestor
 
     def execute(self):
-        return self._current_step.command(self.context, None)
+        return self._current_step.command(self.ctx, None)
 
     def next_autosteps(self) -> List[FlowNode]:
-        return [node for predicate, node in self._current_step.children if predicate(self.context)]
+        return [node for predicate, node in self._current_step.children if predicate(self.ctx)]
 
     def next_steps(self) -> List[FlowNode]:
         return [node for predicate, node in self._current_step.children]
@@ -91,14 +66,14 @@ class Flow(object):
         if predicate is None:
             raise ValueError("There is no such children: %s" % next_step)
 
-        if not predicate(self.context):
+        if not predicate(self.ctx):
             raise InvalidState("It is not possible to advance to this step because its predicate is false")
 
         self._current_step = next_step
         # TODO: error / success predicates
 
     def __str__(self):
-        return "FlowInstance of %s (%s) with params %s" % (self._root, self.context.frm, dict(self.context))
+        return "FlowInstance of %s (%s) with params %s" % (self._root, self.ctx.frm, dict(self.ctx))
 
 
 class BotFlow(IPlugin):
@@ -162,11 +137,12 @@ class FlowExecutor(object):
             for autostep in autosteps:
                 log.debug("Proceeding automatically with step %s", autostep)
                 try:
-                    result = self._bot.commands[autostep.command](flow_instance.context, None)
-                    log.debug('Step result %s: %s', flow_instance.context.frm, result)
+                    msg = Message(frm=flow_instance.requestor, flow=flow_instance)
+                    result = self._bot.commands[autostep.command](msg, None)
+                    log.debug('Step result %s: %s', flow_instance.requestor, result)
 
                 except Exception as e:
                     log.exception('%s errored at %s', flow_instance, autostep)
-                    self._bot.send(flow_instance.context.frm,
+                    self._bot.send(flow_instance.requestor,
                                    '%s errored at %s with "%s"' % (flow_instance, autostep, e))
                 flow_instance.advance(autostep)  # TODO: this is only true for a single step, make it forkable.

@@ -13,11 +13,11 @@ from errbot.backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
 from .utils import compat_str
 from .utils import PY2, PY3  # noqa gbin: this is now used by plugins
 from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError  # noqa
-from .flow import FlowRoot, BotFlow
+from .flow import FlowRoot, BotFlow, Flow
 from .core_plugins.wsview import route, view  # noqa
 
 __all__ = ['BotPlugin', 'CommandError', 'webhook', 'webroute', 'webview',
-           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot']
+           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow']
 
 log = logging.getLogger(__name__)
 

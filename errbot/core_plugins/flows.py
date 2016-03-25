@@ -2,19 +2,19 @@ import io
 import json
 
 from errbot import BotPlugin, botcmd, arg_botcmd
-from errbot.flow import Node, Flow
+from errbot.flow import FlowNode, FlowRoot
 
 
 class Flows(BotPlugin):
     """ Management commands related to flows / conversations.
     """
 
-    def recurse_node(self, response: io.StringIO, stack, f: Node):
+    def recurse_node(self, response: io.StringIO, stack, f: FlowNode):
         if f in stack:
             response.write("%s⥀\n" % ("\t" * len(stack)))
             return
-        if isinstance(f, Flow):
-            response.write("Flow " + f.name + ": " + f.description + "\n")
+        if isinstance(f, FlowRoot):
+            response.write("Flow " + f.flow_name + ": " + f.description + "\n")
         else:
             cmd = self._bot.commands[f.command]
             response.write("%s⤷%s: %s\n" % ("\t" * len(stack), f, cmd.__doc__))

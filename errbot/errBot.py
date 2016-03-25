@@ -20,7 +20,7 @@ import logging
 import traceback
 
 from errbot import CommandError
-from errbot.flow import FlowExecutor, Flow
+from errbot.flow import FlowExecutor, FlowRoot
 from .backends.base import Backend, Room, Identifier, Person, Message
 from threadpool import ThreadPool, WorkRequest
 from .streaming import Tee
@@ -515,7 +515,7 @@ class ErrBot(Backend, StoreMixin):
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(method, '_err_flow', False):
                 log.debug('Found new flow %s: %s', classname, name)
-                flow = Flow(name, None, None, method.__doc__)
+                flow = FlowRoot(name, method.__doc__)
                 try:
                     method(flow)
                 except Exception:

@@ -37,13 +37,13 @@ class FlowMessage(Message, FlowContext):
         FlowContext.__init__(self, initial_ctx)
 
 
-class Node(object):
+class FlowNode(object):
     def __init__(self, command=None):  # None = start node
         self.command = command
         self.children = []  # (predicate, node)
 
     def connect(self, node_or_command, predicate):
-        node_to_connect_to = node_or_command if isinstance(node_or_command, Node) else Node(node_or_command)
+        node_to_connect_to = node_or_command if isinstance(node_or_command, FlowNode) else FlowNode(node_or_command)
         self.children.append((predicate, node_to_connect_to))
         return node_to_connect_to
 
@@ -57,24 +57,22 @@ class Node(object):
         return self.command
 
 
-class Flow(Node):
-    def __init__(self, name, error_predicate, success_predicate, description):
+class FlowRoot(FlowNode):
+    def __init__(self, flow_name, description):
         super().__init__()
-        self.name = name
-        self.error_predicate = error_predicate
-        self.success_predicate = success_predicate
+        self.flow_name = flow_name
         self.description = description
 
     def __str__(self):
-        return self.name
+        return self.flow_name
 
 
 class InvalidState(Exception):
     pass
 
 
-class FlowInstance(object):
-    def __init__(self, root: Flow, requestor: Identifier, initial_context):
+class Flow(object):
+    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context):
         self._root = root
         self._current_step = self._root
         self.context = FlowMessage(requestor, initial_context)
@@ -82,13 +80,13 @@ class FlowInstance(object):
     def execute(self):
         return self._current_step.command(self.context, None)
 
-    def next_autosteps(self) -> List[Node]:
+    def next_autosteps(self) -> List[FlowNode]:
         return [node for predicate, node in self._current_step.children if predicate(self.context)]
 
-    def next_steps(self) -> List[Node]:
+    def next_steps(self) -> List[FlowNode]:
         return [node for predicate, node in self._current_step.children]
 
-    def advance(self, next_step: Node):
+    def advance(self, next_step: FlowNode):
         predicate = self._current_step.predicate_for_node(next_step)
         if predicate is None:
             raise ValueError("There is no such children: %s" % next_step)
@@ -138,17 +136,17 @@ class FlowExecutor(object):
         self._pool = ThreadPool(5)
         self._bot = bot
 
-    def add_flow(self, flow: Flow):
-        self.flows[flow.name] = flow
+    def add_flow(self, flow: FlowRoot):
+        self.flows[flow.flow_name] = flow
 
     def start_flow(self, name: str, requestor: Identifier, initial_context: Mapping):
         if name not in self.flows:
             raise ValueError("Flow %s doesn't exist" % name)
-        flow_instance = FlowInstance(self.flows[name], requestor, initial_context)
+        flow_instance = Flow(self.flows[name], requestor, initial_context)
         self.in_flight.append(flow_instance)
         self._pool.putRequest(WorkRequest(self.execute, args=(flow_instance, )))
 
-    def execute(self, flow_instance: FlowInstance):
+    def execute(self, flow_instance: Flow):
         while True:
             autosteps = flow_instance.next_autosteps()
 

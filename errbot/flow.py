@@ -89,7 +89,7 @@ class Flow(object):
         # TODO: error / success predicates
 
     def __str__(self):
-        return "FlowInstance of %s (%s) with params %s" % (self._root, self.ctx.frm, dict(self.ctx))
+        return "Instance of %s (%s) with params %s" % (self._root, self.requestor, dict(self.ctx))
 
 
 class BotFlow(IPlugin):
@@ -166,12 +166,19 @@ class FlowExecutor(object):
     def execute(self, flow: Flow):
         while True:
             autosteps = flow.next_autosteps()
+            steps = flow.next_steps()
 
-            if not autosteps:
-                log.debug("Flow: Nothing left to do.")
+            if not steps:
+                log.debug("Flow ended correctly.Nothing left to do.")
                 break
 
-            steps = flow.next_steps()
+            if not autosteps:
+                possible_next_steps = ["You are in the flow %s, you can continue with:\n\n" % flow]
+                for step in steps:
+                    possible_next_steps.append("- " + step.command)  # TODO: put syntax too.
+                self._bot.send(flow.requestor, "\n".join(possible_next_steps))
+                break
+
             # !flows start poll_setup {\"title\":\"yeah!\",\"options\":[\"foo\",\"bar\",\"baz\"]}
             log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))
             log.debug("All possible next steps: %s", ', '.join(str(node) for node in steps))

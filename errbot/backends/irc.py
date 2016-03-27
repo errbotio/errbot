@@ -10,12 +10,12 @@ from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
 from errbot.backends.base import Message, Room, RoomError, \
-                                    RoomNotJoinedError, Stream, \
-                                    RoomOccupant, ONLINE, Person
+    RoomNotJoinedError, Stream, \
+    RoomOccupant, ONLINE, Person
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
 from errbot.rendering.ansi import AnsiExtension, enable_format, \
-                                    CharacterTable, NSC
+    CharacterTable, NSC
 
 
 # Can't use __name__ because of Yapsy
@@ -82,6 +82,7 @@ def irc_md():
 
 
 class IRCPerson(Person):
+
     def __init__(self, mask):
         self._nickmask = NickMask(mask)
 
@@ -127,6 +128,7 @@ class IRCPerson(Person):
 
 
 class IRCRoomOccupant(IRCPerson, RoomOccupant):
+
     def __init__(self, mask, room):
         super().__init__(mask)
         self._room = room
@@ -146,13 +148,14 @@ class IRCRoomOccupant(IRCPerson, RoomOccupant):
 
 
 class IRCRoom(Room):
+
     def __init__(self, room, bot):
         self._bot = bot
         self.room = room
         self.connection = self._bot.conn.connection
         self._topic = None
-        #TODO: Check if this leaks a room on reconnect
-        self._bot._rooms[self.room]=self
+        # TODO: Check if this leaks a room on reconnect
+        self._bot._rooms[self.room] = self
 
     def __unicode__(self):
         return self.room
@@ -189,7 +192,7 @@ class IRCRoom(Room):
             reason = ""
 
         self.connection.part(self.room, reason)
-        del self._bot._rooms[self.room] #Destroy the room that we're leaving
+        del self._bot._rooms[self.room]  # Destroy the room that we're leaving
         self._bot.callback_room_left(self)
         log.info("Left room {}".format(self.room))
 
@@ -418,8 +421,8 @@ class IRCConnection(SingleServerIRCBot):
             pass  # the message will be lost
 
     def on_disconnect(self, connection, event):
-        del self.bot._rooms # Destroy all rooms on Disconnect
-        self.bot._rooms={}
+        del self.bot._rooms  # Destroy all rooms on Disconnect
+        self.bot._rooms = {}
         self.bot.disconnect_callback()
 
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
@@ -492,7 +495,7 @@ class IRCConnection(SingleServerIRCBot):
         # We need to wait to endofnames message.
         room_name = event.target
         with self._recently_joined_lock:
-            t=IRCRoom(room_name, self.bot)
+            t = IRCRoom(room_name, self.bot)
             self._recently_joined_to.add(room_name)
 
     def on_currenttopic(self, connection, event):
@@ -508,8 +511,8 @@ class IRCConnection(SingleServerIRCBot):
                 the event.arguments[1] contains the topic of the room.
                 the event.arguments[0] contains the room name
         """
-        room_name=event.arguments[0]
-        self.bot._rooms[room_name]._topic=event.arguments[1]
+        room_name = event.arguments[0]
+        self.bot._rooms[room_name]._topic = event.arguments[1]
 
     def on_topic(self, connection, event):
         """
@@ -523,8 +526,8 @@ class IRCConnection(SingleServerIRCBot):
                 the event.target contains the room name.
                 the event.arguments[0] contains the topic name
         """
-        room_name=event.target
-        self.bot._rooms[room_name]._topic=event.arguments[0]
+        room_name = event.target
+        self.bot._rooms[room_name]._topic = event.arguments[0]
         self.bot.callback_room_topic(self.bot._rooms[room_name])
 
     def on_notopic(self, connection, event):
@@ -538,8 +541,8 @@ class IRCConnection(SingleServerIRCBot):
                 event: Is an 'irc.client.Event' object
                 the event.arguments[0] contains the room name
         """
-        room_name=event.arguments[0]
-        self.bot._rooms[room_name]._topic=None
+        room_name = event.arguments[0]
+        self.bot._rooms[room_name]._topic = None
         self.bot.callback_room_topic(self.bot._rooms[room_name])
 
     @staticmethod
@@ -618,7 +621,7 @@ class IRCBackend(ErrBot):
                                   reconnect_on_disconnect=reconnect_on_disconnect,
                                   )
         self.md = irc_md()
-        self._rooms={} #Contains all the IRCMUCRoom on this connection.
+        self._rooms = {}  # Contains all the IRCMUCRoom on this connection.
 
     def send_message(self, mess):
         super().send_message(mess)

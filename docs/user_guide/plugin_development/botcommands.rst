@@ -59,7 +59,7 @@ a command's arguments in `argparse format`_. The decorator can be used multiple 
 .. code-block:: python
 
     @arg_botcmd('first_name', type=str)
-    @arg_botcmd('--last-name', dest='last_name', type='str')
+    @arg_botcmd('--last-name', dest='last_name', type=str)
     @arg_botcmd('--favorite', dest='favorite_number', type=int, default=42)
     def hello(self, mess, first_name=None, last_name=None, favorite_number=None):
         # if you send it !hello Err --last-name Bot

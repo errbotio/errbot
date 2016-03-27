@@ -218,7 +218,7 @@ class Plugins(BotPlugin):
 
         if name not in self._bot.plugin_manager.get_all_active_plugin_names():
             yield (("Warning: plugin %s is currently not activated. " +
-                   "Use !plugin activate %s to activate it.") % (name, name))
+                   "Use `%splugin activate %s` to activate it.") % (name, self._bot.prefix, name))
 
         self._bot.plugin_manager.reload_plugin_by_name(name)
 

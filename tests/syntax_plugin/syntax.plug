@@ -1,0 +1,6 @@
+[Core]
+Name = Dummy
+Module = test
+
+[Python]
+Version = 2+

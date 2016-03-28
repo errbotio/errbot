@@ -225,9 +225,13 @@ class FlowExecutor(object):
                 break
 
             if not autosteps:
-                possible_next_steps = ["You are in the flow %s, you can continue with:\n\n" % flow]
+                possible_next_steps = ["You are in the flow **%s**, you can continue with:\n\n" % flow.name]
                 for step in steps:
-                    possible_next_steps.append("- " + step.command)  # TODO: put syntax too.
+                    cmd = step.command
+                    syntax = self._bot.all_commands[cmd]._err_command_syntax
+                    syntax = '' if syntax is None else syntax
+
+                    possible_next_steps.append("- %s%s %s" % (self._bot.prefix, cmd.replace('_', ' '), syntax))
                 self._bot.send(flow.requestor, "\n".join(possible_next_steps))
                 break
 

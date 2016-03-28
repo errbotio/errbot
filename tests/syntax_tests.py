@@ -1,15 +1,9 @@
 # coding=utf-8
-import re
-import logging
 from errbot.backends.test import FullStackTest
-from flaky import flaky
-from os import path, mkdir
-from queue import Empty
-from shutil import rmtree
+from os import path
 
 
-@flaky
-class TestCommands(FullStackTest):
+class TestSyntax(FullStackTest):
 
     def setUp(self, *args, **kwargs):
         kwargs['extra_plugin_dir'] = path.join(path.dirname(

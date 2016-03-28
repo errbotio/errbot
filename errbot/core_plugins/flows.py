@@ -14,7 +14,7 @@ class Flows(BotPlugin):
             response.write("%s⥀\n" % ("\t" * len(stack)))
             return
         if isinstance(f, FlowRoot):
-            response.write("Flow " + f.flow_name + ": " + f.description + "\n")
+            response.write("Flow " + f.name + ": " + f.description + "\n")
         else:
             cmd = self._bot.commands[f.command]
             response.write("%s⤷%s: %s\n" % ("\t" * len(stack), f, cmd.__doc__))
@@ -42,6 +42,8 @@ class Flows(BotPlugin):
     def flows_start(self, mess, flow_name=None, json_payload=None):
         """ Manually start a flow within the context of the calling user.
         You can prefeed the flow data with a json payload.
+        Example:
+             !flows start poll_setup {\"title\":\"yeah!\",\"options\":[\"foo\",\"bar\",\"baz\"]}
         """
         if not flow_name:
             return "You need to specify a flow to manually start"

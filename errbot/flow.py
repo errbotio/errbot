@@ -1,6 +1,6 @@
 import logging
-from collections import MutableMapping, Iterable
-from typing import Mapping, Union, List
+from threading import RLock
+from typing import Mapping, List, Tuple
 
 from threadpool import ThreadPool, WorkRequest
 from yapsy.IPlugin import IPlugin
@@ -35,14 +35,14 @@ class FlowRoot(FlowNode):
     """
     This represent the entry point of a flow description.
     """
-    def __init__(self, flow_name: str, description: str):
+    def __init__(self, name: str, description: str):
         """
 
-        :param flow_name: The name of the conversation/flow.
+        :param name: The name of the conversation/flow.
         :param description:  A human description of what this flow does.
         """
         super().__init__()
-        self.flow_name = flow_name
+        self.name = name
         self.description = description
         self.auto_triggers = []
 
@@ -53,7 +53,7 @@ class FlowRoot(FlowNode):
         return resp
 
     def __str__(self):
-        return self.flow_name
+        return self.name
 
 
 class InvalidState(Exception):
@@ -88,8 +88,12 @@ class Flow(object):
         self._current_step = next_step
         # TODO: error / success predicates
 
+    @property
+    def name(self):
+        return self._root.name
+
     def __str__(self):
-        return "Instance of %s (%s) with params %s" % (self._root, self.requestor, dict(self.ctx))
+        return "%s (%s) with params %s" % (self._root, self.requestor, dict(self.ctx))
 
 
 class BotFlow(IPlugin):
@@ -122,45 +126,93 @@ class FlowExecutor(object):
     This is a instance that can monitor and execute flow instances.
     """
     def __init__(self, bot):
+        self._lock = RLock()
         self.flow_roots = {}
         self.in_flight = []
         self._pool = ThreadPool(5)
         self._bot = bot
 
     def add_flow(self, flow: FlowRoot):
-        self.flow_roots[flow.flow_name] = flow
+        with self._lock:
+            self.flow_roots[flow.name] = flow
 
-    def trigger(self, cmd:str, requestor: Identifier) -> str:
+    def get_context_for_flows(self, cmd: str, requestor: Identifier) -> str:
         """
-        Trigger workflows that may have command cmd as a auto_trigger.
+        This should be called before resuming a flow with a specific command to get the context for the command input.
+        """
+
+    def trigger(self, cmd: str, requestor: Identifier, extra_context=None) -> Flow:
+        """
+        Trigger workflows that may have command cmd as a auto_trigger or an in flight flow waiting for command.
         This assume cmd has been correctly executed.
         :param requestor: the identifier of the person who started this flow
         :param cmd: the command that has just been executed.
-        :returns: The name of the worflow it triggered or None if none were matching.
+        :param extra_context: extra context from the current conversation
+        :returns: The flow it triggered or None if none were matching.
+        """
+        flow, next_step = self.check_inflight_flow_triggered(cmd, requestor)
+        if not flow:
+            flow, next_step = self._check_if_new_flow_is_triggered(cmd, requestor)
+        if not flow:
+            return None
+
+        flow.advance(next_step, enforce_predicate=False)
+        if extra_context:
+            flow.ctx = dict(extra_context)
+        self._enqueue_flow(flow)
+        return flow
+
+    def check_inflight_flow_triggered(self, cmd: str, requestor: Identifier) -> Tuple[Flow, FlowNode]:
+        log.debug("Test if the command %s is a trigger for an inflight flow ...", cmd)
+        # TODO: What if 2 flows wait for the same command ?
+        with self._lock:
+            for flow in self.in_flight:
+                if flow.requestor == requestor:
+                    log.debug("Requestor has a flow %s in flight", flow.name)
+                    for next_step in flow.next_steps():
+                        if next_step.command == cmd:
+                            log.debug("Requestor has a flow in flight waiting for this command !")
+                            return flow, next_step
+        log.debug("None matched.")
+        return None, None
+
+    def _check_if_new_flow_is_triggered(self, cmd: str, requestor: Identifier) -> Tuple[Flow, FlowNode]:
+        """
+        Trigger workflows that may have command cmd as a auto_trigger..
+        This assume cmd has been correctly executed.
+        :param requestor: the identifier of the person who started this flow
+        :param cmd: the command that has just been executed.
+        :returns: The name of the flow it triggered or None if none were matching.
         """
         log.debug("Test if the command %s is an auto-trigger for any flow ...",  cmd)
-        for name, flow_root in self.flow_roots.items():
-            if cmd in flow_root.auto_triggers:
-                log.debug("Flow %s has been auto-triggered by the command %s by user %s", name, cmd, requestor)
-                self._trigger_flow(flow_root, requestor, cmd)
+        with self._lock:
+            for name, flow_root in self.flow_roots.items():
+                if cmd in flow_root.auto_triggers:
+                    log.debug("Flow %s has been auto-triggered by the command %s by user %s", name, cmd, requestor)
+                    return self._create_new_flow(flow_root, requestor, cmd)
+        return None, None
 
-    def _trigger_flow(self, flow_root, requestor: Identifier, initial_command):
+    @staticmethod
+    def _create_new_flow(flow_root, requestor: Identifier, initial_command) -> Tuple[Flow, FlowNode]:
         empty_context = {}
         flow = Flow(flow_root, requestor, empty_context)
         for possible_next_step in flow.next_steps():
             if possible_next_step.command == initial_command:
                 # The predicate is good as we just executed manually the command.
-                flow.advance(possible_next_step, enforce_predicate=False)
-                self._enqueue_flow(flow)
-                break
+                return flow, possible_next_step
+        return None, None
 
-    def start_flow(self, name: str, requestor: Identifier, initial_context: Mapping):
+    def start_flow(self, name: str, requestor: Identifier, initial_context: Mapping) -> Flow:
         if name not in self.flow_roots:
             raise ValueError("Flow %s doesn't exist" % name)
-        self._enqueue_flow(Flow(self.flow_roots[name], requestor, initial_context))
+        flow = Flow(self.flow_roots[name], requestor, initial_context)
+        self._enqueue_flow(flow)
+        return flow
 
     def _enqueue_flow(self, flow):
-        self.in_flight.append(flow)
+        with self._lock:
+            if flow not in self.in_flight:
+                self.in_flight.append(flow)
         self._pool.putRequest(WorkRequest(self.execute, args=(flow, )))
 
     def execute(self, flow: Flow):
@@ -179,7 +231,6 @@ class FlowExecutor(object):
                 self._bot.send(flow.requestor, "\n".join(possible_next_steps))
                 break
 
-            # !flows start poll_setup {\"title\":\"yeah!\",\"options\":[\"foo\",\"bar\",\"baz\"]}
             log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))
             log.debug("All possible next steps: %s", ', '.join(str(node) for node in steps))
 

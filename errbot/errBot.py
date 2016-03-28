@@ -447,6 +447,12 @@ class ErrBot(Backend, StoreMixin):
         private = cmd in self.bot_config.DIVERT_TO_PRIVATE
         commands = self.re_commands if match else self.commands
         try:
+            # first check if we need to reattach a flow context
+            flow, _ = self.flow_executor.check_inflight_flow_triggered(cmd, mess.frm)
+            if flow:
+                log.debug("Reattach context from flow %s to the message", flow._root.name)
+                mess.ctx = flow.ctx
+
             if inspect.isgeneratorfunction(commands[cmd]):
                 replies = commands[cmd](mess, match) if match else commands[cmd](mess, args)
                 for reply in replies:
@@ -457,8 +463,8 @@ class ErrBot(Backend, StoreMixin):
                 if reply:
                     self.send_simple_reply(mess, self.process_template(template_name, reply), private)
 
-            # Check if this has not trigered a flow
-            self.flow_executor.trigger(cmd, mess.frm)
+            # The command is a success, check it this has not made a flow progressed
+            self.flow_executor.trigger(cmd, mess.frm, mess.ctx)
 
         except CommandError as command_error:
             reason = command_error.reason

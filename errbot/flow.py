@@ -1,6 +1,6 @@
 import logging
 from threading import RLock
-from typing import Mapping, List, Tuple
+from typing import Mapping, List, Tuple, Union, Callable, Any, TypeVar
 
 from threadpool import ThreadPool, WorkRequest
 from yapsy.IPlugin import IPlugin
@@ -10,18 +10,47 @@ from errbot.backends.base import Identifier
 
 log = logging.getLogger(__name__)
 
+Predicate = Callable[[Mapping[str, Any]], str]
+
 
 class FlowNode(object):
-    def __init__(self, command=None):  # None = start node
+    """
+    This is a step in a Flow/conversation. It is linked a specific botcmd and also a "predicate".
+
+    The predicate is a function that tells the flow executor if the flow can enter the step without the user
+    intervention (automatically).
+
+    The predicate is a function that takes one parameter, the context of the conversation.
+    """
+    def __init__(self, command: str=None):
+        """
+        Creates a FlowNone, takes the command to which the Node is linked to.
+        :param command: the command this Node is linked to. Can only be None if this Node is a Root.
+        """
         self.command = command
         self.children = []  # (predicate, node)
 
-    def connect(self, node_or_command, predicate):
+    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate):
+        """
+        Construct the flow graph by connecting this node to another node or a command.
+        The predicate is a function that tells the flow executor if the flow can enter the step without the user
+        intervention (automatically).
+        :param node_or_command: the node or a string for a command you want to connect this Node to
+                               (this node or command will be the follow up of this one)
+        :param predicate: function with one parameter, the context, to determine of the flow executor can continue
+                           automatically this flow with no user intervention.
+        :return: the newly created node if you passed a command or the node you gave it to be easily chainable.
+        """
         node_to_connect_to = node_or_command if isinstance(node_or_command, FlowNode) else FlowNode(node_or_command)
         self.children.append((predicate, node_to_connect_to))
         return node_to_connect_to
 
-    def predicate_for_node(self, node):
+    def predicate_for_node(self, node: 'FlowNode'):
+        """
+        gets the predicate function for the specified child node.
+        :param node: the child node
+        :return: the predicate that allows the automatic execution of that node.
+        """
         for predicate, possible_node in self.children:
             if node == possible_node:
                 return predicate
@@ -46,7 +75,14 @@ class FlowRoot(FlowNode):
         self.description = description
         self.auto_triggers = []
 
-    def connect(self, node_or_command, predicate, auto_trigger=False):
+    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate, auto_trigger: bool=False):
+        """
+        :see: FlowNode except fot auto_trigger
+        :param predicate: :see: FlowNode
+        :param node_or_command: :see: FlowNode
+        :param auto_trigger: Flag this root as autotriggering: it will start a flow if this command is executed
+                              in the chat.
+        """
         resp = super().connect(node_or_command, predicate)
         if auto_trigger:
             self.auto_triggers.append(node_or_command)
@@ -57,26 +93,56 @@ class FlowRoot(FlowNode):
 
 
 class InvalidState(Exception):
+    """
+    Raised when the Flow Executor is asked to do something contrary to the contraints it has been given.
+    """
     pass
 
 
 class Flow(object):
+    """
+    This is a live Flow. It keeps context of the conversation (requestor and context).
+    Context is just a python dictionary representing the state of the conversation.
+    """
     def __init__(self, root: FlowRoot, requestor: Identifier, initial_context):
+        """
+
+        :param root: the root of this flow.
+        :param requestor: the user requesting this flow.
+        :param initial_context: any data we already have that could help executing this flow automatically.
+        """
         self._root = root
         self._current_step = self._root
         self.ctx = dict(initial_context)
         self.requestor = requestor
 
     def execute(self):
+        """
+        Execute the current step of the flow.
+        :return: The string or dictionary (as template input) the command would return normally.
+        """
         return self._current_step.command(self.ctx, None)
 
     def next_autosteps(self) -> List[FlowNode]:
+        """
+        Get the next steps that can be automatically executed according to the set predicates.
+        """
         return [node for predicate, node in self._current_step.children if predicate(self.ctx)]
 
     def next_steps(self) -> List[FlowNode]:
+        """
+        Get all the possible next steps after this one (predicates statisfied or not).
+        """
         return [node for predicate, node in self._current_step.children]
 
     def advance(self, next_step: FlowNode, enforce_predicate=True):
+        """
+        Move on along the flow.
+        :param next_step: Which node you want to move the flow forward to.
+        :param enforce_predicate: Do you want to check if the predicate is verified for this step or not.
+                                   Usually, if it is a manual step, the predicate is irrelevant because the user
+                                   will give the missing information as parameters to the command.
+        """
         if enforce_predicate:
             predicate = self._current_step.predicate_for_node(next_step)
             if predicate is None:
@@ -90,6 +156,9 @@ class Flow(object):
 
     @property
     def name(self):
+        """
+        Helper property to get the name of the flow.
+        """
         return self._root.name
 
     def __str__(self):
@@ -97,6 +166,9 @@ class Flow(object):
 
 
 class BotFlow(IPlugin):
+    """
+    Defines a Flow plugin ie. a plugin that will define new flows from its methods with the @botflow decorator.
+    """
     def __init__(self, bot):
         super().__init__()
         self._bot = bot
@@ -118,7 +190,10 @@ class BotFlow(IPlugin):
         self.is_activated = False
 
     def get_command(self, command_name: str):
-        self._bot.commands.get(command_name, None)
+        """
+            Helper to get a specific command.
+        """
+        self._bot.all_commands.get(command_name, None)
 
 
 class FlowExecutor(object):
@@ -162,12 +237,17 @@ class FlowExecutor(object):
         self._enqueue_flow(flow)
         return flow
 
-    def check_inflight_flow_triggered(self, cmd: str, requestor: Identifier) -> Tuple[Flow, FlowNode]:
+    def check_inflight_flow_triggered(self, cmd: str, user: Identifier) -> Tuple[Flow, FlowNode]:
+        """
+        Check if a command from a specific user was expected in one of the running flow.
+        :param cmd: the command that has just been executed.
+        :param user: the identifier of the person who started this flow
+        :returns: The name of the flow it triggered or None if none were matching."""
         log.debug("Test if the command %s is a trigger for an inflight flow ...", cmd)
         # TODO: What if 2 flows wait for the same command ?
         with self._lock:
             for flow in self.in_flight:
-                if flow.requestor == requestor:
+                if flow.requestor == user:
                     log.debug("Requestor has a flow %s in flight", flow.name)
                     for next_step in flow.next_steps():
                         if next_step.command == cmd:
@@ -176,24 +256,27 @@ class FlowExecutor(object):
         log.debug("None matched.")
         return None, None
 
-    def _check_if_new_flow_is_triggered(self, cmd: str, requestor: Identifier) -> Tuple[Flow, FlowNode]:
+    def _check_if_new_flow_is_triggered(self, cmd: str, user: Identifier) -> Tuple[Flow, FlowNode]:
         """
         Trigger workflows that may have command cmd as a auto_trigger..
         This assume cmd has been correctly executed.
-        :param requestor: the identifier of the person who started this flow
         :param cmd: the command that has just been executed.
+        :param user: the identifier of the person who started this flow
         :returns: The name of the flow it triggered or None if none were matching.
         """
         log.debug("Test if the command %s is an auto-trigger for any flow ...",  cmd)
         with self._lock:
             for name, flow_root in self.flow_roots.items():
                 if cmd in flow_root.auto_triggers:
-                    log.debug("Flow %s has been auto-triggered by the command %s by user %s", name, cmd, requestor)
-                    return self._create_new_flow(flow_root, requestor, cmd)
+                    log.debug("Flow %s has been auto-triggered by the command %s by user %s", name, cmd, user)
+                    return self._create_new_flow(flow_root, user, cmd)
         return None, None
 
     @staticmethod
     def _create_new_flow(flow_root, requestor: Identifier, initial_command) -> Tuple[Flow, FlowNode]:
+        """
+        Helper method to create a new FLow.
+        """
         empty_context = {}
         flow = Flow(flow_root, requestor, empty_context)
         for possible_next_step in flow.next_steps():
@@ -203,6 +286,9 @@ class FlowExecutor(object):
         return None, None
 
     def start_flow(self, name: str, requestor: Identifier, initial_context: Mapping) -> Flow:
+        """
+        Starts the execution of a Flow.
+        """
         if name not in self.flow_roots:
             raise ValueError("Flow %s doesn't exist" % name)
         flow = Flow(self.flow_roots[name], requestor, initial_context)
@@ -216,6 +302,9 @@ class FlowExecutor(object):
         self._pool.putRequest(WorkRequest(self.execute, args=(flow, )))
 
     def execute(self, flow: Flow):
+        """
+        This is where the flow execution happens from one of the thread of the pool.
+        """
         while True:
             autosteps = flow.next_autosteps()
             steps = flow.next_steps()
@@ -250,3 +339,4 @@ class FlowExecutor(object):
                     self._bot.send(flow.requestor,
                                    '%s errored at %s with "%s"' % (flow, autostep, e))
                 flow.advance(autostep)  # TODO: this is only true for a single step, make it forkable.
+        log.debug("Flow exectution suspended/ended normally.")

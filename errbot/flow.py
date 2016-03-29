@@ -30,7 +30,7 @@ class FlowNode(object):
         self.command = command
         self.children = []  # (predicate, node)
 
-    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate):
+    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate=lambda _: False):
         """
         Construct the flow graph by connecting this node to another node or a command.
         The predicate is a function that tells the flow executor if the flow can enter the step without the user
@@ -75,7 +75,10 @@ class FlowRoot(FlowNode):
         self.description = description
         self.auto_triggers = []
 
-    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate, auto_trigger: bool=False):
+    def connect(self,
+                node_or_command: Union['FlowNode', str],
+                predicate: Predicate=lambda _: False,
+                auto_trigger: bool=False):
         """
         :see: FlowNode except fot auto_trigger
         :param predicate: :see: FlowNode
@@ -116,13 +119,6 @@ class Flow(object):
         self.ctx = dict(initial_context)
         self.requestor = requestor
 
-    def execute(self):
-        """
-        Execute the current step of the flow.
-        :return: The string or dictionary (as template input) the command would return normally.
-        """
-        return self._current_step.command(self.ctx, None)
-
     def next_autosteps(self) -> List[FlowNode]:
         """
         Get the next steps that can be automatically executed according to the set predicates.
@@ -152,7 +148,6 @@ class Flow(object):
                 raise InvalidState("It is not possible to advance to this step because its predicate is false")
 
         self._current_step = next_step
-        # TODO: error / success predicates
 
     @property
     def name(self):
@@ -208,13 +203,11 @@ class FlowExecutor(object):
         self._bot = bot
 
     def add_flow(self, flow: FlowRoot):
+        """
+        Register a flow with this executor.
+        """
         with self._lock:
             self.flow_roots[flow.name] = flow
-
-    def get_context_for_flows(self, cmd: str, requestor: Identifier) -> str:
-        """
-        This should be called before resuming a flow with a specific command to get the context for the command input.
-        """
 
     def trigger(self, cmd: str, requestor: Identifier, extra_context=None) -> Flow:
         """

@@ -367,8 +367,10 @@ class BotPluginManager(PluginManager, StoreMixin):
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 
+        loaded_plugins = self.loadPlugins()
+
         errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2]))
-                       for pluginfo in self.loadPlugins() if pluginfo.error is not None})
+                       for pluginfo in loaded_plugins if pluginfo.error is not None})
         return errors
 
     def get_all_active_plugin_objects(self):

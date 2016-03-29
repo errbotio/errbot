@@ -34,7 +34,7 @@ class Flows(BotPlugin):
                     return "Flow %s doesn't exist." % args
                 self.recurse_node(response, [], flow)
             else:
-                for name, flow in self._bot.flow_executor.flows.items():
+                for name, flow in self._bot.flow_executor.flow_roots.items():
                     response.write(name + ": " + flow.description + "\n")
             return response.getvalue()
 

@@ -1,0 +1,6 @@
+[Core]
+Name = FlowTest
+Module = flowtest_flows
+
+[Python]
+Version = 2+

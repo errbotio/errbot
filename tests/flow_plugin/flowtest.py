@@ -1,16 +1,27 @@
 from __future__ import absolute_import
-from errbot import BotPlugin, botcmd, re_botcmd
+from errbot import BotPlugin, botcmd
 
 
 class FlowTest(BotPlugin):
     """A plugin to test the flows
+    see flowtest.png for the structure.
     """
     @botcmd
-    def foo(self, msg, args):
-        """This runs foo."""
-        return 'bar'
+    def a(self, msg, args):
+        return 'a'
 
-    @re_botcmd(pattern=r"plz dont match this")
-    def re_foo(self, msg, match):
-        """This runs re_foo."""
-        return 'bar'
+    @botcmd
+    def b(self, msg, args):
+        return 'b'
+
+    @botcmd
+    def c(self, msg, args):
+        return 'c'
+
+    @botcmd
+    def d(self, msg, args):
+        return 'd'
+
+    @botcmd
+    def e(self, msg, args):
+        return 'e'

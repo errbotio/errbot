@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 
 class CommandError(Exception):
     """
-    Use this class to report a logical error from your commands.
+    Use this class to report an error condition from your commands, the command
+    did not proceed for a known "business" reason.
     """
     def __init__(self, reason: str, template: str = None):
         """

@@ -12,6 +12,8 @@ log = logging.getLogger(__name__)
 
 Predicate = Callable[[Mapping[str, Any]], str]
 
+EXECUTOR_THREADS = 5   # the maximum number of simultaneous flows in automatic mode at the same time.
+
 
 class FlowNode(object):
     """
@@ -73,7 +75,7 @@ class FlowRoot(FlowNode):
         super().__init__()
         self.name = name
         self.description = description
-        self.auto_triggers = []
+        self.auto_triggers = set()
 
     def connect(self,
                 node_or_command: Union['FlowNode', str],
@@ -88,7 +90,7 @@ class FlowRoot(FlowNode):
         """
         resp = super().connect(node_or_command, predicate)
         if auto_trigger:
-            self.auto_triggers.append(node_or_command)
+            self.auto_triggers.add(node_or_command)
         return resp
 
     def __str__(self):
@@ -107,7 +109,7 @@ class Flow(object):
     This is a live Flow. It keeps context of the conversation (requestor and context).
     Context is just a python dictionary representing the state of the conversation.
     """
-    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context):
+    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any]):
         """
 
         :param root: the root of this flow.
@@ -199,7 +201,7 @@ class FlowExecutor(object):
         self._lock = RLock()
         self.flow_roots = {}
         self.in_flight = []
-        self._pool = ThreadPool(5)
+        self._pool = ThreadPool(EXECUTOR_THREADS)
         self._bot = bot
 
     def add_flow(self, flow: FlowRoot):
@@ -278,7 +280,7 @@ class FlowExecutor(object):
                 return flow, possible_next_step
         return None, None
 
-    def start_flow(self, name: str, requestor: Identifier, initial_context: Mapping) -> Flow:
+    def start_flow(self, name: str, requestor: Identifier, initial_context: Mapping[str, Any]) -> Flow:
         """
         Starts the execution of a Flow.
         """

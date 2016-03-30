@@ -461,12 +461,12 @@ class SlackBackend(ErrBot):
             log.debug('Message size: %d' % len(body))
 
             limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
-	    if len(body) > limit:
+            if len(body) > limit:
                 self.api_call('files.upload', data={
                     'channels': [to_channel_id],
                     'content': body,
                     'filename': hashlib.sha224(body).hexdigest(),
-		    'filetype': 'text',
+                    'filetype': 'text',
                 })
             else:
                 self.api_call('chat.postMessage', data={

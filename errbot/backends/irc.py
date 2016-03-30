@@ -150,12 +150,13 @@ class IRCRoomOccupant(IRCPerson, RoomOccupant):
 class IRCRoom(Room):
     """
         Represent the specifics of a IRC Room/Channel.
-        
+
         This lifecycle of this object is:
          - Created in IRCConnection.on_join
          - The joined status change in IRCConnection on_join/on_part
          - Deleted/destroyed in IRCConnection.on_disconnect
     """
+
     def __init__(self, room, bot):
         self._bot = bot
         self.room = room
@@ -171,7 +172,7 @@ class IRCRoom(Room):
 
     def __repr__(self):
         return "<{} - {}>".format(self.__unicode__(), super().__repr__())
-    
+
     def cb_set_topic(self, current_topic):
         """
             Internal use only.
@@ -476,8 +477,8 @@ class IRCConnection(SingleServerIRCBot):
         """
             Handler of the part IRC Message/event.
 
-            The part message is sent to the client as a confirmantion of a 
-            /PART command sent by someone in the room/channel. 
+            The part message is sent to the client as a confirmantion of a
+            /PART command sent by someone in the room/channel.
             If the event.source contains the bot nickname then we need to fire
             the :meth:bot.callback_room_left event on the bot.
 
@@ -486,15 +487,10 @@ class IRCConnection(SingleServerIRCBot):
 
             :param:
                 event: Is an 'irc.client.Event' object
-                The event.source contains the nickmask of the user that 
+                The event.source contains the nickmask of the user that
                 leave the room
                 The event.target contains the channel name
         """
-        #err-chatbot!~err-chatb@181.27.147.155
-        print(">"*40)
-        print("{}".format(str(event.source.nick)))
-        print("{}".format(str(self.bot.bot_identifier.nick)))
-        print(">"*40)
         leaving_nick = event.source.nick
         leaving_room = event.target
         if self.bot.bot_identifier.nick == leaving_nick:

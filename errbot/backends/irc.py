@@ -148,14 +148,20 @@ class IRCRoomOccupant(IRCPerson, RoomOccupant):
 
 
 class IRCRoom(Room):
-
+    """
+        Represent the specifics of a IRC Room/Channel.
+        
+        This lifecycle of this object is:
+         - Created in IRCConnection.on_join
+         - The joined status change in IRCConnection on_join/on_part
+         - Deleted/destroyed in IRCConnection.on_disconnect
+    """
     def __init__(self, room, bot):
         self._bot = bot
         self.room = room
         self.connection = self._bot.conn.connection
+        self._topic_lock = threading.Lock()
         self._topic = None
-        # TODO: Check if this leaks a room on reconnect
-        self._bot._rooms[self.room] = self
 
     def __unicode__(self):
         return self.room
@@ -165,6 +171,20 @@ class IRCRoom(Room):
 
     def __repr__(self):
         return "<{} - {}>".format(self.__unicode__(), super().__repr__())
+    
+    def cb_set_topic(self, current_topic):
+        """
+            Internal use only.
+            To set the topic use the topic property.
+            Not use under any circunstance. I REALLY mean it.
+            It will broke things badly.
+            Probably leave you in banckrupcy.
+            :params:
+                current_topic: Well, really? I told you that not
+                use this, so go away and use the topic property.
+        """
+        with self._topic_lock:
+            self._topic = current_topic
 
     def join(self, username=None, password=None):
         """
@@ -192,9 +212,7 @@ class IRCRoom(Room):
             reason = ""
 
         self.connection.part(self.room, reason)
-        del self._bot._rooms[self.room]  # Destroy the room that we're leaving
-        self._bot.callback_room_left(self)
-        log.info("Left room {}".format(self.room))
+        log.info("Leaving room {} with reason '{}'".format(self.room, reason if reason is not None else ''))
 
     def create(self):
         """
@@ -247,7 +265,8 @@ class IRCRoom(Room):
         """
         if not self.joined:
             raise RoomNotJoinedError("Must join the room to get the topic")
-        return self._topic
+        with self._topic_lock:
+            return self._topic
 
     @topic.setter
     def topic(self, topic):
@@ -259,7 +278,7 @@ class IRCRoom(Room):
         """
         if not self.joined:
             raise RoomNotJoinedError("Must join the room to set the topic")
-        self._topic = topic
+        self.cb_set_topic(topic)
         self.connection.topic(self.room, topic)
 
     @property
@@ -421,7 +440,6 @@ class IRCConnection(SingleServerIRCBot):
             pass  # the message will be lost
 
     def on_disconnect(self, connection, event):
-        del self.bot._rooms  # Destroy all rooms on Disconnect
         self.bot._rooms = {}
         self.bot.disconnect_callback()
 
@@ -454,6 +472,35 @@ class IRCConnection(SingleServerIRCBot):
     def on_dcc_disconnect(self, dcc, event):
         self.transfers.pop(dcc)
 
+    def on_part(self, connection, event):
+        """
+            Handler of the part IRC Message/event.
+
+            The part message is sent to the client as a confirmantion of a 
+            /PART command sent by someone in the room/channel. 
+            If the event.source contains the bot nickname then we need to fire
+            the :meth:bot.callback_room_left event on the bot.
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                The event.source contains the nickmask of the user that 
+                leave the room
+                The event.target contains the channel name
+        """
+        #err-chatbot!~err-chatb@181.27.147.155
+        print(">"*40)
+        print("{}".format(str(event.source.nick)))
+        print("{}".format(str(self.bot.bot_identifier.nick)))
+        print(">"*40)
+        leaving_nick = event.source.nick
+        leaving_room = event.target
+        if self.bot.bot_identifier.nick == leaving_nick:
+            self.bot.callback_room_left(self.bot._rooms[leaving_room])
+            log.info("Left room {}".format(leaving_room))
+
     def on_endofnames(self, connection, event):
         """
             Handler of the enfofnames IRC message/event.
@@ -469,7 +516,7 @@ class IRCConnection(SingleServerIRCBot):
 
             :param:
                 event: Is an 'irc.client.Event' object
-                the e.arguments[0] contains the channel name
+                the event.arguments[0] contains the channel name
         """
         # The event.arguments[0] contains the channel name.
         # We filter that to avoid a misfire of the event.
@@ -481,7 +528,8 @@ class IRCConnection(SingleServerIRCBot):
 
     def on_join(self, connection, event):
         """
-            Handler of the join IRC message/event
+            Handler of the join IRC message/event.
+            Is in response of a /JOIN client message.
 
             :param:
                 connection: Is an 'irc.client.ServerConnection' object
@@ -495,7 +543,8 @@ class IRCConnection(SingleServerIRCBot):
         # We need to wait to endofnames message.
         room_name = event.target
         with self._recently_joined_lock:
-            t = IRCRoom(room_name, self.bot)
+            if room_name not in self.bot._rooms:
+                self.bot._rooms[room_name] = IRCRoom(room_name, self.bot)
             self._recently_joined_to.add(room_name)
 
     def on_currenttopic(self, connection, event):
@@ -503,16 +552,19 @@ class IRCConnection(SingleServerIRCBot):
             When you Join a room with a topic set this event fires up to
             with the topic information.
             If the room that you join don't have a topic set, nothing happens.
+            Here is NOT the place to fire the :meth:callback_room_topic event, for
+            that case exist on_topic.
+
             :param:
                 connection: Is an 'irc.client.ServerConnection' object
 
             :param:
                 event: Is an 'irc.client.Event' object
-                the event.arguments[1] contains the topic of the room.
-                the event.arguments[0] contains the room name
+                The event.arguments[0] contains the room name
+                The event.arguments[1] contains the topic of the room.
         """
-        room_name = event.arguments[0]
-        self.bot._rooms[room_name]._topic = event.arguments[1]
+        room_name, current_topic = event.arguments
+        self.bot._rooms[room_name].cb_set_topic(current_topic)
 
     def on_topic(self, connection, event):
         """
@@ -523,11 +575,12 @@ class IRCConnection(SingleServerIRCBot):
 
             :param:
                 event: Is an 'irc.client.Event' object
-                the event.target contains the room name.
-                the event.arguments[0] contains the topic name
+                The event.target contains the room name.
+                The event.arguments[0] contains the topic name
         """
         room_name = event.target
-        self.bot._rooms[room_name]._topic = event.arguments[0]
+        current_topic = event.arguments[0]
+        self.bot._rooms[room_name].cb_set_topic(current_topic)
         self.bot.callback_room_topic(self.bot._rooms[room_name])
 
     def on_notopic(self, connection, event):
@@ -539,10 +592,10 @@ class IRCConnection(SingleServerIRCBot):
 
             :param:
                 event: Is an 'irc.client.Event' object
-                the event.arguments[0] contains the room name
+                The event.arguments[0] contains the room name
         """
         room_name = event.arguments[0]
-        self.bot._rooms[room_name]._topic = None
+        self.bot._rooms[room_name].cb_set_topic(None)
         self.bot.callback_room_topic(self.bot._rooms[room_name])
 
     @staticmethod
@@ -701,7 +754,7 @@ class IRCBackend(ErrBot):
         :returns:
             An instance of :class:`~IRCMUCRoom`.
         """
-        if room not in self._rooms.keys():
+        if room not in self._rooms:
             self._rooms[room] = IRCRoom(room, self)
         return self._rooms[room]
 
@@ -716,7 +769,7 @@ class IRCBackend(ErrBot):
         :returns:
             A list of :class:`~IRCMUCRoom` instances.
         """
-        return self._rooms
+        return self._rooms.values()
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)

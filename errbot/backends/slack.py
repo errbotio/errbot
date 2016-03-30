@@ -1,4 +1,5 @@
 import collections
+import hashlib
 import json
 import logging
 import re
@@ -460,12 +461,17 @@ class SlackBackend(ErrBot):
             log.debug('Message size: %d' % len(body))
 
             limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
-            parts = self.prepare_message_body(body, limit)
-
-            for part in parts:
+	    if len(body) > limit:
+                self.api_call('files.upload', data={
+                    'channels': [to_channel_id],
+                    'content': body,
+                    'filename': hashlib.sha224(body).hexdigest(),
+		    'filetype': 'text',
+                })
+            else:
                 self.api_call('chat.postMessage', data={
                     'channel': to_channel_id,
-                    'text': part,
+                    'text': body,
                     'unfurl_media': "true",
                     'as_user': "true",
                 })
@@ -480,42 +486,6 @@ class SlackBackend(ErrBot):
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         self.api_call('users.setPresence', data={'presence': 'auto' if status == ONLINE else 'away'})
-
-    @staticmethod
-    def prepare_message_body(body, size_limit):
-        """
-        Returns the parts of a message chunked and ready for sending.
-
-        This is a staticmethod for easier testing.
-
-        Args:
-            body (str)
-            size_limit (int): chunk the body into sizes capped at this maximum
-
-        Returns:
-            [str]
-
-        """
-        fixed_format = body.startswith('```')  # hack to fix the formatting
-        parts = list(split_string_after(body, size_limit))
-
-        if len(parts) == 1:
-            # If we've got an open fixed block, close it out
-            if parts[0].count('```') % 2 != 0:
-                parts[0] += '\n```\n'
-        else:
-            for i, part in enumerate(parts):
-                starts_with_code = part.startswith('```')
-
-                # If we're continuing a fixed block from the last part
-                if fixed_format and not starts_with_code:
-                    parts[i] = '```\n' + part
-
-                # If we've got an open fixed block, close it out
-                if part.count('```') % 2 != 0:
-                    parts[i] += '\n```\n'
-
-        return parts
 
     @staticmethod
     def extract_identifiers_from_string(text):

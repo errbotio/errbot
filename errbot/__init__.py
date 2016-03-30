@@ -55,10 +55,11 @@ def _tag_botcmd(func,
                 historize=True,
                 template=None,
                 _re=False,
-                pattern=None,          # re_cmd only
-                flags=0,               # re_cmd only
-                matchall=False,        # re_cmd_only
-                prefixed=True,         # re_cmd_only
+                syntax=None,         # botcmd_only
+                pattern=None,        # re_cmd only
+                flags=0,              # re_cmd only
+                matchall=False,      # re_cmd_only
+                prefixed=True,       # re_cmd_only
                 _arg=False,
                 command_parser=None):  # arg_cmd only
     """
@@ -72,6 +73,7 @@ def _tag_botcmd(func,
         func._err_command_admin_only = admin_only
         func._err_command_historize = historize
         func._err_command_template = template
+        func._err_command_syntax = syntax
 
         # re_cmd
         func._err_re_command = _re
@@ -79,11 +81,13 @@ def _tag_botcmd(func,
             func._err_command_re_pattern = re.compile(pattern, flags=flags)
             func._err_command_matchall = matchall
             func._err_command_prefix_required = prefixed
+            func._err_command_syntax = pattern
 
         # arg_cmd
         func._err_arg_command = _arg
         if _arg:
             func._err_command_parser = command_parser
+            # func._err_command_syntax is set at wrapping time.
     return func
 
 
@@ -93,7 +97,8 @@ def botcmd(*args,
            split_args_with: str='',
            admin_only: bool=False,
            historize: bool=True,
-           template: str=None) -> Callable[[BotPlugin, Message, Any], Any]:
+           template: str=None,
+           syntax: str=None) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for bot command functions
 
@@ -105,6 +110,7 @@ def botcmd(*args,
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
     :param template: The markdown template to use.
+    :param syntax: The argument syntax you expect for example: '[name] <mandatory>'.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into commands that can be given to the bot. These methods are
@@ -128,7 +134,8 @@ def botcmd(*args,
                            split_args_with=split_args_with,
                            admin_only=admin_only,
                            historize=historize,
-                           template=template)
+                           template=template,
+                           syntax=syntax)
     return decorator(args[0]) if args else decorator
 
 
@@ -305,6 +312,8 @@ def arg_botcmd(*args,
 
         wrapper._err_command_parser.add_argument(*args, **kwargs)
         wrapper.__doc__ = wrapper._err_command_parser.format_help()
+        format = wrapper._err_command_parser.format_usage()
+        wrapper._err_command_syntax = format[len('usage: ')+len(wrapper._err_command_parser.prog)+1:-1]
 
         return wrapper
 

@@ -15,10 +15,10 @@ Predicate = Callable[[Mapping[str, Any]], str]
 
 class FlowNode(object):
     """
-    This is a step in a Flow/conversation. It is linked a specific botcmd and also a "predicate".
+    This is a step in a Flow/conversation. It is linked to a specific botcmd and also a "predicate".
 
     The predicate is a function that tells the flow executor if the flow can enter the step without the user
-    intervention (automatically).
+    intervention (automatically). The predicates defaults to False.
 
     The predicate is a function that takes one parameter, the context of the conversation.
     """

@@ -463,7 +463,7 @@ class ErrBot(Backend, StoreMixin):
                 if reply:
                     self.send_simple_reply(mess, self.process_template(template_name, reply), private)
 
-            # The command is a success, check it this has not made a flow progressed
+            # The command is a success, check if this has not made a flow progressed
             self.flow_executor.trigger(cmd, mess.frm, mess.ctx)
 
         except CommandError as command_error:

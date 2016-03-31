@@ -24,7 +24,7 @@ class Flows(BotPlugin):
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def flows(self, mess, args):
+    def flows_list(self, mess, args):
         """ Displays the list of setup flows.
         """
         with io.StringIO() as response:
@@ -39,17 +39,19 @@ class Flows(BotPlugin):
             return response.getvalue()
 
     @botcmd(split_args_with=' ', syntax='<name> [initial_payload]')
-    def flows_start(self, mess, flow_name=None, json_payload=None):
+    def flows_start(self, mess, args):
         """ Manually start a flow within the context of the calling user.
         You can prefeed the flow data with a json payload.
         Example:
-             !flows start poll_setup {\"title\":\"yeah!\",\"options\":[\"foo\",\"bar\",\"baz\"]}
+             !flows start poll_setup {"title":"yeah!","options":["foo","bar","baz"]}
         """
-        if not flow_name:
+        if not args:
             return "You need to specify a flow to manually start"
 
         context = {}
-        if json_payload:
+        flow_name = args[0]
+        if len(args) > 1:
+            json_payload = ' '.join(args[1:])
             try:
                 context = json.loads(json_payload)
             except Exception as e:

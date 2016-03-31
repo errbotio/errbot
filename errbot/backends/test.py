@@ -430,7 +430,9 @@ class TestBot(object):
     def assertCommand(self, command, response, timeout=5):
         """Assert the given command returns the given response"""
         self.bot.push_message(command)
-        assert response in self.bot.pop_message(timeout)
+        msg = self.bot.pop_message(timeout)
+        if response not in msg:
+            raise Exception('"%s" not in "%s"' % (response, msg))
 
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command does not exist"""

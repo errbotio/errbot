@@ -235,18 +235,28 @@ class Message(object):
                  frm: Identifier=None,
                  to: Identifier=None,
                  delayed: bool=False,
-                 extras: Mapping=None):
+                 extras: Mapping=None,
+                 flow=None):
         """
         :param body:
             The plaintext body of the message.
         :param extras:
             Extra data attached by a backend
+        :param flow:
+            The flow in which this message has been triggered.
         """
         self._body = compat_str(body)
         self._from = frm
         self._to = to
         self._delayed = delayed
         self._extras = extras or dict()
+        self._flow = flow
+
+        # Convenience shortcut to the flow context
+        if flow:
+            self.ctx = flow.ctx
+        else:
+            self.ctx = {}
 
     def clone(self):
         return Message(self._body, self._from, self._to, self._delayed, self.extras)
@@ -317,6 +327,16 @@ class Message(object):
     @property
     def extras(self) -> Mapping:
         return self._extras
+
+    @property
+    def flow(self):
+        """
+        Get the conversation flow for this message.
+
+        :returns:
+            A :class:`~errbot.Flow`
+        """
+        return self._from
 
     def __str__(self):
         return self._body

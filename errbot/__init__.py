@@ -12,10 +12,12 @@ from .core_plugins.wsview import bottle_app, WebView
 from errbot.backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
 from .utils import compat_str
 from .utils import PY2, PY3  # noqa gbin: this is now used by plugins
-from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser  # noqa
+from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError  # noqa
+from .flow import FlowRoot, BotFlow, Flow
 from .core_plugins.wsview import route, view  # noqa
 
-__all__ = ['BotPlugin', 'webhook', 'webroute', 'webview', 'botcmd', 're_botcmd', 'arg_botcmd']
+__all__ = ['BotPlugin', 'CommandError', 'webhook', 'webroute', 'webview',
+           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow']
 
 log = logging.getLogger(__name__)
 
@@ -406,4 +408,20 @@ def cmdfilter(*args, **kwargs):
 
     if len(args):
         return decorate(args[0], **kwargs)
-    return lambda func: decorate(func, **kwargs)
+    return lambda func: decorate(func)
+
+
+def botflow(*args, **kwargs):
+    """
+    Decorator for flow of commands.
+
+    TODO(gbin): example / docs
+    """
+    def decorate(func):
+        if not hasattr(func, '_err_flow'):  # don't override generated functions
+            func._err_flow = True
+        return func
+
+    if len(args):
+        return decorate(args[0], **kwargs)
+    return lambda func: decorate(func)

@@ -152,11 +152,25 @@ class Flow(object):
         self._current_step = next_step
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Helper property to get the name of the flow.
         """
         return self._root.name
+
+    @property
+    def current_step(self) -> FlowNode:
+        """
+        The current step this Flow is waiting on.
+        """
+        return self._current_step
+
+    @property
+    def root(self) -> FlowRoot:
+        """
+        The original flowroot of this flow.
+        """
+        return self._root
 
     def __str__(self):
         return "%s (%s) with params %s" % (self._root, self.requestor, dict(self.ctx))

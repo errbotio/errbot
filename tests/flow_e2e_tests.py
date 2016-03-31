@@ -9,7 +9,7 @@ class TestCommands(FullStackTest):
 
     def test_list_flows(self):
         self.assertEqual(len(self.bot.flow_executor.flow_roots), 2)
-        self.bot.push_message('!flows')
+        self.bot.push_message('!flows list')
         result = self.bot.pop_message()
         self.assertIn('documentation of W1', result)
         self.assertIn('documentation of W2', result)

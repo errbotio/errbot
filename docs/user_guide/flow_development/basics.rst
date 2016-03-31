@@ -4,7 +4,7 @@ Basic Flow Definition
 Flows are like plugins
 ----------------------
 
-They are defined by a `.flow` file, similar to the plugin ones:
+They are defined by a ``.flow`` file, similar to the plugin ones:
 
 .. code-block:: ini
     [Core]
@@ -18,7 +18,7 @@ They are defined by a `.flow` file, similar to the plugin ones:
     Version = 2+
 
 
-Now in the `myflows.py` file you will have pretty familiar structure with a `BotFlow` as type and @botflow
+Now in the ``myflows.py`` file you will have pretty familiar structure with a ``BotFlow`` as type and @botflow
 as flow decorator:
 
 .. code-block:: python
@@ -51,30 +51,38 @@ For example to make a simple linear flow between !first, !second and !third:
         second_step = first_step.connect('second')
         third_step = second_step.connect('third')
 
-You can represent this flow like this::
+You can represent this flow like this:
 
-    O ⟶ !first ⟶ !second ⟶ !third
+.. figure::  basics_1.svg
+   :align:   center
 
-O is the state "not started" for the flow `example`.
 
-You can start this flow manually by doing `!flows start example`.
+O is the state "not started" for the flow ``example``.
 
-The bot will tell you that it expects a `!first` command.
+You can start this flow manually by doing ``!flows start example``.
 
-Once you have executed first, you will be in that state::
+The bot will tell you that it expects a ``!first`` command:
 
-    O ⟶ !first* ⟶ !second ⟶ !third
+.. figure::  basics_3.svg
+   :align:   center
 
-The bot will tell you that it expect `!second` etc.
+Once you have executed ``!first``, you will be in that state:
 
+.. figure::  basics_2.svg
+   :align:   center
+
+The bot will tell you that it expect ``!second`` etc.
+
+.. figure::  basics_4.svg
+   :align:   center
 
 Making a flow start automatically
 ---------------------------------
 
-Now, usually flows are linked to a first action you users want to do. For example: `!poll new`, `!vm create`,
-`!report init` or first commands like that that suggests that you will have a follow up.
+Now, usually flows are linked to a first action you users want to do. For example: ``!poll new``, ``!vm create``,
+``!report init`` or first commands like that that suggests that you will have a follow up.
 
-To trigger automatically a flow on those first commands you can use `auto_trigger`.
+To trigger automatically a flow on those first commands you can use ``auto_trigger``.
 
 .. code-block:: python
 
@@ -85,13 +93,15 @@ To trigger automatically a flow on those first commands you can use `auto_trigge
         third_step = second_step.connect('third')
 
 
-You can still represent this flow like this::
+You can still represent this flow like this:
 
-    O ⟶ !first ⟶ !second ⟶ !third
+.. figure::  basics_1.svg
+   :align:   center
 
-BUT, when a user will execute a `!first` command, the bot will instantly instanciate a Flow in this state::
+BUT, when a user will execute a ``!first`` command, the bot will instantly instanciate a Flow in this state:
 
-    O ⟶ !first* ⟶ !second ⟶ !third
+.. figure::  basics_2.svg
+   :align:   center
 
 And tell the user that !second is the follow up.
 

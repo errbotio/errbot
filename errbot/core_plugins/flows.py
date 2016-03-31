@@ -38,8 +38,7 @@ class Flows(BotPlugin):
                     response.write(name + ": " + flow.description + "\n")
             return response.getvalue()
 
-    @arg_botcmd('json_payload', type=str, nargs='?', default=None)
-    @arg_botcmd('flow_name', type=str)
+    @botcmd(split_args_with=' ', syntax='<name> [initial_payload]')
     def flows_start(self, mess, flow_name=None, json_payload=None):
         """ Manually start a flow within the context of the calling user.
         You can prefeed the flow data with a json payload.

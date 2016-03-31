@@ -7,6 +7,7 @@ Flows are like plugins
 They are defined by a ``.flow`` file, similar to the plugin ones:
 
 .. code-block:: ini
+
     [Core]
     Name = MyFlows.
     Module = myflows.py

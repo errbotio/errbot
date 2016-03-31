@@ -31,8 +31,8 @@ as flow decorator:
 
         @botflow
         def example(self, flow: FlowRoot):
-        """ Docs for the flow example comes here """
-        # [...]
+            """ Docs for the flow example comes here """
+            # [...]
 
 Errbot will pass the root of the flow as the only parameter to you flow definition so you can build your graph
 from there.

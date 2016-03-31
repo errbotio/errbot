@@ -29,7 +29,7 @@ class Flows(BotPlugin):
         """
         with io.StringIO() as response:
             if args:
-                flow = self._bot.flow_executor.flows.get(args, None)
+                flow = self._bot.flow_executor.flow_roots.get(args, None)
                 if flow is None:
                     return "Flow %s doesn't exist." % args
                 self.recurse_node(response, [], flow)

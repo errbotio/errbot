@@ -20,7 +20,7 @@ class Flows(BotPlugin):
             if flow and flow.current_step == f:
                 response.write('⤷ Start (_%s_)\n' % str(flow.requestor))
         else:
-            cmd = self._bot.commands[f.command]
+            cmd = self._bot.all_commands[f.command]
             requestor = '(_%s_)' % str(flow.requestor) if flow and flow.current_step == f else ''
             doc = cmd.__doc__ if flow else ''
             response.write('%s⤷**%s** %s %s\n' % ('\t' * len(stack), f, doc, requestor))

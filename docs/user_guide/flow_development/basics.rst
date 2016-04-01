@@ -106,3 +106,32 @@ BUT, when a user will execute a ``!first`` command, the bot will instantly insta
 
 And tell the user that !second is the follow up.
 
+Flow ending
+-----------
+
+If a node has no more children and a user passed it, it will automatically ends the flow.
+
+Sometimes, with loops etc, you might want to explicitely mark an END FlowNode with a predicate, you can do it like this,
+for example for a guessing game plugin:
+
+.. figure::  end.svg
+   :align:   center
+
+In the flow code...
+
+
+.. code-block:: python
+
+    from errbot import botflow, FlowRoot, BotFlow, FLOW_END
+
+    class GuessFlows(BotFlow):
+        """ Conversation flows related to polls"""
+
+        @botflow
+        def guess(self, flow: FlowRoot):
+            """ This is a flow that can set a guessing game."""
+            # setup Flow
+            game_created = flow.connect('tryme', auto_trigger=True)
+            one_guess = game_created.connect('guessing')
+            one_guess.connect(one_guess)  # loop on itself
+            one_guess.connect(FLOW_END, predicate=lambda ctx: ctx['ended'])

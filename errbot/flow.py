@@ -97,6 +97,14 @@ class FlowRoot(FlowNode):
         return self.name
 
 
+class _FlowEnd(FlowNode):
+    def __str__(self):
+        return 'END'
+
+#: Flow marker indicating that the flow ends.
+FLOW_END = _FlowEnd()
+
+
 class InvalidState(Exception):
     """
     Raised when the Flow Executor is asked to do something contrary to the contraints it has been given.
@@ -320,6 +328,8 @@ class FlowExecutor(object):
 
             if not steps:
                 log.debug("Flow ended correctly.Nothing left to do.")
+                with self._lock:
+                    self.in_flight.remove(flow)
                 break
 
             if not autosteps:
@@ -338,6 +348,11 @@ class FlowExecutor(object):
 
             for autostep in autosteps:
                 log.debug("Proceeding automatically with step %s", autostep)
+                if autostep == FLOW_END:
+                    log.debug('This flow ENDED.')
+                    with self._lock:
+                        self.in_flight.remove(flow)
+                    return
                 try:
                     msg = Message(frm=flow.requestor, flow=flow)
                     result = self._bot.commands[autostep.command](msg, None)

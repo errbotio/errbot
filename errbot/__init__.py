@@ -169,7 +169,7 @@ def re_botcmd(*args,
     :param admin_only: Only allow the command to be executed by admins when `True`.
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
-    :param template: The template to use when using XHTML-IM output
+    :param template: The template to use when using markdown output
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into commands that can be given to the bot. These methods are
@@ -225,7 +225,7 @@ def arg_botcmd(*args,
     :param admin_only: Only allow the command to be executed by admins when `True`.
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
-    :param template: The template to use when using XHTML-IM output
+    :param template: The template to use when using markdown output
     :param unpack_args: Should the argparser arguments be "unpacked" and passed on the the bot
         command individually? If this is True (the default) you must define all arguments in the
         function separately. If this is False you must define a single argument `args` (or

@@ -50,12 +50,13 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 def _tag_botcmd(func,
-                hidden=False,
+                hidden=None,
                 name=None,
                 split_args_with='',
                 admin_only=False,
                 historize=True,
                 template=None,
+                flow_only=False,
                 _re=False,
                 syntax=None,         # botcmd_only
                 pattern=None,        # re_cmd only
@@ -69,13 +70,14 @@ def _tag_botcmd(func,
     """
     if not hasattr(func, '_err_command'):  # don't override generated functions
         func._err_command = True
-        func._err_command_hidden = hidden
         func._err_command_name = name or func.__name__
         func._err_command_split_args_with = split_args_with
         func._err_command_admin_only = admin_only
         func._err_command_historize = historize
         func._err_command_template = template
         func._err_command_syntax = syntax
+        func._err_command_flow_only = flow_only
+        func._err_command_hidden = hidden if hidden is not None else flow_only
 
         # re_cmd
         func._err_re_command = _re
@@ -94,12 +96,13 @@ def _tag_botcmd(func,
 
 
 def botcmd(*args,
-           hidden: bool=False,
+           hidden: bool=None,
            name: str=None,
            split_args_with: str='',
            admin_only: bool=False,
            historize: bool=True,
            template: str=None,
+           flow_only: bool=False,
            syntax: str=None) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for bot command functions
@@ -113,6 +116,8 @@ def botcmd(*args,
         by default.
     :param template: The markdown template to use.
     :param syntax: The argument syntax you expect for example: '[name] <mandatory>'.
+    :param flow_only: Flag this command to be available only when it is part of a flow.
+                       If True and hidden is None, it will switch hidden to True.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into commands that can be given to the bot. These methods are
@@ -137,12 +142,13 @@ def botcmd(*args,
                            admin_only=admin_only,
                            historize=historize,
                            template=template,
-                           syntax=syntax)
+                           syntax=syntax,
+                           flow_only=flow_only)
     return decorator(args[0]) if args else decorator
 
 
 def re_botcmd(*args,
-              hidden: bool=False,
+              hidden: bool=None,
               name: str=None,
               admin_only: bool=False,
               historize: bool=True,
@@ -150,7 +156,8 @@ def re_botcmd(*args,
               pattern: str=None,
               flags: int=0,
               matchall: bool=False,
-              prefixed: bool=True) -> Callable[[BotPlugin, Message, Any], Any]:
+              prefixed: bool=True,
+              flow_only: bool=False) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for regex-based bot command functions
 
@@ -170,6 +177,8 @@ def re_botcmd(*args,
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
     :param template: The template to use when using markdown output
+    :param flow_only: Flag this command to be available only when it is part of a flow.
+                       If True and hidden is None, it will switch hidden to True.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into commands that can be given to the bot. These methods are
@@ -196,16 +205,18 @@ def re_botcmd(*args,
                            pattern=pattern,
                            flags=flags,
                            matchall=matchall,
-                           prefixed=prefixed)
+                           prefixed=prefixed,
+                           flow_only=flow_only)
     return decorator(args[0]) if args else decorator
 
 
 def arg_botcmd(*args,
-               hidden: bool=False,
+               hidden: bool=None,
                name: str=None,
                admin_only: bool=False,
                historize: bool=True,
                template: str=None,
+               flow_only: bool=False,
                unpack_args: bool=True,
                **kwargs) -> Callable[[BotPlugin, Message, Any], Any]:
     """
@@ -226,6 +237,8 @@ def arg_botcmd(*args,
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
     :param template: The template to use when using markdown output
+    :param flow_only: Flag this command to be available only when it is part of a flow.
+                       If True and hidden is None, it will switch hidden to True.
     :param unpack_args: Should the argparser arguments be "unpacked" and passed on the the bot
         command individually? If this is True (the default) you must define all arguments in the
         function separately. If this is False you must define a single argument `args` (or
@@ -306,6 +319,7 @@ def arg_botcmd(*args,
                         admin_only=admin_only,
                         historize=historize,
                         template=template,
+                        flow_only=flow_only,
                         command_parser=err_command_parser)
         else:
             # the function has already been wrapped

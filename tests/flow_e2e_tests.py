@@ -1,4 +1,6 @@
 from os import path
+from queue import Empty
+
 from errbot.backends.test import FullStackTest
 
 
@@ -59,3 +61,14 @@ class TestCommands(FullStackTest):
         flow_message = self.bot.pop_message()
         self.assertIn('You are in the flow w1', flow_message)
         self.assertEqual(len(self.bot.flow_executor.in_flight), 1)
+
+    def test_flow_only(self):
+        self.assertCommand('!a', 'a')  # non flow_only should respond.
+        self.bot.push_message('!d')
+        self.assertRaises(Empty, self.bot.pop_message)
+
+    def test_flow_only_help(self):
+        self.bot.push_message('!help')
+        msg = self.bot.pop_message()
+        self.assertIn('!a', msg)  # non flow_only should be in help by default
+        self.assertNotIn('!d', msg)  # flow_only should not be in help by default

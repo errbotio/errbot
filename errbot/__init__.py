@@ -200,6 +200,51 @@ def re_botcmd(*args,
     return decorator(args[0]) if args else decorator
 
 
+def botmatch(*args, **kwargs):
+    """
+    Decorator for regex-based message match.
+
+    :param *args: The regular expression a message should match against in order to
+                   trigger the command.
+    :param flags: The `flags` parameter which should be passed to :func:`re.compile()`. This
+        allows the expression's behaviour to be modified, such as making it case-insensitive
+        for example.
+    :param matchall: By default, only the first match of the regular expression is returned
+        (as a `re.MatchObject`). When *matchall* is `True`, all non-overlapping matches are
+        returned (as a list of `re.MatchObject` items).
+    :param hidden: Prevents the command from being shown by the built-in help command when `True`.
+    :param name: The name to give to the command. Defaults to name of the function itself.
+    :param admin_only: Only allow the command to be executed by admins when `True`.
+    :param historize: Store the command in the history list (`!history`). This is enabled
+        by default.
+    :param template: The template to use when using Markdown output.
+
+    For example::
+
+        @botmatch(r'^(?:Yes|No)$')
+        def yes_or_no(self, msg, match):
+            pass
+    """
+    def decorator(func, pattern):
+        return _tag_botcmd(func,
+                           _re=True,
+                           _arg=False,
+                           prefixed=False,
+                           hidden=kwargs.get('hidden', False),
+                           name=kwargs.get('name', func.__name__),
+                           admin_only=kwargs.get('admin_only', False),
+                           historize=kwargs.get('historize', True),
+                           template=kwargs.get('template', None),
+                           pattern=pattern,
+                           flags=kwargs.get('flags', 0),
+                           matchall=kwargs.get('matchall', False))
+    if len(args) == 2:
+        return decorator(*args)
+    if len(args) == 1:
+        return lambda f: decorator(f, args[0])
+    raise ValueError("botmatch: You need to pass the pattern as parameter to the decorator.")
+
+
 def arg_botcmd(*args,
                hidden: bool=False,
                name: str=None,

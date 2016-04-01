@@ -83,33 +83,6 @@ class SlackTests(unittest.TestCase):
 
         self.assertEqual(msg.extras['attachments'], [attachment])
 
-    def testPrepareMessageBody(self):
-        test_body = """
-        hey, this is some code:
-            ```
-            foobar
-            ```
-        """
-        parts = self.slack.prepare_message_body(test_body, 10000)
-        assert parts == [test_body]
-
-        test_body = """this block is unclosed: ``` foobar """
-        parts = self.slack.prepare_message_body(test_body, 10000)
-        assert parts == [test_body + "\n```\n"]
-
-        test_body = """``` foobar """
-        parts = self.slack.prepare_message_body(test_body, 10000)
-        assert parts == [test_body + "\n```\n"]
-
-        test_body = """closed ``` foobar ``` not closed ```"""
-        # ---------------------------------^ 21st char
-        parts = self.slack.prepare_message_body(test_body, 21)
-        assert len(parts) == 2
-        assert parts[0].count('```') == 2
-        assert parts[0].endswith('```')
-        assert parts[1].count('```') == 2
-        assert parts[1].endswith('```\n')
-
     def test_extract_identifiers(self):
         extract_from = self.slack.extract_identifiers_from_string
 

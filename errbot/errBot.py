@@ -452,6 +452,10 @@ class ErrBot(Backend, StoreMixin):
             if flow:
                 log.debug("Reattach context from flow %s to the message", flow._root.name)
                 mess.ctx = flow.ctx
+            elif commands[cmd]._err_command_flow_only:
+                # check if it is a flow_only command but we are not in a flow.
+                log.debug("%s is tagged flow_only and we are not in a flow. Ignores the command.", cmd)
+                return
 
             if inspect.isgeneratorfunction(commands[cmd]):
                 replies = commands[cmd](mess, match) if match else commands[cmd](mess, args)

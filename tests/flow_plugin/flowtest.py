@@ -18,7 +18,7 @@ class FlowTest(BotPlugin):
     def c(self, msg, args):
         return 'c'
 
-    @botcmd
+    @botcmd(flow_only=True)
     def d(self, msg, args):
         return 'd'
 

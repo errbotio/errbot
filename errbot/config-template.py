@@ -366,5 +366,8 @@ REVERSE_CHATROOM_RELAY = {}
 # Disables table borders (IRC only for now). You can reenable them switching that to  False
 # COMPACT_OUTPUT = True
 
+# Disables the logging output in Text mode and only outputs Ansi.
+# TEXT_DEMO_MODE = False
+
 # Prevent ErrBot from saying anything if the command is unrecognized.
 # SUPPRESS_CMD_NOT_FOUND = False

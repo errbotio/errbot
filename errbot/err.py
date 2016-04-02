@@ -225,9 +225,11 @@ def main():
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).
 
-    log.info("Checking for '%s'..." % config.BOT_DATA_DIR)
+    log.info("Checking whether the bot data directory exists (at '%s')...", config.BOT_DATA_DIR)
     if not path.exists(config.BOT_DATA_DIR):
-        raise Exception("The data directory '%s' for the bot does not exist" % config.BOT_DATA_DIR)
+        log.info("The bot data directory doesn't exist, I will attempt to create it")
+        os.makedirs(config.BOT_DATA_DIR, mode=0o700)
+        log.info("Data directory successfully created")
     if not access(config.BOT_DATA_DIR, W_OK):
         raise Exception("The data directory '%s' should be writable for the bot" % config.BOT_DATA_DIR)
 

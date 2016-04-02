@@ -65,7 +65,7 @@ class TestCommands(FullStackTest):
     def test_flow_only(self):
         self.assertCommand('!a', 'a')  # non flow_only should respond.
         self.bot.push_message('!d')
-        self.assertRaises(Empty, self.bot.pop_message)
+        self.assertRaises(Empty, self.bot.pop_message, timeout=1)
 
     def test_flow_only_help(self):
         self.bot.push_message('!help')

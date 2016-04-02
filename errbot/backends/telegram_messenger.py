@@ -1,6 +1,7 @@
 import logging
 import sys
 
+from errbot import PY2
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, ONLINE, Room
 from errbot.errBot import ErrBot
 from errbot.rendering import text
@@ -10,6 +11,7 @@ from errbot.rendering import text
 log = logging.getLogger('errbot.backends.telegram')
 
 TELEGRAM_MESSAGE_SIZE_LIMIT = 1024
+UPDATES_OFFSET_KEY = b'_telegram_updates_offset' if PY2 else '_telegram_updates_offset'
 
 try:
     import telegram
@@ -211,7 +213,7 @@ class TelegramBackend(ErrBot):
         self.connect_callback()
 
         try:
-            offset = self['_telegram_updates_offset']
+            offset = self[UPDATES_OFFSET_KEY]
         except KeyError:
             offset = 0
 
@@ -220,7 +222,7 @@ class TelegramBackend(ErrBot):
                 log.debug("Getting updates with offset %s", offset)
                 for update in self.telegram.getUpdates(offset=offset, timeout=60):
                     offset = update.update_id + 1
-                    self['_telegram_updates_offset'] = offset
+                    self[UPDATES_OFFSET_KEY] = offset
                     log.debug("Processing update: %s", update)
                     if not hasattr(update, 'message'):
                         log.warning("Unknown update type (no message present)")

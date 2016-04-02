@@ -303,3 +303,6 @@ class TestCommands(FullStackTest):
 
         # Now reset our state so we don't bork the other tests
         self.bot.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT = prefix_optional
+
+    def test_simple_match(self):
+        self.assertCommand('match this', 'bar')

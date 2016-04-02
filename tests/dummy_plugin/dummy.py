@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from errbot import BotPlugin, botcmd, re_botcmd
+from errbot import BotPlugin, botcmd, re_botcmd, botmatch
 
 
 class DummyTest(BotPlugin):
@@ -12,5 +12,10 @@ class DummyTest(BotPlugin):
 
     @re_botcmd(pattern=r"plz dont match this")
     def re_foo(self, msg, match):
+        """This runs re_foo."""
+        return 'bar'
+
+    @botmatch(r"match this")
+    def re_bar(self, msg, match):
         """This runs re_foo."""
         return 'bar'

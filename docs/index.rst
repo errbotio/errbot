@@ -1,7 +1,7 @@
 Errbot
 ======
 
-*Errbot is a chatbot, a daemon that connects to your favorite chat service and bring
+*Errbot is a chatbot, a daemon that connects to your favorite chat service and brings
 your tools into the conversation.*
 
 The goal of the project is to make it easy for you to write your own plugins so you 

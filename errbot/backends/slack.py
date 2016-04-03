@@ -193,7 +193,8 @@ class SlackBackend(ErrBot):
             )
             sys.exit(1)
         self.sc = None  # Will be initialized in serve_once
-        self.md = slack_markdown_converter()
+        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
+        self.md = slack_markdown_converter(compact)
 
     def api_call(self, method, data=None, raise_errors=True):
         """

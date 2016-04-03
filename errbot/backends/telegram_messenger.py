@@ -5,6 +5,7 @@ from errbot import PY2
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, ONLINE, Room
 from errbot.errBot import ErrBot
 from errbot.rendering import text
+from errbot.rendering.ansi import enable_format, TEXT_CHRS
 
 
 # Can't use __name__ because of Yapsy
@@ -190,6 +191,9 @@ class TelegramBackend(ErrBot):
             sys.exit(1)
         self.telegram = None  # Will be initialized in serve_once
         self.bot_instance = None  # Will be set in serve_once
+
+        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
+        enable_format('text', TEXT_CHRS, borders=not compact)
         self.md_converter = text()
 
     def serve_once(self):

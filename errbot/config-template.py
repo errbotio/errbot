@@ -363,7 +363,7 @@ REVERSE_CHATROOM_RELAY = {}
 # Allow messages sent in a chatroom to be directed at requester.
 #GROUPCHAT_NICK_PREFIXED = False
 
-# Disables table borders (IRC only for now). You can reenable them switching that to  False
+# Disable table borders, making output more compact (supported only on IRC and Telegram currently).
 # COMPACT_OUTPUT = True
 
 # Disables the logging output in Text mode and only outputs Ansi.

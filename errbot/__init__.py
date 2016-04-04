@@ -228,6 +228,8 @@ def botmatch(*args, **kwargs):
     :param historize: Store the command in the history list (`!history`). This is enabled
         by default.
     :param template: The template to use when using Markdown output.
+    :param flow_only: Flag this command to be available only when it is part of a flow.
+                       If True and hidden is None, it will switch hidden to True.
 
     For example::
 
@@ -240,9 +242,10 @@ def botmatch(*args, **kwargs):
                            _re=True,
                            _arg=False,
                            prefixed=False,
-                           hidden=kwargs.get('hidden', False),
+                           hidden=kwargs.get('hidden', None),
                            name=kwargs.get('name', func.__name__),
                            admin_only=kwargs.get('admin_only', False),
+                           flow_only=kwargs.get('flow_only', False),
                            historize=kwargs.get('historize', True),
                            template=kwargs.get('template', None),
                            pattern=pattern,

@@ -112,7 +112,7 @@ if __name__ == "__main__":
     setup(
         name="errbot",
         version=VERSION,
-        packages=find_packages(src_root, exclude=['tests', 'tools']),
+        packages=find_packages(src_root, exclude=['tests', 'tests.*', 'tools']),
         entry_points={
             'console_scripts': [
                 'errbot = errbot.err:main',

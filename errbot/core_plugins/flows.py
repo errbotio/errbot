@@ -88,3 +88,35 @@ class Flows(BotPlugin):
                     for flow in self._bot.flow_executor.in_flight:
                         response.write('**' + flow.name + "** " + str(flow.requestor) + '\n')
             return response.getvalue()
+
+    @botcmd(syntax='[flow_name]')
+    def flows_stop(self, mess, args):
+        """ Stop flows you are in.
+        optionally, stop a specific flow you are in.
+        """
+        if args:
+            flow = self._bot.flow_executor.stop_flow(args, mess.frm)
+            if flow:
+                yield flow.name + ' stopped.'
+                return
+            yield 'Flow not found.'
+            return
+
+        one_stopped = False
+        for flow in self._bot.flow_executor.in_flight:
+            if flow.requestor == mess.frm:
+                flow = self._bot.flow_executor.stop_flow(flow.name, mess.frm)
+                if flow:
+                    one_stopped = True
+                    yield flow.name + ' stopped.'
+        if not one_stopped:
+            yield 'No Flow found.'
+
+    @arg_botcmd('flow_name', type=str)
+    @arg_botcmd('user', type=str)
+    def flows_kill(self, _, user, flow_name):
+        """ Admin command to kill a specific flow."""
+        flow = self._bot.flow_executor.stop_flow(flow_name, self.build_identifier(user))
+        if flow:
+            return flow.name + ' killed.'
+        return 'Flow not found.'

@@ -1,10 +1,13 @@
 from os import path
 from queue import Empty
 
+from flaky import flaky
+
 from errbot.backends.test import FullStackTest
 
 
-class TestCommands(FullStackTest):
+@flaky
+class TestFlowCommands(FullStackTest):
     def setUp(self, *args, **kwargs):
         kwargs['extra_plugin_dir'] = path.join(path.dirname(path.realpath(__file__)), 'flow_plugin')
         super().setUp(*args, **kwargs)
@@ -75,3 +78,16 @@ class TestCommands(FullStackTest):
         msg = self.bot.pop_message()
         self.assertIn('!a', msg)  # non flow_only should be in help by default
         self.assertNotIn('!d', msg)  # flow_only should not be in help by default
+
+    def test_flows_stop(self):
+        self.assertCommand('!c', 'c')
+        flow_message = self.bot.pop_message()
+        self.assertIn('You are in the flow w2', flow_message)
+        self.assertCommand('!flows stop w2', 'w2 stopped')
+        self.assertEqual(len(self.bot.flow_executor.in_flight), 0)
+
+    def test_flows_kill(self):
+        self.assertCommand('!c', 'c')
+        flow_message = self.bot.pop_message()
+        self.assertIn('You are in the flow w2', flow_message)
+        self.assertCommand('!flows kill gbin@localhost w2', 'w2 killed')

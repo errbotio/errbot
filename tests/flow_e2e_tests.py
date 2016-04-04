@@ -50,9 +50,12 @@ class TestCommands(FullStackTest):
         self.assertIn('!c', flow_message)
 
     def test_no_flyby_trigger_flow(self):
-        self.assertCommand('!flows start w1', 'Flow w1 started')
+        self.bot.push_message('!flows start w1')
+        # One message or the other can arrive first.
         flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w1', flow_message)
+        self.assertTrue('Flow w1 started' in flow_message or 'You are in the flow w1' in flow_message)
+        flow_message = self.bot.pop_message()
+        self.assertTrue('Flow w1 started' in flow_message or 'You are in the flow w1' in flow_message)
         self.assertCommand('!a', 'a')
         flow_message = self.bot.pop_message()
         self.assertIn('You are in the flow w1', flow_message)

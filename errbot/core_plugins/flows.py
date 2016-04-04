@@ -40,7 +40,7 @@ class Flows(BotPlugin):
                 self.recurse_node(response, [], flow_node)
             else:
                 for name, flow_node in self._bot.flow_executor.flow_roots.items():
-                    response.write("**" + name + "** " + flow_node.description + "\n")
+                    response.write("- **" + name + "** " + flow_node.description + "\n")
             return response.getvalue()
 
     @botcmd(split_args_with=' ', syntax='<name> [initial_payload]')

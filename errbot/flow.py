@@ -312,6 +312,19 @@ class FlowExecutor(object):
         self._enqueue_flow(flow)
         return flow
 
+    def stop_flow(self, name: str, requestor: Identifier) -> Flow:
+        """
+        Stops a specific flow. It is a no op if the flow doesn't exist.
+        Returns the stopped flow if found.
+        """
+        with self._lock:
+            for flow in self.in_flight:
+                if flow.name == name and flow.requestor == requestor:
+                    log.debug("Removing flow %s." % str(flow))
+                    self.in_flight.remove(flow)
+                    return flow
+        return None
+
     def _enqueue_flow(self, flow):
         with self._lock:
             if flow not in self.in_flight:

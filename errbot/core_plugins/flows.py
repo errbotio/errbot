@@ -12,7 +12,7 @@ class Flows(BotPlugin):
 
     def recurse_node(self, response: io.StringIO, stack, f: FlowNode, flow: Flow=None):
         if f in stack:
-            response.write('%s⥀\n' % ('\t' * len(stack)))
+            response.write('%s⥀\n' % ('&emsp;' * len(stack)))
             return
         if isinstance(f, FlowRoot):
             doc = f.description if flow else ''
@@ -23,7 +23,7 @@ class Flows(BotPlugin):
             cmd = 'END' if f is FLOW_END else self._bot.all_commands[f.command]
             requestor = '(_%s_)' % str(flow.requestor) if flow and flow.current_step == f else ''
             doc = cmd.__doc__ if flow and f is not FLOW_END else ''
-            response.write('%s⤷**%s** %s %s\n' % ('\t' * len(stack), f if f is not FLOW_END else 'END', doc, requestor))
+            response.write('%s⤷**%s** %s %s\n' % ('&emsp;' * len(stack), f if f is not FLOW_END else 'END', doc, requestor))
         for _, sf in f.children:
             self.recurse_node(response, stack + [f], sf, flow)
 

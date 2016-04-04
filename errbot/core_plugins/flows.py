@@ -27,20 +27,27 @@ class Flows(BotPlugin):
         for _, sf in f.children:
             self.recurse_node(response, stack + [f], sf, flow)
 
+    @botcmd(syntax='<name>')
+    def flows_show(self, _, args):
+        """ Shows the structure of a flow.
+        """
+        if not args:
+            return "You need to specify a flow name."
+        with io.StringIO() as response:
+            flow_node = self._bot.flow_executor.flow_roots.get(args, None)
+            if flow_node is None:
+                return "Flow %s doesn't exist." % args
+            self.recurse_node(response, [], flow_node)
+            return response.getvalue()
+
     # noinspection PyUnusedLocal
-    @botcmd(admin_only=True)
+    @botcmd
     def flows_list(self, mess, args):
         """ Displays the list of setup flows.
         """
         with io.StringIO() as response:
-            if args:
-                flow_node = self._bot.flow_executor.flow_roots.get(args, None)
-                if flow_node is None:
-                    return "Flow %s doesn't exist." % args
-                self.recurse_node(response, [], flow_node)
-            else:
-                for name, flow_node in self._bot.flow_executor.flow_roots.items():
-                    response.write("- **" + name + "** " + flow_node.description + "\n")
+            for name, flow_node in self._bot.flow_executor.flow_roots.items():
+                response.write("- **" + name + "** " + flow_node.description + "\n")
             return response.getvalue()
 
     @botcmd(split_args_with=' ', syntax='<name> [initial_payload]')

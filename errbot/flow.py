@@ -254,6 +254,17 @@ class FlowExecutor(object):
         self._enqueue_flow(flow)
         return flow
 
+    def check_inflight_already_running(self, user: Identifier) -> bool:
+        """
+            Check if user is already running a flow.
+        :param user: the user
+        """
+        with self._lock:
+            for flow in self.in_flight:
+                if flow.requestor == user:
+                    return True
+        return False
+
     def check_inflight_flow_triggered(self, cmd: str, user: Identifier) -> Tuple[Flow, FlowNode]:
         """
         Check if a command from a specific user was expected in one of the running flow.
@@ -284,7 +295,7 @@ class FlowExecutor(object):
         log.debug("Test if the command %s is an auto-trigger for any flow ...",  cmd)
         with self._lock:
             for name, flow_root in self.flow_roots.items():
-                if cmd in flow_root.auto_triggers:
+                if cmd in flow_root.auto_triggers and not self.check_inflight_already_running(user):
                     log.debug("Flow %s has been auto-triggered by the command %s by user %s", name, cmd, user)
                     return self._create_new_flow(flow_root, user, cmd)
         return None, None
@@ -308,6 +319,8 @@ class FlowExecutor(object):
         """
         if name not in self.flow_roots:
             raise ValueError("Flow %s doesn't exist" % name)
+        if self.check_inflight_already_running(requestor):
+            raise ValueError("User %s is already running a flow." % str(requestor))
         flow = Flow(self.flow_roots[name], requestor, initial_context)
         self._enqueue_flow(flow)
         return flow

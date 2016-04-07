@@ -33,6 +33,14 @@ class TestFlowCommands(FullStackTest):
         self.assertEqual(len(self.bot.flow_executor.in_flight), 1)
         self.assertEqual(self.bot.flow_executor.in_flight[0].name, 'w2')
 
+    def test_no_duplicate_autotrigger(self):
+        self.assertCommand('!c', 'c')
+        flow_message = self.bot.pop_message()
+        self.assertIn('You are in the flow w2, you can continue with', flow_message)
+        self.assertCommand('!c', 'c')
+        self.assertEqual(len(self.bot.flow_executor.in_flight), 1)
+        self.assertEqual(self.bot.flow_executor.in_flight[0].name, 'w2')
+
     def test_secondary_autotrigger(self):
         self.assertCommand('!e', 'e')
         second_message = self.bot.pop_message()

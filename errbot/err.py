@@ -83,7 +83,7 @@ if not ON_WINDOWS:
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
-logger = logging.getLogger('')
+logger = logging.getLogger()
 logging.getLogger('yapsy').setLevel(logging.INFO)  # this one is way too verbose in debug
 logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one is way too verbose in debug
 logger.setLevel(logging.INFO)

@@ -49,13 +49,7 @@ def setup_bot(backend_name, logger, config, restore=None):
 
     logger.setLevel(config.BOT_LOG_LEVEL)
 
-    # init the storage plugin
-    storage_name = getattr(config, 'STORAGE', 'Shelf')
-    extra_storage_plugins_dir = getattr(config, 'BOT_EXTRA_STORAGE_PLUGINS_DIR', None)
-    spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, extra_storage_plugins_dir)
-    storage_pluginfo = spm.get_candidate(storage_name)
-    log.info("Found Storage plugin: '%s'\nDescription: %s" % (storage_pluginfo.name, storage_pluginfo.description))
-    storage_plugin = spm.get_plugin_by_name(storage_name)
+    storage_plugin = get_storage_plugin(config)
 
     # init the botplugin manager
     botplugins_dir = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
@@ -110,6 +104,21 @@ def setup_bot(backend_name, logger, config, restore=None):
         log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
         bot._plugin_errors_during_startup = "\n".join(errors.values())
     return bot
+
+
+def get_storage_plugin(config):
+    """
+    Find and load the storage plugin
+    :param config: the bot configuration.
+    :return: the storage plugin
+    """
+    storage_name = getattr(config, 'STORAGE', 'Shelf')
+    extra_storage_plugins_dir = getattr(config, 'BOT_EXTRA_STORAGE_PLUGINS_DIR', None)
+    spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, extra_storage_plugins_dir)
+    storage_pluginfo = spm.get_candidate(storage_name)
+    log.info("Found Storage plugin: '%s'\nDescription: %s" % (storage_pluginfo.name, storage_pluginfo.description))
+    storage_plugin = spm.get_plugin_by_name(storage_name)
+    return storage_plugin
 
 
 def bpm_from_config(config):

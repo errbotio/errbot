@@ -22,8 +22,8 @@ import logging
 import argparse
 from os import path, sep, getcwd, access, W_OK
 from platform import system
-from .plugin_wizard import new_plugin_wizard
-from .version import VERSION
+from errbot.plugin_wizard import new_plugin_wizard
+from errbot.version import VERSION
 
 PY3 = sys.version_info[0] == 3
 PY2 = not PY3
@@ -57,7 +57,7 @@ log = logging.getLogger(__name__)
 def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
-    d = {'_frame': frame}  # Allow access to frame object.
+    d = {'_frame': frame}  # import sys Allow access to frame object.
     d.update(frame.f_globals)  # Unless shadowed by global
     d.update(frame.f_locals)
 
@@ -146,6 +146,15 @@ def get_config(config_path):
     return config
 
 
+def _read_dict():
+    import collections
+    new_dict = eval(sys.stdin.read())
+    if not isinstance(new_dict, collections.Mapping):
+        raise ValueError("A dictionary written in python is needed from stdin. Type=%s, Value = %s" % (type(new_dict),
+                                                                                                       repr(new_dict)))
+    return new_dict
+
+
 def main():
 
     execution_dir = getcwd()
@@ -165,6 +174,16 @@ def main():
     mode_selection.add_argument('-l', '--list', action='store_true', help='list all available backends')
     mode_selection.add_argument('--new-plugin', nargs='?', default=None, const='current_dir',
                                 help='create a new plugin in the specified directory')
+    # storage manipulation
+    mode_selection.add_argument('--storage-set', nargs=1, help='DANGER: Delete the given storage namespace '
+                                                               'and set the python dictionary expression '
+                                                               'passed on stdin.')
+    mode_selection.add_argument('--storage-merge', nargs=1, help='DANGER: Merge in the python dictionary expression '
+                                                                 'passed on stdin into the given storage namespace.')
+    mode_selection.add_argument('--storage-get', nargs=1, help='Dumps the given storage namespace in a '
+                                                               'format compatible for --storage-set and '
+                                                               '--storage-merge.')
+
     mode_selection.add_argument('-T', '--text', dest="backend", action='store_const', const="Text",
                                 help='force local text backend')
     mode_selection.add_argument('-G', '--graphic', dest="backend", action='store_const', const="Graphic",
@@ -209,6 +228,38 @@ def main():
         for backend_name in enumerate_backends(config):
             print('\t\t%s' % backend_name)
         sys.exit(0)
+
+    def storage_action(namespace, fn):
+        # Used to defer imports until it is really necessary during the loading time.
+        from errbot.main import get_storage_plugin
+        from errbot.storage import StoreMixin
+        try:
+            with StoreMixin() as sdm:
+                sdm.open_storage(get_storage_plugin(config), namespace)
+                fn(sdm)
+            return 0
+        except Exception as e:
+            print(str(e), file=sys.stderr)
+            return -3
+
+    if args['storage_get']:
+        err_value = storage_action(args['storage_get'][0], lambda sdm: print(repr(dict(sdm))))
+        sys.exit(err_value)
+
+    if args['storage_set']:
+        def replace(sdm):
+            new_dict = _read_dict()  # fail early and don't erase the storage if the input is invalid.
+            sdm.clear()
+            sdm.update(new_dict)
+        err_value = storage_action(args['storage_set'][0], replace)
+        sys.exit(err_value)
+
+    if args['storage_merge']:
+        def merge(sdm):
+            new_dict = _read_dict()
+            sdm.update(new_dict)
+        err_value = storage_action(args['storage_merge'][0], merge)
+        sys.exit(err_value)
 
     if args['restore']:
         backend = 'Null'  # we don't want any backend when we restore

@@ -180,7 +180,7 @@ def main():
                                                                'passed on stdin.')
     mode_selection.add_argument('--storage-merge', nargs=1, help='DANGER: Merge in the python dictionary expression '
                                                                  'passed on stdin into the given storage namespace.')
-    mode_selection.add_argument('--storage-get', nargs=1, help='Dumps the given storage namespace in a '
+    mode_selection.add_argument('--storage-get', nargs=1, help='Dump the given storage namespace in a '
                                                                'format compatible for --storage-set and '
                                                                '--storage-merge.')
 

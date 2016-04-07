@@ -3,6 +3,8 @@ from typing import Any
 import shelve
 import os
 
+import shutil
+
 from errbot.storage.base import StorageBase, StoragePluginBase
 
 log = logging.getLogger('errbot.storage.shelf')
@@ -43,4 +45,15 @@ class ShelfStoragePlugin(StoragePluginBase):
 
     def open(self, namespace: str) -> StorageBase:
         config = self._storage_config
-        return ShelfStorage(os.path.join(config['basedir'], namespace + '.db'))
+        # Hack to port move old DBs to the new location.
+        new_spot = os.path.join(config['basedir'], namespace + '.db')
+        old_spot = os.path.join(config['basedir'], 'plugins', namespace + '.db')
+        if os.path.isfile(old_spot):
+            if os.path.isfile(new_spot):
+                log.warn('You have an old v3 DB at %s and a duplicate new one at %s.' % (old_spot, new_spot))
+                log.warn('You need to either remove the old one or move it in place of the new one manually.')
+            else:
+                log.info('Moving your old v3 DB from %s to %s.' % (old_spot, new_spot))
+                shutil.move(old_spot, new_spot)
+
+        return ShelfStorage(new_spot)

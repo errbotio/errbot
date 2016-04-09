@@ -125,7 +125,6 @@ class SlackPerson(Person):
         return self._sc.server.domain
 
     # Compatibility with the generic API.
-    person = userid
     client = channelid
     nick = username
 
@@ -153,6 +152,12 @@ class SlackPerson(Person):
 
     def __eq__(self, other):
         return other.userid == self.userid
+
+    @property
+    def person(self):
+        # Don't use str(self) here because we want SlackRoomOccupant
+        # to return just our @username too.
+        return "@%s" % self.username
 
 
 class SlackRoomOccupant(RoomOccupant, SlackPerson):

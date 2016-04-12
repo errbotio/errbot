@@ -258,7 +258,7 @@ class TelegramBackend(ErrBot):
             return
 
         message_instance = self.build_message(message.text)
-        if isinstance(message.chat, telegram.user.User):
+        if message.chat['type'] == 'private':
             message_instance.frm = TelegramPerson(
                 id=message.from_user.id,
                 first_name=message.from_user.first_name,

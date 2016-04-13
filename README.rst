@@ -53,7 +53,8 @@ Features
 - IRC support (built-in)
 - `Gitter support <https://gitter.im/>`_ (Follow `gitter instructions <https://github.com/errbotio/err-backend-gitter>`_ to install it)
 - `CampFire <https://campfirenow.com/>`_ (Follow `campfire instructions <https://github.com/errbotio/err-backend-campfire>`_ to install it)
-- `TOX <https://tox.im/>`_ (Follow the `tox instructions from <https://github.com/errbotio/err-backend-tox>`_ to install it)
+- `TOX <https://tox.im/>`_ (Follow the `tox instructions <https://github.com/errbotio/err-backend-tox>`_ to install it)
+- `Skype <https://www.skype.com/>`_ (Follow the `skype instructions <https://github.com/errbotio/errbot-backend-skype>`_ to install it)
 
 **Administration**
 

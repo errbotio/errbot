@@ -37,8 +37,12 @@ You will probably want to update your plugins periodically. This can be done wit
 
     !repos update all
 
-.. note::
-    Please pay attention when you install a plugin, it may have additional
-    dependencies. If the plugin contains a `requirements.txt` file then Errbot
-    will automatically check the requirements listed within and warn you when
-    you are missing any.
+A note about installing plugins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Please pay attention when you install a plugin, it may have additional dependencies.
+If the plugin contains a `requirements.txt` file then Errbot will automatically check the requirements listed within and warn you when you are missing any.
+
+Additionnaly, if you set :code:`AUTOINSTALL_DEPS` to :code:`True` in your **config.py**, Errbot will use pip to install any missing dependencies automatically.
+If you have installed Err in a virtualenv, this will run the equivalent of :code:`pip install -r requirements.txt`.
+If no virtualenv is detected, the equivalent of :code:`pip install --user -r requirements.txt` is used to ensure the package(s) is/are only installed for the user running Err.

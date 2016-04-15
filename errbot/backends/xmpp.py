@@ -37,7 +37,7 @@ except ImportError as _:
     sys.exit(-1)
 
 # LRU to cache the JID queries.
-IDENTIFIERS_LRU = 1000
+IDENTIFIERS_LRU = 1024
 
 
 class XMPPIdentifier(Identifier):

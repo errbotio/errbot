@@ -78,6 +78,8 @@ class TestPerson(Person):
     __str__ = __unicode__
 
     def __eq__(self, other):
+        if not isinstance(other, Person):
+            return False
         return self.person == other.person
 
 

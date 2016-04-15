@@ -144,9 +144,9 @@ class TextBackend(ErrBot):
         return 'text'
 
     def query_room(self, room):
-        room = TextRoom()
-        self._rooms.add(room)
-        return room
+        text_room = TextRoom(room)
+        self._rooms.add(text_room)
+        return text_room
 
     def rooms(self):
         return self._rooms
@@ -157,9 +157,10 @@ class TextBackend(ErrBot):
 
 class TextRoom(Room):
 
-    def __init__(self):
+    def __init__(self, name):
         self.topic_ = ''
         self.joined_ = False
+        self.name = name
 
     def join(self, username=None, password=None):
         self.joined_ = True
@@ -195,3 +196,6 @@ class TextRoom(Room):
 
     def invite(self, *args):
         pass
+
+    def __str__(self):
+        return self.name

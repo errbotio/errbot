@@ -459,7 +459,7 @@ class BotPlugin(BotPluginBase):
         :raises:
             :class:`~errbot.backends.base.RoomDoesNotExistError` if the room doesn't exist.
         """
-        return self._bot.query_room(room=room)
+        return self._bot.query_room(room)
 
     def start_poller(self,
                      interval: float,

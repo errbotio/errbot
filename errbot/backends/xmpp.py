@@ -1,5 +1,6 @@
 import logging
 import sys
+from functools import lru_cache
 from threading import Thread
 from time import sleep
 
@@ -30,6 +31,9 @@ except ImportError as _:
     pip install sleekxmpp
     """)
     sys.exit(-1)
+
+# LRU to cache the JID queries.
+IDENTIFIERS_LRU = 1000
 
 
 class XMPPIdentifier(Identifier):
@@ -391,7 +395,7 @@ class XMPPBackend(ErrBot):
         self.xhtmlim = config.__dict__.get('XMPP_XHTML_IM', False)
 
         # generic backend compatibility
-        self.bot_identifier = self.build_identifier(self.jid)
+        self.bot_identifier = self._build_person(self.jid)
 
         self.conn = self.create_connection()
         self.conn.add_event_handler("message", self.incoming_message)
@@ -418,6 +422,13 @@ class XMPPBackend(ErrBot):
             bot=self
         )
 
+    def _build_room_occupant(self, txtrep):
+        node, domain, resource = split_identifier(txtrep)
+        return self.roomoccupant_factory(node, domain, resource, self.query_room(node + '@' + domain))
+
+    def _build_person(self, txtrep):
+        return XMPPPerson(*split_identifier(txtrep))
+
     def incoming_message(self, xmppmsg):
         """Callback for message events"""
         if xmppmsg['type'] == "error":
@@ -427,47 +438,37 @@ class XMPPBackend(ErrBot):
         msg = Message(xmppmsg['body'])
         if 'html' in xmppmsg.keys():
             msg.html = xmppmsg['html']
-        msg.frm = self.build_identifier(xmppmsg['from'].full)
-        msg.to = self.build_identifier(xmppmsg['to'].full)
         log.debug("incoming_message from: %s", msg.frm)
         if xmppmsg['type'] == 'groupchat':
-            room = self.room_factory(msg.frm.node + '@' + msg.frm.domain, self)
-            msg.frm = self.roomoccupant_factory(msg.frm.node, msg.frm.domain, msg.frm.resource, room)
-            msg.to = room
+            msg.frm = self._build_room_occupant(xmppmsg['from'].full)
+            msg.to = msg.frm.room
+        else:
+            msg.frm = self._build_person(xmppmsg['from'].full)
+            msg.to = self._build_person(xmppmsg['to'].full)
 
         msg.nick = xmppmsg['mucnick']
         msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
         self.callback_message(msg)
 
+    def _idd_from_event(self, event):
+        txtrep = event['from'].full
+        return self._build_room_occupant(txtrep) if 'muc' in event else self._build_person(txtrep)
+
     def contact_online(self, event):
         log.debug("contact_online %s" % event)
-        p = Presence(
-            identifier=self.build_identifier(event['from'].full),
-            status=ONLINE
-        )
-        self.callback_presence(p)
+        self.callback_presence(Presence(identifier=self._idd_from_event(event), status=ONLINE))
 
     def contact_offline(self, event):
         log.debug("contact_offline %s" % event)
-        p = Presence(
-            identifier=self.build_identifier(event['from'].full),
-            status=OFFLINE
-        )
-        self.callback_presence(p)
+        self.callback_presence(Presence(identifier=self._idd_from_event(event), status=OFFLINE))
 
     def user_joined_chat(self, event):
         log.debug("user_join_chat %s" % event)
-        idd = self.build_identifier(event['from'].full)
-        p = Presence(identifier=idd,
-                     status=ONLINE)
-        self.callback_presence(p)
+        self.callback_presence(Presence(identifier=self._idd_from_event(event), status=ONLINE))
 
     def user_left_chat(self, event):
         log.debug("user_left_chat %s" % event)
-        idd = self.build_identifier(event['from'].full)
-        p = Presence(identifier=idd,
-                     status=OFFLINE)
-        self.callback_presence(p)
+        self.callback_presence(Presence(identifier=self._idd_from_event(event), status=OFFLINE))
 
     def chat_topic(self, event):
         log.debug("chat_topic %s" % event)
@@ -485,13 +486,7 @@ class XMPPBackend(ErrBot):
         message = event['status']
         if not errstatus:
             errstatus = event['type']
-
-        p = Presence(
-            identifier=self.build_identifier(event['from'].full),
-            status=errstatus,
-            message=message
-        )
-        self.callback_presence(p)
+        self.callback_presence(Presence(identifier=self._idd_from_event(event), status=errstatus, message=message))
 
     def connected(self, data):
         """Callback for connection events"""
@@ -529,9 +524,21 @@ class XMPPBackend(ErrBot):
             log.debug("Trigger shutdown")
             self.shutdown()
 
+    @lru_cache(IDENTIFIERS_LRU)
     def build_identifier(self, txtrep):
-        node, domain, resource = split_identifier(txtrep)
-        return XMPPPerson(node, domain, resource)
+        log.debug('build identifier for %s', txtrep)
+        xep0030 = self.conn.client.plugin['xep_0030']
+        info = xep0030.get_info(jid=txtrep)
+        for category, typ, _, name in info['disco_info']['identities']:
+            if category == 'conference':
+                log.debug('This is a room ! %s', txtrep)
+                return self.query_room(txtrep)
+            if category == 'client' and 'http://jabber.org/protocol/muc' in info['disco_info']['features']:
+                node, domain, resource = split_identifier(txtrep)
+                log.debug('This is room occupant ! %s', txtrep)
+                return XMPPRoomOccupant(node, domain, resource, self.query_room(node + '@' + domain))
+        log.debug('This is a person ! %s', txtrep)
+        return XMPPPerson(*split_identifier(txtrep))
 
     def build_reply(self, mess, text=None, private=False):
         """Build a message for responding to another message.
@@ -590,3 +597,6 @@ class XMPPBackend(ErrBot):
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
         message.body = '@{0} {1}'.format(identifier.nick, message.body)
+
+    def __hash__(self):
+        return 0

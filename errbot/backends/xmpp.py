@@ -538,11 +538,10 @@ class XMPPBackend(ErrBot):
                 log.debug('This is a room ! %s', txtrep)
                 return self.query_room(txtrep)
             if category == 'client' and 'http://jabber.org/protocol/muc' in info['disco_info']['features']:
-                node, domain, resource = split_identifier(txtrep)
                 log.debug('This is room occupant ! %s', txtrep)
-                return XMPPRoomOccupant(node, domain, resource, self.query_room(node + '@' + domain))
+                return self._build_room_occupant(txtrep)
         log.debug('This is a person ! %s', txtrep)
-        return XMPPPerson(*split_identifier(txtrep))
+        return self._build_person(txtrep)
 
     def build_reply(self, mess, text=None, private=False):
         """Build a message for responding to another message.

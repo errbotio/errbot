@@ -12,11 +12,11 @@ from .core_plugins.wsview import bottle_app, WebView
 from errbot.backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
 from .utils import compat_str
 from .utils import PY2, PY3  # noqa gbin: this is now used by plugins
-from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError  # noqa
+from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command  # noqa
 from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route, view  # noqa
 
-__all__ = ['BotPlugin', 'CommandError', 'webhook', 'webroute', 'webview',
+__all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'webview',
            'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END']
 
 log = logging.getLogger(__name__)

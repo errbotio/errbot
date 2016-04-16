@@ -2,14 +2,18 @@ import logging
 import shlex
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Tuple, Callable, Mapping, Sequence, Union
+from typing import Tuple, Callable, Mapping, Sequence
 from io import IOBase
 
-from .utils import recurse_check_structure
+from .utils import recurse_check_structure, PY2
 from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE
 
 log = logging.getLogger(__name__)
+
+
+def compat_ascii(s):
+    return s.encode('ascii') if PY2 and isinstance(s, unicode) else s
 
 
 class CommandError(Exception):
@@ -17,7 +21,7 @@ class CommandError(Exception):
     Use this class to report an error condition from your commands, the command
     did not proceed for a known "business" reason.
     """
-    def __init__(self, reason: str, template: str = None):
+    def __init__(self, reason: str, template: str=None):
         """
         :param reason: the reason for the error in the command.
         :param template: apply this specific template to report the error.
@@ -27,6 +31,28 @@ class CommandError(Exception):
 
     def __str__(self):
         return str(self.reason)
+
+
+class Command(object):
+    """
+    This is a dynamic definition of an errbot command.
+    """
+    def __init__(self, function, cmd_type=None, cmd_args=None, cmd_kwargs=None, name=None, doc=""):
+        if cmd_type is None:
+            from errbot import botcmd  # TODO refactor this out of __init__ so it can be reusable.
+            cmd_type = botcmd
+        if name is None:
+            if function.__name__ == '<lambda>':
+                raise ValueError('function is a lambda (anonymous), parameter name needs to be set.')
+            name = function.__name__
+        self.name = name
+        if cmd_kwargs is None:
+            cmd_kwargs = {}
+        if cmd_args is None:
+            cmd_args = ()
+        function.__name__ = compat_ascii(name)
+        function.__doc__ = doc
+        self.definition = cmd_type(*((function,) + cmd_args), **cmd_kwargs)
 
 
 # noinspection PyAbstractClass
@@ -40,6 +66,7 @@ class BotPluginBase(StoreMixin):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
+        self._dynamic_plugins = {}
         self.log = logging.getLogger("errbot.plugins.%s" % self.__class__.__name__)
         if bot is not None:
             self._load_bot(bot)
@@ -115,6 +142,10 @@ class BotPluginBase(StoreMixin):
         self._bot.remove_commands_from(self)
         self.is_activated = False
 
+        for plugin in self._dynamic_plugins.values():
+            self._bot.remove_command_filters_from(plugin)
+            self._bot.remove_commands_from(plugin)
+
     def start_poller(self,
                      interval: float,
                      method: Callable[..., None],
@@ -182,6 +213,36 @@ class BotPluginBase(StoreMixin):
             except Exception:
                 log.exception('A poller crashed')
             self.program_next_poll(interval, method, args, kwargs)
+
+    def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str=''):
+        """
+            Creates a plugin dynamically and exposes its commands right away.
+
+            :param name: name of the plugin.
+            :param doc: the main documentation of the plugin.
+            :param commands: a tuple of command definition.
+        """
+        if name in self._dynamic_plugins:
+            raise ValueError('Dynamic plugin %s already created.')
+        plugin_class = type(compat_ascii(name),
+                            (BotPlugin,),
+                            {command.name: command.definition for command in commands})
+        plugin_class.__doc__ = doc
+        plugin = plugin_class(self._bot)
+        self._dynamic_plugins[name] = plugin
+        self._bot.inject_commands_from(plugin)
+
+    def destroy_dynamic_plugin(self, name: str):
+        """
+            Reverse operation of create_dynamic_plugin.
+
+            This allows you to dynamically refresh the list of commands for example.
+        """
+        if name not in self._dynamic_plugins:
+            raise ValueError("Dynamic plugin %s doesn't exist.", name)
+        plugin = self._dynamic_plugins[name]
+        self._bot.remove_command_filters_from(plugin)
+        self._bot.remove_commands_from(plugin)
 
 
 # noinspection PyAbstractClass

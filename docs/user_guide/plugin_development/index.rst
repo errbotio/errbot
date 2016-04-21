@@ -18,6 +18,7 @@ with sets of recipes on a range of topics describing how to handle more advanced
   presence
   persistence
   configuration
+  dynaplugs
   scheduling
   webhooks
   testing

@@ -37,7 +37,21 @@ class Command(object):
     """
     This is a dynamic definition of an errbot command.
     """
-    def __init__(self, function, cmd_type=None, cmd_args=None, cmd_kwargs=None, name=None, doc=""):
+    def __init__(self, function, cmd_type=None, cmd_args=None, cmd_kwargs=None, name=None, doc=None):
+        """
+        Create a Command definition.
+        :param function: a function or a lambda with the correct signature for the type of command
+                         to inject for example `def mycmd(plugin, msg, args)` for a botcmd.
+                         Note: the first parameter will be the plugin itself (equivalent to self).
+        :param cmd_type: defaults to `botcmd` but can be any decorator function used for errbot
+                         commands.
+        :param cmd_args: the parameters of the decorator.
+        :param cmd_kwargs: the kwargs parameter of the decorator.
+        :param name: defaults to the name of the function you are passing if it is a
+                     first class function or needs to be set if you use a lambda.
+        :param doc: defaults to the doc of the given function if it is a first class function. It
+                    can be set for a lambda or overridden for a function with this.
+        """
         if cmd_type is None:
             from errbot import botcmd  # TODO refactor this out of __init__ so it can be reusable.
             cmd_type = botcmd
@@ -51,7 +65,8 @@ class Command(object):
         if cmd_args is None:
             cmd_args = ()
         function.__name__ = compat_ascii(name)
-        function.__doc__ = doc
+        if doc:
+            function.__doc__ = doc
         self.definition = cmd_type(*((function,) + cmd_args), **cmd_kwargs)
 
 
@@ -219,8 +234,8 @@ class BotPluginBase(StoreMixin):
             Creates a plugin dynamically and exposes its commands right away.
 
             :param name: name of the plugin.
-            :param doc: the main documentation of the plugin.
             :param commands: a tuple of command definition.
+            :param doc: the main documentation of the plugin.
         """
         if name in self._dynamic_plugins:
             raise ValueError('Dynamic plugin %s already created.')
@@ -237,6 +252,7 @@ class BotPluginBase(StoreMixin):
             Reverse operation of create_dynamic_plugin.
 
             This allows you to dynamically refresh the list of commands for example.
+            :param name: the name of the dynamic plugin given to create_dynamic_plugin.
         """
         if name not in self._dynamic_plugins:
             raise ValueError("Dynamic plugin %s doesn't exist.", name)

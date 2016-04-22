@@ -17,6 +17,7 @@ class TestDynaPlugins(FullStackTest):
         self.assertCommand('!add_simple', 'added')
         self.assertCommand('!say_yep', 'yep')
         self.assertCommand('!say_foo', 'foo')
+        self.assertCommand('!help', 'documented')
         self.assertCommand('!remove_simple', 'removed')
         self.assertCommand('!say_foo', 'Command "say_foo" not found')
 

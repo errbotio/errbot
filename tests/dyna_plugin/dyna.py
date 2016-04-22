@@ -14,7 +14,7 @@ class Dyna(BotPlugin):
         simple1 = Command(lambda plugin, msg, args: 'yep %s' % type(plugin), name='say_yep')
         simple2 = Command(say_foo)
 
-        self.create_dynamic_plugin('simple', (simple1, simple2))
+        self.create_dynamic_plugin('simple', (simple1, simple2), doc='documented')
 
         return 'added'
 

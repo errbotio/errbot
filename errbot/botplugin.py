@@ -242,7 +242,7 @@ class BotPluginBase(StoreMixin):
         plugin_class = type(compat_ascii(name),
                             (BotPlugin,),
                             {command.name: command.definition for command in commands})
-        plugin_class.__doc__ = doc
+        plugin_class.__errdoc__ = doc
         plugin = plugin_class(self._bot)
         self._dynamic_plugins[name] = plugin
         self._bot.inject_commands_from(plugin)

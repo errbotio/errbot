@@ -259,6 +259,7 @@ class BotPluginBase(StoreMixin):
         plugin = self._dynamic_plugins[name]
         self._bot.remove_command_filters_from(plugin)
         self._bot.remove_commands_from(plugin)
+        del self._dynamic_plugins[name]
 
 
 # noinspection PyAbstractClass

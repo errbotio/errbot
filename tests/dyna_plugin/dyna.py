@@ -50,3 +50,18 @@ class Dyna(BotPlugin):
     def remove_saw(self, msg, args):
         self.destroy_dynamic_plugin('saw')
         return 'removed'
+
+    @botcmd
+    def clash(self, msg, args):
+        return 'original'
+
+    @botcmd
+    def add_clashing(self, _, _1):
+        simple1 = Command(lambda plugin, msg, args: 'dynamic', name='clash')
+        self.create_dynamic_plugin('clashing', (simple1, ))
+        return 'added'
+
+    @botcmd
+    def remove_clashing(self, _, _1):
+        self.destroy_dynamic_plugin('clashing')
+        return 'removed'

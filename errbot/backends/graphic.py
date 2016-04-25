@@ -18,17 +18,7 @@ try:
     from PySide.QtCore import Qt
 except ImportError:
     log.exception("Could not start the graphical backend")
-    log.fatal("""
-    If you intend to use the graphical backend please install PySide:
-    -> On debian-like systems
-    sudo apt-get install python-software-properties
-    sudo apt-get update
-    sudo apt-get install python-pyside
-    -> On Gentoo
-    sudo emerge -av dev-python/pyside
-    -> On Arch
-    sudo pacman -S python-pyside
-     -> Generic/virtual envs
+    log.fatal(""" To install PySide use:
     pip install PySide
     """)
     sys.exit(-1)
@@ -147,7 +137,7 @@ class ChatApplication(QtGui.QApplication):
         self.mainW.setWindowTitle('Errbot')
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
-        help_label = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
+        help_label = QtGui.QLabel("ctrl or alt+space for autocomplete -- ctrl or alt+Enter to send your message")
         self.input = CommandBox(bot.cmd_history, bot.all_commands, bot.bot_config.BOT_PREFIX)
         self.output = QtWebKit.QWebView()
         self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css_path))

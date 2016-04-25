@@ -1,0 +1,6 @@
+[Core]
+Name = Dyna
+Module = dyna
+
+[Python]
+Version = 2+

@@ -131,6 +131,8 @@ class TextBackend(ErrBot):
         log.debug("*** Changed presence to [%s] %s", (status, message))
 
     def build_identifier(self, text_representation):
+        if text_representation.startswith('#'):
+            return self.query_room(test_representation[1:])
         return TestPerson(text_representation)
 
     def build_reply(self, mess, text=None, private=False):

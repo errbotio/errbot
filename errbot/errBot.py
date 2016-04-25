@@ -23,6 +23,7 @@ from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
 from .backends.base import Backend, Room, Identifier, Person, Message
 from threadpool import ThreadPool, WorkRequest
+from threading import RLock
 from .streaming import Tee
 from .templating import tenv
 from .utils import (split_string_after,
@@ -92,6 +93,7 @@ class ErrBot(Backend, StoreMixin):
         self.storage_plugin = None
         self._plugin_errors_during_startup = None
         self.flow_executor = FlowExecutor(self)
+        self._gbl = RLock()  # this protects internal structures of this class
 
     def attach_repo_manager(self, repo_manager):
         self.repo_manager = repo_manager
@@ -116,8 +118,9 @@ class ErrBot(Backend, StoreMixin):
     @property
     def all_commands(self):
         """Return both commands and re_commands together."""
-        newd = dict(**self.commands)
-        newd.update(self.re_commands)
+        with self._gbl:
+            newd = dict(**self.commands)
+            newd.update(self.re_commands)
         return newd
 
     def _dispatch_to_plugins(self, method, *args, **kwargs):
@@ -289,17 +292,19 @@ class ErrBot(Backend, StoreMixin):
         if not only_check_re_command:
             if len(text_split) > 1:
                 command = (text_split[0] + '_' + text_split[1]).lower()
-                if command in self.commands:
-                    cmd = command
-                    args = ' '.join(text_split[2:])
+                with self._gbl:
+                    if command in self.commands:
+                        cmd = command
+                        args = ' '.join(text_split[2:])
 
             if not cmd:
                 command = text_split[0].lower()
                 args = ' '.join(text_split[1:])
-                if command in self.commands:
-                    cmd = command
-                    if len(text_split) > 1:
-                        args = ' '.join(text_split[1:])
+                with self._gbl:
+                    if command in self.commands:
+                        cmd = command
+                        if len(text_split) > 1:
+                            args = ' '.join(text_split[1:])
 
             if command == self.bot_config.BOT_PREFIX:  # we did "!!" so recall the last command
                 if len(user_cmd_history):
@@ -316,11 +321,12 @@ class ErrBot(Backend, StoreMixin):
         # Try to match one of the regex commands if the regular commands produced no match
         matched_on_re_command = False
         if not cmd:
-            if prefixed or (mess.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
-                commands = self.re_commands
-            else:
-                commands = {k: self.re_commands[k] for k in self.re_commands
-                            if not self.re_commands[k]._err_command_prefix_required}
+            with self._gbl:
+                if prefixed or (mess.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
+                    commands = dict(self.re_commands)
+                else:
+                    commands = {k: self.re_commands[k] for k in self.re_commands
+                                if not self.re_commands[k]._err_command_prefix_required}
 
             for name, func in commands.items():
                 if func._err_command_matchall:
@@ -381,7 +387,8 @@ class ErrBot(Backend, StoreMixin):
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
 
-        f = self.re_commands[cmd] if match else self.commands[cmd]
+        with self._gbl:
+            f = self.re_commands[cmd] if match else self.commands[cmd]
 
         if f._err_command_admin_only and self.bot_config.BOT_ASYNC:
             # If it is an admin command, wait until the queue is completely depleted so
@@ -447,23 +454,25 @@ class ErrBot(Backend, StoreMixin):
         private = cmd in self.bot_config.DIVERT_TO_PRIVATE
         commands = self.re_commands if match else self.commands
         try:
+            with self._gbl:
+                method = commands[cmd]
             # first check if we need to reattach a flow context
             flow, _ = self.flow_executor.check_inflight_flow_triggered(cmd, mess.frm)
             if flow:
                 log.debug("Reattach context from flow %s to the message", flow._root.name)
                 mess.ctx = flow.ctx
-            elif commands[cmd]._err_command_flow_only:
+            elif method._err_command_flow_only:
                 # check if it is a flow_only command but we are not in a flow.
                 log.debug("%s is tagged flow_only and we are not in a flow. Ignores the command.", cmd)
                 return
 
-            if inspect.isgeneratorfunction(commands[cmd]):
-                replies = commands[cmd](mess, match) if match else commands[cmd](mess, args)
+            if inspect.isgeneratorfunction(method):
+                replies = method(mess, match) if match else method(mess, args)
                 for reply in replies:
                     if reply:
                         self.send_simple_reply(mess, self.process_template(template_name, reply), private)
             else:
-                reply = commands[cmd](mess, match) if match else commands[cmd](mess, args)
+                reply = method(mess, match) if match else method(mess, args)
                 if reply:
                     self.send_simple_reply(mess, self.process_template(template_name, reply), private)
 
@@ -503,26 +512,27 @@ class ErrBot(Backend, StoreMixin):
             return part1
 
     def inject_commands_from(self, instance_to_inject):
-        classname = instance_to_inject.__class__.__name__
-        for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_err_command', False):
-                commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
-                name = getattr(value, '_err_command_name')
+        with self._gbl:
+            classname = instance_to_inject.__class__.__name__
+            for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
+                if getattr(value, '_err_command', False):
+                    commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
+                    name = getattr(value, '_err_command_name')
 
-                if name in commands:
-                    f = commands[name]
-                    new_name = (classname + '-' + name).lower()
-                    self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
-                        classname, name, type(f.__self__).__name__, f.__name__, new_name))
-                    name = new_name
-                commands[name] = value
+                    if name in commands:
+                        f = commands[name]
+                        new_name = (classname + '-' + name).lower()
+                        self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
+                            classname, name, type(f.__self__).__name__, f.__name__, new_name))
+                        name = new_name
+                    commands[name] = value
 
-                if getattr(value, '_err_re_command'):
-                    log.debug('Adding regex command : %s -> %s' % (name, value.__name__))
-                    self.re_commands = commands
-                else:
-                    log.debug('Adding command : %s -> %s' % (name, value.__name__))
-                    self.commands = commands
+                    if getattr(value, '_err_re_command'):
+                        log.debug('Adding regex command : %s -> %s' % (name, value.__name__))
+                        self.re_commands = commands
+                    else:
+                        log.debug('Adding command : %s -> %s' % (name, value.__name__))
+                        self.commands = commands
 
     def inject_flows_from(self, instance_to_inject):
         classname = instance_to_inject.__class__.__name__
@@ -538,10 +548,11 @@ class ErrBot(Backend, StoreMixin):
                 self.flow_executor.add_flow(flow)
 
     def inject_command_filters_from(self, instance_to_inject):
-        for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(method, '_err_command_filter', False):
-                log.debug('Adding command filter: %s' % name)
-                self.command_filters.append(method)
+        with self._gbl:
+            for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
+                if getattr(method, '_err_command_filter', False):
+                    log.debug('Adding command filter: %s' % name)
+                    self.command_filters.append(method)
 
     def remove_flows_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
@@ -550,19 +561,21 @@ class ErrBot(Backend, StoreMixin):
                 # TODO(gbin)
 
     def remove_commands_from(self, instance_to_inject):
-        for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_err_command', False):
-                name = getattr(value, '_err_command_name')
-                if getattr(value, '_err_re_command') and name in self.re_commands:
-                    del (self.re_commands[name])
-                elif not getattr(value, '_err_re_command') and name in self.commands:
-                    del (self.commands[name])
+        with self._gbl:
+            for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
+                if getattr(value, '_err_command', False):
+                    name = getattr(value, '_err_command_name')
+                    if getattr(value, '_err_re_command') and name in self.re_commands:
+                        del (self.re_commands[name])
+                    elif not getattr(value, '_err_re_command') and name in self.commands:
+                        del (self.commands[name])
 
     def remove_command_filters_from(self, instance_to_inject):
-        for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(method, '_err_command_filter', False):
-                log.debug('Removing command filter: %s' % name)
-                self.command_filters.remove(method)
+        with self._gbl:
+            for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
+                if getattr(method, '_err_command_filter', False):
+                    log.debug('Removing command filter: %s' % name)
+                    self.command_filters.remove(method)
 
     def warn_admins(self, warning):
         for admin in self.bot_config.BOT_ADMINS:

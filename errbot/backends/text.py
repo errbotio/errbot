@@ -60,6 +60,7 @@ class TextBackend(ErrBot):
         self.md_ansi = ansi()
         self.html_lexer = get_lexer_by_name("html", stripall=True)
         self.terminal_formatter = Terminal256Formatter(style='paraiso-dark')
+        self.user = self.build_identifier(self.bot_config.BOT_ADMINS[0])
 
     def serve_forever(self):
         if self.demo_mode:
@@ -67,9 +68,8 @@ class TextBackend(ErrBot):
             root = logging.getLogger()
             root.removeHandler(err.console_hdlr)
             root.addHandler(logging.NullHandler())
-        me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         self.connect_callback()  # notify that the connection occured
-        self.callback_presence(Presence(identifier=me, status=ONLINE))
+        self.callback_presence(Presence(identifier=self.user, status=ONLINE))
         try:
             while True:
                 if ANSI or self.demo_mode:
@@ -77,7 +77,7 @@ class TextBackend(ErrBot):
                 else:
                     entry = input('\n>>> ')
                 msg = Message(entry)
-                msg.frm = me
+                msg.frm = self.user
                 msg.to = self.bot_identifier
                 self.callback_message(msg)
 
@@ -93,7 +93,7 @@ class TextBackend(ErrBot):
             pass
         finally:
             # simulate some real presence
-            self.callback_presence(Presence(identifier=me, status=OFFLINE))
+            self.callback_presence(Presence(identifier=self.user, status=OFFLINE))
             log.debug("Trigger disconnect callback")
             self.disconnect_callback()
             log.debug("Trigger shutdown")

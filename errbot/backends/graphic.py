@@ -31,10 +31,10 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         self.history_index = len(self.history)
 
     def __init__(self, history, commands, prefix):
-        self.prefix = prefix
         self.history_index = 0
         self.history = history
         self.reset_history()
+        self.prefix = prefix
         super().__init__()
 
         # Autocompleter
@@ -91,17 +91,15 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             # Select the first one of the matches
             self.completer.popup().setCurrentIndex(self.completer.completionModel().index(0, 0))
 
-        if key == Qt.Key_Up and (ctrl or alt):
+        if key == Qt.Key_Up:
             if self.history_index > 0:
                 self.history_index -= 1
-                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
-                key.ignore()
+                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
                 return
-        elif key == Qt.Key_Down and (ctrl or alt):
+        elif key == Qt.Key_Down:
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
-                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
-                key.ignore()
+                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
                 return
         elif key == QtCore.Qt.Key_Return and (ctrl or alt):
             self.newCommand.emit(self.toPlainText())
@@ -138,7 +136,7 @@ class ChatApplication(QtGui.QApplication):
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("ctrl or alt+space for autocomplete -- ctrl or alt+Enter to send your message")
-        self.input = CommandBox(bot.cmd_history, bot.all_commands, bot.bot_config.BOT_PREFIX)
+        self.input = CommandBox(bot.cmd_history[str(bot.user)], bot.all_commands, bot.bot_config.BOT_PREFIX)
         self.output = QtWebKit.QWebView()
         self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css_path))
 
@@ -180,7 +178,6 @@ class ChatApplication(QtGui.QApplication):
 class GraphicBackend(TextBackend):
     def __init__(self, config):
         super().__init__(config)
-        self.bot_identifier = self.build_identifier('Err')
         # create window and components
         self.md = xhtml()
         self.app = ChatApplication(self)
@@ -192,7 +189,7 @@ class GraphicBackend(TextBackend):
     def send_command(self, text):
         self.app.new_message(text, False)
         msg = Message(text)
-        msg.frm = self.build_identifier(self.bot_config.BOT_ADMINS[0])  # assume this is the admin talking
+        msg.frm = self.user
         msg.to = self.bot_identifier  # To me only
         self.callback_message(msg)
         # implements the mentions.

@@ -525,6 +525,7 @@ class ErrBot(Backend, StoreMixin):
                         self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
                             classname, name, type(f.__self__).__name__, f.__name__, new_name))
                         name = new_name
+                        value.__func__._err_command_name = new_name  # To keep track of the renaming.
                     commands[name] = value
 
                     if getattr(value, '_err_re_command'):
@@ -566,9 +567,9 @@ class ErrBot(Backend, StoreMixin):
                 if getattr(value, '_err_command', False):
                     name = getattr(value, '_err_command_name')
                     if getattr(value, '_err_re_command') and name in self.re_commands:
-                        del (self.re_commands[name])
+                        del self.re_commands[name]
                     elif not getattr(value, '_err_re_command') and name in self.commands:
-                        del (self.commands[name])
+                        del self.commands[name]
 
     def remove_command_filters_from(self, instance_to_inject):
         with self._gbl:

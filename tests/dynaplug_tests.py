@@ -30,3 +30,14 @@ class TestDynaPlugins(FullStackTest):
         self.assertCommand('!add_saw', 'added')
         self.assertCommand('!splitme foo,bar,baz', 'foo+bar+baz')
         self.assertCommand('!remove_saw', 'removed')
+
+    def test_clashing(self):
+        self.assertCommand('!clash', 'original')
+        self.assertCommand('!add_clashing',
+                           'clashing.clash clashes with Dyna.clash so it has been renamed clashing-clash')
+        self.assertIn('added', self.bot.pop_message())
+        self.assertCommand('!clash', 'original')
+        self.assertCommand('!clashing-clash', 'dynamic')
+        self.assertCommand('!remove_clashing', 'removed')
+        self.assertCommand('!clash', 'original')
+        self.assertCommand('!clashing-clash', 'not found')

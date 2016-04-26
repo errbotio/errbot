@@ -362,10 +362,17 @@ class FlowExecutor(object):
                 possible_next_steps = ["You are in the flow **%s**, you can continue with:\n\n" % flow.name]
                 for step in steps:
                     cmd = step.command
-                    syntax = self._bot.all_commands[cmd]._err_command_syntax
-                    syntax = '' if syntax is None else syntax
-
-                    possible_next_steps.append("- %s%s %s" % (self._bot.prefix, cmd.replace('_', ' '), syntax))
+                    cmd_fnc = self._bot.all_commands[cmd]
+                    reg_cmd = cmd_fnc._err_re_command
+                    syntax_args = cmd_fnc._err_command_syntax
+                    reg_prefixed = cmd_fnc._err_command_prefix_required if reg_cmd else True
+                    # syntax = '' if syntax is None else syntax
+                    syntax = self._bot.prefix if reg_prefixed else ''
+                    if not reg_cmd:
+                        syntax += cmd.replace('_', ' ')
+                    if syntax_args:
+                        syntax += syntax_args
+                    possible_next_steps.append("- %s" % syntax)
                 self._bot.send(flow.requestor, "\n".join(possible_next_steps))
                 break
 

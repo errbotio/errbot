@@ -204,6 +204,15 @@ class ErrBot(Backend, StoreMixin):
             except Exception:
                 log.exception("Crash in a callback_botmessage handler")
 
+    def send_card(self, card):
+        """
+        Sends a card, this can be overriden by the backends *without* a super() call.
+
+        :param card: the card to send.
+        :return: None
+        """
+        self.send_templated(card.to, 'card', {'card': card})
+
     def send_simple_reply(self, mess, text, private=False):
         """Send a simple response to a given incoming message
 

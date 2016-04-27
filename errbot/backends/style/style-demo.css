@@ -146,10 +146,11 @@ tr:nth-child(even) td {
     background-color: blue;
 }
 
-h1 { color: #111; font-family: 'Helvetica Neue', sans-serif; font-size: 50px; font-weight: bold; letter-spacing: -1px; line-height: 1; text-align: center; }
 
-h2 { color: #111; font-family: 'Open Sans', sans-serif; font-size: 30px; font-weight: 300; line-height: 32px; margin: 0 0 20px; text-align: center; }
+h1 { color: #111; font-family: 'Helvetica Neue', sans-serif; font-size: 100px; font-weight: bold; letter-spacing: -1px; line-height: 1; text-align: center; }
 
-h3 { color: #111; font-family: 'Open Sans', sans-serif; font-size: 25px; font-weight: 200; line-height: 27px; margin: 0 0 10px; text-align: center; }
+h2 { color: #111; font-family: 'Open Sans', sans-serif; font-size: 60px; font-weight: 300; line-height: 32px; margin: 0 0 20px; text-align: center; }
 
-body { color: #111; font-family: 'Arial', sans-serif; font-size: 14px; line-height: 24px; margin: 0 0 24px; text-align: justify; text-justify: inter-word; }
+h3 { color: #111; font-family: 'Arial Unicode MS', sans-serif; font-size: 50px; font-weight: 200; line-height: 27px; margin: 0 0 10px; text-align: center; }
+
+body { color: #111; font-family: 'Arial Unicode MS', sans-serif; font-size: 28px; line-height: 48px; margin: 0 0 24px; text-align: justify; text-justify: inter-word; }

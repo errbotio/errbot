@@ -2,7 +2,7 @@ import io
 import logging
 import random
 import time
-from typing import Any, Mapping, BinaryIO, List, Union, Sequence
+from typing import Any, Mapping, BinaryIO, List, Union, Sequence, Tuple
 from abc import abstractproperty, abstractmethod
 from collections import deque, defaultdict
 
@@ -354,6 +354,75 @@ class Message(object):
         msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back))
         log.warn(msg + 'msg.type is deprecated and will be removed soon ! Use msg.is_direct or msg.is_group.')
         return 'chat' if self.is_direct else 'groupchat'
+
+
+class Card(Message):
+    """
+        Card is a special type of preformatted message. If it matches with a backend similar concept like on
+        Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular message formatted with
+        the card.md template.
+    """
+    def __init__(self,
+                 body: str='',
+                 frm: Identifier=None,
+                 to: Identifier=None,
+                 summary: str=None,
+                 title: str='',
+                 link: str=None,
+                 image: str=None,
+                 thumbnail: str=None,
+                 color: str=None,
+                 fields: Tuple[Tuple[str, str]]=()):
+        """
+        Creates a Card.
+        :param body: main text of the card in markdown.
+        :param frm: the card is sent from this identifier.
+        :param to: the card is sent to this identifier (Room, RoomOccupant, Person...).
+        :param summary: (optional) One liner summary of the card, possibly collapsed to it.
+        :param title: (optional) Title possibly linking.
+        :param link: (optional) url the title link is pointing to.
+        :param image: (optional) link to the main image of the card.
+        :param thumbnail: (optional) link to an icon / thumbnail.
+        :param color: (optional) background color or color indicator.
+        :param fields: (optional) a tuple of (key, value) pairs.
+        """
+        super().__init__(body=body, frm=frm, to=to)
+        self._summary = summary
+        self._title = title
+        self._link = link
+        self._image = image
+        self._thumbnail = thumbnail
+        self._color = color
+        self._fields = fields
+
+    @property
+    def summary(self):
+        return self._summary
+
+    @property
+    def title(self):
+        return self._title
+
+    @property
+    def link(self):
+        return self._link
+
+    @property
+    def image(self):
+        return self._image
+
+    @property
+    def thumbnail(self):
+        return self._thumbnail
+
+    @property
+    def color(self):
+        return self._color
+
+    @property
+    def fields(self):
+        return self._fields
+
 
 ONLINE = 'online'
 OFFLINE = 'offline'

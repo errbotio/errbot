@@ -24,7 +24,7 @@ class Flows(BotPlugin):
             requestor = '(_%s_)' % str(flow.requestor) if flow and flow.current_step == f else ''
             doc = cmd.__doc__ if flow and f is not FLOW_END else ''
             response.write('%s↪&nbsp;&nbsp;**%s** %s %s<br>' % ('&emsp;&nbsp;' * len(stack),
-                                                  f if f is not FLOW_END else 'END', doc if doc else '', requestor))
+                           f if f is not FLOW_END else 'END', doc if doc else '', requestor))
         for _, sf in f.children:
             self.recurse_node(response, stack + [f], sf, flow)
 

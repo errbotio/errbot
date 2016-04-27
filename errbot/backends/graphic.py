@@ -138,7 +138,6 @@ class ChatApplication(QtGui.QApplication):
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("ctrl or alt+space for autocomplete -- ctrl or alt+Enter to send your message")
         self.input = CommandBox(bot.cmd_history[str(bot.user)], bot.all_commands, bot.bot_config.BOT_PREFIX)
-        
         demo_mode = hasattr(bot.bot_config, 'TEXT_DEMO_MODE') and bot.bot_config.TEXT_DEMO_MODE
         font = QtGui.QFont("Arial", QtGui.QFont.Bold)
         font.setPointSize(30 if demo_mode else 15)

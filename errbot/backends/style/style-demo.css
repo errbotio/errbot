@@ -10,13 +10,16 @@ body {
   background-color: #f8ebdf;
   border-color: #ed9d53;
   margin:5px;
-  padding:20px;
+  padding-top:10px;
+  padding-left:20px;
+  padding-right:20px;
+  padding-bottom:20px;
   border-style:solid;
-  border-width: 1px;
-  border-bottom-left-radius:5px;
-  border-bottom-right-radius:5px;
-  border-top-right-radius:5px;
-  border-top-left-radius:5px;
+  border-width: 2px;
+  border-bottom-left-radius:10px;
+  border-bottom-right-radius:10px;
+  border-top-right-radius:10px;
+  border-top-left-radius:10px;
   opacity:0.8;
 }
 
@@ -24,13 +27,16 @@ body {
   background-color: #dfdef7;
   border-color: #8fa9e6;
   margin:5px;
-  padding:20px;
+  padding-top:10px;
+  padding-left:20px;
+  padding-right:20px;
+  padding-bottom:20px;
   border-style:solid;
-  border-width: 1px;
-  border-bottom-left-radius:5px;
-  border-bottom-right-radius:5px;
-  border-top-right-radius:5px;
-  border-top-left-radius:5px;
+  border-width: 2px;
+  border-bottom-left-radius:10px;
+  border-bottom-right-radius:10px;
+  border-top-right-radius:10px;
+  border-top-left-radius:10px;
   font-weight:bold;
   opacity:0.8;
 }

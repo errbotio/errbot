@@ -109,21 +109,24 @@ class CommandBox(QtGui.QPlainTextEdit, object):
 
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
-
-def htmlify(text, receiving):
-    return '<div class="%s">%s</div>' % ('receiving' if receiving else 'sending', text)
-
-
 err_path = os.path.dirname(errbot.__file__)
 icon_path = os.path.join(err_path, 'err.svg')
 bg_path = os.path.join(err_path, 'err-bg.svg')
 css_path = os.path.join(err_path, 'backends', 'style', 'style.css')
 demo_css_path = os.path.join(err_path, 'backends', 'style', 'style-demo.css')
-TOP = """
-<html>
-  <body style="background-image: url('file://%s');">
-""" % bg_path
-BOTTOM = "</body></html>"
+
+user = '<small><u>user</u></small>'
+bot = '<img src="file://%s" height=25/>' % icon_path
+
+
+def htmlify(text, receiving):
+    return '<div class="%s">%s<br/>%s</div>' % ('receiving' if receiving else 'sending',
+                                                     bot if receiving else user,
+                                                     text)
+
+
+TOP = '<html><body style="background-image: url(\'file://%s\');">' % bg_path
+BOTTOM = '</body></html>'
 
 
 class ChatApplication(QtGui.QApplication):

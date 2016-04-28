@@ -10,7 +10,10 @@ body {
   background-color: #f8ebdf;
   border-color: #ed9d53;
   margin:5px;
-  padding:20px;
+  padding-top:5px;
+  padding-left:10px;
+  padding-right:10px;
+  padding-bottom:10px;
   border-style:solid;
   border-width: 1px;
   border-bottom-left-radius:5px;
@@ -24,7 +27,10 @@ body {
   background-color: #dfdef7;
   border-color: #8fa9e6;
   margin:5px;
-  padding:20px;
+  padding-top:5px;
+  padding-left:10px;
+  padding-right:10px;
+  padding-bottom:10px;
   border-style:solid;
   border-width: 1px;
   border-bottom-left-radius:5px;

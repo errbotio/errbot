@@ -420,6 +420,12 @@ class Card(Message):
         return self._color
 
     @property
+    def text_color(self):
+        if self._color in ('black', 'blue'):
+            return 'white'
+        return 'black'
+
+    @property
     def fields(self):
         return self._fields
 

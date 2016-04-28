@@ -110,20 +110,11 @@ class CommandBox(QtGui.QPlainTextEdit, object):
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
 err_path = os.path.dirname(errbot.__file__)
+prompt_path = os.path.join(err_path, 'prompt.svg')
 icon_path = os.path.join(err_path, 'err.svg')
 bg_path = os.path.join(err_path, 'err-bg.svg')
 css_path = os.path.join(err_path, 'backends', 'style', 'style.css')
 demo_css_path = os.path.join(err_path, 'backends', 'style', 'style-demo.css')
-
-user = '<small><u>user</u></small>'
-bot = '<img src="file://%s" height=25/>' % icon_path
-
-
-def htmlify(text, receiving):
-    return '<div class="%s">%s<br/>%s</div>' % ('receiving' if receiving else 'sending',
-                                                     bot if receiving else user,
-                                                     text)
-
 
 TOP = '<html><body style="background-image: url(\'file://%s\');">' % bg_path
 BOTTOM = '</body></html>'
@@ -141,13 +132,13 @@ class ChatApplication(QtGui.QApplication):
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("ctrl or alt+space for autocomplete -- ctrl or alt+Enter to send your message")
         self.input = CommandBox(bot.cmd_history[str(bot.user)], bot.all_commands, bot.bot_config.BOT_PREFIX)
-        demo_mode = hasattr(bot.bot_config, 'TEXT_DEMO_MODE') and bot.bot_config.TEXT_DEMO_MODE
+        self.demo_mode = hasattr(bot.bot_config, 'TEXT_DEMO_MODE') and bot.bot_config.TEXT_DEMO_MODE
         font = QtGui.QFont("Arial", QtGui.QFont.Bold)
-        font.setPointSize(30 if demo_mode else 15)
+        font.setPointSize(30 if self.demo_mode else 15)
         self.input.setFont(font)
 
         self.output = QtWebKit.QWebView()
-        css = demo_css_path if demo_mode else css_path
+        css = demo_css_path if self.demo_mode else css_path
         self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css))
 
         # init webpage
@@ -168,13 +159,19 @@ class ChatApplication(QtGui.QApplication):
         self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
         self.input.newCommand.connect(lambda text: bot.send_command(text))
         self.newAnswer.connect(self.new_message)
-        if demo_mode:
+        if self.demo_mode:
             self.mainW.showFullScreen()
         else:
             self.mainW.show()
 
     def new_message(self, text, receiving=True):
-        self.buffer += htmlify(text, receiving)
+        size = 50 if self.demo_mode else 25
+        user = '<img src="file://%s" height=%d />' % (prompt_path, size)
+        bot = '<img src="file://%s" height=%d/>' % (icon_path, size)
+        self.buffer += '<div class="%s">%s<br/>%s</div>' % ('receiving' if receiving else 'sending',
+                                                            bot if receiving else user,
+                                                            text)
+
         self.update_webpage()
 
     def update_webpage(self):

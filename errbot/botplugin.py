@@ -468,7 +468,7 @@ class BotPlugin(BotPluginBase):
                   image: str=None,
                   thumbnail: str=None,
                   color: str='green',
-                  fields: Tuple[Tuple[str, str]]=()) -> None:
+                  fields: Tuple[Tuple[str, str], ...]=()) -> None:
         """
         Sends a card.
 

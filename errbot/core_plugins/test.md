@@ -48,6 +48,13 @@ First Header  | Second Header
 Content Cell  | **Content Cell**
 Content Cell  | _Content Cell_
 
+Markdown extra (table multiline):
+
+First Header  | Second Header
+------------- | -------------
+Content Cell  | l1<br/>l2
+l3<br/>l5     | l4
+
 Special characters:
 Copyright: &copy;
 Natural amp: &

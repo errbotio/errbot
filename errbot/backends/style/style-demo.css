@@ -9,7 +9,7 @@ body {
 .receiving {
   background-color: #f8ebdf;
   border-color: #ed9d53;
-  margin:5px;
+  margin:10px;
   padding-top:10px;
   padding-left:20px;
   padding-right:20px;
@@ -26,7 +26,7 @@ body {
 .sending {
   background-color: #dfdef7;
   border-color: #8fa9e6;
-  margin:5px;
+  margin:10px;
   padding-top:10px;
   padding-left:20px;
   padding-right:20px;
@@ -44,7 +44,7 @@ body {
 pre {
   white-space: pre-line; 
   font-size:20px;
-  border-width:1px;
+  border-width:2px;
   background-color:#DDDDDD;
   border-color: #555555;
   border-bottom-left-radius:10px;
@@ -55,34 +55,28 @@ pre {
 
 table {
   margin:20px;
-  box-shadow: 4px 4px 10px #999999;
   border-bottom-left-radius:10px;
   border-bottom-right-radius:10px;
   border-top-right-radius:10px;
   border-top-left-radius:10px;
   border-collapse: collapse;
-  border-spacing: 0;
-  min-width: 50%;
+  width: 80%;
 }
 
 td{
   vertical-align:middle;
-  border:0 solid #999999;
-  border-width:0 0 0 0;
   font-size:28px;
   text-align:left;
   margin-left: 60px;
-  font-family:Arial;
+  font-family:Arial, sans-serif;
   color:#333333;
 }
 
 tr th{
   background:#9667b2;
-  border:0 solid #999999;
   text-align:center;
-  border-width:0 0 0 0;
-  font-size:36px;
-  font-family:Arial;
+  font-size:32px;
+  font-family:Arial, sans-serif;
   font-weight:bold;
   color:#FFFFFF;
 }
@@ -101,11 +95,6 @@ table tr:first-child th:last-child {
 
 tr:last-child td:first-child{
   border-bottom-left-radius:10px;
-}
-
-/* hack for demo purposes, left margin doesn't work */
-tr td:first-child{
-  text-align:center;
 }
 
 tr:nth-child(odd) td {
@@ -132,28 +121,32 @@ tr:nth-child(even) td {
     color: blue;
 }
 
+*[color="white"] {
+    color: #FFFFFF;
+}
+
 *[bgcolor="red"] {
-    background-color: red;
+    background-color: lightsalmon;
 }
 
 *[bgcolor="green"] {
-    background-color: green;
+    background-color: lightgreen;
 }
 
 *[bgcolor="yellow"] {
-    background-color: orange;
+    background-color: lightgoldenrodyellow;
 }
 
 *[bgcolor="cyan"] {
-    background-color: cyan;
+    background-color: aqua;
 }
 
 *[bgcolor="blue"] {
-    background-color: blue;
+    background-color: lightblue;
 }
 
 *[bgcolor="white"] {
-    background-color: white;
+    background-color: azure;
 }
 
 *[bgcolor="black"] {

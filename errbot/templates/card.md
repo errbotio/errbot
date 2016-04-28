@@ -24,12 +24,12 @@
 {% endif %}
 {% if card.image %}
 
-| | 
-|-:|:-
-| ![{{ card.image }}]({{ card.image }}) | {{ card.body }}
+![{{ card.image }}]({{ card.image }}) {{ card.body }}
+{: color='{{card.text_color}}' bgcolor='{{card.color}}' }
 
 {% else %}
 {{ card.body }}
+{: color='{{card.text_color}}' bgcolor='{{card.color}}' }
 
 {% for key,_ in card.fields %}| {{ key }} {% endfor %}
 {% for _ in card.fields %}| - {% endfor %}

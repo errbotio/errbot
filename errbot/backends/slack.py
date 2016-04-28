@@ -7,7 +7,7 @@ import sys
 import pprint
 
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError, RoomOccupant, Person
+    UserDoesNotExistError, RoomOccupant, Person, Card
 from errbot.errBot import ErrBot
 from errbot.utils import PY3, split_string_after
 from errbot.rendering.slack import slack_markdown_converter
@@ -62,6 +62,15 @@ USER_IS_BOT_HELPTEXT = (
     "For this, you will also need to generate a user token at "
     "https://api.slack.com/web."
 )
+
+COLORS = {
+    'red': '#FF0000',
+    'green': '#008000',
+    'yellow': '#FFA500',
+    'blue': '#0000FF',
+    'white': '#FFFFFF',
+    'cyan': '#00FFFF'
+}  # Slack doesn't know its colors
 
 
 class SlackAPIResponseError(RuntimeError):
@@ -447,21 +456,30 @@ class SlackBackend(ErrBot):
         response = self.api_call('im.open', data={'user': id_})
         return response['channel']['id']
 
+    def _prepare_message(self, mess):  # or card
+        """
+        Translates the common part of messaging for Slack.
+        :param mess: the message you want to extract the Slack concept from.
+        :return: a tuple to user human readable, the channel id
+        """
+        if mess.is_group:
+            to_channel_id = mess.to.id
+            to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
+        else:
+            to_humanreadable = mess.to.username
+            to_channel_id = mess.to.channelid
+            if to_channel_id.startswith('C'):
+                log.debug("This is a divert to private message, sending it directly to the user.")
+                to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+        return to_humanreadable, to_channel_id
+
     def send_message(self, mess):
         super().send_message(mess)
         to_humanreadable = "<unknown>"
         try:
-            if mess.is_group:
-                to_channel_id = mess.to.id
-                to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
-            else:
-                to_humanreadable = mess.to.username
-                to_channel_id = mess.to.channelid
-                if to_channel_id.startswith('C'):
-                    log.debug("This is a divert to private message, sending it directly to the user.")
-                    to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
-            msgtype = "direct" if mess.is_direct else "channel"
-            log.debug('Sending %s message to %s (%s)' % (msgtype, to_humanreadable, to_channel_id))
+            to_humanreadable, to_channel_id = self._prepare_message(mess)
+            log.debug('Sending message to %s (%s)' % (to_humanreadable, to_channel_id))
+
             body = self.md.convert(mess.body)
             log.debug('Message size: %d' % len(body))
 
@@ -472,13 +490,45 @@ class SlackBackend(ErrBot):
                 self.api_call('chat.postMessage', data={
                     'channel': to_channel_id,
                     'text': part,
-                    'unfurl_media': "true",
-                    'as_user': "true",
+                    'unfurl_media': 'true',
+                    'as_user': 'true',
                 })
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
                 "to %s: %s" % (to_humanreadable, mess.body)
+            )
+
+    def send_card(self, card: Card):
+        try:
+            if isinstance(card.to, RoomOccupant):
+                card.to = card.to.room
+            to_humanreadable, to_channel_id = self._prepare_message(card)
+            attachment = {}
+            if card.summary:
+                attachment['pretext'] = card.summary
+            if card.title:
+                attachment['title'] = card.title
+            if card.link:
+                attachment['title_link'] = card.link
+            if card.image:
+                attachment['image_url'] = card.image
+            if card.thumbnail:
+                attachment['thumb_url'] = card.thumbnail
+            attachment['text'] = card.body
+
+            if card.color:
+                attachment['color'] = COLORS[card.color] if card.color in COLORS else card.color
+
+            if card.fields:
+                attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
+
+            data = {'text': ' ', 'channel': to_channel_id, 'attachments': json.dumps([attachment]), 'as_user': 'true'}
+            log.debug('Sending data:\n%s', data)
+            self.api_call('chat.postMessage', data=data)
+        except Exception:
+            log.exception(
+                "An exception occurred while trying to send a card to %s.[%s]" % (to_humanreadable, card)
             )
 
     def __hash__(self):

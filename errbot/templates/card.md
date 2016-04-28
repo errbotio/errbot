@@ -28,11 +28,13 @@
 {: color='{{card.text_color}}' bgcolor='{{card.color}}' }
 
 {% else %}
+
 {{ card.body }}
 {: color='{{card.text_color}}' bgcolor='{{card.color}}' }
+
+{% endif %}
 
 {% for key,_ in card.fields %}| {{ key }} {% endfor %}
 {% for _ in card.fields %}| - {% endfor %}
 {% for _,value in card.fields %}| {{ value }} {% endfor %}
 
-{% endif %}

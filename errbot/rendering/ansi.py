@@ -401,7 +401,7 @@ def recurse(write, chr_table, element, table=None, borders=True):
     elif element.tag == 'p':
         write(' ')
         post_element.append('\n')
-    elif element.tag == 'br':
+    elif element.tag == 'br' and table:  # Treat <br/> differently in a table.
         write(NEXT_ROW)
     elif element.tag == 'a':
         post_element.append(' (' + element.get('href') + ')')

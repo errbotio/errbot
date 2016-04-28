@@ -220,6 +220,7 @@ class GraphicBackend(TextBackend):
     def send_message(self, mess):
         if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
             content = self.md.convert(mess.body)
+            log.debug("html:\n%s", content)
             self.app.newAnswer.emit(content)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:

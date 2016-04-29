@@ -51,6 +51,13 @@ Normal Content | Normal content too
 Normal Content | Normal content too
 Content Cell   | _italic_
 
+Markdown extra (table multiline):
+
+First Header  | Second Header
+------------- | -------------
+Content Cell  | l1<br/>l2
+l3<br/>l5     | l4
+
 Special characters:
 Copyright: &copy;
 Natural amp: &

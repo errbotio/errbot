@@ -118,10 +118,10 @@ def check_python_plug_section(name: str, config: ConfigParser) -> bool:
     try:
         python_version = config.get("Python", "Version")
     except NoSectionError:
-        log.warning(
+        log.info(
             'Plugin %s has no section [Python]. Assuming this '
-            'plugin is runnning only under python 2.', name)
-        python_version = '2'
+            'plugin is runnning only under python 3.', name)
+        python_version = '3'
 
     if python_version not in ('2', '2+', '3'):
         log.warning(

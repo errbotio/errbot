@@ -18,17 +18,7 @@ try:
     from PySide.QtCore import Qt
 except ImportError:
     log.exception("Could not start the graphical backend")
-    log.fatal("""
-    If you intend to use the graphical backend please install PySide:
-    -> On debian-like systems
-    sudo apt-get install python-software-properties
-    sudo apt-get update
-    sudo apt-get install python-pyside
-    -> On Gentoo
-    sudo emerge -av dev-python/pyside
-    -> On Arch
-    sudo pacman -S python-pyside
-     -> Generic/virtual envs
+    log.fatal(""" To install PySide use:
     pip install PySide
     """)
     sys.exit(-1)
@@ -41,10 +31,10 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         self.history_index = len(self.history)
 
     def __init__(self, history, commands, prefix):
-        self.prefix = prefix
         self.history_index = 0
         self.history = history
         self.reset_history()
+        self.prefix = prefix
         super().__init__()
 
         # Autocompleter
@@ -101,17 +91,15 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             # Select the first one of the matches
             self.completer.popup().setCurrentIndex(self.completer.completionModel().index(0, 0))
 
-        if key == Qt.Key_Up and (ctrl or alt):
+        if key == Qt.Key_Up:
             if self.history_index > 0:
                 self.history_index -= 1
-                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
-                key.ignore()
+                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
                 return
-        elif key == Qt.Key_Down and (ctrl or alt):
+        elif key == Qt.Key_Down:
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
-                self.setPlainText(self.BOT_PREFIX + '%s %s' % self.history[self.history_index])
-                key.ignore()
+                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
                 return
         elif key == QtCore.Qt.Key_Return and (ctrl or alt):
             self.newCommand.emit(self.toPlainText())
@@ -121,20 +109,15 @@ class CommandBox(QtGui.QPlainTextEdit, object):
 
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
-
-def htmlify(text, receiving):
-    return '<div class="%s">%s</div>' % ('receiving' if receiving else 'sending', text)
-
-
 err_path = os.path.dirname(errbot.__file__)
+prompt_path = os.path.join(err_path, 'prompt.svg')
 icon_path = os.path.join(err_path, 'err.svg')
 bg_path = os.path.join(err_path, 'err-bg.svg')
 css_path = os.path.join(err_path, 'backends', 'style', 'style.css')
-TOP = """
-<html>
-  <body style="background-image: url('file://%s');">
-""" % bg_path
-BOTTOM = "</body></html>"
+demo_css_path = os.path.join(err_path, 'backends', 'style', 'style-demo.css')
+
+TOP = '<html><body style="background-image: url(\'file://%s\');">' % bg_path
+BOTTOM = '</body></html>'
 
 
 class ChatApplication(QtGui.QApplication):
@@ -147,10 +130,16 @@ class ChatApplication(QtGui.QApplication):
         self.mainW.setWindowTitle('Errbot')
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
-        help_label = QtGui.QLabel("CTRL+Space to autocomplete -- CTRL+Enter to send your message")
-        self.input = CommandBox(bot.cmd_history, bot.all_commands, bot.bot_config.BOT_PREFIX)
+        help_label = QtGui.QLabel("ctrl or alt+space for autocomplete -- ctrl or alt+Enter to send your message")
+        self.input = CommandBox(bot.cmd_history[str(bot.user)], bot.all_commands, bot.bot_config.BOT_PREFIX)
+        self.demo_mode = hasattr(bot.bot_config, 'TEXT_DEMO_MODE') and bot.bot_config.TEXT_DEMO_MODE
+        font = QtGui.QFont("Arial", QtGui.QFont.Bold)
+        font.setPointSize(30 if self.demo_mode else 15)
+        self.input.setFont(font)
+
         self.output = QtWebKit.QWebView()
-        self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css_path))
+        css = demo_css_path if self.demo_mode else css_path
+        self.output.settings().setUserStyleSheetUrl(QtCore.QUrl.fromLocalFile(css))
 
         # init webpage
         self.buffer = ""
@@ -170,11 +159,19 @@ class ChatApplication(QtGui.QApplication):
         self.output.page().linkClicked.connect(QtGui.QDesktopServices.openUrl)
         self.input.newCommand.connect(lambda text: bot.send_command(text))
         self.newAnswer.connect(self.new_message)
-
-        self.mainW.show()
+        if self.demo_mode:
+            self.mainW.showFullScreen()
+        else:
+            self.mainW.show()
 
     def new_message(self, text, receiving=True):
-        self.buffer += htmlify(text, receiving)
+        size = 50 if self.demo_mode else 25
+        user = '<img src="file://%s" height=%d />' % (prompt_path, size)
+        bot = '<img src="file://%s" height=%d/>' % (icon_path, size)
+        self.buffer += '<div class="%s">%s<br/>%s</div>' % ('receiving' if receiving else 'sending',
+                                                            bot if receiving else user,
+                                                            text)
+
         self.update_webpage()
 
     def update_webpage(self):
@@ -190,7 +187,6 @@ class ChatApplication(QtGui.QApplication):
 class GraphicBackend(TextBackend):
     def __init__(self, config):
         super().__init__(config)
-        self.bot_identifier = self.build_identifier('Err')
         # create window and components
         self.md = xhtml()
         self.app = ChatApplication(self)
@@ -202,7 +198,7 @@ class GraphicBackend(TextBackend):
     def send_command(self, text):
         self.app.new_message(text, False)
         msg = Message(text)
-        msg.frm = self.build_identifier(self.bot_config.BOT_ADMINS[0])  # assume this is the admin talking
+        msg.frm = self.user
         msg.to = self.bot_identifier  # To me only
         self.callback_message(msg)
         # implements the mentions.
@@ -221,6 +217,7 @@ class GraphicBackend(TextBackend):
     def send_message(self, mess):
         if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
             content = self.md.convert(mess.body)
+            log.debug("html:\n%s", content)
             self.app.newAnswer.emit(content)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:

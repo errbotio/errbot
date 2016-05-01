@@ -10,6 +10,7 @@ from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
+from errbot import err
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
@@ -47,28 +48,36 @@ class TextBackend(ErrBot):
         super().__init__(config)
         log.debug("Text Backend Init.")
         self.bot_identifier = self.build_identifier('Err')
+        self.demo_mode = self.bot_config.TEXT_DEMO_MODE if hasattr(self.bot_config, 'TEXT_DEMO_MODE') else False
         self._rooms = set()
-        self.md_html = xhtml()  # for more debug feedback on md
-        self.md_text = text()  # for more debug feedback on md
+        if not self.demo_mode:
+            self.md_html = xhtml()  # for more debug feedback on md
+            self.md_text = text()  # for more debug feedback on md
+            self.md_borderless_ansi = borderless_ansi()
+            self.md_im = imtext()
+            self.md_lexer = get_lexer_by_name("md", stripall=True)
+
         self.md_ansi = ansi()
-        self.md_borderless_ansi = borderless_ansi()
-        self.md_im = imtext()
-        self.md_lexer = get_lexer_by_name("md", stripall=True)
         self.html_lexer = get_lexer_by_name("html", stripall=True)
         self.terminal_formatter = Terminal256Formatter(style='paraiso-dark')
+        self.user = self.build_identifier(self.bot_config.BOT_ADMINS[0])
 
     def serve_forever(self):
-        me = self.build_identifier(self.bot_config.BOT_ADMINS[0])
+        if self.demo_mode:
+            # disable the console logging once it is serving in demo mode.
+            root = logging.getLogger()
+            root.removeHandler(err.console_hdlr)
+            root.addHandler(logging.NullHandler())
         self.connect_callback()  # notify that the connection occured
-        self.callback_presence(Presence(identifier=me, status=ONLINE))
+        self.callback_presence(Presence(identifier=self.user, status=ONLINE))
         try:
             while True:
-                if ANSI:
+                if ANSI or self.demo_mode:
                     entry = input('\n' + str(fg.cyan) + ' >>> ' + str(fx.reset))
                 else:
                     entry = input('\n>>> ')
                 msg = Message(entry)
-                msg.frm = me
+                msg.frm = self.user
                 msg.to = self.bot_identifier
                 self.callback_message(msg)
 
@@ -84,41 +93,46 @@ class TextBackend(ErrBot):
             pass
         finally:
             # simulate some real presence
-            self.callback_presence(Presence(identifier=me, status=OFFLINE))
+            self.callback_presence(Presence(identifier=self.user, status=OFFLINE))
             log.debug("Trigger disconnect callback")
             self.disconnect_callback()
             log.debug("Trigger shutdown")
             self.shutdown()
 
     def send_message(self, mess):
-        bar = '\n╌╌[{mode}]' + ('╌' * 60)
-        super().send_message(mess)
-        print(bar.format(mode='MD  '))
-        if ANSI:
-            print(highlight(mess.body, self.md_lexer, self.terminal_formatter))
-        else:
-            print(mess.body)
-        print(bar.format(mode='HTML'))
-        html = self.md_html.convert(mess.body)
-        if ANSI:
-            print(highlight(html, self.html_lexer, self.terminal_formatter))
-        else:
-            print(html)
-        print(bar.format(mode='TEXT'))
-        print(self.md_text.convert(mess.body))
-        print(bar.format(mode='IM  '))
-        print(self.md_im.convert(mess.body))
-        if ANSI:
-            print(bar.format(mode='ANSI'))
+        if self.demo_mode:
             print(self.md_ansi.convert(mess.body))
-            print(bar.format(mode='BORDERLESS'))
-            print(self.md_borderless_ansi.convert(mess.body))
-        print('\n\n')
+        else:
+            bar = '\n╌╌[{mode}]' + ('╌' * 60)
+            super().send_message(mess)
+            print(bar.format(mode='MD  '))
+            if ANSI:
+                print(highlight(mess.body, self.md_lexer, self.terminal_formatter))
+            else:
+                print(mess.body)
+            print(bar.format(mode='HTML'))
+            html = self.md_html.convert(mess.body)
+            if ANSI:
+                print(highlight(html, self.html_lexer, self.terminal_formatter))
+            else:
+                print(html)
+            print(bar.format(mode='TEXT'))
+            print(self.md_text.convert(mess.body))
+            print(bar.format(mode='IM  '))
+            print(self.md_im.convert(mess.body))
+            if ANSI:
+                print(bar.format(mode='ANSI'))
+                print(self.md_ansi.convert(mess.body))
+                print(bar.format(mode='BORDERLESS'))
+                print(self.md_borderless_ansi.convert(mess.body))
+            print('\n\n')
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         log.debug("*** Changed presence to [%s] %s", (status, message))
 
     def build_identifier(self, text_representation):
+        if text_representation.startswith('#'):
+            return self.query_room(test_representation[1:])
         return TestPerson(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
@@ -132,9 +146,9 @@ class TextBackend(ErrBot):
         return 'text'
 
     def query_room(self, room):
-        room = TextRoom()
-        self._rooms.add(room)
-        return room
+        text_room = TextRoom(room)
+        self._rooms.add(text_room)
+        return text_room
 
     def rooms(self):
         return self._rooms
@@ -145,9 +159,10 @@ class TextBackend(ErrBot):
 
 class TextRoom(Room):
 
-    def __init__(self):
+    def __init__(self, name):
         self.topic_ = ''
         self.joined_ = False
+        self.name = name
 
     def join(self, username=None, password=None):
         self.joined_ = True
@@ -183,3 +198,6 @@ class TextRoom(Room):
 
     def invite(self, *args):
         pass
+
+    def __str__(self):
+        return self.name

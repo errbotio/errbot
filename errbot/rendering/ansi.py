@@ -11,6 +11,7 @@ import logging
 from markdown import Markdown
 from markdown.extensions import Extension
 from markdown.postprocessors import Postprocessor
+from markdown.inlinepatterns import SubstituteTagPattern
 from markdown.extensions.fenced_code import FencedBlockPreprocessor
 
 from ansi.color import fg, bg, fx
@@ -164,6 +165,9 @@ IMTEXT_CHRS = CharacterTable(fg_black='',
                              end_inline_code='`')
 
 
+NEXT_ROW = "&NEXT_ROW;"
+
+
 class Table(object):
 
     def __init__(self, chr_table):
@@ -213,7 +217,11 @@ class Table(object):
 
         for row in chain(self.headers, self.rows):
             for i, el in enumerate(row):
-                _, length = el
+                txt, length = el
+                # Account for multiline cells
+                cnt = str(txt).count(NEXT_ROW)
+                if cnt > 0:
+                    length = length - cnt*len(NEXT_ROW)
                 if maxes[i] < length:
                     maxes[i] = length
 
@@ -242,15 +250,29 @@ class Table(object):
             output.write('\n')
         first = True
         for row in self.rows:
+            max_row_height = 1
+            for i, item in enumerate(row):
+                text, l = item
+                row_height = str(text).count(NEXT_ROW) + 1
+                if row_height > max_row_height:
+                    max_row_height = row_height
             if not first:
                 output.write('├' + '┼'.join('─' * m for m in maxes) + '┤')
                 output.write('\n')
             first = False
-            for i, item in enumerate(row):
-                text, l = item
-                output.write('│ ' + text + ' ' * (maxes[i] - 2 - l) + ' ')
-            output.write('│')
-            output.write('\n')
+            for j in range(max_row_height):
+                for i, item in enumerate(row):
+                    text, l = item
+                    multi = text.split(NEXT_ROW)
+                    if len(multi) > j:
+                        text = multi[j]
+                        l = len(text)
+                    else:
+                        l = 1
+                        text = ' '
+                    output.write('│ ' + text + ' ' * (maxes[i] - 2 - l) + ' ')
+                output.write('│')
+                output.write('\n')
         output.write('└' + '┴'.join('─' * m for m in maxes) + '┘')
         output.write('\n')
         return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
@@ -305,7 +327,11 @@ class BorderlessTable(object):
 
         for row in chain(self.headers, self.rows):
             for i, el in enumerate(row):
-                _, length = el
+                txt, length = el
+                # Account for multiline cells
+                cnt = str(txt).count(NEXT_ROW)
+                if cnt > 0:
+                    length = length - cnt*len(NEXT_ROW)
                 if maxes[i] < length:
                     maxes[i] = length
 
@@ -320,10 +346,24 @@ class BorderlessTable(object):
                     output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
                 output.write('\n')
         for row in self.rows:
+            max_row_height = 1
             for i, item in enumerate(row):
                 text, l = item
-                output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
-            output.write('\n')
+                row_height = str(text).count(NEXT_ROW) + 1
+                if row_height > max_row_height:
+                    max_row_height = row_height
+            for j in range(max_row_height):
+                for i, item in enumerate(row):
+                    text, l = item
+                    multi = text.split(NEXT_ROW)
+                    if len(multi) > j:
+                        text = multi[j]
+                        l = len(text)
+                    else:
+                        l = 1
+                        text = ' '
+                    output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
+                output.write('\n')
         return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
 
 
@@ -361,6 +401,8 @@ def recurse(write, chr_table, element, table=None, borders=True):
     elif element.tag == 'p':
         write(' ')
         post_element.append('\n')
+    elif element.tag == 'br' and table:  # Treat <br/> differently in a table.
+        write(NEXT_ROW)
     elif element.tag == 'a':
         post_element.append(' (' + element.get('href') + ')')
     elif element.tag == 'li':
@@ -492,6 +534,9 @@ class AnsiExtension(Extension):
         md.preprocessors.add(
             "ansi_fenced_codeblock", AnsiPreprocessor(md), "<fenced_code_block"
         )
+        md.inlinePatterns.add(
+            # Leave <br/> tags as is for proper table multiline cell processing
+            "br", SubstituteTagPattern(r'<br/>', "br"), "<html"
+        )
         del(md.preprocessors['fenced_code_block'])  # remove the old fenced block
-        log.debug("Will apply those postprocessors:\n%s" % '\n'.join(md.postprocessors))
-        log.debug("Will apply those preprocessors:\n%s" % '\n'.join(md.preprocessors))
+        del(md.treeprocessors['prettify'])  # remove prettify treeprocessor since it adds extra new lines

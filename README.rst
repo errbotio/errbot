@@ -1,3 +1,7 @@
+.. image:: https://errbot.readthedocs.org/en/latest/_static/err_speech.png
+   :target: http://errbot.io
+
+|
 
 .. image:: https://img.shields.io/travis/errbotio/errbot/master.svg
    :target: https://travis-ci.org/errbotio/errbot/
@@ -19,10 +23,10 @@
    :alt: Join the chat at https://gitter.im/errbotio/errbot
 
 |
-|
 
-.. image:: http://errbot.io/_static/err.png
-   :target: http://errbot.io
+.. image:: https://graphs.waffle.io/errbotio/errbot/throughput.svg
+   :target: https://waffle.io/errbotio/errbot/
+   :alt: 'Throughput Graph'
 
 
 Errbot
@@ -49,7 +53,8 @@ Features
 - IRC support (built-in)
 - `Gitter support <https://gitter.im/>`_ (Follow `gitter instructions <https://github.com/errbotio/err-backend-gitter>`_ to install it)
 - `CampFire <https://campfirenow.com/>`_ (Follow `campfire instructions <https://github.com/errbotio/err-backend-campfire>`_ to install it)
-- `TOX <https://tox.im/>`_ (Follow the `tox instructions from <https://github.com/errbotio/err-backend-tox>`_ to install it)
+- `TOX <https://tox.im/>`_ (Follow the `tox instructions <https://github.com/errbotio/err-backend-tox>`_ to install it)
+- `Skype <https://www.skype.com/>`_ (Follow the `skype instructions <https://github.com/errbotio/errbot-backend-skype>`_ to install it)
 
 **Administration**
 

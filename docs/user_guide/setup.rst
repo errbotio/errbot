@@ -194,6 +194,14 @@ If you wish to develop or test with Errbot's code under 2.7, you must run::
 
 Alternatively, you can also look into the `--editable` parameter of pip install.
 
+
+Provisioning (advanced)
+-----------------------
+.. toctree::
+  :maxdepth: 1
+
+  configuration/provisioning
+ 
 .. _virtualenv: https://virtualenv.pypa.io/en/latest/
 .. _pip: https://pip.pypa.io/en/stable/
 .. _supervisor: http://supervisord.org/

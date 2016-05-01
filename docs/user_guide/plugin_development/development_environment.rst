@@ -43,10 +43,20 @@ using :option:`--graphic` (or :option:`-G`) instead of
 bot's responses and log information mixed up together in the same
 window.
 
-Plugin skeleton
----------------
 
-We also provide a very `minimal plugin
-<https://github.com/zoni/err-skeleton>`_ which shows the basic
-layout of a simple plugin. You can save yourself some time writing
-boilerplate code by using this template as a starting point.
+Plugin scaffolding
+------------------
+
+Plugins consist of two parts, a special `.plug` file and one or more Python (`.py`) files
+containing the actual code of your plugin
+(both of these are explained in-depth in the next section).
+Errbot can automatically generate these files for you
+so that you do not have to write boilerplate code by hand.
+
+To create a new plugin, run `errbot --new-plugin`
+(optionally specifying a directory where to create the new plugin -
+it will use the current directory by default).
+It will ask you a few questions such as the name for your plugin,
+a description and which versions of errbot it will work with and
+generate a plugin skeleton from this with all the information
+filled out automatically for you.

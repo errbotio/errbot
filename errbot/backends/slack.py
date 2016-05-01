@@ -125,7 +125,6 @@ class SlackPerson(Person):
         return self._sc.server.domain
 
     # Compatibility with the generic API.
-    person = userid
     client = channelid
     nick = username
 
@@ -153,6 +152,12 @@ class SlackPerson(Person):
 
     def __eq__(self, other):
         return other.userid == self.userid
+
+    @property
+    def person(self):
+        # Don't use str(self) here because we want SlackRoomOccupant
+        # to return just our @username too.
+        return "@%s" % self.username
 
 
 class SlackRoomOccupant(RoomOccupant, SlackPerson):
@@ -193,7 +198,8 @@ class SlackBackend(ErrBot):
             )
             sys.exit(1)
         self.sc = None  # Will be initialized in serve_once
-        self.md = slack_markdown_converter()
+        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
+        self.md = slack_markdown_converter(compact)
 
     def api_call(self, method, data=None, raise_errors=True):
         """
@@ -820,7 +826,7 @@ class SlackRoom(Room):
     @property
     def occupants(self):
         members = self._channel_info['members']
-        return [SlackRoomOccupant(self.sc, self._bot.userid_to_username(m), self._name, self._bot) for m in members]
+        return [SlackRoomOccupant(self.sc, m, self.id, self._bot) for m in members]
 
     def invite(self, *args):
         users = {user['name']: user['id'] for user in self._bot.api_call('users.list')['members']}

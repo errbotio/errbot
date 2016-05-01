@@ -1,15 +1,18 @@
 import logging
 import sys
 
+from errbot import PY2
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, ONLINE, Room
 from errbot.errBot import ErrBot
 from errbot.rendering import text
+from errbot.rendering.ansi import enable_format, TEXT_CHRS
 
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.telegram')
 
 TELEGRAM_MESSAGE_SIZE_LIMIT = 1024
+UPDATES_OFFSET_KEY = b'_telegram_updates_offset' if PY2 else '_telegram_updates_offset'
 
 try:
     import telegram
@@ -188,6 +191,9 @@ class TelegramBackend(ErrBot):
             sys.exit(1)
         self.telegram = None  # Will be initialized in serve_once
         self.bot_instance = None  # Will be set in serve_once
+
+        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
+        enable_format('text', TEXT_CHRS, borders=not compact)
         self.md_converter = text()
 
     def serve_once(self):
@@ -211,7 +217,7 @@ class TelegramBackend(ErrBot):
         self.connect_callback()
 
         try:
-            offset = self['_telegram_updates_offset']
+            offset = self[UPDATES_OFFSET_KEY]
         except KeyError:
             offset = 0
 
@@ -220,7 +226,7 @@ class TelegramBackend(ErrBot):
                 log.debug("Getting updates with offset %s", offset)
                 for update in self.telegram.getUpdates(offset=offset, timeout=60):
                     offset = update.update_id + 1
-                    self['_telegram_updates_offset'] = offset
+                    self[UPDATES_OFFSET_KEY] = offset
                     log.debug("Processing update: %s", update)
                     if not hasattr(update, 'message'):
                         log.warning("Unknown update type (no message present)")
@@ -252,7 +258,7 @@ class TelegramBackend(ErrBot):
             return
 
         message_instance = self.build_message(message.text)
-        if isinstance(message.chat, telegram.user.User):
+        if message.chat['type'] == 'private':
             message_instance.frm = TelegramPerson(
                 id=message.from_user.id,
                 first_name=message.from_user.first_name,

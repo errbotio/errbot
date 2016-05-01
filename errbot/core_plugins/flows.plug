@@ -1,0 +1,10 @@
+[Core]
+Name = Flows
+Module = flows
+Core = True
+
+[Documentation]
+Description = Core Errbot commands to query and manage conversation flows.
+
+[Python]
+Version = 2+

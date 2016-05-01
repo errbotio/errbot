@@ -279,7 +279,6 @@ class IRCRoom(Room):
         """
         if not self.joined:
             raise RoomNotJoinedError("Must join the room to set the topic")
-        self.cb_set_topic(topic)
         self.connection.topic(self.room, topic)
 
     @property
@@ -772,7 +771,6 @@ class IRCBackend(ErrBot):
         """
         with self.conn._rooms_lock:
             return self.conn._rooms.values()
-
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)

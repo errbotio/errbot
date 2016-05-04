@@ -36,9 +36,11 @@ class {{ class_name }}(BotPlugin):
         """
         Triggers when the configuration is checked, shortly before activation
 
+        Raise a errbot.utils.ValidationException in case of an error
+
         You should delete it if you're not using it to override any default behaviour
         """
-        super({{ class_name }}, self).check_configuration()
+        super({{ class_name }}, self).check_configuration(configuration)
 
     def callback_connect(self):
         """

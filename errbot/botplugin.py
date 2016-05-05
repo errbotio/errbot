@@ -7,7 +7,7 @@ from io import IOBase
 
 from .utils import recurse_check_structure, PY2
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE
+from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
 
 log = logging.getLogger(__name__)
 
@@ -457,6 +457,40 @@ class BotPlugin(BotPluginBase):
         if message_type is not None:
             self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
+
+    def send_card(self,
+                  body: str='',
+                  to: Identifier=None,
+                  in_reply_to: Message=None,
+                  summary: str=None,
+                  title: str='',
+                  link: str=None,
+                  image: str=None,
+                  thumbnail: str=None,
+                  color: str='green',
+                  fields: Tuple[Tuple[str, str], ...]=()) -> None:
+        """
+        Sends a card.
+
+        A Card is a special type of preformatted message. If it matches with a backend similar concept like on
+        Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular formatted message.
+        :param body: main text of the card in markdown.
+        :param to: the card is sent to this identifier (Room, RoomOccupant, Person...).
+        :param in_reply_to: the original message this message is a reply to (optional).
+        :param summary: (optional) One liner summary of the card, possibly collapsed to it.
+        :param title: (optional) Title possibly linking.
+        :param link: (optional) url the title link is pointing to.
+        :param image: (optional) link to the main image of the card.
+        :param thumbnail: (optional) link to an icon / thumbnail.
+        :param color: (optional) background color or color indicator.
+        :param fields: (optional) a tuple of (key, value) pairs.
+        """
+        frm = in_reply_to.to if in_reply_to else self.bot_identifier
+        if to is None:
+            if in_reply_to is None:
+                raise ValueError('Either to or in_reply_to needs to be set.')
+            to = in_reply_to.frm
+        self._bot.send_card(Card(body, frm, to, summary, title, link, image, thumbnail, color, fields))
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """

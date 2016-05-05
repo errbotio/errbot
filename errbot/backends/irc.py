@@ -175,14 +175,13 @@ class IRCRoom(Room):
 
     def cb_set_topic(self, current_topic):
         """
-            Internal use only.
-            To set the topic use the topic property.
-            Not use under any circunstance. I REALLY mean it.
-            It will broke things badly.
-            Probably leave you in banckrupcy.
-            :params:
-                current_topic: Well, really? I told you that not
-                use this, so go away and use the topic property.
+        Store the current topic for this room.
+
+        This method is called by the IRC backend when a `currenttopic`,
+        `topic` or `notopic` IRC event is received to store the topic set for this channel.
+
+        This function is not meant to be executed by regular plugins.
+        To get or set
         """
         with self._topic_lock:
             self._topic = current_topic
@@ -477,16 +476,14 @@ class IRCConnection(SingleServerIRCBot):
         """
             Handler of the part IRC Message/event.
 
-            The part message is sent to the client as a confirmantion of a
+            The part message is sent to the client as a confirmation of a
             /PART command sent by someone in the room/channel.
             If the event.source contains the bot nickname then we need to fire
-            the :meth:bot.callback_room_left event on the bot.
+            the :meth:`~errbot.backends.base.Backend.callback_room_left` event on the bot.
 
-            :param:
-                connection: Is an 'irc.client.ServerConnection' object
+            :param connection: Is an 'irc.client.ServerConnection' object
 
-            :param:
-                event: Is an 'irc.client.Event' object
+            :param event: Is an 'irc.client.Event' object
                 The event.source contains the nickmask of the user that
                 leave the room
                 The event.target contains the channel name
@@ -508,11 +505,9 @@ class IRCConnection(SingleServerIRCBot):
             So in this case, we use this event to determine that our bot is
             finally joined to the room.
 
-            :param:
-                connection: Is an 'irc.client.ServerConnection' object
+            :param connection: Is an 'irc.client.ServerConnection' object
 
-            :param:
-                event: Is an 'irc.client.Event' object
+            :param event: Is an 'irc.client.Event' object
                 the event.arguments[0] contains the channel name
         """
         # The event.arguments[0] contains the channel name.
@@ -528,11 +523,9 @@ class IRCConnection(SingleServerIRCBot):
             Handler of the join IRC message/event.
             Is in response of a /JOIN client message.
 
-            :param:
-                connection: Is an 'irc.client.ServerConnection' object
+            :param connection: Is an 'irc.client.ServerConnection' object
 
-            :param:
-                event: Is an 'irc.client.Event' object
+            :param event: Is an 'irc.client.Event' object
                 the event.target contains the channel name
         """
         # We can't fire the room_joined event yet,
@@ -549,14 +542,12 @@ class IRCConnection(SingleServerIRCBot):
             When you Join a room with a topic set this event fires up to
             with the topic information.
             If the room that you join don't have a topic set, nothing happens.
-            Here is NOT the place to fire the :meth:callback_room_topic event, for
+            Here is NOT the place to fire the :meth:`~errbot.backends.base.Backend.callback_room_topic` event for
             that case exist on_topic.
 
-            :param:
-                connection: Is an 'irc.client.ServerConnection' object
+            :param connection: Is an 'irc.client.ServerConnection' object
 
-            :param:
-                event: Is an 'irc.client.Event' object
+            :param event: Is an 'irc.client.Event' object
                 The event.arguments[0] contains the room name
                 The event.arguments[1] contains the topic of the room.
         """
@@ -568,11 +559,9 @@ class IRCConnection(SingleServerIRCBot):
         """
             On response to the /TOPIC command if the room have a topic.
             If the room don't have a topic the event fired is on_notopic
-            :param:
-                connection: Is an 'irc.client.ServerConnection' object
+            :param connection: Is an 'irc.client.ServerConnection' object
 
-            :param:
-                event: Is an 'irc.client.Event' object
+            :param event: Is an 'irc.client.Event' object
                 The event.target contains the room name.
                 The event.arguments[0] contains the topic name
         """
@@ -586,11 +575,9 @@ class IRCConnection(SingleServerIRCBot):
         """
             This event fires ip when there is no topic set on a room
 
-            :param:
-                connection: Is an 'irc.client.ServerConnection' object
+            :param connection: Is an 'irc.client.ServerConnection' object
 
-            :param:
-                event: Is an 'irc.client.Event' object
+            :param event: Is an 'irc.client.Event' object
                 The event.arguments[0] contains the room name
         """
         room_name = event.arguments[0]

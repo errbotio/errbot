@@ -27,6 +27,13 @@ which should work with a properly configured server.
 If your chosen XMPP server does not have correct SRV records setup,
 you can also set the `server` key to override this.
 
+A random resource ID is assigned when errbot starts up.
+You may fix the resource by appending it to the user name::
+
+    BOT_IDENTITY = {
+        'username': 'err@server.tld/resource',
+    ...
+
 
 Bot admins
 ----------

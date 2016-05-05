@@ -10,12 +10,12 @@ from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
 from errbot.backends.base import Message, Room, RoomError, \
-                                    RoomNotJoinedError, Stream, \
-                                    RoomOccupant, ONLINE, Person
+    RoomNotJoinedError, Stream, \
+    RoomOccupant, ONLINE, Person
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
 from errbot.rendering.ansi import AnsiExtension, enable_format, \
-                                    CharacterTable, NSC
+    CharacterTable, NSC
 
 
 # Can't use __name__ because of Yapsy
@@ -82,6 +82,7 @@ def irc_md():
 
 
 class IRCPerson(Person):
+
     def __init__(self, mask):
         self._nickmask = NickMask(mask)
 
@@ -127,6 +128,7 @@ class IRCPerson(Person):
 
 
 class IRCRoomOccupant(IRCPerson, RoomOccupant):
+
     def __init__(self, mask, room):
         super().__init__(mask)
         self._room = room
@@ -146,10 +148,21 @@ class IRCRoomOccupant(IRCPerson, RoomOccupant):
 
 
 class IRCRoom(Room):
+    """
+        Represent the specifics of a IRC Room/Channel.
+
+        This lifecycle of this object is:
+         - Created in IRCConnection.on_join
+         - The joined status change in IRCConnection on_join/on_part
+         - Deleted/destroyed in IRCConnection.on_disconnect
+    """
+
     def __init__(self, room, bot):
         self._bot = bot
         self.room = room
         self.connection = self._bot.conn.connection
+        self._topic_lock = threading.Lock()
+        self._topic = None
 
     def __unicode__(self):
         return self.room
@@ -159,6 +172,20 @@ class IRCRoom(Room):
 
     def __repr__(self):
         return "<{} - {}>".format(self.__unicode__(), super().__repr__())
+
+    def cb_set_topic(self, current_topic):
+        """
+            Internal use only.
+            To set the topic use the topic property.
+            Not use under any circunstance. I REALLY mean it.
+            It will broke things badly.
+            Probably leave you in banckrupcy.
+            :params:
+                current_topic: Well, really? I told you that not
+                use this, so go away and use the topic property.
+        """
+        with self._topic_lock:
+            self._topic = current_topic
 
     def join(self, username=None, password=None):
         """
@@ -186,8 +213,7 @@ class IRCRoom(Room):
             reason = ""
 
         self.connection.part(self.room, reason)
-        self._bot.callback_room_left(self)
-        log.info("Left room {}".format(self.room))
+        log.info("Leaving room {} with reason '{}'".format(self.room, reason if reason is not None else ''))
 
     def create(self):
         """
@@ -238,7 +264,10 @@ class IRCRoom(Room):
             Returns the topic (a string) if one is set, `None` if no
             topic has been set at all.
         """
-        return self.connection.topic(self.room)
+        if not self.joined:
+            raise RoomNotJoinedError("Must join the room to get the topic")
+        with self._topic_lock:
+            return self._topic
 
     @topic.setter
     def topic(self, topic):
@@ -248,6 +277,8 @@ class IRCRoom(Room):
         :param topic:
             The topic to set.
         """
+        if not self.joined:
+            raise RoomNotJoinedError("Must join the room to set the topic")
         self.connection.topic(self.room, topic)
 
     @property
@@ -316,7 +347,8 @@ class IRCConnection(SingleServerIRCBot):
             self.send_public_message = rate_limited(channel_rate)(self.send_public_message)
         self._reconnect_on_kick = reconnect_on_kick
         self._pending_transfers = {}
-        self._recently_joined_lock = threading.Lock()
+        self._rooms_lock = threading.Lock()
+        self._rooms = {}
         self._recently_joined_to = set()
 
         self.nickserv_password = nickserv_password
@@ -408,7 +440,8 @@ class IRCConnection(SingleServerIRCBot):
         except ServerNotConnectedError:
             pass  # the message will be lost
 
-    def on_disconnect(self, _, e):
+    def on_disconnect(self, connection, event):
+        self._rooms = {}
         self.bot.disconnect_callback()
 
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
@@ -440,6 +473,31 @@ class IRCConnection(SingleServerIRCBot):
     def on_dcc_disconnect(self, dcc, event):
         self.transfers.pop(dcc)
 
+    def on_part(self, connection, event):
+        """
+            Handler of the part IRC Message/event.
+
+            The part message is sent to the client as a confirmantion of a
+            /PART command sent by someone in the room/channel.
+            If the event.source contains the bot nickname then we need to fire
+            the :meth:bot.callback_room_left event on the bot.
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                The event.source contains the nickmask of the user that
+                leave the room
+                The event.target contains the channel name
+        """
+        leaving_nick = event.source.nick
+        leaving_room = event.target
+        if self.bot.bot_identifier.nick == leaving_nick:
+            with self._rooms_lock:
+                self.bot.callback_room_left(self._rooms[leaving_room])
+            log.info("Left room {}".format(leaving_room))
+
     def on_endofnames(self, connection, event):
         """
             Handler of the enfofnames IRC message/event.
@@ -455,19 +513,20 @@ class IRCConnection(SingleServerIRCBot):
 
             :param:
                 event: Is an 'irc.client.Event' object
-                the e.arguments[0] contains the channel name
+                the event.arguments[0] contains the channel name
         """
         # The event.arguments[0] contains the channel name.
         # We filter that to avoid a misfire of the event.
         room_name = event.arguments[0]
-        with self._recently_joined_lock:
+        with self._rooms_lock:
             if room_name in self._recently_joined_to:
                 self._recently_joined_to.remove(room_name)
-                self.bot.callback_room_joined(IRCRoom(room_name, self.bot))
+                self.bot.callback_room_joined(self._rooms[room_name])
 
     def on_join(self, connection, event):
         """
-            Handler of the join IRC message/event
+            Handler of the join IRC message/event.
+            Is in response of a /JOIN client message.
 
             :param:
                 connection: Is an 'irc.client.ServerConnection' object
@@ -480,8 +539,64 @@ class IRCConnection(SingleServerIRCBot):
         # because we don't have the occupants info.
         # We need to wait to endofnames message.
         room_name = event.target
-        with self._recently_joined_lock:
+        with self._rooms_lock:
+            if room_name not in self._rooms:
+                self._rooms[room_name] = IRCRoom(room_name, self.bot)
             self._recently_joined_to.add(room_name)
+
+    def on_currenttopic(self, connection, event):
+        """
+            When you Join a room with a topic set this event fires up to
+            with the topic information.
+            If the room that you join don't have a topic set, nothing happens.
+            Here is NOT the place to fire the :meth:callback_room_topic event, for
+            that case exist on_topic.
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                The event.arguments[0] contains the room name
+                The event.arguments[1] contains the topic of the room.
+        """
+        room_name, current_topic = event.arguments
+        with self._rooms_lock:
+            self._rooms[room_name].cb_set_topic(current_topic)
+
+    def on_topic(self, connection, event):
+        """
+            On response to the /TOPIC command if the room have a topic.
+            If the room don't have a topic the event fired is on_notopic
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                The event.target contains the room name.
+                The event.arguments[0] contains the topic name
+        """
+        room_name = event.target
+        current_topic = event.arguments[0]
+        with self._rooms_lock:
+            self._rooms[room_name].cb_set_topic(current_topic)
+            self.bot.callback_room_topic(self._rooms[room_name])
+
+    def on_notopic(self, connection, event):
+        """
+            This event fires ip when there is no topic set on a room
+
+            :param:
+                connection: Is an 'irc.client.ServerConnection' object
+
+            :param:
+                event: Is an 'irc.client.Event' object
+                The event.arguments[0] contains the room name
+        """
+        room_name = event.arguments[0]
+        with self._rooms_lock:
+            self._rooms[room_name].cb_set_topic(None)
+            self.bot.callback_room_topic(self._rooms[room_name])
 
     @staticmethod
     def send_chunk(stream, dcc):
@@ -638,7 +753,10 @@ class IRCBackend(ErrBot):
         :returns:
             An instance of :class:`~IRCMUCRoom`.
         """
-        return IRCRoom(room, bot=self)
+        with self.conn._rooms_lock:
+            if room not in self.conn._rooms:
+                self.conn._rooms[room] = IRCRoom(room, self)
+            return self.conn._rooms[room]
 
     @property
     def mode(self):
@@ -651,9 +769,8 @@ class IRCBackend(ErrBot):
         :returns:
             A list of :class:`~IRCMUCRoom` instances.
         """
-
-        channels = self.conn.channels.keys()
-        return [IRCRoom(channel) for channel in channels]
+        with self.conn._rooms_lock:
+            return self.conn._rooms.values()
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)

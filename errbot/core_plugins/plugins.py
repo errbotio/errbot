@@ -5,7 +5,7 @@ import os
 import shutil
 
 from errbot import BotPlugin, botcmd
-from errbot.plugin_manager import PluginConfigurationException
+from errbot.plugin_manager import PluginConfigurationException, PluginActivationException
 from errbot.repo_manager import RepoException
 
 
@@ -128,8 +128,11 @@ class Plugins(BotPlugin):
                 if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                     name = plugin.name
                     yield '/me is reloading plugin %s' % name
-                    self._bot.plugin_manager.reload_plugin_by_name(plugin.name)
-                    yield '%s reloaded and reactivated' % name
+                    try:
+                        self._bot.plugin_manager.reload_plugin_by_name(plugin.name)
+                        yield "Plugin %s reloaded." % plugin.name
+                    except PluginActivationException as pae:
+                        yield 'Error reactivating plugin %s: %s' % (plugin.name, pae)
         yield "Done."
 
     @botcmd(split_args_with=' ', admin_only=True)
@@ -180,13 +183,21 @@ class Plugins(BotPlugin):
             return 'It looks fishy, your config type is not the same as the template !'
 
         self._bot.plugin_manager.set_plugin_configuration(plugin_name, real_config_obj)
-        self._bot.plugin_manager.deactivate_plugin(plugin_name)
+
+        try:
+            self._bot.plugin_manager.deactivate_plugin(plugin_name)
+        except PluginActivationException as pae:
+            return 'Error deactivating %s: %s' % (plugin_name, pae)
+
         try:
             self._bot.plugin_manager.activate_plugin(plugin_name)
         except PluginConfigurationException as ce:
-            self.log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured')
+            self.log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured.')
             self._bot.plugin_manager.set_plugin_configuration(plugin_name, None)
             return 'Incorrect plugin configuration: %s' % ce
+        except PluginActivationException as pae:
+            return 'Error activating plugin: %s' % pae
+
         return 'Plugin configuration done.'
 
     def formatted_plugin_list(self, active_only=True):
@@ -220,9 +231,11 @@ class Plugins(BotPlugin):
             yield (("Warning: plugin %s is currently not activated. " +
                    "Use `%splugin activate %s` to activate it.") % (name, self._bot.prefix, name))
 
-        self._bot.plugin_manager.reload_plugin_by_name(name)
-
-        yield "Plugin %s reloaded." % name
+        try:
+            self._bot.plugin_manager.reload_plugin_by_name(name)
+            yield "Plugin %s reloaded." % name
+        except PluginActivationException as pae:
+            yield 'Error activating plugin %s: %s' % (name, pae)
 
     @botcmd(admin_only=True)
     def plugin_activate(self, _, args):
@@ -237,7 +250,11 @@ class Plugins(BotPlugin):
         if args in self._bot.plugin_manager.get_all_active_plugin_names():
             return "{} is already activated.".format(args)
 
-        return self._bot.plugin_manager.activate_plugin(args)
+        try:
+            self._bot.plugin_manager.activate_plugin(args)
+        except PluginActivationException as pae:
+            return 'Error activating plugin: %s' % pae
+        return 'Plugin {} activated.'.format(args)
 
     @botcmd(admin_only=True)
     def plugin_deactivate(self, _, args):
@@ -252,7 +269,11 @@ class Plugins(BotPlugin):
         if args not in self._bot.plugin_manager.get_all_active_plugin_names():
             return "{} is already deactivated.".format(args)
 
-        return self._bot.plugin_manager.deactivate_plugin(args)
+        try:
+            self._bot.plugin_manager.deactivate_plugin(args)
+        except PluginActivationException as pae:
+            return 'Error deactivating %s: %s' % (args, pae)
+        return 'Plugin {} deactivated.'.format(args)
 
     @botcmd(admin_only=True)
     def plugin_blacklist(self, _, args):
@@ -263,8 +284,10 @@ class Plugins(BotPlugin):
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
 
         if args in self._bot.plugin_manager.get_all_active_plugin_names():
-            self._bot.plugin_manager.deactivate_plugin(args)
-
+            try:
+                self._bot.plugin_manager.deactivate_plugin(args)
+            except PluginActivationException as pae:
+                return 'Error deactivating %s: %s' % (args, pae)
         return self._bot.plugin_manager.blacklist_plugin(args)
 
     @botcmd(admin_only=True)
@@ -275,6 +298,9 @@ class Plugins(BotPlugin):
                     "{}".format(args, self.formatted_plugin_list(active_only=False)))
 
         if args not in self._bot.plugin_manager.get_all_active_plugin_names():
-            self._bot.plugin_manager.activate_plugin(args)
+            try:
+                self._bot.plugin_manager.activate_plugin(args)
+            except PluginActivationException as pae:
+                return 'Error activating plugin: %s' % pae
 
         return self._bot.plugin_manager.unblacklist_plugin(args)

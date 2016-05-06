@@ -34,11 +34,15 @@ except ImportError:
     from imp import reload  # noqa
 
 
-class IncompatiblePluginException(Exception):
+class PluginActivationException(Exception):
     pass
 
 
-class PluginConfigurationException(Exception):
+class IncompatiblePluginException(PluginActivationException):
+    pass
+
+
+class PluginConfigurationException(PluginActivationException):
     pass
 
 
@@ -311,6 +315,7 @@ class BotPluginManager(PluginManager, StoreMixin):
     def reload_plugin_by_name(self, name):
         """
         Completely reload the given plugin, including reloading of the module's code
+        :throws PluginActivationException: needs to be taken care of by the callers.
         """
         was_activated = name in self.get_all_active_plugin_names()
 
@@ -431,6 +436,10 @@ class BotPluginManager(PluginManager, StoreMixin):
         return self.update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra, self.autoinstall_deps)
 
     def activate_non_started_plugins(self):
+        """
+
+        :return: Empty string if no problem occured or a string explaining what went wrong.
+        """
         log.info('Activate bot plugins...')
         configs = self[self.CONFIGS]
         errors = ''
@@ -471,23 +480,27 @@ class BotPluginManager(PluginManager, StoreMixin):
         return errors
 
     def activate_plugin(self, name):
+        """
+        Activate the given plugin.
+
+        :param name: the name of the plugin you want to activate.
+        :throws PluginActivationException: if an error occured while activating the plugin.
+        """
         try:
             if name in self.get_all_active_plugin_names():
-                return "Plugin already in active list"
+                raise PluginActivationException("Plugin already in active list")
             if name not in self.get_all_plugin_names():
-                return "I don't know this %s plugin" % name
+                raise PluginActivationException("I don't know this %s plugin" % name)
             self.activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+        except PluginActivationException:
+            raise
         except Exception as e:
             log.exception("Error loading %s" % name)
-            return '%s failed to start : %s\n' % (name, e)
+            raise PluginActivationException('%s failed to start : %s\n' % (name, e))
         self.get_plugin_obj_by_name(name).callback_connect()
-        return "Plugin %s activated." % name
 
     def deactivate_plugin(self, name):
-        if name not in self.get_all_active_plugin_names():
-            return "Plugin %s not in active list" % name
         self.deactivate_plugin_by_name(name)
-        return "Plugin %s deactivated." % name
 
     def remove_plugin(self, plugin):
         """

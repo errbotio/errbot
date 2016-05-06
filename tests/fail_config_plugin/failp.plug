@@ -1,0 +1,6 @@
+[Core]
+Name = Failp
+Module = failp
+
+[Python]
+Version = 2+

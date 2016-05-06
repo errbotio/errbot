@@ -456,10 +456,12 @@ class SlackBackend(ErrBot):
                 to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
             else:
                 to_humanreadable = mess.to.username
-                to_channel_id = mess.to.channelid
-                if to_channel_id.startswith('C'):
+                if isinstance(mess.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !
                     log.debug("This is a divert to private message, sending it directly to the user.")
                     to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+                else:
+                    to_channel_id = mess.to.channel
+
             msgtype = "direct" if mess.is_direct else "channel"
             log.debug('Sending %s message to %s (%s)' % (msgtype, to_humanreadable, to_channel_id))
             body = self.md.convert(mess.body)

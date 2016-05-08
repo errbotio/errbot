@@ -551,7 +551,7 @@ def testbot(request):
 
     kwargs = {}
 
-    for attr, default in (('extra_plugin_dir', None), ('loglevel', logging.DEBUG),):
+    for attr, default in (('extra_plugin_dir', None), ('extra_config', None), ('loglevel', logging.DEBUG),):
         if hasattr(request, 'instance'):
             kwargs[attr] = getattr(request.instance, attr, None)
         if kwargs[attr] is None:

@@ -67,7 +67,6 @@ if not PY35_OR_GREATER:
 # TODO(gbin): find another way to filter those out if we don't need them.
 
 deps += ['mock',
-         'nose',
          'pep8',
          'flaky',
          # Order matters here, pytest must come last. See also:

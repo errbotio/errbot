@@ -1,16 +1,10 @@
 from os import path
 
-from errbot.backends.test import FullStackTest
+from errbot.backends.test import testbot
+
+extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'fail_config_plugin')
 
 
-class FailedConfigTest(FullStackTest):
-
-    def setUp(self, *args, **kwargs):
-        kwargs['extra_plugin_dir'] = path.join(path.dirname(
-            path.realpath(__file__)), 'fail_config_plugin')
-
-        super().setUp(*args, **kwargs)
-
-    def test_failed_config(self):
-        self.assertCommand('!plugin config Failp {}',
-                           'Incorrect plugin configuration: Message explaning why it failed.')
+def test_failed_config(testbot):
+    assert 'Incorrect plugin configuration: Message explaning why it failed.' \
+           in testbot.exec_command('!plugin config Failp {}')

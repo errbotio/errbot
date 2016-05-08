@@ -20,7 +20,7 @@ def ansi():
 
     ansi_txt = md_converter.convert(md_txt)
     """
-    from .ansi import AnsiExtension
+    from .ansiext import AnsiExtension
     md = Markdown(output_format='ansi', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
@@ -34,7 +34,7 @@ def text():
 
     pure_text = md_converter.convert(md_txt)
     """
-    from .ansi import AnsiExtension
+    from .ansiext import AnsiExtension
     md = Markdown(output_format='text', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
@@ -50,7 +50,7 @@ def imtext():
 
     im_text = md_converter.convert(md_txt)
     """
-    from .ansi import AnsiExtension
+    from .ansiext import AnsiExtension
     md = Markdown(output_format='imtext', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md

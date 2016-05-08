@@ -1,134 +1,125 @@
 import os
 import errbot.backends.base
-from errbot.backends.test import FullStackTest, TestOccupant
+from errbot.backends.test import testbot, TestOccupant
 import logging
 log = logging.getLogger(__name__)
 
+extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_plugin')
 
-class TestMUC(FullStackTest):
 
-    def setUp(self, extra_plugin_dir=None, extra_test_file=None, loglevel=logging.DEBUG):
-        super().setUp(extra_plugin_dir=os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_tests'),
-                      extra_test_file=extra_test_file)
+def test_plugin_methods(testbot):
+    p = testbot.bot.plugin_manager.get_plugin_obj_by_name('ChatRoom')
+    assert p is not None
 
-    def test_plugin_methods(self):  # noqa
-        p = self.bot.plugin_manager.get_plugin_obj_by_name('ChatRoom')
-        assert p is not None
+    assert hasattr(p, 'rooms')
+    assert hasattr(p, 'query_room')
 
-        assert hasattr(p, 'rooms')
-        assert hasattr(p, 'query_room')
 
-    def test_create_join_leave_destroy_lifecycle(self):  # noqa
-        rooms = self.bot.rooms()
-        assert len(rooms) == 1
+def test_create_join_leave_destroy_lifecycle(testbot):  # noqa
+    rooms = testbot.bot.rooms()
+    assert len(rooms) == 1
 
-        r1 = rooms[0]
-        assert str(r1) == "testroom"
-        assert issubclass(r1.__class__, errbot.backends.base.Room)
+    r1 = rooms[0]
+    assert str(r1) == "testroom"
+    assert issubclass(r1.__class__, errbot.backends.base.Room)
 
-        r2 = self.bot.query_room('testroom2')
-        assert not r2.exists
+    r2 = testbot.bot.query_room('testroom2')
+    assert not r2.exists
 
-        r2.create()
-        assert r2.exists
-        rooms = self.bot.rooms()
-        assert r2 not in rooms
-        assert not r2.joined
+    r2.create()
+    assert r2.exists
+    rooms = testbot.bot.rooms()
+    assert r2 not in rooms
+    assert not r2.joined
 
-        r2.destroy()
-        rooms = self.bot.rooms()
-        assert r2 not in rooms
+    r2.destroy()
+    rooms = testbot.bot.rooms()
+    assert r2 not in rooms
 
-        r2.join()
-        assert r2.exists
-        assert r2.joined
-        rooms = self.bot.rooms()
-        assert r2 in rooms
+    r2.join()
+    assert r2.exists
+    assert r2.joined
+    rooms = testbot.bot.rooms()
+    assert r2 in rooms
 
-        r2 = self.bot.query_room('testroom2')
-        assert r2.joined
+    r2 = testbot.bot.query_room('testroom2')
+    assert r2.joined
 
-        r2.leave()
-        assert not r2.joined
-        r2.destroy()
-        rooms = self.bot.rooms()
-        assert r2 not in rooms
+    r2.leave()
+    assert not r2.joined
+    r2.destroy()
+    rooms = testbot.bot.rooms()
+    assert r2 not in rooms
 
-    def test_occupants(self):  # noqa
-        room = self.bot.rooms()[0]
-        assert len(room.occupants) == 1
-        assert TestOccupant('err', 'testroom') in room.occupants
 
-    def test_topic(self):  # noqa
-        room = self.bot.rooms()[0]
-        assert room.topic is None
+def test_occupants(testbot):  # noqa
+    room = testbot.bot.rooms()[0]
+    assert len(room.occupants) == 1
+    assert TestOccupant('err', 'testroom') in room.occupants
 
-        room.topic = "Err rocks!"
-        assert room.topic == "Err rocks!"
-        assert self.bot.rooms()[0].topic == "Err rocks!"
 
-    def test_plugin_callbacks(self):  # noqa
-        p = self.bot.plugin_manager.get_plugin_obj_by_name('RoomTest')
-        assert p is not None
-        p.purge()
+def test_topic(testbot):  # noqa
+    room = testbot.bot.rooms()[0]
+    assert room.topic is None
 
-        log.debug("query and join")
-        p.query_room('newroom').join()
-        assert p.events.get(timeout=5) == "callback_room_joined newroom"
+    room.topic = "Err rocks!"
+    assert room.topic == "Err rocks!"
+    assert testbot.bot.rooms()[0].topic == "Err rocks!"
 
-        p.query_room('newroom').topic = "Err rocks!"
-        assert p.events.get(timeout=5) == "callback_room_topic Err rocks!"
 
-        p.query_room('newroom').leave()
-        assert p.events.get(timeout=5) == "callback_room_left newroom"
+def test_plugin_callbacks(testbot):  # noqa
+    p = testbot.bot.plugin_manager.get_plugin_obj_by_name('RoomTest')
+    assert p is not None
+    p.purge()
 
-    def test_botcommands(self):  # noqa
-        rooms = self.bot.rooms()
-        room = self.bot.query_room('testroom')
-        assert len(rooms) == 1
-        assert rooms[0] == room
+    log.debug("query and join")
+    p.query_room('newroom').join()
+    assert p.events.get(timeout=5) == "callback_room_joined newroom"
 
-        assert room.joined
-        self.bot.push_message("!room leave testroom")
-        assert self.bot.pop_message() == "Left the room testroom"
-        room = self.bot.query_room('testroom')
-        assert not room.joined
+    p.query_room('newroom').topic = "Err rocks!"
+    assert p.events.get(timeout=5) == "callback_room_topic Err rocks!"
 
-        self.bot.push_message("!room list")
-        assert self.bot.pop_message() == "I'm not currently in any rooms."
+    p.query_room('newroom').leave()
+    assert p.events.get(timeout=5) == "callback_room_left newroom"
 
-        self.bot.push_message("!room destroy testroom")
-        assert self.bot.pop_message() == "Destroyed the room testroom"
-        rooms = self.bot.rooms()
-        room = self.bot.query_room('testroom')
-        assert not room.exists
-        assert room not in rooms
 
-        self.bot.push_message("!room create testroom")
-        assert self.bot.pop_message() == "Created the room testroom"
-        rooms = self.bot.rooms()
-        room = self.bot.query_room('testroom')
-        assert room.exists
-        assert room not in rooms
-        assert not room.joined
+def test_botcommands(testbot):  # noqa
+    rooms = testbot.bot.rooms()
+    room = testbot.bot.query_room('testroom')
+    assert len(rooms) == 1
+    assert rooms[0] == room
 
-        self.bot.push_message("!room join testroom")
-        assert self.bot.pop_message() == "Joined the room testroom"
-        rooms = self.bot.rooms()
-        room = self.bot.query_room('testroom')
-        assert room.exists
-        assert room.joined
-        assert room in rooms
+    assert room.joined
+    assert "Left the room testroom" in testbot.exec_command("!room leave testroom")
+    room = testbot.bot.query_room('testroom')
+    assert not room.joined
 
-        self.bot.push_message("!room list")
-        assert "testroom" in self.bot.pop_message()
+    assert "I'm not currently in any rooms." in testbot.exec_command("!room list")
 
-        self.bot.push_message("!room occupants testroom")
-        assert "err" in self.bot.pop_message()
+    assert "Destroyed the room testroom" in testbot.exec_command("!room destroy testroom")
 
-        self.bot.push_message("!room topic testroom")
-        assert self.bot.pop_message() == "No topic is set for testroom"
-        self.bot.push_message("!room topic testroom 'Err rocks!'")
-        assert self.bot.pop_message() == "Topic for testroom set."
-        self.bot.push_message("!room topic testroom")
-        assert self.bot.pop_message() == "Topic for testroom: Err rocks!"
+    rooms = testbot.bot.rooms()
+    room = testbot.bot.query_room('testroom')
+    assert not room.exists
+    assert room not in rooms
+
+    assert "Created the room testroom" in testbot.exec_command("!room create testroom")
+    rooms = testbot.bot.rooms()
+    room = testbot.bot.query_room('testroom')
+    assert room.exists
+    assert room not in rooms
+    assert not room.joined
+
+    assert "Joined the room testroom" in testbot.exec_command("!room join testroom")
+    rooms = testbot.bot.rooms()
+    room = testbot.bot.query_room('testroom')
+    assert room.exists
+    assert room.joined
+    assert room in rooms
+
+    assert "testroom" in testbot.exec_command("!room list")
+    assert "err" in testbot.exec_command("!room occupants testroom")
+    assert "No topic is set for testroom" in testbot.exec_command("!room topic testroom")
+    assert "Topic for testroom set." in testbot.exec_command("!room topic testroom 'Err rocks!'")
+    assert "Topic for testroom: Err rocks!" in testbot.exec_command("!room topic testroom")
+

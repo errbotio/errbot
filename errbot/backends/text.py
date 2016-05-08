@@ -12,7 +12,7 @@ from pygments.lexers import get_lexer_by_name
 
 from errbot import err
 from errbot.rendering import ansi, text, xhtml, imtext
-from errbot.rendering.ansi import enable_format, ANSI_CHRS, AnsiExtension
+from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
 from errbot.backends.test import TestPerson
 from errbot.errBot import ErrBot

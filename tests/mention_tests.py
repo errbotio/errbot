@@ -1,19 +1,16 @@
-from errbot.backends.test import FullStackTest
+from errbot.backends.test import testbot
 from os import path
 
+extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'mention_plugin')
 
-class TestMentions(FullStackTest):
 
-    def setUp(self, *args, **kwargs):
-        kwargs['extra_plugin_dir'] = path.join(path.dirname(
-            path.realpath(__file__)), 'mention_plugin')
-        super().setUp(*args, **kwargs)
+def test_foreign_mention(testbot):
+    assert 'Somebody mentioned toto!' in testbot.exec_command('I am telling you something @toto')
 
-    def test_foreign_mention(self):
-        self.assertCommand('I am telling you something @toto', 'Somebody mentioned toto!')
 
-    def test_self_mention(self):
-        self.assertCommand('I am telling you something @Err', 'Somebody mentioned me!')
+def test_testbot_mention(testbot):
+    assert 'Somebody mentioned me!' in testbot.exec_command('I am telling you something @Err')
 
-    def test_multiple_mentions(self):
-        self.assertCommand('I am telling you something @toto and @titi', 'Somebody mentioned toto,titi!')
+
+def test_multiple_mentions(testbot):
+    assert 'Somebody mentioned toto,titi!' in testbot.exec_command('I am telling you something @toto and @titi')

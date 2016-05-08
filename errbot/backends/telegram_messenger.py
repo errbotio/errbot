@@ -5,7 +5,7 @@ from errbot import PY2
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, ONLINE, Room
 from errbot.errBot import ErrBot
 from errbot.rendering import text
-from errbot.rendering.ansi import enable_format, TEXT_CHRS
+from errbot.rendering.ansiext import enable_format, TEXT_CHRS
 
 
 # Can't use __name__ because of Yapsy

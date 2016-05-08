@@ -14,7 +14,7 @@ from errbot.backends.base import Message, Room, RoomError, \
     RoomOccupant, ONLINE, Person
 from errbot.errBot import ErrBot
 from errbot.utils import rate_limited
-from errbot.rendering.ansi import AnsiExtension, enable_format, \
+from errbot.rendering.ansiext import AnsiExtension, enable_format, \
     CharacterTable, NSC
 
 

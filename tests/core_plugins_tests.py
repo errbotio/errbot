@@ -2,7 +2,7 @@ import os
 
 from errbot.backends.test import testbot  # noqa
 
-extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_tests')
+extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_plugin')
 extra_config = {'CORE_PLUGINS': ('Help', 'Utils')}
 
 

@@ -4,7 +4,7 @@ from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
-from .ansi import AnsiExtension, enable_format, IMTEXT_CHRS
+from .ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
 MARKDOWN_LINK_REGEX = re.compile(r'([^!])\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 

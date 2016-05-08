@@ -122,4 +122,3 @@ def test_botcommands(testbot):  # noqa
     assert "No topic is set for testroom" in testbot.exec_command("!room topic testroom")
     assert "Topic for testroom set." in testbot.exec_command("!room topic testroom 'Err rocks!'")
     assert "Topic for testroom: Err rocks!" in testbot.exec_command("!room topic testroom")
-

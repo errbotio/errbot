@@ -1,101 +1,108 @@
 from os import path
 from queue import Empty
 
-from flaky import flaky
+import pytest
 
-from errbot.backends.test import FullStackTest
+from errbot.backends.test import testbot
+
+extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'flow_plugin')
 
 
-@flaky
-class TestFlowCommands(FullStackTest):
-    def setUp(self, *args, **kwargs):
-        kwargs['extra_plugin_dir'] = path.join(path.dirname(path.realpath(__file__)), 'flow_plugin')
-        super().setUp(*args, **kwargs)
+def test_list_flows(testbot):
+    assert len(testbot.bot.flow_executor.flow_roots) == 2
+    testbot.bot.push_message('!flows list')
+    result = testbot.pop_message()
+    assert 'documentation of W1' in result
+    assert 'documentation of W2' in result
+    assert 'w1' in result
+    assert 'w2' in result
 
-    def test_list_flows(self):
-        self.assertEqual(len(self.bot.flow_executor.flow_roots), 2)
-        self.bot.push_message('!flows list')
-        result = self.bot.pop_message()
-        self.assertIn('documentation of W1', result)
-        self.assertIn('documentation of W2', result)
-        self.assertIn('w1', result)
-        self.assertIn('w2', result)
 
-    def test_no_autotrigger(self):
-        self.assertCommand('!a', 'a')
-        self.assertEqual(len(self.bot.flow_executor.in_flight), 0)
+def test_no_autotrigger(testbot):
+    assert 'a' in testbot.exec_command('!a')
+    assert len(testbot.bot.flow_executor.in_flight) == 0
 
-    def test_autotrigger(self):
-        self.assertCommand('!c', 'c')
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w2, you can continue with', flow_message)
-        self.assertIn('!b', flow_message)
-        self.assertEqual(len(self.bot.flow_executor.in_flight), 1)
-        self.assertEqual(self.bot.flow_executor.in_flight[0].name, 'w2')
 
-    def test_no_duplicate_autotrigger(self):
-        self.assertCommand('!c', 'c')
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w2, you can continue with', flow_message)
-        self.assertCommand('!c', 'c')
-        self.assertEqual(len(self.bot.flow_executor.in_flight), 1)
-        self.assertEqual(self.bot.flow_executor.in_flight[0].name, 'w2')
+def test_autotrigger(testbot):
+    assert 'c' in testbot.exec_command('!c')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w2, you can continue with' in flow_message
+    assert '!b' in flow_message
+    assert len(testbot.bot.flow_executor.in_flight) == 1
+    assert testbot.bot.flow_executor.in_flight[0].name == 'w2'
 
-    def test_secondary_autotrigger(self):
-        self.assertCommand('!e', 'e')
-        second_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w2, you can continue with', second_message)
-        self.assertIn('!d', second_message)
-        self.assertEqual(len(self.bot.flow_executor.in_flight), 1)
-        self.assertEqual(self.bot.flow_executor.in_flight[0].name, 'w2')
 
-    def test_manual_flow(self):
-        self.assertCommand('!flows start w1', 'Flow w1 started')
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w1, you can continue with', flow_message)
-        self.assertIn('!a', flow_message)
-        self.assertCommand('!a', 'a')
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w1, you can continue with', flow_message)
-        self.assertIn('!b', flow_message)
-        self.assertIn('!c', flow_message)
+def test_no_duplicate_autotrigger(testbot):
+    assert 'c' in testbot.exec_command('!c')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w2, you can continue with' in flow_message
+    assert 'c' in testbot.exec_command('!c')
+    assert len(testbot.bot.flow_executor.in_flight) == 1
+    assert testbot.bot.flow_executor.in_flight[0].name == 'w2'
 
-    def test_no_flyby_trigger_flow(self):
-        self.bot.push_message('!flows start w1')
-        # One message or the other can arrive first.
-        flow_message = self.bot.pop_message()
-        self.assertTrue('Flow w1 started' in flow_message or 'You are in the flow w1' in flow_message)
-        flow_message = self.bot.pop_message()
-        self.assertTrue('Flow w1 started' in flow_message or 'You are in the flow w1' in flow_message)
-        self.assertCommand('!a', 'a')
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w1', flow_message)
 
-        self.assertCommand('!c', 'c')  # c is a trigger for w2 but it should not trigger now.
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w1', flow_message)
-        self.assertEqual(len(self.bot.flow_executor.in_flight), 1)
+def test_secondary_autotrigger(testbot):
+    assert 'e' in testbot.exec_command('!e')
+    second_message = testbot.pop_message()
+    assert 'You are in the flow w2, you can continue with' in second_message
+    assert '!d' in second_message
+    assert len(testbot.bot.flow_executor.in_flight) == 1
+    assert testbot.bot.flow_executor.in_flight[0].name == 'w2'
 
-    def test_flow_only(self):
-        self.assertCommand('!a', 'a')  # non flow_only should respond.
-        self.bot.push_message('!d')
-        self.assertRaises(Empty, self.bot.pop_message, timeout=1)
 
-    def test_flow_only_help(self):
-        self.bot.push_message('!help')
-        msg = self.bot.pop_message()
-        self.assertIn('!a', msg)  # non flow_only should be in help by default
-        self.assertNotIn('!d', msg)  # flow_only should not be in help by default
+def test_manual_flow(testbot):
+    assert 'Flow w1 started' in testbot.exec_command('!flows start w1')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w1, you can continue with' in flow_message
+    assert '!a' in flow_message
+    assert 'a' in testbot.exec_command('!a')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w1, you can continue with' in flow_message
+    assert '!b' in flow_message
+    assert '!c' in flow_message
 
-    def test_flows_stop(self):
-        self.assertCommand('!c', 'c')
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w2', flow_message)
-        self.assertCommand('!flows stop w2', 'w2 stopped')
-        self.assertEqual(len(self.bot.flow_executor.in_flight), 0)
 
-    def test_flows_kill(self):
-        self.assertCommand('!c', 'c')
-        flow_message = self.bot.pop_message()
-        self.assertIn('You are in the flow w2', flow_message)
-        self.assertCommand('!flows kill gbin@localhost w2', 'w2 killed')
+def test_no_flyby_trigger_flow(testbot):
+    testbot.bot.push_message('!flows start w1')
+    # One message or the other can arrive first.
+    flow_message = testbot.pop_message()
+    assert 'Flow w1 started' in flow_message or 'You are in the flow w1' in flow_message
+    flow_message = testbot.pop_message()
+    assert 'Flow w1 started' in flow_message or 'You are in the flow w1' in flow_message
+    assert 'a' in testbot.exec_command('!a')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w1' in flow_message
+
+    assert 'c' in testbot.exec_command('!c')  # c is a trigger for w2 but it should not trigger now.
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w1' in flow_message
+    assert len(testbot.bot.flow_executor.in_flight) == 1
+
+
+def test_flow_only(testbot):
+    assert 'a' in testbot.exec_command('!a')  # non flow_only should respond.
+    testbot.push_message('!d')
+    with pytest.raises(Empty):
+        testbot.pop_message(timeout=1)
+
+
+def test_flow_only_help(testbot):
+    testbot.push_message('!help')
+    msg = testbot.bot.pop_message()
+    assert '!a' in msg  # non flow_only should be in help by default
+    assert '!d' not in msg  # flow_only should not be in help by default
+
+
+def test_flows_stop(testbot):
+    assert 'c' in testbot.exec_command('!c')
+    flow_message = testbot.bot.pop_message()
+    assert 'You are in the flow w2' in flow_message
+    assert 'w2 stopped' in testbot.exec_command('!flows stop w2')
+    assert len(testbot.bot.flow_executor.in_flight) == 0
+
+
+def test_flows_kill(testbot):
+    assert 'c' in testbot.exec_command('!c')
+    flow_message = testbot.bot.pop_message()
+    assert 'You are in the flow w2' in flow_message
+    assert 'w2 killed' in testbot.exec_command('!flows kill gbin@localhost w2')

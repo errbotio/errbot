@@ -14,7 +14,7 @@ from collections import OrderedDict
 from queue import Queue, Empty  # noqa
 from errbot.errBot import ErrBot
 from errbot.backends.base import Message, Room, Identifier, ONLINE
-from errbot.backends.test import TestPerson, TestOccupant, TestRoom
+from errbot.backends.test import TestPerson, TestOccupant, TestRoom, ShallowConfig
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
 from errbot.main import CORE_STORAGE
 from errbot.plugin_manager import BotPluginManager
@@ -42,10 +42,6 @@ SIMPLE_JSON_PLUGINS_INDEX = """
     }
 }
 """
-
-
-class ShallowConfig(object):
-    pass
 
 
 class DummyBackend(ErrBot):

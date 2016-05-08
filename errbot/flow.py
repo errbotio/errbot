@@ -10,7 +10,7 @@ from errbot.backends.base import Identifier
 
 log = logging.getLogger(__name__)
 
-Predicate = Callable[[Mapping[str, Any]], str]
+Predicate = Callable[[Mapping[str, Any]], bool]
 
 EXECUTOR_THREADS = 5   # the maximum number of simultaneous flows in automatic mode at the same time.
 

@@ -426,6 +426,14 @@ class TestBot(object):
         """
         return self.bot.push_presence(presence)
 
+    def exec_command(self, command, timeout=5):
+        """ Execute a command and return the first response.
+        This makes more py.test'ist like:
+        assert 'blah' in exec_command('!hello')
+        """
+        self.bot.push_message(command)
+        return self.bot.pop_message(timeout)
+
     def zap_queues(self):
         return self.bot.zap_queues()
 

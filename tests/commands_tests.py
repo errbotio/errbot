@@ -145,11 +145,8 @@ def test_plugin_cycle(testbot):
 
 
 def test_broken_plugin(testbot):
-    testbot.assertCommand(
-        '!repos install https://github.com/errbotio/err-broken.git',
-        'Installing',
-        60
-    )
+    assert 'Installing' in testbot.exec_command('!repos install https://github.com/errbotio/err-broken.git',
+                                                timeout=120)
     assert 'import borken # fails' in testbot.pop_message()
     assert 'err-broken as it did not load correctly.' in testbot.pop_message()
     assert 'Plugins reloaded.' in testbot.pop_message()

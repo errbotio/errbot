@@ -658,6 +658,11 @@ def test_access_controls(dummy_backend):
         ),
         dict(
             message=makemessage(dummy_backend, "!command"),
+            acl={'command': {'allowusers': 'noterr'}},  # simple string instead of tuple
+            expected_response="Regular command"
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command"),
             acl={'command': {'allowusers': ('err',)}},
             expected_response="You're not allowed to access this command from this user",
         ),
@@ -674,6 +679,11 @@ def test_access_controls(dummy_backend):
         dict(
             message=makemessage(dummy_backend, "!command"),
             acl={'command': {'denyusers': ('noterr',)}},
+            expected_response="You're not allowed to access this command from this user"
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command"),
+            acl={'command': {'denyusers': 'noterr'}},   # simple string instead of tuple
             expected_response="You're not allowed to access this command from this user"
         ),
         dict(

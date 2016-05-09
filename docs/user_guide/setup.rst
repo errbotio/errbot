@@ -198,10 +198,7 @@ Alternatively, you can also look into the `--editable` parameter of pip install.
 Provisioning (advanced)
 -----------------------
 
-.. toctree::
-  :maxdepth: 1
-
-  configuration/provisioning
+See the `provisioning documentation <provisioning.html>`_
 
 .. _virtualenv: https://virtualenv.pypa.io/en/latest/
 .. _pip: https://pip.pypa.io/en/stable/

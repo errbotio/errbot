@@ -83,8 +83,8 @@ v4.0.0 (2016-03-13)
 This is the next major release of errbot with significant changes under the hood.
 
 
-New features
-~~~~~~~~~~~~
+New features for 4.0
+~~~~~~~~~~~~~~~~~~~~
 
 - Storage is now implemented as a plugin as well, similar to command plugins and backends.
   This means you can now select different storage implementations or even write your own.
@@ -124,8 +124,8 @@ The following storage backends are currently available:
   thanks to Sijis Aviles for the initial proof-of-concept implementation).
 
 
-Bugs fixed
-~~~~~~~~~~
+Bugs fixed for 4.0
+~~~~~~~~~~~~~~~~~~
 
 - IRC backend no longer crashes on invalid UTF-8 characters but instead replaces
   them (mr. Shu).
@@ -159,8 +159,8 @@ Bugs fixed
 - Plugins which fail to install no longer remain behind, obstructing a new installation attempt
 
 
-Breaking changes
-~~~~~~~~~~~~~~~~
+Breaking changes for 4.0
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 - The underlying implementation of Identifiers has been drastically refactored
   to be more clear and correct. This makes it a lot easier to construct Identifiers
@@ -180,8 +180,8 @@ These include:
   from `errbot` (set a proper `BACKEND` in `config.py` instead).
 
 
-Miscellaneous changes
-~~~~~~~~~~~~~~~~~~~~~
+Miscellaneous changes for 4.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Version information is now specified in plugin `.plug` files instead of in
   the Python class of the plugin.

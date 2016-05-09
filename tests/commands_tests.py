@@ -89,7 +89,7 @@ def test_history(testbot):
     testbot.bot.sender = testbot.bot.build_identifier('non_default_person')
     testbot.push_message('!history')
     with pytest.raises(Empty):
-        testbot.pop_message(block=False)
+        testbot.pop_message(timeout=1)
     assert 'should be a separate history' in testbot.exec_command('!echo should be a separate history')
     assert 'should be a separate history' in testbot.exec_command('!history')
     testbot.bot.sender = orig_sender

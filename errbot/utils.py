@@ -347,3 +347,7 @@ def compat_str(s):
         return s.decode('utf-8')
     else:
         return str(s)
+
+
+def is_str(obj):
+    return isinstance(obj, (str, bytes))

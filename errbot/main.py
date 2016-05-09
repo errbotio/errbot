@@ -8,7 +8,7 @@ from errbot.specific_plugin_manager import SpecificPluginManager
 import sys
 
 from errbot.storage.base import StoragePluginBase
-from errbot.utils import PLUGINS_SUBDIR
+from errbot.utils import PLUGINS_SUBDIR, is_str
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def setup_bot(backend_name, logger, config, restore=None):
         makedirs(botplugins_dir, mode=0o755)
 
     plugin_indexes = getattr(config, 'BOT_PLUGIN_INDEXES', (PLUGIN_DEFAULT_INDEX,))
-    if type(plugin_indexes) is str:
+    if is_str(plugin_indexes):
         plugin_indexes = (plugin_indexes, )
 
     repo_manager = BotRepoManager(storage_plugin,

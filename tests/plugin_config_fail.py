@@ -6,5 +6,5 @@ extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'fail_config
 
 
 def test_failed_config(testbot):
-    assert 'Incorrect plugin configuration: Message explaning why it failed.' \
+    assert 'Incorrect plugin configuration: Message explaining why it failed.' \
            in testbot.exec_command('!plugin config Failp {}')

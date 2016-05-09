@@ -10,4 +10,4 @@ class FailP(BotPlugin):
         return {'One': 1, 'Two': 2}
 
     def check_configuration(self, configuration):
-        raise ValidationException('Message explaning why it failed.')
+        raise ValidationException('Message explaining why it failed.')

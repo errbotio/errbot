@@ -21,7 +21,7 @@ New features
 
 - Storage command line interface: It is now possible to provision any persistent setting from the command line.
   It is helpful if you want to automate end to end the deployment of your chatbot.
-  see `provisioning doc <http://errbot.io/en/master/user_guide/setup.html#provisioning-advanced>`_
+  see `provisioning doc <http://errbot.io/en/master/user_guide/provisioning.html>`_
 
 Miscellaneous changes
 ~~~~~~~~~~~~~~~~~~~~~

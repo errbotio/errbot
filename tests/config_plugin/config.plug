@@ -1,0 +1,6 @@
+[Core]
+Name = Config
+Module = config
+
+[Python]
+Version = 2+

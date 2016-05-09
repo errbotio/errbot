@@ -1,5 +1,52 @@
 v9.9.9 (master/unreleased)
 --------------------------
+
+v4.1.0 (2016-05-09)
+-------------------
+
+
+New features
+~~~~~~~~~~~~
+
+- Conversation flows: Errbot can now keep track of conversations with its users and
+  automate part of the interactions in a state machine manageable from chat.
+  see `the flows documentation <http://errbot.io/en/master/user_guide/flow_development/index.html>`_
+  for more information.
+
+- Cards API: Various backends have a "canned" type of formatted response.
+  We now support that for a better native integration with Slack and Hipchat.
+
+- Dynamic Plugins API: Errbot has now an official API to build plugins at runtime (on the fly).
+  see `the dynamic plugins doc <http://errbot.io/en/master/user_guide/plugin_development/dynaplugs.html>`_
+
+- Storage command line interface: It is now possible to provision any persistent setting from the command line.
+  It is helpful if you want to automate end to end the deployment of your chatbot.
+  see `provisioning doc <http://errbot.io/en/master/user_guide/setup.html#provisioning-advanced>`_
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- Now if no [python] section is set in the .plug file, we assume Python 3 instead of Python 2.
+- Slack: identifier.person now gives its username instead of slack id
+- IRC: Topic change callback fixed. Thx Ezequiel Brizuela.
+- Text/Test: Makes the identifier behave more like a real backend.
+- Text: new TEXT_DEMO_MODE that removes the logs once the chat is started: it is made for presentations / demos.
+- XMPP: build_identifier can now resolve a Room (it will eventually be available on other backends)
+- Graphic Test backend: renders way better the chat, TEXT_DEMO_MODE makes it full screen for your presentations.
+- ACLs: We now allow a simple string as an entry with only one element.
+- Unit Tests are now all pure py.test instead of a mix of (py.test, nose and unittest)
+
+Bugs fixed
+~~~~~~~~~~
+
+- Better resillience on concurrent modifications of the commands structures.
+- Allow multiline table cells. Thx Ilya Figotin.
+- Plugin template was incorrectly showing how to check config. Thx Christian Weiske.
+- Slack: DIVERT_TO_PRIVATE fix.
+- Plugin Activate was not reporting correctly some errors.
+- tar.gz packaged plugins are working again.
+
+
 v4.0.3 (2016-03-17)
 -------------------
 Hotfixes

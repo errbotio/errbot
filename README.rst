@@ -69,7 +69,8 @@ After the initial installation and security setup, Err can be administered by ju
 
 **Developer features**
 
-- Presetup storage for every plugin i.e. ``self['foo'] = 'bar'`` persists the value. 
+- Presetup storage for every plugin i.e. ``self['foo'] = 'bar'`` persists the value.
+- Conversation flows to track conversation states from users.
 - Webhook callbacks support
 - supports `markdown extras <https://pythonhosted.org/Markdown/extensions/extra.html>`_ formatting with tables, embedded images, links etc.
 - configuration helper to allow your plugin to be configured by chat
@@ -78,6 +79,7 @@ After the initial installation and security setup, Err can be administered by ju
 - subcommands and various arg parsing options are available (re, command line type)
 - polling support: your can setup a plugin to periodically do something
 - end to end test backend
+- card rendering under Slack and Hipchat.
 
 Community and support
 ---------------------

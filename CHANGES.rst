@@ -5,8 +5,8 @@ v4.1.0 (2016-05-09)
 -------------------
 
 
-New features
-~~~~~~~~~~~~
+v4.1 New features
+~~~~~~~~~~~~~~~~~
 
 - Conversation flows: Errbot can now keep track of conversations with its users and
   automate part of the interactions in a state machine manageable from chat.
@@ -23,8 +23,8 @@ New features
   It is helpful if you want to automate end to end the deployment of your chatbot.
   see `provisioning doc <http://errbot.io/en/master/user_guide/provisioning.html>`_
 
-Miscellaneous changes
-~~~~~~~~~~~~~~~~~~~~~
+v4.1 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Now if no [python] section is set in the .plug file, we assume Python 3 instead of Python 2.
 - Slack: identifier.person now gives its username instead of slack id
@@ -36,8 +36,8 @@ Miscellaneous changes
 - ACLs: We now allow a simple string as an entry with only one element.
 - Unit Tests are now all pure py.test instead of a mix of (py.test, nose and unittest)
 
-Bugs fixed
-~~~~~~~~~~
+v4.1 Bugs fixed
+~~~~~~~~~~~~~~~
 
 - Better resillience on concurrent modifications of the commands structures.
 - Allow multiline table cells. Thx Ilya Figotin.
@@ -83,8 +83,8 @@ v4.0.0 (2016-03-13)
 This is the next major release of errbot with significant changes under the hood.
 
 
-New features for 4.0
-~~~~~~~~~~~~~~~~~~~~
+v4.0 New features
+~~~~~~~~~~~~~~~~~
 
 - Storage is now implemented as a plugin as well, similar to command plugins and backends.
   This means you can now select different storage implementations or even write your own.
@@ -124,8 +124,8 @@ The following storage backends are currently available:
   thanks to Sijis Aviles for the initial proof-of-concept implementation).
 
 
-Bugs fixed for 4.0
-~~~~~~~~~~~~~~~~~~
+v4.0 Bugs fixed
+~~~~~~~~~~~~~~~
 
 - IRC backend no longer crashes on invalid UTF-8 characters but instead replaces
   them (mr. Shu).
@@ -159,8 +159,8 @@ Bugs fixed for 4.0
 - Plugins which fail to install no longer remain behind, obstructing a new installation attempt
 
 
-Breaking changes for 4.0
-~~~~~~~~~~~~~~~~~~~~~~~~
+v4.0 Breaking changes
+~~~~~~~~~~~~~~~~~~~~~
 
 - The underlying implementation of Identifiers has been drastically refactored
   to be more clear and correct. This makes it a lot easier to construct Identifiers
@@ -180,8 +180,8 @@ These include:
   from `errbot` (set a proper `BACKEND` in `config.py` instead).
 
 
-Miscellaneous changes for 4.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+v 4.0 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Version information is now specified in plugin `.plug` files instead of in
   the Python class of the plugin.
@@ -546,7 +546,7 @@ Bug fixed:
 v2.1.0 (2014-07-24)
 -------------------
 
-New features:
+Features:
 
 - Various changes to the test backend:
 
@@ -564,7 +564,7 @@ New features:
 - `Regex-based <http://errbot.io/errbot.decorators/#errbot.decorators.re_botcmd>`_ bot commands.
 - Pretty-printed output of the !config command.
 
-Bugs fixed:
+Bugs:
 
 - Fix make_ssl_certificate on Python 2.
 - Newer version of Rocket, fixing an issue with releasing ports on OSX (#268).

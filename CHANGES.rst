@@ -1,6 +1,14 @@
 v9.9.9 (master/unreleased)
 --------------------------
 
+v4.1.1 (2016-05-09)
+-------------------
+Hotfixes
+
+bugs:
+
+- Python 2.7 conversion error on err.py.
+
 v4.1.0 (2016-05-09)
 -------------------
 

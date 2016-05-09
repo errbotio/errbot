@@ -243,7 +243,9 @@ def main():
             return -3
 
     if args['storage_get']:
-        err_value = storage_action(args['storage_get'][0], lambda sdm: print(repr(dict(sdm))))
+        def p(sdm):
+            print(repr(dict(sdm)))
+        err_value = storage_action(args['storage_get'][0], p)
         sys.exit(err_value)
 
     if args['storage_set']:

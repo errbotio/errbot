@@ -199,7 +199,12 @@ class BotRepoManager(StoreMixin):
 
         # TODO: Update download path of plugin.
         if repo_url.endswith('tar.gz'):
-            tar = tarfile.open(fileobj=urlopen(repo_url), mode='r:gz')
+            fo = urlopen(repo_url)
+            if PY2:
+                # backward compatibility for tell attribute under py2
+                import StringIO
+                fo = StringIO.StringIO(fo.read())
+            tar = tarfile.open(fileobj=fo, mode='r:gz')
             tar.extractall(path=self.plugin_dir)
             s = repo_url.split(':')[-1].split('/')[-1]
             human_name = s[:-len('.tar.gz')]

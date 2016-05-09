@@ -1,0 +1,9 @@
+[Core]
+Name = Broken
+Module = broken
+    
+[Documentation]
+Description = This is totally broken, don't use it.
+
+[Python]
+Version = 2+

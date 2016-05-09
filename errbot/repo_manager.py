@@ -3,11 +3,10 @@ import logging
 import os
 import shutil
 import subprocess
-import urllib.request
 from collections import namedtuple
 from datetime import timedelta, datetime
 from os import path
-from tarfile import TarFile
+import tarfile
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -186,10 +185,11 @@ class BotRepoManager(StoreMixin):
         if repo in self[REPO_INDEX]:
             human_name = repo
             repo_url = next(iter(self[REPO_INDEX][repo].values()))['repo']
-        else:
+        elif not repo.endswith('tar.gz'):
             # This is a repo url, make up a plugin definition for it
-            # TODO read the definition if possible.
             human_name = human_name_for_git_url(repo)
+            repo_url = repo
+        else:
             repo_url = repo
 
         git_path = which('git')
@@ -199,10 +199,10 @@ class BotRepoManager(StoreMixin):
 
         # TODO: Update download path of plugin.
         if repo_url.endswith('tar.gz'):
-            tar = TarFile(fileobj=urllib.urlopen(repo_url))
+            tar = tarfile.open(fileobj=urlopen(repo_url), mode='r:gz')
             tar.extractall(path=self.plugin_dir)
-            s = repo_url.split(':')[-1].split('/')[-2:]
-            human_name = human_name or '/'.join(s).rstrip('.tar.gz')
+            s = repo_url.split(':')[-1].split('/')[-1]
+            human_name = s[:-len('.tar.gz')]
         else:
             human_name = human_name or human_name_for_git_url(repo_url)
             p = subprocess.Popen([git_path, 'clone', repo_url, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,

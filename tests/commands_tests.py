@@ -1,11 +1,14 @@
 # coding=utf-8
+import os
 import re
 import logging
 from os import path, mkdir
 from queue import Empty
 from shutil import rmtree
+from tempfile import mkdtemp
 
 import pytest
+import tarfile
 
 from errbot.backends.test import testbot  # noqa
 
@@ -145,11 +148,20 @@ def test_plugin_cycle(testbot):
 
 
 def test_broken_plugin(testbot):
-    assert 'Installing' in testbot.exec_command('!repos install https://github.com/errbotio/err-broken.git',
-                                                timeout=120)
-    assert 'import borken # fails' in testbot.pop_message()
-    assert 'err-broken as it did not load correctly.' in testbot.pop_message()
-    assert 'Plugins reloaded.' in testbot.pop_message()
+
+    borken_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'borken_plugin')
+    try:
+        tempd = mkdtemp()
+        tgz = os.path.join(tempd, "borken.tar.gz")
+        with tarfile.open(tgz, "w:gz") as tar:
+            tar.add(borken_plugin_dir, arcname='borken')
+        assert 'Installing' in testbot.exec_command('!repos install file://' + tgz,
+                                                    timeout=120)
+        assert 'import borken  # fails' in testbot.pop_message()
+        assert 'as it did not load correctly.' in testbot.pop_message()
+        assert 'Plugins reloaded.' in testbot.pop_message()
+    finally:
+        rmtree(tempd)
 
 
 def test_backup(testbot):

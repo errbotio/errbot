@@ -98,13 +98,12 @@ like so:
 .. code-block:: python
 
     from errbot import BotPlugin, botcmd
-    from errbot.templating import tenv
 
     class Hello(BotPlugin):
         @botcmd(template="hello")
         def hello(self, msg, args):
             """Say hello to someone"""
-            response = tenv().get_template('hello.md').render(name=args)
+            response = self.get_template('hello.md').render(name=args)
             self.send(msg.frm, response)
 
 

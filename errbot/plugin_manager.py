@@ -1,10 +1,8 @@
 """ Logic related to plugin loading and lifecycle """
 import traceback
 from configparser import NoSectionError, NoOptionError, ConfigParser
-from itertools import chain
 import importlib
 import imp
-import inspect
 import logging
 import sys
 import os
@@ -13,7 +11,6 @@ import pip
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
 from .utils import (version2array, PY3, PY2, collect_roots, ensure_sys_path_contains)
-from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
 from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
@@ -288,7 +285,6 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.exception('Something is wrong with the configuration of the plugin %s', name)
             obj.config = None
             raise PluginConfigurationException(str(ex))
-        add_plugin_templates_path(pta_item.path)
         populate_doc(pta_item)
         try:
             obj = self.activatePluginByName(name, BOTPLUGIN_TAG)
@@ -296,7 +292,6 @@ class BotPluginManager(PluginManager, StoreMixin):
             return obj
         except Exception:
             pta_item.activated = False  # Yapsy doesn't revert this in case of error
-            remove_plugin_templates_path(pta_item.path)
             log.error("Plugin %s failed at activation stage, deactivating it...", name)
             self.deactivatePluginByName(name, BOTPLUGIN_TAG)
             raise
@@ -304,13 +299,7 @@ class BotPluginManager(PluginManager, StoreMixin):
     def deactivate_plugin_by_name(self, name):
         # TODO handle the "un"routing.
 
-        pta_item = self.getPluginByName(name, BOTPLUGIN_TAG)
-        remove_plugin_templates_path(pta_item.path)
-        try:
-            return self.deactivatePluginByName(name, BOTPLUGIN_TAG)
-        except Exception:
-            add_plugin_templates_path(pta_item.path)
-            raise
+        return self.deactivatePluginByName(name, BOTPLUGIN_TAG)
 
     def reload_plugin_by_name(self, name):
         """

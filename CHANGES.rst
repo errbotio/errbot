@@ -1,3 +1,10 @@
+v4.1.2 (2016-05-10)
+-------------------
+Hotfixes
+
+bugs:
+- cards for hipchat and slack were not merged.
+
 v4.1.1 (2016-05-09)
 -------------------
 Hotfixes

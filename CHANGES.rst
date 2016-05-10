@@ -1,3 +1,11 @@
+v4.1.3 (2016-05-10)
+-------------------
+Hotfixes
+
+bugs:
+- slack regression on build_identifier
+- hipchat regression on build_identifier (query for room is not supported)
+
 v4.1.2 (2016-05-10)
 -------------------
 Hotfixes

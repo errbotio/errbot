@@ -12,7 +12,7 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
-from errbot.backends.base import Room, RoomDoesNotExistError, Message
+from errbot.backends.base import Room, RoomDoesNotExistError, Message, RoomOccupant
 from errbot.backends.xmpp import (
     XMPPPerson, XMPPRoomOccupant,
     XMPPBackend, XMPPConnection,
@@ -33,6 +33,12 @@ except ImportError:
         "pip install hypchat"
     )
     sys.exit(1)
+
+COLORS = {
+        'blue': 'purple',
+        'white': 'gray',
+        'black': 'gray',
+}  # best effort to map errbot colors to hipchat ones,
 
 
 # Rendering customizations
@@ -455,6 +461,69 @@ class HipchatBackend(XMPPBackend):
             node, domain, resource = split_identifier(self.username_to_jid(response.to.client))
             response.to = XMPPPerson(node=node, domain=domain, resource=resource)
         return response
+
+    def send_card(self, card):
+        if isinstance(card.to, RoomOccupant):
+            card.to = card.to.room
+        if not card.is_group:
+            raise ValueError('Private notifications/cards are impossible to send on 1 to 1 messages on hipchat.')
+        log.debug("room id = %s" % card.to)
+        room = self.conn.hypchat.get_room(str(card.to))
+
+        data = {'message': '-' if not card.body else self.md.convert(card.body),
+                'notify': False,
+                'message_format': 'html'}
+
+        if card.color:
+            data['color'] = COLORS[card.color] if card.color in COLORS else card.color
+
+        hcard = {'id': 'FF%0.16X' % card.__hash__()}
+
+        # Only title is supported all across the types.
+        if card.title:
+            hcard['title'] = card.title
+        else:
+            hcard['title'] = ' '  # title is mandatory, more that 1 chr.
+
+        # Go from the most restrictive type to the less resctrictive to find the most appropriate.
+        if card.image and not card.summary and not card.fields and not card.link:
+            hcard['style'] = 'image'
+            hcard['thumbnail'] = {'url': card.image if not card.thumbnail else card.thumbnail}
+            hcard['url'] = card.image
+            if card.body:
+                data['message'] = card.body  # We don't have a card body field so retrofit it to the main body.
+        elif card.link and not card.summary and not card.fields:
+            hcard['style'] = 'link'
+            hcard['url'] = card.link
+            if card.thumbnail:
+                hcard['icon'] = {'url': card.thumbnail}
+            if card.image:
+                hcard['thumbnail'] = {'url': card.image}
+            if card.body:
+                hcard['description'] = card.body
+        else:
+            hcard['style'] = 'application'
+            hcard['format'] = 'medium'
+            if card.image and card.thumbnail:
+                log.warn('Hipchat cannot display this card with an image.'
+                         'Remove summary, fields and/or possibly link to fallback to an hichat link or '
+                         'an image style card.')
+            if card.image or card.thumbnail:
+                hcard['icon'] = {'url': card.thumbnail if card.thumbnail else card.image}
+            if card.body:
+                hcard['description'] = card.body
+            if card.summary:
+                hcard['activity'] = {'html': card.summary}
+            if card.fields:
+                hcard['attributes'] = [{'label': key, 'value': {'label': value, 'style': 'lozenge-complete'}}
+                                       for key, value in card.fields]
+            if card.link:
+                hcard['url'] = card.link
+
+        data['card'] = hcard
+
+        log.debug("Sending request:" + str(data))
+        room._requests.post(room.url + '/notification', data=data)  # noqa
 
     @lru_cache(1024)
     def username_to_jid(self, username):

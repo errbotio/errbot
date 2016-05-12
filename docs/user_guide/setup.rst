@@ -158,6 +158,13 @@ If you are going to run your bot all the time then using some process control sy
 such as `supervisor`_ is highly recommended. Installing and configuring such a system
 is outside the scope of this document however.
 
+.. note::
+    There are two ways to gracefully shut down a running bot.
+
+    You can use the :code:`!shutdown` command to do so via chat or you can send a `SIGINT` signal to the errbot process to do so from the commandline
+
+    If you're running errbot in the foreground then pressing Ctrl+C is equivalent to sending `SIGINT`.
+
 
 Upgrading
 ---------

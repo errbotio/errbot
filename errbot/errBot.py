@@ -17,6 +17,7 @@ from datetime import datetime
 import difflib
 import inspect
 import logging
+import re
 import traceback
 
 from errbot import CommandError
@@ -675,7 +676,9 @@ class ErrBot(Backend, StoreMixin):
             return '(undocumented)'
         if self.prefix == '!':
             return command.__doc__
-        return command.__doc__.replace('!', self.prefix)
+        ununderscore_keys = (m.replace('_', ' ') for m in self.all_commands.keys())
+        pat = re.compile(r'!({})'.format('|'.join(ununderscore_keys)))
+        return re.sub(pat, self.prefix + '\1', command.__doc__)
 
     def get_command_classes(self):
         return (get_class_that_defined_method(command)

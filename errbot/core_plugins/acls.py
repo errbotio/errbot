@@ -8,6 +8,7 @@ BLOCK_COMMAND = (None, None, None)
 
 
 def get_acl_usr(msg):
+    """Return the ACL attribute of the sender of the given message"""
     if hasattr(msg.frm, 'aclattr'):  # if the identity requires a special field to be used for acl
         return msg.frm.aclattr
     return msg.frm.person  # default
@@ -36,7 +37,9 @@ def ciglob(text, patterns):
 
 
 class ACLS(BotPlugin):
-    """ This checks commands for potential ACL violations.
+    """
+    This plugin implements access controls for commands, allowing them to be
+    restricted via various rules.
     """
 
     def access_denied(self, msg, reason, dry_run):
@@ -47,14 +50,12 @@ class ACLS(BotPlugin):
     @cmdfilter
     def acls(self, msg, cmd, args, dry_run):
         """
-        Check command against ACL rules
+        Check command against ACL rules as defined in the bot configuration.
 
-        :param msg: The original message the commands is coming from.
-        :param cmd: The command name
-        :param args: Its arguments.
-        :param dry_run: pass True to not act on the check (messages / deferred auth etc.)
-
-        Return None, None, None if the command is blocked or deferred
+        :param msg: The original chat message.
+        :param cmd: The command name itself.
+        :param args: Arguments passed to the command.
+        :param dry_run: True when this is a dry-run.
         """
         self.log.debug("Check %s for ACLs." % cmd)
         f = self._bot.all_commands[cmd]

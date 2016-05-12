@@ -91,3 +91,17 @@ The example :download:`config.py <config-template.py>` file contains more inform
 .. note::
     Different backends have different formats to identify users.
     Refer to the backend-specific notes at the end of the :ref:`configuration <configuration>` chapter to see which format you should use.
+
+
+Command filters
+^^^^^^^^^^^^^^^
+
+If our built-in access controls don't fit your needs, you can always create your own easily using *command filters*.
+Command filters are functions which are called automatically by errbot whenever a user executes a command.
+They allow the command to be allowed, blocked or even modified based on logic you implement yourself.
+In fact, the restrictions enforced by `BOT_ADMINS` and `ACCESS_CONTROLS` above are implemented using a command filter themselves
+so they can serve as a good :mod:`example <errbot.core_plugins.acls>` (be sure to view the module source).
+
+You can add command filters to your bot by including them as part of any regular errbot plugin,
+it will find and register them automatically when your plugin is loaded.
+Any method in your plugin which is decorated by :func:`~errbot.cmdfilter` will then act as a command filter.

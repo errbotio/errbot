@@ -16,7 +16,7 @@ from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandErr
 from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route, view  # noqa
 
-__all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'webview',
+__all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'webview', 'cmdfilter',
            'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END']
 
 log = logging.getLogger(__name__)
@@ -453,15 +453,29 @@ def cmdfilter(*args, **kwargs):
     These filters are executed just before the execution of a command and provide
     the means to add features such as custom security, logging, auditing, etc.
 
-    These methods are expected to have a signature and a return a tuple like the following::
+    These methods are expected to have a signature and tuple response like the following::
 
         @cmdfilter
-        def some_command(self, msg, cmd, args, dry_run):
-            # if dry_run, it should just filter without acting on it (sending message, asking for an OTP etc...)
-            # or return None, None, None to defer its execution.
-            # otherwise can modify msg, cmd or args and return:
+        def some_filter(self, msg, cmd, args, dry_run):
+            \"\"\"
+            :param msg: The original chat message.
+            :param cmd: The command name itself.
+            :param args: Arguments passed to the command.
+            :param dry_run: True when this is a dry-run.
+               Dry-runs are performed by certain commands (such as !help)
+               to check whether a user is allowed to perform that command
+               if they were to issue it. If dry_run is True then the plugin
+               shouldn't actually do anything beyond returning whether the
+               command is authorized or not.
+            \"\"\"
+            # If wishing to block the incoming command:
+            return None, None, None
+            # Otherwise pass data through to the (potential) next filter:
             return msg, cmd, args
 
+    Note that a cmdfilter plugin *could* modify `cmd` or `args` above
+    and send that through in order to make it appear as if the user
+    issued a different command.
     """
     def decorate(func):
         if not hasattr(func, '_err_command_filter'):  # don't override generated functions

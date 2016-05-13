@@ -26,16 +26,18 @@ Core features
 * A per-user command history system where users can recall previous commands
 * The ability to proxy and route one-to-one messages to MUC so it can enable simpler XMPP notifiers to be MUC compatible (for example the Jira XMPP notifier)
 
+
 Built-in administration and security
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Can be setup so a restricted list of people have administrative rights
-* Fine-grained access controls may be defined which allow all or just specific commands to be limited to specific users and/or rooms
+* Fine-grained :ref:`access controls <access_controls>` may be defined which allow all or just specific commands to be limited to specific users and/or rooms
 * Plugins may be hosted publicly or privately and dynamically installed (by admins) via their Git url
 * Plugins can be configured directly from chat (no need to change setup files for every plugin)
 * Configs can be exported and imported again with two commands (!export and !import respectively)
 * Technical logs can be logged to file, inspected from the chat or optionally
   :doc:`logged to Sentry <user_guide/sentry>`
+
 
 Extensive plugin framework
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

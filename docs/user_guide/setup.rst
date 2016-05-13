@@ -73,6 +73,8 @@ to make use of the backend suitable for the chat network you are using.
       pip install python-telegram-bot
 
 
+.. _configuration:
+
 Configuration
 -------------
 
@@ -89,10 +91,7 @@ There are two ways to do this:
 
     `python -c "import errbot;import os;import shutil;shutil.copyfile(os.path.dirname(errbot.__file__) + os.path.sep + 'config-template.py', 'config.py')"`
 
-2. Or you can download the template manually from `GitHub <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_ and save it as `config.py`.
-
-   You could also do this on the command-line with the following command:
-    `curl -o config.py https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py`
+2. Or you can download the :download:`config-template.py` file manually and save it as `config.py`.
 
 You will have to edit the values in this file to setup the desired configuration for the bot.
 The example configuration comes with extensive documenation of all the various options
@@ -157,6 +156,13 @@ you can now use the -d (or --daemon) parameter to run it in a detached mode::
 If you are going to run your bot all the time then using some process control system
 such as `supervisor`_ is highly recommended. Installing and configuring such a system
 is outside the scope of this document however.
+
+.. note::
+    There are two ways to gracefully shut down a running bot.
+
+    You can use the :code:`!shutdown` command to do so via chat or you can send a `SIGINT` signal to the errbot process to do so from the commandline
+
+    If you're running errbot in the foreground then pressing Ctrl+C is equivalent to sending `SIGINT`.
 
 
 Upgrading

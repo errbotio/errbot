@@ -431,8 +431,9 @@ class BotPlugin(BotPluginBase):
 
     def warn_admins(self, warning: str) -> None:
         """
-            Sends a warning to the administrators of the bot
-            :param warning: mardown formatted text of the warning.
+        Send a warning to the administrators of the bot.
+
+        :param warning: The mardown-formatted text of the message to send.
         """
         self._bot.warn_admins(warning)
 

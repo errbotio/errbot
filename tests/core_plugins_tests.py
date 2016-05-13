@@ -3,7 +3,7 @@ import os
 from errbot.backends.test import testbot  # noqa
 
 extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_plugin')
-extra_config = {'CORE_PLUGINS': ('Help', 'Utils')}
+extra_config = {'CORE_PLUGINS': ('Help', 'Utils'), 'BOT_ALT_PREFIXES': ('!',), 'BOT_PREFIX': '$'}
 
 
 def test_help_is_still_here(testbot):
@@ -20,3 +20,7 @@ def test_backup_should_not_be_there(testbot):
 
 def test_echo_still_here(testbot):
     assert 'toto' in testbot.exec_command('!echo toto')
+
+
+def test_bot_prefix_replaced(testbot):
+    assert '$help - Returns a help string' in testbot.exec_command('$help')

@@ -39,6 +39,14 @@ instead of installing from PyPi
 but note that the version packaged with your distribution
 may be a few versions behind.
 
+.. note::
+    Some of errbot's dependencies need to build C extensions
+    which means you need to have development headers for some libraries installed.
+    On Debian/Ubuntu these may be installed with
+    `apt-get install python3-dev libssl-dev libffi-dev`
+    (use `python-dev` instead of `python3-dev` if you're still stuck on Python 2).
+    Package names may differ on other OS's.
+
 
 Extra dependencies
 ^^^^^^^^^^^^^^^^^^

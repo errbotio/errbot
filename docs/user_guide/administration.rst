@@ -37,10 +37,13 @@ If you just wish to know more about a specific command you can issue::
     !help <command>
 
 
-Managing plugins
------------------
+Installing plugins
+------------------
 
-To get a list of public plugin repos you can issue::
+Errbot plugins are typically published to and installed from `GitHub <http://github.com/>`_.
+We periodically crawl GitHub for errbot plugin repositories and `publish the results <https://github.com/errbotio/errbot/wiki>`_ for people to browse.
+
+You can have your bot display the same list of repos by issuing::
 
     !repos
 
@@ -53,11 +56,18 @@ To install a plugin from the list, issue::
 
     !repos install <name of plugin>
 
-You can always uninstall a plugin again with::
+You aren't limited to installing public plugins though.
+You can install plugins from any git repository you have access to,
+whether public or private, hosted on GitHub, BitBucket or elsewhere.
+The `!repos install` command can take any git URI as argument.
+
+If you're unhappy with a plugin and no longer want it,
+you can always uninstall a plugin again with::
 
     !repos uninstall <plugin>
 
-You will probably want to update your plugins periodically. This can be done with::
+You will probably also want to update your plugins periodically.
+This can be done with::
 
     !repos update all
 
@@ -71,6 +81,33 @@ If the plugin contains a `requirements.txt` file then Errbot will automatically 
 Additionally, if you set :code:`AUTOINSTALL_DEPS` to :code:`True` in your **config.py**, Errbot will use pip to install any missing dependencies automatically.
 If you have installed Err in a virtualenv, this will run the equivalent of :code:`pip install -r requirements.txt`.
 If no virtualenv is detected, the equivalent of :code:`pip install --user -r requirements.txt` is used to ensure the package(s) is/are only installed for the user running Err.
+
+
+Extra plugin directory
+^^^^^^^^^^^^^^^^^^^^^^
+
+Plugins installed via the :code:`!repos` command are managed by errbot itself and stored inside the `BOT_DATA_DIR` you set in `config.py`.
+If you want to manage your plugins manually for any reason then errbot allows you to load additional plugins from a directory you specify.
+You can do so by specifying the setting `BOT_EXTRA_PLUGIN_DIR` in your `config.py` file.
+See the :download:`config-template.py` file for more details.
+
+
+.. _disabling_plugins:
+
+Disabling plugins
+-----------------
+
+You have a number of options available to you if you need to disable a plugin for any reason.
+Plugins can be temporarily disabled by using the :code:`!plugin unload <plugin name>` command, which unloads the plugin until the bot is restarted (or loaded again via :code:`!plugin load <plugin name>`.
+
+If you want to prevent a plugin from being loaded at all during bot startup, the :code:`!plugin blacklist <plugin name>` command may be used.
+
+It's also possible to strip errbot down even further by disabling some of its core plugins which are otherwise activated by default.
+You may for example want to this if you're building a very specialized bot for a specific purpose.
+
+Disabling core plugins can be done by setting the `CORE_PLUGINS` setting in `config.py`.
+For example, setting `CORE_PLUGINS = ()` would disable all of the core plugins which even removes the plugin and repository management commands described above.
+
 
 .. _access_controls:
 

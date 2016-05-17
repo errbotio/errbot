@@ -1,0 +1,63 @@
+{# Template for a card for the graphic backend. #}
+<table style="width: 100%;">
+    <tbody>
+    {% if card.summary %}
+        <tr>
+            <td colspan="2">{{ card.summary }}</td>
+        </tr>
+    {%  endif %}
+
+    {% if card.link or card.thumbnail or card.title %}
+        <tr>
+            <td colspan="2">
+                {% if card.link %}
+                    <a href="{{ card.link }}">
+                {% endif %}
+                {% if card.thumbnail %}
+                    <img style="vertical-align: middle;" src="{{ card.thumbnail }}" width="30" />
+                {% endif %}
+                {% if card.title %}
+                    {{ card.title }}
+                {% endif %}
+                {% if card.link %}
+                    </a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endif %}
+    {% if card.image or card.body %}
+        <tr>
+            {% if card.image %}
+                <td width="400" {{ 'colspan="2"' if not card.body }}>
+                    <img src="{{ card.image }}" width="400" />
+                </td>
+            {% endif %}
+            {% if card.body %}
+                <td {{ 'colspan="2"' if not card.image }}>
+                    {{ card.body }}
+                </td>
+            {% endif %}
+        </tr>
+    {% endif %}
+    {% if card.fields %}
+        <tr>
+            <td colspan="2">
+                <table style="width: 100%;">
+                    <tbody>
+                    <tr>
+                        {% for name, _ in card.fields %}
+                            <th>{{ name }}</th>
+                        {%  endfor %}
+                    </tr>
+                    <tr>
+                        {% for _, value in card.fields %}
+                            <td style="text-align: center;">{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    {% endif %}
+    </tbody>
+</table>

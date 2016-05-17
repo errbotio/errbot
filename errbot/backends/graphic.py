@@ -2,12 +2,14 @@ import logging
 import os
 import re
 import sys
+from jinja2 import Environment, FileSystemLoader
 
 import errbot
 from errbot.backends.base import Message, ONLINE
 from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.rendering import xhtml
 
+CARD_TMPL = Environment(loader=FileSystemLoader(os.path.dirname(__file__))).get_template('graphic_card.html')
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.graphic')
@@ -219,6 +221,9 @@ class GraphicBackend(TextBackend):
             content = self.md.convert(mess.body)
             log.debug("html:\n%s", content)
             self.app.newAnswer.emit(content)
+
+    def send_card(self, card):
+        self.app.newAnswer.emit(CARD_TMPL.render(card=card))
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass

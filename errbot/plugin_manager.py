@@ -86,6 +86,10 @@ def check_dependencies(path):
         with open(req_path) as f:
             for line in f:
                 stripped = line.strip()
+                # skip empty lines.
+                if not stripped:
+                    continue
+
                 # noinspection PyBroadException
                 try:
                     get_distribution(stripped)

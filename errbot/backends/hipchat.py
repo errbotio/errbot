@@ -298,6 +298,7 @@ class HipChatRoom(Room):
         participants = self.room.participants(expand="items")['items']
         occupants = []
         for p in participants:
+            p['xmpp_jid'] = "{}/{}".format(p['name'], p['xmpp_jid'])
             occupants.append(HipChatRoomOccupant(p))
         return occupants
 

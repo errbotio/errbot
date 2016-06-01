@@ -252,6 +252,12 @@ class SlackBackend(ErrBot):
         log.debug("Token accepted")
         self.bot_identifier = SlackPerson(self.sc, self.auth["user_id"])
 
+        # Inject bot identity to alternative prefixes
+        alt_prefixes = list(self.bot_config.BOT_ALT_PREFIXES)
+        alt_prefixes.append('<@{0}>'.format(self.bot_identifier.userid))
+        self.bot_config.BOT_ALT_PREFIXES = tuple(alt_prefixes)
+        self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
+
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
             log.info("Connected")

@@ -6,6 +6,12 @@ This backend lets you connect to the
 To select this backend,
 set `BACKEND = 'Slack'`.
 
+Extra Dependencies
+------------------
+
+You need to install this dependency before using Errbot with Slack::
+
+      pip install slackclient
 
 Account setup
 -------------

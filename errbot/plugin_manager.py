@@ -372,7 +372,19 @@ class BotPluginManager(PluginManager, StoreMixin):
         else:
             errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
         self.setPluginPlaces(paths)
-        self.locatePlugins()
+        try:
+            self.locatePlugins()
+        except ValueError:
+            # See https://github.com/errbotio/errbot/issues/769.
+            # Unfortunately we cannot obtain information on which file specifically caused the issue,
+            # but we can point users in the right direction at least.
+            log.error(
+                "ValueError was raised while scanning directories for plugins. "
+                "This typically happens when your bot and/or plugin directories contain "
+                "badly formatted .plug files. To help troubleshoot, we suggest temporarily "
+                "removing all data and plugins from your bot and then trying again."
+            )
+            raise
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 

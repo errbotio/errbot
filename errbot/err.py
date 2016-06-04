@@ -115,30 +115,21 @@ logger.addHandler(console_hdlr)
 
 
 def get_config(config_path):
-    __import__('errbot.config-template')  # - is on purpose, it should not be imported normally ;)
-    template = sys.modules['errbot.config-template']
     config_fullpath = config_path
     if not path.exists(config_fullpath):
         log.error(
-            'I cannot find the file %s \n'
+            'I cannot find the config file %s \n'
             '(You can change this path with the -c parameter see --help)' % config_path
         )
         log.info(
             'You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (
-                path.dirname(template.__file__) + sep + 'config-template.py', config_path)
+                os.path.join(__file__, 'config-template.py'), config_path)
         )
         exit(-1)
 
     # noinspection PyBroadException
     try:
         config = __import__(path.splitext(path.basename(config_fullpath))[0])
-
-        diffs = [item for item in set(dir(template)) - set(dir(config)) if not item.startswith('_')]
-        if diffs:
-            log.error('You are missing configs defined from the template :')
-            for diff in diffs:
-                log.error('Missing config : %s' % diff)
-            exit(-1)
     except Exception as _:
         log.exception('I could not import your config from %s, please check the error below...' % config_fullpath)
         exit(-1)
@@ -174,6 +165,14 @@ def main():
     mode_selection.add_argument('-l', '--list', action='store_true', help='list all available backends')
     mode_selection.add_argument('--new-plugin', nargs='?', default=None, const='current_dir',
                                 help='create a new plugin in the specified directory')
+    mode_selection.add_argument('-i', '--init',
+                                nargs='?',
+                                default=None,
+                                const='.',
+                                help='Initialize a simple bot minimal configuration in the optionally '
+                                     'given directory (otherwise it will be the working directory). '
+                                     'This will create a data subdirectory for the bot data dir and a plugins directory'
+                                     ' for your plugin development with an example in it to get you started.')
     # storage manipulation
     mode_selection.add_argument('--storage-set', nargs=1, help='DANGER: Delete the given storage namespace '
                                                                'and set the python dictionary expression '
@@ -196,6 +195,44 @@ def main():
                                   help='Specify the pid file for the daemon (default: current bot data directory)')
 
     args = vars(parser.parse_args())  # create a dictionary of args
+
+    if args['init']:
+        try:
+            import jinja2
+            import shutil
+            base_dir = os.getcwd() if args['init'] == '.' else args['init']
+
+            if not os.path.isdir(base_dir):
+                print('Target directory %s must exist. Please create it.' % base_dir)
+
+            data_dir = os.path.join(base_dir, 'data')
+            extra_plugin_dir = os.path.join(base_dir, 'plugins')
+            example_plugin_dir = os.path.join(extra_plugin_dir, 'err-example')
+            log_path = os.path.join(base_dir, 'errbot.log')
+            templates_dir = os.path.join(os.path.dirname(__file__), 'templates', 'initdir')
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir))
+            config_template = env.get_template('config.py.tmpl')
+
+            os.mkdir(data_dir)
+            os.mkdir(extra_plugin_dir)
+            os.mkdir(example_plugin_dir)
+
+            with open(os.path.join(base_dir, 'config.py'), 'w') as f:
+                f.write(config_template.render(data_dir=data_dir,
+                                               extra_plugin_dir=extra_plugin_dir,
+                                               log_path=log_path))
+            shutil.copyfile(os.path.join(templates_dir, 'example.plug'),
+                            os.path.join(example_plugin_dir, 'example.plug'))
+            shutil.copyfile(os.path.join(templates_dir, 'example.py'), os.path.join(example_plugin_dir, 'example.py'))
+            print('Your Errbot directory has been correctly initialized !')
+            if base_dir == os.getcwd():
+                print('Just do "errbot" and it should start in text/development mode.')
+            else:
+                print('Just do "cd %s" then "errbot" and it should start in text/development mode.' % data_dir)
+            sys.exit(0)
+        except Exception as e:
+            print('The initialization of your errbot directory failed: %s' % e)
+            sys.exit(-11)
 
     # This must come BEFORE the config is loaded below, to avoid printing
     # logs as a side effect of config loading.

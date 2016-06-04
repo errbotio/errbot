@@ -94,8 +94,12 @@ class HipChatRoomOccupant(XMPPRoomOccupant):
             for k, v in hipchat_user.items():
                 setattr(self, k, v)
             # Quick fix to be able to all the parent.
-            node_domain, resource = hipchat_user['xmpp_jid'].split('/')
-            node, domain = node_domain.split('@')
+            if '/' in hipchat_user[u'xmpp_jid']:
+                node_domain, resource = hipchat_user[u'xmpp_jid'].split(u'/')
+            else:
+                node_domain = hipchat_user[u'xmpp_jid']
+                resource = hipchat_user[u'name']
+            node, domain = node_domain.split(u'@')
         super().__init__(node, domain, resource, room)
 
 
@@ -298,7 +302,7 @@ class HipChatRoom(Room):
         participants = self.room.participants(expand="items")['items']
         occupants = []
         for p in participants:
-            occupants.append(HipChatRoomOccupant(p))
+            occupants.append(HipChatRoomOccupant(hipchat_user=p))
         return occupants
 
     def invite(self, *args):

@@ -32,7 +32,7 @@ def setup_bot(backend_name, logger, config, restore=None):
         hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
         logger.addHandler(hdlr)
 
-    if config.BOT_LOG_SENTRY:
+    if hasattr(config, 'BOT_LOG_SENTRY') and config.BOT_LOG_SENTRY:
         try:
             from raven.handlers.logging import SentryHandler
         except ImportError:

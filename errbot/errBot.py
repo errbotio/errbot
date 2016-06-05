@@ -45,6 +45,8 @@ def bot_config_defaults(config):
         config.HIDE_RESTRICTED_ACCESS = False
     if not hasattr(config, 'BOT_PREFIX_OPTIONAL_ON_CHAT'):
         config.BOT_PREFIX_OPTIONAL_ON_CHAT = False
+    if not hasattr(config, 'BOT_PREFIX'):
+        config.BOT_PREFIX = '!'
     if not hasattr(config, 'BOT_ALT_PREFIXES'):
         config.BOT_ALT_PREFIXES = ()
     if not hasattr(config, 'BOT_ALT_PREFIX_SEPARATORS'):
@@ -58,9 +60,19 @@ def bot_config_defaults(config):
     if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):
         config.GROUPCHAT_NICK_PREFIXED = False
     if not hasattr(config, 'AUTOINSTALL_DEPS'):
-        config.AUTOINSTALL_DEPS = False
+        config.AUTOINSTALL_DEPS = True
     if not hasattr(config, 'SUPPRESS_CMD_NOT_FOUND'):
         config.SUPPRESS_CMD_NOT_FOUND = False
+    if not hasattr(config, 'BOT_ASYNC'):
+        config.BOT_ASYNC = True
+    if not hasattr(config, 'CHATROOM_PRESENCE'):
+        config.CHATROOM_PRESENCE = ()
+    if not hasattr(config, 'CHATROOM_RELAY'):
+        config.CHATROOM_RELAY = ()
+    if not hasattr(config, 'TEXT_DEMO_MODE'):
+        config.TEXT_DEMO_MODE = True
+    if not hasattr(config, 'BOT_ADMINS'):
+        raise ValueError('BOT_ADMINS missing from config.py.')
 
 
 # noinspection PyAbstractClass

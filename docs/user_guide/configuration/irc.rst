@@ -5,6 +5,13 @@ This backend lets you connect to any IRC server.
 To select this backend,
 set `BACKEND = 'IRC'`.
 
+Extra Dependencies
+------------------
+
+You need to install this dependency before using Errbot with IRC::
+
+    pip install irc
+
 
 Account setup
 -------------

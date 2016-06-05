@@ -6,6 +6,12 @@ This backend lets you connect to
 To select this backend,
 set `BACKEND = 'Telegram'`.
 
+Extra Dependencies
+------------------
+
+You need to install this dependency before using Errbot with Telegram::
+
+      pip install python-telegram-bot
 
 Account setup
 -------------

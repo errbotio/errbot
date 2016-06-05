@@ -9,10 +9,8 @@ BACKEND = 'Text'  # Errbot will start in text mode (console only mode) and will 
 
 BOT_DATA_DIR = '{{ data_dir }}'
 BOT_EXTRA_PLUGIN_DIR = '{{ extra_plugin_dir }}'
+
 BOT_LOG_FILE = '{{ log_path }}'
 BOT_LOG_LEVEL = logging.DEBUG
 
-BOT_ADMINS = ('CHANGE ME', )
-AUTOINSTALL_DEPS = True
-
-TEXT_DEMO_MODE = False  # Put that to True if you want to suppress the debug output in Text mode.
+BOT_ADMINS = ('CHANGE ME', )  # !! Don't leave that to "CHANGE ME" if you connect your errbot to a chat system !!

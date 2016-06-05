@@ -232,7 +232,7 @@ def main():
             sys.exit(0)
         except Exception as e:
             print('The initialization of your errbot directory failed: %s' % e)
-            sys.exit(-11)
+            sys.exit(1)
 
     # This must come BEFORE the config is loaded below, to avoid printing
     # logs as a side effect of config loading.

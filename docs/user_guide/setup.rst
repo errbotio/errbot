@@ -86,8 +86,7 @@ Configuration
 Once you have installed errbot and did `errbot --init`, you will have to tweak the generated `config.py` to connect
 to your desired chat network.
 
-You can use https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py as a base
- for your `config.py`.
+You can use :download:`config-template.py` as a base for your `config.py`.
 
 We'll go through the options that you absolutely must check now so that you can quickly get started
 and make further tweaks to the configuration later on.

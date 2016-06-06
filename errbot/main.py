@@ -1,7 +1,7 @@
 from os import path, makedirs
 import logging
 
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.plugin_manager import BotPluginManager
 from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
@@ -23,7 +23,7 @@ def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
-    from .errBot import bot_config_defaults
+    from .core import bot_config_defaults
 
     bot_config_defaults(config)
 

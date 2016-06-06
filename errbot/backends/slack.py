@@ -8,7 +8,7 @@ import pprint
 
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
     UserDoesNotExistError, RoomOccupant, Person, Card
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.utils import PY3, split_string_after
 from errbot.rendering.slack import slack_markdown_converter
 

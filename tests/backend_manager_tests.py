@@ -2,7 +2,7 @@ import unittest
 
 import logging
 
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.main import CORE_BACKENDS
 from errbot.specific_plugin_manager import SpecificPluginManager
 

@@ -15,7 +15,7 @@ from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
 from errbot.backends.test import TestPerson
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension

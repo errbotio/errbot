@@ -13,7 +13,7 @@ from time import sleep
 
 from errbot.backends.base import Message, Room, Presence, RoomNotJoinedError, Identifier, RoomOccupant, Person
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.rendering import text, xhtml, xhtmlim
 
 

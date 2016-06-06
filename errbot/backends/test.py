@@ -12,7 +12,7 @@ import pytest
 from errbot.rendering import text
 from errbot.backends.base import Message, Room, Person, RoomOccupant, ONLINE
 from errbot.core_plugins.wsview import reset_app
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.main import setup_bot
 
 # Can't use __name__ because of Yapsy

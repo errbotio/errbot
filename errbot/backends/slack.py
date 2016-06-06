@@ -147,11 +147,7 @@ class SlackPerson(Person):
     @property
     def fullname(self):
         """Convert a Slack user ID to their user name"""
-        user = self._sc.server.users.find(self._userid)
-        if user is None:
-            log.error("Cannot find user with ID %s" % self._userid)
-            return "<%s>" % self._userid
-        return user.real_name
+        return "@%s" % self.username
 
     def __unicode__(self):
         return "@%s" % self.username
@@ -160,7 +156,8 @@ class SlackPerson(Person):
         return self.__unicode__()
 
     def __eq__(self, other):
-        return other.userid == self.userid
+        return other.userid == self.userid and \
+               other.channelid == self.channelid
 
     @property
     def person(self):
@@ -650,18 +647,16 @@ class SlackBackend(ErrBot):
         log.debug("building an identifier from %s" % txtrep)
         username, userid, channelname, channelid = self.extract_identifiers_from_string(txtrep)
 
-        if userid is not None:
-            return SlackPerson(self.sc, userid, self.get_im_channel(userid))
-        if channelid is not None:
-            return SlackPerson(self.sc, None, channelid)
-        if username is not None:
+        if userid is None and username is not None:
             userid = self.username_to_userid(username)
-        if channelname is not None:
+        if channelid is None and channelname is not None:
             channelid = self.channelname_to_channelid(channelname)
         if userid is not None and channelid is not None:
             return SlackRoomOccupant(self.sc, userid, channelid, bot=self)
         if userid is not None:
             return SlackPerson(self.sc, userid, self.get_im_channel(userid))
+        if channelid is not None:
+            return SlackPerson(self.sc, None, channelid)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "

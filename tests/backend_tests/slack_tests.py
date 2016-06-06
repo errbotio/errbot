@@ -31,8 +31,14 @@ if slack:
             """Have to mock because we don't have a slack server."""
             return 'Utest'
 
+        def channelname_to_channelid(self, channelname):
+            return 'Ctest'
+
         def channelid_to_channelname(self, channelid):
             return 'meh'
+
+        def get_im_channel(self, id_):
+            return 'Cfoo'
 
 
 @unittest.skipIf(not slack, "package slackclient not installed")
@@ -167,6 +173,34 @@ class SlackTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             extract_from("<@I12345>")
+
+    def test_build_identifier(self):
+        build_from = self.slack.build_identifier
+
+        self.assertEqual(
+            build_from("<#C12345>"),
+            slack.SlackPerson(None, userid=None, channelid="C12345")
+        )
+
+        self.assertEqual(
+            build_from("<@U12345>"),
+            slack.SlackPerson(None, userid="U12345", channelid="Cfoo")
+        )
+
+        self.assertEqual(
+            build_from("@user"),
+            slack.SlackPerson(None, userid="Utest", channelid="Cfoo")
+        )
+
+        self.assertEqual(
+            build_from("#channel"),
+            slack.SlackPerson(None, userid=None, channelid="Ctest")
+        )
+
+        self.assertEqual(
+            build_from("#channel/user"),
+            slack.SlackRoomOccupant(None, "Utest", "Cfoo", self.slack)
+        )
 
     def test_uri_sanitization(self):
         sanitize = self.slack.sanitize_uris

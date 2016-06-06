@@ -10,10 +10,6 @@
    :target: https://pypi.python.org/pypi/errbot
    :alt: Latest Version
 
-.. image:: https://img.shields.io/pypi/dm/errbot.svg
-   :target: https://pypi.python.org/pypi/errbot
-   :alt: Downloads
-
 .. image:: https://img.shields.io/badge/License-GPLv3-green.svg
    :target: https://pypi.python.org/pypi/errbot
    :alt: License

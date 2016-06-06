@@ -1,5 +1,4 @@
-from errbot import BotPlugin
-from errbot.err import PY3
+from errbot import BotPlugin, PY3
 
 
 class Config(BotPlugin):

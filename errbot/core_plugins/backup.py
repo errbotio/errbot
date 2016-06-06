@@ -9,7 +9,7 @@ class Backup(BotPlugin):
     def backup(self, msg, args):
         """Backup everything.
            Makes a backup script called backup.py in the data bot directory.
-           You can restore the backup from the command line with err.py --restore
+           You can restore the backup from the command line with errbot --restore
         """
         filename = os.path.join(self.bot_config.BOT_DATA_DIR, 'backup.py')
         with open(filename, 'w') as f:

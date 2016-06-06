@@ -114,8 +114,7 @@ if __name__ == "__main__":
         packages=find_packages(src_root, exclude=['tests', 'tests.*', 'tools']),
         entry_points={
             'console_scripts': [
-                'errbot = errbot.err:main',
-                'err.py = errbot.err:main'
+                'errbot = errbot.cli:main',
             ]
         },
 

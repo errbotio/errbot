@@ -23,7 +23,7 @@ import sys
 from os import path, sep, getcwd, access, W_OK
 from platform import system
 
-from errbot.logging import root_logger
+from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
 from errbot.version import VERSION
 

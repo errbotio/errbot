@@ -16,7 +16,7 @@ from errbot.core import ErrBot
 from errbot.backends.base import Message, Room, Identifier, ONLINE
 from errbot.backends.test import TestPerson, TestOccupant, TestRoom, ShallowConfig
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
-from errbot.main import CORE_STORAGE
+from errbot.bootstrap import CORE_STORAGE
 from errbot.plugin_manager import BotPluginManager
 from errbot.rendering import text
 from errbot.core_plugins.acls import ACLS

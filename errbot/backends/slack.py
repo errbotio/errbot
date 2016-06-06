@@ -147,7 +147,11 @@ class SlackPerson(Person):
     @property
     def fullname(self):
         """Convert a Slack user ID to their user name"""
-        return "@%s" % self.username
+        user = self._sc.server.users.find(self._userid)
+        if user is None:
+            log.error("Cannot find user with ID %s" % self._userid)
+            return "<%s>" % self._userid
+        return user.real_name
 
     def __unicode__(self):
         return "@%s" % self.username

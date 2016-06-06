@@ -266,8 +266,8 @@ class BotPluginBase(StoreMixin):
 class BotPlugin(BotPluginBase):
 
     PRIORITY_RUN_FIRST = 10
-    PRIORITY_DEFAULT   = 0
-    PRIORITY_RUN_LAST  = -10
+    PRIORITY_DEFAULT = 0
+    PRIORITY_RUN_LAST = -10
 
     def get_configuration_template(self) -> Mapping:
         """

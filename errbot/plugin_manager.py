@@ -210,7 +210,10 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
 
 
 def get_plugin_priority(plugin) -> int:
-    return plugin.plugin_object.get_priority()
+    try:
+        return plugin.plugin_object.get_priority()
+    except AttributeError:
+        return 0
 
 
 def global_restart():

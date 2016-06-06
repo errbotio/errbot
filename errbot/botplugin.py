@@ -316,7 +316,7 @@ class BotPlugin(BotPluginBase):
     def get_priority(self) -> int:
         """
             Callback on plugins are executed in priority order.
-            
+
             Override this method if you want your plugin to get its callbacks in a
             specific order relative to the other plugins. You should return one of:
             - `self.PRIORITY_RUN_FIRST`

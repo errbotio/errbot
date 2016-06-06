@@ -265,6 +265,10 @@ class BotPluginBase(StoreMixin):
 # noinspection PyAbstractClass
 class BotPlugin(BotPluginBase):
 
+    PRIORITY_RUN_FIRST = 10
+    PRIORITY_DEFAULT   = 0
+    PRIORITY_RUN_LAST  = -10
+
     def get_configuration_template(self) -> Mapping:
         """
         If your plugin needs a configuration, override this method and return
@@ -308,6 +312,18 @@ class BotPlugin(BotPluginBase):
         :param configuration: injected configuration for the plugin.
         """
         self.config = configuration
+
+    def get_priority(self) -> int:
+        """
+            Callback on plugins are executed in priority order.
+            
+            Override this method if you want your plugin to get its callbacks in a
+            specific order relative to the other plugins. You should return one of:
+            - `self.PRIORITY_RUN_FIRST`
+            - `self.PRIORITY_DEFAULT` (which is the default)
+            - `self.PRIORITY_RUN_LAST`
+        """
+        return self.PRIORITY_DEFAULT
 
     def activate(self) -> None:
         """

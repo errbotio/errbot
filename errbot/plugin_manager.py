@@ -210,11 +210,7 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
 
 
 def get_plugin_priority(plugin) -> int:
-    try:
-        priority = int(plugin.details.get("Core", "Priority"))
-    except (NoOptionError, ValueError):
-        priority = 0
-    return priority
+    return plugin.plugin_object.get_priority()
 
 
 def global_restart():

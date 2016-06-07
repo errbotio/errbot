@@ -111,12 +111,16 @@ class CommandBox(QtGui.QPlainTextEdit, object):
 
 urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
 
-err_path = os.path.dirname(errbot.__file__)
-prompt_path = os.path.join(err_path, 'prompt.svg')
-icon_path = os.path.join(err_path, 'err.svg')
-bg_path = os.path.join(err_path, 'err-bg.svg')
-css_path = os.path.join(err_path, 'backends', 'style', 'style.css')
-demo_css_path = os.path.join(err_path, 'backends', 'style', 'style-demo.css')
+backends_path = os.path.join(os.path.dirname(errbot.__file__), 'backends')
+
+images_path = os.path.join(backends_path, 'images')
+prompt_path = os.path.join(images_path, 'prompt.svg')
+icon_path = os.path.join(images_path, 'errbot.svg')
+bg_path = os.path.join(images_path, 'errbot-bg.svg')
+
+style_path = os.path.join(backends_path, 'styles')
+css_path = os.path.join(style_path, 'style.css')
+demo_css_path = os.path.join(style_path, 'style-demo.css')
 
 TOP = '<html><body style="background-image: url(\'file://%s\');">' % bg_path
 BOTTOM = '</body></html>'

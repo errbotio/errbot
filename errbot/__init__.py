@@ -17,7 +17,8 @@ from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route, view  # noqa
 
 __all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'webview', 'cmdfilter',
-           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END']
+           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END',
+           ]
 
 log = logging.getLogger(__name__)
 

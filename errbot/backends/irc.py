@@ -12,7 +12,7 @@ from markdown.extensions.extra import ExtraExtension
 from errbot.backends.base import Message, Room, RoomError, \
     RoomNotJoinedError, Stream, \
     RoomOccupant, ONLINE, Person
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.utils import rate_limited
 from errbot.rendering.ansiext import AnsiExtension, enable_format, \
     CharacterTable, NSC

@@ -7,7 +7,7 @@ python:
   - "3.5"
 
 before_script:
-  - cp errbot/config-travisci.py config.py
+  - cp tests/config-travisci.py config.py
 
 install:
   - pip install --upgrade pip

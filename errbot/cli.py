@@ -14,14 +14,16 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import argparse
 import inspect
 import locale
+import logging
 import os
 import sys
-import logging
-import argparse
 from os import path, sep, getcwd, access, W_OK
 from platform import system
+
+from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
 from errbot.version import VERSION
 
@@ -45,12 +47,13 @@ if PY2 and "param='canary'" in foo_src:
     print('Either use python3 or install err using ./setup.py develop.')
     sys.exit(-1)
 
-if locale.getpreferredencoding().lower() != 'utf-8':
-    logging.warning('Starting errbot with a default system encoding other than \'utf-8\''
-                    ' might cause you a heap of troubles.'
-                    ' Your current encoding is set at \'%s\'' % sys.getdefaultencoding())
 
 log = logging.getLogger(__name__)
+
+if locale.getpreferredencoding().lower() != 'utf-8':
+    log.warning('Starting errbot with a default system encoding other than \'utf-8\''
+                ' might cause you a heap of troubles.'
+                ' Your current encoding is set at \'%s\'' % sys.getdefaultencoding())
 
 
 # noinspection PyUnusedLocal
@@ -67,12 +70,6 @@ def debug(sig, frame):
     i.interact(message)
 
 
-def ispydevd():
-    for frame in inspect.stack():
-        if frame[1].endswith("pydevd.py"):
-            return True
-    return False
-
 ON_WINDOWS = system() == 'Windows'
 
 if not ON_WINDOWS:
@@ -82,36 +79,6 @@ if not ON_WINDOWS:
     import signal
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
-
-logger = logging.getLogger()
-logging.getLogger('yapsy').setLevel(logging.INFO)  # this one is way too verbose in debug
-logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one is way too verbose in debug
-logger.setLevel(logging.INFO)
-
-pydev = ispydevd()
-stream = sys.stdout if pydev else sys.stderr
-isatty = pydev or stream.isatty()  # force isatty if we are under pydev because it supports coloring anyway.
-console_hdlr = logging.StreamHandler(stream)
-
-if isatty:
-    from colorlog import ColoredFormatter  # noqa
-    formatter = ColoredFormatter(
-        "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s "
-        "%(blue)s%(name)-25.25s%(reset)s %(white)s%(message)s%(reset)s",
-        datefmt="%H:%M:%S",
-        reset=True,
-        log_colors={
-            'DEBUG': 'cyan',
-            'INFO': 'green',
-            'WARNING': 'yellow',
-            'ERROR': 'red',
-            'CRITICAL': 'red',
-        }
-    )
-    console_hdlr.setFormatter(formatter)
-else:
-    console_hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
-logger.addHandler(console_hdlr)
 
 
 def get_config(config_path):
@@ -239,7 +206,7 @@ def main():
     if args['new_plugin']:
         directory = os.getcwd() if args['new_plugin'] == "current_dir" else args['new_plugin']
         for handler in logging.getLogger().handlers:
-            logger.removeHandler(handler)
+            root_logger.removeHandler(handler)
         try:
             new_plugin_wizard(directory)
         except KeyboardInterrupt:
@@ -260,7 +227,7 @@ def main():
 
     config = get_config(config_path)  # will exit if load fails
     if args['list']:
-        from errbot.main import enumerate_backends
+        from errbot.bootstrap import enumerate_backends
         print('Available backends:')
         for backend_name in enumerate_backends(config):
             print('\t\t%s' % backend_name)
@@ -268,7 +235,7 @@ def main():
 
     def storage_action(namespace, fn):
         # Used to defer imports until it is really necessary during the loading time.
-        from errbot.main import get_storage_plugin
+        from errbot.bootstrap import get_storage_plugin
         from errbot.storage import StoreMixin
         try:
             with StoreMixin() as sdm:
@@ -334,8 +301,8 @@ def main():
         # noinspection PyBroadException
         try:
             def action():
-                from errbot.main import main
-                main(backend, logger, config)
+                from errbot.bootstrap import bootstrap
+                bootstrap(backend, root_logger, config)
 
             daemon = Daemonize(app="err", pid=pid, action=action, chdir=os.getcwd())
             log.info("Daemonizing")
@@ -343,12 +310,12 @@ def main():
         except Exception:
             log.exception('Failed to daemonize the process')
         exit(0)
-    from errbot.main import main
+    from errbot.bootstrap import bootstrap
     restore = args['restore']
     if restore == 'default':  # restore with no argument, get the default location
         restore = path.join(config.BOT_DATA_DIR, 'backup.py')
 
-    main(backend, logger, config, restore)
+    bootstrap(backend, root_logger, config, restore)
     log.info('Process exiting')
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from os import path, makedirs
 import logging
 
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.plugin_manager import BotPluginManager
 from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
@@ -23,7 +23,7 @@ def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
-    from .errBot import bot_config_defaults
+    from .core import bot_config_defaults
 
     bot_config_defaults(config)
 
@@ -139,7 +139,15 @@ def enumerate_backends(config):
     return [plug.name for (_, _, plug) in bpm.getPluginCandidates()]
 
 
-def main(bot_class, logger, config, restore=None):
+def bootstrap(bot_class, logger, config, restore=None):
+    """
+    Main starting point of Errbot.
+
+    :param bot_class: The backend class inheriting from Errbot you want to start.
+    :param logger: The logger you want to use.
+    :param config: The config.py module.
+    :param restore: Start Errbot in restore mode (from a backup).
+    """
     bot = setup_bot(bot_class, logger, config, restore)
     log.debug('Start serving commands from the %s backend' % bot.mode)
     bot.serve_forever()

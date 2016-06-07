@@ -6,15 +6,17 @@ import logging
 import re
 import shlex
 import inspect
+import sys
 from typing import Callable, Any, Tuple
 
 from .core_plugins.wsview import bottle_app, WebView
-from errbot.backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
+from .backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
 from .utils import compat_str
 from .utils import PY2, PY3  # noqa gbin: this is now used by plugins
 from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command  # noqa
 from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route, view  # noqa
+from . import core
 
 __all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'webview', 'cmdfilter',
            'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END',
@@ -24,6 +26,9 @@ log = logging.getLogger(__name__)
 
 webroute = route  # this allows plugins to expose dynamic webpages on err embedded webserver
 webview = view  # this allows to use the templating system
+
+# TODO: Remove, this is for backend backward compatibility
+sys.modules["errbot.errBot"] = core
 
 
 class ArgumentParseError(Exception):

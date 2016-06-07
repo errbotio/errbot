@@ -1,6 +1,8 @@
 import inspect
 import logging
 
+import sys
+
 
 def ispydevd():
     for frame in inspect.stack():

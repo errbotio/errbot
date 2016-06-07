@@ -22,13 +22,12 @@ import traceback
 
 from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
-from .backends.base import Backend, Room, Identifier, Person, Message
+from .backends.base import Backend, Room, Identifier, Message
 from threadpool import ThreadPool, WorkRequest
 from threading import RLock
 from .streaming import Tee
 from .templating import tenv
-from .utils import (split_string_after,
-                    get_class_that_defined_method, compat_str)
+from .utils import split_string_after, get_class_that_defined_method
 from .storage import StoreMixin
 
 log = logging.getLogger(__name__)

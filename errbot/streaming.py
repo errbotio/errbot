@@ -2,8 +2,7 @@
 import os
 import io
 from threading import Thread
-from .backends.base import (STREAM_WAITING_TO_START,
-                            STREAM_TRANSFER_IN_PROGRESS)
+from .backends.base import STREAM_WAITING_TO_START, STREAM_TRANSFER_IN_PROGRESS
 import logging
 from .utils import repeatfunc
 

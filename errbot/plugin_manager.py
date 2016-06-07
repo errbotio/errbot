@@ -1,10 +1,8 @@
 """ Logic related to plugin loading and lifecycle """
 import traceback
 from configparser import NoSectionError, NoOptionError, ConfigParser
-from itertools import chain
 import importlib
 import imp
-import inspect
 import logging
 import sys
 import os

@@ -6,7 +6,7 @@ from tempfile import mkdtemp
 
 import mock
 
-from errbot.core import bot_config_defaults
+from errbot.bootstrap import bot_config_defaults
 
 log = logging.getLogger(__name__)
 

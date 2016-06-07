@@ -5,9 +5,6 @@ from tempfile import mkdtemp
 from os.path import sep
 
 import pytest
-
-from errbot.core import bot_config_defaults
-
 import os  # noqa
 import re  # noqa
 from collections import OrderedDict
@@ -16,7 +13,7 @@ from errbot.core import ErrBot
 from errbot.backends.base import Message, Room, Identifier, ONLINE
 from errbot.backends.test import TestPerson, TestOccupant, TestRoom, ShallowConfig
 from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
-from errbot.bootstrap import CORE_STORAGE
+from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
 from errbot.plugin_manager import BotPluginManager
 from errbot.rendering import text
 from errbot.core_plugins.acls import ACLS

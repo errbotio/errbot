@@ -114,13 +114,12 @@ What we need now is get access to the instance of our plugin itself. Fortunately
 
     import os
     from errbot.backends.test import testbot
-    from errbot import plugin_manager
 
     class TestMyPlugin(object)
         extra_plugin_dir = '.'
 
         def test_mycommand_helper(self, testbot):
-            plugin = plugin_manager.get_plugin_obj_by_name('MyPlugin')
+            plugin = testbot.bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
             expected = "This is my awesome command"
             result = plugin.mycommand_helper()
             assert result == expected

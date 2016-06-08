@@ -1,0 +1,5 @@
+As a special exception, the copyright holders of Errbot hereby grant permission
+for plug-ins, scripts or add-ons not bundled or distributed as part
+of Errbot itself and potentially licensed under a different license, to be
+used with Errbot, provided that you also meet the terms and conditions of the
+licenses of those plug-ins, scripts or add-ons.

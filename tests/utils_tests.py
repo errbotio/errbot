@@ -3,8 +3,7 @@ from datetime import timedelta
 import pytest
 
 from errbot.backends.test import ShallowConfig
-from errbot.errBot import bot_config_defaults
-from errbot.main import CORE_STORAGE
+from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
 from errbot.specific_plugin_manager import SpecificPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import *

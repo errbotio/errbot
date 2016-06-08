@@ -6,6 +6,13 @@ This backend lets you connect to the
 To select this backend,
 set `BACKEND = 'Hipchat'`.
 
+Extra Dependencies
+------------------
+
+You need to install this dependency before using Errbot with Hipchat::
+
+    pip install sleekxmpp pyasn1 pyasn1-modules hypchat
+
 
 Account setup
 -------------

@@ -2,5 +2,9 @@ include COPYING
 include *.rst
 include errbot/*.svg
 include errbot/templates/*.md
+include errbot/templates/*.tmpl
+include errbot/templates/initdir/*.tmpl
+include errbot/templates/initdir/*.plug
+include errbot/templates/initdir/*.py
 include errbot/core_plugins/templates/*.md
 prune tests

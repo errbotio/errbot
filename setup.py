@@ -33,6 +33,8 @@ if py_version < (2, 7):
 if PY3 and py_version < (3, 3):
     raise RuntimeError('On Python 3, Errbot requires Python 3.3 or later')
 
+VERSION_FILE = os.path.join('errbot', 'version.py')
+
 deps = ['webtest',
         'setuptools',
         'bottle',
@@ -82,7 +84,21 @@ if not ON_WINDOWS:
     deps += ['daemonize']
 
 src_root = os.curdir
-sys.path.insert(0, os.path.join(src_root, 'errbot'))  # hack to avoid loading err machinery from the errbot package
+
+
+def read_version():
+    """
+    Read directly the errbot/version.py and gives the version without loading Errbot.
+    :return: errbot.version.VERSION
+    """
+
+    variables = {}
+    if PY2:
+        execfile(VERSION_FILE, variables)
+    else:
+        with open(VERSION_FILE) as f:
+            exec(compile(f.read(), 'version.py', 'exec'), variables)
+    return variables['VERSION']
 
 
 def read(fname):
@@ -90,7 +106,8 @@ def read(fname):
 
 
 if __name__ == "__main__":
-    from version import VERSION
+
+    VERSION = read_version()
 
     args = set(sys.argv)
 
@@ -105,24 +122,37 @@ if __name__ == "__main__":
     # under python2 if we want to make a source distribution,
     # don't pre-convert the sources, leave them as py3.
     if PY2 and args & {'install', 'develop', 'bdist_wheel'}:
-        from py2conv import convert_to_python2
+        from tools.py2conv import convert_to_python2
         convert_to_python2()
+
+    packages = find_packages(src_root, include=['errbot', 'errbot.*'])
 
     setup(
         name="errbot",
         version=VERSION,
-        packages=find_packages(src_root, exclude=['tests', 'tests.*', 'tools']),
+        packages=packages,
         entry_points={
             'console_scripts': [
-                'errbot = errbot.err:main',
-                'err.py = errbot.err:main'
+                'errbot = errbot.cli:main',
             ]
         },
 
         install_requires=deps,
         tests_require=['nose', 'webtest', 'requests'],
         package_data={
-            '': ['*.txt', '*.rst', '*.plug', '*.md'],
+            'errbot': ['backends/*.plug',
+                       'backends/*.html',
+                       'backends/styles/*.css',
+                       'backends/images/*.svg',
+                       'core_plugins/*.plug',
+                       'core_plugins/templates/*.md',
+                       'storage/*.plug',
+                       'templates/initdir/example.py',
+                       'templates/initdir/example.plug',
+                       'templates/initdir/config.py.tmpl',
+                       'templates/*.md',
+                       'templates/new_plugin.py.tmpl',
+                       ],
         },
         extras_require={
             'graphic':  ['PySide', ],
@@ -144,7 +174,6 @@ if __name__ == "__main__":
             "Development Status :: 5 - Production/Stable",
             "Topic :: Communications :: Chat",
             "Topic :: Communications :: Chat :: Internet Relay Chat",
-            "Topic :: Communications :: Conferencing",
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 2",
@@ -157,6 +186,3 @@ if __name__ == "__main__":
         src_root=src_root,
         platforms='any',
     )
-
-# restore the paths
-sys.path.remove(os.path.join(src_root, 'errbot'))

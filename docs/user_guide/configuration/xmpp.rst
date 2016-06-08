@@ -5,6 +5,12 @@ This backend lets you connect to any Jabber/XMPP server.
 To select this backend,
 set `BACKEND = 'XMPP'`.
 
+Extra Dependencies
+------------------
+
+You need to install this dependency before using Errbot with XMPP::
+
+      pip install sleekxmpp pyasn1 pyasn1-modules
 
 Account setup
 -------------

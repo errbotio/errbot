@@ -1,6 +1,6 @@
 import logging
 from threading import RLock
-from typing import Mapping, List, Tuple, Union, Callable, Any, TypeVar
+from typing import Mapping, List, Tuple, Union, Callable, Any
 
 from threadpool import ThreadPool, WorkRequest
 from yapsy.IPlugin import IPlugin

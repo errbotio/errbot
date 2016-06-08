@@ -151,7 +151,7 @@ def render_plugin(values):
         auto_reload=False,
         keep_trailing_newline=True,
     )
-    template = env.get_template("new_plugin_template.py")
+    template = env.get_template("new_plugin.py.tmpl")
     return template.render(**values)
 
 

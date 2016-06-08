@@ -125,7 +125,7 @@ SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 # Execute commands in asynchronous mode. In this mode, Err will spawn 3
 # separate threads to handle commands, instead of blocking on each
 # single command.
-BOT_ASYNC = True
+# BOT_ASYNC = True
 
 ##########################################################################
 # Account and chatroom (MUC) configuration                               #
@@ -182,14 +182,14 @@ BOT_ADMINS = ('gbin@localhost',)
 # should include the # sign here. For XMPP rooms that are password
 # protected, you can specify another tuple here instead of a string,
 # using the format (RoomName, Password).
-CHATROOM_PRESENCE = ('err@conference.server.tld',)
+# CHATROOM_PRESENCE = ('err@conference.server.tld',)
 
 # The FullName, or nickname, your bot should use. What you set here will
 # be the nickname that Err shows in chatrooms. Note that some XMPP
 # implementations, notably HipChat, are very picky about what name you
 # use. In the case of HipChat, make sure this matches exactly with the
 # name you gave the user.
-CHATROOM_FN = 'Err'
+# CHATROOM_FN = 'Errbot'
 
 ##########################################################################
 # Prefix configuration                                                   #
@@ -202,8 +202,8 @@ CHATROOM_FN = 'Err'
 # If the prefix is changed from the default, the help strings will be
 # automatically adjusted for you.
 #
-BOT_PREFIX = '!'
-
+# BOT_PREFIX = '!'
+#
 # Uncomment the following and set it to True if you want the prefix to be
 # optional for normal chat.
 # (Meaning messages sent directly to the bot as opposed to within a MUC)

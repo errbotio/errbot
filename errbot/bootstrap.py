@@ -1,7 +1,7 @@
 from os import path, makedirs
 import logging
 
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
 from errbot.plugin_manager import BotPluginManager
 from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
@@ -19,11 +19,52 @@ CORE_STORAGE = path.join(HERE, 'storage')
 PLUGIN_DEFAULT_INDEX = 'https://repos.errbot.io/repos.json'
 
 
+def bot_config_defaults(config):
+    if not hasattr(config, 'ACCESS_CONTROLS_DEFAULT'):
+        config.ACCESS_CONTROLS_DEFAULT = {}
+    if not hasattr(config, 'ACCESS_CONTROLS'):
+        config.ACCESS_CONTROLS = {}
+    if not hasattr(config, 'HIDE_RESTRICTED_COMMANDS'):
+        config.HIDE_RESTRICTED_COMMANDS = False
+    if not hasattr(config, 'HIDE_RESTRICTED_ACCESS'):
+        config.HIDE_RESTRICTED_ACCESS = False
+    if not hasattr(config, 'BOT_PREFIX_OPTIONAL_ON_CHAT'):
+        config.BOT_PREFIX_OPTIONAL_ON_CHAT = False
+    if not hasattr(config, 'BOT_PREFIX'):
+        config.BOT_PREFIX = '!'
+    if not hasattr(config, 'BOT_ALT_PREFIXES'):
+        config.BOT_ALT_PREFIXES = ()
+    if not hasattr(config, 'BOT_ALT_PREFIX_SEPARATORS'):
+        config.BOT_ALT_PREFIX_SEPARATORS = ()
+    if not hasattr(config, 'BOT_ALT_PREFIX_CASEINSENSITIVE'):
+        config.BOT_ALT_PREFIX_CASEINSENSITIVE = False
+    if not hasattr(config, 'DIVERT_TO_PRIVATE'):
+        config.DIVERT_TO_PRIVATE = ()
+    if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
+        config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
+    if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):
+        config.GROUPCHAT_NICK_PREFIXED = False
+    if not hasattr(config, 'AUTOINSTALL_DEPS'):
+        config.AUTOINSTALL_DEPS = True
+    if not hasattr(config, 'SUPPRESS_CMD_NOT_FOUND'):
+        config.SUPPRESS_CMD_NOT_FOUND = False
+    if not hasattr(config, 'BOT_ASYNC'):
+        config.BOT_ASYNC = True
+    if not hasattr(config, 'CHATROOM_PRESENCE'):
+        config.CHATROOM_PRESENCE = ()
+    if not hasattr(config, 'CHATROOM_RELAY'):
+        config.CHATROOM_RELAY = ()
+    if not hasattr(config, 'CHATROOM_FN'):
+        config.CHATROOM_FN = 'Errbot'
+    if not hasattr(config, 'TEXT_DEMO_MODE'):
+        config.TEXT_DEMO_MODE = True
+    if not hasattr(config, 'BOT_ADMINS'):
+        raise ValueError('BOT_ADMINS missing from config.py.')
+
+
 def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
-
-    from .errBot import bot_config_defaults
 
     bot_config_defaults(config)
 
@@ -32,7 +73,7 @@ def setup_bot(backend_name, logger, config, restore=None):
         hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
         logger.addHandler(hdlr)
 
-    if config.BOT_LOG_SENTRY:
+    if hasattr(config, 'BOT_LOG_SENTRY') and config.BOT_LOG_SENTRY:
         try:
             from raven.handlers.logging import SentryHandler
         except ImportError:
@@ -139,7 +180,15 @@ def enumerate_backends(config):
     return [plug.name for (_, _, plug) in bpm.getPluginCandidates()]
 
 
-def main(bot_class, logger, config, restore=None):
+def bootstrap(bot_class, logger, config, restore=None):
+    """
+    Main starting point of Errbot.
+
+    :param bot_class: The backend class inheriting from Errbot you want to start.
+    :param logger: The logger you want to use.
+    :param config: The config.py module.
+    :param restore: Start Errbot in restore mode (from a backup).
+    """
     bot = setup_bot(bot_class, logger, config, restore)
     log.debug('Start serving commands from the %s backend' % bot.mode)
     bot.serve_forever()

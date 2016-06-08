@@ -10,12 +10,12 @@ from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
-from errbot import err
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
 from errbot.backends.test import TestPerson
-from errbot.errBot import ErrBot
+from errbot.core import ErrBot
+from errbot.logs import console_hdlr
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
@@ -66,7 +66,7 @@ class TextBackend(ErrBot):
         if self.demo_mode:
             # disable the console logging once it is serving in demo mode.
             root = logging.getLogger()
-            root.removeHandler(err.console_hdlr)
+            root.removeHandler(console_hdlr)
             root.addHandler(logging.NullHandler())
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=self.user, status=ONLINE))
@@ -132,7 +132,7 @@ class TextBackend(ErrBot):
 
     def build_identifier(self, text_representation):
         if text_representation.startswith('#'):
-            return self.query_room(test_representation[1:])
+            return self.query_room(text_representation[1:])
         return TestPerson(text_representation)
 
     def build_reply(self, mess, text=None, private=False):

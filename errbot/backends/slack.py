@@ -160,8 +160,10 @@ class SlackPerson(Person):
         return self.__unicode__()
 
     def __eq__(self, other):
-        return other.userid == self.userid and \
-               other.channelid == self.channelid
+        if not isinstance(other, SlackPerson):
+            log.warn('tried to compare a SlackPerson with a %s', type(other))
+            return False
+        return other.userid == self.userid
 
     @property
     def person(self):
@@ -454,8 +456,15 @@ class SlackBackend(ErrBot):
     @lru_cache(50)
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
-        response = self.api_call('im.open', data={'user': id_})
-        return response['channel']['id']
+        try:
+            response = self.api_call('im.open', data={'user': id_})
+            return response['channel']['id']
+        except SlackAPIResponseError as e:
+            if e.error == "cannot_dm_bot":
+                log.info('Tried to DM a bot.')
+                return None
+            else:
+                raise e
 
     def _prepare_message(self, mess):  # or card
         """
@@ -660,7 +669,7 @@ class SlackBackend(ErrBot):
         if userid is not None:
             return SlackPerson(self.sc, userid, self.get_im_channel(userid))
         if channelid is not None:
-            return SlackPerson(self.sc, None, channelid)
+            return SlackRoom(channelid=channelid, bot=self)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "
@@ -909,4 +918,6 @@ class SlackRoom(Room):
                     raise SlackAPIResponseError(error="Slack API call to %s failed: %s" % (method, response['error']))
 
     def __eq__(self, other):
+        if not isinstance(other, SlackRoom):
+            return False
         return self.id == other.id

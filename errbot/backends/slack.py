@@ -363,15 +363,18 @@ class SlackBackend(ErrBot):
         mentioned = []
 
         for word in text.split():
-            if word.startswith('<') or word.startswith('@') or word.startswith('#'):
+            if word.startswith('<') or word.startswith('@'):
                 try:
                     identifier = self.build_identifier(word.replace(':', ''))
                 except Exception as e:
                     log.debug("Tried to build an identifier from '%s' but got exception: %s", word, e)
                     continue
-                log.debug('Someone mentioned')
-                mentioned.append(identifier)
-                text = re.sub('<@[^>]*>:*', '@%s' % mentioned[-1].username, text)
+
+                # We only track mentions of persons.
+                if isinstance(identifier, SlackPerson):
+                    log.debug('Someone mentioned')
+                    mentioned.append(identifier)
+                    text = re.sub('<@[^>]*>:*', '@%s' % mentioned[-1].username, text)
 
         text = self.sanitize_uris(text)
 

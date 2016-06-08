@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 
 def make_templates_path(root):
-    return root + os.sep + 'templates'
+    return os.path.join(root, 'templates')
 
 
 system_templates_path = make_templates_path(os.path.dirname(__file__))
@@ -23,7 +23,7 @@ def tenv():
 
 
 def make_templates_from_plugin_path(plugin_path):
-    return make_templates_path(os.sep.join(plugin_path.split(os.sep)[:-1]))
+    return make_templates_path(os.path.dirname(plugin_path))
 
 
 def add_plugin_templates_path(path):

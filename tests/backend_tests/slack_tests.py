@@ -177,25 +177,14 @@ class SlackTests(unittest.TestCase):
     def test_build_identifier(self):
         build_from = self.slack.build_identifier
 
-        self.assertEqual(
-            build_from("<#C12345>"),
-            slack.SlackPerson(None, userid=None, channelid="C12345")
-        )
+        def check_person(person, expected_uid, expected_cid):
+            return person.userid == expected_uid and \
+                   person.channelid == expected_cid
 
-        self.assertEqual(
-            build_from("<@U12345>"),
-            slack.SlackPerson(None, userid="U12345", channelid="Cfoo")
-        )
-
-        self.assertEqual(
-            build_from("@user"),
-            slack.SlackPerson(None, userid="Utest", channelid="Cfoo")
-        )
-
-        self.assertEqual(
-            build_from("#channel"),
-            slack.SlackPerson(None, userid=None, channelid="Ctest")
-        )
+        assert check_person(build_from("<#C12345>"), None, "C12345")
+        assert check_person(build_from("<@U12345>"), "U12345", "Cfoo")
+        assert check_person(build_from("@user"), "Utest", "Cfoo")
+        assert check_person(build_from("#channel"), None, "Ctest")
 
         self.assertEqual(
             build_from("#channel/user"),

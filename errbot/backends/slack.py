@@ -669,7 +669,7 @@ class SlackBackend(ErrBot):
         if userid is not None:
             return SlackPerson(self.sc, userid, self.get_im_channel(userid))
         if channelid is not None:
-            return SlackPerson(self.sc, None, channelid)
+            return SlackRoom(channelid=channelid, bot=self)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "

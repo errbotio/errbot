@@ -419,7 +419,7 @@ class HipchatBackend(XMPPBackend):
         xep0045 = self.conn.client.plugin['xep_0045']
         rooms = {}
         # Build a mapping of xmpp_jid->name for easy reference
-        for room in self.conn.hypchat.rooms(expand='items')['items']:
+        for room in self.conn.hypchat.rooms(expand='items').contents():
             rooms[room['xmpp_jid']] = room['name']
 
         joined_rooms = []
@@ -442,9 +442,9 @@ class HipchatBackend(XMPPBackend):
         """
         if room.endswith('@conf.hipchat.com'):
             log.debug("Room specified by JID, looking up room name")
-            rooms = self.conn.hypchat.rooms(expand='items')
+            rooms = self.conn.hypchat.rooms(expand='items').contents()
             try:
-                name = [r['name'] for r in rooms['items'] if r['xmpp_jid'] == room][0]
+                name = [r['name'] for r in rooms if r['xmpp_jid'] == room][0]
             except IndexError:
                 raise RoomDoesNotExistError("No room with JID {} found.".format(room))
             log.info("Found {} to be the room {}, consider specifying this directly.".format(room, name))

@@ -456,7 +456,7 @@ class BotPlugin(BotPluginBase):
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
         if message_type is not None:
-            self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
+            self.log.warning("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def send_card(self,

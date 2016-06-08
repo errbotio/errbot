@@ -54,6 +54,8 @@ def bot_config_defaults(config):
         config.CHATROOM_PRESENCE = ()
     if not hasattr(config, 'CHATROOM_RELAY'):
         config.CHATROOM_RELAY = ()
+    if not hasattr(config, 'REVERSE_CHATROOM_RELAY'):
+        config.REVERSE_CHATROOM_RELAY = ()
     if not hasattr(config, 'CHATROOM_FN'):
         config.CHATROOM_FN = 'Errbot'
     if not hasattr(config, 'TEXT_DEMO_MODE'):

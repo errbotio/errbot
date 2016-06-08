@@ -309,7 +309,7 @@ class HipChatRoom(Room):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :param args:
             One or more people to invite into the room. May be the
             mention name (beginning with an @) or "FirstName LastName"
             of the user you wish to invite.

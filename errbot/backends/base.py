@@ -77,6 +77,7 @@ class Person(Identifier):
     def fullname(self) -> str:
         """
         Some backends have the full name of a user.
+
         :return: the fullname of this user if available.
         """
         pass
@@ -87,6 +88,7 @@ class RoomOccupant(Identifier):
     def room(self) -> Any:  # this is oom defined below
         """
         Some backends have the full name of a user.
+
         :return: the fullname of this user if available.
         """
         pass

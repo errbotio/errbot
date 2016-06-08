@@ -433,7 +433,7 @@ class BotPlugin(BotPluginBase):
         """
         Send a warning to the administrators of the bot.
 
-        :param warning: The mardown-formatted text of the message to send.
+        :param warning: The markdown-formatted text of the message to send.
         """
         self._bot.warn_admins(warning)
 

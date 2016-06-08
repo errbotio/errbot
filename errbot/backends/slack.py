@@ -160,8 +160,7 @@ class SlackPerson(Person):
         return self.__unicode__()
 
     def __eq__(self, other):
-        return other.userid == self.userid and \
-               other.channelid == self.channelid
+        return other.userid == self.userid
 
     @property
     def person(self):

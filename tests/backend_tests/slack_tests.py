@@ -12,11 +12,7 @@ log = logging.getLogger(__name__)
 
 try:
     from errbot.backends import slack
-except SystemExit:
-    log.exception("Can't import backends.slack for testing")
-    slack = None
 
-if slack:
     class TestSlackBackend(slack.SlackBackend):
 
         def __init__(self, *args, **kwargs):
@@ -39,6 +35,9 @@ if slack:
 
         def get_im_channel(self, id_):
             return 'Cfoo'
+
+except SystemExit:
+    log.exception("Can't import backends.slack for testing")
 
 
 @unittest.skipIf(not slack, "package slackclient not installed")
@@ -180,11 +179,10 @@ class SlackTests(unittest.TestCase):
         def check_person(person, expected_uid, expected_cid):
             return person.userid == expected_uid and \
                    person.channelid == expected_cid
-
-        assert check_person(build_from("<#C12345>"), None, "C12345")
+        assert build_from("<#C12345>").name == 'meh'
         assert check_person(build_from("<@U12345>"), "U12345", "Cfoo")
         assert check_person(build_from("@user"), "Utest", "Cfoo")
-        assert check_person(build_from("#channel"), None, "Ctest")
+        assert build_from("#channel").name == 'meh'  # the mock always return meh ;)
 
         self.assertEqual(
             build_from("#channel/user"),

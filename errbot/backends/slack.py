@@ -160,6 +160,9 @@ class SlackPerson(Person):
         return self.__unicode__()
 
     def __eq__(self, other):
+        if not isinstance(other, SlackPerson):
+            log.warn('tried to compare a SlackPerson with a %s', type(other))
+            return False
         return other.userid == self.userid
 
     @property
@@ -453,8 +456,15 @@ class SlackBackend(ErrBot):
     @lru_cache(50)
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
-        response = self.api_call('im.open', data={'user': id_})
-        return response['channel']['id']
+        try:
+            response = self.api_call('im.open', data={'user': id_})
+            return response['channel']['id']
+        except SlackAPIResponseError as e:
+            if e.error == "cannot_dm_bot":
+                log.info('Tried to DM a bot.')
+                return None
+            else:
+                raise e
 
     def _prepare_message(self, mess):  # or card
         """
@@ -908,4 +918,6 @@ class SlackRoom(Room):
                     raise SlackAPIResponseError(error="Slack API call to %s failed: %s" % (method, response['error']))
 
     def __eq__(self, other):
+        if not isinstance(other, SlackRoom):
+            return False
         return self.id == other.id

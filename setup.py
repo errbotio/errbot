@@ -125,10 +125,12 @@ if __name__ == "__main__":
         from tools.py2conv import convert_to_python2
         convert_to_python2()
 
+    packages = find_packages(src_root, include=['errbot', 'errbot.*'])
+
     setup(
         name="errbot",
         version=VERSION,
-        packages=find_packages(src_root, exclude=['tests', 'tests.*', 'tools']),
+        packages=packages,
         entry_points={
             'console_scripts': [
                 'errbot = errbot.cli:main',
@@ -138,7 +140,19 @@ if __name__ == "__main__":
         install_requires=deps,
         tests_require=['nose', 'webtest', 'requests'],
         package_data={
-            '': ['*.txt', '*.rst', '*.plug', '*.md'],
+            'errbot': ['backends/*.plug',
+                       'backends/*.html',
+                       'backends/styles/*.css',
+                       'backends/images/*.svg',
+                       'core_plugins/*.plug',
+                       'core_plugins/templates/*.md',
+                       'storage/*.plug',
+                       'templates/initdir/example.py',
+                       'templates/initdir/example.plug',
+                       'templates/initdir/config.py.tmpl',
+                       'templates/*.md',
+                       'templates/new_plugin.py.tmpl',
+                       ],
         },
         extras_require={
             'graphic':  ['PySide', ],
@@ -160,7 +174,6 @@ if __name__ == "__main__":
             "Development Status :: 5 - Production/Stable",
             "Topic :: Communications :: Chat",
             "Topic :: Communications :: Chat :: Internet Relay Chat",
-            "Topic :: Communications :: Conferencing",
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 2",

@@ -417,17 +417,21 @@ class SlackBackend(ErrBot):
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""
-        user = [user for user in self.sc.server.users if user.id == id_]
+        users = self.api_call('users.list')
+        user = [user['name'] for user in users['members'] if user['id'] == id_]
         if not user:
             raise UserDoesNotExistError("Cannot find user with ID %s" % id_)
-        return user[0].name
+        return user[0]
 
     def username_to_userid(self, name):
         """Convert a Slack user name to their user ID"""
-        user = [user for user in self.sc.server.users if user.name == name]
+        if name.startswith('@'):
+            name = name[1:]
+        users = self.api_call('users.list')
+        user = [user['id'] for user in users['members'] if user['name'] == name]
         if not user:
             raise UserDoesNotExistError("Cannot find user %s" % name)
-        return user[0].id
+        return user[0]
 
     def channelid_to_channelname(self, id_):
         """Convert a Slack channel ID to its channel name"""

@@ -1,4 +1,5 @@
 import collections
+import copyreg
 import json
 import logging
 import re
@@ -197,6 +198,30 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
         return other.room.id == self.room.id and other.userid == self.userid
 
 
+def _unpickle_identifier(identifier_str):
+    return __bot.build_identifier(identifier_str)
+
+
+def _pickle_identifier(identifier):
+    return _unpickle_identifier, (str(identifier),)
+
+
+def register_identifiers_pickling(bot):
+    """
+    Register identifiers pickling.
+
+    As Slack needs live objects in its identifiers, we need to override their pickling behavior.
+    But for the unpickling to work we need to use bot.build_identifier, hence the bot parameter here.
+    But then we also need bot for the unpickling so we save it here at module level.
+
+    :param bot: the bot used for build_identifier
+    """
+    global __bot  # never, ever use this instance for anything else.
+    __bot = bot
+    for cls in (SlackPerson, SlackRoomOccupant, SlackRoom):
+        copyreg.pickle(cls, _pickle_identifier, _unpickle_identifier)
+
+
 class SlackBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
@@ -212,6 +237,7 @@ class SlackBackend(ErrBot):
         self.sc = None  # Will be initialized in serve_once
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         self.md = slack_markdown_converter(compact)
+        register_identifiers_pickling(self)
 
     def api_call(self, method, data=None, raise_errors=True):
         """

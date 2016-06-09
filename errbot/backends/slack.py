@@ -243,6 +243,26 @@ class SlackBackend(ErrBot):
             )
         return response
 
+    def update_alternate_prefixes(self):
+        """Converts BOT_ALT_PREFIXES to use the slack ID instead of name
+
+        Slack only acknowledges direct callouts `@username` in chat if referred
+        by using the ID of that user.
+        """
+        # convert BOT_ALT_PREFIXES to a list
+        try:
+            bot_prefixes = self.bot_config.BOT_ALT_PREFIXES.split(',')
+        except AttributeError:
+            bot_prefixes = list(self.bot_config.BOT_ALT_PREFIXES)
+
+        converted_prefixes = []
+        for prefix in bot_prefixes:
+            converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+
+        self.bot_config.BOT_ALT_PREFIXES = tuple(converted_prefixes)
+        self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
+        log.debug('Converted BOT_ALT_PREFIXES: %s', self.bot_config.BOT_ALT_PREFIXES)
+
     def serve_once(self):
         self.sc = SlackClient(self.token)
         log.info("Verifying authentication token")
@@ -253,10 +273,7 @@ class SlackBackend(ErrBot):
         self.bot_identifier = SlackPerson(self.sc, self.auth["user_id"])
 
         # Inject bot identity to alternative prefixes
-        alt_prefixes = list(self.bot_config.BOT_ALT_PREFIXES)
-        alt_prefixes.append('<@{0}>'.format(self.bot_identifier.userid))
-        self.bot_config.BOT_ALT_PREFIXES = tuple(alt_prefixes)
-        self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
+        self.update_alternate_prefixes()
 
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():

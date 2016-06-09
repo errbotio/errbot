@@ -563,7 +563,7 @@ class ErrBot(Backend, StoreMixin):
         """
         Send a warning to the administrators of the bot.
 
-        :param warning: The mardown-formatted text of the message to send.
+        :param warning: The markdown-formatted text of the message to send.
         """
         for admin in self.bot_config.BOT_ADMINS:
             self.send(self.build_identifier(admin), warning)

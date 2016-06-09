@@ -433,7 +433,7 @@ class BotPlugin(BotPluginBase):
         """
         Send a warning to the administrators of the bot.
 
-        :param warning: The mardown-formatted text of the message to send.
+        :param warning: The markdown-formatted text of the message to send.
         """
         self._bot.warn_admins(warning)
 
@@ -456,7 +456,7 @@ class BotPlugin(BotPluginBase):
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
         if message_type is not None:
-            self.log.warn("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
+            self.log.warning("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def send_card(self,

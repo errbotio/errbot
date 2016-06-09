@@ -364,9 +364,10 @@ class BotPluginManager(PluginManager, StoreMixin):
                         if dep.strip() != '' and dep not in deps_to_install:
                             deps_to_install.update(dep)
                             log.info("Trying to install an unmet dependency: '%s'" % dep)
-                            error = install_package(dep)
-                            if error is not None:
-                                errors[path] = ''.join(traceback.format_tb(error))
+                            exc_info = install_package(dep)
+                            if exc_info is not None:
+                                typ, value, trace = exc_info
+                                errors[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
         else:
             errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
         self.setPluginPlaces(paths)

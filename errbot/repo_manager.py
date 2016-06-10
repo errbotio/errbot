@@ -15,13 +15,9 @@ import re
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
-from .utils import PY2, which, compat_str
+from .utils import which
 
 log = logging.getLogger(__name__)
-
-
-def timestamp(dt):
-    return (dt - datetime(1970, 1, 1)).total_seconds() if PY2 else dt.timestamp()
 
 
 def human_name_for_git_url(url):
@@ -32,11 +28,11 @@ def human_name_for_git_url(url):
     return str('/'.join(s))
 
 
-INSTALLED_REPOS = b'installed_repos' if PY2 else 'installed_repos'
+INSTALLED_REPOS = 'installed_repos'
 
 REPO_INDEXES_CHECK_INTERVAL = timedelta(hours=1)
 
-REPO_INDEX = b'repo_index' if PY2 else 'repo_index'
+REPO_INDEX = 'repo_index'
 LAST_UPDATE = 'last_update'
 
 RepoEntry = namedtuple('RepoEntry', 'entry_name, name, python, repo, path, avatar_url, documentation')
@@ -94,23 +90,22 @@ class BotRepoManager(StoreMixin):
             self.index_update()
 
     def index_update(self):
-        index = {LAST_UPDATE: timestamp(datetime.now())}
+        index = {LAST_UPDATE: datetime.now().timestamp()}
         for source in reversed(self.plugin_indexes):
-            src_file = None
             try:
                 if source.startswith('http'):
-                    log.debug('Update from remote source %s...', source)
-                    src_file = urlopen(url=source, timeout=10)
+                    with urlopen(url=source, timeout=10) as request:
+                        log.debug('Update from remote source %s...', source)
+                        encoding = request.headers.get_content_charset()
+                        content = request.read().decode(encoding if encoding else 'utf-8')
                 else:
-                    log.debug('Update from local source %s...', source)
-                    src_file = open(source, 'r')
-                index.update(json.loads(compat_str(src_file.read())))
+                    with open(source, encoding='utf-8', mode='r') as src_file:
+                        log.debug('Update from local source %s...', source)
+                        content = src_file.read()
+                index.update(json.loads(content))
             except (HTTPError, URLError, IOError):
                 log.exception('Could not update from source %s, keep the index as it is.', source)
                 break
-            finally:
-                if src_file:
-                    src_file.close()
         else:
             # nothing failed so ok, we can store the index.
             self[REPO_INDEX] = index
@@ -199,10 +194,6 @@ class BotRepoManager(StoreMixin):
         # TODO: Update download path of plugin.
         if repo_url.endswith('tar.gz'):
             fo = urlopen(repo_url)
-            if PY2:
-                # backward compatibility for tell attribute under py2
-                import StringIO
-                fo = StringIO.StringIO(fo.read())
             tar = tarfile.open(fileobj=fo, mode='r:gz')
             tar.extractall(path=self.plugin_dir)
             s = repo_url.split(':')[-1].split('/')[-1]

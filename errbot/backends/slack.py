@@ -6,45 +6,28 @@ import re
 import time
 import sys
 import pprint
+from functools import lru_cache
 
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
     UserDoesNotExistError, RoomOccupant, Person, Card
 from errbot.core import ErrBot
-from errbot.utils import PY3, split_string_after
+from errbot.utils import split_string_after
 from errbot.rendering.slack import slack_markdown_converter
 
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.slack')
 
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
+
 try:
     from slackclient import SlackClient
 except ImportError:
     log.exception("Could not start the Slack back-end")
     log.fatal(
-        "You need to install the slackclient package in order to use the Slack "
-        "back-end. You should be able to install this package using: "
-        "pip install slackclient"
+        "You need to install the slackclient support in order to use the Slack.\n"
+        "You can do `pip install errbot[slack]` to install it"
     )
     sys.exit(1)
-except SyntaxError:
-    if not PY3:
-        raise
-    log.exception("Could not start the Slack back-end")
-    log.fatal(
-        "I cannot start the Slack back-end because I cannot import the SlackClient. "
-        "Python 3 compatibility on SlackClient is still quite young, you may be "
-        "running an old version or perhaps they released a version with a Python "
-        "3 regression. As a last resort to fix this, you could try installing the "
-        "latest master version from them using: "
-        "pip install --upgrade https://github.com/slackhq/python-slackclient/archive/master.zip"
-    )
-    sys.exit(1)
-
 
 # The Slack client automatically turns a channel name into a clickable
 # link if you prefix it with a #. Other clients receive this link as a

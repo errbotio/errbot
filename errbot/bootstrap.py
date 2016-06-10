@@ -1,12 +1,11 @@
 from os import path, makedirs
 import logging
+import sys
 
 from errbot.core import ErrBot
 from errbot.plugin_manager import BotPluginManager
 from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
-import sys
-
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR, is_str
 

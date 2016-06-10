@@ -1,5 +1,5 @@
+__pycache__
 .venv
-*.pyc
 /.idea
 /atlassian-ide-plugin.xml
 /.settings

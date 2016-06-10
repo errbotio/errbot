@@ -5,15 +5,9 @@ import jinja2
 import os
 import re
 import sys
+from configparser import ConfigParser
 
-from errbot import PY2, PY3
 from errbot.version import VERSION
-
-if PY2:
-    from backports.configparser import ConfigParser
-    input = raw_input
-else:
-    from configparser import ConfigParser
 
 
 def new_plugin_wizard(directory=None):
@@ -41,17 +35,7 @@ def new_plugin_wizard(directory=None):
     description = ask(
         "What may I use as a short (one-line) description of your plugin?"
     )
-    if PY2:
-        default_python_version = "2+"
-    else:
-        default_python_version = "3"
-    python_version = ask(
-        "Which python version will your plugin work with? 2, 2+ or 3? I will default to "
-        "{version} if you leave this blank.".format(version=default_python_version),
-        valid_responses=['2', '2+', '3', '']
-    )
-    if python_version.strip() == "":
-        python_version = default_python_version
+    python_version = "3"
     errbot_min_version = ask(
         "Which minimum version of errbot will your plugin work with? "
         "Leave blank to support any version or input CURRENT to select the "
@@ -89,8 +73,7 @@ def new_plugin_wizard(directory=None):
     pyfile_path = os.path.join(plugin_path, module_name+".py")
 
     try:
-        if PY3 or (PY2 and not os.path.isdir(plugin_path)):
-            os.makedirs(plugin_path, mode=0o700)
+        os.makedirs(plugin_path, mode=0o700)
     except IOError as e:
         if e.errno != errno.EEXIST:
             raise

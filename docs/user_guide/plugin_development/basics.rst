@@ -140,7 +140,7 @@ Lets go ahead and create ours. Place the following in a file called
     file structure.
 
 Lets look at what this does. We see three sections, `[Core]` ,
-`[Python]` and `[Documentation]`. The `[Core]` section is what tells
+and `[Documentation]`. The `[Core]` section is what tells
 Errbot where it can actually find the code for this plugin.
 
 The key `Module` should point to a module that Python can find and
@@ -155,17 +155,6 @@ names can differ, doing so is not recommended.
     If you're wondering why you have to specify it when it should be
     the same as the class name anyway, this has to do with technical
     limitations that we won't go into here.
-
-While the items from the `[Core]` section tell Errbot where to find the
-code, the `[Python]` section tells Errbot which versions of Python your
-plugin is compatible with. As you are probably aware, Errbot runs on
-both 2.7 and 3.\ *x* versions of Python, but maintaining compatibilty
-to both can take some time and effort however. Effort you might not
-want to put into your own plugins.
-
-The `Version` key allows you to specify which versions of Python your
-plugin works on. Supported values are `2` for Python 2, `3` for
-Python 3 and `2+` for both Python 2 and 3.
 
 The `[Documentation]` section will be explained in more detail
 further on in this guide, but you should make sure to at least have

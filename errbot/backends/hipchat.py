@@ -3,22 +3,15 @@
 import logging
 import re
 import sys
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
+from functools import lru_cache
+
+from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant
+from errbot.backends.xmpp import XMPPRoomOccupant, XMPPBackend, XMPPConnection
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
-
-from errbot.backends.base import Room, RoomDoesNotExistError, Message, RoomOccupant
-from errbot.backends.xmpp import (
-    XMPPPerson, XMPPRoomOccupant,
-    XMPPBackend, XMPPConnection,
-    split_identifier
-)
 
 
 # Can't use __name__ because of Yapsy
@@ -29,9 +22,9 @@ try:
 except ImportError:
     log.exception("Could not start the HipChat backend")
     log.fatal(
-        "You need to install the hypchat package in order to use the HipChat "
-        "back-end. You should be able to install this package using: "
-        "pip install hypchat"
+        "You need to install the hipchat support in order to use the HipChat.\n "
+        "You should be able to install this package using:\n"
+        "pip install errbot[hipchat]"
     )
     sys.exit(1)
 

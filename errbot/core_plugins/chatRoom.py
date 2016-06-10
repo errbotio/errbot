@@ -2,16 +2,8 @@ import logging
 
 from errbot import BotPlugin, botcmd, SeparatorArgParser, ShlexArgParser
 from errbot.backends.base import RoomNotJoinedError
-from errbot.utils import compat_str, PY3
-
-# 2to3 hack
-# thanks to https://github.com/oxplot/fysom/issues/1
-# which in turn references http://www.rfk.id.au/blog/entry/preparing-pyenchant-for-python-3/
-if PY3:
-    basestring = (str, bytes)
 
 log = logging.getLogger(__name__)
-log.debug("LOADING CHATROOM")
 
 
 class ChatRoom(BotPlugin):
@@ -32,16 +24,14 @@ class ChatRoom(BotPlugin):
                     self.log.exception("Joining room %s failed", repr(room))
 
     def _join_room(self, room):
+        username = self.bot_config.CHATROOM_FN
+        password = None
         if isinstance(room, (tuple, list)):
-            room_name = compat_str(room[0])
-            room_password = compat_str(room[1])
-            room, username, password = (room_name, self.bot_config.CHATROOM_FN, room_password)
+            room, password = room  # unpack
             self.log.info("Joining room {} with username {} and password".format(room, username))
         else:
-            room_name = compat_str(room)
-            room, username, password = (room_name, self.bot_config.CHATROOM_FN, None)
             self.log.info("Joining room {} with username {}".format(room, username))
-            self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
+        self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
 
     def deactivate(self):
         self.connected = False

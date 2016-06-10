@@ -1,3 +1,10 @@
+v4.2.1 (2016-06-10)
+-------------------
+Hotfix
+
+- packaging failure under python2
+- better README
+
 v4.2.0 (2016-06-10)
 -------------------
 

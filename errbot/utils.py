@@ -339,6 +339,3 @@ def compat_str(s):
     else:
         return str(s)
 
-
-def is_str(obj):
-    return isinstance(obj, (str, bytes))

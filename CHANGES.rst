@@ -16,9 +16,9 @@ v4.2 Annoucements
   refrained from using py3 only features.
 
 - A clarification on Errbot's license has been accepted. The contributors never intended to have the GPL licence
-  enforced on the external plugins, even if it was not clear it would apply, our new licence exception makes sure
+  be enforced for external plugins. Even if it was not clear it would apply, our new licence exception makes sure
   it isn't.
-  Big big thanks on the turnout on this one !
+  Big big thanks for the amazing turnout on this one !
 
 
 v4.2 New features

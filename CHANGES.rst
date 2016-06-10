@@ -70,7 +70,7 @@ v4.2 Bugs fixes
 - core: Better error message in case of malformed .plug file
 - Text: fix on build_identifier (thx Pawet Adamcak)
 - Slack: several fixes for identifiers parsing, the backend is fully compliant with Errbot's
-  contract now (thx Raphael Boidol and Samuel Lorétan)
+  contract now (thx Raphael Boidol and Samuel Loretan)
 - Hipchat: fix on room occupants (thx Roman Forkosh)
 - Hipchat: fix for organizations with more than 100 rooms. (thx Naman Bharadwaj)
 - Hipchat: fixed a crash on build_identifier

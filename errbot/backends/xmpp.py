@@ -537,13 +537,15 @@ class XMPPBackend(ErrBot):
         try:
             xep0030 = self.conn.client.plugin['xep_0030']
             info = xep0030.get_info(jid=txtrep)
-            for category, typ, _, name in info['disco_info']['identities']:
-                if category == 'conference':
-                    log.debug('This is a room ! %s', txtrep)
-                    return self.query_room(txtrep)
-                if category == 'client' and 'http://jabber.org/protocol/muc' in info['disco_info']['features']:
-                    log.debug('This is room occupant ! %s', txtrep)
-                    return self._build_room_occupant(txtrep)
+            disco_info = info['disco_info']
+            if disco_info:  # Hipchat can return an empty response here.
+                for category, typ, _, name in info['disco_info']['identities']:
+                    if category == 'conference':
+                        log.debug('This is a room ! %s', txtrep)
+                        return self.query_room(txtrep)
+                    if category == 'client' and 'http://jabber.org/protocol/muc' in info['disco_info']['features']:
+                        log.debug('This is room occupant ! %s', txtrep)
+                        return self._build_room_occupant(txtrep)
         except IqError as iq:
             log.debug('xep_0030 is probably not implemented on this server. %s' % iq)
         log.debug('This is a person ! %s', txtrep)

@@ -1,21 +1,93 @@
+v4.2.0 (2016-06-10)
+-------------------
+
+v4.2 Annoucements
+~~~~~~~~~~~~~~~~~
+
+- Bye bye Python 2 ! This 4.2 branch will be the last to support Python 2. We will maintain bug fixes on it for at least
+  the end of 2016 so you can transition nicely, but please start now !
+
+  Python 3 has been released 8 years ago, now all the major distributions finally have it available, the ecosystem has
+  moved on too. This was not the case at all when we started to port Errbot to Python 3.
+
+  This will clean up *a lot* of code with ugly `if PY2`, unicode hacks, 3to2 reverse hacks all over the place and
+  packaging tricks.
+  But most of all it will finally unite the Errbot ecosystem under one language and open up new possibilities as we
+  refrained from using py3 only features.
+
+- A clarification on Errbot's license has been accepted. The contributors never intended to have the GPL licence
+  enforced on the external plugins, even if it was not clear it would apply, our new licence exception makes sure
+  it isn't.
+  Big big thanks on the turnout on this one !
+
+
+v4.2 New features
+~~~~~~~~~~~~~~~~~
+
+- Errbot initial installation. The initial installation has been drastically simplified::
+
+    $ pip install errbot
+    $ mkdir errbot; cd errbot
+    $ errbot --init
+    $ errbot -T
+    >>>     <- You are game !!
+
+  Not only that but it also install a development directory in there so it now takes only seconds to have an Errbot
+  development environment.
+
+- Part of this change, we also made most of the config.py entries with sane defaults, a lot of those settings were
+  not even relevant for most users.
+
+- cards are now supported on the graphic backend with a nice rendering (errbot -G)
+
+- Hipchat: mentions are now supported.
+
+
+v4.2 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Documentation improvements
+- Reorganization and rename of the startup files. Those were historically the first ones to be created and their meaning
+  drifted over the years. We had err.py, main.py and errBot.py, it was really not clear what were their functions and
+  why one has been violating the python module naming convention for so long :)
+  They are now bootstrap.py (everything about configuring errbot), cli.py (everything about the errbot command line)
+  and finally core.py (everything about the commands, and dispatching etc...).
+- setup.py cleanup. The hacks in there were incorrect.
+
+v4.2 Bugs fixes
+~~~~~~~~~~~~~~~
+
+- core: excpetion formatting was failing on some plugin load failures.
+- core: When replacing the prefix `!` from the doctrings only real commands get replaced (thx Raphael Boidol)
+- core: empty lines on plugins requirements.txt does crash errbot anymore
+- core: Better error message in case of malformed .plug file
+- Text: fix on build_identifier (thx Pawet Adamcak)
+- Slack: several fixes for identifiers parsing, the backend is fully compliant with Errbot's
+  contract now (thx Raphael Boidol and Samuel Lorétan)
+- Hipchat: fix on room occupants (thx Roman Forkosh)
+- Hipchat: fix for organizations with more than 100 rooms. (thx Naman Bharadwaj)
+- Hipchat: fixed a crash on build_identifier
+
 v4.1.3 (2016-05-10)
 -------------------
+
 Hotfixes
 
 bugs:
-- slack regression on build_identifier
-- hipchat regression on build_identifier (query for room is not supported)
+- Slack: regression on build_identifier
+- Hipchat: regression on build_identifier (query for room is not supported)
 
 v4.1.2 (2016-05-10)
 -------------------
+
 Hotfixes
 
 bugs:
 - cards for hipchat and slack were not merged.
->>>>>>> b5298f9... Changes 4.1.2
 
 v4.1.1 (2016-05-09)
 -------------------
+
 Hotfixes
 
 bugs:

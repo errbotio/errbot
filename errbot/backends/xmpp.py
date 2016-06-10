@@ -539,7 +539,7 @@ class XMPPBackend(ErrBot):
             info = xep0030.get_info(jid=txtrep)
             disco_info = info['disco_info']
             if disco_info:  # Hipchat can return an empty response here.
-                for category, typ, _, name in info['disco_info']['identities']:
+                for category, typ, _, name in disco_info['identities']:
                     if category == 'conference':
                         log.debug('This is a room ! %s', txtrep)
                         return self.query_room(txtrep)

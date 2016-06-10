@@ -338,4 +338,3 @@ def compat_str(s):
         return s.decode('utf-8')
     else:
         return str(s)
-

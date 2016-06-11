@@ -72,14 +72,13 @@ def get_config(config_path):
         )
         exit(-1)
 
-    # noinspection PyBroadException
     try:
         config = __import__(path.splitext(path.basename(config_fullpath))[0])
-    except Exception as _:
+        log.info('Config check passed...')
+        return config
+    except Exception:
         log.exception('I could not import your config from %s, please check the error below...' % config_fullpath)
         exit(-1)
-    log.info('Config check passed...')
-    return config
 
 
 def _read_dict():

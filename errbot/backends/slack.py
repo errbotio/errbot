@@ -529,30 +529,30 @@ class SlackBackend(ErrBot):
             )
 
     def send_card(self, card: Card):
+        if isinstance(card.to, RoomOccupant):
+            card.to = card.to.room
+        to_humanreadable, to_channel_id = self._prepare_message(card)
+        attachment = {}
+        if card.summary:
+            attachment['pretext'] = card.summary
+        if card.title:
+            attachment['title'] = card.title
+        if card.link:
+            attachment['title_link'] = card.link
+        if card.image:
+            attachment['image_url'] = card.image
+        if card.thumbnail:
+            attachment['thumb_url'] = card.thumbnail
+        attachment['text'] = card.body
+
+        if card.color:
+            attachment['color'] = COLORS[card.color] if card.color in COLORS else card.color
+
+        if card.fields:
+            attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
+
+        data = {'text': ' ', 'channel': to_channel_id, 'attachments': json.dumps([attachment]), 'as_user': 'true'}
         try:
-            if isinstance(card.to, RoomOccupant):
-                card.to = card.to.room
-            to_humanreadable, to_channel_id = self._prepare_message(card)
-            attachment = {}
-            if card.summary:
-                attachment['pretext'] = card.summary
-            if card.title:
-                attachment['title'] = card.title
-            if card.link:
-                attachment['title_link'] = card.link
-            if card.image:
-                attachment['image_url'] = card.image
-            if card.thumbnail:
-                attachment['thumb_url'] = card.thumbnail
-            attachment['text'] = card.body
-
-            if card.color:
-                attachment['color'] = COLORS[card.color] if card.color in COLORS else card.color
-
-            if card.fields:
-                attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
-
-            data = {'text': ' ', 'channel': to_channel_id, 'attachments': json.dumps([attachment]), 'as_user': 'true'}
             log.debug('Sending data:\n%s', data)
             self.api_call('chat.postMessage', data=data)
         except Exception:

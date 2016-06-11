@@ -227,8 +227,7 @@ class ChatRoom(BotPlugin):
                     body = mess.body
                     rooms = self.bot_config.CHATROOM_RELAY[username]
                     for roomstr in rooms:
-                        room = self.room_join(roomstr)
-                        self.send(room, body)
+                        self.send(self.query_room(roomstr), body)
             elif mess.is_group:
                 fr = mess.frm
                 chat_room = str(fr.room)

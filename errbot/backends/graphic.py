@@ -20,8 +20,8 @@ try:
     from PySide.QtCore import Qt
 except ImportError:
     log.exception("Could not start the graphical backend")
-    log.fatal(""" To install PySide use:
-    pip install PySide
+    log.fatal(""" To install graphic support use:
+    pip install errbot[graphic]
     """)
     sys.exit(-1)
 

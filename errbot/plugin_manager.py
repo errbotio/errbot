@@ -10,7 +10,7 @@ import pip
 
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
-from .utils import (version2array, PY3, PY2, collect_roots, ensure_sys_path_contains)
+from .utils import version2array, collect_roots, ensure_sys_path_contains
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -135,18 +135,12 @@ def check_python_plug_section(name: str, config: ConfigParser) -> bool:
             'The Version can only be 2, 2+ and 3', name)
         return False
 
-    if python_version == '2' and PY3:
+    if python_version == '2':
         log.error(
-            '\nPlugin %s is made for python 2 only and you are running '
-            'err under python 3.\n\n'
-            'If the plugin can be run on python 2 and 3 please add this '
-            'section to its .plug descriptor :\n[Python]\nVersion=2+\n\n'
-            'Or if the plugin is Python 3 only:\n[Python]\nVersion=3\n\n', name)
+            '\nPlugin %s is made for python 2 only and Errbot is not compatible with Python 2 anymore.'
+            'Please contact the plugin developer or try to contribute to port the plugin.')
         return False
 
-    if python_version == '3' and PY2:
-        log.error('\nPlugin %s is made for python 3 and you are running err under python 2.', name)
-        return False
     return True
 
 
@@ -216,8 +210,8 @@ class BotPluginManager(PluginManager, StoreMixin):
     """Customized yapsy PluginManager for ErrBot."""
 
     # Storage names
-    CONFIGS = b'configs' if PY2 else 'configs'
-    BL_PLUGINS = b'bl_plugins' if PY2 else 'bl_plugins'
+    CONFIGS = 'configs'
+    BL_PLUGINS = 'bl_plugins'
 
     def __init__(self, storage_plugin, repo_manager, extra, autoinstall_deps, core_plugins):
         self.bot = None
@@ -228,7 +222,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         self.repo_manager = repo_manager
 
         # if this is the old format migrate the entries in repo_manager
-        ex_entry = b'repos' if PY2 else 'repos'
+        ex_entry = 'repos'
         if ex_entry in self:
             log.info('You are migrating from v3 to v4, porting your repo info...')
             for name, url in self[ex_entry].items():
@@ -329,8 +323,6 @@ class BotPluginManager(PluginManager, StoreMixin):
         module_alias = plugin.plugin_object.__module__
         module_old = __import__(module_alias)
         f = module_old.__file__
-        if f.endswith('.pyc'):
-            f = f[:-1]  # py2 compat : load the .py
         module_new = imp.load_source(module_alias, f)
         class_name = type(plugin.plugin_object).__name__
         new_class = getattr(module_new, class_name)

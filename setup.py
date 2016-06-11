@@ -21,17 +21,12 @@ from platform import system
 from setuptools import setup, find_packages
 
 py_version = sys.version_info[:2]
-PY2 = py_version[0] == 2
-PY3 = not PY2
-PY35_OR_GREATER = py_version[:2] >= (3, 5)
+PY35_OR_GREATER = py_version >= (3, 5)
 
 ON_WINDOWS = system() == 'Windows'
 
-if py_version < (2, 7):
-    raise RuntimeError('Errbot requires Python 2.7 or later')
-
-if PY3 and py_version < (3, 3):
-    raise RuntimeError('On Python 3, Errbot requires Python 3.3 or later')
+if py_version < (3, 3):
+    raise RuntimeError('Errbot requires Python 3.3 or later')
 
 VERSION_FILE = os.path.join('errbot', 'version.py')
 
@@ -49,16 +44,8 @@ deps = ['webtest',
         'ansi',
         'Pygments>=2.0.2',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
+        'dnspython3',
         ]
-
-
-if PY2:
-    deps += ['dnspython',  # dnspython is needed for SRV records
-             'config',
-             'backports.functools_lru_cache',
-             'configparser>=3.5.0b2', ]  # This is a backport from Python 3
-else:
-    deps += ['dnspython3', ]  # dnspython3 for SRV records
 
 if not PY35_OR_GREATER:
     deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
@@ -92,11 +79,8 @@ def read_version():
     """
 
     variables = {}
-    if PY2:
-        execfile(VERSION_FILE, variables)
-    else:
-        with open(VERSION_FILE) as f:
-            exec(compile(f.read(), 'version.py', 'exec'), variables)
+    with open(VERSION_FILE) as f:
+        exec(compile(f.read(), 'version.py', 'exec'), variables)
     return variables['VERSION']
 
 
@@ -117,12 +101,6 @@ if __name__ == "__main__":
 
     if args & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
         raise Exception("err doesn't support binary distributions")
-
-    # under python2 if we want to make a source distribution,
-    # don't pre-convert the sources, leave them as py3.
-    if PY2 and args & {'install', 'develop', 'bdist_wheel'}:
-        from tools.py2conv import convert_to_python2
-        convert_to_python2()
 
     packages = find_packages(src_root, include=['errbot', 'errbot.*'])
 
@@ -175,8 +153,6 @@ if __name__ == "__main__":
             "Topic :: Communications :: Chat :: Internet Relay Chat",
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.3",
             "Programming Language :: Python :: 3.4",

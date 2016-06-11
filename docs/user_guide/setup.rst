@@ -4,8 +4,7 @@ Setup
 Prerequisites
 -------------
 
-Errbot runs under Python 3.2+ on Linux, Windows and Mac. You can still use it under Python 2.7 if you really
-must but it is not recommended and the support for Python 2 will be removed soon.
+Errbot runs under Python 3.3+ on Linux, Windows and Mac.
 
 Installation
 ------------
@@ -53,7 +52,6 @@ Errbot may be installed directly from PyPi using `pip`_ by issuing::
     which means you need to have development headers for some libraries installed.
     On Debian/Ubuntu these may be installed with
     `apt-get install python3-dev libssl-dev libffi-dev`
-    (use `python-dev` instead of `python3-dev` if you're still stuck on Python 2).
     Package names may differ on other OS's.
 
 .. _configuration:

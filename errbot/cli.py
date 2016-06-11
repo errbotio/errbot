@@ -15,7 +15,6 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import argparse
-import inspect
 import locale
 import logging
 import os
@@ -26,27 +25,6 @@ from platform import system
 from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
 from errbot.version import VERSION
-
-PY3 = sys.version_info[0] == 3
-PY2 = not PY3
-
-# Fail early if the user tries to run err under the incorrect interpreter
-
-
-def foo(param='canary'):
-    pass
-
-foo_src = inspect.getsourcelines(foo)[0][0]
-
-if PY3 and "param=u'canary'" in foo_src:
-    print('Err has been converted to Python2 but you try to run it under Python3')
-    sys.exit(-1)
-
-if PY2 and "param='canary'" in foo_src:
-    print('You are trying to run err under python2 without converting the source code to py2 first.')
-    print('Either use python3 or install err using ./setup.py develop.')
-    sys.exit(-1)
-
 
 log = logging.getLogger(__name__)
 

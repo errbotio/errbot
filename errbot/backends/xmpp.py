@@ -1,13 +1,8 @@
 import logging
 import sys
+from functools import lru_cache
 
 from sleekxmpp.exceptions import IqError
-
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
-
 from threading import Thread
 from time import sleep
 
@@ -23,19 +18,11 @@ log = logging.getLogger('errbot.backends.xmpp')
 try:
     from sleekxmpp import ClientXMPP
     from sleekxmpp.xmlstream import resolver, cert
-except ImportError as _:
+except ImportError:
     log.exception("Could not start the XMPP backend")
     log.fatal("""
-    If you intend to use the XMPP backend please install the python sleekxmpp package:
-    -> On debian-like systems
-    sudo apt-get install python-software-properties
-    sudo apt-get update
-    sudo apt-get install python-sleekxmpp
-    -> On Gentoo
-    sudo layman -a laurentb
-    sudo emerge -av dev-python/sleekxmpp
-    -> Generic
-    pip install sleekxmpp
+    If you intend to use the XMPP backend pleas install the support for XMPP with:
+    pip install errbot[XMPP]
     """)
     sys.exit(-1)
 

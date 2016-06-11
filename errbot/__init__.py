@@ -11,8 +11,6 @@ from typing import Callable, Any, Tuple
 
 from .core_plugins.wsview import bottle_app, WebView
 from .backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
-from .utils import compat_str
-from .utils import PY2, PY3  # noqa gbin: this is now used by plugins
 from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command  # noqa
 from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route, view  # noqa
@@ -436,9 +434,9 @@ def webhook(*args,
             pass
     """
 
-    if isinstance(args[0], (str, bytes)):  # first param is uri_rule.
+    if isinstance(args[0], str):  # first param is uri_rule.
         return lambda func: _tag_webhook(func,
-                                         compat_str(args[0]).rstrip('/'),  # trailing / is also be stripped on incoming.
+                                         args[0].rstrip('/'),  # trailing / is also be stripped on incoming.
                                          methods=methods,
                                          form_param=form_param,
                                          raw=raw)

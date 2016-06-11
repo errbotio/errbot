@@ -1,7 +1,6 @@
 import logging
 import sys
 
-from errbot import PY2
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, ONLINE, Room
 from errbot.core import ErrBot
 from errbot.rendering import text
@@ -12,17 +11,17 @@ from errbot.rendering.ansiext import enable_format, TEXT_CHRS
 log = logging.getLogger('errbot.backends.telegram')
 
 TELEGRAM_MESSAGE_SIZE_LIMIT = 1024
-UPDATES_OFFSET_KEY = b'_telegram_updates_offset' if PY2 else '_telegram_updates_offset'
+UPDATES_OFFSET_KEY = '_telegram_updates_offset'
 
 try:
     import telegram
 except ImportError:
     log.exception("Could not start the Telegram back-end")
     log.fatal(
-        "You need to install the python-telegram-bot package in order "
-        "to use the Telegram back-end. "
-        "You should be able to install this package using: "
-        "pip install python-telegram-bot"
+        "You need to install the telegram support in order "
+        "to use the Telegram backend.\n"
+        "You should be able to install this package using:\n"
+        "pip install errbot[telegram]"
     )
     sys.exit(1)
 

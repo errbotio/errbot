@@ -57,7 +57,7 @@ def unescape_test():
 
 
 def test_storage():
-    key = b'test' if PY2 else 'test'
+    key = 'test'
 
     __import__('errbot.config-template')
     config = ShallowConfig()

@@ -6,18 +6,13 @@ from random import random
 from webtest import TestApp
 
 from errbot import botcmd, BotPlugin, webhook
-from errbot.utils import PY3
 from errbot.core_plugins.wsview import bottle_app
 from rocket import Rocket
 
-if PY3:
-    from urllib.request import unquote
-else:
-    from urllib2 import unquote
+from urllib.request import unquote
 
 try:
     from OpenSSL import crypto
-
     has_crypto = True
 except ImportError:
     has_crypto = False
@@ -54,7 +49,7 @@ def make_ssl_certificate(key_path, cert_path):
     pkey = crypto.PKey()
     pkey.generate_key(crypto.TYPE_RSA, 4096)
     cert.set_pubkey(pkey)
-    cert.sign(pkey, 'sha256' if PY3 else b'sha256')
+    cert.sign(pkey, 'sha256')
 
     f = open(cert_path, 'w')
     f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8'))
@@ -141,7 +136,7 @@ class Webserver(BotPlugin):
 
         It triggers the notification and generate also a little test report.
         """
-        url = args[0] if PY3 else args[0].encode()  # PY2 needs a str not unicode
+        url = args[0]
         content = ' '.join(args[1:])
 
         # try to guess the content-type of what has been passed

@@ -13,11 +13,9 @@ from itertools import starmap, repeat
 
 log = logging.getLogger(__name__)
 
-PY3 = sys.version_info[0] == 3
-PY2 = not PY3
 ON_WINDOWS = system() == 'Windows'
 
-PLUGINS_SUBDIR = b'plugins' if PY2 else 'plugins'
+PLUGINS_SUBDIR = 'plugins'
 
 
 # noinspection PyPep8Naming
@@ -151,11 +149,6 @@ class ValidationException(Exception):
 def recurse_check_structure(sample, to_check):
     sample_type = type(sample)
     to_check_type = type(to_check)
-
-    if PY2 and to_check_type.__name__ == 'str':  # __name__ to avoid beeing touched by 3to2
-        # noinspection PyUnresolvedReferences
-        to_check_type = unicode
-        to_check = to_check.decode()
 
     # Skip this check if the sample is None because it will always be something
     # other than NoneType when changed from the default. Raising ValidationException
@@ -337,9 +330,7 @@ def get_class_that_defined_method(meth):
 
 
 def compat_str(s):
-    """ Detect if s is a string and convert it to unicode if it is a byte or
-        py2 string
-
+    """ Detect if s is a string and convert it to unicode if it is bytes.
         :param s: the string to ensure compatibility from."""
     if isinstance(s, str):
         return s
@@ -347,7 +338,3 @@ def compat_str(s):
         return s.decode('utf-8')
     else:
         return str(s)
-
-
-def is_str(obj):
-    return isinstance(obj, (str, bytes))

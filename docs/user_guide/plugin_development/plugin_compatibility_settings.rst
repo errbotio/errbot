@@ -1,35 +1,6 @@
 Plugin compatibility settings
 =============================
 
-
-Python compatibility
---------------------
-
-Your plugin might not be compatible with Python 2 or Python 3.
-In order to prevent users to install them under an incompatible environment,
-you can add a **Python** section to your plug file:
-
-.. code-block:: ini
-
-    [Core]
-    Name = MyPlugin
-    Module = myplugin
-
-    [Documentation]
-    Description = my plugin
-
-    [Python]
-    Version=2+
-
-The possible choices for **Version** are:
-
-- 2 : only compatible with Python 2
-- 3 : only compatible with Python 3
-- 2+: compatible with both
-
-Of there is no Python section, your plugin will be restricted to Python 2 for backward compatibility.
-
-
 Errbot compatibility
 --------------------
 

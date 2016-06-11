@@ -1,8 +1,5 @@
 from collections import MutableMapping
 import logging
-
-from errbot import PY2
-
 log = logging.getLogger(__name__)
 
 
@@ -52,10 +49,7 @@ class StoreMixin(MutableMapping):
         return self._store.remove(key)
 
     def keys(self):
-        keys = self._store.keys()
-        if PY2:
-            keys = [key.decode('utf-8') for key in keys]
-        return keys
+        return self._store.keys()
 
     def __len__(self):
         return self._store.len()

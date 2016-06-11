@@ -20,13 +20,9 @@ log = logging.getLogger(__name__)
 
 try:
     from html import unescape  # py3.5
-except:
-    try:
-        from html.parser import HTMLParser  # py3.4
-    except ImportError:
-        from HTMLParser import HTMLParser  # py2
-    finally:
-        unescape = HTMLParser().unescape
+except ImportError:
+    from html.parser import HTMLParser  # py3.4
+    unescape = HTMLParser().unescape
 
 
 # chr that should not count as a space

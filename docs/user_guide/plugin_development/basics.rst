@@ -139,7 +139,7 @@ Lets go ahead and create ours. Place the following in a file called
     <https://docs.python.org/3/library/configparser.html#supported-ini-file-structure>`_
     file structure.
 
-Lets look at what this does. We see three sections, `[Core]` ,
+Lets look at what this does. We see two sections, `[Core]` ,
 and `[Documentation]`. The `[Core]` section is what tells
 Errbot where it can actually find the code for this plugin.
 

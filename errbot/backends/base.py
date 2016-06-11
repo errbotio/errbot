@@ -8,6 +8,8 @@ from collections import deque, defaultdict
 
 import inspect
 
+from errbot.utils import deprecated
+
 try:
     from abc import ABC
 except ImportError:
@@ -453,19 +455,27 @@ class Presence(object):
         self._status = status
         self._message = message
 
+    @deprecated
     @property
     def nick(self) -> str:
-        """ Returns a plain string of the presence nick.
-            (In some chatroom implementations, you cannot know the real identifier
-            of a person in it).
-            Can return None but then identifier won't be None.
+        """
+        @use identifier.nick
+        :return:
         """
         return self._identifier.nick
 
+    @deprecated
     @property
     def occupant(self) -> RoomOccupant:
-        """ Returns the identifier of the event.
-            Can be None *only* if chatroom is not None
+        """ @use identifier
+        """
+        return self._identifier
+
+    @property
+    def identifier(self) -> Identifier:
+        """
+        Identifier for whom its status changed. It can be a RoomOccupant or a Person.
+        :return: the person or roomOccupant
         """
         return self._identifier
 

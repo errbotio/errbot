@@ -754,7 +754,7 @@ Major refactoring:
 
 - python 3 compatibility
 - xmpp backend has been replaced by sleekxmpp
-- flask has been replaced by bottle (sorry flask no py3 support, no future)
+- flask has been replaced by bottle (sorry flask no py3 support, no future) [edit from 2016: This is not true anymore].
 - rocket is used as webserver with SSL support
 - now the IRC backend uses the smpler python/irc package
 - improved unittest coverage

@@ -217,7 +217,7 @@ class Table(object):
                 # Account for multiline cells
                 cnt = str(txt).count(NEXT_ROW)
                 if cnt > 0:
-                    length = length - cnt*len(NEXT_ROW)
+                    length -= cnt * len(NEXT_ROW)
                 if maxes[i] < length:
                     maxes[i] = length
 
@@ -327,7 +327,7 @@ class BorderlessTable(object):
                 # Account for multiline cells
                 cnt = str(txt).count(NEXT_ROW)
                 if cnt > 0:
-                    length = length - cnt*len(NEXT_ROW)
+                    length -= cnt * len(NEXT_ROW)
                 if maxes[i] < length:
                     maxes[i] = length
 

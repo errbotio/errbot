@@ -103,7 +103,9 @@ class IRCPerson(Person):
 
     @property
     def aclattr(self):
-        return aclpattern.format(nick=self._nickmask.nick, user=self._nickmask.user, host=self._nickmask.host)
+        return IRCBackend.aclpattern.format(nick=self._nickmask.nick,
+                                            user=self._nickmask.user,
+                                            host=self._nickmask.host)
 
     def __unicode__(self):
         return str(self._nickmask)
@@ -610,10 +612,11 @@ class IRCConnection(SingleServerIRCBot):
 
 
 class IRCBackend(ErrBot):
+    aclpattern = '{nick}!{user}@{host}'
 
     def __init__(self, config):
-        global aclpattern
-        aclpattern = getattr(config, 'IRC_ACL_PATTERN', '{nick}!{user}@{host}')
+        if 'IRC_ACL_PATTERN' in config:
+            IRCBackend.aclpattern = config['IRC_ACL_PATTERN']
 
         identity = config.BOT_IDENTITY
         nickname = identity['nickname']

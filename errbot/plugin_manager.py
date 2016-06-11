@@ -1,8 +1,7 @@
 """ Logic related to plugin loading and lifecycle """
 import traceback
 from configparser import NoSectionError, NoOptionError, ConfigParser
-import importlib
-import imp
+from importlib.machinery import SourceFileLoader
 import logging
 import sys
 import os
@@ -323,7 +322,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         module_alias = plugin.plugin_object.__module__
         module_old = __import__(module_alias)
         f = module_old.__file__
-        module_new = imp.load_source(module_alias, f)
+        module_new = SourceFileLoader(module_alias, f).load_module(module_alias)
         class_name = type(plugin.plugin_object).__name__
         new_class = getattr(module_new, class_name)
         plugin.plugin_object.__class__ = new_class

@@ -453,7 +453,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
                     errors += 'Notice: %s is blacklisted, use %s plugin unblacklist %s to unblacklist it\n' % (
-                        self.bot.prefix, pluginInfo.name, pluginInfo.name)
+                         pluginInfo.name, self.bot.prefix, pluginInfo.name)
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     log.info('Activate plugin: %s' % pluginInfo.name)

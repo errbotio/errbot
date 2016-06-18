@@ -439,8 +439,7 @@ class SlackBackend(ErrBot):
 
     def channelname_to_channelid(self, name):
         """Convert a Slack channel name to its channel ID"""
-        if name.startswith('#'):
-            name = name[1:]
+        name = name.lstrip('#')
         channel = [channel for channel in self.sc.server.channels if channel.name == name]
         if not channel:
             raise RoomDoesNotExistError("No channel named %s exists" % name)

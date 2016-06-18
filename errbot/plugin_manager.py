@@ -200,6 +200,13 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
     return True
 
 
+def get_plugin_priority(plugin) -> int:
+    try:
+        return plugin.plugin_object.get_priority()
+    except AttributeError:
+        return 0
+
+
 def global_restart():
     python = sys.executable
     os.execl(python, python, *sys.argv)
@@ -384,16 +391,22 @@ class BotPluginManager(PluginManager, StoreMixin):
                        for pluginfo in loaded_plugins if pluginfo.error is not None})
         return errors
 
+    def get_all_plugins_ordered(self):
+        return sorted(self.getAllPlugins(), key=lambda p: get_plugin_priority(p), reverse=True)
+
+    def get_plugins_of_category_ordered(self, category):
+        return sorted(self.getPluginsOfCategory(category), key=lambda p: get_plugin_priority(p), reverse=True)
+
     def get_all_active_plugin_objects(self):
         return [plug.plugin_object
-                for plug in self.getPluginsOfCategory(BOTPLUGIN_TAG)
+                for plug in self.get_plugins_of_category_ordered(BOTPLUGIN_TAG)
                 if hasattr(plug, 'is_activated') and plug.is_activated]
 
     def get_all_active_plugin_names(self):
-        return [p.name for p in self.getAllPlugins() if hasattr(p, 'is_activated') and p.is_activated]
+        return [p.name for p in self.get_all_plugins_ordered() if hasattr(p, 'is_activated') and p.is_activated]
 
     def get_all_plugin_names(self):
-        return [p.name for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)]
+        return [p.name for p in self.get_plugins_of_category_ordered(BOTPLUGIN_TAG)]
 
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
@@ -449,7 +462,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         log.info('Activate bot plugins...')
         configs = self[self.CONFIGS]
         errors = ''
-        for pluginInfo in self.getPluginsOfCategory(BOTPLUGIN_TAG):
+        for pluginInfo in self.get_plugins_of_category_ordered(BOTPLUGIN_TAG):
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
                     errors += 'Notice: %s is blacklisted, use %s plugin unblacklist %s to unblacklist it\n' % (
@@ -463,7 +476,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                 errors += 'Error: %s failed to start: %s\n' % (pluginInfo.name, e)
 
         log.debug('Activate flow plugins ...')
-        for pluginInfo in self.getPluginsOfCategory(BOTFLOW_TAG):
+        for pluginInfo in self.get_plugins_of_category_ordered(BOTFLOW_TAG):
             try:
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     name = pluginInfo.name
@@ -531,7 +544,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         """
         Remove all the plugins that are in the filetree pointed by root.
         """
-        for plugin in self.getAllPlugins():
+        for plugin in self.get_all_plugins_ordered():
             if plugin.path.startswith(root):
                 self.remove_plugin(plugin)
 

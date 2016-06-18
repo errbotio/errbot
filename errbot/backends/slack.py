@@ -259,9 +259,8 @@ class SlackBackend(ErrBot):
         for prefix in bot_prefixes:
             converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
 
-        self.bot_config.BOT_ALT_PREFIXES = tuple(converted_prefixes)
         self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
-        log.debug('Converted BOT_ALT_PREFIXES: %s', self.bot_config.BOT_ALT_PREFIXES)
+        log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
 
     def serve_once(self):
         self.sc = SlackClient(self.token)

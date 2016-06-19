@@ -212,12 +212,13 @@ class BotPluginManager(PluginManager, StoreMixin):
     CONFIGS = 'configs'
     BL_PLUGINS = 'bl_plugins'
 
-    def __init__(self, storage_plugin, repo_manager, extra, autoinstall_deps, core_plugins):
+    def __init__(self, storage_plugin, repo_manager, extra, autoinstall_deps, core_plugins, plugins_callback_order):
         self.bot = None
         self.autoinstall_deps = autoinstall_deps
         self.extra = extra
         self.open_storage(storage_plugin, 'core')
         self.core_plugins = core_plugins
+        self.plugins_callback_order = plugins_callback_order
         self.repo_manager = repo_manager
 
         # if this is the old format migrate the entries in repo_manager
@@ -384,16 +385,28 @@ class BotPluginManager(PluginManager, StoreMixin):
                        for pluginfo in loaded_plugins if pluginfo.error is not None})
         return errors
 
+    def get_all_bot_plugins_ordered(self):
+        all_plugins = []
+        for name in self.plugins_callback_order:
+            # None is a placeholder for any plugin not having a defined order
+            if name is None:
+                all_plugins += [p for p in self.getPluginsOfCategory(BOTPLUGIN_TAG) if p.name not in self.plugins_callback_order]
+            else:
+                p = self.get_plugin_by_name(name)
+                if p is not None:
+                    all_plugins.append(p)
+        return all_plugins
+
     def get_all_active_plugin_objects(self):
         return [plug.plugin_object
-                for plug in self.getPluginsOfCategory(BOTPLUGIN_TAG)
+                for plug in self.get_all_bot_plugins_ordered()
                 if hasattr(plug, 'is_activated') and plug.is_activated]
 
     def get_all_active_plugin_names(self):
         return [p.name for p in self.getAllPlugins() if hasattr(p, 'is_activated') and p.is_activated]
 
     def get_all_plugin_names(self):
-        return [p.name for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)]
+        return [p.name for p in self.get_all_bot_plugins_ordered()]
 
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
@@ -449,7 +462,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         log.info('Activate bot plugins...')
         configs = self[self.CONFIGS]
         errors = ''
-        for pluginInfo in self.getPluginsOfCategory(BOTPLUGIN_TAG):
+        for pluginInfo in self.get_all_bot_plugins_ordered():
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
                     errors += 'Notice: %s is blacklisted, use %s plugin unblacklist %s to unblacklist it\n' % (

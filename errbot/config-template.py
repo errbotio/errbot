@@ -93,6 +93,12 @@ BOT_EXTRA_PLUGIN_DIR = None
 # For example CORE_PLUGINS = ('ACLs', 'Backup', 'Help') you get those names from the .plug files Name entry.
 # For absolutely no plug: CORE_PLUGINS = ()
 
+# Defines an order in which the plugins are getting their callbacks. Useful if you want to have plugins do
+# pre- or post-processing on messages.
+# The 'None' tuple entry represents all the plugins that aren't to be expicitely ordered. For example, if
+# you want 'A' to run first, then everything else but 'B', then 'B', you would use ('A', None, 'B').
+PLUGINS_CALLBACK_ORDER = (None, )
+
 # Should plugin dependencies be installed automatically? If this is true
 # then Err will use pip to install any missing dependencies automatically.
 #

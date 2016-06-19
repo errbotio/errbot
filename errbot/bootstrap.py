@@ -109,7 +109,8 @@ def setup_bot(backend_name, logger, config, restore=None):
                              repo_manager,
                              config.BOT_EXTRA_PLUGIN_DIR,
                              config.AUTOINSTALL_DEPS,
-                             getattr(config, 'CORE_PLUGINS', None))
+                             getattr(config, 'CORE_PLUGINS', None),
+                             getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )))
 
     # init the backend manager & the bot
     backendpm = bpm_from_config(config)

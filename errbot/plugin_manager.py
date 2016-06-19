@@ -390,7 +390,10 @@ class BotPluginManager(PluginManager, StoreMixin):
         for name in self.plugins_callback_order:
             # None is a placeholder for any plugin not having a defined order
             if name is None:
-                all_plugins += [p for p in self.getPluginsOfCategory(BOTPLUGIN_TAG) if p.name not in self.plugins_callback_order]
+                all_plugins += [
+                    p for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)
+                    if p.name not in self.plugins_callback_order
+                ]
             else:
                 p = self.get_plugin_by_name(name)
                 if p is not None:

@@ -21,3 +21,9 @@ class FlowDefinitions(BotFlow):
         b_node = c_node.connect('b')
         e_node = flow.connect('e', auto_trigger=True)  # 2 autotriggers for the same workflow
         d_node = e_node.connect('d')
+
+    @botflow
+    def w3(self, flow: FlowRoot):
+        "documentation of W3"
+        c_node = flow.connect('a', room_flow=True)
+        b_node = c_node.connect('b')

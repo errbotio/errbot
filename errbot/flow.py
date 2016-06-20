@@ -6,7 +6,7 @@ from threadpool import ThreadPool, WorkRequest
 from yapsy.IPlugin import IPlugin
 
 from errbot import Message
-from errbot.backends.base import Identifier
+from errbot.backends.base import Identifier, Room, RoomOccupant
 
 log = logging.getLogger(__name__)
 
@@ -80,17 +80,20 @@ class FlowRoot(FlowNode):
     def connect(self,
                 node_or_command: Union['FlowNode', str],
                 predicate: Predicate=lambda _: False,
-                auto_trigger: bool=False):
+                auto_trigger: bool=False,
+                room_flow: bool=False):
         """
         :see: FlowNode except fot auto_trigger
         :param predicate: :see: FlowNode
         :param node_or_command: :see: FlowNode
         :param auto_trigger: Flag this root as autotriggering: it will start a flow if this command is executed
                               in the chat.
+        :param room_flow: Bind the flow to the room instead of a single person
         """
         resp = super().connect(node_or_command, predicate)
         if auto_trigger:
             self.auto_triggers.add(node_or_command)
+        self.room_flow = room_flow
         return resp
 
     def __str__(self):
@@ -179,6 +182,12 @@ class Flow(object):
         The original flowroot of this flow.
         """
         return self._root
+
+    def check_identifier(self, identifier: Identifier):
+        is_room = isinstance(self.requestor, Room)
+        is_room = is_room and isinstance(identifier, RoomOccupant)
+        is_room = is_room and self.requestor == identifier.room
+        return is_room or self.requestor == identifier
 
     def __str__(self):
         return "%s (%s) with params %s" % (self._root, self.requestor, dict(self.ctx))
@@ -275,7 +284,7 @@ class FlowExecutor(object):
         # TODO: What if 2 flows wait for the same command ?
         with self._lock:
             for flow in self.in_flight:
-                if flow.requestor == user:
+                if flow.check_identifier(user):
                     log.debug("Requestor has a flow %s in flight", flow.name)
                     for next_step in flow.next_steps():
                         if next_step.command == cmd:
@@ -321,7 +330,13 @@ class FlowExecutor(object):
             raise ValueError("Flow %s doesn't exist" % name)
         if self.check_inflight_already_running(requestor):
             raise ValueError("User %s is already running a flow." % str(requestor))
-        flow = Flow(self.flow_roots[name], requestor, initial_context)
+
+        flow_root = self.flow_roots[name]
+        identity = requestor
+        if isinstance(requestor, RoomOccupant) and flow_root.room_flow:
+            identity = requestor.room
+
+        flow = Flow(self.flow_roots[name], identity, initial_context)
         self._enqueue_flow(flow)
         return flow
 
@@ -332,7 +347,7 @@ class FlowExecutor(object):
         """
         with self._lock:
             for flow in self.in_flight:
-                if flow.name == name and flow.requestor == requestor:
+                if flow.name == name and flow.check_identifier(requestor):
                     log.debug("Removing flow %s." % str(flow))
                     self.in_flight.remove(flow)
                     return flow
@@ -396,4 +411,4 @@ class FlowExecutor(object):
                     self._bot.send(flow.requestor,
                                    '%s errored at %s with "%s"' % (flow, autostep, e))
                 flow.advance(autostep)  # TODO: this is only true for a single step, make it forkable.
-        log.debug("Flow exectution suspended/ended normally.")
+        log.debug("Flow execution suspended/ended normally.")

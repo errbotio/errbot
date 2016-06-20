@@ -9,13 +9,15 @@ extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'flow_plugin
 
 
 def test_list_flows(testbot):
-    assert len(testbot.bot.flow_executor.flow_roots) == 2
+    assert len(testbot.bot.flow_executor.flow_roots) == 3
     testbot.bot.push_message('!flows list')
     result = testbot.pop_message()
     assert 'documentation of W1' in result
     assert 'documentation of W2' in result
+    assert 'documentation of W3' in result
     assert 'w1' in result
     assert 'w2' in result
+    assert 'w3' in result
 
 
 def test_no_autotrigger(testbot):
@@ -106,3 +108,14 @@ def test_flows_kill(testbot):
     flow_message = testbot.bot.pop_message()
     assert 'You are in the flow w2' in flow_message
     assert 'w2 killed' in testbot.exec_command('!flows kill gbin@localhost w2')
+
+
+def test_room_flow(testbot):
+    assert 'Flow w3 started' in testbot.exec_command('!flows start w3')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w3, you can continue with' in flow_message
+    assert '!a' in flow_message
+    assert 'a' in testbot.exec_command('!a')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w3, you can continue with' in flow_message
+    assert '!b' in flow_message

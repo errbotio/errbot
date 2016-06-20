@@ -252,6 +252,25 @@ class SlackBackend(ErrBot):
             )
         return response
 
+    def update_alternate_prefixes(self):
+        """Converts BOT_ALT_PREFIXES to use the slack ID instead of name
+
+        Slack only acknowledges direct callouts `@username` in chat if referred
+        by using the ID of that user.
+        """
+        # convert BOT_ALT_PREFIXES to a list
+        try:
+            bot_prefixes = self.bot_config.BOT_ALT_PREFIXES.split(',')
+        except AttributeError:
+            bot_prefixes = list(self.bot_config.BOT_ALT_PREFIXES)
+
+        converted_prefixes = []
+        for prefix in bot_prefixes:
+            converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+
+        self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
+        log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
+
     def serve_once(self):
         self.sc = SlackClient(self.token)
         log.info("Verifying authentication token")
@@ -265,6 +284,10 @@ class SlackBackend(ErrBot):
         if self.sc.rtm_connect():
             log.info("Connected")
             self.reset_reconnection_count()
+
+            # Inject bot identity to alternative prefixes
+            self.update_alternate_prefixes()
+
             try:
                 while True:
                     for message in self.sc.rtm_read():
@@ -413,6 +436,7 @@ class SlackBackend(ErrBot):
 
     def username_to_userid(self, name):
         """Convert a Slack user name to their user ID"""
+        name = name.lstrip('@')
         user = [user for user in self.sc.server.users if user.name == name]
         if not user:
             raise UserDoesNotExistError("Cannot find user %s" % name)
@@ -427,8 +451,7 @@ class SlackBackend(ErrBot):
 
     def channelname_to_channelid(self, name):
         """Convert a Slack channel name to its channel ID"""
-        if name.startswith('#'):
-            name = name[1:]
+        name = name.lstrip('#')
         channel = [channel for channel in self.sc.server.channels if channel.name == name]
         if not channel:
             raise RoomDoesNotExistError("No channel named %s exists" % name)

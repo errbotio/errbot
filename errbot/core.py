@@ -105,7 +105,7 @@ class ErrBot(Backend, StoreMixin):
         :param *args: Passed to the callback function.
         :param **kwargs: Passed to the callback function.
         """
-        for plugin in self.plugin_manager.get_all_active_plugin_objects():
+        for plugin in self.plugin_manager.get_all_active_plugin_objects_ordered():
             plugin_name = plugin.__class__.__name__
             log.debug("Triggering {} on {}".format(method, plugin_name))
             # noinspection PyBroadException

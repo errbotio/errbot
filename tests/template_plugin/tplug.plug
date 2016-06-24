@@ -1,3 +1,6 @@
 [Core]
 Name = TPlug
 Module = test
+
+[Python]
+Version = 2+

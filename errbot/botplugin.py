@@ -520,11 +520,13 @@ class BotPlugin(BotPluginBase):
              :param groupchat_nick_reply: if True it will mention the user in the chatroom.
              :param message_type: DEPRECATED
              :param in_reply_to: optionally, the original message this message is the answer to.
-             :param text: markdown formatted text to send to the user.
              :param identifier: identifier of the user or room to which you want to send a message to.
         """
-        return self._bot.send_templated(identifier, template_name, template_parameters, in_reply_to, message_type,
-                                        groupchat_nick_reply)
+        return self._bot.send_templated(identifier=identifier,
+                                        template_name=template_name,
+                                        template_parameters=template_parameters,
+                                        in_reply_to=in_reply_to,
+                                        groupchat_nick_reply=groupchat_nick_reply)
 
     def build_identifier(self, txtrep: str) -> Identifier:
         """

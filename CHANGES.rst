@@ -1,5 +1,15 @@
+v4.2.2 (2016-06-24)
+-------------------
+
+bugs:
+
+- send_templated fix
+- CHATROOM_RELAY fix
+- Blacklisting feedback message corrected
+
 v4.2.1 (2016-06-10)
 -------------------
+
 Hotfix
 
 - packaging failure under python2

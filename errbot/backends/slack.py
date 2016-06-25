@@ -215,8 +215,12 @@ class SlackBackend(ErrBot):
             )
             sys.exit(1)
         self.sc = None  # Will be initialized in serve_once
-        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
-        self.md = slack_markdown_converter(compact)
+        raw_body = config.RAW_BODY if hasattr(config, 'RAW_BODY') else False
+        if raw_body:
+            self.md = None
+        else:
+            compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
+            self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
 
     def api_call(self, method, data=None, raise_errors=True):
@@ -532,7 +536,10 @@ class SlackBackend(ErrBot):
 
             msgtype = "direct" if mess.is_direct else "channel"
             log.debug('Sending %s message to %s (%s)' % (msgtype, to_humanreadable, to_channel_id))
-            body = self.md.convert(mess.body)
+            if self.md is not None:
+                body = self.md.convert(mess.body)
+            else:
+                body = mess.body
             log.debug('Message size: %d' % len(body))
 
             limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)

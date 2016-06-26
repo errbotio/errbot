@@ -270,6 +270,7 @@ class ErrBot(Backend, StoreMixin):
         cmd = None
         command = None
         args = ''
+        candidates = set()
         ambiguous_shortcut = False
         if not only_check_re_command:
             if len(text_split) > 1:

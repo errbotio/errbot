@@ -450,11 +450,11 @@ class ErrBot(Backend, StoreMixin):
 
         #['ab', 'c'] -> 'a<pattern>*?b<pattern>*?<seperator>c<pattern>*?'
         full_pattern = '^{}$'.format(separator.join(map(_mkpat, shortcuts)))
-        regex = re.compile(full_pattern)
+        regex = re.compile(full_pattern, re.I)
 
         matches = set()
         for name in fullnames:
-            if regex.search(name):
+            if regex.match(name):
                 matches.add(name)
 
         return matches

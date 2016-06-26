@@ -270,6 +270,7 @@ class ErrBot(Backend, StoreMixin):
         cmd = None
         command = None
         args = ''
+        ambiguous_shortcut = False
         if not only_check_re_command:
             if len(text_split) > 1:
                 command = (text_split[0] + '_' + text_split[1]).lower()
@@ -286,6 +287,23 @@ class ErrBot(Backend, StoreMixin):
                         cmd = command
                         if len(text_split) > 1:
                             args = ' '.join(text_split[1:])
+
+            if self.bot_config.BOT_COMMAND_SHORTCUTS:
+                if len(text_split) > 1:
+                    candidates = self._fuzzy_match(text_split[2:], self.commands, r'[^\W_]', '_')
+                    args = ' '.join(text_split[2:])
+
+                if (len(candidates) == 0):
+                    candidates = self._fuzzy_match(text_split[0],  self.commands, r'[^\W_]')
+                    args = ' '.join(text_split[1:])
+
+                if (len(candidates) == 1):
+                    cmd = candidates.pop()
+                    if self.bot_config.BOT_COMMAND_SHORTCUTS_EXPANSION_MSG:
+                        self.send_simple_reply(mess, "Shortcut expanded to '{}'.".format(cmd.replace('_', ' ')))
+
+                elif (len(candidates) > 1):
+                    ambiguous_shortcut = True
 
             if command == self.bot_config.BOT_PREFIX:  # we did "!!" so recall the last command
                 if len(user_cmd_history):
@@ -332,11 +350,15 @@ class ErrBot(Backend, StoreMixin):
             if suppress_cmd_not_found:
                 log.debug("Surpressing command not found feedback")
             else:
-                reply = self.unknown_command(mess, command, args)
-                if reply is None:
-                    reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
-                if reply:
+                if ambiguous_shortcut:
+                    reply = "Ambiguous shortcut! Matches: {}".format(', '.join(candidates))
                     self.send_simple_reply(mess, reply)
+                else:
+                    reply = self.unknown_command(mess, command, args)
+                    if reply is None:
+                        reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
+                    if reply:
+                        self.send_simple_reply(mess, reply)
         return True
 
     def _process_command_filters(self, msg, cmd, args, dry_run=False):
@@ -411,6 +433,31 @@ class ErrBot(Backend, StoreMixin):
         else:
             self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
                                    template_name=f._err_command_template)
+
+    @staticmethod
+    def _fuzzy_match(shortcuts, fullnames, pattern='.', separator='_'):
+        """Filter full command names, which fuzzyly matches the shortcuts
+
+        shortcuts: List of command parts to filter for
+        fullnames: List of command to filter
+        pattern: Pattern, that is inserted between each character of shortcuts
+        separator: Character separating command parts
+        """
+        def _mkpat(sc):
+            if (len(sc) > 1):
+                sc = '{}*?'.format(pattern).join(map(re.escape, sc))
+            return '{}{}*?'.format(sc, pattern)
+
+        #['ab', 'c'] -> 'a<pattern>*?b<pattern>*?<seperator>c<pattern>*?'
+        full_pattern = '^{}$'.format(separator.join(map(_mkpat, shortcuts)))
+        regex = re.compile(full_pattern)
+
+        matches = set()
+        for name in fullnames:
+            if regex.search(name):
+                matches.add(name)
+
+        return matches
 
     @staticmethod
     def process_template(template_name, template_parameters):

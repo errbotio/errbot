@@ -371,3 +371,11 @@ REVERSE_CHATROOM_RELAY = {}
 
 # Prevent ErrBot from saying anything if the command is unrecognized.
 # SUPPRESS_CMD_NOT_FOUND = False
+
+# Enable command shortcuts, by fuzzy matching the typed command to the full command names,
+# if no command matches literally.
+# Only an unambiguous match is executed.
+# BOT_COMMAND_SHORTCUTS = True
+
+# Wether or not ErrBot should reply with the expanded command name
+# BOT_COMMAND_SHORTCUTS_EXPANSION_MSG = True

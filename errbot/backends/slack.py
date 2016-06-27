@@ -555,11 +555,15 @@ class SlackBackend(ErrBot):
         if isinstance(card.to, RoomOccupant):
             card.to = card.to.room
         to_humanreadable, to_channel_id = self._prepare_message(card)
-        attachment = {}
+        attachment = {
+            'mrkdwn_in': [],
+        }
         if card.summary:
             attachment['pretext'] = card.summary
+            attachment['mrkdwn_in'].append('pretext')
         if card.title:
             attachment['title'] = card.title
+            attachment['mrkdwn_in'].append('title')
         if card.link:
             attachment['title_link'] = card.link
         if card.image:

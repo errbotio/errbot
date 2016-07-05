@@ -615,8 +615,8 @@ class IRCBackend(ErrBot):
     aclpattern = '{nick}!{user}@{host}'
 
     def __init__(self, config):
-        if 'IRC_ACL_PATTERN' in config:
-            IRCBackend.aclpattern = config['IRC_ACL_PATTERN']
+        if hasattr(config, 'IRC_ACL_PATTERN'):
+            IRCBackend.aclpattern = config.IRC_ACL_PATTERN
 
         identity = config.BOT_IDENTITY
         nickname = identity['nickname']

@@ -108,7 +108,7 @@ class BotPluginBase(StoreMixin):
         # if BOT_ADMINS is just an unique string make it a tuple for backwards
         # compatibility
         if isinstance(self._bot.bot_config.BOT_ADMINS, str):
-            self._bot.bot_config.BOT_ADMINS = (self._bot.bot_config.BOT_ADMINS,)
+            self._bot.bot_config.BOT_ADMINS = tuple(self._bot.bot_config.BOT_ADMINS.split(','))
         return self._bot.bot_config
 
     @property

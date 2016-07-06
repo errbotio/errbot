@@ -250,6 +250,11 @@ def test_bot_admins_unique_string():
     assert dummy.bot_config.BOT_ADMINS == ('err@localhost',)
 
 
+def test_bot_admins_unique_string_multiple():
+    dummy = DummyBackend(extra_config={'BOT_ADMINS': 'err@localhost,err2@localhost'})
+    assert dummy.bot_config.BOT_ADMINS == ('err@localhost', 'err2@localhost',)
+
+
 @pytest.fixture
 def dummy_execute_and_send():
     dummy = DummyBackend()

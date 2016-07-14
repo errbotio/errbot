@@ -62,6 +62,7 @@ COLORS = {
 
 MARKDOWN_LINK_REGEX = re.compile(r'([^!])\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
+
 def slack_markdown_converter(compact_output=False):
     """
     This is a Markdown converter for use with Slack.
@@ -82,7 +83,6 @@ class LinkPreProcessor(Preprocessor):
         for i, line in enumerate(lines):
             lines[i] = MARKDOWN_LINK_REGEX.sub(r'\1&lt;\3|\2&gt;', line)
         return lines
-
 
 
 class SlackAPIResponseError(RuntimeError):

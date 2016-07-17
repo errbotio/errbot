@@ -409,9 +409,8 @@ class HipchatBackend(XMPPBackend):
     def callback_message(self, mess):
         super().callback_message(mess)
         possible_mentions = re.findall(r'@\w+', mess.body)
-        people = list(
-            filter(None.__ne__, [self._find_user(mention[1:], 'mention_name') for mention in possible_mentions])
-        )
+        people_including_none = [self._find_user(mention[1:], 'mention_name') for mention in possible_mentions]
+        people = [p for p in people_including_none if p]
 
         if people:
             self.callback_mention(mess, people)

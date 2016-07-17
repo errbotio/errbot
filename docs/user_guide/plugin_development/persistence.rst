@@ -37,6 +37,7 @@ The storing occurs when you *assign the key*. So for example:
     d['subkey'] = 'NONONONONONO'
 
 You need to do that instead:
+(manual method)
 
 .. code-block:: python
 
@@ -47,3 +48,17 @@ You need to do that instead:
     # later ...
     d['subkey'] = 'NONONONONONO'
     self['FOO'] = d  # restore the full key if something changed in memory.
+
+Or use the mutable contex manager:
+
+.. code-block:: python
+
+    # THIS WORKS AND IS CLEANER
+    d = {}
+    self['FOO'] = d
+
+    # later ...
+
+    with self.mutable('FOO') as d:
+        d['subkey'] = 'NONONONONONO'
+    # it will save automatically the key

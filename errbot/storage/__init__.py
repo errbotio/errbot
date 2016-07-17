@@ -1,4 +1,6 @@
+import types
 from collections import MutableMapping
+from contextlib import contextmanager
 import logging
 log = logging.getLogger(__name__)
 
@@ -41,6 +43,16 @@ class StoreMixin(MutableMapping):
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
     def __getitem__(self, key):
         return self._store.get(key)
+
+    @contextmanager
+    def mutable(self, key):
+        obj = self._store.get(key)
+        yield obj
+        # implements autosave for a plugin persistent entry
+        # with self['foo'] as f:
+        #     f[4] = 2
+        # saves the entry !
+        self._store.set(key, obj)
 
     def __setitem__(self, key, item):
         return self._store.set(key, item)

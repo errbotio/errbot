@@ -386,6 +386,11 @@ class BotPluginManager(PluginManager, StoreMixin):
         return errors
 
     def get_all_active_plugin_objects_ordered(self):
+        # Make sure there is a 'None' entry in the callback order, to include
+        # any plugin not explicitly ordered.
+        if None not in self.plugins_callback_order:
+            self.plugins_callback_order = self.plugins_callback_order + (None, )
+
         all_plugins = []
         for name in self.plugins_callback_order:
             # None is a placeholder for any plugin not having a defined order

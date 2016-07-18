@@ -212,12 +212,13 @@ class BotPluginManager(PluginManager, StoreMixin):
     CONFIGS = 'configs'
     BL_PLUGINS = 'bl_plugins'
 
-    def __init__(self, storage_plugin, repo_manager, extra, autoinstall_deps, core_plugins):
+    def __init__(self, storage_plugin, repo_manager, extra, autoinstall_deps, core_plugins, plugins_callback_order):
         self.bot = None
         self.autoinstall_deps = autoinstall_deps
         self.extra = extra
         self.open_storage(storage_plugin, 'core')
         self.core_plugins = core_plugins
+        self.plugins_callback_order = plugins_callback_order
         self.repo_manager = repo_manager
 
         # if this is the old format migrate the entries in repo_manager
@@ -383,6 +384,27 @@ class BotPluginManager(PluginManager, StoreMixin):
         errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2]))
                        for pluginfo in loaded_plugins if pluginfo.error is not None})
         return errors
+
+    def get_all_active_plugin_objects_ordered(self):
+        # Make sure there is a 'None' entry in the callback order, to include
+        # any plugin not explicitly ordered.
+        if None not in self.plugins_callback_order:
+            self.plugins_callback_order = self.plugins_callback_order + (None, )
+
+        all_plugins = []
+        for name in self.plugins_callback_order:
+            # None is a placeholder for any plugin not having a defined order
+            if name is None:
+                all_plugins += [
+                    p.plugin_object for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)
+                    if p.name not in self.plugins_callback_order and
+                    hasattr(p, 'is_activated') and p.is_activated
+                ]
+            else:
+                p = self.get_plugin_by_name(name)
+                if p is not None and hasattr(p, 'is_activated') and p.is_activated:
+                    all_plugins.append(p.plugin_object)
+        return all_plugins
 
     def get_all_active_plugin_objects(self):
         return [plug.plugin_object

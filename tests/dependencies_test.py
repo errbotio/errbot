@@ -46,4 +46,3 @@ def test_double_dependency(testbot):
 
 def test_dependency_retrieval(testbot):
     assert 'youpi' in testbot.exec_command('!depfunc')
-

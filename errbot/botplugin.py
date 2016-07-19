@@ -629,7 +629,6 @@ class BotPlugin(BotPluginBase):
         super().stop_poller(method, args, kwargs)
 
 
-
 class ArgParserBase(object):
     """
     The `ArgSplitterBase` class defines the API which is used for argument

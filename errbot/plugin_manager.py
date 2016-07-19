@@ -6,6 +6,7 @@ import logging
 import sys
 import os
 import pip
+from yapsy import PluginInfo
 
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
@@ -243,36 +244,35 @@ class BotPluginManager(PluginManager, StoreMixin):
     def attach_bot(self, bot):
         self.bot = bot
 
-    def instanciateElement(self, element):
+    def instanciateElement(self, element) -> BotPlugin:
+        """Overrides the instanciation of plugins to inject the bot reference."""
         return element(self.bot)
 
-    def get_plugin_by_name(self, name):
+    def get_plugin_by_name(self, name: str) -> PluginInfo:
         return self.getPluginByName(name, BOTPLUGIN_TAG)
 
-    def get_plugin_obj_by_name(self, name):
+    def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         plugin = self.get_plugin_by_name(name)
         return None if plugin is None else plugin.plugin_object
 
-    def activate_plugin_with_version_check(self, name, config):
-        pta_item = self.getPluginByName(name, BOTPLUGIN_TAG)
-        if pta_item is None:
-            log.warning('Could not activate %s', name)
-            return None
+    def activate_plugin_with_version_check(self, plugin_info: PluginInfo) -> BotPlugin:
+        name = plugin_info.name
+        config = self.get_plugin_configuration(name)
 
         if self.core_plugins is not None:
-            if not check_enabled_core_plugin(name, pta_item.details, self.core_plugins):
+            if not check_enabled_core_plugin(name, plugin_info.details, self.core_plugins):
                 log.warn('Core plugin "%s" has been skipped because it is not in CORE_PLUGINS in config.py.' % name)
                 return None
 
-        if not check_python_plug_section(name, pta_item.details):
+        if not check_python_plug_section(name, plugin_info.details):
             log.error('%s failed python version check.', name)
             return None
 
-        if not check_errbot_plug_section(name, pta_item.details):
+        if not check_errbot_plug_section(name, plugin_info.details):
             log.error('%s failed errbot version check.', name)
             return None
 
-        obj = pta_item.plugin_object
+        obj = plugin_info.plugin_object
 
         try:
             if obj.get_configuration_template() is not None and config is not None:
@@ -284,15 +284,15 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.exception('Something is wrong with the configuration of the plugin %s', name)
             obj.config = None
             raise PluginConfigurationException(str(ex))
-        add_plugin_templates_path(pta_item.path)
-        populate_doc(pta_item)
+        add_plugin_templates_path(plugin_info.path)
+        populate_doc(plugin_info)
         try:
             obj = self.activatePluginByName(name, BOTPLUGIN_TAG)
             route(obj)
             return obj
         except Exception:
-            pta_item.activated = False  # Yapsy doesn't revert this in case of error
-            remove_plugin_templates_path(pta_item.path)
+            plugin_info.activated = False  # Yapsy doesn't revert this in case of error
+            remove_plugin_templates_path(plugin_info.path)
             log.error("Plugin %s failed at activation stage, deactivating it...", name)
             self.deactivatePluginByName(name, BOTPLUGIN_TAG)
             raise
@@ -465,11 +465,10 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def activate_non_started_plugins(self):
         """
-
+        Activates all plugins that are not activated, respecting its dependencies.
         :return: Empty string if no problem occured or a string explaining what went wrong.
         """
         log.info('Activate bot plugins...')
-        configs = self[self.CONFIGS]
         errors = ''
         for pluginInfo in self.getPluginsOfCategory(BOTPLUGIN_TAG):
             try:
@@ -479,7 +478,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     log.info('Activate plugin: %s' % pluginInfo.name)
-                    self.activate_plugin_with_version_check(pluginInfo.name, configs.get(pluginInfo.name, None))
+                    self.activate_plugin_with_version_check(pluginInfo)
             except Exception as e:
                 log.exception("Error loading %s" % pluginInfo.name)
                 errors += 'Error: %s failed to start: %s\n' % (pluginInfo.name, e)
@@ -519,13 +518,16 @@ class BotPluginManager(PluginManager, StoreMixin):
                 raise PluginActivationException("Plugin already in active list")
             if name not in self.get_all_plugin_names():
                 raise PluginActivationException("I don't know this %s plugin" % name)
-            self.activate_plugin_with_version_check(name, self.get_plugin_configuration(name))
+            plugin_info = self.get_plugin_by_name(name)
+            if plugin_info is None:
+                raise PluginActivationException("get_plugin_by_name_found (should not happen) for %s." % name)
+            self.activate_plugin_with_version_check(plugin_info)
+            plugin_info.plugin_object.callback_connect()
         except PluginActivationException:
             raise
         except Exception as e:
             log.exception("Error loading %s" % name)
             raise PluginActivationException('%s failed to start : %s\n' % (name, e))
-        self.get_plugin_obj_by_name(name).callback_connect()
 
     def deactivate_plugin(self, name):
         self.deactivate_plugin_by_name(name)

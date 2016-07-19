@@ -466,6 +466,7 @@ class BotPluginManager(PluginManager, StoreMixin):
     def activate_non_started_plugins(self):
         """
         Activates all plugins that are not activated, respecting its dependencies.
+
         :return: Empty string if no problem occured or a string explaining what went wrong.
         """
         log.info('Activate bot plugins...')
@@ -520,7 +521,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                 raise PluginActivationException("I don't know this %s plugin" % name)
             plugin_info = self.get_plugin_by_name(name)
             if plugin_info is None:
-                raise PluginActivationException("get_plugin_by_name_found (should not happen) for %s." % name)
+                raise PluginActivationException("get_plugin_by_name did not find %s (should not happen)." % name)
             self.activate_plugin_with_version_check(plugin_info)
             plugin_info.plugin_object.callback_connect()
         except PluginActivationException:

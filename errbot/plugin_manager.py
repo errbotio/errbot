@@ -272,7 +272,18 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.error('%s failed errbot version check.', name)
             return None
 
+        # Activate dependencies of this plugin first.
+        try:
+            depends_on = [dep_name.strip() for dep_name in plugin_info.details.get("Core", "DependsOn").split(',')]
+            for dep_name in depends_on:
+                if dep_name not in self.get_all_active_plugin_names():
+                    log.debug('%s depends on %s and %s is not activated. Activating it ...', name, dep_name, dep_name)
+                    self.activate_plugin(dep_name)
+        except NoOptionError:
+            depends_on = []
+
         obj = plugin_info.plugin_object
+        obj.dependencies = depends_on
 
         try:
             if obj.get_configuration_template() is not None and config is not None:
@@ -287,7 +298,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         add_plugin_templates_path(plugin_info.path)
         populate_doc(plugin_info)
         try:
-            obj = self.activatePluginByName(name, BOTPLUGIN_TAG)
+            self.activatePluginByName(name, BOTPLUGIN_TAG)
             route(obj)
             return obj
         except Exception:

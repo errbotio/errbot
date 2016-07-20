@@ -1,6 +1,8 @@
-from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 import threading
+import sys
+
+import requests
 
 from errbot import BotPlugin
 from errbot.utils import version2array
@@ -9,6 +11,8 @@ from errbot.version import VERSION
 HOME = 'http://version.errbot.io/'
 
 installed_version = version2array(VERSION)
+
+PY_VERSION = '.'.join(str(e) for e in sys.version_info[:3])
 
 
 class VersionChecker(BotPlugin):
@@ -32,8 +36,7 @@ class VersionChecker(BotPlugin):
     def _async_vcheck(self):
         # noinspection PyBroadException
         try:
-            current_version_txt = urlopen(url=HOME + '?' + VERSION,
-                                          timeout=10).read().decode("utf-8").strip()
+            current_version_txt = requests.get(HOME, params={'errbot': VERSION, 'python': PY_VERSION}).text.strip()
             self.log.debug("Tested current Errbot version and it is " + current_version_txt)
             current_version = version2array(current_version_txt)
             if installed_version < current_version:

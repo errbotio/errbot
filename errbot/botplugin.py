@@ -4,6 +4,7 @@ from threading import Timer, current_thread
 from types import ModuleType
 from typing import Tuple, Callable, Mapping, Sequence
 from io import IOBase
+import re
 
 from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
@@ -271,7 +272,10 @@ class BotPluginBase(StoreMixin):
         """
         if name in self._dynamic_plugins:
             raise ValueError('Dynamic plugin %s already created.')
-        plugin_class = type(name, (BotPlugin,), {command.name: command.definition for command in commands})
+        # cleans the name to be a valid python type.
+        plugin_class = type(re.sub('\W|^(?=\d)', '_', name), (BotPlugin,),
+                            {command.name: command.definition for command in commands})
+        plugin_class.__errname__ = name
         plugin_class.__errdoc__ = doc
         plugin = plugin_class(self._bot)
         self._dynamic_plugins[name] = plugin

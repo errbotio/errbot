@@ -396,7 +396,12 @@ class TestBot(object):
         self.bot.push_message("!echo ready")
 
         # Ensure bot is fully started and plugins are loaded before returning
-        assert self.bot.pop_message(timeout=60) == "ready"
+        for i in range(60):
+            #  Gobble initial error messages...
+            if self.bot.pop_message(timeout=1) == "ready":
+                break
+        else:
+            raise AssertionError('The "ready" message has not been received (timeout).')
 
     @property
     def bot(self) -> ErrBot:

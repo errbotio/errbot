@@ -1,5 +1,5 @@
 from errbot import BotPlugin
 
 
-class Double(BotPlugin):
+class Circular1(BotPlugin):
     pass

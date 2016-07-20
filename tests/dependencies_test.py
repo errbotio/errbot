@@ -46,3 +46,15 @@ def test_double_dependency(testbot):
 
 def test_dependency_retrieval(testbot):
     assert 'youpi' in testbot.exec_command('!depfunc')
+
+
+def test_direct_cicular_dependency(testbot):
+    plug_names = testbot.bot.plugin_manager.get_all_active_plugin_names()
+    assert 'Circular1' not in plug_names
+
+
+def test_indirect_cicular_dependency(testbot):
+    plug_names = testbot.bot.plugin_manager.get_all_active_plugin_names()
+    assert 'Circular2' not in plug_names
+    assert 'Circular3' not in plug_names
+    assert 'Circular4' not in plug_names

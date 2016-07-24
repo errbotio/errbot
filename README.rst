@@ -1,4 +1,4 @@
-.. image:: https://errbot.readthedocs.org/en/latest/_static/err_speech.png
+.. image:: https://errbot.readthedocs.org/en/latest/_static/errbot.png
    :target: http://errbot.io
 
 |

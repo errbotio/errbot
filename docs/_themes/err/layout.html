@@ -3,8 +3,8 @@
     <!doctype html>
 {% endblock %}
 {%- block extrahead %}
-    <link rel="icon" type="image/png" href="{{ pathto('_static/err.png', 1) }}"/>
-    <link rel="apple-touch-icon" href="{{ pathto('_static/err.png', 1) }}"/>
+    <link rel="icon" type="image/png" href="{{ pathto('_static/errbot.png', 1) }}"/>
+    <link rel="apple-touch-icon" href="{{ pathto('_static/errbot.png', 1) }}"/>
     <link rel="stylesheet" href="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.css", 1) }}" type="text/css"
           media="screen"/>
     <script type="text/javascript" src="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.pack.js", 1) }}"></script>
@@ -33,7 +33,7 @@
 
 {%- block sidebarlogo %}
     <a class="logo" href="{{ pathto(master_doc) }}" title="Back to home page">
-        <img class="logo" src="{{ pathto('_static/err_speech.png', 1) }}" width="220" height="135" alt="Logo of Err"/>
+        <img class="logo" src="{{ pathto('_static/errbot.png', 1) }}" width="100" height="100" alt="Logo of Errbot"/>
     </a>
     <div class="ghbuttons">
         <iframe src="//ghbtns.com/github-btn.html?user=errbotio&repo=errbot&type=watch&count=true"

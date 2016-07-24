@@ -1,5 +1,5 @@
 Normal Markdown:
-image: ![Err is talking](http://errbot.io/_static/err_speech.png)
+image: ![Err is talking](http://errbot.io/_static/errbot.png)
 
 link: This is [a link](http://www.errbot.io).
 

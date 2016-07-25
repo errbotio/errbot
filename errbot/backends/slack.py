@@ -417,21 +417,7 @@ class SlackBackend(ErrBot):
             text = event['text']
             user = event.get('user', event.get('bot_id'))
 
-        mentioned = []
-
-        for word in text.split():
-            if word.startswith('<') or word.startswith('@'):
-                try:
-                    identifier = self.build_identifier(word.replace(':', ''))
-                except Exception as e:
-                    log.debug("Tried to build an identifier from '%s' but got exception: %s", word, e)
-                    continue
-
-                # We only track mentions of persons.
-                if isinstance(identifier, SlackPerson):
-                    log.debug('Someone mentioned')
-                    mentioned.append(identifier)
-                    text = re.sub('<@[^>]*>:*', '@%s' % mentioned[-1].username, text)
+        text, mentioned = self.process_mentions(text)
 
         text = self.sanitize_uris(text)
 
@@ -792,6 +778,32 @@ class SlackBackend(ErrBot):
         text = re.sub(r'<(http([^>]+))>', r'\1', text)
 
         return text
+
+    def process_mentions(self, text):
+        """
+        Process mentions in a given string
+        :returns:
+            A formatted string of the original message
+            and a list of :class:`~SlackPerson` instances.
+        """
+        mentioned = []
+
+        m = re.findall('<@[^>]*>*', text)
+
+        for word in m:
+            try:
+                identifier = self.build_identifier(word)
+            except Exception as e:
+                log.debug("Tried to build an identifier from '%s' but got exception: %s", word, e)
+                continue
+
+            # We only track mentions of persons.
+            if isinstance(identifier, SlackPerson):
+                log.debug('Someone mentioned')
+                mentioned.append(identifier)
+                text = text.replace(word, str(identifier))
+
+        return text, mentioned
 
 
 class SlackRoom(Room):

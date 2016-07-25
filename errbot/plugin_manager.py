@@ -255,7 +255,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         plugin = self.get_plugin_by_name(name)
         return None if plugin is None else plugin.plugin_object
 
-    def activate_plugin_with_version_check(self, plugin_info: PluginInfo) -> BotPlugin:
+    def activate_plugin_with_version_check(self, plugin_info: PluginInfo, dep_track=None) -> BotPlugin:
         name = plugin_info.name
         config = self.get_plugin_configuration(name)
 
@@ -272,7 +272,10 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.error('%s failed errbot version check.', name)
             return None
 
+        depends_on = self._activate_plugin_dependencies(plugin_info, dep_track)
+
         obj = plugin_info.plugin_object
+        obj.dependencies = depends_on
 
         try:
             if obj.get_configuration_template() is not None and config is not None:
@@ -287,7 +290,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         add_plugin_templates_path(plugin_info.path)
         populate_doc(plugin_info)
         try:
-            obj = self.activatePluginByName(name, BOTPLUGIN_TAG)
+            self.activatePluginByName(name, BOTPLUGIN_TAG)
             route(obj)
             return obj
         except Exception:
@@ -296,6 +299,26 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.error("Plugin %s failed at activation stage, deactivating it...", name)
             self.deactivatePluginByName(name, BOTPLUGIN_TAG)
             raise
+
+    def _activate_plugin_dependencies(self, plugin_info, dep_track):
+        try:
+            if dep_track is None:
+                dep_track = set()
+
+            dep_track.add(plugin_info.name)
+
+            depends_on = [dep_name.strip() for dep_name in plugin_info.details.get("Core", "DependsOn").split(',')]
+            for dep_name in depends_on:
+                if dep_name in dep_track:
+                    raise PluginActivationException("Circular dependency in the set of plugins (%s)" %
+                                                    ', '.join(dep_track))
+                if dep_name not in self.get_all_active_plugin_names():
+                    log.debug('%s depends on %s and %s is not activated. Activating it ...', plugin_info.name, dep_name,
+                              dep_name)
+                    self._activate_plugin(dep_name, dep_track)
+            return depends_on
+        except NoOptionError:
+            return []
 
     def deactivate_plugin_by_name(self, name):
         # TODO handle the "un"routing.
@@ -514,6 +537,12 @@ class BotPluginManager(PluginManager, StoreMixin):
         :param name: the name of the plugin you want to activate.
         :throws PluginActivationException: if an error occured while activating the plugin.
         """
+        self._activate_plugin(name)
+
+    def _activate_plugin(self, name, dep_track=None):
+        """
+        Internal recursive version of activate_plugin.
+        """
         try:
             if name in self.get_all_active_plugin_names():
                 raise PluginActivationException("Plugin already in active list")
@@ -522,7 +551,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             plugin_info = self.get_plugin_by_name(name)
             if plugin_info is None:
                 raise PluginActivationException("get_plugin_by_name did not find %s (should not happen)." % name)
-            self.activate_plugin_with_version_check(plugin_info)
+            self.activate_plugin_with_version_check(plugin_info, dep_track)
             plugin_info.plugin_object.callback_connect()
         except PluginActivationException:
             raise

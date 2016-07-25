@@ -1,0 +1,4 @@
+[Core]
+Name = Double
+Module = double
+DependsOn = Parent1, Parent2

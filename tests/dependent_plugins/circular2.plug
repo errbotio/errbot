@@ -1,0 +1,4 @@
+[Core]
+Name = Circular2
+Module = circular2
+DependsOn = Circular3

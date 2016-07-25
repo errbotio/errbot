@@ -388,7 +388,7 @@ class TestBot(object):
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
-        self.bot = setup_bot('Test', self.logger, self.bot_config)
+        self._bot = setup_bot('Test', self.logger, self.bot_config)
         self.bot_thread = Thread(target=self.bot.serve_forever, name='TestBot main thread')
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
@@ -396,7 +396,16 @@ class TestBot(object):
         self.bot.push_message("!echo ready")
 
         # Ensure bot is fully started and plugins are loaded before returning
-        assert self.bot.pop_message(timeout=60) == "ready"
+        for i in range(60):
+            #  Gobble initial error messages...
+            if self.bot.pop_message(timeout=1) == "ready":
+                break
+        else:
+            raise AssertionError('The "ready" message has not been received (timeout).')
+
+    @property
+    def bot(self) -> ErrBot:
+        return self._bot
 
     def stop(self):
         """
@@ -488,7 +497,7 @@ class FullStackTest(unittest.TestCase, TestBot):
 
 
 @pytest.fixture
-def testbot(request):
+def testbot(request) -> TestBot:
     """
     Pytest fixture to write tests against a fully functioning bot.
 

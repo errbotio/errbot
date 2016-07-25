@@ -20,6 +20,7 @@ with sets of recipes on a range of topics describing how to handle more advanced
   persistence
   configuration
   streams
+  dependencies
   dynaplugs
   scheduling
   webhooks

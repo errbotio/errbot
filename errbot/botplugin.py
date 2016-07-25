@@ -77,6 +77,7 @@ class BotPluginBase(StoreMixin):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
+        self.dependencies = []
         self._dynamic_plugins = {}
         self.log = logging.getLogger("errbot.plugins.%s" % self.__class__.__name__)
         if bot is not None:
@@ -254,6 +255,25 @@ class BotPluginBase(StoreMixin):
         self._bot.remove_command_filters_from(plugin)
         self._bot.remove_commands_from(plugin)
         del self._dynamic_plugins[name]
+
+    def get_plugin(self, name) -> 'BotPlugin':
+        """
+        Gets a plugin your plugin depends on. The name of the dependency needs to be listed in [Code] section
+        key DependsOn of your plug file. This method can only be used after your plugin activation
+        (or having called super().activate() from activate itself).
+        It will return a plugin object.
+
+        :param name: the name
+        :return: the BotPlugin object requested.
+        """
+        if not self.is_activated:
+            raise Exception('Plugin needs to be in activated state to be able to get its dependencies.')
+
+        if name not in self.dependencies:
+            raise Exception('Plugin dependency %s needs to be listed in '
+                            'section [Core] key "DependsOn" to be used in get_plugin.' % name)
+
+        return self._bot.plugin_manager.get_plugin_obj_by_name(name)
 
 
 # noinspection PyAbstractClass

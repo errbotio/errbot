@@ -3,8 +3,7 @@ import unittest
 import logging
 import os
 from tempfile import mkdtemp
-
-import mock
+from mock import MagicMock
 
 from errbot.bootstrap import bot_config_defaults
 
@@ -18,7 +17,7 @@ try:
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.test_msgs = []
-            self.sc = mock.MagicMock()
+            self.sc = MagicMock()
 
         def callback_message(self, msg):
             self.test_msgs.append(msg)
@@ -35,6 +34,11 @@ try:
 
         def get_im_channel(self, id_):
             return 'Cfoo'
+
+        def find_user(self, user):
+            m = MagicMock()
+            m.name = user
+            return m
 
 except SystemExit:
     log.exception("Can't import backends.slack for testing")
@@ -242,4 +246,44 @@ class SlackTests(unittest.TestCase):
         self.assertEqual(
             "This is http://example.com/image.png.",
             convert("This is ![an image](http://example.com/image.png).")
+        )
+
+    def test_mention_processing(self):
+        self.slack.sc.server.users.find = MagicMock(side_effect=self.slack.find_user)
+
+        mentions = self.slack.process_mentions
+
+        self.assertEqual(
+            mentions(
+                "<@U1><@U2><@U3>"),
+            (
+                "@U1@U2@U3",
+                [self.slack.build_identifier('<@U1>'),
+                 self.slack.build_identifier('<@U2>'),
+                 self.slack.build_identifier('<@U3>')])
+        )
+
+        self.assertEqual(
+            mentions(
+                "Is <@U12345>: here?"),
+            (
+                "Is @U12345: here?", [self.slack.build_identifier('<@U12345>')])
+        )
+
+        self.assertEqual(
+            mentions(
+                "<@U12345> told me about @a and <@U56789> told me about @b"),
+            (
+                "@U12345 told me about @a and @U56789 told me about @b",
+                [self.slack.build_identifier('<@U12345>'),
+                 self.slack.build_identifier('<@U56789>')])
+        )
+
+        self.assertEqual(
+            mentions(
+                "!these!<@UABCDE>!mentions! will !still!<@UFGHIJ>!work!"),
+            (
+                "!these!@UABCDE!mentions! will !still!@UFGHIJ!work!",
+                [self.slack.build_identifier('<@UABCDE>'),
+                 self.slack.build_identifier('<@UFGHIJ>')])
         )

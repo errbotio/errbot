@@ -128,6 +128,11 @@ class SlackTests(unittest.TestCase):
         )
 
         self.assertEqual(
+            extract_from("<@U12345|UName>"),
+            ("UName", "U12345", None, None)
+        )
+
+        self.assertEqual(
             extract_from("<@B12345>"),
             (None, "B12345", None, None)
         )

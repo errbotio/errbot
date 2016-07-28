@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 if locale.getpreferredencoding().lower() != 'utf-8':
     log.warning('Starting errbot with a default system encoding other than \'utf-8\''
                 ' might cause you a heap of troubles.'
-                ' Your current encoding is set at \'%s\'' % sys.getdefaultencoding())
+                ' Your current encoding is set at \'%s\'' % locale.getpreferredencoding().lower())
 
 
 # noinspection PyUnusedLocal

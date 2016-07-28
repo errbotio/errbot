@@ -648,6 +648,7 @@ class SlackBackend(ErrBot):
 
             <#C12345>
             <@U12345>
+            <@U12345|user>
             @user
             #channel/user
             #channel
@@ -657,7 +658,7 @@ class SlackBackend(ErrBot):
         """
         exception_message = (
             "Unparseable slack identifier, should be of the format `<#C12345>`, `<@U12345>`, "
-            "`@user`, `#channel/user` or `#channel`. (Got `%s`)"
+            "`<@U12345|user>`, `@user`, `#channel/user` or `#channel`. (Got `%s`)"
         )
         text = text.strip()
 
@@ -678,7 +679,10 @@ class SlackBackend(ErrBot):
             if text == "":
                 raise ValueError(exception_message % "")
             if text[0] in ('U', 'B'):
-                userid = text
+                if '|' in text:
+                    userid, username = text.split('|')
+                else:
+                    userid = text
             elif text[0] in ('C', 'G', 'D'):
                 channelid = text
             else:

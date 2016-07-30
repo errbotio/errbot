@@ -1,3 +1,4 @@
+*.pyc
 __pycache__
 .venv
 /.idea
@@ -33,3 +34,5 @@ nohup.out
 legacy/dist/
 legacy/err.egg-info/
 
+# tox
+.tox

@@ -1,24 +1,16 @@
-language: python
-
-python:
-  - "3.3"
-  - "3.4"
-  - "3.5"
-
-before_script:
-  - cp tests/config-travisci.py config.py
-
-install:
-  - pip install --upgrade pip
-  - pip install -e .
-  - pip install slackclient  # Optional dependency but Slack tests are skipped without it
-  - pip freeze
-
-script: ./run_tests.py
-
-
-# New travis docker base build.
 sudo: false
+language: python
+python: "3.5"
+env:
+  - TOXENV=py33
+  - TOXENV=py34
+  - TOXENV=py35
+  - TOXENV=codestyle
+  - TOXENV=pypi-lint
+
+install: pip install tox
+before_script: cp tests/config-travisci.py config.py
+script: tox
 
 # notification for gitter integration
 notifications:

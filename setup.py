@@ -51,21 +51,6 @@ if not PY35_OR_GREATER:
     deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
 
 
-# Extra dependencies for a development environment.
-# if 'develop' in sys.argv: <- we cannot do that as pip is doing that in 2 steps.
-# TODO(gbin): find another way to filter those out if we don't need them.
-
-deps += ['mock',
-         'pep8',
-         # Order matters here, pytest must come last. See also:
-         #   https://github.com/errbotio/errbot/pull/496
-         #   https://bitbucket.org/pypa/setuptools/issues/196/tests_require-pytest-pytest-cov-breaks
-         'pytest-xdist',
-         'pytest',
-         'PyOpenSSL',
-         'docutils',  # for rst linting for pypi.
-         ]
-
 if not ON_WINDOWS:
     deps += ['daemonize']
 

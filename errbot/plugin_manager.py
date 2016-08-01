@@ -53,7 +53,7 @@ def install_package(package):
     """ Return an exc_info if it fails otherwise None.
     """
     log.info("Installing package '%s'." % package)
-    if hasattr(sys, 'real_prefix'):
+    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
         # this is a virtualenv, so we can use it directly
         pip.main(['install', package])
     else:

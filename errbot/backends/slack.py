@@ -796,7 +796,7 @@ class SlackBackend(ErrBot):
         """
         mentioned = []
 
-        m = re.findall('<@[^>]*>*', text)
+        m = re.findall('<[@#][^>]*>*', text)
 
         for word in m:
             try:
@@ -809,6 +809,9 @@ class SlackBackend(ErrBot):
             if isinstance(identifier, SlackPerson):
                 log.debug('Someone mentioned')
                 mentioned.append(identifier)
+                text = text.replace(word, str(identifier))
+            elif isinstance(identifier, SlackRoom):
+                log.debug('Room mentioned')
                 text = text.replace(word, str(identifier))
 
         return text, mentioned

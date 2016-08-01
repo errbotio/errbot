@@ -647,6 +647,7 @@ class SlackBackend(ErrBot):
         Supports strings with the following formats::
 
             <#C12345>
+            <#C12345|channelname>
             <@U12345>
             <@U12345|user>
             @user
@@ -684,7 +685,10 @@ class SlackBackend(ErrBot):
                 else:
                     userid = text
             elif text[0] in ('C', 'G', 'D'):
-                channelid = text
+                if '|' in text:
+                    channelid, channelname = text.split('|')
+                else:
+                    channelid = text
             else:
                 raise ValueError(exception_message % text)
         elif text[0] == '@':

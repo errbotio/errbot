@@ -23,8 +23,9 @@ except FileNotFoundError:
     log.fatal("No token found, cannot access the GitHub API")
 except ValueError:
     log.fatal("Token file cannot be properly read, should be of the form username:token")
-finally:
-    sys.exit(-1)
+except:
+    log.exception("auth execption:")
+# sys.exit(-1)
 
 user_cache = {}
 
@@ -94,6 +95,8 @@ def rate_limit(resp):
     ts = datetime.fromtimestamp(reset)
     delay = (ts - datetime.now()).total_seconds()
     log.info("Hit rate limit. Have to wait for %d seconds", delay)
+    if delay < 0:  # time drift
+        delay = 2
     time.sleep(delay)
 
 
@@ -114,40 +117,46 @@ def check_repo(repo):
     avatar_url = get_avatar_url(repo)
 
     for plug in plug_items:
-        plugfile_resp = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug["path"]))
+        plugfile_resp = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug['path']))
         log.debug('Found a plugin:')
         log.debug('Repo:  %s', repo)
         log.debug('File:  %s', plug['path'])
         parser = configparser.ConfigParser()
-        parser.read_string(plugfile_resp.text)
-        name = parser['Core']['Name']
-        log.debug('Name: %s', name)
+        try:
+            parser.read_string(plugfile_resp.text)
 
-        if 'Documentation' in parser:
-            doc = parser['Documentation']['Description']
-            log.debug('Documentation: %s', doc)
-        else:
-            doc = ''
+            name = parser['Core']['Name']
+            log.debug('Name: %s', name)
 
-        if 'Python' in parser:
-            python = parser['Python']['Version']
-            log.debug('Python Version: %s', python)
-        else:
-            python = '2'
+            if 'Documentation' in parser and 'Description' in parser['Documentation']:
+                doc = parser['Documentation']['Description']
+                log.debug('Documentation: %s', doc)
+            else:
+                doc = ''
 
-        plugin = {
-            'path': plug['path'],
-            'repo': 'https://github.com/{0}'.format(repo),
-            'documentation': doc,
-            'name': name,
-            'python': python,
-            'avatar_url': avatar_url,
-        }
+            if 'Python' in parser:
+                python = parser['Python']['Version']
+                log.debug('Python Version: %s', python)
+            else:
+                python = '2'
 
-        repo_entry = plugins.get(repo, {})
-        repo_entry[name] = plugin
-        plugins[repo] = repo_entry
-        log.debug('Catalog added plugin %s.', plugin['name'])
+            plugin = {
+                'path': plug['path'],
+                'repo': 'https://github.com/{0}'.format(repo),
+                'documentation': doc,
+                'name': name,
+                'python': python,
+                'avatar_url': avatar_url,
+            }
+
+            repo_entry = plugins.get(repo, {})
+            repo_entry[name] = plugin
+            plugins[repo] = repo_entry
+            log.debug('Catalog added plugin %s.', plugin['name'])
+        except:
+            log.error('Invalid syntax in %s, skipping... ' % plug['path'])
+            continue
+
         rate_limit(plugfile_resp)
 
     save_plugins()
@@ -165,6 +174,10 @@ def find_plugins():
         log.debug("Repo reqs before ratelimit %s/%s" % (
             repo_resp.headers['X-RateLimit-Remaining'],
             repo_resp.headers['X-RateLimit-Limit']))
+        if 'message' in repo_json and repo_json['message'].startswith('API rate limit exceeded for'):
+            log.error('API rate limit hit anyway ... wait for 30s')
+            time.sleep(30)
+            continue
         items = repo_json['items']
 
         for i, item in enumerate(items):

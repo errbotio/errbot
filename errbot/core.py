@@ -218,8 +218,7 @@ class ErrBot(Backend, StoreMixin):
             log.debug("Message from history, ignore it")
             return False
 
-        if (mess.is_direct and frm == self.bot_identifier) or \
-                (mess.is_group and frm.nick == self.bot_config.CHATROOM_FN):
+        if self.is_from_self(mess):
             log.debug("Ignoring message from self")
             return False
 

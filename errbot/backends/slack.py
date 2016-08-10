@@ -726,6 +726,9 @@ class SlackBackend(ErrBot):
             "to be resolved but none of them were. This shouldn't happen so, please file a bug."
         )
 
+    def is_from_self(self, msg: Message) -> bool:
+        return self.bot_identifier.userid == msg.frm.userid
+
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier

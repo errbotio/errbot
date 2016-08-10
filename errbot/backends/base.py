@@ -752,6 +752,18 @@ class Backend(ABC):
     def build_identifier(self, text_representation: str) -> Identifier:
         pass
 
+    def is_from_self(self, msg: Message) -> bool:
+        """
+        Needs to be overridden to check if the incoming message is from the bot itself.
+
+        :param msg: The incoming message.
+        :return: True if the message is coming from the bot.
+        """
+        # Default implementation (XMPP-like check using an extra config).
+        # Most of the backends should have a better way to determine this.
+        return (msg.is_direct and msg.frm == self.bot_identifier) or \
+               (msg.is_group and msg.frm.nick == self.bot_config.CHATROOM_FN)
+
     def serve_once(self) -> None:
         """
         Connect the back-end to the server and serve a connection once

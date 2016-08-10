@@ -1,3 +1,45 @@
+=======
+v4.3.0 (2016-08-10)
+-------------------
+
+v4.3 New features
+~~~~~~~~~~~~~~~~~
+
+- `DependsOn:` entry in .plug and `self.get_plugin(...)` allowing you to make a plugin dependent from another.
+- New entry in config.py: PLUGINS_CALLBACK_ORDER allows you to force a callback order on your installed plugins.
+- Flows can be shared by a room if you build the flow with `FlowRoot(room_flow=True)`  (thx Tobias Wilken)
+- New construct for persistence: `with self.mutable(key) as value:` that allows you to change by side
+  effect value without bothering to save value back.
+
+v4.3 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- This version work only on Python 3.4+ (see 4.2 announcement)
+- Presence.nick is deprecated, simply use presence.identifier.nick instead.
+- Slack: Bot identity is automatically added to BOT_ALT_PREFIXES
+- The version checker now reports your Python version to be sure to not upgrade Python 2 users to 4.3
+- Moved testing to Tox. We used to use a custom script, this improves a lot the local testing setup etc.
+  (Thx Pedro Rodrigues)
+
+
+v4.3 bugs fixes
+~~~~~~~~~~~~~~~
+
+- IRC: fixed IRC_ACL_PATTERN
+- Slack: Mention callback improvements (Thx Ash Caire)
+- Encoding error report was inconsistent with the value checked (Thx Steve Jarvis)
+- core: better support for all the types of virtualenvs (Thx Raphael Wouters)
+
+
+v4.2.2 (2016-06-24)
+-------------------
+
+bugs:
+
+- send_templated fix
+- CHATROOM_RELAY fix
+- Blacklisting feedback message corrected
+
 v4.2.1 (2016-06-10)
 -------------------
 Hotfix
@@ -8,7 +50,7 @@ Hotfix
 v4.2.0 (2016-06-10)
 -------------------
 
-v4.2 Annoucements
+v4.2 Announcement
 ~~~~~~~~~~~~~~~~~
 
 - Bye bye Python 2 ! This 4.2 branch will be the last to support Python 2. We will maintain bug fixes on it for at least
@@ -61,7 +103,7 @@ v4.2 Miscellaneous changes
   and finally core.py (everything about the commands, and dispatching etc...).
 - setup.py cleanup. The hacks in there were incorrect.
 
-v4.2 Bugs fixes
+v4.2 bugs fixes
 ~~~~~~~~~~~~~~~
 
 - core: excpetion formatting was failing on some plugin load failures.

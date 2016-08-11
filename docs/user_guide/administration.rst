@@ -98,7 +98,7 @@ Disabling plugins
 -----------------
 
 You have a number of options available to you if you need to disable a plugin for any reason.
-Plugins can be temporarily disabled by using the :code:`!plugin unload <plugin name>` command, which unloads the plugin until the bot is restarted (or loaded again via :code:`!plugin load <plugin name>`.
+Plugins can be temporarily disabled by using the :code:`!plugin deactivate <plugin name>` command, which deactivates the plugin until the bot is restarted (or activated again via :code:`!plugin activate <plugin name>`.
 
 If you want to prevent a plugin from being loaded at all during bot startup, the :code:`!plugin blacklist <plugin name>` command may be used.
 

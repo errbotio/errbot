@@ -124,7 +124,7 @@ The following code demonstrate the various available fields.
 
     class Travel(BotPlugin):
         @botcmd
-        def send_card(self, msg, args):
+        def hello_card(self, msg, args):
             """Say a card in the chatroom."""
             self.send_card(title='Title + Body',
                            body='text body to put in the card',

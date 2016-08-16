@@ -55,10 +55,11 @@ def install_package(package):
     log.info("Installing package '%s'." % package)
     if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
         # this is a virtualenv, so we can use it directly
-        pip.main(['install', package])
+        p = subprocess.Popen(['pip', 'install', package])
     else:
         # otherwise only install it as a user package
-        pip.main(['install', '--user', package])
+        p = subprocess.Popen(['pip', 'install', '--user', package])
+    p.wait()
     try:
         globals()[package] = import_module(package)
     except:

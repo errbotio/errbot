@@ -1,11 +1,11 @@
 """ Logic related to plugin loading and lifecycle """
-import traceback
 from configparser import NoSectionError, NoOptionError, ConfigParser
 from importlib import machinery, import_module
 import logging
-import sys
 import os
-import pip
+import subprocess
+import sys
+import traceback
 from yapsy import PluginInfo
 
 from errbot.flow import BotFlow

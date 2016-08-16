@@ -1,7 +1,7 @@
 """ Logic related to plugin loading and lifecycle """
 import traceback
 from configparser import NoSectionError, NoOptionError, ConfigParser
-from importlib.machinery import SourceFileLoader
+from importlib import machinery, import_module
 import logging
 import sys
 import os
@@ -60,7 +60,7 @@ def install_package(package):
         # otherwise only install it as a user package
         pip.main(['install', '--user', package])
     try:
-        globals()[package] = importlib.import_module(package)
+        globals()[package] = import_module(package)
     except:
         log.exception("Failed to load the dependent package")
         return sys.exc_info()
@@ -346,7 +346,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         module_alias = plugin.plugin_object.__module__
         module_old = __import__(module_alias)
         f = module_old.__file__
-        module_new = SourceFileLoader(module_alias, f).load_module(module_alias)
+        module_new = machinery.SourceFileLoader(module_alias, f).load_module(module_alias)
         class_name = type(plugin.plugin_object).__name__
         new_class = getattr(module_new, class_name)
         plugin.plugin_object.__class__ = new_class

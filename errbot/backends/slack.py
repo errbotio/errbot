@@ -13,7 +13,7 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
 from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError, RoomOccupant, Person, Card
+    UserDoesNotExistError, RoomOccupant, Person, Card, Stream
 from errbot.core import ErrBot
 from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
@@ -564,6 +564,24 @@ class SlackBackend(ErrBot):
                 "An exception occurred while trying to send the following message "
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
+
+    def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
+        """Starts a file transfer. For Slack, the size and stream_type are unsupported"""
+        name = name if name else 'file'
+        stream = Stream(identifier, fsource, name, size, stream_type)
+        log.debug('Initiating upload of {0}'.format(name))
+        resp = self.api_call('files.upload', data={
+            'channels': identifier.channelid,
+            'filename': name,
+            'file': fsource
+            })
+        stream.accept()
+        log.debug('Upload response: {0}'.format(resp))
+        if "ok" in resp and resp["ok"]:
+            stream.success()
+        else:
+            stream.error()
+        return stream
 
     def send_card(self, card: Card):
         if isinstance(card.to, RoomOccupant):

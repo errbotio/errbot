@@ -133,6 +133,9 @@ SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 # single command.
 # BOT_ASYNC = True
 
+# Size of the thread pool for the asynchronous mode.
+# BOT_ASYNC_POOLSIZE = 10
+
 ##########################################################################
 # Account and chatroom (MUC) configuration                               #
 ##########################################################################

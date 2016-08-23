@@ -49,8 +49,8 @@ class ErrBot(Backend, StoreMixin):
         self.bot_config = bot_config
         self.prefix = bot_config.BOT_PREFIX
         if bot_config.BOT_ASYNC:
-            self.thread_pool = ThreadPool(3)
-            log.debug('created the thread pool' + str(self.thread_pool))
+            self.thread_pool = ThreadPool(bot_config.BOT_ASYNC_POOLSIZE)
+            log.debug('created a thread pool of size %d.', bot_config.BOT_ASYNC_POOLSIZE)
         self.commands = {}  # the dynamically populated list of commands available on the bot
         self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
         self.command_filters = []  # the dynamically populated list of filters

@@ -619,7 +619,7 @@ class Stream(io.BufferedReader):
             raise ValueError("Invalid state, the stream is not in progress.")
         self._status = STREAM_SUCCESSFULLY_TRANSFERED
 
-    def clone(self, new_fsource: BinaryIO) -> Any:  # this is obviously a Stream but the compiler doesn't like it.
+    def clone(self, new_fsource: BinaryIO) -> 'Stream':
         """
             Creates a clone and with an alternative stream
         """

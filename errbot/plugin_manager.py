@@ -53,12 +53,17 @@ def install_package(package):
     """ Return an exc_info if it fails otherwise None.
     """
     log.info("Installing package '%s'." % package)
-    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
-        # this is a virtualenv, so we can use it directly
-        p = subprocess.Popen(['pip', 'install', package])
-    else:
-        # otherwise only install it as a user package
-        p = subprocess.Popen(['pip', 'install', '--user', package])
+    try:
+        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
+            # this is a virtualenv, so we can use it directly
+            p = subprocess.Popen(['pip', 'install', package])
+        else:
+            # otherwise only install it as a user package
+            p = subprocess.Popen(['pip', 'install', '--user', package])
+    except:
+        log.exception('Failed to execute pip')
+        return None
+
     p.wait()
     try:
         globals()[package] = import_module(package)

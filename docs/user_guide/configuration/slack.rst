@@ -36,8 +36,10 @@ Bot admins
 ----------
 
 You can set `BOT_ADMINS` to configure which Slack users are bot administrators.
-Make sure to include the `@` sign.
-For example: `BOT_ADMINS = ('@gbin', '@zoni')`
+Make sure to include the `@` sign::
+
+    BOT_ADMINS = ('@gbin', '@zoni')
+
 
 Bot mentions using @
 --------------------

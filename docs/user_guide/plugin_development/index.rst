@@ -26,5 +26,6 @@ with sets of recipes on a range of topics describing how to handle more advanced
   webhooks
   testing
   logging
+  exceptions
   plugin_compatibility_settings
   backend_specifics

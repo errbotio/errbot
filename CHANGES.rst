@@ -1,3 +1,17 @@
+v4.3.1 (2016-09-03)
+-------------------
+
+features:
+
+- now the threadpool is of size 10 by default and added a configuration.
+
+bugs:
+
+- fixed imporlib/use pip as process (#835)  (thx Raphael Wouters)
+- if pip is not found, don't crash errbot
+- build_identifier to send message to IRC channels (thx mr Shu)
+
+
 v4.3.0 (2016-08-10)
 -------------------
 

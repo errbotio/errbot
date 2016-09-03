@@ -713,8 +713,10 @@ class IRCBackend(ErrBot):
 
     def build_identifier(self, txtrep):
         log.debug("Build identifier from [%s]" % txtrep)
+        # A textual representation starting with # means that we are talking
+        # about an IRC channel -- IRCRoom in internal err-speak.
         if txtrep.startswith('#'):
-            return IRCRoomOccupant(None, txtrep)
+            return IRCRoom(txtrep, self)
 
         # Occupants are represented as 2 lines, one is the IRC mask and the second is the Room.
         if '\n' in txtrep:

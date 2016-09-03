@@ -49,6 +49,8 @@ def bot_config_defaults(config):
         config.SUPPRESS_CMD_NOT_FOUND = False
     if not hasattr(config, 'BOT_ASYNC'):
         config.BOT_ASYNC = True
+    if not hasattr(config, 'BOT_ASYNC_POOLSIZE'):
+        config.BOT_ASYNC_POOLSIZE = 10
     if not hasattr(config, 'CHATROOM_PRESENCE'):
         config.CHATROOM_PRESENCE = ()
     if not hasattr(config, 'CHATROOM_RELAY'):

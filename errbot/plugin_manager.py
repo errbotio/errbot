@@ -1,11 +1,11 @@
 """ Logic related to plugin loading and lifecycle """
-import traceback
 from configparser import NoSectionError, NoOptionError, ConfigParser
-from importlib.machinery import SourceFileLoader
+from importlib import machinery, import_module
 import logging
-import sys
 import os
-import pip
+import subprocess
+import sys
+import traceback
 from yapsy import PluginInfo
 
 from errbot.flow import BotFlow
@@ -53,14 +53,20 @@ def install_package(package):
     """ Return an exc_info if it fails otherwise None.
     """
     log.info("Installing package '%s'." % package)
-    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
-        # this is a virtualenv, so we can use it directly
-        pip.main(['install', package])
-    else:
-        # otherwise only install it as a user package
-        pip.main(['install', '--user', package])
     try:
-        globals()[package] = importlib.import_module(package)
+        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
+            # this is a virtualenv, so we can use it directly
+            p = subprocess.Popen(['pip', 'install', package])
+        else:
+            # otherwise only install it as a user package
+            p = subprocess.Popen(['pip', 'install', '--user', package])
+    except:
+        log.exception('Failed to execute pip')
+        return None
+
+    p.wait()
+    try:
+        globals()[package] = import_module(package)
     except:
         log.exception("Failed to load the dependent package")
         return sys.exc_info()
@@ -346,7 +352,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         module_alias = plugin.plugin_object.__module__
         module_old = __import__(module_alias)
         f = module_old.__file__
-        module_new = SourceFileLoader(module_alias, f).load_module(module_alias)
+        module_new = machinery.SourceFileLoader(module_alias, f).load_module(module_alias)
         class_name = type(plugin.plugin_object).__name__
         new_class = getattr(module_new, class_name)
         plugin.plugin_object.__class__ = new_class

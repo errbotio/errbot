@@ -1,3 +1,10 @@
+v4.3.2 (2016-09-04)
+-------------------
+
+hotfix:
+
+- removed the hard dependency on pytest for the Text backend
+
 v4.3.1 (2016-09-03)
 -------------------
 

@@ -12,8 +12,7 @@ from pygments.lexers import get_lexer_by_name
 
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
-from errbot.backends.base import Message, Presence, ONLINE, OFFLINE, Room
-from errbot.backends.test import TestPerson
+from errbot.backends.base import Message, Person, Presence, ONLINE, OFFLINE, Room
 from errbot.core import ErrBot
 from errbot.logs import console_hdlr
 
@@ -41,6 +40,48 @@ def borderless_ansi():
     md = Markdown(output_format='borderless', extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
+
+
+class TextPerson(Person):
+    """
+    Simple Person implementation which represents users as simple text strings.
+    """
+
+    def __init__(self, person, client=None, nick=None, fullname=None):
+        self._person = person
+        self._client = client
+        self._nick = nick
+        self._fullname = fullname
+
+    @property
+    def person(self):
+        return self._person
+
+    @property
+    def client(self):
+        return self._client
+
+    @property
+    def nick(self):
+        return self._nick
+
+    @property
+    def fullname(self):
+        return self._fullname
+
+    aclattr = person
+
+    def __unicode__(self):
+        if self.client:
+            return self._person + "/" + self._client
+        return self._person
+
+    __str__ = __unicode__
+
+    def __eq__(self, other):
+        if not isinstance(other, Person):
+            return False
+        return self.person == other.person
 
 
 class TextBackend(ErrBot):
@@ -133,7 +174,7 @@ class TextBackend(ErrBot):
     def build_identifier(self, text_representation):
         if text_representation.startswith('#'):
             return self.query_room(text_representation[1:])
-        return TestPerson(text_representation)
+        return TextPerson(text_representation)
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)

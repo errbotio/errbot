@@ -160,13 +160,13 @@ def check_errbot_version(name: str, min_version: str, max_version: str):
     current_version = version2array(VERSION)
     if min_version and version2array(min_version) > current_version:
         raise IncompatiblePluginException(
-            'The plugin %s asks for err with a minimal version of %s while err is version %s' % (
+            'The plugin %s asks for Errbot with a minimal version of %s while Errbot is version %s' % (
                 name, min_version, VERSION)
         )
 
     if max_version and version2array(max_version) < current_version:
         raise IncompatiblePluginException(
-            'The plugin %s asks for err with a maximal version of %s while err is version %s' % (
+            'The plugin %s asks for Errbot with a maximal version of %s while Errbot is version %s' % (
                 name, max_version, VERSION)
         )
 

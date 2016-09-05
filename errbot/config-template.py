@@ -1,8 +1,8 @@
 ##########################################################################
 #                                                                        #
 #  This is the config-template for Err. This file should be copied and   #
-#  renamed to config.py, then modified as you see fit to run Err the way #
-#  you like it.                                                          #
+#  renamed to config.py, then modified as you see fit to run Errbot      #
+#  the way you like it.                                                  #
 #                                                                        #
 #  As this is a regular Python file, note that you can do variable       #
 #  assignments and the likes as usual. This can be useful for example if #
@@ -19,7 +19,7 @@
 import logging
 
 ##########################################################################
-# Core Err configuration                                                 #
+# Core Errbot configuration                                              #
 ##########################################################################
 
 # BACKEND selection.
@@ -85,7 +85,7 @@ BOT_DATA_DIR = '/var/lib/err'
 BOT_EXTRA_PLUGIN_DIR = None
 
 # If you use an external backend as a plugin,
-# this is where you tell err where to find it.
+# this is where you tell Errbot where to find it.
 # BOT_EXTRA_BACKEND_DIR = '/opt/errbackends'
 
 # If you want only a subset of the core plugins that are bundled with errbot, you can specify them here.
@@ -100,9 +100,9 @@ BOT_EXTRA_PLUGIN_DIR = None
 PLUGINS_CALLBACK_ORDER = (None, )
 
 # Should plugin dependencies be installed automatically? If this is true
-# then Err will use pip to install any missing dependencies automatically.
+# then Errbot will use pip to install any missing dependencies automatically.
 #
-# If you have installed Err in a virtualenv, this will run the equivalent
+# If you have installed Errbot in a virtualenv, this will run the equivalent
 # of `pip install -r requirements.txt`.
 # If no virtualenv is detected, the equivalent of `pip install --user -r
 # requirements.txt` is used to ensure the package(s) is/are only installed for
@@ -128,7 +128,7 @@ BOT_LOG_SENTRY = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 
-# Execute commands in asynchronous mode. In this mode, Err will spawn 3
+# Execute commands in asynchronous mode. In this mode, Errbot will spawn 10
 # separate threads to handle commands, instead of blocking on each
 # single command.
 # BOT_ASYNC = True
@@ -194,7 +194,7 @@ BOT_ADMINS = ('gbin@localhost',)
 # CHATROOM_PRESENCE = ('err@conference.server.tld',)
 
 # The FullName, or nickname, your bot should use. What you set here will
-# be the nickname that Err shows in chatrooms. Note that some XMPP
+# be the nickname that Errbot shows in chatrooms. Note that some XMPP
 # implementations, notably HipChat, are very picky about what name you
 # use. In the case of HipChat, make sure this matches exactly with the
 # name you gave the user.
@@ -331,9 +331,9 @@ REVERSE_CHATROOM_RELAY = {}
 # To use only unencrypted plain auth:
 #XMPP_FEATURE_MECHANISMS =  {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
 
-# Modify the default keep-alive interval. By default, Err will send
+# Modify the default keep-alive interval. By default, Errbot will send
 # some whitespace to the XMPP server every 300 seconds to keep the TCP
-# connection alive. On some servers, or when running Err from behind
+# connection alive. On some servers, or when running Errbot from behind
 # a NAT router, the default might not be fast enough and you will need
 # to set it to a lower value.
 #

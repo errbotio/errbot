@@ -77,7 +77,7 @@ def test_plugin_callbacks(testbot):  # noqa
     assert p.events.get(timeout=5) == "callback_room_joined newroom"
 
     p.query_room('newroom').topic = "Err rocks!"
-    assert p.events.get(timeout=5) == "callback_room_topic Err rocks!"
+    assert p.events.get(timeout=5) == "callback_room_topic Errbot rocks!"
 
     p.query_room('newroom').leave()
     assert p.events.get(timeout=5) == "callback_room_left newroom"
@@ -121,4 +121,4 @@ def test_botcommands(testbot):  # noqa
     assert "err" in testbot.exec_command("!room occupants testroom")
     assert "No topic is set for testroom" in testbot.exec_command("!room topic testroom")
     assert "Topic for testroom set." in testbot.exec_command("!room topic testroom 'Err rocks!'")
-    assert "Topic for testroom: Err rocks!" in testbot.exec_command("!room topic testroom")
+    assert "Topic for testroom: Errbot rocks!" in testbot.exec_command("!room topic testroom")

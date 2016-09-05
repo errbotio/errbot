@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 
 # noinspection PyAbstractClass
 class ErrBot(Backend, StoreMixin):
-    """ ErrBot is the layer of Err that takes care of the plugin management and dispatching
+    """ ErrBot is the layer taking care of commands management and dispatching.
     """
     __errdoc__ = """ Commands related to the bot administration """
     MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details'

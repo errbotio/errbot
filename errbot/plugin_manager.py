@@ -58,10 +58,10 @@ def install_packages(req_path):
     try:
         if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
             # this is a virtualenv, so we can use it directly
-            p = subprocess.check_call(['pip', 'install', '--requirement', req_path])
+            subprocess.check_call(['pip', 'install', '--requirement', req_path])
         else:
             # otherwise only install it as a user package
-            p = subprocess.check_call(['pip', 'install', '--user', '--requirement', req_path])
+            subprocess.check_call(['pip', 'install', '--user', '--requirement', req_path])
     except:
         log.exception('Failed to execute pip install for %s.', req_path)
         return sys.exc_info()

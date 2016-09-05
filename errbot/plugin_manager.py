@@ -65,11 +65,6 @@ def install_package(package):
         return None
 
     p.wait()
-    try:
-        globals()[package] = import_module(package)
-    except:
-        log.exception("Failed to load the dependent package")
-        return sys.exc_info()
     return None
 
 

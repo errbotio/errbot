@@ -1,3 +1,11 @@
+v4.3.3 (2016-09-09)
+-------------------
+
+fixes:
+
+- err references leftovers
+- requirements.txt is now standard (you can use git+https:// for example)
+
 v4.3.2 (2016-09-04)
 -------------------
 

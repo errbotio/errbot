@@ -3,7 +3,7 @@ Name = Mention
 Module = mention
 
 [Documentation]
-Description = An Err mention test plugin
+Description = An Errbot mention test plugin.
 
 [Python]
 Version = 2+

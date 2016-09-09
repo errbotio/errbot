@@ -4,7 +4,7 @@ Module = webserver
 Core = True
 
 [Documentation]
-Description = This is a plugin for enabling webhooks and web interface to err
+Description = This is a plugin for enabling webhooks and web interface to Errbot.
 
 [Python]
 Version = 2+

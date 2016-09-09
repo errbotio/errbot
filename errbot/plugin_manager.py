@@ -49,40 +49,33 @@ def populate_doc(plugin):
     plugin_type.__errdoc__ = plugin_type.__doc__ if plugin_type.__doc__ else plugin.description
 
 
-def install_package(package):
-    """ Return an exc_info if it fails otherwise None.
+def install_packages(req_path):
+    """ Installs all the packages from the given requirements.txt
+
+        Return an exc_info if it fails otherwise None.
     """
-    log.info("Installing package '%s'." % package)
+    log.info("Installing packages from '%s'." % req_path)
     try:
         if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
             # this is a virtualenv, so we can use it directly
-            p = subprocess.Popen(['pip', 'install', package])
+            subprocess.check_call(['pip', 'install', '--requirement', req_path])
         else:
             # otherwise only install it as a user package
-            p = subprocess.Popen(['pip', 'install', '--user', package])
+            subprocess.check_call(['pip', 'install', '--user', '--requirement', req_path])
     except:
-        log.exception('Failed to execute pip')
-        return None
-
-    p.wait()
-    try:
-        globals()[package] = import_module(package)
-    except:
-        log.exception("Failed to load the dependent package")
+        log.exception('Failed to execute pip install for %s.', req_path)
         return sys.exc_info()
-    return None
 
 
-def check_dependencies(path):
+def check_dependencies(req_path):
     """ This methods returns a pair of (message, packages missing).
     Or None if everything is OK.
     """
-    log.debug("check dependencies of %s" % path)
+    log.debug("check dependencies of %s" % req_path)
     # noinspection PyBroadException
     try:
         from pkg_resources import get_distribution
 
-        req_path = path + os.sep + 'requirements.txt'
         if not os.path.isfile(req_path):
             log.debug('%s has no requirements.txt file' % path)
             return None
@@ -100,10 +93,11 @@ def check_dependencies(path):
                 except Exception:
                     missing_pkg.append(stripped)
         if missing_pkg:
-            return (('You need these dependencies for %s: ' % path) + ','.join(missing_pkg),
+            return (('You need these dependencies for %s: ' % req_path) + ','.join(missing_pkg),
                     missing_pkg)
         return None
     except Exception:
+        log.exception('Problem checking for dependencies.')
         return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
@@ -160,13 +154,13 @@ def check_errbot_version(name: str, min_version: str, max_version: str):
     current_version = version2array(VERSION)
     if min_version and version2array(min_version) > current_version:
         raise IncompatiblePluginException(
-            'The plugin %s asks for err with a minimal version of %s while err is version %s' % (
+            'The plugin %s asks for Errbot with a minimal version of %s while Errbot is version %s' % (
                 name, min_version, VERSION)
         )
 
     if max_version and version2array(max_version) < current_version:
         raise IncompatiblePluginException(
-            'The plugin %s asks for err with a maximal version of %s while err is version %s' % (
+            'The plugin %s asks for Errbot with a maximal version of %s while Errbot is version %s' % (
                 name, max_version, VERSION)
         )
 
@@ -364,9 +358,10 @@ class BotPluginManager(PluginManager, StoreMixin):
         """ It returns a dictionary of path -> error strings."""
         repo_roots = (CORE_PLUGINS, extra_plugin_dir, path_list)
 
-        paths = collect_roots(repo_roots)
+        all_roots = collect_roots(repo_roots)
+
         log.debug("All plugin roots:")
-        for entry in paths:
+        for entry in all_roots:
             log.debug("-> %s", entry)
             if entry not in sys.path:
                 log.debug("Add %s to sys.path", entry)
@@ -374,24 +369,21 @@ class BotPluginManager(PluginManager, StoreMixin):
         # so plugins can relatively import their repos
         ensure_sys_path_contains(repo_roots)
 
-        dependencies_result = {path: check_dependencies(path) for path in paths}
-        deps_to_install = set()
         errors = {}
         if autoinstall_deps:
-            for path, result in dependencies_result.items():
-                if result:
-                    deps = result[1]
-                    for dep in deps:
-                        if dep.strip() != '' and dep not in deps_to_install:
-                            deps_to_install.update(dep)
-                            log.info("Trying to install an unmet dependency: '%s'" % dep)
-                            exc_info = install_package(dep)
-                            if exc_info is not None:
-                                typ, value, trace = exc_info
-                                errors[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
+            for path in all_roots:
+                req_path = os.path.join(path, 'requirements.txt')
+                if not os.path.isfile(req_path):
+                    log.debug('%s has no requirements.txt file' % path)
+                    continue
+                exc_info = install_packages(req_path)
+                if exc_info is not None:
+                    typ, value, trace = exc_info
+                    errors[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
         else:
+            dependencies_result = {path: check_dependencies(path) for path in all_roots}
             errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
-        self.setPluginPlaces(paths)
+        self.setPluginPlaces(all_roots)
         try:
             self.locatePlugins()
         except ValueError:

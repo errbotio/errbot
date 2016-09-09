@@ -22,7 +22,7 @@ __all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'webvi
 
 log = logging.getLogger(__name__)
 
-webroute = route  # this allows plugins to expose dynamic webpages on err embedded webserver
+webroute = route  # this allows plugins to expose dynamic webpages on Errbot embedded webserver
 webview = view  # this allows to use the templating system
 
 # TODO: Remove, this is for backend backward compatibility

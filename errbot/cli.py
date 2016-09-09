@@ -94,7 +94,7 @@ def main():
 
     execution_dir = getcwd()
 
-    # By default insert the execution path (useful to be able to execute err from
+    # By default insert the execution path (useful to be able to execute Errbot from
     # the source tree directly without installing it.
     sys.path.insert(0, execution_dir)
 

@@ -62,9 +62,9 @@ def test_topic(testbot):  # noqa
     room = testbot.bot.rooms()[0]
     assert room.topic is None
 
-    room.topic = "Err rocks!"
-    assert room.topic == "Err rocks!"
-    assert testbot.bot.rooms()[0].topic == "Err rocks!"
+    room.topic = "Errbot rocks!"
+    assert room.topic == "Errbot rocks!"
+    assert testbot.bot.rooms()[0].topic == "Errbot rocks!"
 
 
 def test_plugin_callbacks(testbot):  # noqa
@@ -76,8 +76,8 @@ def test_plugin_callbacks(testbot):  # noqa
     p.query_room('newroom').join()
     assert p.events.get(timeout=5) == "callback_room_joined newroom"
 
-    p.query_room('newroom').topic = "Err rocks!"
-    assert p.events.get(timeout=5) == "callback_room_topic Err rocks!"
+    p.query_room('newroom').topic = "Errbot rocks!"
+    assert p.events.get(timeout=5) == "callback_room_topic Errbot rocks!"
 
     p.query_room('newroom').leave()
     assert p.events.get(timeout=5) == "callback_room_left newroom"
@@ -120,5 +120,5 @@ def test_botcommands(testbot):  # noqa
     assert "testroom" in testbot.exec_command("!room list")
     assert "err" in testbot.exec_command("!room occupants testroom")
     assert "No topic is set for testroom" in testbot.exec_command("!room topic testroom")
-    assert "Topic for testroom set." in testbot.exec_command("!room topic testroom 'Err rocks!'")
-    assert "Topic for testroom: Err rocks!" in testbot.exec_command("!room topic testroom")
+    assert "Topic for testroom set." in testbot.exec_command("!room topic testroom 'Errbot rocks!'")
+    assert "Topic for testroom: Errbot rocks!" in testbot.exec_command("!room topic testroom")

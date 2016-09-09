@@ -14,7 +14,10 @@ def touch(name):
 
 
 def test_check_dependencies():
-    response, deps = plugin_manager.check_dependencies(str(os.path.dirname(__file__)) + os.path.sep + 'assets')
+    response, deps = plugin_manager.check_dependencies(os.path.join(os.path.dirname(__file__),
+                                                                    'assets',
+                                                                    'requirements.txt'))
+    assert 'You need these dependencies for' in response
     assert 'impossible_requirement' in response
     assert ['impossible_requirement'] == deps
 

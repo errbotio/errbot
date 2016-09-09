@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Err documentation build configuration file, created by
+# Errbot documentation build configuration file, created by
 # sphinx-quickstart on Fri Sep 13 17:24:59 2013.
 #
 # This file is execfile()d with the current directory set to its containing dir.

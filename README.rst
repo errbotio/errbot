@@ -53,12 +53,13 @@ Chat servers support
 
 **With add-ons**
 
-- `Gitter support <https://gitter.im/>`_ (See `gitter instructions <https://github.com/errbotio/err-backend-gitter>`_)
-- `Skype <https://www.skype.com/>`_ (See `skype instructions <https://github.com/errbotio/errbot-backend-skype>`_)
-- `Discord <https://www.discordapp.com/>`_ (See `discord instructions <https://github.com/gbin/err-backend-discord>`_)
+- `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`_)
+- `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`_)
+- `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/gbin/err-backend-discord>`_)
 - `Cisco Spark <https://www.ciscospark.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-spark>`_)
-- `TOX <https://tox.im/>`_ (See `tox instructions <https://github.com/errbotio/err-backend-tox>`_)
-- `CampFire <https://campfirenow.com/>`_ (See `campfire instructions <https://github.com/errbotio/err-backend-campfire>`_)
+- `Matrix <https://matrix.org/>`_ (See `instructions <https://github.com/SShrike/err-backend-matrix>`_)
+- `TOX <https://tox.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`_)
+- `CampFire <https://campfirenow.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-campfire>`_)
 
 Administration
 ~~~~~~~~~~~~~~

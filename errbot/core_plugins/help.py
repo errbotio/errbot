@@ -155,6 +155,6 @@ class Help(BotPlugin):
             if len(cmd_doc) > 80:
                 cmd_doc = '{doc}...'.format(doc=cmd_doc[:77])
 
-        help_str = '- **{prefix}{name}** - {doc}\n'.format(prefix=prefix, name=name, doc=cmd_doc)
+        help_str = '- **{prefix}{name}** - {doc}\n'.format(prefix=prefix, name=name.replace('*', '\*'), doc=cmd_doc)
 
         return help_str

@@ -60,6 +60,7 @@ Chat servers support
 - `Matrix <https://matrix.org/>`_ (See `instructions <https://github.com/SShrike/err-backend-matrix>`__)
 - `TOX <https://tox.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`__)
 - `CampFire <https://campfirenow.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-campfire>`__)
+- `VK <https://vk.com/>`_ (See `instructions <https://github.com/Ax3Effect/errbot-vk>`__)
 
 Administration
 ~~~~~~~~~~~~~~

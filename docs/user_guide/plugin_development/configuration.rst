@@ -25,13 +25,13 @@ entries:
                     'USERNAME':'changeme'}
 
 With this in place, an admin will be able to request the default
-configuration template with `!config PluginExample`. He or she could
+configuration template with `!plugin config PluginExample`. He or she could
 then give the command
-`!config PluginExample {'ID_TOKEN' : '00112233445566778899aabbccddeeff', 'USERNAME':'changeme'}`
+`!plugin config PluginExample {'ID_TOKEN' : '00112233445566778899aabbccddeeff', 'USERNAME':'changeme'}`
 to enable that configuration.
 
 It will also be possible to recall the configuration template, as
-well as the config that is actually set, by issuing `!config
+well as the config that is actually set, by issuing `!plugin config
 PluginExample` again.
 
 Within your code, the config that is set will be in `self.config`:

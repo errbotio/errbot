@@ -585,6 +585,8 @@ class SlackBackend(ErrBot):
     def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
         """Starts a file transfer. For Slack, the size and stream_type are unsupported"""
         stream = Stream(identifier, fsource, name, size, stream_type)
+        log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
+                  identifier.channelname, size, stream_type))
         self.thread_pool.putRequest(WorkRequest(self._slack_upload, args=(stream,)))
         return stream
 

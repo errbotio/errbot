@@ -568,16 +568,19 @@ class SlackBackend(ErrBot):
 
     def _slack_upload(self, stream):
         """Perform upload defined in a stream."""
-        stream.accept()
-        resp = self.api_call('files.upload', data={
-            'channels': stream.identifier.channelid,
-            'filename': stream.name,
-            'file': stream
-            })
-        if "ok" in resp and resp["ok"]:
-            stream.success()
-        else:
-            stream.error()
+        try:
+            stream.accept()
+            resp = self.api_call('files.upload', data={
+                'channels': stream.identifier.channelid,
+                'filename': stream.name,
+                'file': stream
+                })
+            if "ok" in resp and resp["ok"]:
+                stream.success()
+            else:
+                stream.error()
+        except:
+            log.exception("Upload of {0} to {1} failed.".format(stream.name, stream.identifier.channelname))
 
     def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
         """Starts a file transfer. For Slack, the size and stream_type are unsupported"""

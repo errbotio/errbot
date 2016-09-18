@@ -7,6 +7,7 @@ import time
 import sys
 import pprint
 from functools import lru_cache
+from threadpool import WorkRequest
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
@@ -565,21 +566,23 @@ class SlackBackend(ErrBot):
                 "to %s: %s" % (to_humanreadable, mess.body)
             )
 
-    def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
-        """Starts a file transfer. For Slack, the size and stream_type are unsupported"""
-        stream = Stream(identifier, fsource, name, size, stream_type)
-        log.debug('Initiating upload of {0}'.format(name))
-        resp = self.api_call('files.upload', data={
-            'channels': identifier.channelid,
-            'filename': name,
-            'file': fsource
-            })
+    def _slack_upload(self, stream):
+        """Perform upload defined in a stream."""
         stream.accept()
-        log.debug('Upload response: {0}'.format(resp))
+        resp = self.api_call('files.upload', data={
+            'channels': stream.identifier.channelid,
+            'filename': stream.name,
+            'file': stream
+            })
         if "ok" in resp and resp["ok"]:
             stream.success()
         else:
             stream.error()
+
+    def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
+        """Starts a file transfer. For Slack, the size and stream_type are unsupported"""
+        stream = Stream(identifier, fsource, name, size, stream_type)
+        self.thread_pool.putRequest(WorkRequest(self._slack_upload, args=(stream,)))
         return stream
 
     def send_card(self, card: Card):

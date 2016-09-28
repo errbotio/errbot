@@ -3,7 +3,7 @@
 {% endif %}
 {% if not card.thumbnail %}
 {% if card.link %}
-##[{{ card.title }}]({{ link }})
+##[{{ card.title }}]({{ card.link }})
 {% else %}
 ##{{ card.title }}
 {% endif %}

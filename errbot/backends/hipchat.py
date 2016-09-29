@@ -378,6 +378,7 @@ class HipchatBackend(XMPPBackend):
     def __init__(self, config):
         self.api_token = config.BOT_IDENTITY['token']
         self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
+        self.api_verify = config.BOT_IDENTITY.get('verify', True)
         self.md = hipchat_html()
         super().__init__(config)
 
@@ -396,7 +397,8 @@ class HipchatBackend(XMPPBackend):
             ca_cert=self.ca_cert,
             token=self.api_token,
             endpoint=self.api_endpoint,
-            server=self.server
+            server=self.server,
+            verify=self.api_verify,
         )
 
     def callback_message(self, mess):

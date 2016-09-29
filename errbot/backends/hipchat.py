@@ -346,12 +346,15 @@ class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
         self.endpoint = kwargs.pop('endpoint')
+        verify = kwargs.pop('verify')
+        if verify is None:
+            verify = True
         if self.endpoint is None:
-            self.hypchat = hypchat.HypChat(self.token)
+            self.hypchat = hypchat.HypChat(self.token, verify=verify)
         else:
             # We could always pass in the endpoint, with a default value if it's
             # None, but this way we support hypchat<0.18
-            self.hypchat = hypchat.HypChat(self.token, endpoint=self.endpoint)
+            self.hypchat = hypchat.HypChat(self.token, endpoint=self.endpoint, verify=verify)
         super().__init__(*args, **kwargs)
 
     @property
@@ -378,6 +381,7 @@ class HipchatBackend(XMPPBackend):
     def __init__(self, config):
         self.api_token = config.BOT_IDENTITY['token']
         self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
+        self.api_verify = config.BOT_IDENTITY.get('verify', True)
         self.md = hipchat_html()
         super().__init__(config)
 
@@ -396,7 +400,8 @@ class HipchatBackend(XMPPBackend):
             ca_cert=self.ca_cert,
             token=self.api_token,
             endpoint=self.api_endpoint,
-            server=self.server
+            server=self.server,
+            verify=self.api_verify,
         )
 
     def callback_message(self, mess):

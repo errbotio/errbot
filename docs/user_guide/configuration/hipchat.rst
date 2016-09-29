@@ -41,13 +41,15 @@ You can now configure the account by setting up `BOT_IDENTITY` as follows::
         # If you're using HipChat server (self-hosted HipChat) then you should set
         # the endpoint below. If you don't use HipChat server but use the hosted version
         # of HipChat then you may leave this commented out.
-        # 'endpoint' : 'https://api.hipchat.com'
-
+        # 'endpoint' : 'https://api.hipchat.com',
+        # If your self-hosted Hipchat server is using SSL, and your certificate
+        # is self-signed, set verify to False or hypchat will fail
+        # 'verify': False,
 
 Bot admins
 ----------
 
-You can set `BOT_ADMINS` to configure which Slack users are bot administrators.
+You can set `BOT_ADMINS` to configure which Hipchat users are bot administrators.
 Make sure to include the `@` sign.
 For example: `BOT_ADMINS = ('@gbin', '@zoni')`
 

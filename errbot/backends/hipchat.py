@@ -346,12 +346,15 @@ class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
         self.endpoint = kwargs.pop('endpoint')
+        verify = kwargs.pop('verify')
+        if verify is None:
+            verify = True
         if self.endpoint is None:
-            self.hypchat = hypchat.HypChat(self.token)
+            self.hypchat = hypchat.HypChat(self.token, verify=verify)
         else:
             # We could always pass in the endpoint, with a default value if it's
             # None, but this way we support hypchat<0.18
-            self.hypchat = hypchat.HypChat(self.token, endpoint=self.endpoint)
+            self.hypchat = hypchat.HypChat(self.token, endpoint=self.endpoint, verify=verify)
         super().__init__(*args, **kwargs)
 
     @property

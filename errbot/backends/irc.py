@@ -52,6 +52,7 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           end_inline_code='')
 
 IRC_NICK_REGEX = r'[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+'
+IRC_MESSAGE_LIMIT_SIZE = 510
 
 try:
     import irc.connection
@@ -655,6 +656,7 @@ class IRCBackend(ErrBot):
                                   reconnect_on_disconnect=reconnect_on_disconnect,
                                   )
         self.md = irc_md()
+        config.MESSAGE_SIZE_LIMIT = IRC_MESSAGE_SIZE_LIMIT
 
     def send_message(self, mess):
         super().send_message(mess)

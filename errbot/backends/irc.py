@@ -52,7 +52,7 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           end_inline_code='')
 
 IRC_NICK_REGEX = r'[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+'
-IRC_MESSAGE_LIMIT_SIZE = 510
+IRC_MESSAGE_SIZE_LIMIT = 510
 
 try:
     import irc.connection

@@ -6,6 +6,8 @@ import os
 import subprocess
 import sys
 import traceback
+from typing import Tuple, Sequence
+
 from yapsy import PluginInfo
 
 from errbot.flow import BotFlow
@@ -67,19 +69,20 @@ def install_packages(req_path):
         return sys.exc_info()
 
 
-def check_dependencies(req_path):
+def check_dependencies(req_path: str) -> Tuple[str, Sequence[str]]:
     """ This methods returns a pair of (message, packages missing).
-    Or None if everything is OK.
+    Or None, [] if everything is OK.
     """
     log.debug("check dependencies of %s" % req_path)
     # noinspection PyBroadException
     try:
         from pkg_resources import get_distribution
+        missing_pkg = []
 
         if not os.path.isfile(req_path):
-            log.debug('%s has no requirements.txt file' % path)
-            return None
-        missing_pkg = []
+            log.debug('%s has no requirements.txt file' % req_path)
+            return None, missing_pkg
+
         with open(req_path) as f:
             for line in f:
                 stripped = line.strip()
@@ -95,7 +98,7 @@ def check_dependencies(req_path):
         if missing_pkg:
             return (('You need these dependencies for %s: ' % req_path) + ','.join(missing_pkg),
                     missing_pkg)
-        return None
+        return None, missing_pkg
     except Exception:
         log.exception('Problem checking for dependencies.')
         return 'You need to have setuptools installed for the dependency check of the plugins', []
@@ -381,8 +384,8 @@ class BotPluginManager(PluginManager, StoreMixin):
                     typ, value, trace = exc_info
                     errors[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
         else:
-            dependencies_result = {path: check_dependencies(path) for path in all_roots}
-            errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
+            dependencies_result = {path: check_dependencies(path)[0] for path in all_roots}
+            errors.update({path: dep_error for path, dep_error in dependencies_result.items() if dep_error is not None})
         self.setPluginPlaces(all_roots)
         try:
             self.locatePlugins()

@@ -229,7 +229,7 @@ class BotRepoManager(StoreMixin):
             err = p.stderr.read().strip().decode('utf-8')
             if err:
                 feedback += err + '\n' + '-' * 50 + '\n'
-            dep_err = check_dependencies(d)
+            dep_err, missing_pkgs = check_dependencies(d)
             if dep_err:
                 feedback += dep_err + '\n'
             yield d, not p.wait(), feedback

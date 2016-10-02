@@ -16,10 +16,24 @@ def touch(name):
 def test_check_dependencies():
     response, deps = plugin_manager.check_dependencies(os.path.join(os.path.dirname(__file__),
                                                                     'assets',
-                                                                    'requirements.txt'))
+                                                                    'requirements_never_there.txt'))
     assert 'You need these dependencies for' in response
     assert 'impossible_requirement' in response
     assert ['impossible_requirement'] == deps
+
+
+def test_check_dependencies_no_requirements_file():
+    response, deps = plugin_manager.check_dependencies(os.path.join(os.path.dirname(__file__),
+                                                                    'assets',
+                                                                    'requirements_non_existent.txt'))
+    assert response is None
+
+
+def test_check_dependencies_requirements_file_all_installed():
+    response, deps = plugin_manager.check_dependencies(os.path.join(os.path.dirname(__file__),
+                                                                    'assets',
+                                                                    'requirements_already_there.txt'))
+    assert response is None
 
 
 def test_find_plugin_roots():

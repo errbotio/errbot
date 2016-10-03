@@ -715,6 +715,14 @@ def test_access_controls(dummy_backend):
             ]),
             expected_response="You're not allowed to access this command from this user"
         ),
+
+        # ACCESS_CONTROLS with numeric username as in telegram
+        dict(
+            message=makemessage(dummy_backend, "!command",
+                                from_=dummy_backend.build_identifier(1234)),
+            acl={'command': {'allowusers': (1234, )}},
+            expected_response="Regular command"
+        ),
     ]
 
     for test in tests:

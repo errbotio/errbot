@@ -72,8 +72,8 @@ class TestPerson(Person):
 
     def __unicode__(self):
         if self.client:
-            return self._person + "/" + self._client
-        return self._person
+            return '{}/{}'.format(self._person, self._client)
+        return '{}'.format(self._person)
 
     __str__ = __unicode__
 

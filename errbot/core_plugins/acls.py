@@ -19,7 +19,9 @@ def glob(text, patterns):
     """
     if isinstance(patterns, str):
         patterns = (patterns,)
-    return any(fnmatch.fnmatchcase(text, pattern) for pattern in patterns)
+    if not isinstance(text, str):
+        text = str(text)
+    return any(fnmatch.fnmatchcase(text, str(pattern)) for pattern in patterns)
 
 
 def ciglob(text, patterns):

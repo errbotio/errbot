@@ -1,0 +1,6 @@
+[Unit]
+Description=Start Errbot chatbot
+After=network.service
+
+[Service]
+ExecStart=/path/to/my/virtualenv/bin/errbot --daemon --config /etc/errbot/config.py

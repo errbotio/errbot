@@ -36,18 +36,21 @@ class Command(object):
     def __init__(self, function, cmd_type=None, cmd_args=None, cmd_kwargs=None, name=None, doc=None):
         """
         Create a Command definition.
-        :param function: a function or a lambda with the correct signature for the type of command
-                         to inject for example `def mycmd(plugin, msg, args)` for a botcmd.
-                         Note: the first parameter will be the plugin itself (equivalent to self).
-        :param cmd_type: defaults to `botcmd` but can be any decorator function used for errbot
-                         commands.
+
+        :param function:
+            a function or a lambda with the correct signature for the type of command to inject for example `def
+            mycmd(plugin, msg, args)` for a botcmd.  Note: the first parameter will be the plugin itself (equivalent to
+            self).
+        :param cmd_type:
+            defaults to `botcmd` but can be any decorator function used for errbot commands.
         :param cmd_args: the parameters of the decorator.
         :param cmd_kwargs: the kwargs parameter of the decorator.
-        :param name: defaults to the name of the function you are passing if it is a
-                     first class function or needs to be set if you use a lambda.
-        :param doc: defaults to the doc of the given function if it is a first class function. It
-                    can be set for a lambda or overridden for a function with this.
-        """
+        :param name:
+            defaults to the name of the function you are passing if it is a first class function or needs to be set if
+            you use a lambda.
+        :param doc:
+            defaults to the doc of the given function if it is a first class function. It can be set for a lambda or
+            overridden for a function with this.  """
         if cmd_type is None:
             from errbot import botcmd  # TODO refactor this out of __init__ so it can be reusable.
             cmd_type = botcmd
@@ -299,6 +302,7 @@ class BotPlugin(BotPluginBase):
         be called.
 
         It means recusively:
+
         1. in case of a dictionary, it will check if all the entries and from
            the same type are there and not more.
         2. in case of an array or tuple, it will assume array members of the
@@ -489,6 +493,7 @@ class BotPlugin(BotPluginBase):
 
         A Card is a special type of preformatted message. If it matches with a backend similar concept like on
         Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular formatted message.
+
         :param body: main text of the card in markdown.
         :param to: the card is sent to this identifier (Room, RoomOccupant, Person...).
         :param in_reply_to: the original message this message is a reply to (optional).
@@ -525,16 +530,17 @@ class BotPlugin(BotPluginBase):
                        message_type: str=None,
                        groupchat_nick_reply: bool=False) -> None:
         """
-            Sends asynchronously a message to a room or a user.
-            Same as send but passing a template name and parameters instead of directly the markdown text.
-             if it is a room message_type needs to by 'groupchat' and user the room.
+        Sends asynchronously a message to a room or a user.
 
-             :param template_parameters: arguments for the template.
-             :param template_name: name of the template to use.
-             :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-             :param message_type: DEPRECATED
-             :param in_reply_to: optionally, the original message this message is the answer to.
-             :param identifier: identifier of the user or room to which you want to send a message to.
+        Same as send but passing a template name and parameters instead of directly the markdown text. If it is a room
+        message_type needs to by 'groupchat' and user the room.
+
+        :param template_parameters: arguments for the template.
+        :param template_name: name of the template to use.
+        :param groupchat_nick_reply: if True it will mention the user in the chatroom.
+        :param message_type: DEPRECATED
+        :param in_reply_to: optionally, the original message this message is the answer to.
+        :param identifier: identifier of the user or room to which you want to send a message to.
         """
         return self._bot.send_templated(identifier=identifier,
                                         template_name=template_name,

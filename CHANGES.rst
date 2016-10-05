@@ -1,3 +1,18 @@
+=======
+v4.3.4 (2016-10-05)
+-------------------
+
+features:
+
+- Slack: Stream (files) uploads are now supported
+- Hipchat: Supports for self-signed server certificates.
+
+fixes:
+
+- Card emulation support for links (Thx Robin Gloster)
+- IRC: Character limits fix (Thx lqaz)
+- Dependency check fix.
+
 v4.3.3 (2016-09-09)
 -------------------
 

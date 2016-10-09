@@ -3,4 +3,8 @@ Description=Start Errbot chatbot
 After=network.service
 
 [Service]
-ExecStart=/path/to/my/virtualenv/bin/errbot --daemon --config /etc/errbot/config.py
+Type=forking
+Environment="LC_ALL=en_US.UTF-8"
+ExecStart=/path/to/errbot/virtualenv/bin/errbot --daemon --config /path/to/errbot/config.py
+WorkingDirectory=/path/to/errbot/
+User=errbot

@@ -95,7 +95,7 @@ BOT_EXTRA_PLUGIN_DIR = None
 
 # Defines an order in which the plugins are getting their callbacks. Useful if you want to have plugins do
 # pre- or post-processing on messages.
-# The 'None' tuple entry represents all the plugins that aren't to be expicitely ordered. For example, if
+# The 'None' tuple entry represents all the plugins that aren't to be explicitly ordered. For example, if
 # you want 'A' to run first, then everything else but 'B', then 'B', you would use ('A', None, 'B').
 PLUGINS_CALLBACK_ORDER = (None, )
 

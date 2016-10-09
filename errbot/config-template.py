@@ -344,6 +344,9 @@ REVERSE_CHATROOM_RELAY = {}
 # try to gradually lower this value until it no longer happens.
 #XMPP_KEEPALIVE_INTERVAL = 300
 
+# Modify default settings for IPv6 usage. This key affect both
+# XMPP and HipChat backend.
+#XMPP_USE_IPV6 = False
 
 # XMPP supports some formatting with XEP-0071 (http://www.xmpp.org/extensions/xep-0071.html).
 # It is disabled by default because XMPP clients support has been found to be spotty.

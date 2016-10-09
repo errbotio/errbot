@@ -293,7 +293,7 @@ DIVERT_TO_PRIVATE = ()
 
 # Chat relay
 # Can be used to relay one to one message from specific users to the bot
-# to MUCs. This can be useful with XMPP notifiers like for example  the
+# to MUCs. This can be useful with XMPP notifiers like for example the
 # standard Altassian Jira which don't have native support for MUC.
 # For example: CHATROOM_RELAY = {'gbin@localhost' : (_TEST_ROOM,)}
 CHATROOM_RELAY = {}
@@ -329,7 +329,7 @@ REVERSE_CHATROOM_RELAY = {}
 # The default is to try anything:
 #XMPP_FEATURE_MECHANISMS = {}
 # To use only unencrypted plain auth:
-#XMPP_FEATURE_MECHANISMS =  {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
+#XMPP_FEATURE_MECHANISMS = {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
 
 # Modify the default keep-alive interval. By default, Errbot will send
 # some whitespace to the XMPP server every 300 seconds to keep the TCP

@@ -562,7 +562,9 @@ class ErrBot(Backend, StoreMixin):
 
         :param warning: The markdown-formatted text of the message to send.
         """
-        for admin in self.bot_config.BOT_ADMINS:
+        notify_admins = list(set(self.bot_config.BOT_ADMINS) - set(self.bot_config.BOT_ADMINS_MUTE_NOTIFICATIONS))
+
+        for admin in notify_admins:
             self.send(self.build_identifier(admin), warning)
 
     def callback_message(self, mess):

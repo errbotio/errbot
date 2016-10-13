@@ -319,9 +319,12 @@ class SlackBackend(ErrBot):
 
             try:
                 while True:
-                    for message in self.sc.rtm_read():
-                        self._dispatch_slack_message(message)
-                    time.sleep(1)
+                    messages = self.sc.rtm_read()
+                    if messages:
+                        for message in messages:
+                            self._dispatch_slack_message(message)
+                    else:
+                        time.sleep(1)
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
                 return True

@@ -423,7 +423,8 @@ class SlackBackend(ErrBot):
 
         text, mentioned = self.process_mentions(text)
 
-        text = self.sanitize_uris(text)
+        if subtype != 'file_share':
+            text = self.sanitize_uris(text)
 
         log.debug("Saw an event: %s" % pprint.pformat(event))
         log.debug("Escaped IDs event text: %s" % text)

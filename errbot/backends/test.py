@@ -504,8 +504,6 @@ def testbot(request) -> TestBot:
     For example, if you wanted to test the builtin `!about` command,
     you could write a test file with the following::
 
-        from errbot.backends.test import testbot
-
         def test_about(testbot):
             testbot.push_message('!about')
             assert "Err version" in testbot.pop_message()
@@ -514,8 +512,6 @@ def testbot(request) -> TestBot:
     by setting variables at module level or as class attributes (the
     latter taking precedence over the former). For example::
 
-        from errbot.backends.test import testbot
-
         extra_plugin_dir = '/foo/bar'
 
         def test_about(testbot):
@@ -523,8 +519,6 @@ def testbot(request) -> TestBot:
             assert "Err version" in testbot.pop_message()
 
     ..or::
-
-        from errbot.backends.test import testbot
 
         extra_plugin_dir = '/foo/bar'
 

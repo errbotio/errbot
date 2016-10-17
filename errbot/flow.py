@@ -24,6 +24,7 @@ class FlowNode(object):
 
     The predicate is a function that takes one parameter, the context of the conversation.
     """
+
     def __init__(self, command: str=None):
         """
         Creates a FlowNone, takes the command to which the Node is linked to.

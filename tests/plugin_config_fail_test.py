@@ -1,8 +1,5 @@
 from os import path
 
-import pytest
-from errbot.backends.test import testbot
-
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'fail_config_plugin')
 
 

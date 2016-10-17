@@ -1,7 +1,5 @@
 # -*- coding=utf-8 -*-
 from os import path
-from errbot.backends.test import testbot
-
 # This is to test end2end i18n behavior.
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'i18n_plugin')

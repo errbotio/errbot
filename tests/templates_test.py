@@ -1,5 +1,4 @@
 from os import path
-from errbot.backends.test import testbot
 
 # This is to test end2end i18n behavior.
 

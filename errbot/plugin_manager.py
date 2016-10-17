@@ -290,7 +290,9 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.exception('Something is wrong with the configuration of the plugin %s', name)
             obj.config = None
             raise PluginConfigurationException(str(ex))
-        add_plugin_templates_path(plugin_info.path)
+
+        add_plugin_templates_path(plugin_info.path, name, obj.bot_config)
+
         populate_doc(plugin_info)
         try:
             self.activatePluginByName(name, BOTPLUGIN_TAG)
@@ -331,7 +333,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         try:
             return self.deactivatePluginByName(name, BOTPLUGIN_TAG)
         except Exception:
-            add_plugin_templates_path(pta_item.path)
+            add_plugin_templates_path(pta_item.path, pta_item.name)
             raise
 
     def reload_plugin_by_name(self, name):

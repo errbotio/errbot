@@ -91,22 +91,7 @@ template (`{{name}}` in the above template example):
             """Say hello to someone"""
             return {'name': args}
 
-It's also possible to use templates when using `self.send()`, but in
-this case you will have to do the template rendering step yourself,
-like so:
-
-.. code-block:: python
-
-    from errbot import BotPlugin, botcmd
-    from errbot.templating import tenv
-
-    class Hello(BotPlugin):
-        @botcmd(template="hello")
-        def hello(self, msg, args):
-            """Say hello to someone"""
-            response = tenv().get_template('hello.md').render(name=args)
-            self.send(msg.frm, response)
-
+For details and adanced usage see :ref:`templates documentation <templates_advanced>`.
 
 Cards
 -----

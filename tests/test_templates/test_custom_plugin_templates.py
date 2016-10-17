@@ -1,5 +1,8 @@
 from os import path
 
+pytest_plugins = 'errbot.backends.test',
+
+
 extra_config = {'TEMPLATES_EXTRA_DIR': path.join(path.dirname(path.realpath(__file__)), 'templates')}
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), '..', 'template_plugin')
 

@@ -1,7 +1,5 @@
 import os
 
-from errbot.backends.test import testbot  # noqa
-
 extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'dependent_plugins')
 
 

@@ -10,8 +10,6 @@ from tempfile import mkdtemp
 import pytest
 import tarfile
 
-from errbot.backends.test import testbot  # noqa
-
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'dummy_plugin')
 
 

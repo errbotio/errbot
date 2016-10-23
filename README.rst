@@ -34,7 +34,7 @@ alerts...
 
 It is written and easily extensible in Python.
 
-Errbot is available as open source software and released under the GPL v3 license.
+Errbot is available as open-source software and released under the GPL v3 license.
 
 
 Features
@@ -77,14 +77,14 @@ After the initial installation and security setup, Errbot can be administered by
 Developer features
 ~~~~~~~~~~~~~~~~~~
 
-- Very easy to extend in Python ! (see below)
+- Very easy to extend in Python! (see below)
 - Presetup storage for every plugin i.e. ``self['foo'] = 'bar'`` persists the value.
 - Conversation flows to track conversation states from users.
 - Webhook callbacks support
 - supports `markdown extras <https://pythonhosted.org/Markdown/extensions/extra.html>`_ formatting with tables, embedded images, links etc.
 - configuration helper to allow your plugin to be configured by chat
 - Graphical and text development/debug consoles
-- Self-documenting: your docstrings becomes help automatically
+- Self-documenting: your docstrings become help automatically
 - subcommands and various arg parsing options are available (re, command line type)
 - polling support: your can setup a plugin to periodically do something
 - end to end test backend
@@ -99,7 +99,7 @@ If you have:
 - a plugin development question please use `Stackoverflow <http://stackoverflow.com/questions/tagged/errbot>`_ with the tags `errbot` and `python`.
 - a bug to report or a feature request, please use our `GitHub project page <https://github.com/errbotio/errbot/issues>`_.
 
-For more general discussion and annoucements, you can join us on `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_.
+For more general discussion and announcements, you can join us on `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_.
 You can also ping us on Twitter with the hashtag ``#errbot``.
 
 
@@ -110,7 +110,7 @@ Prerequisites
 ~~~~~~~~~~~~~
 
 Errbot runs under Python 3.3+ on Linux, Windows and Mac. For some chatting systems you'll need a key or a login for your bot to access it.
-Note: Python 2 support is still supported in `errbot-4.2.x` but is it going away.
+Note: Python 2 support is still available in `errbot-4.2.x`, but it is going away.
 
 Quickstart
 ~~~~~~~~~~
@@ -129,7 +129,7 @@ We recommend to setup a `virtualenv <https://pypi.python.org/pypi/virtualenv>`_.
     $ errbot --init
     $ errbot
 
-It will show you a prompt `>>>` so you can talk to your bot directly ! Try `!help` to get started.
+It will show you a prompt `>>>` so you can talk to your bot directly! Try `!help` to get started.
 
 Adding support for a chat system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -144,12 +144,12 @@ For the external ones (Skype, Gitter, Discord etc ...), please follow their resp
 Configuration
 ~~~~~~~~~~~~~
 
-In order to configure Errbot to connect to one of those chat system you'll need to tweak the `config.py` file generated
+In order to configure Errbot to connect to one of those chat systems you'll need to tweak the `config.py` file generated
 by `errbot --init`.
 
 To help you, we have a documented template available here: `config-template.py <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_.
 
-Note, even if you changed the BACKEND from the configuration, you can still use `errbot -T` and `errbot -G` to test
+Note: even if you changed the BACKEND from the configuration, you can still use `errbot -T` and `errbot -G` to test
 out your instance locally (in text and graphic mode respectively).
 
 Starting Errbot as a daemon
@@ -166,8 +166,8 @@ Interacting with the Bot
 ------------------------
 
 After starting Errbot, you should add the bot to your buddy list if you haven't already.
-You'll need to invite the bot explicitely to chatrooms on some chat systems too.
-You can now send commands directly to the bot !
+You'll need to invite the bot explicitly to chatrooms on some chat systems too.
+You can now send commands directly to the bot!
 
 To get a list of all available commands, you can issue:
 
@@ -184,7 +184,7 @@ If you just wish to know more about a specific command you can issue:
 Managing plugins
 ~~~~~~~~~~~~~~~~
 
-You can administer the bot in a one-on-one chat if your handle is in the BOT_ADMINS list in config.py.
+You can administer the bot in a one-on-one chat if your handle is in the BOT_ADMINS list in `config.py`.
 
 For example to keyword search in the public plugin repos you can issue:
 

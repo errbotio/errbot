@@ -383,3 +383,6 @@ REVERSE_CHATROOM_RELAY = {}
 
 # Prevent ErrBot from saying anything if the command is unrecognized.
 # SUPPRESS_CMD_NOT_FOUND = False
+
+# Allow overriding plugin templates with custom templates
+# TEMPLATES_EXTRA_DIR = None

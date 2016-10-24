@@ -3,7 +3,7 @@ from errbot.backends.test import testbot
 
 # This is to test end2end i18n behavior.
 
-extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'template_plugin')
+extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), '..', 'template_plugin')
 
 
 def test_templates_1(testbot):

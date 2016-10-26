@@ -1,0 +1,13 @@
+[[Unit]
+Description=Errbot
+After=network.target
+
+[Service]
+Type=Simple
+User=errbot
+Environment="CONFIGFILE=/home/errbot/config.py"
+ExecStart=/home/errbot/venv/bin/errbot --daemon --config $CONFIGFILE
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

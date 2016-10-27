@@ -45,9 +45,6 @@ Once you have your series of Commands defined, you can package them in a plugin 
     # from activate, another bot command, poll etc.
     self.create_dynamic_plugin('my_plugin', (my_command1, my_command2))
 
-.. note::
-    It will still respond to !basket_add and !basket_remove as well.
-
 
 Refreshing a plugin
 -------------------

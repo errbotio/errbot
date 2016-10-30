@@ -133,6 +133,7 @@ def render_plugin(values):
         loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
         auto_reload=False,
         keep_trailing_newline=True,
+        autoescape=True
     )
     template = env.get_template("new_plugin.py.tmpl")
     return template.render(**values)

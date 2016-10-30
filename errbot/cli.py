@@ -155,7 +155,7 @@ def main():
             example_plugin_dir = os.path.join(extra_plugin_dir, 'err-example')
             log_path = os.path.join(base_dir, 'errbot.log')
             templates_dir = os.path.join(os.path.dirname(__file__), 'templates', 'initdir')
-            env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir))
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir), autoescape=True)
             config_template = env.get_template('config.py.tmpl')
 
             os.mkdir(data_dir)

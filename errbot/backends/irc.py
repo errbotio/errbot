@@ -190,7 +190,7 @@ class IRCRoom(Room):
         if username is not None:
             log.debug("Ignored username parameter on join(), it is unsupported on this back-end.")
         if password is None:
-            password = ""
+            password = str()
 
         self.connection.join(self.room, key=password)
         log.info("Joined room {}".format(self.room))

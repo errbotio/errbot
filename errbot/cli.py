@@ -21,6 +21,7 @@ import os
 import sys
 from os import path, sep, getcwd, access, W_OK
 from platform import system
+import ast
 
 from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
@@ -83,7 +84,7 @@ def get_config(config_path):
 
 def _read_dict():
     import collections
-    new_dict = eval(sys.stdin.read())
+    new_dict = ast.literal_eval(sys.stdin.read())
     if not isinstance(new_dict, collections.Mapping):
         raise ValueError("A dictionary written in python is needed from stdin. Type=%s, Value = %s" % (type(new_dict),
                                                                                                        repr(new_dict)))

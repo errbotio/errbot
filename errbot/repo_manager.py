@@ -8,6 +8,7 @@ from os import path
 import tarfile
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
+from urllib.parse import urlparse
 
 import json
 
@@ -93,8 +94,8 @@ class BotRepoManager(StoreMixin):
         index = {LAST_UPDATE: datetime.now().timestamp()}
         for source in reversed(self.plugin_indexes):
             try:
-                if source.startswith('http'):
-                    with urlopen(url=source, timeout=10) as request:
+                if urlparse(source).scheme in ('http', 'https'):
+                    with urlopen(url=source, timeout=10) as request:  # nosec
                         log.debug('Update from remote source %s...', source)
                         encoding = request.headers.get_content_charset()
                         content = request.read().decode(encoding if encoding else 'utf-8')
@@ -193,7 +194,7 @@ class BotRepoManager(StoreMixin):
 
         # TODO: Update download path of plugin.
         if repo_url.endswith('tar.gz'):
-            fo = urlopen(repo_url)
+            fo = urlopen(repo_url)  # nosec
             tar = tarfile.open(fileobj=fo, mode='r:gz')
             tar.extractall(path=self.plugin_dir)
             s = repo_url.split(':')[-1].split('/')[-1]

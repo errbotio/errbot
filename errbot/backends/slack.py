@@ -227,6 +227,12 @@ class SlackBot(SlackPerson):
     nick = username
 
     @property
+    def aclattr(self):
+        # Make ACLs match against integration ID rather than human-readable
+        # nicknames to avoid webhooks impersonating other people.
+        return "<%s>" % self._bot_id
+
+    @property
     def fullname(self):
         return None
 

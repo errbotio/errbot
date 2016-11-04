@@ -210,6 +210,52 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
         return other.room.id == self.room.id and other.userid == self.userid
 
 
+class SlackBot(SlackPerson):
+    """
+    This class describes a bot on Slack's network.
+    """
+    def __init__(self, sc, bot_id, bot_username):
+        self._bot_id = bot_id
+        self._bot_username = bot_username
+        super().__init__(sc=sc, userid=bot_id)
+
+    @property
+    def username(self):
+        return self._bot_username
+
+    # Beware of gotcha. Without this, nick would point to username of SlackPerson.
+    nick = username
+
+    @property
+    def fullname(self):
+        return None
+
+
+class SlackRoomBot(RoomOccupant, SlackBot):
+    """
+    This class represents a bot inside a MUC.
+    """
+    def __init__(self, sc, bot_id, bot_username, channelid, bot):
+        super().__init__(sc, bot_id, bot_username)
+        self._room = SlackRoom(channelid=channelid, bot=bot)
+
+    @property
+    def room(self):
+        return self._room
+
+    def __unicode__(self):
+        return "#%s/%s" % (self._room.name, self.username)
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __eq__(self, other):
+        if not isinstance(other, RoomOccupant):
+            log.warn('tried to compare a SlackRoomBotOccupant with a SlackPerson %s vs %s', self, other)
+            return False
+        return other.room.id == self.room.id and other.userid == self.userid
+
+
 class SlackBackend(ErrBot):
 
     @staticmethod
@@ -436,11 +482,27 @@ class SlackBackend(ErrBot):
             extras={'attachments': event.get('attachments')})
 
         if channel.startswith('D'):
-            msg.frm = SlackPerson(self.sc, user, event['channel'])
+            if subtype == "bot_message":
+                msg.frm = SlackBot(
+                    self.sc,
+                    bot_id=event['bot_id'],
+                    bot_username=event['username'],
+                )
+            else:
+                msg.frm = SlackPerson(self.sc, user, event['channel'])
             msg.to = SlackPerson(self.sc, self.username_to_userid(self.sc.server.username),
                                  event['channel'])
         else:
-            msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
+            if subtype == "bot_message":
+                msg.frm = SlackRoomBot(
+                    self.sc,
+                    bot_id=event['bot_id'],
+                    bot_username=event['username'],
+                    channelid=event['channel'],
+                    bot=self
+                )
+            else:
+                msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
 
         self.callback_message(msg)

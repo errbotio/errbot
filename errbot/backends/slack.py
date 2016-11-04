@@ -295,7 +295,10 @@ class SlackBackend(ErrBot):
 
         converted_prefixes = []
         for prefix in bot_prefixes:
-            converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+            try:
+                converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+            except Exception as e:
+                log.error("Failed to look up Slack userid for alternate prefix '%s': %s", prefix, e)
 
         self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
         log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)

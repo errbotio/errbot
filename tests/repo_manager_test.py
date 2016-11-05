@@ -79,32 +79,32 @@ def test_no_update_if_one_fails(plugdir_and_storage):
 
 def test_tokenization():
     e = {
-            "python": "2+",
-            "repo": "https://github.com/name/err-reponame1",
-            "path": "/plugin1.plug",
-            "avatar_url": "https://avatars.githubusercontent.com/u/588833?v=3",
-            "name": "PluginName1",
-            "documentation": "docs1"
-        }
-    words = {'https',
-             'com',
-             'name',
-             'err',
-             'docs1',
-             'reponame1',
-             'plug',
-             '2',
-             'plugin1',
-             'avatars',
-             'github',
-             'githubusercontent',
-             'u',
-             'v',
-             '3',
-             '588833',
-             'pluginname1'
-             }
-
+        "python": "2+",
+        "repo": "https://github.com/name/err-reponame1",
+        "path": "/plugin1.plug",
+        "avatar_url": "https://avatars.githubusercontent.com/u/588833?v=3",
+        "name": "PluginName1",
+        "documentation": "docs1"
+    }
+    words = {
+        'https',
+        'com',
+        'name',
+        'err',
+        'docs1',
+        'reponame1',
+        'plug',
+        '2',
+        'plugin1',
+        'avatars',
+        'github',
+        'githubusercontent',
+        'u',
+        'v',
+        '3',
+        '588833',
+        'pluginname1'
+    }
     assert repo_manager.tokenizeJsonEntry(e) == words
 
 
@@ -127,4 +127,4 @@ def test_search(plugdir_and_storage):
 
 def test_git_url_name_guessing():
     assert repo_manager.human_name_for_git_url('https://github.com/errbotio/err-imagebot.git') \
-           == 'errbotio/err-imagebot'
+        == 'errbotio/err-imagebot'

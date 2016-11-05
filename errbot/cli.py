@@ -295,5 +295,6 @@ def main():
     bootstrap(backend, root_logger, config, restore)
     log.info('Process exiting')
 
+
 if __name__ == "__main__":
     main()

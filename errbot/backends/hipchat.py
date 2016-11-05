@@ -29,9 +29,9 @@ except ImportError:
     sys.exit(1)
 
 COLORS = {
-        'blue': 'purple',
-        'white': 'gray',
-        'black': 'gray',
+    'blue': 'purple',
+    'white': 'gray',
+    'black': 'gray',
 }  # best effort to map errbot colors to hipchat ones,
 
 

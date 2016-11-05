@@ -462,8 +462,10 @@ def test_arg_botcmd_returns_first_name_last_name(dummy_backend):
     first_name = 'Err'
     last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name,
-                                                                                                         last_name))
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
+        )
     )
     assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
 
@@ -472,8 +474,10 @@ def test_arg_botcmd_yields_first_name_last_name(dummy_backend):
     first_name = 'Err'
     last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!yields_first_name_last_name --first-name=%s --last-name=%s" % (first_name,
-                                                                                                        last_name))
+        makemessage(
+            dummy_backend,
+            "!yields_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
+        )
     )
     assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
 
@@ -482,7 +486,7 @@ def test_arg_botcmd_returns_value_repeated_count_times(dummy_backend):
     value = "Foo"
     count = 5
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_value_repeated_count_times %s --count %s" % (value, count))
+        makemessage(dummy_backend, "!returns_value_repeated_count_times %s --count %s" % (value, count))
     )
     assert value * count == dummy_backend.pop_message().body
 
@@ -494,7 +498,7 @@ def test_arg_botcmd_doesnt_raise_systemerror(dummy_backend):
 def test_arg_botcdm_returns_errors_as_chat(dummy_backend):
     dummy_backend.callback_message(makemessage(dummy_backend, "!returns_first_name_last_name --invalid-parameter"))
     assert "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter" \
-           in dummy_backend.pop_message().body
+        in dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_returns_help_message_as_chat(dummy_backend):
@@ -506,8 +510,10 @@ def test_arg_botcmd_undoes_fancy_unicode_dash_conversion(dummy_backend):
     first_name = 'Err'
     last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_first_name_last_name —first-name=%s —last-name=%s" % (first_name,
-                                                                                                       last_name))
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name —first-name=%s —last-name=%s" % (first_name, last_name)
+        )
     )
     assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
 
@@ -516,8 +522,8 @@ def test_arg_botcmd_without_argument_unpacking(dummy_backend):
     first_name = 'Err'
     last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_first_name_last_name_without_unpacking --first-name=%s --last-name=%s"
-                        % (first_name, last_name))
+        makemessage(dummy_backend, "!returns_first_name_last_name_without_unpacking --first-name=%s --last-name=%s"
+                    % (first_name, last_name))
     )
     assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
 

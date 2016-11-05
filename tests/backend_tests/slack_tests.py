@@ -186,8 +186,7 @@ class SlackTests(unittest.TestCase):
         build_from = self.slack.build_identifier
 
         def check_person(person, expected_uid, expected_cid):
-            return person.userid == expected_uid and \
-                   person.channelid == expected_cid
+            return person.userid == expected_uid and person.channelid == expected_cid
         assert build_from("<#C12345>").name == 'meh'
         assert check_person(build_from("<@U12345>"), "U12345", "Cfoo")
         assert check_person(build_from("@user"), "Utest", "Cfoo")

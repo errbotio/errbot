@@ -16,10 +16,10 @@ class Backup(BotPlugin):
             f.write('## This file is not executable on its own. use errbot -r FILE to restore your bot.\n\n')
             f.write('log.info("Restoring repo_manager.")\n')
             for key, value in self._bot.repo_manager.items():
-                f.write('bot.repo_manager["'+key+'"] = ' + repr(value) + '\n')
+                f.write('bot.repo_manager["' + key + '"] = ' + repr(value) + '\n')
             f.write('log.info("Restoring plugin_manager.")\n')
             for key, value in self._bot.plugin_manager.items():  # don't mimic that in real plugins, this is core only.
-                f.write('bot.plugin_manager["'+key+'"] = ' + repr(value) + '\n')
+                f.write('bot.plugin_manager["' + key + '"] = ' + repr(value) + '\n')
 
             f.write('log.info("Installing plugins.")\n')
             f.write('if "installed_repos" in bot.repo_manager:\n')
@@ -35,7 +35,7 @@ class Backup(BotPlugin):
                     f.write('pobj.init_storage()\n')
 
                     for key, value in pobj.items():
-                        f.write('pobj["'+key+'"] = ' + repr(value) + '\n')
+                        f.write('pobj["' + key + '"] = ' + repr(value) + '\n')
                     f.write('pobj.close_storage()\n')
 
         return "The backup file has been written in '%s'" % filename

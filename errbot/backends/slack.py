@@ -580,7 +580,7 @@ class SlackBackend(ErrBot):
                 'channels': stream.identifier.channelid,
                 'filename': stream.name,
                 'file': stream
-                })
+            })
             if "ok" in resp and resp["ok"]:
                 stream.success()
             else:

@@ -381,7 +381,7 @@ def arg_botcmd(*args,
         wrapper._err_command_parser.add_argument(*args, **kwargs)
         wrapper.__doc__ = wrapper._err_command_parser.format_help()
         fmt = wrapper._err_command_parser.format_usage()
-        wrapper._err_command_syntax = fmt[len('usage: ')+len(wrapper._err_command_parser.prog)+1:-1]
+        wrapper._err_command_syntax = fmt[len('usage: ') + len(wrapper._err_command_parser.prog) + 1:-1]
 
         return wrapper
 

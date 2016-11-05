@@ -511,6 +511,7 @@ class Presence(object):
     def __unicode__(self):
         return str(self.__str__())
 
+
 STREAM_WAITING_TO_START = 'pending'
 STREAM_TRANSFER_IN_PROGRESS = 'in progress'
 STREAM_SUCCESSFULLY_TRANSFERED = 'success'

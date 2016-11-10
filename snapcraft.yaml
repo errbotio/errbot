@@ -12,7 +12,7 @@ confinement: strict
 apps:
   errbot:
     command: env LC_ALL=C.UTF-8 errbot
-    plugs: [home, network]
+    plugs: [home, network, network-bind]
 
 parts:
   errbot:

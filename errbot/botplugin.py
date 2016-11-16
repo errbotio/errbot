@@ -372,7 +372,7 @@ class BotPlugin(BotPluginBase):
             [Note: This might not be implemented by all backends.]
 
             :param message:
-                representing the messige that was received.
+                representing the message that was received.
             :param mentioned_people:
                 all mentioned people in this message.
         """

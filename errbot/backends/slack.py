@@ -451,9 +451,10 @@ class SlackBackend(ErrBot):
 
         subtype = event.get('subtype', None)
 
-        if subtype == "message_deleted":
-            log.debug("Message of type message_deleted, ignoring this event")
+        if subtype in ("message_deleted", "channel_topic"):
+            log.debug("Message of type %s, ignoring this event", subtype)
             return
+
         if subtype == "message_changed" and 'attachments' in event['message']:
             # If you paste a link into Slack, it does a call-out to grab details
             # from it so it can display this in the chatroom. These show up as

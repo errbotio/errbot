@@ -314,3 +314,9 @@ def test_optional_prefix_re_cmd(testbot):
 
 def test_simple_match(testbot):
     assert 'bar' in testbot.exec_command('match this')
+
+
+def test_no_suggest_on_re_commands(testbot):
+    testbot.push_message('!re_ba')
+    # Don't suggest a regexp command.
+    assert '!re bar' not in testbot.pop_message()

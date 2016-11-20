@@ -275,13 +275,16 @@ def find_roots(path, file_sig='*.plug'):
        :return: a set of paths
     """
     roots = set()  # you can have several .plug per directory.
-    for root, dirnames, filenames in os.walk(path):
+    for root, dirnames, filenames in os.walk(path, followlinks=True):
         for filename in fnmatch.filter(filenames, file_sig):
             dir_to_add = os.path.dirname(os.path.join(root, filename))
             relative = os.path.relpath(os.path.realpath(dir_to_add), os.path.realpath(path))
             for subelement in relative.split(os.path.sep):
-                if subelement != '.' and (subelement.startswith('.') or subelement == '__pycache__'):
-                    # this is not a directoty to consider
+                # if one of the element is just a relative construct, it is ok to continue inspecting it.
+                if subelement in ('.', '..'):
+                    continue
+                # if it is an hidden directory or a python temp directory, just ignore it.
+                if subelement.startswith('.') or subelement == '__pycache__':
                     log.debug("Ignore %s" % dir_to_add)
                     break
             else:

@@ -41,3 +41,5 @@ class WebTest(BotPlugin):
     @webhook
     def webhook7(self, payload):
         abort(403, "Forbidden")
+
+    webhook8 = webhook(r'/lambda')(lambda x, y: str(x) + str(y))

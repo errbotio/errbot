@@ -726,7 +726,7 @@ class Backend(ABC):
         self._reconnection_delay *= self._reconnection_multiplier
         if self._reconnection_delay > self._reconnection_max_delay:
             self._reconnection_delay = self._reconnection_max_delay
-        self._reconnection_delay += random.uniform(*self._reconnection_jitter)
+        self._reconnection_delay += random.uniform(*self._reconnection_jitter)  # nosec
 
     def reset_reconnection_count(self) -> None:
         """

@@ -618,7 +618,10 @@ class SlackBackend(ErrBot):
         try:
             if mess.is_group:
                 to_channel_id = mess.to.id
-                to_humanreadable = mess.to.name if mess.to.name else SlackBackend.channelid_to_channelname(to_channel_id)
+                if mess.to.name:
+                    to_humanreadable = mess.to.name
+                else:
+                    to_humanreadable = SlackBackend.channelid_to_channelname(to_channel_id)
             else:
                 to_humanreadable = mess.to.username
                 if isinstance(mess.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !

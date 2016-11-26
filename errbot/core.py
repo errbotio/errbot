@@ -480,7 +480,7 @@ class ErrBot(Backend, StoreMixin):
             part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
             part1 = 'Command "%s" not found.' % cmd
-        ununderscore_keys = [m.replace('_', ' ') for m in self.all_commands.keys()]
+        ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))

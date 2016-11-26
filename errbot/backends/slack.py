@@ -63,6 +63,9 @@ COLORS = {
 
 MARKDOWN_LINK_REGEX = re.compile(r'([^!])\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
+# The current slack client in use (Needed to build identifiers)
+slack_client = None
+
 
 def slack_markdown_converter(compact_output=False):
     """
@@ -103,7 +106,7 @@ class SlackPerson(Person):
     This class describes a person on Slack's network.
     """
 
-    def __init__(self, sc, userid=None, channelid=None):
+    def __init__(self, userid=None, channelid=None):
         if userid is not None and userid[0] not in ('U', 'B'):
             raise Exception('This is not a Slack user or bot id: %s (should start with U or B)' % userid)
 
@@ -112,7 +115,6 @@ class SlackPerson(Person):
 
         self._userid = userid
         self._channelid = channelid
-        self._sc = sc
 
     @property
     def userid(self):
@@ -121,7 +123,7 @@ class SlackPerson(Person):
     @property
     def username(self):
         """Convert a Slack user ID to their user name"""
-        user = self._sc.server.users.find(self._userid)
+        user = slack_client.server.users.find(self._userid)
         if user is None:
             log.error("Cannot find user with ID %s" % self._userid)
             return "<%s>" % self._userid
@@ -137,14 +139,14 @@ class SlackPerson(Person):
         if self._channelid is None:
             return None
 
-        channel = self._sc.server.channels.find(self._channelid)
+        channel = slack_client.server.channels.find(self._channelid)
         if channel is None:
             raise RoomDoesNotExistError("No channel with ID %s exists" % self._channelid)
         return channel.name
 
     @property
     def domain(self):
-        return self._sc.server.domain
+        return slack_client.server.domain
 
     # Compatibility with the generic API.
     client = channelid
@@ -160,7 +162,7 @@ class SlackPerson(Person):
     @property
     def fullname(self):
         """Convert a Slack user ID to their user name"""
-        user = self._sc.server.users.find(self._userid)
+        user = slack_client.server.users.find(self._userid)
         if user is None:
             log.error("Cannot find user with ID %s" % self._userid)
             return "<%s>" % self._userid
@@ -189,9 +191,9 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
     """
     This class represents a person inside a MUC.
     """
-    def __init__(self, sc, userid, channelid, bot):
-        super().__init__(sc, userid, channelid)
-        self._room = SlackRoom(channelid=channelid, bot=bot)
+    def __init__(self, userid, channelid):
+        super().__init__(userid, channelid)
+        self._room = SlackRoom(channelid=channelid)
 
     @property
     def room(self):
@@ -214,10 +216,10 @@ class SlackBot(SlackPerson):
     """
     This class describes a bot on Slack's network.
     """
-    def __init__(self, sc, bot_id, bot_username):
+    def __init__(self, bot_id, bot_username):
         self._bot_id = bot_id
         self._bot_username = bot_username
-        super().__init__(sc=sc, userid=bot_id)
+        super().__init__(userid=bot_id)
 
     @property
     def username(self):
@@ -241,9 +243,9 @@ class SlackRoomBot(RoomOccupant, SlackBot):
     """
     This class represents a bot inside a MUC.
     """
-    def __init__(self, sc, bot_id, bot_username, channelid, bot):
-        super().__init__(sc, bot_id, bot_username)
-        self._room = SlackRoom(channelid=channelid, bot=bot)
+    def __init__(self, bot_id, bot_username, channelid):
+        super().__init__(bot_id, bot_username)
+        self._room = SlackRoom(channelid=channelid)
 
     @property
     def room(self):
@@ -256,21 +258,21 @@ class SlackRoomBot(RoomOccupant, SlackBot):
         return self.__unicode__()
 
     def __eq__(self, other):
-        if not isinstance(other, RoomOccupant):
+        if not isinstance(other, SlackRoomOccupant):
             log.warn('tried to compare a SlackRoomBotOccupant with a SlackPerson %s vs %s', self, other)
             return False
         return other.room.id == self.room.id and other.userid == self.userid
 
 
+def _unpickle_identifier(identifier_str):
+    return SlackBackend.build_identifier(identifier_str)
+
+
+def _pickle_identifier(identifier):
+    return _unpickle_identifier, (str(identifier),)
+
+
 class SlackBackend(ErrBot):
-
-    @staticmethod
-    def _unpickle_identifier(identifier_str):
-        return SlackBackend.__build_identifier(identifier_str)
-
-    @staticmethod
-    def _pickle_identifier(identifier):
-        return SlackBackend._unpickle_identifier, (str(identifier),)
 
     def _register_identifiers_pickling(self):
         """
@@ -282,7 +284,7 @@ class SlackBackend(ErrBot):
         """
         SlackBackend.__build_identifier = self.build_identifier
         for cls in (SlackPerson, SlackRoomOccupant, SlackRoom):
-            copyreg.pickle(cls, SlackBackend._pickle_identifier, SlackBackend._unpickle_identifier)
+            copyreg.pickle(cls, _pickle_identifier, _unpickle_identifier)
 
     def __init__(self, config):
         super().__init__(config)
@@ -295,12 +297,14 @@ class SlackBackend(ErrBot):
                 'cannot connect to Slack.'
             )
             sys.exit(1)
-        self.sc = None  # Will be initialized in serve_once
+        global slack_client
+        slack_client = SlackClient(self.token)
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
 
-    def api_call(self, method, data=None, raise_errors=True):
+    @staticmethod
+    def api_call(method, data=None, raise_errors=True):
         """
         Make an API call to the Slack API and return response data.
 
@@ -321,7 +325,7 @@ class SlackBackend(ErrBot):
         """
         if data is None:
             data = {}
-        response = self.sc.api_call(method, **data)
+        response = slack_client.api_call(method, **data)
         if not isinstance(response, collections.Mapping):
             # Compatibility with SlackClient < 1.0.0
             response = json.loads(response.decode('utf-8'))
@@ -348,7 +352,7 @@ class SlackBackend(ErrBot):
         converted_prefixes = []
         for prefix in bot_prefixes:
             try:
-                converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+                converted_prefixes.append('<@{0}>'.format(SlackBackend.username_to_userid(prefix)))
             except Exception as e:
                 log.error("Failed to look up Slack userid for alternate prefix '%s': %s", prefix, e)
 
@@ -356,16 +360,15 @@ class SlackBackend(ErrBot):
         log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
 
     def serve_once(self):
-        self.sc = SlackClient(self.token)
         log.info("Verifying authentication token")
-        self.auth = self.api_call("auth.test", raise_errors=False)
+        self.auth = SlackBackend.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:
             raise SlackAPIResponseError(error="Couldn't authenticate with Slack. Server said: %s" % self.auth['error'])
         log.debug("Token accepted")
-        self.bot_identifier = SlackPerson(self.sc, self.auth["user_id"])
+        self.bot_identifier = SlackPerson(self.auth["user_id"])
 
         log.info("Connecting to Slack real-time-messaging API")
-        if self.sc.rtm_connect():
+        if slack_client.rtm_connect():
             log.info("Connected")
             self.reset_reconnection_count()
 
@@ -374,7 +377,7 @@ class SlackBackend(ErrBot):
 
             try:
                 while True:
-                    messages = self.sc.rtm_read()
+                    messages = slack_client.rtm_read()
                     if messages:
                         for message in messages:
                             self._dispatch_slack_message(message)
@@ -427,7 +430,7 @@ class SlackBackend(ErrBot):
     def _presence_change_event_handler(self, event):
         """Event handler for the 'presence_change' event"""
 
-        idd = SlackPerson(self.sc, event['user'])
+        idd = SlackPerson(event['user'])
         presence = event['presence']
         # According to https://api.slack.com/docs/presence, presence can
         # only be one of 'active' and 'away'
@@ -491,25 +494,23 @@ class SlackBackend(ErrBot):
         if channel.startswith('D'):
             if subtype == "bot_message":
                 msg.frm = SlackBot(
-                    self.sc,
                     bot_id=event['bot_id'],
                     bot_username=event['username'],
                 )
             else:
-                msg.frm = SlackPerson(self.sc, user, event['channel'])
-            msg.to = SlackPerson(self.sc, self.username_to_userid(self.sc.server.username),
+                msg.frm = SlackPerson(user, event['channel'])
+            msg.to = SlackPerson(SlackBackend.username_to_userid(slack_client.server.username),
                                  event['channel'])
         else:
             if subtype == "bot_message":
                 msg.frm = SlackRoomBot(
-                    self.sc,
                     bot_id=event['bot_id'],
                     bot_username=event['username'],
                     channelid=event['channel'],
                     bot=self
                 )
             else:
-                msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
+                msg.frm = SlackRoomOccupant(user, event['channel'], bot=self)
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
 
         self.callback_message(msg)
@@ -517,37 +518,42 @@ class SlackBackend(ErrBot):
         if mentioned:
             self.callback_mention(msg, mentioned)
 
-    def userid_to_username(self, id_):
+    @staticmethod
+    def userid_to_username(id_):
         """Convert a Slack user ID to their user name"""
-        user = [user for user in self.sc.server.users if user.id == id_]
+        user = [user for user in slack_client.server.users if user.id == id_]
         if not user:
             raise UserDoesNotExistError("Cannot find user with ID %s" % id_)
         return user[0].name
 
-    def username_to_userid(self, name):
+    @staticmethod
+    def username_to_userid(name):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-        user = [user for user in self.sc.server.users if user.name == name]
+        user = [user for user in slack_client.server.users if user.name == name]
         if not user:
             raise UserDoesNotExistError("Cannot find user %s" % name)
         return user[0].id
 
-    def channelid_to_channelname(self, id_):
+    @staticmethod
+    def channelid_to_channelname(id_):
         """Convert a Slack channel ID to its channel name"""
-        channel = [channel for channel in self.sc.server.channels if channel.id == id_]
+        channel = [channel for channel in slack_client.server.channels if channel.id == id_]
         if not channel:
             raise RoomDoesNotExistError("No channel with ID %s exists" % id_)
         return channel[0].name
 
-    def channelname_to_channelid(self, name):
+    @staticmethod
+    def channelname_to_channelid(name):
         """Convert a Slack channel name to its channel ID"""
         name = name.lstrip('#')
-        channel = [channel for channel in self.sc.server.channels if channel.name == name]
+        channel = [channel for channel in slack_client.server.channels if channel.name == name]
         if not channel:
             raise RoomDoesNotExistError("No channel named %s exists" % name)
         return channel[0].id
 
-    def channels(self, exclude_archived=True, joined_only=False):
+    @staticmethod
+    def channels(exclude_archived=True, joined_only=False):
         """
         Get all channels and groups and return information about them.
 
@@ -563,11 +569,11 @@ class SlackBackend(ErrBot):
           * https://api.slack.com/methods/channels.list
           * https://api.slack.com/methods/groups.list
         """
-        response = self.api_call('channels.list', data={'exclude_archived': exclude_archived})
+        response = SlackBackend.api_call('channels.list', data={'exclude_archived': exclude_archived})
         channels = [channel for channel in response['channels']
                     if channel['is_member'] or not joined_only]
 
-        response = self.api_call('groups.list', data={'exclude_archived': exclude_archived})
+        response = SlackBackend.api_call('groups.list', data={'exclude_archived': exclude_archived})
         # No need to filter for 'is_member' in this next call (it doesn't
         # (even exist) because leaving a group means you have to get invited
         # back again by somebody else.
@@ -575,11 +581,12 @@ class SlackBackend(ErrBot):
 
         return channels + groups
 
+    @staticmethod
     @lru_cache(50)
-    def get_im_channel(self, id_):
+    def get_im_channel(id_):
         """Open a direct message channel to a user"""
         try:
-            response = self.api_call('im.open', data={'user': id_})
+            response = SlackBackend.api_call('im.open', data={'user': id_})
             return response['channel']['id']
         except SlackAPIResponseError as e:
             if e.error == "cannot_dm_bot":
@@ -596,13 +603,13 @@ class SlackBackend(ErrBot):
         """
         if mess.is_group:
             to_channel_id = mess.to.id
-            to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
+            to_humanreadable = mess.to.name if mess.to.name else SlackBackend.channelid_to_channelname(to_channel_id)
         else:
             to_humanreadable = mess.to.username
             to_channel_id = mess.to.channelid
             if to_channel_id.startswith('C'):
                 log.debug("This is a divert to private message, sending it directly to the user.")
-                to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+                to_channel_id = self.get_im_channel(SlackBackend.username_to_userid(mess.to.username))
         return to_humanreadable, to_channel_id
 
     def send_message(self, mess):
@@ -611,12 +618,12 @@ class SlackBackend(ErrBot):
         try:
             if mess.is_group:
                 to_channel_id = mess.to.id
-                to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
+                to_humanreadable = mess.to.name if mess.to.name else SlackBackend.channelid_to_channelname(to_channel_id)
             else:
                 to_humanreadable = mess.to.username
                 if isinstance(mess.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !
                     log.debug("This is a divert to private message, sending it directly to the user.")
-                    to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+                    to_channel_id = self.get_im_channel(SlackBackend.username_to_userid(mess.to.username))
                 else:
                     to_channel_id = mess.to.channelid
 
@@ -629,7 +636,7 @@ class SlackBackend(ErrBot):
             parts = self.prepare_message_body(body, limit)
 
             for part in parts:
-                self.api_call('chat.postMessage', data={
+                SlackBackend.api_call('chat.postMessage', data={
                     'channel': to_channel_id,
                     'text': part,
                     'unfurl_media': 'true',
@@ -645,7 +652,7 @@ class SlackBackend(ErrBot):
         """Perform upload defined in a stream."""
         try:
             stream.accept()
-            resp = self.api_call('files.upload', data={
+            resp = SlackBackend.api_call('files.upload', data={
                 'channels': stream.identifier.channelid,
                 'filename': stream.name,
                 'file': stream
@@ -691,7 +698,7 @@ class SlackBackend(ErrBot):
         data = {'text': ' ', 'channel': to_channel_id, 'attachments': json.dumps([attachment]), 'as_user': 'true'}
         try:
             log.debug('Sending data:\n%s', data)
-            self.api_call('chat.postMessage', data=data)
+            SlackBackend.api_call('chat.postMessage', data=data)
         except Exception:
             log.exception(
                 "An exception occurred while trying to send a card to %s.[%s]" % (to_humanreadable, card)
@@ -701,7 +708,7 @@ class SlackBackend(ErrBot):
         return 0  # this is a singleton anyway
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
-        self.api_call('users.setPresence', data={'presence': 'auto' if status == ONLINE else 'away'})
+        SlackBackend.api_call('users.setPresence', data={'presence': 'auto' if status == ONLINE else 'away'})
 
     @staticmethod
     def prepare_message_body(body, size_limit):
@@ -800,7 +807,8 @@ class SlackBackend(ErrBot):
 
         return username, userid, channelname, channelid
 
-    def build_identifier(self, txtrep):
+    @staticmethod
+    def build_identifier(txtrep):
         """
         Build a :class:`SlackIdentifier` from the given string txtrep.
 
@@ -808,18 +816,19 @@ class SlackBackend(ErrBot):
         :func:`~extract_identifiers_from_string`.
         """
         log.debug("building an identifier from %s" % txtrep)
-        username, userid, channelname, channelid = self.extract_identifiers_from_string(txtrep)
+        username, userid, channelname, channelid = SlackBackend.extract_identifiers_from_string(txtrep)
 
         if userid is None and username is not None:
-            userid = self.username_to_userid(username)
+            userid = SlackBackend.username_to_userid(username)
         if channelid is None and channelname is not None:
-            channelid = self.channelname_to_channelid(channelname)
+            channelid = SlackBackend.channelname_to_channelid(channelname)
         if userid is not None and channelid is not None:
-            return SlackRoomOccupant(self.sc, userid, channelid, bot=self)
+            return SlackRoomOccupant(userid, channelid)
         if userid is not None:
-            return SlackPerson(self.sc, userid, self.get_im_channel(userid))
+            return SlackPerson(userid, SlackBackend.get_im_channel(userid))
+
         if channelid is not None:
-            return SlackRoom(channelid=channelid, bot=self)
+            return SlackRoom(channelid=channelid)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "
@@ -848,13 +857,13 @@ class SlackBackend(ErrBot):
     def query_room(self, room):
         """ Room can either be a name or a channelid """
         if room.startswith('C') or room.startswith('G'):
-            return SlackRoom(channelid=room, bot=self)
+            return SlackRoom(channelid=room)
 
         m = SLACK_CLIENT_CHANNEL_HYPERLINK.match(room)
         if m is not None:
-            return SlackRoom(channelid=m.groupdict()['id'], bot=self)
+            return SlackRoom(channelid=m.groupdict()['id'])
 
-        return SlackRoom(name=room, bot=self)
+        return SlackRoom(name=room)
 
     def rooms(self):
         """
@@ -864,7 +873,7 @@ class SlackBackend(ErrBot):
             A list of :class:`~SlackRoom` instances.
         """
         channels = self.channels(joined_only=True, exclude_archived=True)
-        return [SlackRoom(channelid=channel['id'], bot=self) for channel in channels]
+        return [SlackRoom(channelid=channel['id']) for channel in channels]
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
@@ -914,7 +923,7 @@ class SlackBackend(ErrBot):
 
 
 class SlackRoom(Room):
-    def __init__(self, name=None, channelid=None, bot=None):
+    def __init__(self, name=None, channelid=None):
         if channelid is not None and name is not None:
             raise ValueError("channelid and name are mutually exclusive")
 
@@ -924,11 +933,9 @@ class SlackRoom(Room):
             else:
                 self._name = name
         else:
-            self._name = bot.channelid_to_channelname(channelid)
+            self._name = SlackBackend.channelid_to_channelname(channelid)
 
         self._id = None
-        self._bot = bot
-        self.sc = bot.sc
 
     def __str__(self):
         return "#%s" % self.name
@@ -938,7 +945,7 @@ class SlackRoom(Room):
         """
         The channel object exposed by SlackClient
         """
-        id_ = self.sc.server.channels.find(self.name)
+        id_ = slack_client.server.channels.find(self.name)
         if id_ is None:
             raise RoomDoesNotExistError(
                 "%s does not exist (or is a private group you don't have access to)" % str(self)
@@ -955,9 +962,9 @@ class SlackRoom(Room):
           * https://api.slack.com/methods/groups.list
         """
         if self.private:
-            return self._bot.api_call('groups.info', data={'channel': self.id})["group"]
+            return SlackBackend.api_call('groups.info', data={'channel': self.id})["group"]
         else:
-            return self._bot.api_call('channels.info', data={'channel': self.id})["channel"]
+            return SlackBackend.api_call('channels.info', data={'channel': self.id})["channel"]
 
     @property
     def private(self):
@@ -979,7 +986,7 @@ class SlackRoom(Room):
     def join(self, username=None, password=None):
         log.info("Joining channel %s" % str(self))
         try:
-            self._bot.api_call('channels.join', data={'name': self.name})
+            SlackBackend.api_call('channels.join', data={'name': self.name})
         except SlackAPIResponseError as e:
             if e.error == "user_is_bot":
                 raise RoomError("Unable to join channel. " + USER_IS_BOT_HELPTEXT)
@@ -990,10 +997,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith('C'):
                 log.info("Leaving channel %s (%s)" % (str(self), self.id))
-                self._bot.api_call('channels.leave', data={'channel': self.id})
+                SlackBackend.api_call('channels.leave', data={'channel': self.id})
             else:
                 log.info("Leaving group %s (%s)" % (str(self), self.id))
-                self._bot.api_call('groups.leave', data={'channel': self.id})
+                SlackBackend.api_call('groups.leave', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == "user_is_bot":
                 raise RoomError("Unable to leave channel. " + USER_IS_BOT_HELPTEXT)
@@ -1005,10 +1012,10 @@ class SlackRoom(Room):
         try:
             if private:
                 log.info("Creating group %s" % str(self))
-                self._bot.api_call('groups.create', data={'name': self.name})
+                SlackBackend.api_call('groups.create', data={'name': self.name})
             else:
                 log.info("Creating channel %s" % str(self))
-                self._bot.api_call('channels.create', data={'name': self.name})
+                SlackBackend.api_call('channels.create', data={'name': self.name})
         except SlackAPIResponseError as e:
             if e.error == "user_is_bot":
                 raise RoomError("Unable to create channel. " + USER_IS_BOT_HELPTEXT)
@@ -1019,10 +1026,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith('C'):
                 log.info("Archiving channel %s (%s)" % (str(self), self.id))
-                self._bot.api_call('channels.archive', data={'channel': self.id})
+                SlackBackend.api_call('channels.archive', data={'channel': self.id})
             else:
                 log.info("Archiving group %s (%s)" % (str(self), self.id))
-                self._bot.api_call('groups.archive', data={'channel': self.id})
+                SlackBackend.api_call('groups.archive', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == "user_is_bot":
                 raise RoomError("Unable to archive channel. " + USER_IS_BOT_HELPTEXT)
@@ -1032,7 +1039,7 @@ class SlackRoom(Room):
 
     @property
     def exists(self):
-        channels = self._bot.channels(joined_only=False, exclude_archived=False)
+        channels = SlackBackend.channels(joined_only=False, exclude_archived=False)
         return len([c for c in channels if c['name'] == self.name]) > 0
 
     @property
@@ -1051,10 +1058,10 @@ class SlackRoom(Room):
     def topic(self, topic):
         if self.private:
             log.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
-            self._bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
+            SlackBackend.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
         else:
             log.info("Setting topic of %s (%s) to '%s'" % (str(self), self.id, topic))
-            self._bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
+            SlackBackend.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
 
     @property
     def purpose(self):
@@ -1067,24 +1074,24 @@ class SlackRoom(Room):
     def purpose(self, purpose):
         if self.private:
             log.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
-            self._bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
+            SlackBackend.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
         else:
             log.info("Setting purpose of %s (%s) to '%s'" % (str(self), self.id, purpose))
-            self._bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
+            SlackBackend.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
 
     @property
     def occupants(self):
         members = self._channel_info['members']
-        return [SlackRoomOccupant(self.sc, m, self.id, self._bot) for m in members]
+        return [SlackRoomOccupant(m, self.id, self._bot) for m in members]
 
     def invite(self, *args):
-        users = {user['name']: user['id'] for user in self._bot.api_call('users.list')['members']}
+        users = {user['name']: user['id'] for user in SlackBackend.api_call('users.list')['members']}
         for user in args:
             if user not in users:
                 raise UserDoesNotExistError("User '%s' not found" % user)
             log.info("Inviting %s into %s (%s)" % (user, str(self), self.id))
             method = 'groups.invite' if self.private else 'channels.invite'
-            response = self._bot.api_call(
+            response = SlackBackend.api_call(
                 method,
                 data={'channel': self.id, 'user': users[user]},
                 raise_errors=False

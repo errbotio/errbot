@@ -61,7 +61,7 @@ COLORS = {
     'cyan': '#00FFFF'
 }  # Slack doesn't know its colors
 
-MARKDOWN_LINK_REGEX = re.compile(r'([^!])\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
+MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
 
 def slack_markdown_converter(compact_output=False):
@@ -82,7 +82,7 @@ class LinkPreProcessor(Preprocessor):
     """
     def run(self, lines):
         for i, line in enumerate(lines):
-            lines[i] = MARKDOWN_LINK_REGEX.sub(r'\1&lt;\3|\2&gt;', line)
+            lines[i] = MARKDOWN_LINK_REGEX.sub(r'&lt;\2|\1&gt;', line)
         return lines
 
 

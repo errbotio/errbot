@@ -248,6 +248,10 @@ class SlackTests(unittest.TestCase):
             convert("This is [a link](http://example.com/) and a manual URL: https://example.com/.")
         )
         self.assertEqual(
+            "<http://example.com/|This is a link>",
+            convert("[This is a link](http://example.com/)")
+        )
+        self.assertEqual(
             "This is http://example.com/image.png.",
             convert("This is ![an image](http://example.com/image.png).")
         )

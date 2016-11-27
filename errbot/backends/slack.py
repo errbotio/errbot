@@ -838,6 +838,26 @@ class SlackBackend(ErrBot):
             response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
         return response
 
+    def add_reaction(self, mess, reaction):
+        return self._react('reactions.add', mess, reaction)
+
+    def remove_reaction(self, mess, reaction):
+        return self._react('reactions.remove', mess, reaction)
+
+    def _react(self, api_call, mess, reaction):
+        result = self.sc.api_call(api_call,
+                                       channel=mess.to.channelid,
+                                       timestamp=mess.extras['ts'],
+                                       name=reaction)
+        if result['ok']:
+            return
+        elif result.get('error') == 'invalid_name':
+            raise ValueError(result['error'], 'No such emoji', reaction)
+        elif result.get('error') in ('no_reaction', 'already_reacted'):
+            raise LookupError(result['error'])
+        else:
+            raise Exception(result['error'])
+
     def shutdown(self):
         super().shutdown()
 

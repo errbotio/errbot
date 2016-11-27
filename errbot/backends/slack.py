@@ -846,9 +846,9 @@ class SlackBackend(ErrBot):
 
     def _react(self, api_call, mess, reaction):
         result = self.sc.api_call(api_call,
-                                       channel=mess.to.channelid,
-                                       timestamp=mess.extras['ts'],
-                                       name=reaction)
+                                  channel=mess.to.channelid,
+                                  timestamp=mess.extras['ts'],
+                                  name=reaction)
         if result['ok']:
             return
         elif result.get('error') == 'invalid_name':

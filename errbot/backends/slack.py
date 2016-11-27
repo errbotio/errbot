@@ -425,7 +425,6 @@ class SlackBackend(ErrBot):
     def _hello_event_handler(self, event):
         """Event handler for the 'hello' event"""
         self.connect_callback()
-        self.callback_presence(Presence(identifier=self.bot_identifier, status=ONLINE))
 
     def _presence_change_event_handler(self, event):
         """Event handler for the 'presence_change' event"""
@@ -624,9 +623,12 @@ class SlackBackend(ErrBot):
                     to_humanreadable = SlackBackend.channelid_to_channelname(to_channel_id)
             else:
                 to_humanreadable = mess.to.username
-                if isinstance(mess.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !
-                    log.debug("This is a divert to private message, sending it directly to the user.")
+                if isinstance(mess.to, RoomOccupant):
+                    log.debug("This is a divert to private message or a private message with no channel, sending it "
+                              "directly to the user.")
                     to_channel_id = self.get_im_channel(SlackBackend.username_to_userid(mess.to.username))
+                elif isinstance(mess.to, SlackPerson) and mess.to.channelid is None:
+                    to_channel_id = self.get_im_channel(mess.to.userid)
                 else:
                     to_channel_id = mess.to.channelid
 

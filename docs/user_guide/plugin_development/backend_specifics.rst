@@ -45,6 +45,29 @@ Backend                             Mode value
 :class:`~errbot.backends.xmpp`      xmpp
 ==================================  ==========
 
+Here's an example of using a backend-specific feature. In Slack, emoji reactions can be added to messages the bot
+receives using the `add_reaction` and `remove_reaction` methods. For example, you could add an hourglass to messages
+that will take a long time to reply fully to.
+
+.. code-block:: python
+
+    from errbot import BotPlugin, botcmd
+    from time import sleep
+
+    class PluginExample(BotPlugin):
+        @botcmd
+        def longcompute(self, mess, args):
+            if self._bot.mode == "slack":
+                self._bot.add_reaction(mess, "hourglass")
+            else:
+                yield "Finding the answer..."
+
+            sleep(10)
+
+            yield "The answer is: 42"
+            if self._bot.mode == "slack":
+                self._bot.remove_reaction(mess, "hourglass")
+
 
 Getting to the underlying client library
 ----------------------------------------

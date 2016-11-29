@@ -52,7 +52,6 @@ that will take a long time to reply fully to.
 .. code-block:: python
 
     from errbot import BotPlugin, botcmd
-    from time import sleep
 
     class PluginExample(BotPlugin):
         @botcmd
@@ -62,7 +61,7 @@ that will take a long time to reply fully to.
             else:
                 yield "Finding the answer..."
 
-            sleep(10)
+            time.sleep(10)
 
             yield "The answer is: 42"
             if self._bot.mode == "slack":

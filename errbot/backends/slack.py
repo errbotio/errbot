@@ -486,7 +486,7 @@ class SlackBackend(ErrBot):
 
         msg = Message(
             text,
-            extras={'attachments': event.get('attachments'), 'ts': event['ts']})
+            extras={'attachments': event.get('attachments'), 'ts': (event['ts'],)})
 
         if channel.startswith('D'):
             if subtype == "bot_message":
@@ -628,13 +628,17 @@ class SlackBackend(ErrBot):
             limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
             parts = self.prepare_message_body(body, limit)
 
+            timestamps = []
             for part in parts:
-                self.api_call('chat.postMessage', data={
+                result = self.api_call('chat.postMessage', data={
                     'channel': to_channel_id,
                     'text': part,
                     'unfurl_media': 'true',
                     'as_user': 'true',
                 })
+                timestamps.append(result['ts'])
+
+            mess.extras['ts'] = timestamps
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
@@ -845,7 +849,7 @@ class SlackBackend(ErrBot):
         :param reaction: A str giving an emoji, without colons before and after.
         :raises: ValueError if the emoji doesn't exist or is already on the message.
         """
-        self._react('reactions.add', msg, reaction)
+        return self._react('reactions.add', msg, reaction)
 
     def remove_reaction(self, msg: Message, reaction: str) -> None:
         """
@@ -854,12 +858,12 @@ class SlackBackend(ErrBot):
         :param reaction: A str giving an emoji, without colons before and after.
         :raises: ValueError if the emoji doesn't exist or isn't already on the message.
         """
-        self._react('reactions.remove', msg, reaction)
+        return self._react('reactions.remove', msg, reaction)
 
     def _react(self, method: str, msg: Message, reaction: str) -> None:
         try:
-            self.api_call(method, data={'channel': mess.to.channelid,
-                                        'timestamp': mess.extras['ts'],
+            self.api_call(method, data={'channel': msg.to.channelid,
+                                        'timestamp': msg.extras['ts'][0],
                                         'name': reaction})
         except SlackAPIResponseError as e:
             if e.error == 'invalid_name':

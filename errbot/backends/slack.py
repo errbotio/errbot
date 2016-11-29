@@ -633,6 +633,7 @@ class SlackBackend(ErrBot):
                     'channel': to_channel_id,
                     'text': part,
                     'unfurl_media': 'true',
+                    'link_names': '1',
                     'as_user': 'true',
                 })
         except Exception:
@@ -688,7 +689,13 @@ class SlackBackend(ErrBot):
         if card.fields:
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
-        data = {'text': ' ', 'channel': to_channel_id, 'attachments': json.dumps([attachment]), 'as_user': 'true'}
+        data = {
+            'text': ' ',
+            'channel': to_channel_id,
+            'attachments': json.dumps([attachment]),
+            'link_names': '1',
+            'as_user': 'true'
+        }
         try:
             log.debug('Sending data:\n%s', data)
             self.api_call('chat.postMessage', data=data)

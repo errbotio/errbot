@@ -69,7 +69,7 @@ def get_config(config_path):
         )
         log.info(
             'You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (
-                os.path.join(__file__, 'config-template.py'), config_path)
+                os.path.realpath(os.path.join(__file__, os.pardir, 'config-template.py')), config_path)
         )
         exit(-1)
 

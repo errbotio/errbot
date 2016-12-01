@@ -33,6 +33,7 @@ class NSC(object):
     def __str__(self):
         return self.s
 
+
 # The translation table for the special characters.
 CharacterTable = namedtuple('CharacterTable',
                             ['fg_black',
@@ -482,6 +483,7 @@ def translate(element, chr_table=ANSI_CHRS, borders=True):
 # patch us in
 def enable_format(name, chr_table, borders=True):
     Markdown.output_formats[name] = partial(translate, chr_table=chr_table, borders=borders)
+
 
 for n, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
     enable_format(n, ct)

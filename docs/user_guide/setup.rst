@@ -148,6 +148,20 @@ is outside the scope of this document however.
 
     If you're running errbot in the foreground then pressing Ctrl+C is equivalent to sending `SIGINT`.
 
+Daemon Configurations
+^^^^^^^^^^^^^^^^^^^^^
+
+These are a few example configurations using common init daemons:
+
+**supervisord** (`/etc/supervisor/conf.d/errbot.conf`)
+
+.. literalinclude:: ../code_examples/supervisord.conf
+    :language: sh
+
+**systemd** (`/etc/systemd/system/errbot.service`)
+
+.. literalinclude:: ../code_examples/systemd.service
+    :language: sh
 
 Upgrading
 ---------

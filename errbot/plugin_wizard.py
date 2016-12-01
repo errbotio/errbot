@@ -69,8 +69,8 @@ def new_plugin_wizard(directory=None):
         plug["Errbot"]["Max"] = errbot_max_version
 
     plugin_path = directory
-    plugfile_path = os.path.join(plugin_path, module_name+".plug")
-    pyfile_path = os.path.join(plugin_path, module_name+".py")
+    plugfile_path = os.path.join(plugin_path, module_name + ".plug")
+    pyfile_path = os.path.join(plugin_path, module_name + ".py")
 
     try:
         os.makedirs(plugin_path, mode=0o700)
@@ -84,7 +84,7 @@ def new_plugin_wizard(directory=None):
             "If you continue, these will be overwritten.\n"
             "Press Ctrl+C to abort now or type in 'overwrite' to confirm overwriting of these files."
             "".format(
-                path=os.path.join(directory, module_name+".{py,plug}")
+                path=os.path.join(directory, module_name + ".{py,plug}")
             ),
             valid_responses=["overwrite"],
         )

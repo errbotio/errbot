@@ -367,6 +367,9 @@ class SlackBackend(ErrBot):
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
             log.info("Connected")
+            # Block on reads instead of using the busy loop suggested in slackclient docs
+            # https://github.com/slackapi/python-slackclient/issues/46#issuecomment-165674808
+            self.sc.server.websocket.sock.setblocking(True)
             self.reset_reconnection_count()
 
             # Inject bot identity to alternative prefixes
@@ -374,12 +377,8 @@ class SlackBackend(ErrBot):
 
             try:
                 while True:
-                    messages = self.sc.rtm_read()
-                    if messages:
-                        for message in messages:
-                            self._dispatch_slack_message(message)
-                    else:
-                        time.sleep(1)
+                    for message in self.sc.rtm_read():
+                        self._dispatch_slack_message(message)
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
                 return True

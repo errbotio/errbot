@@ -1,0 +1,6 @@
+[Core]
+Name = MyPlugin
+Module = myplugin
+
+[Documentation]
+Description = my plugin

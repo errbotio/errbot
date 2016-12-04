@@ -1,6 +1,6 @@
 import os
 import errbot.backends.base
-from errbot.backends.test import testbot, TestOccupant
+from errbot.backends.test import TestOccupant
 import logging
 log = logging.getLogger(__name__)
 

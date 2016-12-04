@@ -1,6 +1,7 @@
 from os import path, makedirs
 import logging
 import sys
+import ast
 
 from errbot.core import ErrBot
 from errbot.plugin_manager import BotPluginManager
@@ -144,7 +145,7 @@ def setup_bot(backend_name, logger, config, restore=None):
             sys.exit(-1)
         log.info('**** RESTORING the bot from %s' % restore)
         with open(restore) as f:
-            exec(f.read())
+            ast.literal_eval(f.read())
         bot.close_storage()
         print('Restore complete. You can restart the bot normally')
         sys.exit(0)
@@ -175,11 +176,12 @@ def bpm_from_config(config):
     """Creates a backend plugin manager from a given config."""
     extra = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
     return SpecificPluginManager(
-            config,
-            'backends',
-            ErrBot,
-            CORE_BACKENDS,
-            extra_search_dirs=extra)
+        config,
+        'backends',
+        ErrBot,
+        CORE_BACKENDS,
+        extra_search_dirs=extra
+    )
 
 
 def enumerate_backends(config):

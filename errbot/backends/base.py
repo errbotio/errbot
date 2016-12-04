@@ -455,22 +455,6 @@ class Presence(object):
         self._status = status
         self._message = message
 
-    @deprecated
-    @property
-    def nick(self) -> str:
-        """
-        @use identifier.nick
-        :return:
-        """
-        return self._identifier.nick
-
-    @deprecated
-    @property
-    def occupant(self) -> RoomOccupant:
-        """ @use identifier
-        """
-        return self._identifier
-
     @property
     def identifier(self) -> Identifier:
         """
@@ -498,18 +482,17 @@ class Presence(object):
 
     def __str__(self):
         response = ''
-        if self._nick:
-            response += 'Nick:%s ' % self._nick
         if self._identifier:
-            response += 'Idd:%s ' % self._identifier
+            response += 'identifier: "%s" ' % self._identifier
         if self._status:
-            response += 'Status:%s ' % self._status
+            response += 'status: "%s" ' % self._status
         if self._message:
-            response += 'Msg:%s ' % self._message
+            response += 'message: "%s" ' % self._message
         return response
 
     def __unicode__(self):
         return str(self.__str__())
+
 
 STREAM_WAITING_TO_START = 'pending'
 STREAM_TRANSFER_IN_PROGRESS = 'in progress'
@@ -725,7 +708,7 @@ class Backend(ABC):
         self._reconnection_delay *= self._reconnection_multiplier
         if self._reconnection_delay > self._reconnection_max_delay:
             self._reconnection_delay = self._reconnection_max_delay
-        self._reconnection_delay += random.uniform(*self._reconnection_jitter)
+        self._reconnection_delay += random.uniform(*self._reconnection_jitter)  # nosec
 
     def reset_reconnection_count(self) -> None:
         """

@@ -21,6 +21,7 @@ import os
 import sys
 from os import path, sep, getcwd, access, W_OK
 from platform import system
+import ast
 
 from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
@@ -68,7 +69,7 @@ def get_config(config_path):
         )
         log.info(
             'You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (
-                os.path.join(__file__, 'config-template.py'), config_path)
+                os.path.realpath(os.path.join(__file__, os.pardir, 'config-template.py')), config_path)
         )
         exit(-1)
 
@@ -83,7 +84,7 @@ def get_config(config_path):
 
 def _read_dict():
     import collections
-    new_dict = eval(sys.stdin.read())
+    new_dict = ast.literal_eval(sys.stdin.read())
     if not isinstance(new_dict, collections.Mapping):
         raise ValueError("A dictionary written in python is needed from stdin. Type=%s, Value = %s" % (type(new_dict),
                                                                                                        repr(new_dict)))
@@ -154,7 +155,7 @@ def main():
             example_plugin_dir = os.path.join(extra_plugin_dir, 'err-example')
             log_path = os.path.join(base_dir, 'errbot.log')
             templates_dir = os.path.join(os.path.dirname(__file__), 'templates', 'initdir')
-            env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir))
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir), autoescape=True)
             config_template = env.get_template('config.py.tmpl')
 
             os.mkdir(data_dir)
@@ -294,6 +295,7 @@ def main():
 
     bootstrap(backend, root_logger, config, restore)
     log.info('Process exiting')
+
 
 if __name__ == "__main__":
     main()

@@ -24,6 +24,7 @@ class FlowNode(object):
 
     The predicate is a function that takes one parameter, the context of the conversation.
     """
+
     def __init__(self, command: str=None):
         """
         Creates a FlowNone, takes the command to which the Node is linked to.
@@ -103,6 +104,7 @@ class FlowRoot(FlowNode):
 class _FlowEnd(FlowNode):
     def __str__(self):
         return 'END'
+
 
 #: Flow marker indicating that the flow ends.
 FLOW_END = _FlowEnd()
@@ -301,7 +303,7 @@ class FlowExecutor(object):
         :param user: the identifier of the person who started this flow
         :returns: The name of the flow it triggered or None if none were matching.
         """
-        log.debug("Test if the command %s is an auto-trigger for any flow ...",  cmd)
+        log.debug("Test if the command %s is an auto-trigger for any flow ...", cmd)
         with self._lock:
             for name, flow_root in self.flow_roots.items():
                 if cmd in flow_root.auto_triggers and not self.check_inflight_already_running(user):

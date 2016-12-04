@@ -1,4 +1,3 @@
-from errbot.backends.test import testbot
 from os import path
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'syntax_plugin')

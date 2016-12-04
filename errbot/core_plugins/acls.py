@@ -19,7 +19,9 @@ def glob(text, patterns):
     """
     if isinstance(patterns, str):
         patterns = (patterns,)
-    return any(fnmatch.fnmatchcase(text, pattern) for pattern in patterns)
+    if not isinstance(text, str):
+        text = str(text)
+    return any(fnmatch.fnmatchcase(text, str(pattern)) for pattern in patterns)
 
 
 def ciglob(text, patterns):
@@ -91,9 +93,9 @@ class ACLS(BotPlugin):
                 return self.access_denied(msg, "You're not allowed to access this command from this room", dry_run)
         elif 'allowprivate' in acl and acl['allowprivate'] is False:
             return self.access_denied(
-                    msg,
-                    "You're not allowed to access this command via private message to me",
-                    dry_run
+                msg,
+                "You're not allowed to access this command via private message to me",
+                dry_run
             )
 
         self.log.info("Check if %s is admin only command." % cmd)

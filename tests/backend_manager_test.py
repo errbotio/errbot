@@ -11,11 +11,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 def test_builtins():
     bpm = SpecificPluginManager(
-            {},
-            'backends',
-            ErrBot,
-            CORE_BACKENDS,
-            extra_search_dirs=())
+        {},
+        'backends',
+        ErrBot,
+        CORE_BACKENDS,
+        extra_search_dirs=())
     backend_plug = bpm.getPluginCandidates()
     names = [plug.name for (_, _, plug) in backend_plug]
     assert 'Text' in names

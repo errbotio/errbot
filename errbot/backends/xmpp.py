@@ -307,7 +307,7 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, bot=None):
+    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, use_ipv6=None, bot=None):
         if feature is None:
             feature = {}
         self._bot = bot
@@ -323,6 +323,9 @@ class XMPPConnection(object):
         if keepalive is not None:
             self.client.whitespace_keepalive = True  # Just in case SleekXMPP's default changes to False in the future
             self.client.whitespace_keepalive_interval = keepalive
+
+        if use_ipv6 is not None:
+            self.client.use_ipv6 = use_ipv6
 
         self.client.ca_certs = ca_cert  # Used for TLS certificate validation
 
@@ -387,6 +390,7 @@ class XMPPBackend(ErrBot):
         self.keepalive = config.__dict__.get('XMPP_KEEPALIVE_INTERVAL', None)
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
         self.xhtmlim = config.__dict__.get('XMPP_XHTML_IM', False)
+        self.use_ipv6 = config.__dict__.get('XMPP_USE_IPV6', None)
 
         # generic backend compatibility
         self.bot_identifier = self._build_person(self.jid)
@@ -413,6 +417,7 @@ class XMPPBackend(ErrBot):
             keepalive=self.keepalive,
             ca_cert=self.ca_cert,
             server=self.server,
+            use_ipv6=self.use_ipv6,
             bot=self
         )
 

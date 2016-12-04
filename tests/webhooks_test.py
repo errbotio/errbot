@@ -168,3 +168,9 @@ def test_custom_headers_and_status_codes(webhook_testbot):
     assert requests.post(
         'http://localhost:{}/webhook7'.format(WEBSERVER_PORT)
     ).status_code == 403
+
+
+def test_lambda_webhook(webhook_testbot):
+    assert requests.post(
+        'http://localhost:{}/lambda'.format(WEBSERVER_PORT)
+    ).status_code == 200

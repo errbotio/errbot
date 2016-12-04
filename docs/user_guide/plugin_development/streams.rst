@@ -10,7 +10,7 @@ The bot can be send files from the users. You just have to implement the
 :func:`~errbot.botplugin.BotPlugin.callback_stream` method on your plugin to be notified for new incoming file
 tranfer requests.
 
-Note: note all backends supports this, check if it has been correctly implemented from the backend itself.
+Note: not all backends supports this, check if it has been correctly implemented from the backend itself.
 
 For example, getting the initiator of the transfer and the content, see :class:`~errbot.backends.base.Stream` for
 more info about the various fields.

@@ -186,8 +186,7 @@ class SlackTests(unittest.TestCase):
         build_from = self.slack.build_identifier
 
         def check_person(person, expected_uid, expected_cid):
-            return person.userid == expected_uid and \
-                   person.channelid == expected_cid
+            return person.userid == expected_uid and person.channelid == expected_cid
         assert build_from("<#C12345>").name == 'meh'
         assert check_person(build_from("<@U12345>"), "U12345", "Cfoo")
         assert check_person(build_from("@user"), "Utest", "Cfoo")
@@ -247,6 +246,10 @@ class SlackTests(unittest.TestCase):
         self.assertEqual(
             "This is <http://example.com/|a link> and a manual URL: https://example.com/.",
             convert("This is [a link](http://example.com/) and a manual URL: https://example.com/.")
+        )
+        self.assertEqual(
+            "<http://example.com/|This is a link>",
+            convert("[This is a link](http://example.com/)")
         )
         self.assertEqual(
             "This is http://example.com/image.png.",

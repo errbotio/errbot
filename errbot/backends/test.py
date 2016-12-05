@@ -230,6 +230,10 @@ class TestBackend(ErrBot):
         super().send_message(mess)
         self.outgoing_message_queue.put(self.md.convert(mess.body))
 
+    def send_stream_request(self, user, fsource, name, size, stream_type):
+        # Just dump the stream contents to the message queue
+        self.outgoing_message_queue.put(fsource.read())
+
     def serve_forever(self):
         self.connect_callback()  # notify that the connection occured
         try:

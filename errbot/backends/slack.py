@@ -499,6 +499,7 @@ class SlackBackend(ErrBot):
                 msg.frm = SlackPerson(self.sc, user, event['channel'])
             msg.to = SlackPerson(self.sc, self.username_to_userid(self.sc.server.username),
                                  event['channel'])
+            channel_link_name = event['channel']
         else:
             if subtype == "bot_message":
                 msg.frm = SlackRoomBot(
@@ -511,6 +512,13 @@ class SlackBackend(ErrBot):
             else:
                 msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
+            channel_link_name = msg.to.name
+
+        msg.extras['url'] = 'https://{domain}.slack.com/archives/{channelid}/p{ts}'.format(
+            domain=self.sc.server.domain,
+            channelid=channel_link_name,
+            ts=event['ts'].replace('.', '')
+        )
 
         self.callback_message(msg)
 

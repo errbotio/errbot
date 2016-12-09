@@ -505,7 +505,8 @@ class SlackBackend(ErrBot):
                 msg.frm = SlackRoomBot(
                     self.sc,
                     bot_id=event['bot_id'],
-                    bot_username=event['username'],
+                    bot_username=event.get('username', 'bot'),  # SlackClient doesn't keep the bot data from the login
+                    # message, so we'll just say it came from 'bot'
                     channelid=event['channel'],
                     bot=self
                 )
@@ -850,36 +851,42 @@ class SlackBackend(ErrBot):
             response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
         return response
 
-    def add_reaction(self, msg: Message, reaction: str) -> None:
+    def add_reaction(self, mess: Message, reaction: str) -> None:
         """
         Add the specified reaction to the Message.
         :param mess: A Message.
         :param reaction: A str giving an emoji, without colons before and after.
         :raises: ValueError if the emoji doesn't exist or is already on the message.
         """
-        return self._react('reactions.add', msg, reaction)
+        return self._react('reactions.add', mess, reaction)
 
-    def remove_reaction(self, msg: Message, reaction: str) -> None:
+    def remove_reaction(self, mess: Message, reaction: str) -> None:
         """
         Add the specified reaction to the Message.
         :param mess: A Message.
         :param reaction: A str giving an emoji, without colons before and after.
         :raises: ValueError if the emoji doesn't exist or isn't already on the message.
         """
-        return self._react('reactions.remove', msg, reaction)
+        return self._react('reactions.remove', mess, reaction)
 
-    def _react(self, method: str, msg: Message, reaction: str) -> None:
+    def _react(self, method: str, mess: Message, reaction: str) -> None:
         try:
-            self.api_call(method, data={'channel': msg.to.channelid,
-                                        'timestamp': msg.extras['ts'][0],
+            # this logic is from send_message
+            if mess.is_group:
+                to_channel_id = mess.to.id
+            else:
+                to_channel_id = mess.to.channelid
+
+            self.api_call(method, data={'channel': to_channel_id,
+                                        'timestamp': mess.extras['ts'][0],
                                         'name': reaction})
         except SlackAPIResponseError as e:
             if e.error == 'invalid_name':
-                raise ValueError(result['error'], 'No such emoji', reaction)
+                raise ValueError(e.error, 'No such emoji', reaction)
             elif e.error in ('no_reaction', 'already_reacted'):
-                raise ValueError(result['error'])
+                raise ValueError(e.error)
             else:
-                raise SlackAPIResponseError(error=result['error'])
+                raise SlackAPIResponseError(error=e.error)
 
     def shutdown(self):
         super().shutdown()
@@ -1013,6 +1020,8 @@ class SlackRoom(Room):
         if self._id is None:
             self._id = self._channel.id
         return self._id
+
+    channelid = id
 
     @property
     def name(self):

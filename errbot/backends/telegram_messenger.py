@@ -75,7 +75,7 @@ class TelegramIdentifier(Identifier):
 
 class TelegramPerson(TelegramIdentifier, Person):
     def __init__(self, id, first_name=None, last_name=None, username=None):
-        super().__init__(id)
+        super().__init__(str(id))
         self._first_name = first_name
         self._last_name = last_name
         self._username = username

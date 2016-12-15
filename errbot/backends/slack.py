@@ -473,9 +473,11 @@ class SlackBackend(ErrBot):
         if 'message' in event:
             text = event['message']['text']
             user = event['message'].get('user', event.get('bot_id'))
+            ts = event['message']['ts']
         else:
             text = event['text']
             user = event.get('user', event.get('bot_id'))
+            ts = event['ts']
 
         text, mentioned = self.process_mentions(text)
 
@@ -486,7 +488,7 @@ class SlackBackend(ErrBot):
 
         msg = Message(
             text,
-            extras={'attachments': event.get('attachments'), 'ts': (event['ts'],)})
+            extras={'attachments': event.get('attachments'), 'ts': (ts,)})
 
         if channel.startswith('D'):
             if subtype == "bot_message":

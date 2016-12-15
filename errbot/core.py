@@ -331,6 +331,8 @@ class ErrBot(Backend, StoreMixin):
             if suppress_cmd_not_found:
                 log.debug("Surpressing command not found feedback")
             else:
+                """ Allow command to fall-through to plugin overrides """
+                self._dispatch_to_plugins('callback_command_not_found', mess)
                 reply = self.unknown_command(mess, command, args)
                 if reply is None:
                     reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
@@ -613,6 +615,15 @@ class ErrBot(Backend, StoreMixin):
     def callback_stream(self, stream):
         log.info("Initiated an incoming transfer %s" % stream)
         Tee(stream, self.plugin_manager.get_all_active_plugin_objects()).start()
+
+    def callback_command_not_found(self, mess):
+        """
+            Dispatch message to all plugins if a command was not found.
+
+            This will allow users to do additional processing on the message
+            if it was not handled by any other plugin.
+        """
+        self._dispatch_to_plugins('callback_command_not_found', mess)
 
     def signal_connect_to_all_plugins(self):
         for bot in self.plugin_manager.get_all_active_plugin_objects():

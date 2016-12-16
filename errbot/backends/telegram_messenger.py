@@ -56,7 +56,7 @@ class TelegramBotFilter(object):
 
 class TelegramIdentifier(Identifier):
     def __init__(self, id):
-        self._id = id
+        self._id = str(id)
 
     @property
     def id(self):
@@ -75,7 +75,7 @@ class TelegramIdentifier(Identifier):
 
 class TelegramPerson(TelegramIdentifier, Person):
     def __init__(self, id, first_name=None, last_name=None, username=None):
-        super().__init__(str(id))
+        super().__init__(id)
         self._first_name = first_name
         self._last_name = last_name
         self._username = username

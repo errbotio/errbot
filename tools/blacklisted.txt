@@ -405,3 +405,5 @@ yusanenko-vadim/django-1.4-error-monitor
 NinjaWolf64/Python-3.4.3-Errors
 olgaramz/Automatic-detection-of-errors-in-comparative-constructions
 kevindeasis/Simulator-for-Error-Correction-Detection-Encoding-Hamming-s-
+makelinux/errors_resolver
+pylola/haiku-errors

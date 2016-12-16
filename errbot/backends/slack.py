@@ -648,7 +648,7 @@ class SlackBackend(ErrBot):
             resp = self.api_call('files.upload', data={
                 'channels': stream.identifier.channelid,
                 'filename': stream.name,
-                'file': stream
+                'file': stream.raw
             })
             if "ok" in resp and resp["ok"]:
                 stream.success()

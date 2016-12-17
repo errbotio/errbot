@@ -1,0 +1,10 @@
+[Core]
+Name = CommandNotFoundFilter
+Module = cnf_filter
+Core = True
+
+[Documentation]
+Description = Allow overridable actions when a command is not present.
+
+[Python]
+Version = 2+

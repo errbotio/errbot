@@ -33,9 +33,9 @@ class CommandNotFoundFilter(BotPlugin):
             log.debug("Surpressing command not found feedback")
         else:
             if msg.body.find(' ') > 0:
-                command = msg.body[:msg.body.index(' ')].replace(self._bot.bot_config.BOT_PREFIX, '', 1)
+                command = msg.body[:msg.body.index(' ')]
             else:
-                command = msg.body.replace(self._bot.bot_config.BOT_PREFIX, '', 1)
+                command = msg.body
 
             prefixes = self._bot.bot_config.BOT_ALT_PREFIXES + (self._bot.bot_config.BOT_PREFIX,)
             for prefix in prefixes:

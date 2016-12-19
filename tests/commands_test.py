@@ -322,10 +322,11 @@ def test_no_suggest_on_re_commands(testbot):
     assert '!re bar' not in testbot.pop_message()
 
 def test_callback_no_command(testbot):
-    extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cnf_callback_plugin')
+    extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'commandnotfound_plugin')
     cmd = '!this_is_not_a_real_command_at_all'
     expected_str = "Command fell through: {}".format(cmd)
 
+    testbot.exec_command('!plugin deactivate CommandNotFoundFilter')
     testbot.bot.plugin_manager.update_plugin_places([], extra_plugin_dir)
-    testbot.exec_command('!plugin activate command_not_found')
+    testbot.exec_command('!plugin activate TestCommandNotFoundFilter')
     assert expected_str == testbot.exec_command(cmd)

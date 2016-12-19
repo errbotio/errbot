@@ -29,7 +29,7 @@ class CommandNotFoundFilter(BotPlugin):
         if not emptycmd:
             return msg, cmd, args
 
-        if self._bot.bot_config.SUPPRESS_CMD_NOT_FOUND:
+        if self.bot_config.SUPPRESS_CMD_NOT_FOUND:
             log.debug("Surpressing command not found feedback")
         else:
             if msg.body.find(' ') > 0:
@@ -37,10 +37,10 @@ class CommandNotFoundFilter(BotPlugin):
             else:
                 command = msg.body
 
-            prefixes = self._bot.bot_config.BOT_ALT_PREFIXES + (self._bot.bot_config.BOT_PREFIX,)
+            prefixes = self.bot_config.BOT_ALT_PREFIXES + (self.bot_config.BOT_PREFIX,)
             for prefix in prefixes:
-                if command[0] == prefix:
-                    command = command[1:]
+                if command.startswith(prefix):
+                    command = command.replace(prefix, '', 1)
                     break
 
             reply = self._bot.unknown_command(msg, command, args)

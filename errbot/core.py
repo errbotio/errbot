@@ -612,15 +612,6 @@ class ErrBot(Backend, StoreMixin):
         log.info("Initiated an incoming transfer %s" % stream)
         Tee(stream, self.plugin_manager.get_all_active_plugin_objects()).start()
 
-    def callback_command_not_found(self, mess):
-        """
-            Dispatch message to all plugins if a command was not found.
-
-            This will allow users to do additional processing on the message
-            if it was not handled by any other plugin.
-        """
-        self._dispatch_to_plugins('callback_command_not_found', mess)
-
     def signal_connect_to_all_plugins(self):
         for bot in self.plugin_manager.get_all_active_plugin_objects():
             if hasattr(bot, 'callback_connect'):

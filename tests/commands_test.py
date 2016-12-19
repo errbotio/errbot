@@ -321,8 +321,13 @@ def test_no_suggest_on_re_commands(testbot):
     # Don't suggest a regexp command.
     assert '!re bar' not in testbot.pop_message()
 
+
 def test_callback_no_command(testbot):
-    extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'commandnotfound_plugin')
+    extra_plugin_dir = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'commandnotfound_plugin'
+    )
+
     cmd = '!this_is_not_a_real_command_at_all'
     expected_str = "Command fell through: {}".format(cmd)
 

@@ -334,14 +334,6 @@ class ErrBot(Backend, StoreMixin):
                     if reply:
                         self.send_simple_reply(mess, reply)
                         return True
-            if suppress_cmd_not_found:
-                log.debug("Surpressing command not found feedback")
-            else:
-                reply = self.unknown_command(mess, command, args)
-                if reply is None:
-                    reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
-                if reply:
-                    self.send_simple_reply(mess, reply)
         return True
 
     def _process_command_filters(self, msg, cmd, args, dry_run=False):

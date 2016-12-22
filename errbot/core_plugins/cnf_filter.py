@@ -2,16 +2,7 @@ from errbot import BotPlugin, cmdfilter
 
 
 class CommandNotFoundFilter(BotPlugin):
-    """
-    Allow overriding behavior when a command is not found.
-    Attribute "catch_unprocessed" causes filter to be executed when a command
-    is not found.
-    """
-    def __init__(self, *args, **kwargs):
-        super(CommandNotFoundFilter, self).__init__(*args, **kwargs)
-        self.catch_unprocessed = True
-
-    @cmdfilter
+    @cmdfilter(catch_unprocessed=True)
     def cnf_filter(self, msg, cmd, args, dry_run, emptycmd=False):
         """
         Check if command exists.  If not, signal plugins.  This plugin

@@ -470,10 +470,10 @@ class SlackBackend(ErrBot):
             return
 
         if 'message' in event:
-            text = event['message']['text']
+            text = event['message'].get('text', '')
             user = event['message'].get('user', event.get('bot_id'))
         else:
-            text = event['text']
+            text = event.get('text', '')
             user = event.get('user', event.get('bot_id'))
 
         text, mentioned = self.process_mentions(text)

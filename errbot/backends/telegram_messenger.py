@@ -366,9 +366,9 @@ class TelegramBackend(ErrBot):
                                             **kwargs)
         elif msg_type == 'location':
             msg = self.telegram.sendLocation(chat_id=chat_id,
-                                             latitude =kwargs.pop('latitude', ''),
+                                             latitude=kwargs.pop('latitude', ''),
                                              longitude=kwargs.pop('longitude', ''),
-                                              **kwargs)
+                                             **kwargs)
         return msg
 
     def _telegram_upload_stream(self, stream, **kwargs):

@@ -369,6 +369,9 @@ class TelegramBackend(ErrBot):
                                              latitude=kwargs.pop('latitude', ''),
                                              longitude=kwargs.pop('longitude', ''),
                                              **kwargs)
+        else:
+            raise ValueError('Expected a valid choice for `msg_type`, '
+                             'got: {}.'.format(msg_type))
         return msg
 
     def _telegram_upload_stream(self, stream, **kwargs):
@@ -376,10 +379,10 @@ class TelegramBackend(ErrBot):
         msg = None
         try:
             stream.accept()
-            self._telegram_special_message(chat_id=stream.identifier.id,
-                                           content=stream.raw,
-                                           msg_type=stream.stream_type,
-                                           **kwargs)
+            msg = self._telegram_special_message(chat_id=stream.identifier.id,
+                                                 content=stream.raw,
+                                                 msg_type=stream.stream_type,
+                                                 **kwargs)
         except:
             log.exception("Upload of {0} to {1} failed.".format(stream.name,
                                                                 stream.identifier.username))

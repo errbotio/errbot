@@ -31,7 +31,7 @@ Installing into a `virtualenv`_ is **strongly** recommended.
 If you have virtualenv installed, you can do for example::
 
     virtualenv --python `which python3` ~/.errbot-ve
-    ~/.errbot-ve/pip install errbot
+    ~/.errbot-ve/bin/pip install errbot
 
 
 If you have virtualenvwrapper installed it is even simpler::

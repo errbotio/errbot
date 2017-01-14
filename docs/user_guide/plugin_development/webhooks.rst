@@ -5,7 +5,7 @@ Errbot has a small integrated webserver that is capable of hooking up
 endpoints to methods inside your plugins.
 
 You must configure the *Webserver* plugin before this functionality
-can be used. You can get the configuration template using `!config
+can be used. You can get the configuration template using `!plugin config
 Webserver`, from where it's just a simple matter of plugging in the
 desired settings.
 

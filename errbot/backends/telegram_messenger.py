@@ -366,9 +366,9 @@ class TelegramBackend(ErrBot):
                                             **kwargs)
         elif msg_type == 'location':
             msg = self.telegram.sendLocation(chat_id=chat_id,
-                                             latitude =kwargs.pop('latitude', ''),
+                                             latitude=kwargs.pop('latitude', ''),
                                              longitude=kwargs.pop('longitude', ''),
-                                              **kwargs)
+                                             **kwargs)
         else:
             raise ValueError('Expected a valid choice for `msg_type`, '
                              'got: {}.'.format(msg_type))

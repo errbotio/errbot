@@ -447,13 +447,13 @@ class TelegramBackend(ErrBot):
                                            msg_type=stream_type,
                                            **meta)
             log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                      identifier.username, size, stream_type))
+                      identifier.id, size, stream_type))
 
             stream = content
         else:
             stream = Stream(identifier, content, name, size, stream_type)
             log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                      identifier.username, size, stream_type))
+                      identifier.id, size, stream_type))
             self.thread_pool.putRequest(WorkRequest(self._telegram_upload_stream, args=(stream,)))
 
         return stream

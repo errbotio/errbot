@@ -385,7 +385,7 @@ class TelegramBackend(ErrBot):
                                                  **kwargs)
         except:
             log.exception("Upload of {0} to {1} failed.".format(stream.name,
-                                                                stream.identifier.username))
+                                                                stream.identifier))
         else:
             if msg is None:
                 stream.error()
@@ -453,7 +453,7 @@ class TelegramBackend(ErrBot):
         else:
             stream = Stream(identifier, content, name, size, stream_type)
             log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                      identifier.username, size, stream_type))
+                      identifier, size, stream_type))
             self.thread_pool.putRequest(WorkRequest(self._telegram_upload_stream, args=(stream,)))
 
         return stream

@@ -319,18 +319,15 @@ class TelegramBackend(ErrBot):
         identifier, _ = self._reply_identifiers(message)
 
         # create a temporary directory where to download it
-        file_path = os.path.join(tempfile.TemporaryDirectory().name,
+        file_path = os.path.join(tempfile.mkdtemp(),
                                  fileobj.file_name)
 
         # build the file metadata to use Telegram API
-        tg_file = telegram.File(file_id=fileobj.file_id,
-                                bot=self.telegram,
-                                file_size=fileobj.file_size,
-                                file_path=file_path)
+        new_file = self.telegram.getFile(fileobj.file_id)
 
         try:
             # download the file
-            tg_file.download()
+            new_file.download(custom_path=file_path)
 
             # open the file
             content = open(file_path, 'rb')
@@ -339,7 +336,7 @@ class TelegramBackend(ErrBot):
                                                                   str(exc)))
         else:
             # create the stream object and callback
-            stream = Stream(identifier, content, fileobj.file_path, fileobj.file_size)
+            stream = Stream(identifier, content, file_path, fileobj.file_size)
             self.callback_stream(stream)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
@@ -528,7 +525,10 @@ class TelegramBackend(ErrBot):
             self._dispatch_to_plugins('callback_message', mess)
 
     def callback_stream(self, stream):
-        log.info('TODO')
+        """Dispatch the stream to all the plugins."""
+        if stream:
+            # Act only in the backend tells us that this message is OK to broadcast
+            self._dispatch_to_plugins('callback_stream', stream)
 
     @staticmethod
     def _is_numeric(input_):

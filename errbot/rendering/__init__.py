@@ -6,7 +6,8 @@ from markdown.extensions.extra import ExtraExtension
 
 # Attribute regexp looks for extendend syntax: {: ... }
 ATTR_RE = re.compile(r'\{:([^\}]*)\}')
-MD_ESCAPE_RE = re.compile('|'.join(re.escape(c) for c in Markdown.ESCAPED_CHARS))
+MD_ESCAPE_RE = re.compile('|'.join(re.escape(c) for c in ('\\', '`', '*', '_', '{', '}', '[', ']',
+                                                          '(', ')', '>', '#', '+', '-', '.', '!')))
 
 # Here are few helpers to simplify the conversion from markdown to various
 # backend formats.

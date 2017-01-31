@@ -11,28 +11,29 @@ from errbot.storage import StoreMixin
 
 log = logging.getLogger(__name__)
 
+
 @pytest.mark.parametrize('v1,v2', [
-    ('2.0.0', '2.0.1'),
-    ('2.0.0', '2.1.0'),
-    ('2.0.0', '3.0.0'),
-    ('2.0.0-alpha', '2.0.0-beta'),
-    ('2.0.0-beta', '2.0.0-rc1'),
-    ('2.0.0-rc1', '2.0.0-rc2'),
-    ('2.0.0-rc2', '2.0.0-rc3'),
-    ('2.0.0-rc2', '2.0.0'),
-    ('2.0.0-beta', '2.0.1'),
-    ])
+                         ('2.0.0', '2.0.1'),
+                         ('2.0.0', '2.1.0'),
+                         ('2.0.0', '3.0.0'),
+                         ('2.0.0-alpha', '2.0.0-beta'),
+                         ('2.0.0-beta', '2.0.0-rc1'),
+                         ('2.0.0-rc1', '2.0.0-rc2'),
+                         ('2.0.0-rc2', '2.0.0-rc3'),
+                         ('2.0.0-rc2', '2.0.0'),
+                         ('2.0.0-beta', '2.0.1'),
+                         ])
 def test_version_check(v1, v2):
     assert version2array(v1) < version2array(v2)
 
 
 @pytest.mark.parametrize('version', [
-    '1.2.3.4',
-    '1.2',
-    '1.2.-beta',
-    '1.2.3-toto',
-    '1.2.3-rc',
-    ])
+                         '1.2.3.4',
+                         '1.2',
+                         '1.2.-beta',
+                         '1.2.3-toto',
+                         '1.2.3-rc',
+                         ])
 def test_version_check_negative(version):
     with pytest.raises(ValueError):
         version2array(version)

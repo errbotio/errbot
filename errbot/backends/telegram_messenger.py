@@ -416,12 +416,6 @@ class TelegramBackend(ErrBot):
                                              latitude=kwargs.pop('latitude', ''),
                                              longitude=kwargs.pop('longitude', ''),
                                              **kwargs)
-        elif msg_type == 'contact':
-            msg = self.telegram.sendContact(chat_id=chat_id,
-                                            phone_number=kwargs.pop('phone_number', ''),
-                                            first_name=kwargs.pop('first_name', ''),
-                                            last_name=kwargs.pop('last_name', ''),
-                                            **kwargs)
         else:
             raise ValueError('Expected a valid choice for `msg_type`, '
                              'got: {}.'.format(msg_type))
@@ -445,8 +439,7 @@ class TelegramBackend(ErrBot):
             else:
                 stream.success()
 
-    def send_stream_request(self, identifier, fsource, name='file', size=None,
-                            stream_type=None):
+    def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
         """Starts a file transfer.
 
         :param identifier: TelegramPerson or TelegramMUCOccupant
@@ -465,17 +458,13 @@ class TelegramBackend(ErrBot):
             This is only used for debug logging purposes.
 
         :param stream_type: str, optional
-            Type of the stream. Choices: 'document', 'photo', 'audio', 'video',
-                                         'sticker', 'location', 'contact'.
+            Type of the stream. Choices: 'document', 'photo', 'audio', 'video', 'sticker', 'location', 'contact'.
 
             If 'video', a dict is optional as {'content': fsource, 'duration': str}.
             If 'voice', a dict is optional as {'content': fsource, 'duration': str}.
-            If 'audio', a dict is optional as {'content': fsource, 'duration': str,
-                                               'performer': str, 'title': str}.
+            If 'audio', a dict is optional as {'content': fsource, 'duration': str, 'performer': str, 'title': str}.
 
             For 'location' a dict is mandatory as {'latitude': str, 'longitude': str}.
-            For 'contact' a dict is mandatory as {'phone_number: str, 'first_name': str,
-                                                  'last_name': str}
             For 'venue': TODO # see: https://core.telegram.org/bots/api#sendvenue
 
         :return stream: str or Stream
@@ -506,7 +495,7 @@ class TelegramBackend(ErrBot):
                                            **meta)
             log.debug("Requesting upload of {0} to {1} (size hint: {2}, "
                       "stream type: {3})".format(name, identifier.username,
-                                                      size, stream_type))
+                                                 size, stream_type))
 
             stream = content
         else:
@@ -517,12 +506,6 @@ class TelegramBackend(ErrBot):
                                                     args=(stream,)))
 
         return stream
-
-    def callback_message(self, mess):
-        """Processes for commands and dispatches the message to all the plugins."""
-        if self.process_message(mess):
-            # Act only in the backend tells us that this message is OK to broadcast
-            self._dispatch_to_plugins('callback_message', mess)
 
     def callback_stream(self, stream):
         """Dispatch the stream to all the plugins."""

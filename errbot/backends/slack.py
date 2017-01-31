@@ -382,7 +382,7 @@ class SlackBackend(ErrBot):
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
                 return True
-            except:
+            except Exception:
                 log.exception("Error reading from RTM stream:")
             finally:
                 log.debug("Triggering disconnect callback")
@@ -670,7 +670,7 @@ class SlackBackend(ErrBot):
                 stream.success()
             else:
                 stream.error()
-        except:
+        except Exception:
             log.exception("Upload of {0} to {1} failed.".format(stream.name, stream.identifier.channelname))
 
     def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):

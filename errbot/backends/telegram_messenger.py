@@ -239,7 +239,7 @@ class TelegramBackend(ErrBot):
         except KeyboardInterrupt:
             log.info("Interrupt received, shutting down..")
             return True
-        except:
+        except Exception:
             log.exception("Error reading from Telegram updates stream:")
         finally:
             log.debug("Triggering disconnect callback")
@@ -383,7 +383,7 @@ class TelegramBackend(ErrBot):
                                                  content=stream.raw,
                                                  msg_type=stream.stream_type,
                                                  **kwargs)
-        except:
+        except Exception:
             log.exception("Upload of {0} to {1} failed.".format(stream.name,
                                                                 stream.identifier))
         else:
@@ -432,7 +432,7 @@ class TelegramBackend(ErrBot):
         def _is_valid_url(url):
             try:
                 from urlparse import urlparse
-            except:
+            except Exception:
                 from urllib.parse import urlparse
 
             return bool(urlparse(url).scheme)

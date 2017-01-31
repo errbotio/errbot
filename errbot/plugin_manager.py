@@ -64,7 +64,7 @@ def install_packages(req_path):
         else:
             # otherwise only install it as a user package
             subprocess.check_call(['pip', 'install', '--user', '--requirement', req_path])
-    except:
+    except Exception:
         log.exception('Failed to execute pip install for %s.', req_path)
         return sys.exc_info()
 

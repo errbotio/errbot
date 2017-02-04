@@ -485,7 +485,11 @@ class SlackBackend(ErrBot):
 
         msg = Message(
             text,
-            extras={'attachments': event.get('attachments')})
+            extras={
+                'attachments': event.get('attachments'),
+                'slack_event': event,
+            },
+        )
 
         if channel.startswith('D'):
             if subtype == "bot_message":

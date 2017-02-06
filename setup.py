@@ -121,7 +121,7 @@ if __name__ == "__main__":
             'graphic':  ['PySide', ],
             'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
             'IRC': ['irc', ],
-            'slack': ['slackclient>=1.0.0', ],
+            'slack': ['slackclient>=1.0.5', ],
             'telegram': ['python-telegram-bot', ],
             'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
         },

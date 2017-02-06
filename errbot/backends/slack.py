@@ -518,14 +518,7 @@ class SlackBackend(ErrBot):
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""
-        if hasattr(self.sc.server.users, 'get'):
-            # Slackclient > 1.0.2
-            user = self.sc.server.users.get(id_)
-        else:
-            try:
-                user = [user for user in self.sc.server.users if user.id == id_][0]
-            except IndexError:
-                user = None
+        user = self.sc.server.users.get(id_)
         if user is None:
             raise UserDoesNotExistError("Cannot find user with ID %s" % id_)
         return user.name
@@ -533,16 +526,7 @@ class SlackBackend(ErrBot):
     def username_to_userid(self, name):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-
-        if hasattr(self.sc.server.users, 'get'):
-            # Slackclient > 1.0.2
-            user = self.sc.server.users.get(name)
-        else:
-            try:
-                user = [user for user in self.sc.server.users if user.name == name][0]
-            except IndexError:
-                user = None
-
+        user = self.sc.server.users.find(name)
         if user is None:
             raise UserDoesNotExistError("Cannot find user %s" % name)
         return user.id

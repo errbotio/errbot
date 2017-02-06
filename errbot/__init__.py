@@ -484,6 +484,7 @@ def cmdfilter(*args, **kwargs):
     def decorate(func):
         if not hasattr(func, '_err_command_filter'):  # don't override generated functions
             func._err_command_filter = True
+        func.catch_unprocessed = kwargs.get('catch_unprocessed', False)
         return func
 
     if len(args):

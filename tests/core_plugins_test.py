@@ -1,7 +1,9 @@
 import os
 
 extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'room_plugin')
-extra_config = {'CORE_PLUGINS': ('Help', 'Utils'), 'BOT_ALT_PREFIXES': ('!',), 'BOT_PREFIX': '$'}
+extra_config = {'CORE_PLUGINS': ('Help', 'Utils', 'CommandNotFoundFilter'),
+                'BOT_ALT_PREFIXES': ('!',),
+                'BOT_PREFIX': '$'}
 
 
 def test_help_is_still_here(testbot):

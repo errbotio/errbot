@@ -61,7 +61,7 @@ COLORS = {
     'cyan': '#00FFFF'
 }  # Slack doesn't know its colors
 
-MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
+MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>[^\]]+?\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
 
 def slack_markdown_converter(compact_output=False):

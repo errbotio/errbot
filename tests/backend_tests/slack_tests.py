@@ -255,6 +255,10 @@ class SlackTests(unittest.TestCase):
             "This is http://example.com/image.png.",
             convert("This is ![an image](http://example.com/image.png).")
         )
+        self.assertEqual(
+            "This is [some text] then <http://example.com|a link>",
+            convert("This is [some text] then [a link](http://example.com)")
+        )
 
     def test_mention_processing(self):
         self.slack.sc.server.users.find = MagicMock(side_effect=self.slack.find_user)

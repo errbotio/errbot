@@ -1,3 +1,11 @@
+v4.3.7 (2017-02-08)
+-------------------
+
+fixes:
+
+- slack: compatibility  with slackclient > 1.0.5.
+- render test fix (thx Sandeep Shantharam)
+
 v4.3.6 (2017-01-28)
 -------------------
 

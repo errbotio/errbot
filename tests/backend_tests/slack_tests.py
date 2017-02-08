@@ -92,6 +92,24 @@ class SlackTests(unittest.TestCase):
 
         self.assertEqual(msg.extras['attachments'], [attachment])
 
+    def testSlackEventObjectAddedToExtras(self):
+        bot_id = 'B04HMXXXX'
+        bot_msg = {
+            'channel': 'C0XXXXY6P',
+            'icons': {'emoji': ':warning:', 'image_64': 'https://xx.com/26a0.png'},
+            'ts': '1444416645.000641',
+            'type': 'message',
+            'text': '',
+            'bot_id': bot_id,
+            'username': 'riemann',
+            'subtype': 'bot_message',
+        }
+
+        self.slack._dispatch_slack_message(bot_msg)
+        msg = self.slack.test_msgs.pop()
+
+        self.assertEqual(msg.extras['slack_event'], bot_msg)
+
     def testPrepareMessageBody(self):
         test_body = """
         hey, this is some code:

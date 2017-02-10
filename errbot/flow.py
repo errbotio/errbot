@@ -122,17 +122,21 @@ class Flow(object):
     This is a live Flow. It keeps context of the conversation (requestor and context).
     Context is just a python dictionary representing the state of the conversation.
     """
-    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any]):
+    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any],
+                 next_step_hinting: int=True):
         """
 
         :param root: the root of this flow.
         :param requestor: the user requesting this flow.
         :param initial_context: any data we already have that could help executing this flow automatically.
+        :param next_step_hinting: toggle display of the "you are now in the flow xxx, you may continue with yyy, zzz"
+        messages after each flow step
         """
         self._root = root
         self._current_step = self._root
         self.ctx = dict(initial_context)
         self.requestor = requestor
+        self.next_step_hinting = next_step_hinting
 
     def next_autosteps(self) -> List[FlowNode]:
         """
@@ -390,7 +394,8 @@ class FlowExecutor(object):
                     if syntax_args:
                         syntax += syntax_args
                     possible_next_steps.append("- %s" % syntax)
-                self._bot.send(flow.requestor, "\n".join(possible_next_steps))
+                if flow.next_step_hinting:
+                    self._bot.send(flow.requestor, "\n".join(possible_next_steps))
                 break
 
             log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))

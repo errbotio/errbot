@@ -684,7 +684,7 @@ class Backend(ABC):
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
                 break
-            except:
+            except Exception:
                 log.exception("Exception occurred in serve_once:")
 
             log.info(

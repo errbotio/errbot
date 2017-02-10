@@ -61,7 +61,7 @@ COLORS = {
     'cyan': '#00FFFF'
 }  # Slack doesn't know its colors
 
-MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
+MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>[^\]]+?\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
 
 def slack_markdown_converter(compact_output=False):
@@ -367,6 +367,9 @@ class SlackBackend(ErrBot):
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
             log.info("Connected")
+            # Block on reads instead of using the busy loop suggested in slackclient docs
+            # https://github.com/slackapi/python-slackclient/issues/46#issuecomment-165674808
+            self.sc.server.websocket.sock.setblocking(True)
             self.reset_reconnection_count()
 
             # Inject bot identity to alternative prefixes
@@ -374,16 +377,12 @@ class SlackBackend(ErrBot):
 
             try:
                 while True:
-                    messages = self.sc.rtm_read()
-                    if messages:
-                        for message in messages:
-                            self._dispatch_slack_message(message)
-                    else:
-                        time.sleep(1)
+                    for message in self.sc.rtm_read():
+                        self._dispatch_slack_message(message)
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
                 return True
-            except:
+            except Exception:
                 log.exception("Error reading from RTM stream:")
             finally:
                 log.debug("Triggering disconnect callback")
@@ -471,11 +470,11 @@ class SlackBackend(ErrBot):
             return
 
         if 'message' in event:
-            text = event['message']['text']
+            text = event['message'].get('text', '')
             user = event['message'].get('user', event.get('bot_id'))
             ts = event['message']['ts']
         else:
-            text = event['text']
+            text = event.get('text', '')
             user = event.get('user', event.get('bot_id'))
             ts = event['ts']
 
@@ -488,7 +487,12 @@ class SlackBackend(ErrBot):
 
         msg = Message(
             text,
-            extras={'attachments': event.get('attachments'), 'ts': (ts,)})
+            extras={
+                'ts': (ts,),
+                'attachments': event.get('attachments'),
+                'slack_event': event,
+            },
+        )
 
         if channel.startswith('D'):
             if subtype == "bot_message":
@@ -530,18 +534,18 @@ class SlackBackend(ErrBot):
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""
-        user = [user for user in self.sc.server.users if user.id == id_]
-        if not user:
+        user = self.sc.server.users.get(id_)
+        if user is None:
             raise UserDoesNotExistError("Cannot find user with ID %s" % id_)
-        return user[0].name
+        return user.name
 
     def username_to_userid(self, name):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-        user = [user for user in self.sc.server.users if user.name == name]
-        if not user:
+        user = self.sc.server.users.find(name)
+        if user is None:
             raise UserDoesNotExistError("Cannot find user %s" % name)
-        return user[0].id
+        return user.id
 
     def channelid_to_channelname(self, id_):
         """Convert a Slack channel ID to its channel name"""
@@ -645,6 +649,7 @@ class SlackBackend(ErrBot):
                     'channel': to_channel_id,
                     'text': part,
                     'unfurl_media': 'true',
+                    'link_names': '1',
                     'as_user': 'true',
                 })
                 timestamps.append(result['ts'])
@@ -669,7 +674,7 @@ class SlackBackend(ErrBot):
                 stream.success()
             else:
                 stream.error()
-        except:
+        except Exception:
             log.exception("Upload of {0} to {1} failed.".format(stream.name, stream.identifier.channelname))
 
     def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
@@ -703,7 +708,13 @@ class SlackBackend(ErrBot):
         if card.fields:
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
-        data = {'text': ' ', 'channel': to_channel_id, 'attachments': json.dumps([attachment]), 'as_user': 'true'}
+        data = {
+            'text': ' ',
+            'channel': to_channel_id,
+            'attachments': json.dumps([attachment]),
+            'link_names': '1',
+            'as_user': 'true'
+        }
         try:
             log.debug('Sending data:\n%s', data)
             self.api_call('chat.postMessage', data=data)

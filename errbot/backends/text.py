@@ -88,6 +88,15 @@ class TextBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
         log.debug("Text Backend Init.")
+
+        try:
+            # Load readline for better editing/history behaviour
+            import readline
+        except ImportError:
+            # Readline is Unix-only
+            log.debug("Python readline module is not available")
+            pass
+
         self.bot_identifier = self.build_identifier('Err')
         self.demo_mode = self.bot_config.TEXT_DEMO_MODE if hasattr(self.bot_config, 'TEXT_DEMO_MODE') else False
         self._rooms = set()

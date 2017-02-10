@@ -26,7 +26,7 @@ def webserver_ready(host, port):
         s.shutdown(socket.SHUT_RDWR)
         s.close()
         return True
-    except:
+    except Exception:
         return False
 
 

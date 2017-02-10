@@ -1,3 +1,35 @@
+v4.3.7 (2017-02-08)
+-------------------
+
+fixes:
+
+- slack: compatibility  with slackclient > 1.0.5.
+- render test fix (thx Sandeep Shantharam)
+
+v4.3.6 (2017-01-28)
+-------------------
+
+fixes:
+
+- regression with Markdown 2.6.8.
+
+v4.3.5 (2016-12-21)
+-------------------
+
+fixes:
+
+- slack: compatibility with slackclient > 1.0.2
+- slack: block on reads on RTM (better response time) (Thx Tomer Chachamu)
+- slack: fix link names (")
+- slack: ignore channel_topic messages (thx Mikhail Sobolev)
+- slack: Match ACLs for bots on integration ID
+- slack: Process messages from webhook users
+- slack: don't crash when unable to look up alternate prefix
+- slack: trm_read refactoring (thx Chris Niemira)
+- telegram: fix telegram ID test against ACLs
+- telegram: ID as strings intead of ints (thx Pmoranga)
+- fixed path to the config template in the startup error message (Thx Ondrej Skopek)
+
 v4.3.4 (2016-10-05)
 -------------------
 

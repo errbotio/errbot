@@ -1,7 +1,8 @@
 import logging
 import sys
+from threadpool import WorkRequest
 
-from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, ONLINE, Room
+from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
 from errbot.core import ErrBot
 from errbot.rendering import text
 from errbot.rendering.ansiext import enable_format, TEXT_CHRS
@@ -56,7 +57,7 @@ class TelegramBotFilter(object):
 
 class TelegramIdentifier(Identifier):
     def __init__(self, id):
-        self._id = id
+        self._id = str(id)
 
     @property
     def id(self):
@@ -238,7 +239,7 @@ class TelegramBackend(ErrBot):
         except KeyboardInterrupt:
             log.info("Interrupt received, shutting down..")
             return True
-        except:
+        except Exception:
             log.exception("Error reading from Telegram updates stream:")
         finally:
             log.debug("Triggering disconnect callback")
@@ -338,6 +339,124 @@ class TelegramBackend(ErrBot):
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
         message.body = '@{0}: {1}'.format(identifier.nick, message.body)
+
+    def _telegram_special_message(self, chat_id, content, msg_type, **kwargs):
+        """Send special message."""
+        if msg_type == 'document':
+            msg = self.telegram.sendDocument(chat_id=chat_id,
+                                             document=content,
+                                             **kwargs)
+        elif msg_type == 'photo':
+            msg = self.telegram.sendPhoto(chat_id=chat_id,
+                                          photo=content,
+                                          **kwargs)
+
+        elif msg_type == 'audio':
+            msg = self.telegram.sendAudio(chat_id=chat_id,
+                                          audio=content,
+                                          **kwargs)
+
+        elif msg_type == 'video':
+            msg = self.telegram.sendVideo(chat_id=chat_id,
+                                          video=content,
+                                          **kwargs)
+        elif msg_type == 'sticker':
+            msg = self.telegram.sendSticker(chat_id=chat_id,
+                                            sticker=content,
+                                            **kwargs)
+        elif msg_type == 'location':
+            msg = self.telegram.sendLocation(chat_id=chat_id,
+                                             latitude=kwargs.pop('latitude', ''),
+                                             longitude=kwargs.pop('longitude', ''),
+                                             **kwargs)
+        else:
+            raise ValueError('Expected a valid choice for `msg_type`, '
+                             'got: {}.'.format(msg_type))
+        return msg
+
+    def _telegram_upload_stream(self, stream, **kwargs):
+        """Perform upload defined in a stream."""
+        msg = None
+        try:
+            stream.accept()
+            msg = self._telegram_special_message(chat_id=stream.identifier.id,
+                                                 content=stream.raw,
+                                                 msg_type=stream.stream_type,
+                                                 **kwargs)
+        except Exception:
+            log.exception("Upload of {0} to {1} failed.".format(stream.name,
+                                                                stream.identifier))
+        else:
+            if msg is None:
+                stream.error()
+            else:
+                stream.success()
+
+    def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
+        """Starts a file transfer.
+
+        :param identifier: TelegramPerson or TelegramMUCOccupant
+            Identifier of the Person or Room to send the stream to.
+
+        :param fsource: str, dict or binary data
+            File URL or binary content from a local file.
+            Optionally a dict with binary content plus metadata can be given.
+            See `stream_type` for more details.
+
+        :param name: str, optional
+            Name of the file. Not sure if this works always.
+
+        :param size: str, optional
+            Size of the file obtained with os.path.getsize.
+            This is only used for debug logging purposes.
+
+        :param stream_type: str, optional
+            Type of the stream. Choices: 'document', 'photo', 'audio', 'video', 'sticker', 'location'.
+
+            If 'video', a dict is optional as {'content': fsource, 'duration': str}.
+            If 'voice', a dict is optional as {'content': fsource, 'duration': str}.
+            If 'audio', a dict is optional as {'content': fsource, 'duration': str, 'performer': str, 'title': str}.
+
+            For 'location' a dict is mandatory as {'latitude': str, 'longitude': str}.
+            For 'venue': TODO # see: https://core.telegram.org/bots/api#sendvenue
+
+        :return stream: str or Stream
+            If `fsource` is str will return str, else return Stream.
+        """
+        def _telegram_metadata(fsource):
+            if isinstance(fsource, dict):
+                return fsource.pop('content'), fsource
+            else:
+                return fsource, None
+
+        def _is_valid_url(url):
+            try:
+                from urlparse import urlparse
+            except Exception:
+                from urllib.parse import urlparse
+
+            return bool(urlparse(url).scheme)
+
+        content, meta = _telegram_metadata(fsource)
+        if isinstance(content, str):
+            if not _is_valid_url(content):
+                raise ValueError("Not valid URL: {}".format(content))
+
+            self._telegram_special_message(chat_id=identifier.id,
+                                           content=content,
+                                           msg_type=stream_type,
+                                           **meta)
+            log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
+                      identifier.username, size, stream_type))
+
+            stream = content
+        else:
+            stream = Stream(identifier, content, name, size, stream_type)
+            log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
+                      identifier, size, stream_type))
+            self.thread_pool.putRequest(WorkRequest(self._telegram_upload_stream, args=(stream,)))
+
+        return stream
 
     @staticmethod
     def _is_numeric(input_):

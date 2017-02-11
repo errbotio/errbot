@@ -308,12 +308,12 @@ class TelegramBackend(ErrBot):
         if message.document is not None:
             fileobj = message.document
 
-        #message.audio
-        #message.video
-        #message.photo
-        #message.venue
-        #message.contact
-        #message.location
+        # message.audio
+        # message.video
+        # message.photo
+        # message.venue
+        # message.contact
+        # message.location
 
         # pick the person who sent it to me
         identifier, _ = self._reply_identifiers(message)
@@ -322,22 +322,26 @@ class TelegramBackend(ErrBot):
         file_path = os.path.join(tempfile.mkdtemp(),
                                  fileobj.file_name)
 
-        # build the file metadata to use Telegram API
+        # build the file metadata to use the Telegram.File
         new_file = self.telegram.getFile(fileobj.file_id)
 
+        # download the file
+        file_sink = open(file_path, 'w+b')
         try:
-            # download the file
-            new_file.download(custom_path=file_path)
-
-            # open the file
-            content = open(file_path, 'rb')
+            new_file.download(out=file_sink)
         except Exception as exc:
-            log.error('Problem downloading file {}. \n {}'.format(fileobj.file_name,
-                                                                  str(exc)))
+            log.error('Error downloading file {}. \n {}'.format(fileobj.file_name,
+                                                                str(exc)))
         else:
+            # open the file
+            #file_src = open(file_path, 'rb')
+
             # create the stream object and callback
-            stream = Stream(identifier, content, file_path, fileobj.file_size)
+            stream = Stream(identifier=identifier, fsource=file_sink,
+                            name=fileobj.file_name, size=fileobj.file_size)
             self.callback_stream(stream)
+        #finally:
+        #    file_sink.close()
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         # It looks like telegram doesn't supports online presence for privacy reason.
@@ -506,12 +510,6 @@ class TelegramBackend(ErrBot):
                                                     args=(stream,)))
 
         return stream
-
-    def callback_stream(self, stream):
-        """Dispatch the stream to all the plugins."""
-        if stream:
-            # Act only in the backend tells us that this message is OK to broadcast
-            self._dispatch_to_plugins('callback_stream', stream)
 
     @staticmethod
     def _is_numeric(input_):

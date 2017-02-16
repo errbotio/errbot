@@ -579,7 +579,7 @@ class SlackBackend(ErrBot):
 
         return channels + groups
 
-    @lru_cache(50)
+    @lru_cache(1024)
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
         try:

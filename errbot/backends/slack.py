@@ -497,7 +497,7 @@ class SlackBackend(ErrBot):
                 msg.frm = SlackBot(
                     self.sc,
                     bot_id=event['bot_id'],
-                    bot_username=event['username'],
+                    bot_username=event.get('username', '')
                 )
             else:
                 msg.frm = SlackPerson(self.sc, user, event['channel'])
@@ -508,7 +508,7 @@ class SlackBackend(ErrBot):
                 msg.frm = SlackRoomBot(
                     self.sc,
                     bot_id=event['bot_id'],
-                    bot_username=event['username'],
+                    bot_username=event.get('username', ''),
                     channelid=event['channel'],
                     bot=self
                 )

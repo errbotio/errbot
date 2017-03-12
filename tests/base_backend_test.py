@@ -482,6 +482,18 @@ def test_arg_botcmd_returns_with_escaping(dummy_backend):
     assert 'Err" Bot' == dummy_backend.pop_message().body
 
 
+def test_arg_botcmd_returns_with_incorrect_escaping(dummy_backend):
+    first_name = 'Err"'
+    last_name = 'Bot'
+    dummy_backend.callback_message(
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
+        )
+    )
+    assert 'I couldn\'t parse this command; No closing quotation' in dummy_backend.pop_message().body
+
+
 def test_arg_botcmd_yields_first_name_last_name(dummy_backend):
     first_name = 'Err'
     last_name = 'Bot'
@@ -509,7 +521,7 @@ def test_arg_botcmd_doesnt_raise_systemerror(dummy_backend):
 
 def test_arg_botcdm_returns_errors_as_chat(dummy_backend):
     dummy_backend.callback_message(makemessage(dummy_backend, "!returns_first_name_last_name --invalid-parameter"))
-    assert "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter" \
+    assert "I couldn't parse the arguments; unrecognized arguments: --invalid-parameter" \
         in dummy_backend.pop_message().body
 
 

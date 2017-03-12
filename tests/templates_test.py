@@ -22,4 +22,4 @@ def test_templates_4(testbot):
 
 
 def test_templates_5(testbot):
-    assert 'ok' in testbot.exec_command('!test template4')
+    assert 'the following arguments are required: my_var' in testbot.exec_command('!test template4')

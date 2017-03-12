@@ -17,4 +17,4 @@ class Test(BotPlugin):
 
     @arg_botcmd('my_var', type=str, template='test')
     def test_template4(self, msg, my_var=None):
-        return {'variable': 'ok'}
+        return {'variable': my_var}

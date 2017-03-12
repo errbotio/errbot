@@ -18,4 +18,8 @@ def test_templates_3(testbot):
 
 
 def test_templates_4(testbot):
-    assert 'ok' in testbot.exec_command('!test template4 argument')
+    assert 'ok' in testbot.exec_command('!test template4 ok')
+
+
+def test_templates_5(testbot):
+    assert 'ok' in testbot.exec_command('!test template4')

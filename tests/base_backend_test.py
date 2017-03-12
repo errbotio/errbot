@@ -470,6 +470,18 @@ def test_arg_botcmd_returns_first_name_last_name(dummy_backend):
     assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
 
 
+def test_arg_botcmd_returns_with_escaping(dummy_backend):
+    first_name = 'Err\\"'
+    last_name = 'Bot'
+    dummy_backend.callback_message(
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
+        )
+    )
+    assert 'Err" Bot' == dummy_backend.pop_message().body
+
+
 def test_arg_botcmd_yields_first_name_last_name(dummy_backend):
     first_name = 'Err'
     last_name = 'Bot'

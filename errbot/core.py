@@ -271,21 +271,18 @@ class ErrBot(Backend, StoreMixin):
         command = None
         args = ''
         if not only_check_re_command:
-            if len(text_split) > 1:
-                command = (text_split[0] + '_' + text_split[1]).lower()
-                with self._gbl:
-                    if command in self.commands:
-                        cmd = command
-                        args = ' '.join(text_split[2:])
+            i = len(text_split)
+            while cmd is None:
+                command = '_'.join(text_split[:i])
 
-            if not cmd:
-                command = text_split[0].lower()
-                args = ' '.join(text_split[1:])
                 with self._gbl:
                     if command in self.commands:
                         cmd = command
-                        if len(text_split) > 1:
-                            args = ' '.join(text_split[1:])
+                        args = ' '.join(text_split[i:])
+                    else:
+                        i -= 1
+                if i == 0:
+                    break
 
             if command == self.bot_config.BOT_PREFIX:  # we did "!!" so recall the last command
                 if len(user_cmd_history):

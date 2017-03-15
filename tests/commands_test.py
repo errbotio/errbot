@@ -335,3 +335,18 @@ def test_callback_no_command(testbot):
     testbot.bot.plugin_manager.update_plugin_places([], extra_plugin_dir)
     testbot.exec_command('!plugin activate TestCommandNotFoundFilter')
     assert expected_str == testbot.exec_command(cmd)
+
+
+def test_subcommands(testbot):
+    # test single subcommand (method is run_subcommands())
+    cmd = '!run subcommands with these args'
+    cmd_underscore = '!run_subcommands with these args'
+    expected_args = 'with these args'
+    assert expected_args == testbot.exec_command(cmd)
+    assert expected_args == testbot.exec_command(cmd_underscore)
+
+    # test multiple subcmomands (method is run_lots_of_subcommands())
+    cmd = '!run lots of subcommands with these args'
+    cmd_underscore = '!run_lots_of_subcommands with these args'
+    assert expected_args == testbot.exec_command(cmd)
+    assert expected_args == testbot.exec_command(cmd_underscore)

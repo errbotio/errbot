@@ -64,7 +64,7 @@ Inside this directory, you can place Markdown templates (with a
 *.md* extension) in place of the content you wish to show. For
 example this *hello.md*:
 
-.. code-block:: python
+.. code-block:: jinja
 
     Hello, {{name}}!
 

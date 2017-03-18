@@ -2,7 +2,7 @@ import logging
 from threading import RLock
 from typing import Mapping, List, Tuple, Union, Callable, Any
 
-from threadpool import ThreadPool, WorkRequest
+from multiprocessing.pool import ThreadPool
 from yapsy.IPlugin import IPlugin
 
 from errbot import Message
@@ -363,7 +363,7 @@ class FlowExecutor(object):
         with self._lock:
             if flow not in self.in_flight:
                 self.in_flight.append(flow)
-        self._pool.putRequest(WorkRequest(self.execute, args=(flow, )))
+        self._pool.apply_async(self.execute, (flow, ))
 
     def execute(self, flow: Flow):
         """

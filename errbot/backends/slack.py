@@ -675,6 +675,7 @@ class SlackBackend(ErrBot):
             card.to = card.to.room
         to_humanreadable, to_channel_id = self._prepare_message(card)
         attachment = {}
+        attachment['mrkdwn_in'] = ['text']
         if card.summary:
             attachment['pretext'] = card.summary
         if card.title:

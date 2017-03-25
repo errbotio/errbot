@@ -414,7 +414,7 @@ class IRCConnection(SingleServerIRCBot):
     def on_privmsg(self, _, e):
         self._privmsg(e)
 
-    def on_pubnotice(self, _,  e):
+    def on_pubnotice(self, _, e):
         self._pubmsg(e, True)
 
     def on_privnotice(self, _, e):

@@ -384,8 +384,8 @@ class IRCConnection(SingleServerIRCBot):
         t.setDaemon(True)
         t.start()
 
-    def on_pubmsg(self, _, e):
-        msg = Message(e.arguments[0])
+    def _pubmsg(self, e, notice=False):
+        msg = Message(e.arguments[0], extras={'notice': notice})
         room_name = e.target
         if room_name[0] != '#' and room_name[0] != '$':
             raise Exception('[%s] is not a room' % room_name)
@@ -402,11 +402,23 @@ class IRCConnection(SingleServerIRCBot):
             mentions = [self.bot.build_identifier(mention) for mention in mentions]
             self.bot.callback_mention(msg, mentions)
 
-    def on_privmsg(self, _, e):
-        msg = Message(e.arguments[0])
+    def _privmsg(self, e, notice=False):
+        msg = Message(e.arguments[0], extras={'notice': notice})
         msg.frm = IRCPerson(e.source)
         msg.to = IRCPerson(e.target)
         self.bot.callback_message(msg)
+
+    def on_pubmsg(self, _, e):
+        self._pubmsg(e)
+
+    def on_privmsg(self, _, e):
+        self._privmsg(e)
+
+    def on_pubnotice(self, _,  e):
+        self._pubmsg(e, True)
+
+    def on_privnotice(self, _, e):
+        self._privmsg(e, True)
 
     def on_kick(self, _, e):
         if not self._reconnect_on_kick:

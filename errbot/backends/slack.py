@@ -863,19 +863,19 @@ class SlackBackend(ErrBot):
 
     def add_reaction(self, mess: Message, reaction: str) -> None:
         """
-        Add the specified reaction to the Message.
+        Add the specified reaction to the Message if you haven't already.
         :param mess: A Message.
         :param reaction: A str giving an emoji, without colons before and after.
-        :raises: ValueError if the emoji doesn't exist or is already on the message.
+        :raises: ValueError if the emoji doesn't exist.
         """
         return self._react('reactions.add', mess, reaction)
 
     def remove_reaction(self, mess: Message, reaction: str) -> None:
         """
-        Add the specified reaction to the Message.
+        Remove the specified reaction from the Message if it is currently there.
         :param mess: A Message.
         :param reaction: A str giving an emoji, without colons before and after.
-        :raises: ValueError if the emoji doesn't exist or isn't already on the message.
+        :raises: ValueError if the emoji doesn't exist.
         """
         return self._react('reactions.remove', mess, reaction)
 
@@ -896,7 +896,9 @@ class SlackBackend(ErrBot):
             if e.error == 'invalid_name':
                 raise ValueError(e.error, 'No such emoji', reaction)
             elif e.error in ('no_reaction', 'already_reacted'):
-                raise ValueError(e.error)
+                # This is common if a message was edited after you reacted to it, and you reacted to it again.
+                # Chances are you don't care about this. If you do, call api_call() directly.
+                pass
             else:
                 raise SlackAPIResponseError(error=e.error)
 

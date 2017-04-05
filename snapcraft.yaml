@@ -18,5 +18,5 @@ parts:
   errbot:
     source: .
     plugin: python
-    build-packages: [libffi-dev, libssl-dev]
+    build-packages: [gcc, libffi-dev, libssl-dev]
     stage-packages: [git]

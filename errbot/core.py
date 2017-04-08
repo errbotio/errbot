@@ -22,7 +22,7 @@ from datetime import datetime
 from threading import RLock
 
 import collections
-from threadpool import ThreadPool, WorkRequest
+from multiprocessing.pool import ThreadPool
 
 from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
@@ -369,7 +369,9 @@ class ErrBot(Backend, StoreMixin):
         if f._err_command_admin_only and self.bot_config.BOT_ASYNC:
             # If it is an admin command, wait until the queue is completely depleted so
             # we don't have strange concurrency issues on load/unload/updates etc...
-            self.thread_pool.wait()
+            self.thread_pool.close()
+            self.thread_pool.join()
+            self.thread_pool = ThreadPool(self.bot_config.BOT_ASYNC_POOLSIZE)
 
         if f._err_command_historize:
             user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
@@ -392,17 +394,15 @@ class ErrBot(Backend, StoreMixin):
                 return
 
         if self.bot_config.BOT_ASYNC:
-            wr = WorkRequest(
+            result = self.thread_pool.apply_async(
                 self._execute_and_send,
                 [],
-                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess,
-                 'template_name': f._err_command_template}
+                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'template_name': f._err_command_template}
             )
-            self.thread_pool.putRequest(wr)
             if f._err_command_admin_only:
                 # Again, if it is an admin command, wait until the queue is completely
                 # depleted so we don't have strange concurrency issues.
-                self.thread_pool.wait()
+                result.wait()
         else:
             self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
                                    template_name=f._err_command_template)

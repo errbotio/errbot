@@ -503,6 +503,7 @@ class SlackBackend(ErrBot):
                 msg.frm = SlackPerson(self.sc, user, event['channel'])
             msg.to = SlackPerson(self.sc, self.username_to_userid(self.sc.server.username),
                                  event['channel'])
+            channel_link_name = event['channel']
         else:
             if subtype == "bot_message":
                 msg.frm = SlackRoomBot(
@@ -515,6 +516,13 @@ class SlackBackend(ErrBot):
             else:
                 msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
+            channel_link_name = msg.to.name
+
+        msg.extras['url'] = 'https://{domain}.slack.com/archives/{channelid}/p{ts}'.format(
+            domain=self.sc.server.domain,
+            channelid=channel_link_name,
+            ts=self._ts_for_message(msg).replace('.', '')
+        )
 
         self.callback_message(msg)
 
@@ -632,14 +640,18 @@ class SlackBackend(ErrBot):
             limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
             parts = self.prepare_message_body(body, limit)
 
+            timestamps = []
             for part in parts:
-                self.api_call('chat.postMessage', data={
+                result = self.api_call('chat.postMessage', data={
                     'channel': to_channel_id,
                     'text': part,
                     'unfurl_media': 'true',
                     'link_names': '1',
                     'as_user': 'true',
                 })
+                timestamps.append(result['ts'])
+
+            mess.extras['ts'] = timestamps
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
@@ -849,6 +861,53 @@ class SlackBackend(ErrBot):
             response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
         return response
 
+    def add_reaction(self, mess: Message, reaction: str) -> None:
+        """
+        Add the specified reaction to the Message if you haven't already.
+        :param mess: A Message.
+        :param reaction: A str giving an emoji, without colons before and after.
+        :raises: ValueError if the emoji doesn't exist.
+        """
+        return self._react('reactions.add', mess, reaction)
+
+    def remove_reaction(self, mess: Message, reaction: str) -> None:
+        """
+        Remove the specified reaction from the Message if it is currently there.
+        :param mess: A Message.
+        :param reaction: A str giving an emoji, without colons before and after.
+        :raises: ValueError if the emoji doesn't exist.
+        """
+        return self._react('reactions.remove', mess, reaction)
+
+    def _react(self, method: str, mess: Message, reaction: str) -> None:
+        try:
+            # this logic is from send_message
+            if mess.is_group:
+                to_channel_id = mess.to.id
+            else:
+                to_channel_id = mess.to.channelid
+
+            ts = self._ts_for_message(mess)
+
+            self.api_call(method, data={'channel': to_channel_id,
+                                        'timestamp': ts,
+                                        'name': reaction})
+        except SlackAPIResponseError as e:
+            if e.error == 'invalid_name':
+                raise ValueError(e.error, 'No such emoji', reaction)
+            elif e.error in ('no_reaction', 'already_reacted'):
+                # This is common if a message was edited after you reacted to it, and you reacted to it again.
+                # Chances are you don't care about this. If you do, call api_call() directly.
+                pass
+            else:
+                raise SlackAPIResponseError(error=e.error)
+
+    def _ts_for_message(self, mess):
+        try:
+            return mess.extras['slack_event']['message']['ts']
+        except KeyError:
+            return mess.extras['slack_event']['ts']
+
     def shutdown(self):
         super().shutdown()
 
@@ -981,6 +1040,8 @@ class SlackRoom(Room):
         if self._id is None:
             self._id = self._channel.id
         return self._id
+
+    channelid = id
 
     @property
     def name(self):

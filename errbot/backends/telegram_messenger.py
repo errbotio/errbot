@@ -1,5 +1,8 @@
-import logging
+
+import os
 import sys
+import logging
+import tempfile
 from threadpool import WorkRequest
 
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
@@ -257,26 +260,35 @@ class TelegramBackend(ErrBot):
             log.warning("Unhandled message type (not a text message) ignored")
             return
 
-        message_instance = self.build_message(message.text)
+        if message.text:
+            message_instance = self.build_message(message.text)
+            message_instance.frm, message_instance.to = self._reply_identifiers(message)
+            self.callback_message(message_instance)
+        else:
+            self._handle_file_transfer(message)
+
+    def _reply_identifiers(self, message):
+        """ Return (frm, to) to build a reply to `message`. """
         if message.chat['type'] == 'private':
-            message_instance.frm = TelegramPerson(
+            frm = TelegramPerson(
                 id=message.from_user.id,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
                 username=message.from_user.username
             )
-            message_instance.to = self.bot_identifier
+            to = self.bot_identifier
         else:
             room = TelegramRoom(id=message.chat.id, title=message.chat.title)
-            message_instance.frm = TelegramMUCOccupant(
+            frm = TelegramMUCOccupant(
                 id=message.from_user.id,
                 room=room,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
                 username=message.from_user.username
             )
-            message_instance.to = room
-        self.callback_message(message_instance)
+            to = room
+
+        return frm, to
 
     def send_message(self, mess):
         super().send_message(mess)
@@ -289,6 +301,47 @@ class TelegramBackend(ErrBot):
                 "to %s: %s" % (mess.to.id, mess.body)
             )
             raise
+
+    def _handle_file_transfer(self, message):
+
+        # check what type of file it is
+        if message.document is not None:
+            fileobj = message.document
+
+        # message.audio
+        # message.video
+        # message.photo
+        # message.venue
+        # message.contact
+        # message.location
+
+        # pick the person who sent it to me
+        identifier, _ = self._reply_identifiers(message)
+
+        # create a temporary directory where to download it
+        file_path = os.path.join(tempfile.mkdtemp(),
+                                 fileobj.file_name)
+
+        # build the file metadata to use the Telegram.File
+        new_file = self.telegram.getFile(fileobj.file_id)
+
+        # download the file
+        file_sink = open(file_path, 'w+b')
+        try:
+            new_file.download(out=file_sink)
+        except Exception as exc:
+            log.error('Error downloading file {}. \n {}'.format(fileobj.file_name,
+                                                                str(exc)))
+        else:
+            # open the file
+            #file_src = open(file_path, 'rb')
+
+            # create the stream object and callback
+            stream = Stream(identifier=identifier, fsource=file_sink,
+                            name=fileobj.file_name, size=fileobj.file_size)
+            self.callback_stream(stream)
+        #finally:
+        #    file_sink.close()
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         # It looks like telegram doesn't supports online presence for privacy reason.
@@ -350,12 +403,10 @@ class TelegramBackend(ErrBot):
             msg = self.telegram.sendPhoto(chat_id=chat_id,
                                           photo=content,
                                           **kwargs)
-
         elif msg_type == 'audio':
             msg = self.telegram.sendAudio(chat_id=chat_id,
                                           audio=content,
                                           **kwargs)
-
         elif msg_type == 'video':
             msg = self.telegram.sendVideo(chat_id=chat_id,
                                           video=content,
@@ -411,7 +462,7 @@ class TelegramBackend(ErrBot):
             This is only used for debug logging purposes.
 
         :param stream_type: str, optional
-            Type of the stream. Choices: 'document', 'photo', 'audio', 'video', 'sticker', 'location'.
+            Type of the stream. Choices: 'document', 'photo', 'audio', 'video', 'sticker', 'location', 'contact'.
 
             If 'video', a dict is optional as {'content': fsource, 'duration': str}.
             If 'voice', a dict is optional as {'content': fsource, 'duration': str}.
@@ -446,15 +497,17 @@ class TelegramBackend(ErrBot):
                                            content=content,
                                            msg_type=stream_type,
                                            **meta)
-            log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                      identifier.username, size, stream_type))
+            log.debug("Requesting upload of {0} to {1} (size hint: {2}, "
+                      "stream type: {3})".format(name, identifier.username,
+                                                 size, stream_type))
 
             stream = content
         else:
             stream = Stream(identifier, content, name, size, stream_type)
-            log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                      identifier, size, stream_type))
-            self.thread_pool.putRequest(WorkRequest(self._telegram_upload_stream, args=(stream,)))
+            log.debug("Requesting upload of {0} to {1} (size hint: {2}, "
+                      "stream type: {3})".format(name, identifier, size, stream_type))
+            self.thread_pool.putRequest(WorkRequest(self._telegram_upload_stream,
+                                                    args=(stream,)))
 
         return stream
 

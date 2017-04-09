@@ -348,12 +348,6 @@ class Message(object):
     def is_group(self) -> bool:
         return isinstance(self.to, Room)
 
-    @property
-    def type(self):
-        msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back))
-        log.warn(msg + 'msg.type is deprecated and will be removed soon ! Use msg.is_direct or msg.is_group.')
-        return 'chat' if self.is_direct else 'groupchat'
-
 
 class Card(Message):
     """

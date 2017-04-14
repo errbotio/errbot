@@ -69,7 +69,6 @@ def test_storage():
     assert len(persistent_object) == 0
 
 
-
 def test_split_string_after_returns_original_string_when_chunksize_equals_string_size():
     str_ = 'foobar2000' * 2
     splitter = split_string_after(str_, len(str_))

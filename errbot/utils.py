@@ -106,7 +106,6 @@ def version2array(version):
     return response
 
 
-
 def unescape_xml(text):
     """
     Removes HTML or XML character references and entities from a text string.

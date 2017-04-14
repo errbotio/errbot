@@ -72,7 +72,7 @@ class BotRepoManager(StoreMixin):
         :param plugin_dir: where on disk it will git clone the repos.
         :param plugin_indexes: a list of URL / path to get the json repo index.
         """
-        super()
+        super().__init__()
         self.plugin_indexes = plugin_indexes
         self.storage_plugin = storage_plugin
         self.plugin_dir = plugin_dir

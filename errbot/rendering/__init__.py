@@ -5,7 +5,7 @@ from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
 # Attribute regexp looks for extendend syntax: {: ... }
-ATTR_RE = re.compile(r'\{:([^\}]*)\}')
+ATTR_RE = re.compile(r'{:([^}]*)}')
 MD_ESCAPE_RE = re.compile('|'.join(re.escape(c) for c in ('\\', '`', '*', '_', '{', '}', '[', ']',
                                                           '(', ')', '>', '#', '+', '-', '.', '!')))
 

@@ -17,6 +17,9 @@
 ##########################################################################
 
 import logging
+# import keyring
+# You'll need to have the relevant software in your systems. Instructions at:
+# https://pypi.python.org/pypi/keyring
 
 ##########################################################################
 # Core Errbot configuration                                              #
@@ -140,11 +143,31 @@ SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 # Account and chatroom (MUC) configuration                               #
 ##########################################################################
 
+# In order to avoid including the username and password in the config file with
+# keyring module you will need two variables.
+username='err@localhost'
+password='changeme'
+
+# If you decide to use the keyring you should uncomment the lines in the
+# following paragraph and (optional) comment the previous ones. Setting up the
+# account in the keyring depends on your system. In my Ubuntu GNU/Linux machine
+# something like in the command line:
+# $ keyring set jabber-myaccount err@localhost works. 
+# It requests the password and stores it in some file, crypted. It is not more
+# secure than having the password in this file for a local user, but at least
+# the password is not stored in this file. Some more info at:
+# https://pypi.python.org/pypi/keyring
+
+# Uncomment the following lines to use the keyring.
+# server = 'jabber-myAccount' # Name of the account in the keyring
+# username = 'err@localhost'
+# password = keyring.get_password(server,username)
+
 # The identity, or credentials, used to connect to a server
 BOT_IDENTITY = {
     # XMPP (Jabber) mode
-    'username': 'err@localhost',  # The JID of the user you have created for the bot
-    'password': 'changeme',       # The corresponding password for this user
+    'username': username,  # The JID of the user you have created for the bot
+    'password': password,       # The corresponding password for this user
     # 'server': ('host.domain.tld',5222), # server override
 
     ## HipChat mode (Comment the above if using this mode)

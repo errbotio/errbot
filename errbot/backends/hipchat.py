@@ -517,7 +517,7 @@ class HipchatBackend(XMPPBackend):
             hcard['style'] = 'application'
             hcard['format'] = 'medium'
             if card.image and card.thumbnail:
-                log.warn('Hipchat cannot display this card with an image.'
+                log.warning('Hipchat cannot display this card with an image.'
                          'Remove summary, fields and/or possibly link to fallback to an hichat link or '
                          'an image style card.')
             if card.image or card.thumbnail:

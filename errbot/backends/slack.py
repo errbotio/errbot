@@ -175,7 +175,7 @@ class SlackPerson(Person):
 
     def __eq__(self, other):
         if not isinstance(other, SlackPerson):
-            log.warn('tried to compare a SlackPerson with a %s', type(other))
+            log.warning('tried to compare a SlackPerson with a %s', type(other))
             return False
         return other.userid == self.userid
 
@@ -206,7 +206,7 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
 
     def __eq__(self, other):
         if not isinstance(other, RoomOccupant):
-            log.warn('tried to compare a SlackRoomOccupant with a SlackPerson %s vs %s', self, other)
+            log.warning('tried to compare a SlackRoomOccupant with a SlackPerson %s vs %s', self, other)
             return False
         return other.room.id == self.room.id and other.userid == self.userid
 
@@ -258,7 +258,7 @@ class SlackRoomBot(RoomOccupant, SlackBot):
 
     def __eq__(self, other):
         if not isinstance(other, RoomOccupant):
-            log.warn('tried to compare a SlackRoomBotOccupant with a SlackPerson %s vs %s', self, other)
+            log.warning('tried to compare a SlackRoomBotOccupant with a SlackPerson %s vs %s', self, other)
             return False
         return other.room.id == self.room.id and other.userid == self.userid
 

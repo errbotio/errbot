@@ -116,7 +116,7 @@ class IRCPerson(Person):
 
     def __eq__(self, other):
         if not isinstance(other, IRCPerson):
-            log.warn("Weird you are comparing an IRCPerson to a %s.", type(other))
+            log.warning("Weird you are comparing an IRCPerson to a %s.", type(other))
             return False
         return self.person == other.person
 
@@ -306,7 +306,7 @@ class IRCRoom(Room):
 
     def __eq__(self, other):
         if not isinstance(other, IRCRoom):
-            log.warn("This is weird you are comparing an IRCRoom to a %s", type(other))
+            log.warning("This is weird you are comparing an IRCRoom to a %s", type(other))
             return False
         return self.room == other.room
 

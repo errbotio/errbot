@@ -12,7 +12,7 @@ from yapsy import PluginInfo
 
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
-from .utils import version2array, collect_roots, ensure_sys_path_contains
+from .utils import version2array, collect_roots
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -44,6 +44,19 @@ class IncompatiblePluginException(PluginActivationException):
 
 class PluginConfigurationException(PluginActivationException):
     pass
+
+
+def _ensure_sys_path_contains(paths):
+    """ Ensure that os.path contains paths
+       :param base_paths:
+            a list of base paths to walk from
+            elements can be a string or a list/tuple of strings
+    """
+    for entry in paths:
+        if isinstance(entry, (list, tuple)):
+            _ensure_sys_path_contains(entry)
+        elif entry is not None and entry not in sys.path:
+            sys.path.append(entry)
 
 
 def populate_doc(plugin):
@@ -370,7 +383,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.debug("Add %s to sys.path", entry)
                 sys.path.append(entry)
         # so plugins can relatively import their repos
-        ensure_sys_path_contains(repo_roots)
+        _ensure_sys_path_contains(repo_roots)
 
         errors = {}
         if autoinstall_deps:

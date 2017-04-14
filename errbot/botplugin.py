@@ -5,11 +5,43 @@ from types import ModuleType
 from typing import Tuple, Callable, Mapping, Sequence
 from io import IOBase
 
-from .utils import recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
 
 log = logging.getLogger(__name__)
+
+
+class ValidationException(Exception):
+    pass
+
+
+def _recurse_check_plugin_configuration(sample, to_check):
+    sample_type = type(sample)
+    to_check_type = type(to_check)
+
+    # Skip this check if the sample is None because it will always be something
+    # other than NoneType when changed from the default. Raising ValidationException
+    # would make no sense then because it would defeat the whole purpose of having
+    # that key in the sample when it could only ever be None.
+    if sample is not None and sample_type != to_check_type:
+        raise ValidationException(
+            '%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
+
+    if sample_type in (list, tuple):
+        for element in to_check:
+            _recurse_check_plugin_configuration(sample[0], element)
+        return
+
+    if sample_type == dict:
+        for key in sample:
+            if key not in to_check:
+                raise ValidationException("%s doesn't contain the key %s" % (to_check, key))
+        for key in to_check:
+            if key not in sample:
+                raise ValidationException("%s contains an unknown key %s" % (to_check, key))
+        for key in sample:
+            _recurse_check_plugin_configuration(sample[key], to_check[key])
+        return
 
 
 class CommandError(Exception):
@@ -312,7 +344,7 @@ class BotPlugin(BotPluginBase):
 
         :param configuration: the configuration to be checked.
         """
-        recurse_check_structure(self.get_configuration_template(), configuration)  # default behavior
+        _recurse_check_plugin_configuration(self.get_configuration_template(), configuration)  # default behavior
 
     def configure(self, configuration: Mapping) -> None:
         """

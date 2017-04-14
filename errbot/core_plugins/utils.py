@@ -1,7 +1,10 @@
 from os import path
 
 from errbot import BotPlugin, botcmd
-from errbot.utils import tail
+
+
+def tail(f, window=20):
+    return ''.join(f.readlines()[-window:])
 
 
 class Utils(BotPlugin):

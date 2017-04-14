@@ -30,7 +30,7 @@ from .backends.base import Backend, Room, Identifier, Message
 from .storage import StoreMixin
 from .streaming import Tee
 from .templating import tenv
-from .utils import split_string_after, get_class_that_defined_method
+from .utils import split_string_after
 
 log = logging.getLogger(__name__)
 
@@ -653,8 +653,15 @@ class ErrBot(Backend, StoreMixin):
         pat = re.compile(r'!({})'.format('|'.join(ununderscore_keys)))
         return re.sub(pat, self.prefix + '\1', command.__doc__)
 
+    @staticmethod
+    def get_plugin_class_from_method(meth):
+        for cls in inspect.getmro(type(meth.__self__)):
+            if meth.__name__ in cls.__dict__:
+                return cls
+        return None
+
     def get_command_classes(self):
-        return (get_class_that_defined_method(command)
+        return (self.get_plugin_class_from_method(command)
                 for command in self.all_commands.values())
 
     def shutdown(self):

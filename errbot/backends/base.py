@@ -6,10 +6,6 @@ from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
 from abc import abstractproperty, abstractmethod
 from collections import deque, defaultdict
 
-import inspect
-
-from errbot.utils import deprecated
-
 try:
     from abc import ABC
 except ImportError:

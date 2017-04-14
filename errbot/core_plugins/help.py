@@ -2,7 +2,6 @@ import textwrap
 
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
-from errbot.utils import get_class_that_defined_method
 
 
 class Help(BotPlugin):
@@ -29,7 +28,7 @@ class Help(BotPlugin):
 
         cls_commands = {}
         for (name, command) in self._bot.all_commands.items():
-            cls = get_class_that_defined_method(command)
+            cls = self._bot.get_plugin_class_from_method(command)
             cls = str.__module__ + '.' + cls.__name__  # makes the fuul qualified name
             commands = cls_commands.get(cls, [])
             if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self._bot.check_command_access(mess, name)[0]:
@@ -79,7 +78,7 @@ class Help(BotPlugin):
         if not args:
             cls_commands = {}
             for (name, command) in self._bot.all_commands.items():
-                cls = get_class_that_defined_method(command)
+                cls = self._bot.get_plugin_class_from_method(command)
                 commands = cls_commands.get(cls, [])
                 if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name):
                     commands.append((name, command))
@@ -107,7 +106,7 @@ class Help(BotPlugin):
             commands = [
                 (name, command) for (name, command)
                 in self._bot.all_commands.items() if
-                get_name(get_class_that_defined_method(command)) == args]
+                get_name(self._bot.get_plugin_class_from_method(command)) == args]
 
             description = '\n**{name}**\n\n*{doc}*\n\n'.format(
                 name=cls.__name__,

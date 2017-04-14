@@ -375,14 +375,14 @@ def recurse(write, chr_table, element, table=None, borders=True):
         if k == 'color':
             color_attr = getattr(chr_table, 'fg_' + v, None)
             if color_attr is None:
-                log.warn("there is no '%s' color in ansi" % v)
+                log.warning("there is no '%s' color in ansi" % v)
                 continue
             write(color_attr)
             post_element.append(chr_table.fg_default)
         elif k == 'bgcolor':
             color_attr = getattr(chr_table, 'bg_' + v, None)
             if color_attr is None:
-                log.warn("there is no '%s' bgcolor in ansi" % v)
+                log.warning("there is no '%s' bgcolor in ansi" % v)
                 continue
             write(color_attr)
             post_element.append(chr_table.bg_default)

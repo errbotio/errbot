@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 'errbot = errbot.cli:main',
             ]
         },
-
+        scripts = ['scripts/errbot-setup-config.py'],
         install_requires=deps,
         tests_require=['nose', 'webtest', 'requests'],
         package_data={

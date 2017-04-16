@@ -770,6 +770,7 @@ class SlackBackend(ErrBot):
         Supports strings with the following formats::
 
             <#C12345>
+            <#C12345|channelname>
             <@U12345>
             <@U12345|user>
             @user
@@ -807,7 +808,10 @@ class SlackBackend(ErrBot):
                 else:
                     userid = text
             elif text[0] in ('C', 'G', 'D'):
-                channelid = text
+                if '|' in text:
+                    channelid, channelname = text.split('|')
+                else:
+                    channelid = text
             else:
                 raise ValueError(exception_message % text)
         elif text[0] == '@':
@@ -965,7 +969,7 @@ class SlackBackend(ErrBot):
         """
         mentioned = []
 
-        m = re.findall('<@[^>]*>*', text)
+        m = re.findall('<[@#][^>]*>*', text)
 
         for word in m:
             try:
@@ -978,6 +982,9 @@ class SlackBackend(ErrBot):
             if isinstance(identifier, SlackPerson):
                 log.debug('Someone mentioned')
                 mentioned.append(identifier)
+                text = text.replace(word, str(identifier))
+            elif isinstance(identifier, SlackRoom):
+                log.debug('Room mentioned')
                 text = text.replace(word, str(identifier))
 
         return text, mentioned

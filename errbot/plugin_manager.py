@@ -264,7 +264,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
         if self.core_plugins is not None:
             if not check_enabled_core_plugin(name, plugin_info.details, self.core_plugins):
-                log.warn('Core plugin "%s" has been skipped because it is not in CORE_PLUGINS in config.py.' % name)
+                log.warning('Core plugin "%s" has been skipped because it is not in CORE_PLUGINS in config.py.' % name)
                 return None
 
         if not check_python_plug_section(name, plugin_info.details):

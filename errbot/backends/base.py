@@ -6,10 +6,6 @@ from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
 from abc import abstractproperty, abstractmethod
 from collections import deque, defaultdict
 
-import inspect
-
-from errbot.utils import deprecated
-
 try:
     from abc import ABC
 except ImportError:
@@ -42,35 +38,40 @@ class Person(Identifier):
      to make an identifier from a String.
     """
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def person(self) -> str:
         """
         :return: a backend specific unique identifier representing the person you are talking to.
         """
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def client(self) -> str:
         """
         :return: a backend specific unique identifier representing the device or client the person is using to talk.
         """
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def nick(self) -> str:
         """
         :return: a backend specific nick returning the nickname of this person if available.
         """
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def aclattr(self) -> str:
         """
         :return: returns the unique identifier that will be used for ACL matches.
         """
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def fullname(self) -> str:
         """
         Some backends have the full name of a user.
@@ -81,7 +82,8 @@ class Person(Identifier):
 
 
 class RoomOccupant(Identifier):
-    @abstractproperty
+    @property
+    @abstractmethod
     def room(self) -> Any:  # this is oom defined below
         """
         Some backends have the full name of a user.
@@ -347,12 +349,6 @@ class Message(object):
     @property
     def is_group(self) -> bool:
         return isinstance(self.to, Room)
-
-    @property
-    def type(self):
-        msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back))
-        log.warn(msg + 'msg.type is deprecated and will be removed soon ! Use msg.is_direct or msg.is_group.')
-        return 'chat' if self.is_direct else 'groupchat'
 
 
 class Card(Message):
@@ -784,11 +780,13 @@ class Backend(ABC):
     def disconnect_callback(self) -> None:
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def mode(self) -> str:
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def rooms(self) -> Sequence[Room]:
         """
         Return a list of rooms the bot is currently in.

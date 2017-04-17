@@ -459,13 +459,11 @@ class BotPlugin(BotPluginBase):
              identifier: Identifier,
              text: str,
              in_reply_to: Message=None,
-             message_type: str=None,
              groupchat_nick_reply: bool=False) -> None:
         """
             Send a message to a room or a user.
 
             :param groupchat_nick_reply: if True the message will mention the user in the chatroom.
-            :param message_type: this parameter is deprecated and will be removed in a future version.
             :param in_reply_to: the original message this message is a reply to (optional).
             :param text: markdown formatted text to send to the user.
             :param identifier: An Identifier representing the user or room to message.
@@ -473,8 +471,6 @@ class BotPlugin(BotPluginBase):
         """
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
-        if message_type is not None:
-            self.log.warning("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def send_card(self,
@@ -527,18 +523,14 @@ class BotPlugin(BotPluginBase):
                        template_name: str,
                        template_parameters: Mapping,
                        in_reply_to: Message=None,
-                       message_type: str=None,
                        groupchat_nick_reply: bool=False) -> None:
         """
         Sends asynchronously a message to a room or a user.
 
-        Same as send but passing a template name and parameters instead of directly the markdown text. If it is a room
-        message_type needs to by 'groupchat' and user the room.
-
+        Same as send but passing a template name and parameters instead of directly the markdown text.
         :param template_parameters: arguments for the template.
         :param template_name: name of the template to use.
         :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-        :param message_type: DEPRECATED
         :param in_reply_to: optionally, the original message this message is the answer to.
         :param identifier: identifier of the user or room to which you want to send a message to.
         """

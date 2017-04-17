@@ -171,7 +171,7 @@ def test_backup(testbot):
     bot.push_message('!backup')
     msg = testbot.pop_message()
     assert 'has been written in' in msg
-    filename = re.search(r"'([A-Za-z0-9_\./\\-]*)'", msg).group(1)
+    filename = re.search(r"'([A-Za-z0-9_./\\-]*)'", msg).group(1)
 
     # At least the backup should mention the installed plugin
     assert 'errbotio/err-helloworld' in open(filename).read()

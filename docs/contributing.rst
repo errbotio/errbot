@@ -37,9 +37,8 @@ these guidelines as you open a pull request.
 * Split your work up into smaller commits if possible, while making sure each commit
   can still function on its own. Do not commit work-in-progress code - commit it
   once it's working.
-* Run the test-suite before opening your pull request, and make sure all tests pass.
-  You can run the tests with :command:`./run_tests.py` in the root of the
-  repository.
+* Run tox before opening your pull request, and make sure all tests pass.
+  You can install tox with :command:`pip install tox`
 * If you can, please add tests for your code. We know large parts of our codebase
   are missing tests, so we won't reject your code if it lacks tests, though.
 

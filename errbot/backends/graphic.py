@@ -110,7 +110,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super().keyPressEvent(*args, **kwargs)
 
 
-urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+urlfinder = re.compile(r'http([^.\s]+\.[^.\s]*)+[^.\s]{2,}')
 
 backends_path = os.path.join(os.path.dirname(errbot.__file__), 'backends')
 

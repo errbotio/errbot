@@ -177,6 +177,16 @@ class TextBackend(ErrBot):
                 print(self.md_borderless_ansi.convert(mess.body))
             print('\n\n')
 
+    def add_reaction(self, mess: Message, reaction: str) -> None:
+        # this is like the Slack backend's add_reaction
+        self._react('+', mess, reaction)
+
+    def remove_reaction(self, mess: Message, reaction: str) -> None:
+        self._react('-', mess, reaction)
+
+    def _react(self, sign, mess, reaction):
+        self.send(mess.frm, 'reaction {}:{}:'.format(sign, reaction), in_reply_to=mess)
+
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         log.debug("*** Changed presence to [%s] %s", (status, message))
 

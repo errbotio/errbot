@@ -1,6 +1,6 @@
 import logging
 import sys
-from threadpool import WorkRequest
+from multiprocessing.pool import ThreadPool
 
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
 from errbot.core import ErrBot
@@ -454,7 +454,7 @@ class TelegramBackend(ErrBot):
             stream = Stream(identifier, content, name, size, stream_type)
             log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
                       identifier, size, stream_type))
-            self.thread_pool.putRequest(WorkRequest(self._telegram_upload_stream, args=(stream,)))
+            self.thread_pool.apply_async(self._telegram_upload_stream, (stream,))
 
         return stream
 

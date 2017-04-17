@@ -11,7 +11,7 @@ Errbot to your favorite database.
 Architecture
 ------------
 
-Storage plugin are instanciated in 2 stages.
+Storage plugin are instantiated in 2 stages.
 
 The first stage is similar to the normal bot plugins:
 
@@ -41,7 +41,7 @@ mapping accessors to the :class:`~errbot.storage.base.StorageBase` implementatio
 Testing
 -------
 
-Those plugins are completely independent from Errbot itself, it should be easy to instanciate and test them externally.
+Those plugins are completely independent from Errbot itself, it should be easy to instantiate and test them externally.
 
 
 Example

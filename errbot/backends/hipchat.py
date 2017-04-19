@@ -154,7 +154,7 @@ class HipChatRoom(Room):
         return "<HipChatMUCRoom('{}')>".format(self.name)
 
     def __str__(self):
-        return self._name
+        return self.jid
 
     def join(self, username=None, password=None):
         """

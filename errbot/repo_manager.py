@@ -16,7 +16,7 @@ import re
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
-from .utils import which
+from .utils import ON_WINDOWS
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +59,26 @@ def tokenizeJsonEntry(json_dict):
     Returns all the words in a repo entry.
     """
     return set(find_words.findall(' '.join((word.lower() for word in json_dict.values()))))
+
+
+def which(program):
+    if ON_WINDOWS:
+        program += '.exe'
+
+    def is_exe(file_path):
+        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
 
 
 class BotRepoManager(StoreMixin):

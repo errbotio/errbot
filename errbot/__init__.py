@@ -11,7 +11,7 @@ from typing import Callable, Any, Tuple
 
 from .core_plugins.wsview import bottle_app, WebView
 from .backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
-from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command  # noqa
+from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command, ValidationException  # noqa
 from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route, view  # noqa
 from . import core

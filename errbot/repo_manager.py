@@ -114,7 +114,7 @@ class BotRepoManager(StoreMixin):
 
     def get_repo_from_index(self, repo_name):
         """
-        Retreive the list of plugins for the repo_name from the index.
+        Retrieve the list of plugins for the repo_name from the index.
 
         :param repo_name: the name of hte repo
         :return: a list of RepoEntry

@@ -129,7 +129,7 @@ def check_python_plug_section(name: str, config: ConfigParser) -> bool:
     except NoSectionError:
         log.info(
             'Plugin %s has no section [Python]. Assuming this '
-            'plugin is runnning only under python 3.', name)
+            'plugin is running only under python 3.', name)
         python_version = '3'
 
     if python_version not in ('2', '2+', '3'):
@@ -163,7 +163,7 @@ def check_errbot_version(name: str, min_version: str, max_version: str):
 
     if max_version and version2array(max_version) < current_version:
         raise IncompatiblePluginException(
-            'The plugin %s asks for Errbot with a maximal version of %s while Errbot is version %s' % (
+            'The plugin %s asks for Errbot with a maximum version of %s while Errbot is version %s' % (
                 name, max_version, VERSION)
         )
 
@@ -193,7 +193,7 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
 
     except NoSectionError:
         log.debug('Plugin %s has no section [Errbot]. Assuming this '
-                  'plugin is runnning on any Errbot version.', name)
+                  'plugin is running on any Errbot version.', name)
         min_version = VERSION
         max_version = VERSION
     try:

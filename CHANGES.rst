@@ -1,3 +1,44 @@
+v5.0.0 (2017-04-23)
+-------------------
+
+features:
+
+- Add support for cascaded subcommands (cmd_sub1_sub2_sub3) (thx Jeremiah Lowin)
+- You can now use symbolic links for your plugins
+- Telegram: send_stream_request support added (thx Alexandre Manhaes Savio)
+- Callback to unhandled messages (thx tamarin)
+- flows: New option to disable the next step hint (thx Aviv Laufer)
+- IRC: Added Notice support (bot can listen to them)
+- Slack: Original slack event message is attached to Message (Thx Bryan Shelton)
+- Slack: Added reaction support and Message.extras['url'] (Thx Tomer Chachamu)
+- Text backend: readline support (thx Robert Coup)
+- Test backend: stream requests support (thx Thomas Lee)
+
+fixes:
+
+- When a templated cmd crashes, it was crashing in the handling of the error.
+- Slack: no more crash if a message only contains attachments
+- Slack: fix for some corner case links (Thx Tomer Chachamu)
+- Slack: fixed LRU for better performance on large teams
+- Slack: fix for undefined key 'username' when the bot doesn't have one (thx Octavio Antonelli)
+
+other:
+
+- Tests: use conftest module to specify testbot fixture location (thx Pavel Savchenko)
+- Python 3.6.x added to travis.
+- Ported the yield tests to pytest 4.0
+- Removed a deprecated dependency for the threadpool, now uses the standard one (thx Muri Nicanor)
+
+breaking / API cleanups:
+
+- removed deprecated presence attributes (nick and occupant)
+- removed deprecated type from messages.
+- utils.ValidationException has moved to errbot.ValidationException and is fully part of the API.
+- {utils, errbot}.get_class_that_defined_method is now _bot.get_plugin_class_from_method
+- utils.utf8 has been removed, it was a leftover for python 2 compat.
+- utils.compat_str has been removed, it was a vestige for python 2 too.
+
+
 v4.3.7 (2017-02-08)
 -------------------
 

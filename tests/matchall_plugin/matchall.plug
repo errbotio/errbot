@@ -1,0 +1,4 @@
+[Core]
+Name = MatchAll
+Module = matchall
+

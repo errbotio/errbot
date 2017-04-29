@@ -87,9 +87,9 @@ class Help(BotPlugin):
             for cls in sorted(cls_commands.keys(), key=lambda c: c.__errname__):
                 # shows class and description
                 usage += '\n**{name}**\n\n*{doc}*\n\n'.format(
-                                           name=cls.__errname__,
-                                           doc=cls.__errdoc__.strip() or '',
-                                       )
+                    name=cls.__errname__,
+                    doc=cls.__errdoc__.strip() or '',
+                )
 
                 for (name, command) in cls_commands[cls]:
                     if command._err_command_hidden:
@@ -109,9 +109,9 @@ class Help(BotPlugin):
                 get_name(self._bot.get_plugin_class_from_method(command)) == args]
 
             description = '\n**{name}**\n\n*{doc}*\n\n'.format(
-                                       name=cls.__errname__,
-                                       doc=cls.__errdoc__.strip() or '',
-                                   )
+                name=cls.__errname__,
+                doc=cls.__errdoc__.strip() or '',
+            )
             pairs = sorted([
                 (name, command)
                 for (name, command) in commands

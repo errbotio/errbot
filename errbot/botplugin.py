@@ -157,10 +157,18 @@ class BotPluginBase(StoreMixin):
         """
         return self._bot.bot_identifier
 
+    @property
+    def name(self) -> str:
+        """
+        Get the plugin name as defined in its .plug file.
+        
+        :return: this plugin name. 
+        """
+        return self.__class__.__errname__
+
     def init_storage(self) -> None:
-        classname = self.__class__.__name__
-        log.debug('Init storage for %s' % classname)
-        self.open_storage(self._bot.storage_plugin, classname)
+        log.debug('Init storage for %s' % self.name)
+        self.open_storage(self._bot.storage_plugin, self.name)
 
     def activate(self) -> None:
         """

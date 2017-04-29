@@ -107,7 +107,7 @@ class ErrBot(Backend, StoreMixin):
         :param **kwargs: Passed to the callback function.
         """
         for plugin in self.plugin_manager.get_all_active_plugin_objects_ordered():
-            plugin_name = plugin.__class__.__name__
+            plugin_name = plugin.name
             log.debug("Triggering {} on {}".format(method, plugin_name))
             # noinspection PyBroadException
             try:
@@ -491,7 +491,7 @@ class ErrBot(Backend, StoreMixin):
 
     def inject_commands_from(self, instance_to_inject):
         with self._gbl:
-            classname = instance_to_inject.__class__.__name__
+            plugin_name = instance_to_inject.name
             for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
                 if getattr(value, '_err_command', False):
                     commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
@@ -499,9 +499,9 @@ class ErrBot(Backend, StoreMixin):
 
                     if name in commands:
                         f = commands[name]
-                        new_name = (classname + '-' + name).lower()
+                        new_name = (plugin_name + '-' + name).lower()
                         self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
-                            classname, name, type(f.__self__).__name__, f.__name__, new_name))
+                            plugin_name, name, type(f.__self__).__name__, f.__name__, new_name))
                         name = new_name
                         value.__func__._err_command_name = new_name  # To keep track of the renaming.
                     commands[name] = value

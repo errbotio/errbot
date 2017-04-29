@@ -43,7 +43,6 @@ SIMPLE_JSON_PLUGINS_INDEX = """
 
 class DummyBackend(ErrBot):
 
-
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
@@ -65,7 +64,7 @@ class DummyBackend(ErrBot):
         config = ShallowConfig()
         config.__dict__.update(sys.modules['errbot.config-template'].__dict__)
         bot_config_defaults(config)
-        
+
         # It injects itself as a plugin. Changed the name to be sure we distinguish it.
         self.name = 'DummyBackendRealName'
 

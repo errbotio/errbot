@@ -161,8 +161,8 @@ class BotPluginBase(StoreMixin):
     def name(self) -> str:
         """
         Get the plugin name as defined in its .plug file.
-        
-        :return: this plugin name. 
+
+        :return: this plugin name.
         """
         return self.__class__.__errname__
 

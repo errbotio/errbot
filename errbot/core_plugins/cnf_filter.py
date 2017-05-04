@@ -21,7 +21,7 @@ class CommandNotFoundFilter(BotPlugin):
             return msg, cmd, args
 
         if self.bot_config.SUPPRESS_CMD_NOT_FOUND:
-            log.debug("Surpressing command not found feedback")
+            self.log.debug("Surpressing command not found feedback")
         else:
             if msg.body.find(' ') > 0:
                 command = msg.body[:msg.body.index(' ')]

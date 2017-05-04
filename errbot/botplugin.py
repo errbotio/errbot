@@ -4,6 +4,7 @@ from threading import Timer, current_thread
 from types import ModuleType
 from typing import Tuple, Callable, Mapping, Sequence
 from io import IOBase
+import re
 
 from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
@@ -156,10 +157,18 @@ class BotPluginBase(StoreMixin):
         """
         return self._bot.bot_identifier
 
+    @property
+    def name(self) -> str:
+        """
+        Get the plugin name as defined in its .plug file.
+
+        :return: this plugin name.
+        """
+        return self.__class__.__errname__
+
     def init_storage(self) -> None:
-        classname = self.__class__.__name__
-        log.debug('Init storage for %s' % classname)
-        self.open_storage(self._bot.storage_plugin, classname)
+        log.debug('Init storage for %s' % self.name)
+        self.open_storage(self._bot.storage_plugin, self.name)
 
     def activate(self) -> None:
         """
@@ -271,7 +280,10 @@ class BotPluginBase(StoreMixin):
         """
         if name in self._dynamic_plugins:
             raise ValueError('Dynamic plugin %s already created.')
-        plugin_class = type(name, (BotPlugin,), {command.name: command.definition for command in commands})
+        # cleans the name to be a valid python type.
+        plugin_class = type(re.sub('\W|^(?=\d)', '_', name), (BotPlugin,),
+                            {command.name: command.definition for command in commands})
+        plugin_class.__errname__ = name
         plugin_class.__errdoc__ = doc
         plugin = plugin_class(self._bot)
         self._dynamic_plugins[name] = plugin

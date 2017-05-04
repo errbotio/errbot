@@ -84,10 +84,10 @@ class Help(BotPlugin):
                     commands.append((name, command))
                     cls_commands[cls] = commands
 
-            for cls in sorted(set(cls_commands), key=lambda c: c.__name__):
+            for cls in sorted(cls_commands.keys(), key=lambda c: c.__errname__):
                 # shows class and description
                 usage += '\n**{name}**\n\n*{doc}*\n\n'.format(
-                    name=cls.__name__,
+                    name=cls.__errname__,
                     doc=cls.__errdoc__.strip() or '',
                 )
 
@@ -109,7 +109,7 @@ class Help(BotPlugin):
                 get_name(self._bot.get_plugin_class_from_method(command)) == args]
 
             description = '\n**{name}**\n\n*{doc}*\n\n'.format(
-                name=cls.__name__,
+                name=cls.__errname__,
                 doc=cls.__errdoc__.strip() or '',
             )
             pairs = sorted([

@@ -60,7 +60,7 @@ class ACLS(BotPlugin):
         self.log.debug("Check %s for ACLs." % cmd)
         f = self._bot.all_commands[cmd]
         cmd_str = "{plugin}:{command}".format(
-            plugin=type(f.__self__).__name__,
+            plugin=f.__self__.name,
             command=cmd,
         )
 

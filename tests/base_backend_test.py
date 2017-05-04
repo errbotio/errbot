@@ -42,6 +42,7 @@ SIMPLE_JSON_PLUGINS_INDEX = """
 
 
 class DummyBackend(ErrBot):
+
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
@@ -63,6 +64,10 @@ class DummyBackend(ErrBot):
         config = ShallowConfig()
         config.__dict__.update(sys.modules['errbot.config-template'].__dict__)
         bot_config_defaults(config)
+
+        # It injects itself as a plugin. Changed the name to be sure we distinguish it.
+        self.name = 'DummyBackendRealName'
+
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
         config.BOT_PLUGIN_INDEXES = tempdir + sep + 'repos.json'
@@ -712,7 +717,7 @@ def test_access_controls(dummy_backend):
         # ACCESS_CONTROLS scenarios WITH wildcards (>=4.0 format)
         dict(
             message=makemessage(dummy_backend, "!command"),
-            acl={'DummyBackend:command': {'denyusers': ('noterr',)}},
+            acl={'DummyBackendRealName:command': {'denyusers': ('noterr',)}},
             expected_response="You're not allowed to access this command from this user"
         ),
         dict(
@@ -722,15 +727,15 @@ def test_access_controls(dummy_backend):
         ),
         dict(
             message=makemessage(dummy_backend, "!command"),
-            acl={'DummyBackend:*': {'denyusers': ('noterr',)}},
+            acl={'DummyBackendRealName:*': {'denyusers': ('noterr',)}},
             expected_response="You're not allowed to access this command from this user"
         ),
         # Overlapping globs should use first match
         dict(
             message=makemessage(dummy_backend, "!command"),
             acl=OrderedDict([
-                ('DummyBackend:*', {'denyusers': ('noterr',)}),
-                ('DummyBackend:command', {'denyusers': ()})
+                ('DummyBackendRealName:*', {'denyusers': ('noterr',)}),
+                ('DummyBackendRealName:command', {'denyusers': ()})
             ]),
             expected_response="You're not allowed to access this command from this user"
         ),

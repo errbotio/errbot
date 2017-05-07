@@ -109,22 +109,27 @@ class BotPluginBase(StoreMixin):
      It is the main contract between the plugins and the bot
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot, name=None):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
         self.dependencies = []
         self._dynamic_plugins = {}
-        self.log = logging.getLogger("errbot.plugins.%s" % self.__class__.__name__)
-        if bot is not None:
-            self._load_bot(bot)
-        super().__init__()
-
-    def _load_bot(self, bot):
-        """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
-        """
+        self.log = logging.getLogger("errbot.plugins.%s" % name)
+        self.log.debug('Logger for plugin initialized...')
         self._bot = bot
         self.plugin_dir = bot.repo_manager.plugin_dir
+        self._name = name
+        super().__init__()
+
+    @property
+    def name(self) -> str:
+        """
+        Get the name of this plugin as described in its .plug file.
+
+        :return: The p[lugin name. 
+        """
+        return self._name
 
     @property
     def mode(self) -> str:
@@ -156,15 +161,6 @@ class BotPluginBase(StoreMixin):
         :return Identifier
         """
         return self._bot.bot_identifier
-
-    @property
-    def name(self) -> str:
-        """
-        Get the plugin name as defined in its .plug file.
-
-        :return: this plugin name.
-        """
-        return self.__class__.__errname__
 
     def init_storage(self) -> None:
         log.debug('Init storage for %s' % self.name)
@@ -283,9 +279,8 @@ class BotPluginBase(StoreMixin):
         # cleans the name to be a valid python type.
         plugin_class = type(re.sub('\W|^(?=\d)', '_', name), (BotPlugin,),
                             {command.name: command.definition for command in commands})
-        plugin_class.__errname__ = name
         plugin_class.__errdoc__ = doc
-        plugin = plugin_class(self._bot)
+        plugin = plugin_class(self._bot, name=name)
         self._dynamic_plugins[name] = plugin
         self._bot.inject_commands_from(plugin)
 

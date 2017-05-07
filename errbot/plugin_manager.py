@@ -62,6 +62,7 @@ def _ensure_sys_path_contains(paths):
 def populate_doc(plugin_info: PluginInfo) -> None:
     plugin_class = type(plugin_info.plugin_object)
     plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plugin_info.description
+    log.debug('Set __errname__ of class %s to %s', plugin_class.__name__, plugin_info.name)
     plugin_class.__errname__ = plugin_info.name
 
 
@@ -263,7 +264,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def instanciateElement(self, element) -> BotPlugin:
         """Overrides the instanciation of plugins to inject the bot reference."""
-        return element(self.bot)
+        return element(self.bot, name=self._current_pluginfo.name)
 
     def get_plugin_by_name(self, name: str) -> PluginInfo:
         return self.getPluginByName(name, BOTPLUGIN_TAG)
@@ -292,6 +293,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         depends_on = self._activate_plugin_dependencies(plugin_info, dep_track)
 
         obj = plugin_info.plugin_object
+
         obj.dependencies = depends_on
 
         try:
@@ -371,6 +373,10 @@ class BotPluginManager(PluginManager, StoreMixin):
         if was_activated:
             self.activate_plugin(name)
 
+    def _plugin_info_currently_loading(self, pluginfo):
+        # Keeps track of what is the current plugin we are attempting to load.
+        self._current_pluginfo = pluginfo
+
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
         """ It returns a dictionary of path -> error strings."""
         repo_roots = (CORE_PLUGINS, extra_plugin_dir, path_list)
@@ -417,7 +423,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 
-        loaded_plugins = self.loadPlugins()
+        loaded_plugins = self.loadPlugins(self._plugin_info_currently_loading)
 
         errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2]))
                        for pluginfo in loaded_plugins if pluginfo.error is not None})

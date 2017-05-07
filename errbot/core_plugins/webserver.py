@@ -71,12 +71,12 @@ def make_ssl_certificate(key_path, cert_path):
 
 class Webserver(BotPlugin):
 
-    def __init__(self, bot):
+    def __init__(self, *args, **kwargs):
         self.webserver = None
         self.webchat_mode = False
         self.ssl_context = None
         self.test_app = TestApp(bottle_app)
-        super().__init__(bot)
+        super().__init__(*args, **kwargs)
 
     def get_configuration_template(self):
         return {'HOST': '0.0.0.0',

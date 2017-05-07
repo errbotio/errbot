@@ -127,7 +127,7 @@ class BotPluginBase(StoreMixin):
         """
         Get the name of this plugin as described in its .plug file.
 
-        :return: The p[lugin name. 
+        :return: The plugin name.
         """
         return self._name
 

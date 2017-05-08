@@ -83,7 +83,6 @@ class Help(BotPlugin):
                 commands.append((name, command))
                 cls_obj_commands[cls] = (obj, commands)
 
-
         # show all
         if not args:
             for cls in sorted(cls_obj_commands.keys(), key=lambda c: cls_obj_commands[c][0].name):
@@ -102,7 +101,7 @@ class Help(BotPlugin):
                     usage += self._cmd_help_line(name, command)
             usage += '\n\n'  # end cls section
         elif args:
-            for cls, (obj, cmds) in  cls_obj_commands.items():
+            for cls, (obj, cmds) in cls_obj_commands.items():
                 if obj.name.lower() == args:
                     break
             else:

@@ -62,8 +62,6 @@ def _ensure_sys_path_contains(paths):
 def populate_doc(plugin_info: PluginInfo) -> None:
     plugin_class = type(plugin_info.plugin_object)
     plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plugin_info.description
-    log.debug('Set __errname__ of class %s to %s', plugin_class.__name__, plugin_info.name)
-    plugin_class.__errname__ = plugin_info.name
 
 
 def install_packages(req_path):

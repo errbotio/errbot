@@ -1,3 +1,15 @@
+v5.0.1 (2017-05-08)
+-------------------
+hotfixes for v5.0.0.
+
+fixes:
+- fix crash for SUPPRESS_CMD_NOT_FOUND=True (thx Romuald Texier-Marcadé!)
+
+breaking / API cleanups:
+- Missed patch for 5.0.0: now the name of a plugin is defined by its name in .plug and not its class name.
+
+
+
 v5.0.0 (2017-04-23)
 -------------------
 

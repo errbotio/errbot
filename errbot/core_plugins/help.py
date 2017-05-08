@@ -74,62 +74,64 @@ class Help(BotPlugin):
         usage = ''
         description = '### All commands\n'
 
+        cls_obj_commands = {}
+        for (name, command) in self._bot.all_commands.items():
+            cls = self._bot.get_plugin_class_from_method(command)
+            obj = command.__self__
+            _, commands = cls_obj_commands.get(cls, (None, []))
+            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name):
+                commands.append((name, command))
+                cls_obj_commands[cls] = (obj, commands)
+
         # show all
         if not args:
-            cls_commands = {}
-            for (name, command) in self._bot.all_commands.items():
-                cls = self._bot.get_plugin_class_from_method(command)
-                commands = cls_commands.get(cls, [])
-                if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name):
-                    commands.append((name, command))
-                    cls_commands[cls] = commands
-
-            for cls in sorted(set(cls_commands), key=lambda c: c.__name__):
+            for cls in sorted(cls_obj_commands.keys(), key=lambda c: cls_obj_commands[c][0].name):
+                obj, commands = cls_obj_commands[cls]
+                name = obj.name
                 # shows class and description
                 usage += '\n**{name}**\n\n*{doc}*\n\n'.format(
-                    name=cls.__name__,
+                    name=name,
                     doc=cls.__errdoc__.strip() or '',
                 )
 
-                for (name, command) in cls_commands[cls]:
+                for name, command in commands:
                     if command._err_command_hidden:
                         continue
                     # show individual commands
                     usage += self._cmd_help_line(name, command)
             usage += '\n\n'  # end cls section
-        elif args in (get_name(cls) for cls in self._bot.get_command_classes()):
-            # filter out the commands related to this class
-            [cls] = {
-                c for c in self._bot.get_command_classes()
-                if get_name(c) == args
-            }
-            commands = [
-                (name, command) for (name, command)
-                in self._bot.all_commands.items() if
-                get_name(self._bot.get_plugin_class_from_method(command)) == args]
-
-            description = '\n**{name}**\n\n*{doc}*\n\n'.format(
-                name=cls.__name__,
-                doc=cls.__errdoc__.strip() or '',
-            )
-            pairs = sorted([
-                (name, command)
-                for (name, command) in commands
-                if not command._err_command_hidden and
-                (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name))
-            ])
-
-            for (name, command) in pairs:
-                usage += self._cmd_help_line(name, command)
-        else:
-            description = ''
-            all_commands = dict(self._bot.all_commands)
-            all_commands.update(
-                {k.replace('_', ' '): v for k, v in all_commands.items()})
-            if args in all_commands:
-                usage = self._cmd_help_line(args, all_commands[args], True)
+        elif args:
+            for cls, (obj, cmds) in cls_obj_commands.items():
+                if obj.name.lower() == args:
+                    break
             else:
-                usage = self.MSG_HELP_UNDEFINED_COMMAND
+                cls, obj, cmds = None, None, None
+
+            if cls is None:
+                # Plugin not found.
+                description = ''
+                all_commands = dict(self._bot.all_commands)
+                all_commands.update(
+                    {k.replace('_', ' '): v for k, v in all_commands.items()})
+                if args in all_commands:
+                    usage += self._cmd_help_line(args, all_commands[args], True)
+                else:
+                    usage += self.MSG_HELP_UNDEFINED_COMMAND
+            else:
+                # filter out the commands related to this class
+                description = '\n**{name}**\n\n*{doc}*\n\n'.format(
+                    name=obj.name,
+                    doc=cls.__errdoc__.strip() or '',
+                )
+                pairs = sorted([
+                    (name, command)
+                    for (name, command) in cmds
+                    if not command._err_command_hidden and
+                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name))
+                ])
+
+                for (name, command) in pairs:
+                    usage += self._cmd_help_line(name, command)
 
         return ''.join(filter(None, [description, usage]))
 

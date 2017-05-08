@@ -203,10 +203,21 @@ class BotFlow(IPlugin):
     """
     Defines a Flow plugin ie. a plugin that will define new flows from its methods with the @botflow decorator.
     """
-    def __init__(self, bot):
+
+    def __init__(self, bot, name=None):
         super().__init__()
         self._bot = bot
         self.is_activated = False
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        """
+        Get the name of this flow as described in its .plug file.
+
+        :return: The flow name.
+        """
+        return self._name
 
     def activate(self) -> None:
         """

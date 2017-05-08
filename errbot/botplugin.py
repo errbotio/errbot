@@ -4,6 +4,7 @@ from threading import Timer, current_thread
 from types import ModuleType
 from typing import Tuple, Callable, Mapping, Sequence
 from io import IOBase
+import re
 
 from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
@@ -108,22 +109,27 @@ class BotPluginBase(StoreMixin):
      It is the main contract between the plugins and the bot
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot, name=None):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
         self.dependencies = []
         self._dynamic_plugins = {}
-        self.log = logging.getLogger("errbot.plugins.%s" % self.__class__.__name__)
-        if bot is not None:
-            self._load_bot(bot)
-        super().__init__()
-
-    def _load_bot(self, bot):
-        """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
-        """
+        self.log = logging.getLogger("errbot.plugins.%s" % name)
+        self.log.debug('Logger for plugin initialized...')
         self._bot = bot
         self.plugin_dir = bot.repo_manager.plugin_dir
+        self._name = name
+        super().__init__()
+
+    @property
+    def name(self) -> str:
+        """
+        Get the name of this plugin as described in its .plug file.
+
+        :return: The plugin name.
+        """
+        return self._name
 
     @property
     def mode(self) -> str:
@@ -157,9 +163,8 @@ class BotPluginBase(StoreMixin):
         return self._bot.bot_identifier
 
     def init_storage(self) -> None:
-        classname = self.__class__.__name__
-        log.debug('Init storage for %s' % classname)
-        self.open_storage(self._bot.storage_plugin, classname)
+        log.debug('Init storage for %s' % self.name)
+        self.open_storage(self._bot.storage_plugin, self.name)
 
     def activate(self) -> None:
         """
@@ -271,9 +276,11 @@ class BotPluginBase(StoreMixin):
         """
         if name in self._dynamic_plugins:
             raise ValueError('Dynamic plugin %s already created.')
-        plugin_class = type(name, (BotPlugin,), {command.name: command.definition for command in commands})
+        # cleans the name to be a valid python type.
+        plugin_class = type(re.sub('\W|^(?=\d)', '_', name), (BotPlugin,),
+                            {command.name: command.definition for command in commands})
         plugin_class.__errdoc__ = doc
-        plugin = plugin_class(self._bot)
+        plugin = plugin_class(self._bot, name=name)
         self._dynamic_plugins[name] = plugin
         self._bot.inject_commands_from(plugin)
 

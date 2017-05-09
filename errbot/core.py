@@ -332,6 +332,7 @@ class ErrBot(Backend, StoreMixin):
                         reply = cmd_filter(mess, cmd, args, False, emptycmd=True)
                         if reply:
                             self.send_simple_reply(mess, reply)
+                        # continue processing the other unprocessed cmd filters.
                     except Exception:
                         log.exception("Exception in a command filter command.")
         return True

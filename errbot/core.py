@@ -328,10 +328,12 @@ class ErrBot(Backend, StoreMixin):
             log.debug("Command not found")
             for cmd_filter in self.command_filters:
                 if getattr(cmd_filter, 'catch_unprocessed', False):
-                    reply = cmd_filter(mess, cmd, args, False, emptycmd=True)
-                    if reply:
-                        self.send_simple_reply(mess, reply)
-                        return True
+                    try:
+                        reply = cmd_filter(mess, cmd, args, False, emptycmd=True)
+                        if reply:
+                            self.send_simple_reply(mess, reply)
+                    except Exception:
+                        log.exception("Exception in a command filter command.")
         return True
 
     def _process_command_filters(self, msg, cmd, args, dry_run=False):

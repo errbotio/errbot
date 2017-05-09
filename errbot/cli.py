@@ -150,6 +150,7 @@ def main():
             if not os.path.isdir(base_dir):
                 print('Target directory %s must exist. Please create it.' % base_dir)
 
+            base_dir = os.path.abspath(base_bir)
             data_dir = os.path.join(base_dir, 'data')
             extra_plugin_dir = os.path.join(base_dir, 'plugins')
             example_plugin_dir = os.path.join(extra_plugin_dir, 'err-example')
@@ -173,7 +174,7 @@ def main():
             if base_dir == os.getcwd():
                 print('Just do "errbot" and it should start in text/development mode.')
             else:
-                print('Just do "cd %s" then "errbot" and it should start in text/development mode.' % data_dir)
+                print('Just do "cd %s" then "errbot" and it should start in text/development mode.' % args['init'])
             sys.exit(0)
         except Exception as e:
             print('The initialization of your errbot directory failed: %s' % e)

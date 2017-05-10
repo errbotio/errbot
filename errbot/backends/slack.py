@@ -105,8 +105,8 @@ class SlackPerson(Person):
     """
 
     def __init__(self, sc, userid=None, channelid=None):
-        if userid is not None and userid[0] not in ('U', 'B'):
-            raise Exception('This is not a Slack user or bot id: %s (should start with U or B)' % userid)
+        if userid is not None and userid[0] not in ('U', 'B', 'W'):
+            raise Exception('This is not a Slack user or bot id: %s (should start with U, B or W)' % userid)
 
         if channelid is not None and channelid[0] not in ('D', 'C', 'G'):
             raise Exception('This is not a valid Slack channelid: %s (should start with D, C or G)' % channelid)
@@ -795,13 +795,13 @@ class SlackBackend(ErrBot):
 
         if text[0] == "<" and text[-1] == ">":
             exception_message = (
-                "Unparseable slack ID, should start with U, B, C, G or D "
+                "Unparseable slack ID, should start with U, B, C, G, D or W"
                 "(got `%s`)"
             )
             text = text[2:-1]
             if text == "":
                 raise ValueError(exception_message % "")
-            if text[0] in ('U', 'B'):
+            if text[0] in ('U', 'B', 'W'):
                 if '|' in text:
                     userid, username = text.split('|')
                 else:

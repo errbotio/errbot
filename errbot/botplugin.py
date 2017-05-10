@@ -612,7 +612,7 @@ class BotPlugin(BotPluginBase):
         """
         The list of rooms the bot is currently in.
         """
-        return self._bot.rooms()
+        return self._bot.rooms
 
     def query_room(self, room: str) -> Room:
         """

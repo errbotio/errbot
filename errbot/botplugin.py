@@ -16,7 +16,7 @@ class ValidationException(Exception):
     pass
 
 
-def _recurse_check_plugin_configuration(sample, to_check):
+def recurse_check_structure(sample, to_check):
     sample_type = type(sample)
     to_check_type = type(to_check)
 
@@ -30,7 +30,7 @@ def _recurse_check_plugin_configuration(sample, to_check):
 
     if sample_type in (list, tuple):
         for element in to_check:
-            _recurse_check_plugin_configuration(sample[0], element)
+            recurse_check_structure(sample[0], element)
         return
 
     if sample_type == dict:
@@ -41,7 +41,7 @@ def _recurse_check_plugin_configuration(sample, to_check):
             if key not in sample:
                 raise ValidationException("%s contains an unknown key %s" % (to_check, key))
         for key in sample:
-            _recurse_check_plugin_configuration(sample[key], to_check[key])
+            recurse_check_structure(sample[key], to_check[key])
         return
 
 
@@ -351,7 +351,7 @@ class BotPlugin(BotPluginBase):
 
         :param configuration: the configuration to be checked.
         """
-        _recurse_check_plugin_configuration(self.get_configuration_template(), configuration)  # default behavior
+        recurse_check_structure(self.get_configuration_template(), configuration)  # default behavior
 
     def configure(self, configuration: Mapping) -> None:
         """

@@ -78,7 +78,9 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes = open('CHANGES.rst', 'r', encoding='utf-8').read()
+    changes_file = open('CHANGES.rst', 'r', encoding='utf-8')
+    changes = changes_file.read()
+    changes_file.close()
 
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')

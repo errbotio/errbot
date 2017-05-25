@@ -519,7 +519,7 @@ def testbot(request) -> TestBot:
         extra_plugin_dir = '/foo/bar'
 
         def test_about(testbot):
-            testbot.pushMessage('!about')
+            testbot.push_message('!about')
             assert "Err version" in testbot.pop_message()
 
     ..or::

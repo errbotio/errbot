@@ -78,8 +78,8 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes_file = open('CHANGES.rst', 'r', encoding='utf-8')
-    changes = changes_file.read()
+    open('CHANGES.rst', 'r', encoding='utf-8') as changes_file:
+        changes = changes_file.read()
     changes_file.close()
 
     if changes.find(VERSION) == -1:

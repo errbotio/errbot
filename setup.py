@@ -69,7 +69,7 @@ def read_version():
 
 
 def read(fname, encoding='ascii'):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read().decode(encoding)
+    return open(os.path.join(os.path.dirname(__file__), fname), 'r', encoding=encoding).read()
 
 
 if __name__ == "__main__":

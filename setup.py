@@ -68,8 +68,8 @@ def read_version():
     return variables['VERSION']
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def read(fname, encoding='ascii'):
+    return open(os.path.join(os.path.dirname(__file__), fname), 'r', encoding=encoding).read()
 
 
 if __name__ == "__main__":
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes = read('CHANGES.rst')
+    changes = read('CHANGES.rst', 'utf8')
 
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')

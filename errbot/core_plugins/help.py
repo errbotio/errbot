@@ -12,7 +12,7 @@ class Help(BotPlugin):
 
     def is_git_directory(self, path='.'):
         try:
-            git_call = subprocess.Popen(["get", "tag"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+            git_call = subprocess.Popen(["git", "tag"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
         except:
             return None
         tags, _ = git_call.communicate()

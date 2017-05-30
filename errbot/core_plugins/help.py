@@ -1,4 +1,5 @@
 import textwrap
+import subprocess
 
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
@@ -9,11 +10,28 @@ class Help(BotPlugin):
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
+    def is_git_directory(self, path='.'):
+        try:
+            git_call = subprocess.Popen(["get", "tag"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        except:
+            return None
+        tags, _ = git_call.communicate()
+        return_code = git_call.returncode
+        if return_code != 0:
+            return None
+        else:
+            tags = tags.rstrip(b"\n")
+            return tags.split(b"\n").pop(-1)
+
     # noinspection PyUnusedLocal
     @botcmd(template='about')
     def about(self, mess, args):
         """Return information about this Errbot instance and version"""
-        return {'version': VERSION}
+        git_version = self.is_git_directory()
+        if git_version:
+            return {'version': "{} GIT CHECKOUT".format(git_version.decode("utf-8"))}
+        else:
+            return {'version': VERSION}
 
     # noinspection PyUnusedLocal
     @botcmd

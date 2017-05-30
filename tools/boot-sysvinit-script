@@ -1,0 +1,71 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          errbot
+# Required-Start:    $local_fs $remote_fs $network
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Errbot
+### END INIT INFO
+
+set -e
+
+# /etc/init.d/errbot: start and stop errbot
+
+USER="errbot"
+HOME="/home/errbot"
+CONFIG="$HOME/config.py"
+
+PIDPATH="$HOME"
+PIDFILE="$PIDPATH/errbot.pid"
+
+DAEMON="$HOME/venv/bin/errbot"
+DAEMON_ARGS="--config $CONFIG --pidfile $PIDFILE --daemon"
+
+test -x "$DAEMON" || exit 0
+
+if [ -f /etc/default/errbot ] ; then
+    . /etc/default/errbot
+fi
+
+# Check that user exists
+check_user() {
+    if ! getent passwd $USER >/dev/null; then
+        exit 1;
+    fi
+}
+
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+        check_user
+        log_daemon_msg "Starting errbot" "errbot"
+        if start-stop-daemon --start --quiet --oknodo --pidfile "$PIDFILE" --chuid $USER --exec $DAEMON -- $DAEMON_ARGS
+        then
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+  stop)
+        log_daemon_msg "Stopping errbot" "errbot"
+        if start-stop-daemon --stop --retry 30 --quiet --oknodo --pidfile "$PIDFILE"
+        then
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+  force-reload|restart)
+        $0 stop
+        $0 start
+        ;;
+  *)
+        log_action_msg "Usage: /etc/init.d/errbot {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

@@ -213,7 +213,7 @@ As an example, this is all it takes to create a "Hello, world!" plugin for Errbo
 
 .. code:: python
 
-   from errbot import BotPlugin, botcmd
+    from errbot import BotPlugin, botcmd
    
     class Hello(BotPlugin):
         """Example 'Hello, world!' plugin for Errbot"""

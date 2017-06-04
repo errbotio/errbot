@@ -163,6 +163,14 @@ These are a few example configurations using common init daemons:
 .. literalinclude:: ../code_examples/systemd.service
     :language: sh
 
+.. note::
+
+    Running errbot within a daemon process can have security implications if the daemon is started with an account containing elevated privileges.
+    We encourage errbot **not** be run under a `root` or `administrator` account but under a non-privileged account. The command below creates a non-privileged `errbot` account on Linux::
+
+        $ useradd --no-create-home --no-user-group -g nogroup -s /bin/false errbot
+
+
 Upgrading
 ---------
 

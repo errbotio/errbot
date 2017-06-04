@@ -139,7 +139,7 @@ you can now use the -d (or --daemon) parameter to run it in a detached mode::
 
 If you are going to run your bot all the time then using some process control system
 such as `supervisor`_ is highly recommended. Installing and configuring such a system
-is outside the scope of this document however.
+is outside the scope of this document, however, we do provide some sample daemon configurations below.
 
 .. note::
     There are two ways to gracefully shut down a running bot.

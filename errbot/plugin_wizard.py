@@ -62,11 +62,13 @@ def new_plugin_wizard(directory=None):
     plug["Python"] = {
         "Version": python_version,
     }
-    plug["Errbot"] = {}
-    if errbot_min_version != "":
-        plug["Errbot"]["Min"] = errbot_min_version
-    if errbot_max_version != "":
-        plug["Errbot"]["Max"] = errbot_max_version
+
+    if errbot_max_version != "" or errbot_min_version != "":
+        plug["Errbot"] = {}
+        if errbot_min_version != "":
+            plug["Errbot"]["Min"] = errbot_min_version
+        if errbot_max_version != "":
+            plug["Errbot"]["Max"] = errbot_max_version
 
     plugin_path = directory
     plugfile_path = os.path.join(plugin_path, module_name + ".plug")

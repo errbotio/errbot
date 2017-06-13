@@ -150,7 +150,7 @@ def main():
             if not os.path.isdir(base_dir):
                 print('Target directory %s must exist. Please create it.' % base_dir)
 
-            base_dir = os.path.abspath(base_bir)
+            base_dir = os.path.abspath(base_dir)
             data_dir = os.path.join(base_dir, 'data')
             extra_plugin_dir = os.path.join(base_dir, 'plugins')
             example_plugin_dir = os.path.join(extra_plugin_dir, 'err-example')

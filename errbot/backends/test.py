@@ -454,7 +454,7 @@ class TestBot(object):
         """Assert the given command returns the given response"""
         self.bot.push_message(command)
         msg = self.bot.pop_message(timeout)
-        assert response in msg
+        assert response in msg, "'{}' not in '{}'".format(response, msg)
 
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command exists"""

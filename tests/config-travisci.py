@@ -15,11 +15,11 @@ BOT_IDENTITY = {
     'password': 'changeme',
 }
 
-BOT_ADMINS = ('gbin@localhost',)
+BOT_ADMINS = ('gbin@localhost', 'zoni@localdomain',)
+BOT_ADMINS_MUTE_NOTIFICATIONS = ('zoni@localdomain',)
 CHATROOM_PRESENCE = ()
 CHATROOM_FN = 'Err'
 BOT_PREFIX = '!'
 DIVERT_TO_PRIVATE = ()
 CHATROOM_RELAY = {}
 REVERSE_CHATROOM_RELAY = {}
-

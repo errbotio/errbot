@@ -1,5 +1,6 @@
 import pytest
 
+
 def test_admins_to_notify(testbot):
     """Test _admins_to_notify wrapper function"""
     admins = testbot._bot._admins_to_notify()

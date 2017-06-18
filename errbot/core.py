@@ -556,15 +556,22 @@ class ErrBot(Backend, StoreMixin):
                     log.debug('Removing command filter: %s' % name)
                     self.command_filters.remove(method)
 
+    def _admins_to_notify(self):
+        """
+        Creates a list of administrators to notify
+        """
+        all_admins = set(self.bot_config.BOT_ADMINS)
+        unsubscribed_admins = set(self.bot_config.BOT_ADMINS_MUTE_NOTIFICATIONS)
+        subscribed_admins = all_admins - unsubscribed_admins
+        return sorted(subscribed_admins)
+
     def warn_admins(self, warning: str) -> None:
         """
         Send a warning to the administrators of the bot.
 
         :param warning: The markdown-formatted text of the message to send.
         """
-        notify_admins = list(set(self.bot_config.BOT_ADMINS) - set(self.bot_config.BOT_ADMINS_MUTE_NOTIFICATIONS))
-
-        for admin in notify_admins:
+        for admin in self._admins_to_notify():
             self.send(self.build_identifier(admin), warning)
 
     def callback_message(self, mess):

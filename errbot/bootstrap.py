@@ -64,8 +64,8 @@ def bot_config_defaults(config):
         config.TEXT_DEMO_MODE = True
     if not hasattr(config, 'BOT_ADMINS'):
         raise ValueError('BOT_ADMINS missing from config.py.')
-    if not hasattr(config, 'BOT_ADMINS_MUTE_NOTIFICATIONS'):
-        config.BOT_ADMINS_MUTE_NOTIFICATIONS = ()
+    if not hasattr(config, 'BOT_ADMINS_NOTIFICATIONS'):
+        config.BOT_ADMINS_NOTIFICATIONS = ()
 
 
 def setup_bot(backend_name, logger, config, restore=None):

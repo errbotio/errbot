@@ -560,10 +560,10 @@ class ErrBot(Backend, StoreMixin):
         """
         Creates a list of administrators to notify
         """
-        all_admins = set(self.bot_config.BOT_ADMINS)
-        unsubscribed_admins = set(self.bot_config.BOT_ADMINS_MUTE_NOTIFICATIONS)
-        subscribed_admins = all_admins - unsubscribed_admins
-        return sorted(subscribed_admins)
+        admins = self.bot_config.BOT_ADMINS
+        subscribed_admins = self.bot_config.BOT_ADMINS_NOTIFICATIONS
+        admins_to_notify = subscribed_admins or admins
+        return admins_to_notify
 
     def warn_admins(self, warning: str) -> None:
         """

@@ -15,8 +15,8 @@ BOT_IDENTITY = {
     'password': 'changeme',
 }
 
-BOT_ADMINS = ('gbin@localhost', 'zoni@localdomain',)
-BOT_ADMINS_MUTE_NOTIFICATIONS = ('zoni@localdomain',)
+BOT_ADMINS = ('gbin@localhost',)
+BOT_ADMINS_NOTIFICATIONS = ('zoni@localdomain',)
 CHATROOM_PRESENCE = ()
 CHATROOM_FN = 'Err'
 BOT_PREFIX = '!'

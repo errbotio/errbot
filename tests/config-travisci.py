@@ -16,7 +16,6 @@ BOT_IDENTITY = {
 }
 
 BOT_ADMINS = ('gbin@localhost',)
-BOT_ADMINS_NOTIFICATIONS = ('zoni@localdomain',)
 CHATROOM_PRESENCE = ()
 CHATROOM_FN = 'Err'
 BOT_PREFIX = '!'

@@ -67,6 +67,8 @@ def bot_config_defaults(config):
         raise ValueError('BOT_ADMINS missing from config.py.')
     if not hasattr(config, 'TEXT_COLOR_THEME'):
         config.TEXT_COLOR_THEME = 'light'
+    if not hasattr(config, 'BOT_ADMINS_NOTIFICATIONS'):
+        config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
 
 
 def setup_bot(backend_name, logger, config, restore=None):

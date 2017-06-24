@@ -33,7 +33,6 @@ VERSION_FILE = os.path.join('errbot', 'version.py')
 deps = ['webtest',
         'setuptools',
         'bottle',
-        'threadpool',
         'rocket-errbot',
         'requests',
         'jinja2',
@@ -69,8 +68,8 @@ def read_version():
     return variables['VERSION']
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def read(fname, encoding='ascii'):
+    return open(os.path.join(os.path.dirname(__file__), fname), 'r', encoding=encoding).read()
 
 
 if __name__ == "__main__":
@@ -79,7 +78,7 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes = read('CHANGES.rst')
+    changes = read('CHANGES.rst', 'utf8')
 
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
@@ -107,6 +106,7 @@ if __name__ == "__main__":
                        'backends/styles/*.css',
                        'backends/images/*.svg',
                        'core_plugins/*.plug',
+                       'core_plugins/*.md',                       
                        'core_plugins/templates/*.md',
                        'storage/*.plug',
                        'templates/initdir/example.py',
@@ -120,7 +120,7 @@ if __name__ == "__main__":
             'graphic':  ['PySide', ],
             'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
             'IRC': ['irc', ],
-            'slack': ['slackclient>=1.0.0', ],
+            'slack': ['slackclient>=1.0.5', ],
             'telegram': ['python-telegram-bot', ],
             'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
         },

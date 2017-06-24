@@ -42,6 +42,7 @@ SIMPLE_JSON_PLUGINS_INDEX = """
 
 
 class DummyBackend(ErrBot):
+
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
@@ -63,6 +64,10 @@ class DummyBackend(ErrBot):
         config = ShallowConfig()
         config.__dict__.update(sys.modules['errbot.config-template'].__dict__)
         bot_config_defaults(config)
+
+        # It injects itself as a plugin. Changed the name to be sure we distinguish it.
+        self.name = 'DummyBackendRealName'
+
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
         config.BOT_PLUGIN_INDEXES = tempdir + sep + 'repos.json'
@@ -459,7 +464,17 @@ def test_regex_commands_allow_passing_re_flags(dummy_backend):
 
 
 def test_arg_botcmd_returns_first_name_last_name(dummy_backend):
-    first_name = 'Err'
+    dummy_backend.callback_message(
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name --first-name=Err --last-name=Bot"
+        )
+    )
+    assert "Err Bot"
+
+
+def test_arg_botcmd_returns_with_escaping(dummy_backend):
+    first_name = 'Err\\"'
     last_name = 'Bot'
     dummy_backend.callback_message(
         makemessage(
@@ -467,28 +482,36 @@ def test_arg_botcmd_returns_first_name_last_name(dummy_backend):
             "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
         )
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert 'Err" Bot' == dummy_backend.pop_message().body
 
 
-def test_arg_botcmd_yields_first_name_last_name(dummy_backend):
-    first_name = 'Err'
+def test_arg_botcmd_returns_with_incorrect_escaping(dummy_backend):
+    first_name = 'Err"'
     last_name = 'Bot'
     dummy_backend.callback_message(
         makemessage(
             dummy_backend,
-            "!yields_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
+            "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
         )
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert 'I couldn\'t parse this command; No closing quotation' in dummy_backend.pop_message().body
+
+
+def test_arg_botcmd_yields_first_name_last_name(dummy_backend):
+    dummy_backend.callback_message(
+        makemessage(
+            dummy_backend,
+            "!yields_first_name_last_name --first-name=Err --last-name=Bot"
+        )
+    )
+    assert "Err Bot" == dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_returns_value_repeated_count_times(dummy_backend):
-    value = "Foo"
-    count = 5
     dummy_backend.callback_message(
-        makemessage(dummy_backend, "!returns_value_repeated_count_times %s --count %s" % (value, count))
+        makemessage(dummy_backend, "!returns_value_repeated_count_times Foo --count 5")
     )
-    assert value * count == dummy_backend.pop_message().body
+    assert "FooFooFooFooFoo" == dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_doesnt_raise_systemerror(dummy_backend):
@@ -497,7 +520,7 @@ def test_arg_botcmd_doesnt_raise_systemerror(dummy_backend):
 
 def test_arg_botcdm_returns_errors_as_chat(dummy_backend):
     dummy_backend.callback_message(makemessage(dummy_backend, "!returns_first_name_last_name --invalid-parameter"))
-    assert "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter" \
+    assert "I couldn't parse the arguments; unrecognized arguments: --invalid-parameter" \
         in dummy_backend.pop_message().body
 
 
@@ -507,25 +530,20 @@ def test_arg_botcmd_returns_help_message_as_chat(dummy_backend):
 
 
 def test_arg_botcmd_undoes_fancy_unicode_dash_conversion(dummy_backend):
-    first_name = 'Err'
-    last_name = 'Bot'
     dummy_backend.callback_message(
         makemessage(
             dummy_backend,
-            "!returns_first_name_last_name —first-name=%s —last-name=%s" % (first_name, last_name)
+            "!returns_first_name_last_name —first-name=Err —last-name=Bot"
         )
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert "Err Bot" == dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_without_argument_unpacking(dummy_backend):
-    first_name = 'Err'
-    last_name = 'Bot'
     dummy_backend.callback_message(
-        makemessage(dummy_backend, "!returns_first_name_last_name_without_unpacking --first-name=%s --last-name=%s"
-                    % (first_name, last_name))
+        makemessage(dummy_backend, "!returns_first_name_last_name_without_unpacking --first-name=Err --last-name=Bot")
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert "Err Bot" == dummy_backend.pop_message().body
 
 
 def test_access_controls(dummy_backend):
@@ -699,7 +717,7 @@ def test_access_controls(dummy_backend):
         # ACCESS_CONTROLS scenarios WITH wildcards (>=4.0 format)
         dict(
             message=makemessage(dummy_backend, "!command"),
-            acl={'DummyBackend:command': {'denyusers': ('noterr',)}},
+            acl={'DummyBackendRealName:command': {'denyusers': ('noterr',)}},
             expected_response="You're not allowed to access this command from this user"
         ),
         dict(
@@ -709,15 +727,15 @@ def test_access_controls(dummy_backend):
         ),
         dict(
             message=makemessage(dummy_backend, "!command"),
-            acl={'DummyBackend:*': {'denyusers': ('noterr',)}},
+            acl={'DummyBackendRealName:*': {'denyusers': ('noterr',)}},
             expected_response="You're not allowed to access this command from this user"
         ),
         # Overlapping globs should use first match
         dict(
             message=makemessage(dummy_backend, "!command"),
             acl=OrderedDict([
-                ('DummyBackend:*', {'denyusers': ('noterr',)}),
-                ('DummyBackend:command', {'denyusers': ()})
+                ('DummyBackendRealName:*', {'denyusers': ('noterr',)}),
+                ('DummyBackendRealName:command', {'denyusers': ()})
             ]),
             expected_response="You're not allowed to access this command from this user"
         ),

@@ -31,7 +31,7 @@ Installing into a `virtualenv`_ is **strongly** recommended.
 If you have virtualenv installed, you can do for example::
 
     virtualenv --python `which python3` ~/.errbot-ve
-    ~/.errbot-ve/pip install errbot
+    ~/.errbot-ve/bin/pip install errbot
 
 
 If you have virtualenvwrapper installed it is even simpler::
@@ -139,7 +139,7 @@ you can now use the -d (or --daemon) parameter to run it in a detached mode::
 
 If you are going to run your bot all the time then using some process control system
 such as `supervisor`_ is highly recommended. Installing and configuring such a system
-is outside the scope of this document however.
+is outside the scope of this document, however, we do provide some sample daemon configurations below.
 
 .. note::
     There are two ways to gracefully shut down a running bot.
@@ -162,6 +162,14 @@ These are a few example configurations using common init daemons:
 
 .. literalinclude:: ../code_examples/systemd.service
     :language: sh
+
+.. note::
+
+    Running errbot within a daemon process can have security implications if the daemon is started with an account containing elevated privileges.
+    We encourage errbot **not** be run under a `root` or `administrator` account but under a non-privileged account. The command below creates a non-privileged `errbot` account on Linux::
+
+        $ useradd --no-create-home --no-user-group -g nogroup -s /bin/false errbot
+
 
 Upgrading
 ---------

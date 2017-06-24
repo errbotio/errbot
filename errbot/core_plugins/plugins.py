@@ -145,7 +145,7 @@ class Plugins(BotPlugin):
         Copy paste, adapt so can configure the plugin :
         !plugin config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         It will then reload the plugin with this config.
-        You can at any moment retreive the current values:
+        You can at any moment retrieve the current values:
         !plugin config ExampleBot
         should return :
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}

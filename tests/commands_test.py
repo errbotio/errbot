@@ -171,7 +171,7 @@ def test_backup(testbot):
     bot.push_message('!backup')
     msg = testbot.pop_message()
     assert 'has been written in' in msg
-    filename = re.search(r"'([A-Za-z0-9_\./\\-]*)'", msg).group(1)
+    filename = re.search(r"'([A-Za-z0-9_./\\-]*)'", msg).group(1)
 
     # At least the backup should mention the installed plugin
     assert 'errbotio/err-helloworld' in open(filename).read()
@@ -320,3 +320,33 @@ def test_no_suggest_on_re_commands(testbot):
     testbot.push_message('!re_ba')
     # Don't suggest a regexp command.
     assert '!re bar' not in testbot.pop_message()
+
+
+def test_callback_no_command(testbot):
+    extra_plugin_dir = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'commandnotfound_plugin'
+    )
+
+    cmd = '!this_is_not_a_real_command_at_all'
+    expected_str = "Command fell through: {}".format(cmd)
+
+    testbot.exec_command('!plugin deactivate CommandNotFoundFilter')
+    testbot.bot.plugin_manager.update_plugin_places([], extra_plugin_dir)
+    testbot.exec_command('!plugin activate TestCommandNotFoundFilter')
+    assert expected_str == testbot.exec_command(cmd)
+
+
+def test_subcommands(testbot):
+    # test single subcommand (method is run_subcommands())
+    cmd = '!run subcommands with these args'
+    cmd_underscore = '!run_subcommands with these args'
+    expected_args = 'with these args'
+    assert expected_args == testbot.exec_command(cmd)
+    assert expected_args == testbot.exec_command(cmd_underscore)
+
+    # test multiple subcmomands (method is run_lots_of_subcommands())
+    cmd = '!run lots of subcommands with these args'
+    cmd_underscore = '!run_lots_of_subcommands with these args'
+    assert expected_args == testbot.exec_command(cmd)
+    assert expected_args == testbot.exec_command(cmd_underscore)

@@ -37,9 +37,8 @@ these guidelines as you open a pull request.
 * Split your work up into smaller commits if possible, while making sure each commit
   can still function on its own. Do not commit work-in-progress code - commit it
   once it's working.
-* Run the test-suite before opening your pull request, and make sure all tests pass.
-  You can run the tests with :command:`./run_tests.py` in the root of the
-  repository.
+* Run tox before opening your pull request, and make sure all tests pass.
+  You can install tox with :command:`pip install tox`
 * If you can, please add tests for your code. We know large parts of our codebase
   are missing tests, so we won't reject your code if it lacks tests, though.
 
@@ -78,8 +77,13 @@ easier for us to figure out what is going on, as well.
 Getting help
 ============
 
-For general help with Errbot, we'd prefer you post in our `Google Plus community`_
-or even better directly on the chat from the link below.
+The best place to get help if you get stuck with anything is to ask for advice
+on our Gitter_ chat room. If nobody is around to help you, opening an issue on
+the `issue tracker`_ is your next best option.
+
+If you have a code-related question concerning (plugin) development it's best
+to ask your question on Stack Overflow, `tagged errbot
+<http://stackoverflow.com/questions/tagged/errbot>`_.
 
 .. _GitHub: https://github.com/errbotio/errbot
 .. _fork: https://github.com/errbotio/errbot/fork
@@ -89,4 +93,4 @@ or even better directly on the chat from the link below.
 .. _docs: https://github.com/errbotio/errbot/tree/master/docs/
 .. _repos.py: https://github.com/errbotio/errbot/blob/master/errbot/repos.py
 .. _`issue tracker`: https://github.com/errbotio/errbot/issues/
-.. _`Google Plus community`: https://plus.google.com/communities/117050256560830486288
+.. _Gitter: https://gitter.im/errbotio/errbot

@@ -1,14 +1,14 @@
 Streams
 =======
 
-Streams are file transferts. It can be used to store documents, index them, send generated content on the fly etc.
+Streams are file transfers. It can be used to store documents, index them, send generated content on the fly etc.
 
-Waiting for incoming file transferts
-------------------------------------
+Waiting for incoming file transfers
+-----------------------------------
 
-The bot can be send files from the users. You just have to implement the
+The bot can be sent files from the users. You only have to implement the
 :func:`~errbot.botplugin.BotPlugin.callback_stream` method on your plugin to be notified for new incoming file
-tranfer requests.
+transfer requests.
 
 Note: not all backends supports this, check if it has been correctly implemented from the backend itself.
 

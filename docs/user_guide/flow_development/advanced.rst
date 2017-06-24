@@ -20,7 +20,7 @@ You can represent this flow like this:
 .. figure::  basics_1.svg
    :align:   center
 
-You can store something in the context in for example in ``!first`` and retreive in ``!second``. Like this:
+You can store something in the context in for example in ``!first`` and retrieve in ``!second``. Like this:
 
 .. code-block:: python
 

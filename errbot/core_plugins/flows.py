@@ -86,7 +86,14 @@ class Flows(BotPlugin):
                     response.write('No Flow started.\n')
                 else:
                     for flow in self._bot.flow_executor.in_flight:
-                        response.write('**' + flow.name + "** " + str(flow.requestor) + '\n')
+                        next_steps = ['\*{}\*'.format(str(step[1].command)) for step in flow._current_step.children if
+                                      step[1].command]
+                        template = '\>>> {} is using flow \*{}\* on step \*{}\*\nNext Step(s): \n{}'
+                        text = template.format(str(flow.requestor),
+                                               flow.name,
+                                               str(flow.current_step),
+                                               '\n'.join(next_steps))
+                        response.write(text)
             return response.getvalue()
 
     @botcmd(syntax='[flow_name]')

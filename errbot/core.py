@@ -21,7 +21,8 @@ import traceback
 from datetime import datetime
 from threading import RLock
 
-from threadpool import ThreadPool, WorkRequest
+import collections
+from multiprocessing.pool import ThreadPool
 
 from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
@@ -29,7 +30,7 @@ from .backends.base import Backend, Room, Identifier, Message
 from .storage import StoreMixin
 from .streaming import Tee
 from .templating import tenv
-from .utils import split_string_after, get_class_that_defined_method
+from .utils import split_string_after
 
 log = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ class ErrBot(Backend, StoreMixin):
         :param **kwargs: Passed to the callback function.
         """
         for plugin in self.plugin_manager.get_all_active_plugin_objects_ordered():
-            plugin_name = plugin.__class__.__name__
+            plugin_name = plugin.name
             log.debug("Triggering {} on {}".format(method, plugin_name))
             # noinspection PyBroadException
             try:
@@ -270,21 +271,18 @@ class ErrBot(Backend, StoreMixin):
         command = None
         args = ''
         if not only_check_re_command:
-            if len(text_split) > 1:
-                command = (text_split[0] + '_' + text_split[1]).lower()
-                with self._gbl:
-                    if command in self.commands:
-                        cmd = command
-                        args = ' '.join(text_split[2:])
+            i = len(text_split)
+            while cmd is None:
+                command = '_'.join(text_split[:i])
 
-            if not cmd:
-                command = text_split[0].lower()
-                args = ' '.join(text_split[1:])
                 with self._gbl:
                     if command in self.commands:
                         cmd = command
-                        if len(text_split) > 1:
-                            args = ' '.join(text_split[1:])
+                        args = ' '.join(text_split[i:])
+                    else:
+                        i -= 1
+                if i == 0:
+                    break
 
             if command == self.bot_config.BOT_PREFIX:  # we did "!!" so recall the last command
                 if len(user_cmd_history):
@@ -328,14 +326,12 @@ class ErrBot(Backend, StoreMixin):
             self._process_command(mess, cmd, args, match=None)
         elif not only_check_re_command:
             log.debug("Command not found")
-            if suppress_cmd_not_found:
-                log.debug("Surpressing command not found feedback")
-            else:
-                reply = self.unknown_command(mess, command, args)
-                if reply is None:
-                    reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
-                if reply:
-                    self.send_simple_reply(mess, reply)
+            for cmd_filter in self.command_filters:
+                if getattr(cmd_filter, 'catch_unprocessed', False):
+                    reply = cmd_filter(mess, cmd, args, False, emptycmd=True)
+                    if reply:
+                        self.send_simple_reply(mess, reply)
+                        return True
         return True
 
     def _process_command_filters(self, msg, cmd, args, dry_run=False):
@@ -373,7 +369,9 @@ class ErrBot(Backend, StoreMixin):
         if f._err_command_admin_only and self.bot_config.BOT_ASYNC:
             # If it is an admin command, wait until the queue is completely depleted so
             # we don't have strange concurrency issues on load/unload/updates etc...
-            self.thread_pool.wait()
+            self.thread_pool.close()
+            self.thread_pool.join()
+            self.thread_pool = ThreadPool(self.bot_config.BOT_ASYNC_POOLSIZE)
 
         if f._err_command_historize:
             user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
@@ -396,17 +394,15 @@ class ErrBot(Backend, StoreMixin):
                 return
 
         if self.bot_config.BOT_ASYNC:
-            wr = WorkRequest(
+            result = self.thread_pool.apply_async(
                 self._execute_and_send,
                 [],
-                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess,
-                 'template_name': f._err_command_template}
+                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess, 'template_name': f._err_command_template}
             )
-            self.thread_pool.putRequest(wr)
             if f._err_command_admin_only:
                 # Again, if it is an admin command, wait until the queue is completely
                 # depleted so we don't have strange concurrency issues.
-                self.thread_pool.wait()
+                result.wait()
         else:
             self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
                                    template_name=f._err_command_template)
@@ -414,7 +410,9 @@ class ErrBot(Backend, StoreMixin):
     @staticmethod
     def process_template(template_name, template_parameters):
         # integrated templating
-        if template_name:
+        # The template needs to be set and the answer from the user command needs to be a mapping
+        # If not just convert the answer to string.
+        if template_name and isinstance(template_parameters, collections.Mapping):
             return tenv().get_template(template_name + '.md').render(**template_parameters)
 
         # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)
@@ -493,7 +491,7 @@ class ErrBot(Backend, StoreMixin):
 
     def inject_commands_from(self, instance_to_inject):
         with self._gbl:
-            classname = instance_to_inject.__class__.__name__
+            plugin_name = instance_to_inject.name
             for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
                 if getattr(value, '_err_command', False):
                     commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
@@ -501,9 +499,9 @@ class ErrBot(Backend, StoreMixin):
 
                     if name in commands:
                         f = commands[name]
-                        new_name = (classname + '-' + name).lower()
+                        new_name = (plugin_name + '-' + name).lower()
                         self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
-                            classname, name, type(f.__self__).__name__, f.__name__, new_name))
+                            plugin_name, name, type(f.__self__).__name__, f.__name__, new_name))
                         name = new_name
                         value.__func__._err_command_name = new_name  # To keep track of the renaming.
                     commands[name] = value
@@ -558,13 +556,20 @@ class ErrBot(Backend, StoreMixin):
                     log.debug('Removing command filter: %s' % name)
                     self.command_filters.remove(method)
 
+    def _admins_to_notify(self):
+        """
+        Creates a list of administrators to notify
+        """
+        admins_to_notify = self.bot_config.BOT_ADMINS_NOTIFICATIONS
+        return admins_to_notify
+
     def warn_admins(self, warning: str) -> None:
         """
         Send a warning to the administrators of the bot.
 
         :param warning: The markdown-formatted text of the message to send.
         """
-        for admin in self.bot_config.BOT_ADMINS:
+        for admin in self._admins_to_notify():
             self.send(self.build_identifier(admin), warning)
 
     def callback_message(self, mess):
@@ -655,8 +660,15 @@ class ErrBot(Backend, StoreMixin):
         pat = re.compile(r'!({})'.format('|'.join(ununderscore_keys)))
         return re.sub(pat, self.prefix + '\1', command.__doc__)
 
+    @staticmethod
+    def get_plugin_class_from_method(meth):
+        for cls in inspect.getmro(type(meth.__self__)):
+            if meth.__name__ in cls.__dict__:
+                return cls
+        return None
+
     def get_command_classes(self):
-        return (get_class_that_defined_method(command)
+        return (self.get_plugin_class_from_method(command)
                 for command in self.all_commands.values())
 
     def shutdown(self):

@@ -61,6 +61,8 @@ Chat servers support
 - `TOX <https://tox.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`__)
 - `CampFire <https://campfirenow.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-campfire>`__)
 - `VK <https://vk.com/>`_ (See `instructions <https://github.com/Ax3Effect/errbot-vk>`__)
+- `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
+
 
 Administration
 ~~~~~~~~~~~~~~
@@ -211,7 +213,7 @@ As an example, this is all it takes to create a "Hello, world!" plugin for Errbo
 
 .. code:: python
 
-   from errbot import BotPlugin, botcmd
+    from errbot import BotPlugin, botcmd
    
     class Hello(BotPlugin):
         """Example 'Hello, world!' plugin for Errbot"""

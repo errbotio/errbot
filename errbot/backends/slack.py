@@ -642,13 +642,19 @@ class SlackBackend(ErrBot):
 
             timestamps = []
             for part in parts:
-                result = self.api_call('chat.postMessage', data={
+                data = {
                     'channel': to_channel_id,
                     'text': part,
                     'unfurl_media': 'true',
                     'link_names': '1',
                     'as_user': 'true',
-                })
+                }
+
+                # Keep the thread_ts to answer to the same thread.
+                if 'thread_ts' in mess.extras:
+                    data['thread_ts'] = mess.extras['thread_ts']
+
+                result = self.api_call('chat.postMessage', data=data)
                 timestamps.append(result['ts'])
 
             mess.extras['ts'] = timestamps
@@ -854,6 +860,11 @@ class SlackBackend(ErrBot):
 
     def build_reply(self, mess, text=None, private=False):
         response = self.build_message(text)
+
+        # If we reply to a threaded message, keep it in the thread.
+        if 'thread_ts' in mess.extras['slack_event']:
+            response.extras['thread_ts'] = mess.extras['slack_event']['thread_ts']
+
         response.frm = self.bot_identifier
         if private:
             response.to = mess.frm

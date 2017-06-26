@@ -365,7 +365,7 @@ XMPP_TO_ERR_STATUS = {'available': ONLINE,
 
 
 def split_identifier(txtrep):
-    split_jid = txtrep.split('@')
+    split_jid = txtrep.split('@', 1)
     node, domain = '@'.join(split_jid[:-1]), split_jid[-1]
     if domain.find('/') != -1:
         domain, resource = domain.split('/', 1)

@@ -401,7 +401,7 @@ def _tag_webhook(func, uri_rule, methods, form_param, raw):
     return func
 
 
-def webhook(*args,
+def webhook(uri_rule,
             methods: Tuple[str]=('POST', 'GET'),
             form_param: str=None,
             raw: bool=False) -> Callable[[BotPlugin, Any], str]:
@@ -438,19 +438,25 @@ def webhook(*args,
             pass
     """
 
-    if isinstance(args[0], str):  # first param is uri_rule.
-        return lambda func: _tag_webhook(func,
-                                         args[0] if args[0] == '/'
-                                         else args[0].rstrip('/'),  # trailing / is also be stripped on incoming.
-                                         methods=methods,
-                                         form_param=form_param,
-                                         raw=raw)
-    return _tag_webhook(args[0],
-                        r'/' + args[0].__name__,
-                        methods=methods,
-                        form_param=form_param,
-                        raw=raw)
-
+    def real_decorator(func):
+        def wrapper(uri_rule,
+                    methods: Tuple[str]=('POST', 'GET'),
+                    form_param: str=None,
+                    raw: bool=False):
+            if isinstance(uri_rule, str):  # first param is uri_rule.
+                return lambda f: _tag_webhook(f,
+                                              uri_rule if uri_rule == '/'
+                                              else uri_rule.rstrip('/'),  # trailing / is also be stripped on incoming.
+                                              methods=methods,
+                                              form_param=form_param,
+                                              raw=raw)
+            return _tag_webhook(func,
+                                r'/' + func.__name__,
+                                methods=methods,
+                                form_param=form_param,
+                                raw=raw)
+        return wrapper
+    return real_decorator
 
 def cmdfilter(*args, **kwargs):
     """

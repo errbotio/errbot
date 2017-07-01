@@ -400,8 +400,10 @@ def _tag_webhook(func, uri_rule, methods, form_param, raw):
     func._err_webhook_raw = raw
     return func
 
+
 def _uri_from_func(func):
     return r'/' + func.__name__
+
 
 def webhook(*args,
             methods: Tuple[str]=('POST', 'GET'),

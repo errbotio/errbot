@@ -5,6 +5,7 @@ import sys
 from time import sleep
 import re
 
+import copyreg
 from ansi.color import fg, fx
 from pygments import highlight
 from pygments.formatters import Terminal256Formatter
@@ -243,6 +244,23 @@ class TextBackend(ErrBot):
         self.html_lexer = get_lexer_by_name("html", stripall=True)
         self.terminal_formatter = Terminal256Formatter(style='paraiso-dark')
         self.user = self.build_identifier(self.bot_config.BOT_ADMINS[0])
+        self._register_identifiers_pickling()
+
+    @staticmethod
+    def _unpickle_identifier(identifier_str):
+        return TextBackend.__build_identifier(identifier_str)
+
+    @staticmethod
+    def _pickle_identifier(identifier):
+        return TextBackend._unpickle_identifier, (str(identifier),)
+
+    def _register_identifiers_pickling(self):
+        """
+        Register identifiers pickling.
+        """
+        TextBackend.__build_identifier = self.build_identifier
+        for cls in (TextPerson, TextOccupant, TextRoom):
+            copyreg.pickle(cls, TextBackend._pickle_identifier, TextBackend._unpickle_identifier)
 
     def serve_forever(self):
         # Add custom commands just for this backend.
@@ -343,7 +361,7 @@ class TextBackend(ErrBot):
             if '/' in text_representation:
                 room, person = rem.split('/')
                 return TextOccupant(TextPerson(person), TextRoom(room, self))
-            return self.query_room(rem)
+            return self.query_room('#' + rem)
         if not text_representation.startswith('@'):
             raise ValueError('An identifier for the Text backend needs to start by # for a room or @ for a person.')
         return TextPerson(text_representation[1:])
@@ -351,7 +369,10 @@ class TextBackend(ErrBot):
     def build_reply(self, msg, text=None, private=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
-        response.to = msg.frm
+        if private:
+            response.to = msg.frm
+        else:
+            response.to = msg.frm.room if isinstance(msg.frm, RoomOccupant) else msg.frm
         return response
 
     @property

@@ -80,9 +80,13 @@ class ChatRoom(BotPlugin):
             return "Please tell me which chatroom to join."
         args[0].strip()
 
-        room, password = (args[0], None) if arglen == 1 else (args[0], args[1])
-        self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
-        return "Joined the room {}".format(room)
+        room_name, password = (args[0], None) if arglen == 1 else (args[0], args[1])
+        room = self.query_room(room_name)
+        if room is None:
+            return 'Cannot find room {}.'.format(room_name)
+
+        room.join(username=self.bot_config.CHATROOM_FN, password=password)
+        return "Joined the room {}".format(room_name)
 
     @botcmd(split_args_with=SeparatorArgParser())
     def room_leave(self, message, args):

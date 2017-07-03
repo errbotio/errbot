@@ -4,7 +4,7 @@ from multiprocessing.pool import ThreadPool
 
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
 from errbot.core import ErrBot
-from errbot.rendering import text
+from errbot.rendering import md, text
 from errbot.rendering.ansiext import enable_format, TEXT_CHRS
 
 
@@ -192,9 +192,14 @@ class TelegramBackend(ErrBot):
         self.telegram = None  # Will be initialized in serve_once
         self.bot_instance = None  # Will be set in serve_once
 
-        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
-        enable_format('text', TEXT_CHRS, borders=not compact)
-        self.md_converter = text()
+        self.default_send_options = dict(parse_mode='Markdown')
+        self.default_send_options.update(getattr(config, 'TELEGRAM_DEFAULT_SEND_OPTIONS', {}))
+        if self.default_send_options.get('parse_mode') == 'Markdown':
+            self.md_converter = md()
+        else:
+            compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
+            enable_format('text', TEXT_CHRS, borders=not compact)
+            self.md_converter = text()
 
     def serve_once(self):
         log.info("Initializing connection")
@@ -282,7 +287,7 @@ class TelegramBackend(ErrBot):
         super().send_message(mess)
         body = self.md_converter.convert(mess.body)
         try:
-            self.telegram.sendMessage(mess.to.id, body)
+            self.telegram.sendMessage(mess.to.id, body, **self.default_send_options)
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "

@@ -222,23 +222,23 @@ class ChatRoom(BotPlugin):
                 return "Cannot set the topic for {}: {}".format(args[0], e)
             return "Topic for {} set.".format(args[0])
 
-    def callback_message(self, mess):
+    def callback_message(self, msg):
         try:
-            if mess.is_direct:
-                username = mess.frm.person
+            if msg.is_direct:
+                username = msg.frm.person
                 if username in self.bot_config.CHATROOM_RELAY:
                     self.log.debug('Message to relay from %s.' % username)
-                    body = mess.body
+                    body = msg.body
                     rooms = self.bot_config.CHATROOM_RELAY[username]
                     for roomstr in rooms:
                         self.send(self.query_room(roomstr), body)
-            elif mess.is_group:
-                fr = mess.frm
+            elif msg.is_group:
+                fr = msg.frm
                 chat_room = str(fr.room)
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                     users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
                     self.log.debug('Message to relay to %s.' % users_to_relay_to)
-                    body = '[%s] %s' % (fr.person, mess.body)
+                    body = '[%s] %s' % (fr.person, msg.body)
                     for user in users_to_relay_to:
                         self.send(user, body)
         except Exception as e:

@@ -221,9 +221,9 @@ class GraphicBackend(TextBackend):
         msg.frm = self.bot_identifier
         return msg  # rebuild a pure html snippet to include directly in the console html
 
-    def send_message(self, mess):
-        if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
-            content = self.md.convert(mess.body)
+    def send_message(self, msg):
+        if hasattr(msg, 'body') and msg.body and not msg.body.isspace():
+            content = self.md.convert(msg.body)
             log.debug("html:\n%s", content)
             self.app.newAnswer.emit(content)
 

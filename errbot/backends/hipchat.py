@@ -404,15 +404,15 @@ class HipchatBackend(XMPPBackend):
             verify=self.api_verify,
         )
 
-    def callback_message(self, mess):
-        super().callback_message(mess)
-        possible_mentions = re.findall(r'@\w+', mess.body)
+    def callback_message(self, msg):
+        super().callback_message(msg)
+        possible_mentions = re.findall(r'@\w+', msg.body)
         people = list(
             filter(None.__ne__, [self._find_user(mention[1:], 'mention_name') for mention in possible_mentions])
         )
 
         if people:
-            self.callback_mention(mess, people)
+            self.callback_mention(msg, people)
 
     @property
     def mode(self):
@@ -462,9 +462,9 @@ class HipchatBackend(XMPPBackend):
 
         return HipChatRoom(name, self)
 
-    def build_reply(self, mess, text=None, private=False):
-        response = super().build_reply(mess=mess, text=text, private=private)
-        if mess.is_group and mess.frm == response.to:
+    def build_reply(self, msg, text=None, private=False):
+        response = super().build_reply(msg=msg, text=text, private=private)
+        if msg.is_group and msg.frm == response.to:
             # HipChat violates the XMPP spec :( This results in a valid XMPP JID
             # but HipChat mangles them into stuff like
             # "132302_961351@chat.hipchat.com/none||proxy|pubproxy-b100.hipchat.com|5292"

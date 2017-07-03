@@ -266,6 +266,16 @@ class BotPluginBase(StoreMixin):
                 log.exception('A poller crashed')
             self.program_next_poll(interval, method, args, kwargs)
 
+    def delay_call(self,
+                   delay: float,
+                   method: Callable[..., None],
+                   args: Tuple=None,
+                   kwargs: Mapping=None):
+        t = Timer(interval=delay, function=method, args=args, kwargs=kwargs)
+        t.setName('A delayed call to %s' % type(method.__self__).__name__)
+        t.setDaemon(True)  # so it is not locking on exit
+        t.start()
+
     def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str=''):
         """
             Creates a plugin dynamically and exposes its commands right away.
@@ -664,6 +674,22 @@ class BotPlugin(BotPluginBase):
 
         """
         super().stop_poller(method, args, kwargs)
+
+    def delay_call(self,
+                   delay: float,
+                   method: Callable[..., None],
+                   args: Tuple=None,
+                   kwargs: Mapping=None):
+        """
+            Delay execution of a method for a given amount of seconds.
+
+            :param kwargs: kwargs for the method to callback.
+            :param args: args for the method to callback.
+            :param method: method to callback.
+            :param delay: the delay in seconds.
+
+        """
+        super().delay_call(delay, method, args, kwargs)
 
 
 class ArgParserBase(object):

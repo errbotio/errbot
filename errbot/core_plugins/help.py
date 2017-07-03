@@ -25,7 +25,7 @@ class Help(BotPlugin):
 
     # noinspection PyUnusedLocal
     @botcmd(template='about')
-    def about(self, mess, args):
+    def about(self, msg, args):
         """Return information about this Errbot instance and version"""
         git_version = self.is_git_directory()
         if git_version:
@@ -35,7 +35,7 @@ class Help(BotPlugin):
 
     # noinspection PyUnusedLocal
     @botcmd
-    def apropos(self, mess, args):
+    def apropos(self, msg, args):
         """   Returns a help string listing available options.
 
         Automatically assigned to the "help" command."""
@@ -49,7 +49,7 @@ class Help(BotPlugin):
             cls = self._bot.get_plugin_class_from_method(command)
             cls = str.__module__ + '.' + cls.__name__  # makes the fuul qualified name
             commands = cls_commands.get(cls, [])
-            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self._bot.check_command_access(mess, name)[0]:
+            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self._bot.check_command_access(msg, name)[0]:
                 commands.append((name, command))
                 cls_commands[cls] = commands
 
@@ -71,18 +71,18 @@ class Help(BotPlugin):
         return ''.join(filter(None, [description, usage])).strip()
 
     @botcmd
-    def help(self, mess, args):
+    def help(self, msg, args):
         """Returns a help string listing available options.
         Automatically assigned to the "help" command."""
 
-        def may_access_command(msg, cmd):
-            msg, _, _ = self._bot._process_command_filters(
-                msg=msg,
+        def may_access_command(m, cmd):
+            m, _, _ = self._bot._process_command_filters(
+                msg=m,
                 cmd=cmd,
                 args=None,
                 dry_run=True
             )
-            return msg is not None
+            return mess is not None
 
         def get_name(named):
             return named.__name__.lower()
@@ -97,7 +97,7 @@ class Help(BotPlugin):
             cls = self._bot.get_plugin_class_from_method(command)
             obj = command.__self__
             _, commands = cls_obj_commands.get(cls, (None, []))
-            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name):
+            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(msg, name):
                 commands.append((name, command))
                 cls_obj_commands[cls] = (obj, commands)
 
@@ -145,7 +145,7 @@ class Help(BotPlugin):
                     (name, command)
                     for (name, command) in cmds
                     if not command._err_command_hidden and
-                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name))
+                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(msg, name))
                 ])
 
                 for (name, command) in pairs:

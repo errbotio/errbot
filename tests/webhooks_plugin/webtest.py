@@ -43,3 +43,9 @@ class WebTest(BotPlugin):
         abort(403, "Forbidden")
 
     webhook8 = webhook(r'/lambda')(lambda x, y: str(x) + str(y))
+
+    # Just to test https://github.com/errbotio/errbot/issues/1043
+    @webhook(raw=True)
+    def raw2(self, payload):
+        log.debug(str(payload))
+        return str(type(payload))

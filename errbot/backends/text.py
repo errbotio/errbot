@@ -149,43 +149,43 @@ class TextBackend(ErrBot):
             log.debug("Trigger shutdown")
             self.shutdown()
 
-    def send_message(self, mess):
+    def send_message(self, msg):
         if self.demo_mode:
-            print(self.md_ansi.convert(mess.body))
+            print(self.md_ansi.convert(msg.body))
         else:
             bar = '\n╌╌[{mode}]' + ('╌' * 60)
-            super().send_message(mess)
+            super().send_message(msg)
             print(bar.format(mode='MD  '))
             if ANSI:
-                print(highlight(mess.body, self.md_lexer, self.terminal_formatter))
+                print(highlight(msg.body, self.md_lexer, self.terminal_formatter))
             else:
-                print(mess.body)
+                print(msg.body)
             print(bar.format(mode='HTML'))
-            html = self.md_html.convert(mess.body)
+            html = self.md_html.convert(msg.body)
             if ANSI:
                 print(highlight(html, self.html_lexer, self.terminal_formatter))
             else:
                 print(html)
             print(bar.format(mode='TEXT'))
-            print(self.md_text.convert(mess.body))
+            print(self.md_text.convert(msg.body))
             print(bar.format(mode='IM  '))
-            print(self.md_im.convert(mess.body))
+            print(self.md_im.convert(msg.body))
             if ANSI:
                 print(bar.format(mode='ANSI'))
-                print(self.md_ansi.convert(mess.body))
+                print(self.md_ansi.convert(msg.body))
                 print(bar.format(mode='BORDERLESS'))
-                print(self.md_borderless_ansi.convert(mess.body))
+                print(self.md_borderless_ansi.convert(msg.body))
             print('\n\n')
 
-    def add_reaction(self, mess: Message, reaction: str) -> None:
+    def add_reaction(self, msg: Message, reaction: str) -> None:
         # this is like the Slack backend's add_reaction
-        self._react('+', mess, reaction)
+        self._react('+', msg, reaction)
 
-    def remove_reaction(self, mess: Message, reaction: str) -> None:
-        self._react('-', mess, reaction)
+    def remove_reaction(self, msg: Message, reaction: str) -> None:
+        self._react('-', msg, reaction)
 
-    def _react(self, sign, mess, reaction):
-        self.send(mess.frm, 'reaction {}:{}:'.format(sign, reaction), in_reply_to=mess)
+    def _react(self, sign, msg, reaction):
+        self.send(msg.frm, 'reaction {}:{}:'.format(sign, reaction), in_reply_to=msg)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         log.debug("*** Changed presence to [%s] %s", (status, message))
@@ -195,10 +195,10 @@ class TextBackend(ErrBot):
             return self.query_room(text_representation[1:])
         return TextPerson(text_representation)
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
-        response.to = mess.frm
+        response.to = msg.frm
         return response
 
     @property

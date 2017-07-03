@@ -11,10 +11,10 @@ log = logging.getLogger('errbot.backends.null')
 
 
 class ConnectionMock(object):
-    def send(self, mess):
+    def send(self, msg):
         pass
 
-    def send_message(self, mess):
+    def send_message(self, msg):
         pass
 
 
@@ -59,7 +59,7 @@ class NullBackend(ErrBot):
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False):
         pass
 
     def prefix_groupchat_reply(self, message, identifier):

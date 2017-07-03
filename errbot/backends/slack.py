@@ -600,41 +600,41 @@ class SlackBackend(ErrBot):
             else:
                 raise e
 
-    def _prepare_message(self, mess):  # or card
+    def _prepare_message(self, msg):  # or card
         """
         Translates the common part of messaging for Slack.
-        :param mess: the message you want to extract the Slack concept from.
+        :param msg: the message you want to extract the Slack concept from.
         :return: a tuple to user human readable, the channel id
         """
-        if mess.is_group:
-            to_channel_id = mess.to.id
-            to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
+        if msg.is_group:
+            to_channel_id = msg.to.id
+            to_humanreadable = msg.to.name if msg.to.name else self.channelid_to_channelname(to_channel_id)
         else:
-            to_humanreadable = mess.to.username
-            to_channel_id = mess.to.channelid
+            to_humanreadable = msg.to.username
+            to_channel_id = msg.to.channelid
             if to_channel_id.startswith('C'):
                 log.debug("This is a divert to private message, sending it directly to the user.")
-                to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+                to_channel_id = self.get_im_channel(self.username_to_userid(msg.to.username))
         return to_humanreadable, to_channel_id
 
-    def send_message(self, mess):
-        super().send_message(mess)
+    def send_message(self, msg):
+        super().send_message(msg)
         to_humanreadable = "<unknown>"
         try:
-            if mess.is_group:
-                to_channel_id = mess.to.id
-                to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
+            if msg.is_group:
+                to_channel_id = msg.to.id
+                to_humanreadable = msg.to.name if msg.to.name else self.channelid_to_channelname(to_channel_id)
             else:
-                to_humanreadable = mess.to.username
-                if isinstance(mess.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !
+                to_humanreadable = msg.to.username
+                if isinstance(msg.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !
                     log.debug("This is a divert to private message, sending it directly to the user.")
-                    to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+                    to_channel_id = self.get_im_channel(self.username_to_userid(msg.to.username))
                 else:
-                    to_channel_id = mess.to.channelid
+                    to_channel_id = msg.to.channelid
 
-            msgtype = "direct" if mess.is_direct else "channel"
+            msgtype = "direct" if msg.is_direct else "channel"
             log.debug('Sending %s message to %s (%s)' % (msgtype, to_humanreadable, to_channel_id))
-            body = self.md.convert(mess.body)
+            body = self.md.convert(msg.body)
             log.debug('Message size: %d' % len(body))
 
             limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
@@ -651,17 +651,17 @@ class SlackBackend(ErrBot):
                 }
 
                 # Keep the thread_ts to answer to the same thread.
-                if 'thread_ts' in mess.extras:
-                    data['thread_ts'] = mess.extras['thread_ts']
+                if 'thread_ts' in msg.extras:
+                    data['thread_ts'] = msg.extras['thread_ts']
 
                 result = self.api_call('chat.postMessage', data=data)
                 timestamps.append(result['ts'])
 
-            mess.extras['ts'] = timestamps
+            msg.extras['ts'] = timestamps
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
-                "to %s: %s" % (to_humanreadable, mess.body)
+                "to %s: %s" % (to_humanreadable, msg.body)
             )
 
     def _slack_upload(self, stream):
@@ -858,47 +858,47 @@ class SlackBackend(ErrBot):
     def is_from_self(self, msg: Message) -> bool:
         return self.bot_identifier.userid == msg.frm.userid
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False):
         response = self.build_message(text)
 
         # If we reply to a threaded message, keep it in the thread.
-        if 'thread_ts' in mess.extras['slack_event']:
-            response.extras['thread_ts'] = mess.extras['slack_event']['thread_ts']
+        if 'thread_ts' in msg.extras['slack_event']:
+            response.extras['thread_ts'] = msg.extras['slack_event']['thread_ts']
 
         response.frm = self.bot_identifier
         if private:
-            response.to = mess.frm
+            response.to = msg.frm
         else:
-            response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
+            response.to = msg.frm.room if isinstance(msg.frm, RoomOccupant) else msg.frm
         return response
 
-    def add_reaction(self, mess: Message, reaction: str) -> None:
+    def add_reaction(self, msg: Message, reaction: str) -> None:
         """
         Add the specified reaction to the Message if you haven't already.
-        :param mess: A Message.
+        :param msg: A Message.
         :param reaction: A str giving an emoji, without colons before and after.
         :raises: ValueError if the emoji doesn't exist.
         """
-        return self._react('reactions.add', mess, reaction)
+        return self._react('reactions.add', msg, reaction)
 
-    def remove_reaction(self, mess: Message, reaction: str) -> None:
+    def remove_reaction(self, msg: Message, reaction: str) -> None:
         """
         Remove the specified reaction from the Message if it is currently there.
-        :param mess: A Message.
+        :param msg: A Message.
         :param reaction: A str giving an emoji, without colons before and after.
         :raises: ValueError if the emoji doesn't exist.
         """
-        return self._react('reactions.remove', mess, reaction)
+        return self._react('reactions.remove', msg, reaction)
 
-    def _react(self, method: str, mess: Message, reaction: str) -> None:
+    def _react(self, method: str, msg: Message, reaction: str) -> None:
         try:
             # this logic is from send_message
-            if mess.is_group:
-                to_channel_id = mess.to.id
+            if msg.is_group:
+                to_channel_id = msg.to.id
             else:
-                to_channel_id = mess.to.channelid
+                to_channel_id = msg.to.channelid
 
-            ts = self._ts_for_message(mess)
+            ts = self._ts_for_message(msg)
 
             self.api_call(method, data={'channel': to_channel_id,
                                         'timestamp': ts,
@@ -913,11 +913,11 @@ class SlackBackend(ErrBot):
             else:
                 raise SlackAPIResponseError(error=e.error)
 
-    def _ts_for_message(self, mess):
+    def _ts_for_message(self, msg):
         try:
-            return mess.extras['slack_event']['message']['ts']
+            return msg.extras['slack_event']['message']['ts']
         except KeyError:
-            return mess.extras['slack_event']['ts']
+            return msg.extras['slack_event']['ts']
 
     def shutdown(self):
         super().shutdown()

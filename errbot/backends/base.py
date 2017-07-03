@@ -632,7 +632,7 @@ class Backend(ABC):
         self._reconnection_jitter = (0, 3)    # Random jitter added to delay (min, max)
 
     @abstractmethod
-    def send_message(self, mess: Message) -> None:
+    def send_message(self, msg: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
@@ -640,7 +640,7 @@ class Backend(ABC):
         """Signal a presence change for the bot. Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
-    def build_reply(self, mess: Message, text: str=None, private: bool=False):
+    def build_reply(self, msg: Message, text: str=None, private: bool=False):
         """ Should be implemented by the backend """
 
     @abstractmethod

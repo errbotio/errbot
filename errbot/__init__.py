@@ -334,7 +334,7 @@ def arg_botcmd(*args,
             )
 
             @wraps(func)
-            def wrapper(self, mess, args):
+            def wrapper(self, msg, args):
 
                 # Some clients automatically convert consecutive dashes into a fancy
                 # hyphen, which breaks long-form arguments. Undo this conversion to
@@ -362,10 +362,10 @@ def arg_botcmd(*args,
                     func_kwargs = {}
 
                 if inspect.isgeneratorfunction(func):
-                    for reply in func(self, mess, *func_args, **func_kwargs):
+                    for reply in func(self, msg, *func_args, **func_kwargs):
                         yield reply
                 else:
-                    yield func(self, mess, *func_args, **func_kwargs)
+                    yield func(self, msg, *func_args, **func_kwargs)
 
             _tag_botcmd(wrapper,
                         _re=False,

@@ -121,7 +121,7 @@ class Webserver(BotPlugin):
 
     # noinspection PyUnusedLocal
     @botcmd(template='webstatus')
-    def webstatus(self, mess, args):
+    def webstatus(self, msg, args):
         """
         Gives a quick status of what is mapped in the internal webserver
         """
@@ -170,7 +170,7 @@ class Webserver(BotPlugin):
         return TEST_REPORT % (url, contenttype, response.status_code)
 
     @botcmd(admin_only=True)
-    def generate_certificate(self, mess, args):
+    def generate_certificate(self, _, args):
         """
         Generate a self-signed SSL certificate for the Webserver
         """

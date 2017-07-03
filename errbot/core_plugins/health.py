@@ -10,19 +10,19 @@ from errbot.utils import format_timedelta
 
 class Health(BotPlugin):
     @botcmd(template='status')
-    def status(self, mess, args):
+    def status(self, msg, args):
         """ If I am alive I should be able to respond to this one
         """
-        plugins_statuses = self.status_plugins(mess, args)
-        loads = self.status_load(mess, args)
-        gc = self.status_gc(mess, args)
+        plugins_statuses = self.status_plugins(msg, args)
+        loads = self.status_load(msg, args)
+        gc = self.status_gc(msg, args)
 
         return {'plugins_statuses': plugins_statuses['plugins_statuses'],
                 'loads': loads['loads'],
                 'gc': gc['gc']}
 
     @botcmd(template='status_load')
-    def status_load(self, mess, args):
+    def status_load(self, _, args):
         """ shows the load status
         """
         try:
@@ -34,13 +34,13 @@ class Health(BotPlugin):
         return {'loads': loads}
 
     @botcmd(template='status_gc')
-    def status_gc(self, mess, args):
+    def status_gc(self, _, args):
         """ shows the garbage collection details
         """
         return {'gc': gc.get_count()}
 
     @botcmd(template='status_plugins')
-    def status_plugins(self, mess, args):
+    def status_plugins(self, _, args):
         """ shows the plugin status
         """
         pm = self._bot.plugin_manager
@@ -66,7 +66,7 @@ class Health(BotPlugin):
         return {'plugins_statuses': plugins_statuses}
 
     @botcmd
-    def uptime(self, mess, args):
+    def uptime(self, _, args):
         """ Return the uptime of the bot
         """
         return "I've been up for %s %s (since %s)" % (args, format_timedelta(datetime.now() - self._bot.startup_time),
@@ -74,11 +74,11 @@ class Health(BotPlugin):
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
-    def restart(self, mess, args):
+    def restart(self, msg, args):
         """ Restart the bot. """
-        self.send(mess.frm, "Deactivating all the plugins...")
+        self.send(msg.frm, "Deactivating all the plugins...")
         self._bot.plugin_manager.deactivate_all_plugins()
-        self.send(mess.frm, "Restarting")
+        self.send(msg.frm, "Restarting")
         self._bot.shutdown()
         global_restart()
         return "I'm restarting..."
@@ -88,7 +88,7 @@ class Health(BotPlugin):
                 help="confirm you want to shut down", admin_only=True)
     @arg_botcmd('--kill', dest="kill", action="store_true",
                 help="kill the bot instantly, don't shut down gracefully", admin_only=True)
-    def shutdown(self, mess, confirmed, kill):
+    def shutdown(self, msg, confirmed, kill):
         """
         Shutdown the bot.
 

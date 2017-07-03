@@ -199,7 +199,6 @@ class TextPlugin(BotPlugin):
             self._bot.user = self.build_identifier('@luser')
         return 'You are now: %s' % self._bot.user
 
-
     @botcmd
     def asadmin(self, msg, args):
         """
@@ -269,7 +268,6 @@ class TextBackend(ErrBot):
                     frm = self.user
                     to = self.bot_identifier
 
-
                 if ANSI or self.demo_mode:
                     color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
                     entry = input('\n' + str(color) + '[%s ➡ %s]' % (frm, to) + str(fg.cyan) + ' >>> ' + str(fx.reset))
@@ -297,7 +295,6 @@ class TextBackend(ErrBot):
             self.disconnect_callback()
             log.debug("Trigger shutdown")
             self.shutdown()
-
 
     def send_message(self, msg):
         if self.demo_mode:
@@ -375,5 +372,3 @@ class TextBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = '@{0} {1}'.format(identifier.nick, message.body)
-
-

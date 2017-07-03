@@ -401,6 +401,10 @@ def _tag_webhook(func, uri_rule, methods, form_param, raw):
     return func
 
 
+def _uri_from_func(func):
+    return r'/' + func.__name__
+
+
 def webhook(*args,
             methods: Tuple[str]=('POST', 'GET'),
             form_param: str=None,
@@ -438,6 +442,13 @@ def webhook(*args,
             pass
     """
 
+    if not args:  # default uri_rule but with kwargs.
+        return lambda func: _tag_webhook(func,
+                                         _uri_from_func(func),
+                                         methods=methods,
+                                         form_param=form_param,
+                                         raw=raw)
+
     if isinstance(args[0], str):  # first param is uri_rule.
         return lambda func: _tag_webhook(func,
                                          args[0] if args[0] == '/'
@@ -445,8 +456,8 @@ def webhook(*args,
                                          methods=methods,
                                          form_param=form_param,
                                          raw=raw)
-    return _tag_webhook(args[0],
-                        r'/' + args[0].__name__,
+    return _tag_webhook(args[0],  # naked decorator so the first parameter is a function.
+                        _uri_from_func(args[0]),
                         methods=methods,
                         form_param=form_param,
                         raw=raw)

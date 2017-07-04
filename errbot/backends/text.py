@@ -209,6 +209,18 @@ class TextPlugin(BotPlugin):
         return 'You are now an admin: %s' % self._bot.user
 
 
+INTRO = """
+---
+You start as a **bot admin in a one-on-one conversation** with the bot.
+
+- Use `!inroom`{:color='blue'} to switch to a room conversation.
+- Use `!inperson`{:color='blue'} to switch back to a one-on-one conversation.
+- Use `!asuser`{:color='green'} to talk as a normal user.
+- Use `!asadmin`{:color='red'} to switch back as a bot admin.
+---
+"""
+
+
 class TextBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
@@ -277,6 +289,9 @@ class TextBackend(ErrBot):
             root.addHandler(logging.NullHandler())
         self.connect_callback()  # notify that the connection occured
         self.callback_presence(Presence(identifier=self.user, status=ONLINE))
+
+        self.send_message(Message(INTRO))
+
         try:
             while True:
                 if self._inroom:

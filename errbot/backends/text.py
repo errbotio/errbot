@@ -226,14 +226,6 @@ class TextBackend(ErrBot):
         super().__init__(config)
         log.debug("Text Backend Init.")
 
-        try:
-            # Load readline for better editing/history behaviour
-            import readline
-        except ImportError:
-            # Readline is Unix-only
-            log.debug("Python readline module is not available")
-            pass
-
         if 'username' in self.bot_config.BOT_IDENTITY:
             self.bot_identifier = self.build_identifier(self.bot_config.BOT_IDENTITY['username'])
         else:
@@ -281,6 +273,23 @@ class TextBackend(ErrBot):
         if not self._rooms:
             # artificially join a room if None were specified.
             self.query_room('#testroom').join()
+
+        try:
+            # Load readline for better editing/history behaviour
+            import readline
+
+            # Implement a simple completer for commands
+            def completer(txt, state):
+                options = [i for i in self.all_commands if i.startswith(txt)] if txt else list(self.all_commands.keys())
+                if state < len(options):
+                    return options[state]
+
+            readline.parse_and_bind("tab: complete")
+            readline.set_completer(completer)
+
+        except ImportError:
+            # Readline is Unix-only
+            log.debug("Python readline module is not available")
 
         if self.demo_mode:
             # disable the console logging once it is serving in demo mode.

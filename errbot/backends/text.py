@@ -226,14 +226,6 @@ class TextBackend(ErrBot):
         super().__init__(config)
         log.debug("Text Backend Init.")
 
-        try:
-            # Load readline for better editing/history behaviour
-            import readline
-        except ImportError:
-            # Readline is Unix-only
-            log.debug("Python readline module is not available")
-            pass
-
         if 'username' in self.bot_config.BOT_IDENTITY:
             self.bot_identifier = self.build_identifier(self.bot_config.BOT_IDENTITY['username'])
         else:
@@ -275,6 +267,8 @@ class TextBackend(ErrBot):
             copyreg.pickle(cls, TextBackend._pickle_identifier, TextBackend._unpickle_identifier)
 
     def serve_forever(self):
+        self.readline_support()
+
         # Add custom commands just for this backend.
         self.inject_commands_from(TextPlugin(self, 'TextPlugin'))
 
@@ -328,6 +322,24 @@ class TextBackend(ErrBot):
             self.disconnect_callback()
             log.debug("Trigger shutdown")
             self.shutdown()
+
+    def readline_support(self):
+        try:
+            # Load readline for better editing/history behaviour
+            import readline
+
+            # Implement a simple completer for commands
+            def completer(txt, state):
+                options = [i for i in self.all_commands if i.startswith(txt)] if txt else list(self.all_commands.keys())
+                if state < len(options):
+                    return options[state]
+
+            readline.parse_and_bind("tab: complete")
+            readline.set_completer(completer)
+
+        except ImportError:
+            # Readline is Unix-only
+            log.debug("Python readline module is not available")
 
     def send_message(self, msg):
         if self.demo_mode:

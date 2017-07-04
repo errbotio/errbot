@@ -302,9 +302,9 @@ class TextBackend(ErrBot):
                     prompt = '[␍] ' if multiline else '>>> '
                     if ANSI or self.demo_mode:
                         color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
-                        entry = input('\n' + str(color) + '[%s ➡ %s] ' % (frm, to) + str(fg.cyan) + prompt + str(fx.reset))
+                        entry = input(str(color) + '[%s ➡ %s] ' % (frm, to) + str(fg.cyan) + prompt + str(fx.reset))
                     else:
-                        entry = input('\n[%s ➡ %s] ' % (frm, to) + prompt)
+                        entry = input('[%s ➡ %s] ' % (frm, to) + prompt)
                     if not entry:
                         break
                     multiline += entry + '\n'

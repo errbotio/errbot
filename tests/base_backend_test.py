@@ -251,7 +251,8 @@ def test_buildreply(dummy_backend):
     assert str(resp.to) == 'user'
     assert str(resp.frm) == 'err'
     assert str(resp.body) == 'Response'
-    assert str(resp.parent) is None
+    assert resp.parent is None
+
 
 def test_buildreply_with_parent(dummy_backend):
     m = dummy_backend.build_message('Content')
@@ -259,7 +260,8 @@ def test_buildreply_with_parent(dummy_backend):
     m.to = dummy_backend.build_identifier('somewhere')
     resp = dummy_backend.build_reply(m, 'Response', threaded=True)
 
-    assert str(resp.parent) is not None
+    assert resp.parent is not None
+
 
 def test_bot_admins_unique_string():
     dummy = DummyBackend(extra_config={'BOT_ADMINS': 'err@localhost'})

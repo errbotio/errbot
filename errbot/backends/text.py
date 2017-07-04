@@ -378,7 +378,7 @@ class TextBackend(ErrBot):
                 return TextOccupant(TextPerson(person), TextRoom(room, self))
             return self.query_room('#' + rem)
         if not text_representation.startswith('@'):
-            raise ValueError('An identifier for the Text backend needs to start by # for a room or @ for a person.')
+            raise ValueError('An identifier for the Text backend needs to start with # for a room or @ for a person.')
         return TextPerson(text_representation[1:])
 
     def build_reply(self, msg, text=None, private=False):
@@ -395,7 +395,7 @@ class TextBackend(ErrBot):
         return 'text'
 
     def query_room(self, room):
-        if room[0] != '#':
+        if not room.startswith('#'):
             raise ValueError('A Room name must start by #.')
         text_room = TextRoom(room[1:], self)
         if text_room not in self._rooms:

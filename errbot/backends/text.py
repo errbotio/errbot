@@ -288,6 +288,7 @@ class TextBackend(ErrBot):
 
         try:
             while True:
+
                 if self._inroom:
                     frm = TextOccupant(self.user, self.rooms[0])
                     to = self.rooms[0]
@@ -295,14 +296,23 @@ class TextBackend(ErrBot):
                     frm = self.user
                     to = self.bot_identifier
 
-                if ANSI or self.demo_mode:
-                    color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
-                    entry = input('\n' + str(color) + '[%s ➡ %s]' % (frm, to) + str(fg.cyan) + ' >>> ' + str(fx.reset))
-                else:
-                    entry = input('\n[%s ➡ %s] >>> ' % (frm, to))
-                msg = Message(entry)
+                print()
+                multiline = ''
+                while True:
+                    prompt = '[␍] ' if multiline else '>>> '
+                    if ANSI or self.demo_mode:
+                        color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
+                        entry = input('\n' + str(color) + '[%s ➡ %s] ' % (frm, to) + str(fg.cyan) + prompt + str(fx.reset))
+                    else:
+                        entry = input('\n[%s ➡ %s] ' % (frm, to) + prompt)
+                    if not entry:
+                        break
+                    multiline += entry + '\n'
+   
+                msg = Message(multiline)
                 msg.frm = frm
                 msg.to = to
+
                 self.callback_message(msg)
 
                 mentioned = [self.build_identifier(word[1:]) for word in re.findall(r"@[\w']+", entry)

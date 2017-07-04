@@ -543,10 +543,7 @@ class XMPPBackend(ErrBot):
         log.debug('This is a person ! %s', txtrep)
         return self._build_person(txtrep)
 
-    def build_reply(self, msg, text=None, private=False):
-        """Build a message for responding to another message.
-        Message is NOT sent"""
-        log.debug("build reply ...")
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
 

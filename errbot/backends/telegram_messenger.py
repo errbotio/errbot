@@ -307,7 +307,7 @@ class TelegramBackend(ErrBot):
         else:
             return TelegramRoom(id=id_)
 
-    def build_reply(self, msg, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
         if private:

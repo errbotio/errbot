@@ -462,8 +462,8 @@ class HipchatBackend(XMPPBackend):
 
         return HipChatRoom(name, self)
 
-    def build_reply(self, msg, text=None, private=False):
-        response = super().build_reply(msg=msg, text=text, private=private)
+    def build_reply(self, msg, text=None, private=False, threaded=False):
+        response = super().build_reply(msg=msg, text=text, private=private, threaded=threaded)
         if msg.is_group and msg.frm == response.to:
             # HipChat violates the XMPP spec :( This results in a valid XMPP JID
             # but HipChat mangles them into stuff like

@@ -619,6 +619,16 @@ class SlackBackend(ErrBot):
 
     def send_message(self, msg):
         super().send_message(msg)
+
+        if msg.parent is not None:
+            # we are asked to reply to a specify thread.
+            try:
+                msg.extras['thread_ts'] = self._ts_for_message(msg.parent)
+            except KeyError:
+                # Gives to the user a more interesting explanation if we cannot find a ts from the parent.
+                log.exception('The provided parent message is not a Slack message '
+                              'or does not contain a Slack timestamp.')
+
         to_humanreadable = "<unknown>"
         try:
             if msg.is_group:
@@ -858,11 +868,14 @@ class SlackBackend(ErrBot):
     def is_from_self(self, msg: Message) -> bool:
         return self.bot_identifier.userid == msg.frm.userid
 
-    def build_reply(self, msg, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
 
-        # If we reply to a threaded message, keep it in the thread.
-        if 'thread_ts' in msg.extras['slack_event']:
+        if threaded:
+            response.parent = msg
+
+        elif 'thread_ts' in msg.extras['slack_event']:
+            # If we reply to a threaded message, keep it in the thread.
             response.extras['thread_ts'] = msg.extras['slack_event']['thread_ts']
 
         response.frm = self.bot_identifier

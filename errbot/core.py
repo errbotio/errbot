@@ -134,6 +134,7 @@ class ErrBot(Backend, StoreMixin):
         msg = self.build_message(text)
         msg.to = identifier
         msg.frm = in_reply_to.to if in_reply_to else self.bot_identifier
+        msg.parent = in_reply_to
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
         if isinstance(identifier, Room) and in_reply_to and (nick_reply or groupchat_nick_reply):
@@ -186,14 +187,15 @@ class ErrBot(Backend, StoreMixin):
         """
         self.send_templated(card.to, 'card', {'card': card})
 
-    def send_simple_reply(self, msg, text, private=False):
+    def send_simple_reply(self, msg, text, private=False, threaded=False):
         """Send a simple response to a given incoming message
 
         :param private: if True will force a response in private.
+        :param threaded: if True and if the backend supports it, sends the response in a threaded message.
         :param text: the markdown text of the message.
         :param msg: the message you are replying to.
         """
-        reply = self.build_reply(msg, text, private)
+        reply = self.build_reply(msg, text, private=private, threaded=threaded)
         if isinstance(reply.to, Room) and self.bot_config.GROUPCHAT_NICK_PREFIXED:
             self.prefix_groupchat_reply(reply, msg.frm)
         self.split_and_send_message(reply)

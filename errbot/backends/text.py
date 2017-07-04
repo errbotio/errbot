@@ -407,7 +407,7 @@ class TextBackend(ErrBot):
             raise ValueError('An identifier for the Text backend needs to start with # for a room or @ for a person.')
         return TextPerson(text_representation[1:])
 
-    def build_reply(self, msg, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
         if private:

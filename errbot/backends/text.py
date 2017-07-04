@@ -122,11 +122,19 @@ class TextBackend(ErrBot):
         self.callback_presence(Presence(identifier=self.user, status=ONLINE))
         try:
             while True:
-                if ANSI or self.demo_mode:
-                    entry = input('\n' + str(fg.cyan) + ' >>> ' + str(fx.reset))
-                else:
-                    entry = input('\n>>> ')
-                msg = Message(entry)
+                print()
+                multiline = ''
+                while True:
+                    prompt = '[CR to end] ' if multiline else '>>> '
+                    if ANSI or self.demo_mode:
+                        entry = input(str(fg.cyan) + prompt + str(fx.reset))
+                    else:
+                        entry = input(prompt)
+                    if not entry:
+                        break
+                    multiline += entry + '\n'
+
+                msg = Message(multiline)
                 msg.frm = self.user
                 msg.to = self.bot_identifier
                 self.callback_message(msg)

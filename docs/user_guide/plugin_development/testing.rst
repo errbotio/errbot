@@ -13,44 +13,24 @@ Interacting with the bot
 
 Lets go for an example, *myplugin.py*:
 
-.. code-block:: python
-
-    from errbot import BotPlugin, botcmd
-
-    class MyPlugin(BotPlugin):
-        @botcmd
-        def mycommand(self, message, args):
-            return "This is my awesome command"
+.. literalinclude:: ../../code_examples/plugin_development/myplugin.py
+    :language: python
+    :lines: 1-6
 
 And *myplugin.plug*:
 
-.. code-block:: ini
-
-    [Core]
-    Name = MyPlugin
-    Module = myplugin
-
-    [Documentation]
-    Description = my plugin
-
+.. literalinclude:: ../../code_examples/plugin_development/myplugin.plug
+    :language: ini
 
 This does absolutely nothing shocking, but how do you test it?
 We need to interact with the bot somehow, send it `!mycommand` and validate the reply.
 Fortunatly Errbot provides some help.
 
-
-
 Our test, *test_myplugin.py*:
 
-.. code-block:: python
-
-    pytest_plugins = ["errbot.backends.test"]
-
-    extra_plugin_dir = '.'
-
-    def test_command(testbot):
-        testbot.push_message('!mycommand')
-        assert 'This is my awesome command' in testbot.pop_message()
+.. literalinclude:: ../../code_examples/plugin_development/test_myplugin.py
+    :language: python
+    :lines: 1-8
 
 Lets walk through this line for line. First of all, we specify our pytest fixture location :class:`~errbot.backends.test` in the backends tests, to allow us to spin up a bot for testing purposes and interact with the message queue. To avoid specifying the module in every test module, you can simply place this line in your conftest.py_.
 
@@ -67,57 +47,33 @@ Often enough you'll have methods in your plugins that do things for you that are
 
 Such helper methods can be either instance methods, methods that take `self` as the first argument because they need access to data stored on the bot or class or static methods, decorated with either `@classmethod` or `@staticmethod`:
 
-.. code-block:: python
-
-    class MyPlugin(BotPlugin):
-        @botcmd
-        def mycommand(self, message, args):
-            return self.mycommand_helper()
-
-        @staticmethod
-        def mycommand_helper():
-            return "This is my awesome command"
+.. literalinclude:: ../../code_examples/plugin_development/myplugin.py
+    :language: python
+    :lines: 3-6, 11-14
 
 The `mycommand_helper` method does not need any information stored on the bot whatsoever or any other bot state. It can function standalone but it makes sense organisation-wise to have it be a member of the `MyPlugin` class.
 
 Such methods can be tested very easily, without needing a bot:
 
-.. code-block:: python
-
-    import myplugin
-
-    def test_mycommand_helper():
-        expected = "This is my awesome command"
-        result = myplugin.MyPlugin.mycommand_helper()
-        assert result == expected
+.. literalinclude:: ../../code_examples/plugin_development/test_myplugin.py
+    :language: python
+    :lines: 1-4, 13-17
 
 Here we simply import `myplugin` and since it's a `@staticmethod` we can directly access it through `myplugin.MyPlugin.method()`.
 
 Sometimes however a helper method needs information stored on the bot or manipulate some of that so you declare an instance method instead:
 
-.. code-block:: python
-
-    class MyPlugin(BotPlugin):
-        @botcmd
-        def mycommand(self, message, args):
-            return self.mycommand_helper()
-
-        def mycommand_helper(self):
-            return "This is my awesome command"
+.. literalinclude:: ../../code_examples/plugin_development/myplugin.py
+    :language: python
+    :lines: 3-6, 11, 13-14
 
 Now what? We can't access the method directly anymore because we need an instance of the bot and the plugin and we can't just send `!mycommand_helper` to the bot, it's not a bot command (and if it were it would be `!mycommand helper` anyway).
 
 What we need now is get access to the instance of our plugin itself. Fortunately for us, there's a method that can help us do just that:
 
-.. code-block:: python
-
-    extra_plugin_dir = '.'
-
-    def test_mycommand_helper(testbot):
-        plugin = testbot._bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
-        expected = "This is my awesome command"
-        result = plugin.mycommand_helper()
-        assert result == expected
+.. literalinclude:: ../../code_examples/plugin_development/test_myplugin.py
+    :language: python
+    :lines: 4, 13-17
 
 There we go, we first grab out plugin thanks to a helper method on :mod:`~errbot.plugin_manager` and then simply execute the method and compare what we get with what we expect. You can also access `@classmethod` or `@staticmethod` methods this way, you just don't have to.
 
@@ -137,63 +93,18 @@ All together now
 
 *myplugin.py*:
 
-.. code-block:: python
-
-    from errbot import BotPlugin, botcmd
-
-    class MyPlugin(BotPlugin):
-        @botcmd
-        def mycommand(self, message, args):
-            return self.mycommand_helper()
-
-        @botcmd
-        def mycommand_another(self, message, args):
-            return self.mycommand_another_helper()
-
-        @staticmethod
-        def mycommand_helper():
-            return "This is my awesome command"
-
-        def mycommand_another_helper(self):
-            return "This is another awesome command"
+.. literalinclude:: ../../code_examples/plugin_development/myplugin.py
+    :language: python
 
 *myplugin.plug*:
 
-.. code-block:: ini
-
-    [Core]
-    Name = MyPlugin
-    Module = myplugin
-
-    [Documentation]
-    Description = my plugin
+.. literalinclude:: ../../code_examples/plugin_development/myplugin.plug
+    :language: ini
 
 *test_myplugin.py*:
 
-.. code-block:: python
-
-    import myplugin
-
-    extra_plugin_dir = '.'
-
-    def test_mycommand(testbot):
-        testbot.push_message('!mycommand')
-        assert 'This is my awesome command' in testbot.pop_message()
-
-    def test_mycommand_another(testbot):
-        testbot.push_message('!mycommand another')
-        assert 'This is another awesome command' in testbot.pop_message()
-
-    def test_mycommand_helper():
-        expected = "This is my awesome command"
-        result = myplugin.MyPlugin.mycommand_helper()
-        assert result == expected
-
-    def test_mycommand_another_helper():
-        plugin = testbot._bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
-        expected = "This is another awesome command"
-        result = plugin.mycommand_another_helper()
-        assert result == expected
+.. literalinclude:: ../../code_examples/plugin_development/test_myplugin.py
+    :language: python
 
 You can now simply run :command:`py.test` to execute the tests.
 

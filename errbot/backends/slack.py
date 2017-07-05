@@ -451,7 +451,7 @@ class SlackBackend(ErrBot):
 
         subtype = event.get('subtype', None)
 
-        if subtype in ("message_deleted", "channel_topic"):
+        if subtype in ("message_deleted", "channel_topic", "message_replied"):
             log.debug("Message of type %s, ignoring this event", subtype)
             return
 

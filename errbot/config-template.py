@@ -294,6 +294,11 @@ BOT_ADMINS = ('gbin@localhost',)
 # DIVERT_TO_PRIVATE = ('help', 'about', 'status')
 DIVERT_TO_PRIVATE = ()
 
+# A list of commands which should be responded to in a thread if the backend supports it.
+# For example:
+# DIVERT_TO_THREAD = ('help', 'about', 'status')
+DIVERT_TO_THREAD = ()
+
 # Chat relay
 # Can be used to relay one to one message from specific users to the bot
 # to MUCs. This can be useful with XMPP notifiers like for example the

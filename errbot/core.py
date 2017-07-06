@@ -435,6 +435,7 @@ class ErrBot(Backend, StoreMixin):
 
         """
         private = cmd in self.bot_config.DIVERT_TO_PRIVATE
+        threaded = cmd in self.bot_config.DIVERT_TO_THREAD
         commands = self.re_commands if match else self.commands
         try:
             with self._gbl:
@@ -453,11 +454,11 @@ class ErrBot(Backend, StoreMixin):
                 replies = method(msg, match) if match else method(msg, args)
                 for reply in replies:
                     if reply:
-                        self.send_simple_reply(msg, self.process_template(template_name, reply), private)
+                        self.send_simple_reply(msg, self.process_template(template_name, reply), private, threaded)
             else:
                 reply = method(msg, match) if match else method(msg, args)
                 if reply:
-                    self.send_simple_reply(msg, self.process_template(template_name, reply), private)
+                    self.send_simple_reply(msg, self.process_template(template_name, reply), private, threaded)
 
             # The command is a success, check if this has not made a flow progressed
             self.flow_executor.trigger(cmd, msg.frm, msg.ctx)
@@ -466,14 +467,14 @@ class ErrBot(Backend, StoreMixin):
             reason = command_error.reason
             if command_error.template:
                 reason = self.process_template(command_error.template, reason)
-            self.send_simple_reply(msg, reason, private)
+            self.send_simple_reply(msg, reason, private, threaded)
 
         except Exception as e:
             tb = traceback.format_exc()
             log.exception('An error happened while processing '
                           'a message ("%s"): %s"' %
                           (msg.body, tb))
-            self.send_simple_reply(msg, self.MSG_ERROR_OCCURRED + ':\n %s' % e, private)
+            self.send_simple_reply(msg, self.MSG_ERROR_OCCURRED + ':\n %s' % e, private, threaded)
 
     def unknown_command(self, _, cmd, args):
         """ Override the default unknown command behavior

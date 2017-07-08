@@ -25,13 +25,15 @@ class FlowNode(object):
     The predicate is a function that takes one parameter, the context of the conversation.
     """
 
-    def __init__(self, command: str=None):
+    def __init__(self, command: str=None, hints: bool=True):
         """
         Creates a FlowNone, takes the command to which the Node is linked to.
         :param command: the command this Node is linked to. Can only be None if this Node is a Root.
+        :param hints: hints the users for the next steps in chat.
         """
         self.command = command
         self.children = []  # (predicate, node)
+        self.hints = hints
 
     def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate=lambda _: False):
         """
@@ -42,6 +44,7 @@ class FlowNode(object):
                                (this node or command will be the follow up of this one)
         :param predicate: function with one parameter, the context, to determine of the flow executor can continue
                            automatically this flow with no user intervention.
+        :param hints: hints the user on the next step possible.
         :return: the newly created node if you passed a command or the node you gave it to be easily chainable.
         """
         node_to_connect_to = node_or_command if isinstance(node_or_command, FlowNode) else FlowNode(node_or_command)
@@ -72,11 +75,13 @@ class FlowRoot(FlowNode):
 
         :param name: The name of the conversation/flow.
         :param description:  A human description of what this flow does.
+        :param hints: Hints for the next steps when triggered.
         """
         super().__init__()
         self.name = name
         self.description = description
         self.auto_triggers = set()
+        self.room_flow = False
 
     def connect(self,
                 node_or_command: Union['FlowNode', str],
@@ -122,21 +127,17 @@ class Flow(object):
     This is a live Flow. It keeps context of the conversation (requestor and context).
     Context is just a python dictionary representing the state of the conversation.
     """
-    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any],
-                 next_step_hinting: int=True):
+    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any]):
         """
 
         :param root: the root of this flow.
         :param requestor: the user requesting this flow.
         :param initial_context: any data we already have that could help executing this flow automatically.
-        :param next_step_hinting: toggle display of the "you are now in the flow xxx, you may continue with yyy, zzz"
-        messages after each flow step
         """
         self._root = root
         self._current_step = self._root
         self.ctx = dict(initial_context)
         self.requestor = requestor
-        self.next_step_hinting = next_step_hinting
 
     def next_autosteps(self) -> List[FlowNode]:
         """
@@ -390,7 +391,7 @@ class FlowExecutor(object):
                     self.in_flight.remove(flow)
                 break
 
-            if not autosteps:
+            if not autosteps and flow.current_step.hints:
                 possible_next_steps = ["You are in the flow **%s**, you can continue with:\n\n" % flow.name]
                 for step in steps:
                     cmd = step.command
@@ -405,8 +406,7 @@ class FlowExecutor(object):
                     if syntax_args:
                         syntax += syntax_args
                     possible_next_steps.append("- %s" % syntax)
-                if flow.next_step_hinting:
-                    self._bot.send(flow.requestor, "\n".join(possible_next_steps))
+                self._bot.send(flow.requestor, "\n".join(possible_next_steps))
                 break
 
             log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))

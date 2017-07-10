@@ -1,0 +1,6 @@
+[Core]
+Name = PollerPlugin
+Module = poller_plugin
+
+[Python]
+Version = 2+

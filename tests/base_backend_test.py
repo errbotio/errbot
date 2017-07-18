@@ -116,10 +116,12 @@ class DummyBackend(ErrBot):
     def build_identifier(self, text_representation):
         return TestPerson(text_representation)
 
-    def build_reply(self, msg, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         reply = self.build_message(text)
         reply.frm = self.bot_identifier
         reply.to = msg.frm
+        if threaded:
+            reply.parent = msg
         return reply
 
     def send_message(self, msg):
@@ -249,6 +251,16 @@ def test_buildreply(dummy_backend):
     assert str(resp.to) == 'user'
     assert str(resp.frm) == 'err'
     assert str(resp.body) == 'Response'
+    assert resp.parent is None
+
+
+def test_buildreply_with_parent(dummy_backend):
+    m = dummy_backend.build_message('Content')
+    m.frm = dummy_backend.build_identifier('user')
+    m.to = dummy_backend.build_identifier('somewhere')
+    resp = dummy_backend.build_reply(m, 'Response', threaded=True)
+
+    assert resp.parent is not None
 
 
 def test_bot_admins_unique_string():

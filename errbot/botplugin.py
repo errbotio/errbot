@@ -519,6 +519,7 @@ class BotPlugin(BotPluginBase):
 
             :param groupchat_nick_reply: if True the message will mention the user in the chatroom.
             :param in_reply_to: the original message this message is a reply to (optional).
+                                In some backends it will start a thread.
             :param text: markdown formatted text to send to the user.
             :param identifier: An Identifier representing the user or room to message.
                                Identifiers may be created with :func:`build_identifier`.
@@ -560,7 +561,7 @@ class BotPlugin(BotPluginBase):
             if in_reply_to is None:
                 raise ValueError('Either to or in_reply_to needs to be set.')
             to = in_reply_to.frm
-        self._bot.send_card(Card(body, frm, to, summary, title, link, image, thumbnail, color, fields))
+        self._bot.send_card(Card(body, frm, to, in_reply_to, summary, title, link, image, thumbnail, color, fields))
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """

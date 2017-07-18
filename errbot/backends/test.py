@@ -280,7 +280,7 @@ class TestBackend(ErrBot):
     def build_identifier(self, text_representation):
         return TestPerson(text_representation)
 
-    def build_reply(self, msg, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         msg = self.build_message(text)
         msg.frm = self.bot_identifier
         msg.to = msg.frm

@@ -59,7 +59,7 @@ class NullBackend(ErrBot):
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
-    def build_reply(self, msg, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         pass
 
     def prefix_groupchat_reply(self, message, identifier):

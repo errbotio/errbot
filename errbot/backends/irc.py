@@ -692,7 +692,7 @@ class IRCBackend(ErrBot):
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)
 
-    def build_reply(self, msg, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
         if msg.is_group:
             if private:

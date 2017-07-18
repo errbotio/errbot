@@ -41,6 +41,8 @@ def bot_config_defaults(config):
         config.BOT_ALT_PREFIX_CASEINSENSITIVE = False
     if not hasattr(config, 'DIVERT_TO_PRIVATE'):
         config.DIVERT_TO_PRIVATE = ()
+    if not hasattr(config, 'DIVERT_TO_THREAD'):
+        config.DIVERT_TO_THREAD = ()
     if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
         config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
     if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):

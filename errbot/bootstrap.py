@@ -19,6 +19,8 @@ CORE_STORAGE = path.join(HERE, 'storage')
 
 PLUGIN_DEFAULT_INDEX = 'https://repos.errbot.io/repos.json'
 
+sentry_client = None
+
 
 def bot_config_defaults(config):
     if not hasattr(config, 'ACCESS_CONTROLS_DEFAULT'):
@@ -73,6 +75,25 @@ def bot_config_defaults(config):
         config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
 
 
+def _init_sentry_client(dsn):
+    global sentry_client
+
+    try:
+        from raven import Client
+    except ImportError:
+        log.exception(
+            "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
+            "needed for Sentry integration. Did you install raven? "
+            "(See http://raven.readthedocs.org/en/latest/install/index.html "
+            "for installation instructions)"
+        )
+        exit(-1)
+    else:
+        sentry_client = Client(dsn=dsn)
+
+        return sentry_client
+
+
 def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
@@ -86,19 +107,11 @@ def setup_bot(backend_name, logger, config, restore=None):
         hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
         logger.addHandler(hdlr)
 
-    if hasattr(config, 'BOT_LOG_SENTRY') and config.BOT_LOG_SENTRY:
-        try:
-            from raven.handlers.logging import SentryHandler
-        except ImportError:
-            log.exception(
-                "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
-                "needed for Sentry integration. Did you install raven? "
-                "(See http://raven.readthedocs.org/en/latest/install/index.html "
-                "for installation instructions)"
-            )
-            exit(-1)
+    if getattr(config, 'BOT_LOG_SENTRY', None):
+        _init_sentry_client(config.SENTRY_DSN)
+        from raven.handlers.logging import SentryHandler
 
-        sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
+        sentryhandler = SentryHandler(sentry_client, level=config.SENTRY_LOGLEVEL)
         logger.addHandler(sentryhandler)
 
     logger.setLevel(config.BOT_LOG_LEVEL)

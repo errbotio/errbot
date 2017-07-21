@@ -20,6 +20,8 @@ CORE_STORAGE = path.join(HERE, 'storage')
 
 PLUGIN_DEFAULT_INDEX = 'https://repos.errbot.io/repos.json'
 
+sentry_client = None
+
 
 def bot_config_defaults(config):
     if not hasattr(config, 'ACCESS_CONTROLS_DEFAULT'):
@@ -74,6 +76,37 @@ def bot_config_defaults(config):
         config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
 
 
+def _init_sentry_client():
+    global sentry_client
+
+    try:
+        from raven import Client
+    except ImportError:
+        log.exception(
+            "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
+            "needed for Sentry integration. Did you install raven? "
+            "(See http://raven.readthedocs.org/en/latest/install/index.html "
+            "for installation instructions)"
+        )
+        exit(-1)
+
+    kwargs = {'dsn': config.SENTRY_DSN}
+
+    if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
+        try:
+            mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
+            kwargs['transport'] = getattr(mod, config.SENTRY_TRANSPORT[0])
+        except ImportError:
+            log.exception(
+                "Unable to import selected SENTRY_TRANSPORT - {transport}".format(transport=config.SENTRY_TRANSPORT)
+            )
+            exit(-1)
+
+    sentry_client = Client(**kwargs)
+
+    return sentry_client
+
+
 def setup_bot(backend_name, logger, config, restore=None):
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
@@ -90,33 +123,11 @@ def setup_bot(backend_name, logger, config, restore=None):
             hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
             logger.addHandler(hdlr)
 
-    if hasattr(config, 'BOT_LOG_SENTRY') and config.BOT_LOG_SENTRY:
-        try:
-            from raven.handlers.logging import SentryHandler
-        except ImportError:
-            log.exception(
-                "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
-                "needed for Sentry integration. Did you install raven? "
-                "(See http://raven.readthedocs.org/en/latest/install/index.html "
-                "for installation instructions)"
-            )
-            exit(-1)
+    if getattr(config, 'BOT_LOG_SENTRY', None):
+        _init_sentry_client()
+        from raven.handlers.logging import SentryHandler
 
-        if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
-            try:
-                mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
-                transport = getattr(mod, config.SENTRY_TRANSPORT[0])
-            except ImportError:
-                log.exception(
-                    "Unable to import selected SENTRY_TRANSPORT - {transport}".format(transport=config.SENTRY_TRANSPORT)
-                )
-                exit(-1)
-
-            sentryhandler = SentryHandler(config.SENTRY_DSN,
-                                          level=config.SENTRY_LOGLEVEL,
-                                          transport=transport)
-        else:
-            sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
+        sentryhandler = SentryHandler(sentry_client, level=config.SENTRY_LOGLEVEL)
         logger.addHandler(sentryhandler)
 
     logger.setLevel(config.BOT_LOG_LEVEL)

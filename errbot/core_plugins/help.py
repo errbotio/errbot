@@ -82,7 +82,7 @@ class Help(BotPlugin):
                 args=None,
                 dry_run=True
             )
-            return mess is not None
+            return m is not None
 
         def get_name(named):
             return named.__name__.lower()

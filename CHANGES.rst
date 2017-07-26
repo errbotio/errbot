@@ -1,3 +1,31 @@
+v5.1.0 (2017-07-24)
+-------------------
+
+fixes:
+
+- allow webhook receivers on / (tx Robin Gloster)
+- force utf-8 to release changes (thx Robert Krambovitis)
+- don't generate an errbot section if no version is specified in plugin gen (thx Meet Mangukiya)
+- callback on all unknown commands filters
+- user friendly message when a room is not found
+- webhook with no uri but kwargs now work as intended
+- Slack: support for Enterprise Grid (thx Jasper)
+- Hipchat: fix room str repr. (thx Roman)
+- XMPP: fix for MUC users with @ in their names (thx Joon Guillen)
+
+features:
+
+- Support for threaded messages (Slack initially but API is done for other backends to use)
+- Text: now the text backend can emulate an inroom/inperson or asuser/asadmin behavior
+- Text: autocomplete of command is now supported
+- Text: multiline messages are now supported
+- start_poller can now be restricted to a number of execution (thx Marek Suppa)
+- recurse_check_structure back to public API (thx Alex Sheluchin)
+- better flow status (thx lijah Roberts)
+- !about returns a git tag instead of just 9.9.9 as version for a git checkout. (thx Sven)
+- admin notifications can be set up to a set of users (thx Sijis Aviles)
+- logs can be colorized with drak, light or nocolor as preference.
+
 v5.0.1 (2017-05-08)
 -------------------
 hotfixes for v5.0.0.

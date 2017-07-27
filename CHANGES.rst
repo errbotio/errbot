@@ -12,6 +12,7 @@ fixes:
 - Slack: support for Enterprise Grid (thx Jasper)
 - Hipchat: fix room str repr. (thx Roman)
 - XMPP: fix for MUC users with @ in their names (thx Joon Guillen)
+- certificate generation was failing under some conditions
 
 features:
 

@@ -1,8 +1,7 @@
 import sys
 import os
-from struct import unpack
 from json import loads
-
+from random import randrange
 from webtest import TestApp
 
 from errbot import botcmd, BotPlugin, webhook
@@ -33,17 +32,8 @@ def make_ssl_certificate(key_path, cert_path):
     :param cert_path: path where to write the certificate.
     :param key_path: path where to write the key.
     """
-
-    size_32 = (2 ** 32 - 1) / 2
-    size_64 = (2 ** 64 - 1) / 2
-
-    if sys.maxsize == size_32:
-        cert_serial_number = unpack('!l', os.urandom(4))[0]
-    else:
-        cert_serial_number = unpack('!q', os.urandom(8))[0]
-
     cert = crypto.X509()
-    cert.set_serial_number(cert_serial_number)
+    cert.set_serial_number(randrange(1, sys.maxsize))
     cert.gmtime_adj_notBefore(0)
     cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
 

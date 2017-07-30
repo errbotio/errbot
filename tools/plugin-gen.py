@@ -4,6 +4,7 @@ from datetime import datetime
 import requests
 import sys
 from requests.auth import HTTPBasicAuth
+from datetime import datetime
 import logging
 import time
 import configparser
@@ -50,7 +51,6 @@ def save_plugins():
     with open('repos.json', 'w') as f:
         json.dump(plugins,
                   f,
-                  sort_keys=True,
                   indent=2,
                   separators=(',', ': '))
 
@@ -100,26 +100,35 @@ def rate_limit(resp):
     time.sleep(delay)
 
 
+def parse_date(gh_date: str)-> datetime:
+    return datetime.strptime(gh_date, "%Y-%m-%dT%H:%M:%SZ")
+
+
 def check_repo(repo):
-    log.debug('Checking %s...', repo)
-    code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo, auth=AUTH)
+    repo_name = repo['full_name']
+    log.debug('Checking %s...', repo_name)
+    code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo_name, auth=AUTH)
     if code_resp.status_code != 200:
-        log.error('Error getting https://api.github.com/search/code?q=extension:plug+repo:%s', repo)
+        log.error('Error getting https://api.github.com/search/code?q=extension:plug+repo:%s', repo_name)
         log.error('code %d', code_resp.status_code)
         log.error('content %s', code_resp.text)
 
         return
     plug_items = code_resp.json()['items']
     if not plug_items:
-        log.debug('No plugin found in %s, blacklisting it.', repo)
-        add_blacklisted(repo)
+        log.debug('No plugin found in %s, blacklisting it.', repo_name)
+        add_blacklisted(repo_name)
         return
-    avatar_url = get_avatar_url(repo)
+    owner = repo['owner']
+    avatar_url = owner['avatar_url'] if 'avatar_url' in owner else DEFAULT_AVATAR
+
+    days_old = (datetime.now() - parse_date(repo['updated_at'])).days
+    score = repo['stargazers_count'] + repo['watchers_count'] * 2 + repo['forks_count'] - days_old / 25
 
     for plug in plug_items:
-        plugfile_resp = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo, plug['path']))
+        plugfile_resp = requests.get('https://raw.githubusercontent.com/%s/master/%s' % (repo_name, plug['path']))
         log.debug('Found a plugin:')
-        log.debug('Repo:  %s', repo)
+        log.debug('Repo:  %s', repo_name)
         log.debug('File:  %s', plug['path'])
         parser = configparser.ConfigParser()
         try:
@@ -142,16 +151,17 @@ def check_repo(repo):
 
             plugin = {
                 'path': plug['path'],
-                'repo': 'https://github.com/{0}'.format(repo),
+                'repo': repo['html_url'],
                 'documentation': doc,
                 'name': name,
                 'python': python,
                 'avatar_url': avatar_url,
+                'score': score,
             }
 
-            repo_entry = plugins.get(repo, {})
+            repo_entry = plugins.get(repo_name, {})
             repo_entry[name] = plugin
-            plugins[repo] = repo_entry
+            plugins[repo_name] = repo_entry
             log.debug('Catalog added plugin %s.', plugin['name'])
         except:
             log.error('Invalid syntax in %s, skipping... ' % plug['path'])
@@ -163,8 +173,8 @@ def check_repo(repo):
     rate_limit(code_resp)
 
 
-def find_plugins():
-    url = 'https://api.github.com/search/repositories?q=err+in:name+language:python&sort=stars&order=desc'
+def find_plugins(query):
+    url = 'https://api.github.com/search/repositories?q=%s+in:name+language:python&sort=stars&order=desc' % query
     while True:
         repo_resp = requests.get(url, auth=AUTH)
         repo_json = repo_resp.json()
@@ -180,9 +190,8 @@ def find_plugins():
             continue
         items = repo_json['items']
 
-        for i, item in enumerate(items):
-            repo = item['full_name']
-            if repo in BLACKLISTED:
+        for i, repo in enumerate(items):
+            if repo['full_name'] in BLACKLISTED:
                 log.debug('Skipping %s.', repo)
                 continue
             check_repo(repo)
@@ -194,12 +203,27 @@ def find_plugins():
 
 
 def main():
-    find_plugins()
+    find_plugins('err')
     # Those are found by global search only available on github UI:
     # https://github.com/search?l=&q=Documentation+extension%3Aplug&ref=advsearch&type=Code&utf8=%E2%9C%93
+    url = 'https://api.github.com/repos/%s'
     with open('extras.txt', 'r') as extras:
-        for repo in extras:
-            check_repo(repo.strip())
+        for repo_name in extras:
+            repo_name = repo_name.strip()
+            repo_resp = requests.get(url % repo_name, auth=AUTH)
+            repo = repo_resp.json()
+            if repo.get('message', None) == 'Bad credentials':
+                log.error('Invalid credentials, check your token file, see README.')
+                sys.exit(-1)
+            if 'message' in repo and repo['message'].startswith('API rate limit exceeded for'):
+                log.error('API rate limit hit anyway ... wait for 30s')
+                time.sleep(30)
+                continue
+            if 'message' in repo and repo['message'].startswith('Not Found'):
+                log.error('%s not found.', repo_name)
+            else:
+                check_repo(repo)
+            rate_limit(repo_resp)
 
 if __name__ == "__main__":
     main()

@@ -71,7 +71,9 @@ class TextPerson(Person):
     def fullname(self):
         return self._fullname
 
-    aclattr = person
+    @property
+    def aclattr(self):
+        return str(self)
 
     def __str__(self):
         return '@' + self._person

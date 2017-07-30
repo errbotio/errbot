@@ -350,3 +350,9 @@ def test_subcommands(testbot):
     cmd_underscore = '!run_lots_of_subcommands with these args'
     assert expected_args == testbot.exec_command(cmd)
     assert expected_args == testbot.exec_command(cmd_underscore)
+
+
+def test_command_not_found_with_space_in_bot_prefix(testbot):
+    testbot.bot_config.BOT_PREFIX = '! '
+    assert 'Command "blah" not found.' in testbot.exec_command('! blah')
+    assert 'Command "blah" / "blah toto" not found.' in testbot.exec_command('! blah toto')

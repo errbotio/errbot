@@ -496,7 +496,7 @@ class SlackBackend(ErrBot):
             if subtype == "bot_message":
                 msg.frm = SlackBot(
                     self.sc,
-                    bot_id=event['bot_id'],
+                    bot_id=event.get('bot_id', ''),
                     bot_username=event.get('username', '')
                 )
             else:
@@ -508,7 +508,7 @@ class SlackBackend(ErrBot):
             if subtype == "bot_message":
                 msg.frm = SlackRoomBot(
                     self.sc,
-                    bot_id=event['bot_id'],
+                    bot_id=event.get('bot_id', ''),
                     bot_username=event.get('username', ''),
                     channelid=event['channel'],
                     bot=self

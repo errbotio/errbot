@@ -1,14 +1,28 @@
 
 import os
 import io
+from itertools import starmap, repeat
 from threading import Thread
 from .backends.base import STREAM_WAITING_TO_START, STREAM_TRANSFER_IN_PROGRESS
 import logging
-from .utils import repeatfunc
 
 CHUNK_SIZE = 4096
 
 log = logging.getLogger(__name__)
+
+
+def repeatfunc(func, times=None, *args):  # from the itertools receipes
+    """Repeat calls to func with specified arguments.
+
+    Example:  repeatfunc(random.random)
+
+    :param args: params to the function to call.
+    :param times: number of times to repeat.
+    :param func:  the function to repeatedly call.
+    """
+    if times is None:
+        return starmap(func, repeat(args))
+    return starmap(func, repeat(args, times))
 
 
 class Tee(object):
@@ -35,7 +49,7 @@ class Tee(object):
                 self.clients[index].callback_stream(streams[index])
                 if streams[index].status == STREAM_WAITING_TO_START:
                     streams[index].reject()
-                    plugin = self.clients[index].__class__.__name__
+                    plugin = self.clients[index].name
                     logging.warning("%s did not accept nor reject the incoming file transfer" % plugin)
                     logging.warning("I reject it as a fallback.")
             except Exception as _:

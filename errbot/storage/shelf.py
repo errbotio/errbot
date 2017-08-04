@@ -50,8 +50,8 @@ class ShelfStoragePlugin(StoragePluginBase):
         old_spot = os.path.join(config['basedir'], 'plugins', namespace + '.db')
         if os.path.isfile(old_spot):
             if os.path.isfile(new_spot):
-                log.warn('You have an old v3 DB at %s and a duplicate new one at %s.' % (old_spot, new_spot))
-                log.warn('You need to either remove the old one or move it in place of the new one manually.')
+                log.warning('You have an old v3 DB at %s and a duplicate new one at %s.' % (old_spot, new_spot))
+                log.warning('You need to either remove the old one or move it in place of the new one manually.')
             else:
                 log.info('Moving your old v3 DB from %s to %s.' % (old_spot, new_spot))
                 shutil.move(old_spot, new_spot)

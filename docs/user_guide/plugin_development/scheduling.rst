@@ -24,3 +24,20 @@ minute when your plugin gets activated:
         def activate(self):
             super().activate()
             self.start_poller(60, self.my_callback)
+
+
+It is also possible to specify the `times` parameter, which denotes how
+many times should the function be called, for instance
+
+.. code-block:: python
+   :emphasize-lines: 10
+
+    from errbot import BotPlugin
+
+    class PluginExample(BotPlugin):
+        def my_callback(self):
+            self.log.debug('I got called after a minute (and just once)')
+
+        def activate(self):
+            super().activate()
+            self.start_poller(60, self.my_callback, times=1)

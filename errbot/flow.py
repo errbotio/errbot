@@ -2,7 +2,7 @@ import logging
 from threading import RLock
 from typing import Mapping, List, Tuple, Union, Callable, Any
 
-from threadpool import ThreadPool, WorkRequest
+from multiprocessing.pool import ThreadPool
 from yapsy.IPlugin import IPlugin
 
 from errbot import Message
@@ -24,6 +24,7 @@ class FlowNode(object):
 
     The predicate is a function that takes one parameter, the context of the conversation.
     """
+
     def __init__(self, command: str=None):
         """
         Creates a FlowNone, takes the command to which the Node is linked to.
@@ -104,6 +105,7 @@ class _FlowEnd(FlowNode):
     def __str__(self):
         return 'END'
 
+
 #: Flow marker indicating that the flow ends.
 FLOW_END = _FlowEnd()
 
@@ -120,17 +122,21 @@ class Flow(object):
     This is a live Flow. It keeps context of the conversation (requestor and context).
     Context is just a python dictionary representing the state of the conversation.
     """
-    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any]):
+    def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any],
+                 next_step_hinting: int=True):
         """
 
         :param root: the root of this flow.
         :param requestor: the user requesting this flow.
         :param initial_context: any data we already have that could help executing this flow automatically.
+        :param next_step_hinting: toggle display of the "you are now in the flow xxx, you may continue with yyy, zzz"
+        messages after each flow step
         """
         self._root = root
         self._current_step = self._root
         self.ctx = dict(initial_context)
         self.requestor = requestor
+        self.next_step_hinting = next_step_hinting
 
     def next_autosteps(self) -> List[FlowNode]:
         """
@@ -197,10 +203,21 @@ class BotFlow(IPlugin):
     """
     Defines a Flow plugin ie. a plugin that will define new flows from its methods with the @botflow decorator.
     """
-    def __init__(self, bot):
+
+    def __init__(self, bot, name=None):
         super().__init__()
         self._bot = bot
         self.is_activated = False
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        """
+        Get the name of this flow as described in its .plug file.
+
+        :return: The flow name.
+        """
+        return self._name
 
     def activate(self) -> None:
         """
@@ -301,7 +318,7 @@ class FlowExecutor(object):
         :param user: the identifier of the person who started this flow
         :returns: The name of the flow it triggered or None if none were matching.
         """
-        log.debug("Test if the command %s is an auto-trigger for any flow ...",  cmd)
+        log.debug("Test if the command %s is an auto-trigger for any flow ...", cmd)
         with self._lock:
             for name, flow_root in self.flow_roots.items():
                 if cmd in flow_root.auto_triggers and not self.check_inflight_already_running(user):
@@ -357,7 +374,7 @@ class FlowExecutor(object):
         with self._lock:
             if flow not in self.in_flight:
                 self.in_flight.append(flow)
-        self._pool.putRequest(WorkRequest(self.execute, args=(flow, )))
+        self._pool.apply_async(self.execute, (flow, ))
 
     def execute(self, flow: Flow):
         """
@@ -388,7 +405,8 @@ class FlowExecutor(object):
                     if syntax_args:
                         syntax += syntax_args
                     possible_next_steps.append("- %s" % syntax)
-                self._bot.send(flow.requestor, "\n".join(possible_next_steps))
+                if flow.next_step_hinting:
+                    self._bot.send(flow.requestor, "\n".join(possible_next_steps))
                 break
 
             log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))

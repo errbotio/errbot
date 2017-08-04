@@ -6,11 +6,13 @@ import os
 import subprocess
 import sys
 import traceback
+from typing import Tuple, Sequence
+
 from yapsy import PluginInfo
 
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
-from .utils import version2array, collect_roots, ensure_sys_path_contains
+from .utils import version2array, collect_roots
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from yapsy.PluginManager import PluginManager
@@ -44,9 +46,22 @@ class PluginConfigurationException(PluginActivationException):
     pass
 
 
-def populate_doc(plugin):
-    plugin_type = type(plugin.plugin_object)
-    plugin_type.__errdoc__ = plugin_type.__doc__ if plugin_type.__doc__ else plugin.description
+def _ensure_sys_path_contains(paths):
+    """ Ensure that os.path contains paths
+       :param base_paths:
+            a list of base paths to walk from
+            elements can be a string or a list/tuple of strings
+    """
+    for entry in paths:
+        if isinstance(entry, (list, tuple)):
+            _ensure_sys_path_contains(entry)
+        elif entry is not None and entry not in sys.path:
+            sys.path.append(entry)
+
+
+def populate_doc(plugin_info: PluginInfo) -> None:
+    plugin_class = type(plugin_info.plugin_object)
+    plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plugin_info.description
 
 
 def install_packages(req_path):
@@ -62,24 +77,25 @@ def install_packages(req_path):
         else:
             # otherwise only install it as a user package
             subprocess.check_call(['pip', 'install', '--user', '--requirement', req_path])
-    except:
+    except Exception:
         log.exception('Failed to execute pip install for %s.', req_path)
         return sys.exc_info()
 
 
-def check_dependencies(req_path):
+def check_dependencies(req_path: str) -> Tuple[str, Sequence[str]]:
     """ This methods returns a pair of (message, packages missing).
-    Or None if everything is OK.
+    Or None, [] if everything is OK.
     """
     log.debug("check dependencies of %s" % req_path)
     # noinspection PyBroadException
     try:
         from pkg_resources import get_distribution
+        missing_pkg = []
 
         if not os.path.isfile(req_path):
-            log.debug('%s has no requirements.txt file' % path)
-            return None
-        missing_pkg = []
+            log.debug('%s has no requirements.txt file' % req_path)
+            return None, missing_pkg
+
         with open(req_path) as f:
             for line in f:
                 stripped = line.strip()
@@ -95,7 +111,7 @@ def check_dependencies(req_path):
         if missing_pkg:
             return (('You need these dependencies for %s: ' % req_path) + ','.join(missing_pkg),
                     missing_pkg)
-        return None
+        return None, missing_pkg
     except Exception:
         log.exception('Problem checking for dependencies.')
         return 'You need to have setuptools installed for the dependency check of the plugins', []
@@ -126,7 +142,7 @@ def check_python_plug_section(name: str, config: ConfigParser) -> bool:
     except NoSectionError:
         log.info(
             'Plugin %s has no section [Python]. Assuming this '
-            'plugin is runnning only under python 3.', name)
+            'plugin is running only under python 3.', name)
         python_version = '3'
 
     if python_version not in ('2', '2+', '3'):
@@ -160,7 +176,7 @@ def check_errbot_version(name: str, min_version: str, max_version: str):
 
     if max_version and version2array(max_version) < current_version:
         raise IncompatiblePluginException(
-            'The plugin %s asks for Errbot with a maximal version of %s while Errbot is version %s' % (
+            'The plugin %s asks for Errbot with a maximum version of %s while Errbot is version %s' % (
                 name, max_version, VERSION)
         )
 
@@ -190,7 +206,7 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
 
     except NoSectionError:
         log.debug('Plugin %s has no section [Errbot]. Assuming this '
-                  'plugin is runnning on any Errbot version.', name)
+                  'plugin is running on any Errbot version.', name)
         min_version = VERSION
         max_version = VERSION
     try:
@@ -246,7 +262,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
     def instanciateElement(self, element) -> BotPlugin:
         """Overrides the instanciation of plugins to inject the bot reference."""
-        return element(self.bot)
+        return element(self.bot, name=self._current_pluginfo.name)
 
     def get_plugin_by_name(self, name: str) -> PluginInfo:
         return self.getPluginByName(name, BOTPLUGIN_TAG)
@@ -261,7 +277,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
         if self.core_plugins is not None:
             if not check_enabled_core_plugin(name, plugin_info.details, self.core_plugins):
-                log.warn('Core plugin "%s" has been skipped because it is not in CORE_PLUGINS in config.py.' % name)
+                log.warning('Core plugin "%s" has been skipped because it is not in CORE_PLUGINS in config.py.' % name)
                 return None
 
         if not check_python_plug_section(name, plugin_info.details):
@@ -275,6 +291,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         depends_on = self._activate_plugin_dependencies(plugin_info, dep_track)
 
         obj = plugin_info.plugin_object
+
         obj.dependencies = depends_on
 
         try:
@@ -354,6 +371,10 @@ class BotPluginManager(PluginManager, StoreMixin):
         if was_activated:
             self.activate_plugin(name)
 
+    def _plugin_info_currently_loading(self, pluginfo):
+        # Keeps track of what is the current plugin we are attempting to load.
+        self._current_pluginfo = pluginfo
+
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
         """ It returns a dictionary of path -> error strings."""
         repo_roots = (CORE_PLUGINS, extra_plugin_dir, path_list)
@@ -367,7 +388,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.debug("Add %s to sys.path", entry)
                 sys.path.append(entry)
         # so plugins can relatively import their repos
-        ensure_sys_path_contains(repo_roots)
+        _ensure_sys_path_contains(repo_roots)
 
         errors = {}
         if autoinstall_deps:
@@ -381,8 +402,8 @@ class BotPluginManager(PluginManager, StoreMixin):
                     typ, value, trace = exc_info
                     errors[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
         else:
-            dependencies_result = {path: check_dependencies(path) for path in all_roots}
-            errors.update({path: result[0] for path, result in dependencies_result.items() if result is not None})
+            dependencies_result = {path: check_dependencies(path)[0] for path in all_roots}
+            errors.update({path: dep_error for path, dep_error in dependencies_result.items() if dep_error is not None})
         self.setPluginPlaces(all_roots)
         try:
             self.locatePlugins()
@@ -400,7 +421,7 @@ class BotPluginManager(PluginManager, StoreMixin):
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 
-        loaded_plugins = self.loadPlugins()
+        loaded_plugins = self.loadPlugins(self._plugin_info_currently_loading)
 
         errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2]))
                        for pluginfo in loaded_plugins if pluginfo.error is not None})
@@ -496,7 +517,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             try:
                 if self.is_plugin_blacklisted(pluginInfo.name):
                     errors += 'Notice: %s is blacklisted, use %splugin unblacklist %s to unblacklist it\n' % (
-                         pluginInfo.name, self.bot.prefix, pluginInfo.name)
+                        pluginInfo.name, self.bot.prefix, pluginInfo.name)
                     continue
                 if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
                     log.info('Activate plugin: %s' % pluginInfo.name)

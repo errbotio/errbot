@@ -42,6 +42,7 @@ SIMPLE_JSON_PLUGINS_INDEX = """
 
 
 class DummyBackend(ErrBot):
+
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         pass
 
@@ -63,6 +64,10 @@ class DummyBackend(ErrBot):
         config = ShallowConfig()
         config.__dict__.update(sys.modules['errbot.config-template'].__dict__)
         bot_config_defaults(config)
+
+        # It injects itself as a plugin. Changed the name to be sure we distinguish it.
+        self.name = 'DummyBackendRealName'
+
         config.BOT_DATA_DIR = tempdir
         config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
         config.BOT_PLUGIN_INDEXES = tempdir + sep + 'repos.json'
@@ -111,88 +116,90 @@ class DummyBackend(ErrBot):
     def build_identifier(self, text_representation):
         return TestPerson(text_representation)
 
-    def build_reply(self, mess, text=None, private=False):
-        msg = self.build_message(text)
-        msg.frm = self.bot_identifier
-        msg.to = mess.frm
-        return msg
+    def build_reply(self, msg, text=None, private=False, threaded=False):
+        reply = self.build_message(text)
+        reply.frm = self.bot_identifier
+        reply.to = msg.frm
+        if threaded:
+            reply.parent = msg
+        return reply
 
-    def send_message(self, mess):
-        mess._body = self.md.convert(mess.body)
-        self.outgoing_message_queue.put(mess)
+    def send_message(self, msg):
+        msg._body = self.md.convert(msg.body)
+        self.outgoing_message_queue.put(msg)
 
     def pop_message(self, timeout=3, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
 
     @botcmd
-    def command(self, mess, args):
+    def command(self, msg, args):
         return "Regular command"
 
     @botcmd(admin_only=True)
-    def admin_command(self, mess, args):
+    def admin_command(self, msg, args):
         return "Admin command"
 
     @re_botcmd(pattern=r'^regex command with prefix$', prefixed=True)
-    def regex_command_with_prefix(self, mess, match):
+    def regex_command_with_prefix(self, msg, match):
         return "Regex command"
 
     @re_botcmd(pattern=r'^regex command without prefix$', prefixed=False)
-    def regex_command_without_prefix(self, mess, match):
+    def regex_command_without_prefix(self, msg, match):
         return "Regex command"
 
     @re_botcmd(pattern=r'regex command with capture group: (?P<capture>.*)', prefixed=False)
-    def regex_command_with_capture_group(self, mess, match):
+    def regex_command_with_capture_group(self, msg, match):
         return match.group('capture')
 
     @re_botcmd(pattern=r'matched by two commands')
-    def double_regex_command_one(self, mess, match):
+    def double_regex_command_one(self, msg, match):
         return "one"
 
     @re_botcmd(pattern=r'matched by two commands', flags=re.IGNORECASE)
-    def double_regex_command_two(self, mess, match):
+    def double_regex_command_two(self, msg, match):
         return "two"
 
     @re_botcmd(pattern=r'match_here', matchall=True)
-    def regex_command_with_matchall(self, mess, matches):
+    def regex_command_with_matchall(self, msg, matches):
         return len(matches)
 
     @botcmd
-    def return_args_as_str(self, mess, args):
+    def return_args_as_str(self, msg, args):
         return "".join(args)
 
     @botcmd(template='args_as_md')
-    def return_args_as_md(self, mess, args):
+    def return_args_as_md(self, msg, args):
         return {'args': args}
 
     @botcmd
-    def send_args_as_md(self, mess, args):
-        self.send_templated(mess.frm, 'args_as_md', {'args': args})
+    def send_args_as_md(self, msg, args):
+        self.send_templated(msg.frm, 'args_as_md', {'args': args})
 
     @botcmd
-    def raises_exception(self, mess, args):
+    def raises_exception(self, msg, args):
         raise Exception("Kaboom!")
 
     @botcmd
-    def yield_args_as_str(self, mess, args):
+    def yield_args_as_str(self, msg, args):
         for arg in args:
             yield arg
 
     @botcmd(template='args_as_md')
-    def yield_args_as_md(self, mess, args):
+    def yield_args_as_md(self, msg, args):
         for arg in args:
             yield {'args': [arg]}
 
     @botcmd
-    def yields_str_then_raises_exception(self, mess, args):
+    def yields_str_then_raises_exception(self, msg, args):
         yield 'foobar'
         raise Exception('Kaboom!')
 
     @botcmd
-    def return_long_output(self, mess, args):
+    def return_long_output(self, msg, args):
         return LONG_TEXT_STRING * 3
 
     @botcmd
-    def yield_long_output(self, mess, args):
+    def yield_long_output(self, msg, args):
         for i in range(2):
             yield LONG_TEXT_STRING * 3
 
@@ -202,22 +209,22 @@ class DummyBackend(ErrBot):
 
     @arg_botcmd('--first-name', dest='first_name')
     @arg_botcmd('--last-name', dest='last_name')
-    def yields_first_name_last_name(self, mess, first_name=None, last_name=None):
+    def yields_first_name_last_name(self, msg, first_name=None, last_name=None):
         yield "%s %s" % (first_name, last_name)
 
     @arg_botcmd('--first-name', dest='first_name')
     @arg_botcmd('--last-name', dest='last_name')
-    def returns_first_name_last_name(self, mess, first_name=None, last_name=None):
+    def returns_first_name_last_name(self, msg, first_name=None, last_name=None):
         return "%s %s" % (first_name, last_name)
 
     @arg_botcmd('--first-name', dest='first_name')
     @arg_botcmd('--last-name', dest='last_name', unpack_args=False)
-    def returns_first_name_last_name_without_unpacking(self, mess, args):
+    def returns_first_name_last_name_without_unpacking(self, msg, args):
         return "%s %s" % (args.first_name, args.last_name)
 
     @arg_botcmd('value', type=str)
     @arg_botcmd('--count', dest='count', type=int)
-    def returns_value_repeated_count_times(self, mess, value=None, count=None):
+    def returns_value_repeated_count_times(self, msg, value=None, count=None):
         # str * int gives a repeated string
         return value * count
 
@@ -244,6 +251,16 @@ def test_buildreply(dummy_backend):
     assert str(resp.to) == 'user'
     assert str(resp.frm) == 'err'
     assert str(resp.body) == 'Response'
+    assert resp.parent is None
+
+
+def test_buildreply_with_parent(dummy_backend):
+    m = dummy_backend.build_message('Content')
+    m.frm = dummy_backend.build_identifier('user')
+    m.to = dummy_backend.build_identifier('somewhere')
+    resp = dummy_backend.build_reply(m, 'Response', threaded=True)
+
+    assert resp.parent is not None
 
 
 def test_bot_admins_unique_string():
@@ -267,14 +284,14 @@ def dummy_execute_and_send():
 def test_commands_can_return_string(dummy_execute_and_send):
     dummy, m = dummy_execute_and_send
 
-    dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], match=None, mess=m,
+    dummy._execute_and_send(cmd='return_args_as_str', args=['foo', 'bar'], match=None, msg=m,
                             template_name=dummy.return_args_as_str._err_command_template)
     assert "foobar" == dummy.pop_message().body
 
 
 def test_commands_can_return_md(dummy_execute_and_send):
     dummy, m = dummy_execute_and_send
-    dummy._execute_and_send(cmd='return_args_as_md', args=['foo', 'bar'], match=None, mess=m,
+    dummy._execute_and_send(cmd='return_args_as_md', args=['foo', 'bar'], match=None, msg=m,
                             template_name=dummy.return_args_as_md._err_command_template)
     response = dummy.pop_message()
     assert "foobar" == response.body
@@ -282,7 +299,7 @@ def test_commands_can_return_md(dummy_execute_and_send):
 
 def test_commands_can_send_templated(dummy_execute_and_send):
     dummy, m = dummy_execute_and_send
-    dummy._execute_and_send(cmd='send_args_as_md', args=['foo', 'bar'], match=None, mess=m,
+    dummy._execute_and_send(cmd='send_args_as_md', args=['foo', 'bar'], match=None, msg=m,
                             template_name=dummy.return_args_as_md._err_command_template)
     response = dummy.pop_message()
     assert "foobar" == response.body
@@ -290,11 +307,11 @@ def test_commands_can_send_templated(dummy_execute_and_send):
 
 def test_exception_is_caught_and_shows_error_message(dummy_execute_and_send):
     dummy, m = dummy_execute_and_send
-    dummy._execute_and_send(cmd='raises_exception', args=[], match=None, mess=m,
+    dummy._execute_and_send(cmd='raises_exception', args=[], match=None, msg=m,
                             template_name=dummy.raises_exception._err_command_template)
     assert dummy.MSG_ERROR_OCCURRED in dummy.pop_message().body
 
-    dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], match=None, mess=m,
+    dummy._execute_and_send(cmd='yields_str_then_raises_exception', args=[], match=None, msg=m,
                             template_name=dummy.yields_str_then_raises_exception._err_command_template)
     assert "foobar" == dummy.pop_message().body
     assert dummy.MSG_ERROR_OCCURRED in dummy.pop_message().body
@@ -302,7 +319,7 @@ def test_exception_is_caught_and_shows_error_message(dummy_execute_and_send):
 
 def test_commands_can_yield_strings(dummy_execute_and_send):
     dummy, m = dummy_execute_and_send
-    dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], match=None, mess=m,
+    dummy._execute_and_send(cmd='yield_args_as_str', args=['foo', 'bar'], match=None, msg=m,
                             template_name=dummy.yield_args_as_str._err_command_template)
     assert "foo" == dummy.pop_message().body
     assert "bar" == dummy.pop_message().body
@@ -310,7 +327,7 @@ def test_commands_can_yield_strings(dummy_execute_and_send):
 
 def test_commands_can_yield_md(dummy_execute_and_send):
     dummy, m = dummy_execute_and_send
-    dummy._execute_and_send(cmd='yield_args_as_md', args=['foo', 'bar'], match=None, mess=m,
+    dummy._execute_and_send(cmd='yield_args_as_md', args=['foo', 'bar'], match=None, msg=m,
                             template_name=dummy.yield_args_as_md._err_command_template)
     assert "foo" == dummy.pop_message().body
     assert "bar" == dummy.pop_message().body
@@ -320,7 +337,7 @@ def test_output_longer_than_max_msg_size_is_split_into_multiple_msgs_when_return
     dummy, m = dummy_execute_and_send
     dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
-    dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, mess=m,
+    dummy._execute_and_send(cmd='return_long_output', args=['foo', 'bar'], match=None, msg=m,
                             template_name=dummy.return_long_output._err_command_template)
     for i in range(3):  # return_long_output outputs a string that's 3x longer than the size limit
         assert LONG_TEXT_STRING.strip() == dummy.pop_message().body
@@ -333,7 +350,7 @@ def test_output_longer_than_max_msg_size_is_split_into_multiple_msgs_when_yielde
     dummy, m = dummy_execute_and_send
     dummy.bot_config.MESSAGE_SIZE_LIMIT = len(LONG_TEXT_STRING)
 
-    dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, mess=m,
+    dummy._execute_and_send(cmd='yield_long_output', args=['foo', 'bar'], match=None, msg=m,
                             template_name=dummy.yield_long_output._err_command_template)
     for i in range(6):  # yields_long_output yields 2 strings that are 3x longer than the size limit
         assert LONG_TEXT_STRING.strip() == dummy.pop_message().body
@@ -459,32 +476,54 @@ def test_regex_commands_allow_passing_re_flags(dummy_backend):
 
 
 def test_arg_botcmd_returns_first_name_last_name(dummy_backend):
-    first_name = 'Err'
+    dummy_backend.callback_message(
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name --first-name=Err --last-name=Bot"
+        )
+    )
+    assert "Err Bot"
+
+
+def test_arg_botcmd_returns_with_escaping(dummy_backend):
+    first_name = 'Err\\"'
     last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name,
-                                                                                                         last_name))
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
+        )
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert 'Err" Bot' == dummy_backend.pop_message().body
+
+
+def test_arg_botcmd_returns_with_incorrect_escaping(dummy_backend):
+    first_name = 'Err"'
+    last_name = 'Bot'
+    dummy_backend.callback_message(
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name --first-name=%s --last-name=%s" % (first_name, last_name)
+        )
+    )
+    assert 'I couldn\'t parse this command; No closing quotation' in dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_yields_first_name_last_name(dummy_backend):
-    first_name = 'Err'
-    last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!yields_first_name_last_name --first-name=%s --last-name=%s" % (first_name,
-                                                                                                        last_name))
+        makemessage(
+            dummy_backend,
+            "!yields_first_name_last_name --first-name=Err --last-name=Bot"
+        )
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert "Err Bot" == dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_returns_value_repeated_count_times(dummy_backend):
-    value = "Foo"
-    count = 5
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_value_repeated_count_times %s --count %s" % (value, count))
+        makemessage(dummy_backend, "!returns_value_repeated_count_times Foo --count 5")
     )
-    assert value * count == dummy_backend.pop_message().body
+    assert "FooFooFooFooFoo" == dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_doesnt_raise_systemerror(dummy_backend):
@@ -493,8 +532,8 @@ def test_arg_botcmd_doesnt_raise_systemerror(dummy_backend):
 
 def test_arg_botcdm_returns_errors_as_chat(dummy_backend):
     dummy_backend.callback_message(makemessage(dummy_backend, "!returns_first_name_last_name --invalid-parameter"))
-    assert "I'm sorry, I couldn't parse that; unrecognized arguments: --invalid-parameter" \
-           in dummy_backend.pop_message().body
+    assert "I couldn't parse the arguments; unrecognized arguments: --invalid-parameter" \
+        in dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_returns_help_message_as_chat(dummy_backend):
@@ -503,23 +542,20 @@ def test_arg_botcmd_returns_help_message_as_chat(dummy_backend):
 
 
 def test_arg_botcmd_undoes_fancy_unicode_dash_conversion(dummy_backend):
-    first_name = 'Err'
-    last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_first_name_last_name —first-name=%s —last-name=%s" % (first_name,
-                                                                                                       last_name))
+        makemessage(
+            dummy_backend,
+            "!returns_first_name_last_name —first-name=Err —last-name=Bot"
+        )
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert "Err Bot" == dummy_backend.pop_message().body
 
 
 def test_arg_botcmd_without_argument_unpacking(dummy_backend):
-    first_name = 'Err'
-    last_name = 'Bot'
     dummy_backend.callback_message(
-            makemessage(dummy_backend, "!returns_first_name_last_name_without_unpacking --first-name=%s --last-name=%s"
-                        % (first_name, last_name))
+        makemessage(dummy_backend, "!returns_first_name_last_name_without_unpacking --first-name=Err --last-name=Bot")
     )
-    assert "%s %s" % (first_name, last_name) == dummy_backend.pop_message().body
+    assert "Err Bot" == dummy_backend.pop_message().body
 
 
 def test_access_controls(dummy_backend):
@@ -693,7 +729,7 @@ def test_access_controls(dummy_backend):
         # ACCESS_CONTROLS scenarios WITH wildcards (>=4.0 format)
         dict(
             message=makemessage(dummy_backend, "!command"),
-            acl={'DummyBackend:command': {'denyusers': ('noterr',)}},
+            acl={'DummyBackendRealName:command': {'denyusers': ('noterr',)}},
             expected_response="You're not allowed to access this command from this user"
         ),
         dict(
@@ -703,17 +739,25 @@ def test_access_controls(dummy_backend):
         ),
         dict(
             message=makemessage(dummy_backend, "!command"),
-            acl={'DummyBackend:*': {'denyusers': ('noterr',)}},
+            acl={'DummyBackendRealName:*': {'denyusers': ('noterr',)}},
             expected_response="You're not allowed to access this command from this user"
         ),
         # Overlapping globs should use first match
         dict(
             message=makemessage(dummy_backend, "!command"),
             acl=OrderedDict([
-                ('DummyBackend:*', {'denyusers': ('noterr',)}),
-                ('DummyBackend:command', {'denyusers': ()})
+                ('DummyBackendRealName:*', {'denyusers': ('noterr',)}),
+                ('DummyBackendRealName:command', {'denyusers': ()})
             ]),
             expected_response="You're not allowed to access this command from this user"
+        ),
+
+        # ACCESS_CONTROLS with numeric username as in telegram
+        dict(
+            message=makemessage(dummy_backend, "!command",
+                                from_=dummy_backend.build_identifier(1234)),
+            acl={'command': {'allowusers': (1234, )}},
+            expected_response="Regular command"
         ),
     ]
 

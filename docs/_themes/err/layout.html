@@ -9,7 +9,11 @@
           media="screen"/>
     <script type="text/javascript" src="{{ pathto('_static/' ~ "fancybox/jquery.fancybox.pack.js", 1) }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9"/>
+    <meta name="description" content="A Python chatbot with a rich and friendly API and an emphasis on developer productivity">
+    <meta name="keywords" content="err,errbot,chat,chatbot,bot,python,devops,chatops,automation"/>
+    <meta name="generator" content="Sphinx">
     <script type="text/javascript">
+        // Google Analytics
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-32534172-1']);
         _gaq.push(['_trackPageview']);
@@ -27,7 +31,21 @@
         ((window.gitter = {}).chat = {}).options = {
              room: 'errbotio/errbot'
         };
+
+        // Piwik
+        var _paq = _paq || [];
+        _paq.push(["setDomains", ["*.errbot.io","errbot.readthedocs.io"]]);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+            var u="//www.nickgroenen.nl/";
+            _paq.push(['setTrackerUrl', u+'pa.php']);
+            _paq.push(['setSiteId', '2']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'pa.js'; s.parentNode.insertBefore(g,s);
+        })();
    </script>
+   <noscript><p><img src="//www.nickgroenen.nl/pa.php?idsite=2&rec=1" style="border:0;" alt=""/></p></noscript>
    <script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
 {% endblock %}
 

@@ -1,8 +1,7 @@
 import sys
 import os
 from json import loads
-from random import random
-
+from random import randrange
 from webtest import TestApp
 
 from errbot import botcmd, BotPlugin, webhook
@@ -34,7 +33,7 @@ def make_ssl_certificate(key_path, cert_path):
     :param key_path: path where to write the key.
     """
     cert = crypto.X509()
-    cert.set_serial_number(int(random() * sys.maxsize))
+    cert.set_serial_number(randrange(1, sys.maxsize))
     cert.gmtime_adj_notBefore(0)
     cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
 
@@ -62,12 +61,12 @@ def make_ssl_certificate(key_path, cert_path):
 
 class Webserver(BotPlugin):
 
-    def __init__(self, bot):
+    def __init__(self, *args, **kwargs):
         self.webserver = None
         self.webchat_mode = False
         self.ssl_context = None
         self.test_app = TestApp(bottle_app)
-        super().__init__(bot)
+        super().__init__(*args, **kwargs)
 
     def get_configuration_template(self):
         return {'HOST': '0.0.0.0',
@@ -112,7 +111,7 @@ class Webserver(BotPlugin):
 
     # noinspection PyUnusedLocal
     @botcmd(template='webstatus')
-    def webstatus(self, mess, args):
+    def webstatus(self, msg, args):
         """
         Gives a quick status of what is mapped in the internal webserver
         """
@@ -161,7 +160,7 @@ class Webserver(BotPlugin):
         return TEST_REPORT % (url, contenttype, response.status_code)
 
     @botcmd(admin_only=True)
-    def generate_certificate(self, mess, args):
+    def generate_certificate(self, _, args):
         """
         Generate a self-signed SSL certificate for the Webserver
         """

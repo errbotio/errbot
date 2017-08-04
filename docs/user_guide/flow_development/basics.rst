@@ -99,7 +99,7 @@ You can still represent this flow like this:
 .. figure::  basics_1.svg
    :align:   center
 
-BUT, when a user will execute a ``!first`` command, the bot will instantly instanciate a Flow in this state:
+BUT, when a user will execute a ``!first`` command, the bot will instantly instantiate a Flow in this state:
 
 .. figure::  basics_2.svg
    :align:   center
@@ -111,7 +111,7 @@ Flow ending
 
 If a node has no more children and a user passed it, it will automatically ends the flow.
 
-Sometimes, with loops etc, you might want to explicitely mark an END FlowNode with a predicate, you can do it like this,
+Sometimes, with loops etc, you might want to explicitly mark an END FlowNode with a predicate, you can do it like this,
 for example for a guessing game plugin:
 
 .. figure::  end.svg

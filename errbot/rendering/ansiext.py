@@ -33,6 +33,7 @@ class NSC(object):
     def __str__(self):
         return self.s
 
+
 # The translation table for the special characters.
 CharacterTable = namedtuple('CharacterTable',
                             ['fg_black',
@@ -374,14 +375,14 @@ def recurse(write, chr_table, element, table=None, borders=True):
         if k == 'color':
             color_attr = getattr(chr_table, 'fg_' + v, None)
             if color_attr is None:
-                log.warn("there is no '%s' color in ansi" % v)
+                log.warning("there is no '%s' color in ansi" % v)
                 continue
             write(color_attr)
             post_element.append(chr_table.fg_default)
         elif k == 'bgcolor':
             color_attr = getattr(chr_table, 'bg_' + v, None)
             if color_attr is None:
-                log.warn("there is no '%s' bgcolor in ansi" % v)
+                log.warning("there is no '%s' bgcolor in ansi" % v)
                 continue
             write(color_attr)
             post_element.append(chr_table.bg_default)
@@ -482,6 +483,7 @@ def translate(element, chr_table=ANSI_CHRS, borders=True):
 # patch us in
 def enable_format(name, chr_table, borders=True):
     Markdown.output_formats[name] = partial(translate, chr_table=chr_table, borders=borders)
+
 
 for n, ct in (('ansi', ANSI_CHRS), ('text', TEXT_CHRS), ('imtext', IMTEXT_CHRS)):
     enable_format(n, ct)

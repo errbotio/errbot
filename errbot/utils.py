@@ -9,7 +9,6 @@ import time
 from platform import system
 from functools import wraps
 from html import entities
-from itertools import starmap, repeat
 
 log = logging.getLogger(__name__)
 
@@ -67,46 +66,11 @@ def format_timedelta(timedelta):
         return '%i hours and %i minutes' % (hours, minutes)
 
 
-BAR_WIDTH = 15.0
-
-
-def drawbar(value, max_):
-    if max_:
-        value_in_chr = int(round((value * BAR_WIDTH / max_)))
-    else:
-        value_in_chr = 0
-    return '[' + '█' * value_in_chr + '▒' * int(round(BAR_WIDTH - value_in_chr)) + ']'
-
-
 # Introspect to know from which plugin a command is implemented
 def get_class_for_method(meth):
     for cls in inspect.getmro(type(meth.__self__)):
         if meth.__name__ in cls.__dict__:
             return cls
-    return None
-
-
-def tail(f, window=20):
-    return ''.join(f.readlines()[-window:])
-
-
-def which(program):
-    if ON_WINDOWS:
-        program += '.exe'
-
-    def is_exe(file_path):
-        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
     return None
 
 
@@ -142,39 +106,6 @@ def version2array(version):
     return response
 
 
-class ValidationException(Exception):
-    pass
-
-
-def recurse_check_structure(sample, to_check):
-    sample_type = type(sample)
-    to_check_type = type(to_check)
-
-    # Skip this check if the sample is None because it will always be something
-    # other than NoneType when changed from the default. Raising ValidationException
-    # would make no sense then because it would defeat the whole purpose of having
-    # that key in the sample when it could only ever be None.
-    if sample is not None and sample_type != to_check_type:
-        raise ValidationException(
-            '%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
-
-    if sample_type in (list, tuple):
-        for element in to_check:
-            recurse_check_structure(sample[0], element)
-        return
-
-    if sample_type == dict:
-        for key in sample:
-            if key not in to_check:
-                raise ValidationException("%s doesn't contain the key %s" % (to_check, key))
-        for key in to_check:
-            if key not in sample:
-                raise ValidationException("%s contains an unknown key %s" % (to_check, key))
-        for key in sample:
-            recurse_check_structure(sample[key], to_check[key])
-        return
-
-
 def unescape_xml(text):
     """
     Removes HTML or XML character references and entities from a text string.
@@ -207,12 +138,6 @@ def unescape_xml(text):
 REMOVE_EOL = re.compile(r'\n')
 REINSERT_EOLS = re.compile(r'</p>|</li>|<br/>', re.I)
 ZAP_TAGS = re.compile(r'<[^>]+>')
-
-
-def utf8(key):
-    if type(key) == str:
-        return key.encode()  # it defaults to utf-8
-    return key
 
 
 def rate_limited(min_interval):
@@ -251,20 +176,6 @@ def split_string_after(str_, n):
         yield str_[start:start + n]
 
 
-def repeatfunc(func, times=None, *args):  # from the itertools receipes
-    """Repeat calls to func with specified arguments.
-
-    Example:  repeatfunc(random.random)
-
-    :param args: params to the function to call.
-    :param times: number of times to repeat.
-    :param func:  the function to repeatedly call.
-    """
-    if times is None:
-        return starmap(func, repeat(args))
-    return starmap(func, repeat(args, times))
-
-
 def find_roots(path, file_sig='*.plug'):
     """Collects all the paths from path recursively that contains files of type `file_sig`.
 
@@ -275,13 +186,16 @@ def find_roots(path, file_sig='*.plug'):
        :return: a set of paths
     """
     roots = set()  # you can have several .plug per directory.
-    for root, dirnames, filenames in os.walk(path):
+    for root, dirnames, filenames in os.walk(path, followlinks=True):
         for filename in fnmatch.filter(filenames, file_sig):
             dir_to_add = os.path.dirname(os.path.join(root, filename))
             relative = os.path.relpath(os.path.realpath(dir_to_add), os.path.realpath(path))
             for subelement in relative.split(os.path.sep):
-                if subelement != '.' and (subelement.startswith('.') or subelement == '__pycache__'):
-                    # this is not a directoty to consider
+                # if one of the element is just a relative construct, it is ok to continue inspecting it.
+                if subelement in ('.', '..'):
+                    continue
+                # if it is an hidden directory or a python temp directory, just ignore it.
+                if subelement.startswith('.') or subelement == '__pycache__':
                     log.debug("Ignore %s" % dir_to_add)
                     break
             else:
@@ -307,34 +221,3 @@ def collect_roots(base_paths, file_sig='*.plug'):
         elif path_or_list is not None:
             result |= find_roots(path_or_list, file_sig)
     return result
-
-
-def ensure_sys_path_contains(paths):
-    """ Ensure that os.path contains paths
-       :param base_paths:
-            a list of base paths to walk from
-            elements can be a string or a list/tuple of strings
-    """
-    for entry in paths:
-        if isinstance(entry, (list, tuple)):
-            ensure_sys_path_contains(entry)
-        elif entry is not None and entry not in sys.path:
-            sys.path.append(entry)
-
-
-def get_class_that_defined_method(meth):
-    for cls in inspect.getmro(type(meth.__self__)):
-        if meth.__name__ in cls.__dict__:
-            return cls
-    return None
-
-
-def compat_str(s):
-    """ Detect if s is a string and convert it to unicode if it is bytes.
-        :param s: the string to ensure compatibility from."""
-    if isinstance(s, str):
-        return s
-    elif isinstance(s, bytes):
-        return s.decode('utf-8')
-    else:
-        return str(s)

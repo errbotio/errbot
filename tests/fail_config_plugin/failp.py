@@ -1,5 +1,4 @@
-from errbot import BotPlugin
-from errbot.utils import ValidationException
+from errbot import BotPlugin, ValidationException
 
 
 class FailP(BotPlugin):

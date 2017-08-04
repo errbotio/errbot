@@ -43,7 +43,7 @@ When handling exceptions, follow these steps:
     not re-raising it, we prevent that automatic "Computer says nooo.
     ..." message from being sent
 
-Also, note that there is a ``utils.ValidationException`` class which you
+Also, note that there is a ``errbot.ValidationException`` class which you
 can use inside your helper methods to raise meaningful errors and handle
 them accordingly.
 
@@ -51,7 +51,7 @@ Here's an example:
 
 .. code-block:: python
 
-    from errbot import BotPlugin, arg_botcmd, utils
+    from errbot import BotPlugin, arg_botcmd, ValidationException
 
     class FooBot(BotPlugin):
         """An example bot"""
@@ -61,7 +61,7 @@ Here's an example:
             """Add your first name if it doesn't contain any digits"""
             try:
                 FooBot.validate_first_name(first_name)
-            except utils.ValidationException as exc:
+            except ValidationException as exc:
                 self.log.exception(
                     'first_name=%s contained a digit' % first_name
                 )
@@ -74,7 +74,7 @@ Here's an example:
         @staticmethod
         def validate_first_name(first_name):
             if any(char.isdigit() for char in first_name):
-                raise utils.ValidationException(
+                raise ValidationException(
                     "first_name=%s contained a digit" % first_name
                 )
 

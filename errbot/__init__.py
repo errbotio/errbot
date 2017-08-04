@@ -11,7 +11,7 @@ from typing import Callable, Any, Tuple
 
 from .core_plugins.wsview import bottle_app, WebView
 from .backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
-from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command  # noqa
+from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command, ValidationException  # noqa
 from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route, view  # noqa
 from . import core
@@ -334,19 +334,23 @@ def arg_botcmd(*args,
             )
 
             @wraps(func)
-            def wrapper(self, mess, args):
+            def wrapper(self, msg, args):
 
                 # Some clients automatically convert consecutive dashes into a fancy
                 # hyphen, which breaks long-form arguments. Undo this conversion to
                 # provide a better user experience.
-                args = shlex.split(args.replace('—', '--'))
                 try:
+                    args = shlex.split(args.replace('—', '--'))
                     parsed_args = err_command_parser.parse_args(args)
                 except ArgumentParseError as e:
-                    yield "I'm sorry, I couldn't parse that; %s" % e
+                    yield "I'm sorry, I couldn't parse the arguments; %s" % e
                     yield err_command_parser.format_usage()
                     return
                 except HelpRequested:
+                    yield err_command_parser.format_help()
+                    return
+                except ValueError as ve:
+                    yield "I'm sorry, I couldn't parse this command; %s" % ve
                     yield err_command_parser.format_help()
                     return
 
@@ -358,10 +362,10 @@ def arg_botcmd(*args,
                     func_kwargs = {}
 
                 if inspect.isgeneratorfunction(func):
-                    for reply in func(self, mess, *func_args, **func_kwargs):
+                    for reply in func(self, msg, *func_args, **func_kwargs):
                         yield reply
                 else:
-                    yield func(self, mess, *func_args, **func_kwargs)
+                    yield func(self, msg, *func_args, **func_kwargs)
 
             _tag_botcmd(wrapper,
                         _re=False,
@@ -381,7 +385,7 @@ def arg_botcmd(*args,
         wrapper._err_command_parser.add_argument(*args, **kwargs)
         wrapper.__doc__ = wrapper._err_command_parser.format_help()
         fmt = wrapper._err_command_parser.format_usage()
-        wrapper._err_command_syntax = fmt[len('usage: ')+len(wrapper._err_command_parser.prog)+1:-1]
+        wrapper._err_command_syntax = fmt[len('usage: ') + len(wrapper._err_command_parser.prog) + 1:-1]
 
         return wrapper
 
@@ -389,12 +393,16 @@ def arg_botcmd(*args,
 
 
 def _tag_webhook(func, uri_rule, methods, form_param, raw):
-    log.info("webhooks:  Flag to bind %s to %s" % (uri_rule, func.__name__))
+    log.info("webhooks:  Flag to bind %s to %30s" % (uri_rule, getattr(func, '__name__', func)))
     func._err_webhook_uri_rule = uri_rule
     func._err_webhook_methods = methods
     func._err_webhook_form_param = form_param
     func._err_webhook_raw = raw
     return func
+
+
+def _uri_from_func(func):
+    return r'/' + func.__name__
 
 
 def webhook(*args,
@@ -434,14 +442,22 @@ def webhook(*args,
             pass
     """
 
-    if isinstance(args[0], str):  # first param is uri_rule.
+    if not args:  # default uri_rule but with kwargs.
         return lambda func: _tag_webhook(func,
-                                         args[0].rstrip('/'),  # trailing / is also be stripped on incoming.
+                                         _uri_from_func(func),
                                          methods=methods,
                                          form_param=form_param,
                                          raw=raw)
-    return _tag_webhook(args[0],
-                        r'/' + args[0].__name__,
+
+    if isinstance(args[0], str):  # first param is uri_rule.
+        return lambda func: _tag_webhook(func,
+                                         args[0] if args[0] == '/'
+                                         else args[0].rstrip('/'),  # trailing / is also be stripped on incoming.
+                                         methods=methods,
+                                         form_param=form_param,
+                                         raw=raw)
+    return _tag_webhook(args[0],  # naked decorator so the first parameter is a function.
+                        _uri_from_func(args[0]),
                         methods=methods,
                         form_param=form_param,
                         raw=raw)
@@ -484,6 +500,7 @@ def cmdfilter(*args, **kwargs):
     def decorate(func):
         if not hasattr(func, '_err_command_filter'):  # don't override generated functions
             func._err_command_filter = True
+        func.catch_unprocessed = kwargs.get('catch_unprocessed', False)
         return func
 
     if len(args):

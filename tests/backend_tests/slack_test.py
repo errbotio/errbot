@@ -92,6 +92,24 @@ class SlackTests(unittest.TestCase):
 
         self.assertEqual(msg.extras['attachments'], [attachment])
 
+    def testSlackEventObjectAddedToExtras(self):
+        bot_id = 'B04HMXXXX'
+        bot_msg = {
+            'channel': 'C0XXXXY6P',
+            'icons': {'emoji': ':warning:', 'image_64': 'https://xx.com/26a0.png'},
+            'ts': '1444416645.000641',
+            'type': 'message',
+            'text': '',
+            'bot_id': bot_id,
+            'username': 'riemann',
+            'subtype': 'bot_message',
+        }
+
+        self.slack._dispatch_slack_message(bot_msg)
+        msg = self.slack.test_msgs.pop()
+
+        self.assertEqual(msg.extras['slack_event'], bot_msg)
+
     def testPrepareMessageBody(self):
         test_body = """
         hey, this is some code:
@@ -186,8 +204,7 @@ class SlackTests(unittest.TestCase):
         build_from = self.slack.build_identifier
 
         def check_person(person, expected_uid, expected_cid):
-            return person.userid == expected_uid and \
-                   person.channelid == expected_cid
+            return person.userid == expected_uid and person.channelid == expected_cid
         assert build_from("<#C12345>").name == 'meh'
         assert check_person(build_from("<@U12345>"), "U12345", "Cfoo")
         assert check_person(build_from("@user"), "Utest", "Cfoo")
@@ -249,8 +266,16 @@ class SlackTests(unittest.TestCase):
             convert("This is [a link](http://example.com/) and a manual URL: https://example.com/.")
         )
         self.assertEqual(
+            "<http://example.com/|This is a link>",
+            convert("[This is a link](http://example.com/)")
+        )
+        self.assertEqual(
             "This is http://example.com/image.png.",
             convert("This is ![an image](http://example.com/image.png).")
+        )
+        self.assertEqual(
+            "This is [some text] then <http://example.com|a link>",
+            convert("This is [some text] then [a link](http://example.com)")
         )
 
     def test_mention_processing(self):

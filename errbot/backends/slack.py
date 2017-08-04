@@ -7,7 +7,7 @@ import time
 import sys
 import pprint
 from functools import lru_cache
-from threadpool import WorkRequest
+from multiprocessing.pool import ThreadPool
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
@@ -61,7 +61,8 @@ COLORS = {
     'cyan': '#00FFFF'
 }  # Slack doesn't know its colors
 
-MARKDOWN_LINK_REGEX = re.compile(r'([^!])\[(?P<text>.+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
+
+MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>[^\]]+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
 
 def slack_markdown_converter(compact_output=False):
@@ -82,7 +83,7 @@ class LinkPreProcessor(Preprocessor):
     """
     def run(self, lines):
         for i, line in enumerate(lines):
-            lines[i] = MARKDOWN_LINK_REGEX.sub(r'\1&lt;\3|\2&gt;', line)
+            lines[i] = MARKDOWN_LINK_REGEX.sub(r'&lt;\2|\1&gt;', line)
         return lines
 
 
@@ -104,8 +105,8 @@ class SlackPerson(Person):
     """
 
     def __init__(self, sc, userid=None, channelid=None):
-        if userid is not None and userid[0] not in ('U', 'B'):
-            raise Exception('This is not a Slack user or bot id: %s (should start with U or B)' % userid)
+        if userid is not None and userid[0] not in ('U', 'B', 'W'):
+            raise Exception('This is not a Slack user or bot id: %s (should start with U, B or W)' % userid)
 
         if channelid is not None and channelid[0] not in ('D', 'C', 'G'):
             raise Exception('This is not a valid Slack channelid: %s (should start with D, C or G)' % channelid)
@@ -174,7 +175,7 @@ class SlackPerson(Person):
 
     def __eq__(self, other):
         if not isinstance(other, SlackPerson):
-            log.warn('tried to compare a SlackPerson with a %s', type(other))
+            log.warning('tried to compare a SlackPerson with a %s', type(other))
             return False
         return other.userid == self.userid
 
@@ -205,7 +206,59 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
 
     def __eq__(self, other):
         if not isinstance(other, RoomOccupant):
-            log.warn('tried to compare a SlackRoomOccupant with a SlackPerson %s vs %s', self, other)
+            log.warning('tried to compare a SlackRoomOccupant with a SlackPerson %s vs %s', self, other)
+            return False
+        return other.room.id == self.room.id and other.userid == self.userid
+
+
+class SlackBot(SlackPerson):
+    """
+    This class describes a bot on Slack's network.
+    """
+    def __init__(self, sc, bot_id, bot_username):
+        self._bot_id = bot_id
+        self._bot_username = bot_username
+        super().__init__(sc=sc, userid=bot_id)
+
+    @property
+    def username(self):
+        return self._bot_username
+
+    # Beware of gotcha. Without this, nick would point to username of SlackPerson.
+    nick = username
+
+    @property
+    def aclattr(self):
+        # Make ACLs match against integration ID rather than human-readable
+        # nicknames to avoid webhooks impersonating other people.
+        return "<%s>" % self._bot_id
+
+    @property
+    def fullname(self):
+        return None
+
+
+class SlackRoomBot(RoomOccupant, SlackBot):
+    """
+    This class represents a bot inside a MUC.
+    """
+    def __init__(self, sc, bot_id, bot_username, channelid, bot):
+        super().__init__(sc, bot_id, bot_username)
+        self._room = SlackRoom(channelid=channelid, bot=bot)
+
+    @property
+    def room(self):
+        return self._room
+
+    def __unicode__(self):
+        return "#%s/%s" % (self._room.name, self.username)
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __eq__(self, other):
+        if not isinstance(other, RoomOccupant):
+            log.warning('tried to compare a SlackRoomBotOccupant with a SlackPerson %s vs %s', self, other)
             return False
         return other.room.id == self.room.id and other.userid == self.userid
 
@@ -295,7 +348,10 @@ class SlackBackend(ErrBot):
 
         converted_prefixes = []
         for prefix in bot_prefixes:
-            converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+            try:
+                converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+            except Exception as e:
+                log.error("Failed to look up Slack userid for alternate prefix '%s': %s", prefix, e)
 
         self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
         log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
@@ -312,6 +368,9 @@ class SlackBackend(ErrBot):
         log.info("Connecting to Slack real-time-messaging API")
         if self.sc.rtm_connect():
             log.info("Connected")
+            # Block on reads instead of using the busy loop suggested in slackclient docs
+            # https://github.com/slackapi/python-slackclient/issues/46#issuecomment-165674808
+            self.sc.server.websocket.sock.setblocking(True)
             self.reset_reconnection_count()
 
             # Inject bot identity to alternative prefixes
@@ -321,11 +380,10 @@ class SlackBackend(ErrBot):
                 while True:
                     for message in self.sc.rtm_read():
                         self._dispatch_slack_message(message)
-                    time.sleep(1)
             except KeyboardInterrupt:
                 log.info("Interrupt received, shutting down..")
                 return True
-            except:
+            except Exception:
                 log.exception("Error reading from RTM stream:")
             finally:
                 log.debug("Triggering disconnect callback")
@@ -393,9 +451,10 @@ class SlackBackend(ErrBot):
 
         subtype = event.get('subtype', None)
 
-        if subtype == "message_deleted":
-            log.debug("Message of type message_deleted, ignoring this event")
+        if subtype in ("message_deleted", "channel_topic", "message_replied"):
+            log.debug("Message of type %s, ignoring this event", subtype)
             return
+
         if subtype == "message_changed" and 'attachments' in event['message']:
             # If you paste a link into Slack, it does a call-out to grab details
             # from it so it can display this in the chatroom. These show up as
@@ -412,10 +471,10 @@ class SlackBackend(ErrBot):
             return
 
         if 'message' in event:
-            text = event['message']['text']
+            text = event['message'].get('text', '')
             user = event['message'].get('user', event.get('bot_id'))
         else:
-            text = event['text']
+            text = event.get('text', '')
             user = event.get('user', event.get('bot_id'))
 
         text, mentioned = self.process_mentions(text)
@@ -427,15 +486,43 @@ class SlackBackend(ErrBot):
 
         msg = Message(
             text,
-            extras={'attachments': event.get('attachments')})
+            extras={
+                'attachments': event.get('attachments'),
+                'slack_event': event,
+            },
+        )
 
         if channel.startswith('D'):
-            msg.frm = SlackPerson(self.sc, user, event['channel'])
+            if subtype == "bot_message":
+                msg.frm = SlackBot(
+                    self.sc,
+                    bot_id=event['bot_id'],
+                    bot_username=event.get('username', '')
+                )
+            else:
+                msg.frm = SlackPerson(self.sc, user, event['channel'])
             msg.to = SlackPerson(self.sc, self.username_to_userid(self.sc.server.username),
                                  event['channel'])
+            channel_link_name = event['channel']
         else:
-            msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
+            if subtype == "bot_message":
+                msg.frm = SlackRoomBot(
+                    self.sc,
+                    bot_id=event['bot_id'],
+                    bot_username=event.get('username', ''),
+                    channelid=event['channel'],
+                    bot=self
+                )
+            else:
+                msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
+            channel_link_name = msg.to.name
+
+        msg.extras['url'] = 'https://{domain}.slack.com/archives/{channelid}/p{ts}'.format(
+            domain=self.sc.server.domain,
+            channelid=channel_link_name,
+            ts=self._ts_for_message(msg).replace('.', '')
+        )
 
         self.callback_message(msg)
 
@@ -444,18 +531,18 @@ class SlackBackend(ErrBot):
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""
-        user = [user for user in self.sc.server.users if user.id == id_]
-        if not user:
+        user = self.sc.server.users.get(id_)
+        if user is None:
             raise UserDoesNotExistError("Cannot find user with ID %s" % id_)
-        return user[0].name
+        return user.name
 
     def username_to_userid(self, name):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-        user = [user for user in self.sc.server.users if user.name == name]
-        if not user:
+        user = self.sc.server.users.find(name)
+        if user is None:
             raise UserDoesNotExistError("Cannot find user %s" % name)
-        return user[0].id
+        return user.id
 
     def channelid_to_channelname(self, id_):
         """Convert a Slack channel ID to its channel name"""
@@ -500,7 +587,7 @@ class SlackBackend(ErrBot):
 
         return channels + groups
 
-    @lru_cache(50)
+    @lru_cache(1024)
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
         try:
@@ -513,57 +600,78 @@ class SlackBackend(ErrBot):
             else:
                 raise e
 
-    def _prepare_message(self, mess):  # or card
+    def _prepare_message(self, msg):  # or card
         """
         Translates the common part of messaging for Slack.
-        :param mess: the message you want to extract the Slack concept from.
+        :param msg: the message you want to extract the Slack concept from.
         :return: a tuple to user human readable, the channel id
         """
-        if mess.is_group:
-            to_channel_id = mess.to.id
-            to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
+        if msg.is_group:
+            to_channel_id = msg.to.id
+            to_humanreadable = msg.to.name if msg.to.name else self.channelid_to_channelname(to_channel_id)
         else:
-            to_humanreadable = mess.to.username
-            to_channel_id = mess.to.channelid
+            to_humanreadable = msg.to.username
+            to_channel_id = msg.to.channelid
             if to_channel_id.startswith('C'):
                 log.debug("This is a divert to private message, sending it directly to the user.")
-                to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+                to_channel_id = self.get_im_channel(self.username_to_userid(msg.to.username))
         return to_humanreadable, to_channel_id
 
-    def send_message(self, mess):
-        super().send_message(mess)
+    def send_message(self, msg):
+        super().send_message(msg)
+
+        if msg.parent is not None:
+            # we are asked to reply to a specify thread.
+            try:
+                msg.extras['thread_ts'] = self._ts_for_message(msg.parent)
+            except KeyError:
+                # Gives to the user a more interesting explanation if we cannot find a ts from the parent.
+                log.exception('The provided parent message is not a Slack message '
+                              'or does not contain a Slack timestamp.')
+
         to_humanreadable = "<unknown>"
         try:
-            if mess.is_group:
-                to_channel_id = mess.to.id
-                to_humanreadable = mess.to.name if mess.to.name else self.channelid_to_channelname(to_channel_id)
+            if msg.is_group:
+                to_channel_id = msg.to.id
+                to_humanreadable = msg.to.name if msg.to.name else self.channelid_to_channelname(to_channel_id)
             else:
-                to_humanreadable = mess.to.username
-                if isinstance(mess.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !
+                to_humanreadable = msg.to.username
+                if isinstance(msg.to, RoomOccupant):  # private to a room occupant -> this is a divert to private !
                     log.debug("This is a divert to private message, sending it directly to the user.")
-                    to_channel_id = self.get_im_channel(self.username_to_userid(mess.to.username))
+                    to_channel_id = self.get_im_channel(self.username_to_userid(msg.to.username))
                 else:
-                    to_channel_id = mess.to.channelid
+                    to_channel_id = msg.to.channelid
 
-            msgtype = "direct" if mess.is_direct else "channel"
+            msgtype = "direct" if msg.is_direct else "channel"
             log.debug('Sending %s message to %s (%s)' % (msgtype, to_humanreadable, to_channel_id))
-            body = self.md.convert(mess.body)
+            body = self.md.convert(msg.body)
             log.debug('Message size: %d' % len(body))
 
             limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
             parts = self.prepare_message_body(body, limit)
 
+            timestamps = []
             for part in parts:
-                self.api_call('chat.postMessage', data={
+                data = {
                     'channel': to_channel_id,
                     'text': part,
                     'unfurl_media': 'true',
+                    'link_names': '1',
                     'as_user': 'true',
-                })
+                }
+
+                # Keep the thread_ts to answer to the same thread.
+                if 'thread_ts' in msg.extras:
+                    data['thread_ts'] = msg.extras['thread_ts']
+
+                result = self.api_call('chat.postMessage', data=data)
+                timestamps.append(result['ts'])
+
+            msg.extras['ts'] = timestamps
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
-                "to %s: %s" % (to_humanreadable, mess.body)
+                "to %s: %s" % (to_humanreadable, msg.body)
             )
 
     def _slack_upload(self, stream):
@@ -574,12 +682,12 @@ class SlackBackend(ErrBot):
                 'channels': stream.identifier.channelid,
                 'filename': stream.name,
                 'file': stream
-                })
+            })
             if "ok" in resp and resp["ok"]:
                 stream.success()
             else:
                 stream.error()
-        except:
+        except Exception:
             log.exception("Upload of {0} to {1} failed.".format(stream.name, stream.identifier.channelname))
 
     def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
@@ -587,7 +695,7 @@ class SlackBackend(ErrBot):
         stream = Stream(identifier, fsource, name, size, stream_type)
         log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
                   identifier.channelname, size, stream_type))
-        self.thread_pool.putRequest(WorkRequest(self._slack_upload, args=(stream,)))
+        self.thread_pool.apply_async(self._slack_upload, (stream,))
         return stream
 
     def send_card(self, card: Card):
@@ -613,7 +721,13 @@ class SlackBackend(ErrBot):
         if card.fields:
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
-        data = {'text': ' ', 'channel': to_channel_id, 'attachments': json.dumps([attachment]), 'as_user': 'true'}
+        data = {
+            'text': ' ',
+            'channel': to_channel_id,
+            'attachments': json.dumps([attachment]),
+            'link_names': '1',
+            'as_user': 'true'
+        }
         try:
             log.debug('Sending data:\n%s', data)
             self.api_call('chat.postMessage', data=data)
@@ -697,13 +811,13 @@ class SlackBackend(ErrBot):
 
         if text[0] == "<" and text[-1] == ">":
             exception_message = (
-                "Unparseable slack ID, should start with U, B, C, G or D "
+                "Unparseable slack ID, should start with U, B, C, G, D or W"
                 "(got `%s`)"
             )
             text = text[2:-1]
             if text == "":
                 raise ValueError(exception_message % "")
-            if text[0] in ('U', 'B'):
+            if text[0] in ('U', 'B', 'W'):
                 if '|' in text:
                     userid, username = text.split('|')
                 else:
@@ -754,14 +868,69 @@ class SlackBackend(ErrBot):
     def is_from_self(self, msg: Message) -> bool:
         return self.bot_identifier.userid == msg.frm.userid
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
+
+        if threaded:
+            response.parent = msg
+
+        elif 'thread_ts' in msg.extras['slack_event']:
+            # If we reply to a threaded message, keep it in the thread.
+            response.extras['thread_ts'] = msg.extras['slack_event']['thread_ts']
+
         response.frm = self.bot_identifier
         if private:
-            response.to = mess.frm
+            response.to = msg.frm
         else:
-            response.to = mess.frm.room if isinstance(mess.frm, RoomOccupant) else mess.frm
+            response.to = msg.frm.room if isinstance(msg.frm, RoomOccupant) else msg.frm
         return response
+
+    def add_reaction(self, msg: Message, reaction: str) -> None:
+        """
+        Add the specified reaction to the Message if you haven't already.
+        :param msg: A Message.
+        :param reaction: A str giving an emoji, without colons before and after.
+        :raises: ValueError if the emoji doesn't exist.
+        """
+        return self._react('reactions.add', msg, reaction)
+
+    def remove_reaction(self, msg: Message, reaction: str) -> None:
+        """
+        Remove the specified reaction from the Message if it is currently there.
+        :param msg: A Message.
+        :param reaction: A str giving an emoji, without colons before and after.
+        :raises: ValueError if the emoji doesn't exist.
+        """
+        return self._react('reactions.remove', msg, reaction)
+
+    def _react(self, method: str, msg: Message, reaction: str) -> None:
+        try:
+            # this logic is from send_message
+            if msg.is_group:
+                to_channel_id = msg.to.id
+            else:
+                to_channel_id = msg.to.channelid
+
+            ts = self._ts_for_message(msg)
+
+            self.api_call(method, data={'channel': to_channel_id,
+                                        'timestamp': ts,
+                                        'name': reaction})
+        except SlackAPIResponseError as e:
+            if e.error == 'invalid_name':
+                raise ValueError(e.error, 'No such emoji', reaction)
+            elif e.error in ('no_reaction', 'already_reacted'):
+                # This is common if a message was edited after you reacted to it, and you reacted to it again.
+                # Chances are you don't care about this. If you do, call api_call() directly.
+                pass
+            else:
+                raise SlackAPIResponseError(error=e.error)
+
+    def _ts_for_message(self, msg):
+        try:
+            return msg.extras['slack_event']['message']['ts']
+        except KeyError:
+            return msg.extras['slack_event']['ts']
 
     def shutdown(self):
         super().shutdown()
@@ -806,7 +975,7 @@ class SlackBackend(ErrBot):
         :returns:
             string
         """
-        text = re.sub(r'<([^\|>]+)\|([^\|>]+)>', r'\2', text)
+        text = re.sub(r'<([^|>]+)\|([^|>]+)>', r'\2', text)
         text = re.sub(r'<(http([^>]+))>', r'\1', text)
 
         return text
@@ -895,6 +1064,8 @@ class SlackRoom(Room):
         if self._id is None:
             self._id = self._channel.id
         return self._id
+
+    channelid = id
 
     @property
     def name(self):

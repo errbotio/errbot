@@ -8,6 +8,7 @@ from os import path
 import tarfile
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
+from urllib.parse import urlparse
 
 import json
 
@@ -15,7 +16,7 @@ import re
 
 from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
-from .utils import which
+from .utils import ON_WINDOWS
 
 log = logging.getLogger(__name__)
 
@@ -60,6 +61,26 @@ def tokenizeJsonEntry(json_dict):
     return set(find_words.findall(' '.join((word.lower() for word in json_dict.values()))))
 
 
+def which(program):
+    if ON_WINDOWS:
+        program += '.exe'
+
+    def is_exe(file_path):
+        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
 class BotRepoManager(StoreMixin):
     """
     Manages the repo list, git clones/updates or the repos.
@@ -71,7 +92,7 @@ class BotRepoManager(StoreMixin):
         :param plugin_dir: where on disk it will git clone the repos.
         :param plugin_indexes: a list of URL / path to get the json repo index.
         """
-        super()
+        super().__init__()
         self.plugin_indexes = plugin_indexes
         self.storage_plugin = storage_plugin
         self.plugin_dir = plugin_dir
@@ -93,8 +114,8 @@ class BotRepoManager(StoreMixin):
         index = {LAST_UPDATE: datetime.now().timestamp()}
         for source in reversed(self.plugin_indexes):
             try:
-                if source.startswith('http'):
-                    with urlopen(url=source, timeout=10) as request:
+                if urlparse(source).scheme in ('http', 'https'):
+                    with urlopen(url=source, timeout=10) as request:  # nosec
                         log.debug('Update from remote source %s...', source)
                         encoding = request.headers.get_content_charset()
                         content = request.read().decode(encoding if encoding else 'utf-8')
@@ -113,7 +134,7 @@ class BotRepoManager(StoreMixin):
 
     def get_repo_from_index(self, repo_name):
         """
-        Retreive the list of plugins for the repo_name from the index.
+        Retrieve the list of plugins for the repo_name from the index.
 
         :param repo_name: the name of hte repo
         :return: a list of RepoEntry
@@ -193,7 +214,7 @@ class BotRepoManager(StoreMixin):
 
         # TODO: Update download path of plugin.
         if repo_url.endswith('tar.gz'):
-            fo = urlopen(repo_url)
+            fo = urlopen(repo_url)  # nosec
             tar = tarfile.open(fileobj=fo, mode='r:gz')
             tar.extractall(path=self.plugin_dir)
             s = repo_url.split(':')[-1].split('/')[-1]
@@ -229,7 +250,7 @@ class BotRepoManager(StoreMixin):
             err = p.stderr.read().strip().decode('utf-8')
             if err:
                 feedback += err + '\n' + '-' * 50 + '\n'
-            dep_err = check_dependencies(d)
+            dep_err, missing_pkgs = check_dependencies(d)
             if dep_err:
                 feedback += dep_err + '\n'
             yield d, not p.wait(), feedback

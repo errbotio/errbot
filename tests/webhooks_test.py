@@ -26,7 +26,7 @@ def webserver_ready(host, port):
         s.shutdown(socket.SHUT_RDWR)
         s.close()
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -122,6 +122,14 @@ def test_webhooks_with_raw_request(webhook_testbot):
     ).text == "<class 'bottle.LocalRequest'>"
 
 
+def test_webhooks_with_naked_decorator_raw_request(webhook_testbot):
+    form = {'form': JSONOBJECT}
+    assert requests.post(
+        'http://localhost:{}/raw2'.format(WEBSERVER_PORT),
+        data=form
+    ).text == "<class 'bottle.LocalRequest'>"
+
+
 def test_generate_certificate_creates_usable_cert(webhook_testbot):
     d = webhook_testbot.bot.bot_config.BOT_DATA_DIR
     key_path = os.sep.join((d, "webserver_key.pem"))
@@ -168,3 +176,9 @@ def test_custom_headers_and_status_codes(webhook_testbot):
     assert requests.post(
         'http://localhost:{}/webhook7'.format(WEBSERVER_PORT)
     ).status_code == 403
+
+
+def test_lambda_webhook(webhook_testbot):
+    assert requests.post(
+        'http://localhost:{}/lambda'.format(WEBSERVER_PORT)
+    ).status_code == 200

@@ -14,7 +14,7 @@ class SpecificPluginLocator(PluginFileAnalyzerWithInfoFile):
     """
     This is a plugin locator (kind of filter in yapsy jargon) to match a backend.
     We have to go through hoops because yapsy is really aggressive at instanciating plugin.
-    (this would instanciate several bots, we don't want to do that).
+    (this would instantiate several bots, we don't want to do that).
     """
     def __init__(self, name_to_find):
         super().__init__('SpecificBackendLocator', 'plug')

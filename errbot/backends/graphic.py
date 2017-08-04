@@ -9,7 +9,8 @@ from errbot.backends.base import Message, ONLINE
 from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
 from errbot.rendering import xhtml
 
-CARD_TMPL = Environment(loader=FileSystemLoader(os.path.dirname(__file__))).get_template('graphic_card.html')
+CARD_TMPL = Environment(loader=FileSystemLoader(os.path.dirname(__file__)),
+                        autoescape=True).get_template('graphic_card.html')
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.graphic')
@@ -109,7 +110,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super().keyPressEvent(*args, **kwargs)
 
 
-urlfinder = re.compile(r'http([^\.\s]+\.[^\.\s]*)+[^\.\s]{2,}')
+urlfinder = re.compile(r'http([^.\s]+\.[^.\s]*)+[^.\s]{2,}')
 
 backends_path = os.path.join(os.path.dirname(errbot.__file__), 'backends')
 
@@ -220,9 +221,9 @@ class GraphicBackend(TextBackend):
         msg.frm = self.bot_identifier
         return msg  # rebuild a pure html snippet to include directly in the console html
 
-    def send_message(self, mess):
-        if hasattr(mess, 'body') and mess.body and not mess.body.isspace():
-            content = self.md.convert(mess.body)
+    def send_message(self, msg):
+        if hasattr(msg, 'body') and msg.body and not msg.body.isspace():
+            content = self.md.convert(msg.body)
             log.debug("html:\n%s", content)
             self.app.newAnswer.emit(content)
 

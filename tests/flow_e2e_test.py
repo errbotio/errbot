@@ -3,8 +3,6 @@ from queue import Empty
 
 import pytest
 
-from errbot.backends.test import testbot
-
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'flow_plugin')
 
 

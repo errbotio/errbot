@@ -29,9 +29,9 @@ except ImportError:
     sys.exit(1)
 
 COLORS = {
-        'blue': 'purple',
-        'white': 'gray',
-        'black': 'gray',
+    'blue': 'purple',
+    'white': 'gray',
+    'black': 'gray',
 }  # best effort to map errbot colors to hipchat ones,
 
 
@@ -154,7 +154,7 @@ class HipChatRoom(Room):
         return "<HipChatMUCRoom('{}')>".format(self.name)
 
     def __str__(self):
-        return self._name
+        return self.room['xmpp_jid']
 
     def join(self, username=None, password=None):
         """
@@ -346,12 +346,15 @@ class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
         self.endpoint = kwargs.pop('endpoint')
+        verify = kwargs.pop('verify')
+        if verify is None:
+            verify = True
         if self.endpoint is None:
-            self.hypchat = hypchat.HypChat(self.token)
+            self.hypchat = hypchat.HypChat(self.token, verify=verify)
         else:
             # We could always pass in the endpoint, with a default value if it's
             # None, but this way we support hypchat<0.18
-            self.hypchat = hypchat.HypChat(self.token, endpoint=self.endpoint)
+            self.hypchat = hypchat.HypChat(self.token, endpoint=self.endpoint, verify=verify)
         super().__init__(*args, **kwargs)
 
     @property
@@ -378,6 +381,7 @@ class HipchatBackend(XMPPBackend):
     def __init__(self, config):
         self.api_token = config.BOT_IDENTITY['token']
         self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
+        self.api_verify = config.BOT_IDENTITY.get('verify', True)
         self.md = hipchat_html()
         super().__init__(config)
 
@@ -396,18 +400,19 @@ class HipchatBackend(XMPPBackend):
             ca_cert=self.ca_cert,
             token=self.api_token,
             endpoint=self.api_endpoint,
-            server=self.server
+            server=self.server,
+            verify=self.api_verify,
         )
 
-    def callback_message(self, mess):
-        super().callback_message(mess)
-        possible_mentions = re.findall(r'@\w+', mess.body)
+    def callback_message(self, msg):
+        super().callback_message(msg)
+        possible_mentions = re.findall(r'@\w+', msg.body)
         people = list(
             filter(None.__ne__, [self._find_user(mention[1:], 'mention_name') for mention in possible_mentions])
         )
 
         if people:
-            self.callback_mention(mess, people)
+            self.callback_mention(msg, people)
 
     @property
     def mode(self):
@@ -457,9 +462,9 @@ class HipchatBackend(XMPPBackend):
 
         return HipChatRoom(name, self)
 
-    def build_reply(self, mess, text=None, private=False):
-        response = super().build_reply(mess=mess, text=text, private=private)
-        if mess.is_group and mess.frm == response.to:
+    def build_reply(self, msg, text=None, private=False, threaded=False):
+        response = super().build_reply(msg=msg, text=text, private=private, threaded=threaded)
+        if msg.is_group and msg.frm == response.to:
             # HipChat violates the XMPP spec :( This results in a valid XMPP JID
             # but HipChat mangles them into stuff like
             # "132302_961351@chat.hipchat.com/none||proxy|pubproxy-b100.hipchat.com|5292"
@@ -512,9 +517,9 @@ class HipchatBackend(XMPPBackend):
             hcard['style'] = 'application'
             hcard['format'] = 'medium'
             if card.image and card.thumbnail:
-                log.warn('Hipchat cannot display this card with an image.'
-                         'Remove summary, fields and/or possibly link to fallback to an hichat link or '
-                         'an image style card.')
+                log.warning('Hipchat cannot display this card with an image.'
+                            'Remove summary, fields and/or possibly link to fallback to an hichat link or '
+                            'an image style card.')
             if card.image or card.thumbnail:
                 hcard['icon'] = {'url': card.thumbnail if card.thumbnail else card.image}
             if card.body:

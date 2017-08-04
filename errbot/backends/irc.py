@@ -52,6 +52,7 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           end_inline_code='')
 
 IRC_NICK_REGEX = r'[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+'
+IRC_MESSAGE_SIZE_LIMIT = 510
 
 try:
     import irc.connection
@@ -115,7 +116,7 @@ class IRCPerson(Person):
 
     def __eq__(self, other):
         if not isinstance(other, IRCPerson):
-            log.warn("Weird you are comparing an IRCPerson to a %s.", type(other))
+            log.warning("Weird you are comparing an IRCPerson to a %s.", type(other))
             return False
         return self.person == other.person
 
@@ -189,7 +190,7 @@ class IRCRoom(Room):
         if username is not None:
             log.debug("Ignored username parameter on join(), it is unsupported on this back-end.")
         if password is None:
-            password = ""
+            password = ""  # nosec
 
         self.connection.join(self.room, key=password)
         log.info("Joined room {}".format(self.room))
@@ -305,7 +306,7 @@ class IRCRoom(Room):
 
     def __eq__(self, other):
         if not isinstance(other, IRCRoom):
-            log.warn("This is weird you are comparing an IRCRoom to a %s", type(other))
+            log.warning("This is weird you are comparing an IRCRoom to a %s", type(other))
             return False
         return self.room == other.room
 
@@ -383,8 +384,8 @@ class IRCConnection(SingleServerIRCBot):
         t.setDaemon(True)
         t.start()
 
-    def on_pubmsg(self, _, e):
-        msg = Message(e.arguments[0])
+    def _pubmsg(self, e, notice=False):
+        msg = Message(e.arguments[0], extras={'notice': notice})
         room_name = e.target
         if room_name[0] != '#' and room_name[0] != '$':
             raise Exception('[%s] is not a room' % room_name)
@@ -401,11 +402,23 @@ class IRCConnection(SingleServerIRCBot):
             mentions = [self.bot.build_identifier(mention) for mention in mentions]
             self.bot.callback_mention(msg, mentions)
 
-    def on_privmsg(self, _, e):
-        msg = Message(e.arguments[0])
+    def _privmsg(self, e, notice=False):
+        msg = Message(e.arguments[0], extras={'notice': notice})
         msg.frm = IRCPerson(e.source)
         msg.to = IRCPerson(e.target)
         self.bot.callback_message(msg)
+
+    def on_pubmsg(self, _, e):
+        self._pubmsg(e)
+
+    def on_privmsg(self, _, e):
+        self._privmsg(e)
+
+    def on_pubnotice(self, _, e):
+        self._pubmsg(e, True)
+
+    def on_privnotice(self, _, e):
+        self._privmsg(e, True)
 
     def on_kick(self, _, e):
         if not self._reconnect_on_kick:
@@ -655,17 +668,18 @@ class IRCBackend(ErrBot):
                                   reconnect_on_disconnect=reconnect_on_disconnect,
                                   )
         self.md = irc_md()
+        config.MESSAGE_SIZE_LIMIT = IRC_MESSAGE_SIZE_LIMIT
 
-    def send_message(self, mess):
-        super().send_message(mess)
-        if mess.is_direct:
+    def send_message(self, msg):
+        super().send_message(msg)
+        if msg.is_direct:
             msg_func = self.conn.send_private_message
-            msg_to = mess.to.person
+            msg_to = msg.to.person
         else:
             msg_func = self.conn.send_public_message
-            msg_to = mess.to.room
+            msg_to = msg.to.room
 
-        body = self.md.convert(mess.body)
+        body = self.md.convert(msg.body)
         for line in body.split('\n'):
             msg_func(msg_to, line)
 
@@ -678,18 +692,18 @@ class IRCBackend(ErrBot):
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
-        if mess.is_group:
+        if msg.is_group:
             if private:
                 response.frm = self.bot_identifier
-                response.to = IRCPerson(str(mess.frm))
+                response.to = IRCPerson(str(msg.frm))
             else:
-                response.frm = IRCRoomOccupant(str(self.bot_identifier), mess.frm.room)
-                response.to = mess.frm.room
+                response.frm = IRCRoomOccupant(str(self.bot_identifier), msg.frm.room)
+                response.to = msg.frm.room
         else:
             response.frm = self.bot_identifier
-            response.to = mess.frm
+            response.to = msg.frm
         return response
 
     def serve_forever(self):

@@ -86,7 +86,7 @@ def _replace_charref(s):
         if s in SAFE_ENTITIES:
             return SAFE_ENTITIES[s]
         # find the longest matching name (as defined by the standard)
-        for x in range(len(s)-1, 1, -1):
+        for x in range(len(s) - 1, 1, -1):
             if s[:x] in SAFE_ENTITIES:
                 return SAFE_ENTITIES[s[:x]] + s[x:]
         else:

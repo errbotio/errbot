@@ -33,17 +33,39 @@ Plugins may use the `self._bot` object to offer tailored, backend-specific funct
 To determine which backend is being used, a plugin can inspect the `self._bot.mode` property.
 The following table lists all the values for `mode` for the official backends:
 
-==================================  ==========
-Backend                             Mode value
-==================================  ==========
-:class:`~errbot.backends.hipchat`   hipchat
-:class:`~errbot.backends.irc`       irc
-:class:`~errbot.backends.slack`     slack
-:class:`~errbot.backends.telegram`  telegram
-:class:`~errbot.backends.test`      test
-:class:`~errbot.backends.text`      text
-:class:`~errbot.backends.xmpp`      xmpp
-==================================  ==========
+============================================  ==========
+Backend                                       Mode value
+============================================  ==========
+:class:`~errbot.backends.hipchat`             hipchat
+:class:`~errbot.backends.irc`                 irc
+:class:`~errbot.backends.slack`               slack
+:class:`~errbot.backends.telegram_messenger`  telegram
+:class:`~errbot.backends.test`                test
+:class:`~errbot.backends.text`                text
+:class:`~errbot.backends.xmpp`                xmpp
+============================================  ==========
+
+Here's an example of using a backend-specific feature. In Slack, emoji reactions can be added to messages the bot
+receives using the `add_reaction` and `remove_reaction` methods. For example, you could add an hourglass to messages
+that will take a long time to reply fully to.
+
+.. code-block:: python
+
+    from errbot import BotPlugin, botcmd
+
+    class PluginExample(BotPlugin):
+        @botcmd
+        def longcompute(self, mess, args):
+            if self._bot.mode == "slack":
+                self._bot.add_reaction(mess, "hourglass")
+            else:
+                yield "Finding the answer..."
+
+            time.sleep(10)
+
+            yield "The answer is: 42"
+            if self._bot.mode == "slack":
+                self._bot.remove_reaction(mess, "hourglass")
 
 
 Getting to the underlying client library
@@ -57,15 +79,15 @@ Backends set their own attribute(s) to point to the underlying libraries' client
 The following table lists these attributes for the official backends, along with the library used by the backend:
 
 
-==================================  =========================  ================================================
-Backend                             Library                    Attribute(s)
-==================================  =========================  ================================================
-:class:`~errbot.backends.hipchat`   `sleekxmpp`_ + `hypchat`_  ``self._bot.conn`` ``self._bot.conn.hypchat``
-:class:`~errbot.backends.irc`       `irc`_                     ``self._bot.conn`` ``self._bot.conn.connection``
-:class:`~errbot.backends.slack`     `slackclient`_             ``self._bot.sc``
-:class:`~errbot.backends.telegram`  `telegram-python-bot`_     ``self._bot.telegram``
-:class:`~errbot.backends.xmpp`      `sleekxmpp`_               ``self._bot.conn``
-==================================  =========================  ================================================
+============================================  =========================  ================================================
+Backend                                       Library                    Attribute(s)
+============================================  =========================  ================================================
+:class:`~errbot.backends.hipchat`             `sleekxmpp`_ + `hypchat`_  ``self._bot.conn`` ``self._bot.conn.hypchat``
+:class:`~errbot.backends.irc`                 `irc`_                     ``self._bot.conn`` ``self._bot.conn.connection``
+:class:`~errbot.backends.slack`               `slackclient`_             ``self._bot.sc``
+:class:`~errbot.backends.telegram_messenger`  `telegram-python-bot`_     ``self._bot.telegram``
+:class:`~errbot.backends.xmpp`                `sleekxmpp`_               ``self._bot.conn``
+============================================  =========================  ================================================
 
 .. _hypchat: https://pypi.python.org/pypi/hypchat/
 .. _irc: https://pypi.python.org/pypi/irc/

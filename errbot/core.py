@@ -21,7 +21,8 @@ import traceback
 from datetime import datetime
 from threading import RLock
 
-from threadpool import ThreadPool, WorkRequest
+import collections
+from multiprocessing.pool import ThreadPool
 
 from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
@@ -29,7 +30,7 @@ from .backends.base import Backend, Room, Identifier, Message
 from .storage import StoreMixin
 from .streaming import Tee
 from .templating import tenv
-from .utils import split_string_after, get_class_that_defined_method
+from .utils import split_string_after
 
 log = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ class ErrBot(Backend, StoreMixin):
         :param **kwargs: Passed to the callback function.
         """
         for plugin in self.plugin_manager.get_all_active_plugin_objects_ordered():
-            plugin_name = plugin.__class__.__name__
+            plugin_name = plugin.name
             log.debug("Triggering {} on {}".format(method, plugin_name))
             # noinspection PyBroadException
             try:
@@ -130,15 +131,16 @@ class ErrBot(Backend, StoreMixin):
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier should be an Identifier")
 
-        mess = self.build_message(text)
-        mess.to = identifier
-        mess.frm = in_reply_to.to if in_reply_to else self.bot_identifier
+        msg = self.build_message(text)
+        msg.to = identifier
+        msg.frm = in_reply_to.to if in_reply_to else self.bot_identifier
+        msg.parent = in_reply_to
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
         if isinstance(identifier, Room) and in_reply_to and (nick_reply or groupchat_nick_reply):
-            self.prefix_groupchat_reply(mess, in_reply_to.frm)
+            self.prefix_groupchat_reply(msg, in_reply_to.frm)
 
-        self.split_and_send_message(mess)
+        self.split_and_send_message(msg)
 
     def send_templated(self, identifier, template_name, template_parameters, in_reply_to=None,
                        groupchat_nick_reply=False):
@@ -156,23 +158,23 @@ class ErrBot(Backend, StoreMixin):
         text = self.process_template(template_name, template_parameters)
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
-    def split_and_send_message(self, mess):
-        for part in split_string_after(mess.body, self.bot_config.MESSAGE_SIZE_LIMIT):
-            partial_message = mess.clone()
+    def split_and_send_message(self, msg):
+        for part in split_string_after(msg.body, self.bot_config.MESSAGE_SIZE_LIMIT):
+            partial_message = msg.clone()
             partial_message.body = part
             self.send_message(partial_message)
 
-    def send_message(self, mess):
+    def send_message(self, msg):
         """
         This needs to be overridden by the backends with a super() call.
 
-        :param mess: the message to send.
+        :param msg: the message to send.
         :return: None
         """
         for bot in self.plugin_manager.get_all_active_plugin_objects():
             # noinspection PyBroadException
             try:
-                bot.callback_botmessage(mess)
+                bot.callback_botmessage(msg)
             except Exception:
                 log.exception("Crash in a callback_botmessage handler")
 
@@ -185,40 +187,41 @@ class ErrBot(Backend, StoreMixin):
         """
         self.send_templated(card.to, 'card', {'card': card})
 
-    def send_simple_reply(self, mess, text, private=False):
+    def send_simple_reply(self, msg, text, private=False, threaded=False):
         """Send a simple response to a given incoming message
 
         :param private: if True will force a response in private.
+        :param threaded: if True and if the backend supports it, sends the response in a threaded message.
         :param text: the markdown text of the message.
-        :param mess: the message you are replying to.
+        :param msg: the message you are replying to.
         """
-        reply = self.build_reply(mess, text, private)
+        reply = self.build_reply(msg, text, private=private, threaded=threaded)
         if isinstance(reply.to, Room) and self.bot_config.GROUPCHAT_NICK_PREFIXED:
-            self.prefix_groupchat_reply(reply, mess.frm)
+            self.prefix_groupchat_reply(reply, msg.frm)
         self.split_and_send_message(reply)
 
-    def process_message(self, mess):
+    def process_message(self, msg):
         """Check if the given message is a command for the bot and act on it.
         It return True for triggering the callback_messages on the .callback_messages on the plugins.
 
-        :param mess: the incoming message.
+        :param msg: the incoming message.
         """
         # Prepare to handle either private chats or group chats
 
-        frm = mess.frm
-        text = mess.body
-        if not hasattr(mess.frm, 'person'):
-            raise Exception('mess.frm not an Identifier as it misses the "person" property. Class of frm : %s'
-                            % mess.frm.__class__)
+        frm = msg.frm
+        text = msg.body
+        if not hasattr(msg.frm, 'person'):
+            raise Exception('msg.frm not an Identifier as it misses the "person" property. Class of frm : %s'
+                            % msg.frm.__class__)
 
-        username = mess.frm.person
+        username = msg.frm.person
         user_cmd_history = self.cmd_history[username]
 
-        if mess.delayed:
+        if msg.delayed:
             log.debug("Message from history, ignore it")
             return False
 
-        if self.is_from_self(mess):
+        if self.is_from_self(msg):
             log.debug("Ignoring message from self")
             return False
 
@@ -252,7 +255,7 @@ class ErrBot(Backend, StoreMixin):
                 l = len(sep)
                 if text[:l] == sep:
                     text = text[l:]
-        elif mess.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
+        elif msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
             log.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
@@ -270,21 +273,18 @@ class ErrBot(Backend, StoreMixin):
         command = None
         args = ''
         if not only_check_re_command:
-            if len(text_split) > 1:
-                command = (text_split[0] + '_' + text_split[1]).lower()
-                with self._gbl:
-                    if command in self.commands:
-                        cmd = command
-                        args = ' '.join(text_split[2:])
+            i = len(text_split)
+            while cmd is None:
+                command = '_'.join(text_split[:i])
 
-            if not cmd:
-                command = text_split[0].lower()
-                args = ' '.join(text_split[1:])
                 with self._gbl:
                     if command in self.commands:
                         cmd = command
-                        if len(text_split) > 1:
-                            args = ' '.join(text_split[1:])
+                        args = ' '.join(text_split[i:])
+                    else:
+                        i -= 1
+                if i == 0:
+                    break
 
             if command == self.bot_config.BOT_PREFIX:  # we did "!!" so recall the last command
                 if len(user_cmd_history):
@@ -302,7 +302,7 @@ class ErrBot(Backend, StoreMixin):
         matched_on_re_command = False
         if not cmd:
             with self._gbl:
-                if prefixed or (mess.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
+                if prefixed or (msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
                     commands = dict(self.re_commands)
                 else:
                     commands = {k: self.re_commands[k] for k in self.re_commands
@@ -317,7 +317,7 @@ class ErrBot(Backend, StoreMixin):
                     log.debug("Matching '{}' against '{}' produced a match"
                               .format(text, func._err_command_re_pattern.pattern))
                     matched_on_re_command = True
-                    self._process_command(mess, name, text, match)
+                    self._process_command(msg, name, text, match)
                 else:
                     log.debug("Matching '{}' against '{}' produced no match"
                               .format(text, func._err_command_re_pattern.pattern))
@@ -325,17 +325,18 @@ class ErrBot(Backend, StoreMixin):
             return True
 
         if cmd:
-            self._process_command(mess, cmd, args, match=None)
+            self._process_command(msg, cmd, args, match=None)
         elif not only_check_re_command:
             log.debug("Command not found")
-            if suppress_cmd_not_found:
-                log.debug("Surpressing command not found feedback")
-            else:
-                reply = self.unknown_command(mess, command, args)
-                if reply is None:
-                    reply = self.MSG_UNKNOWN_COMMAND % {'command': command}
-                if reply:
-                    self.send_simple_reply(mess, reply)
+            for cmd_filter in self.command_filters:
+                if getattr(cmd_filter, 'catch_unprocessed', False):
+                    try:
+                        reply = cmd_filter(msg, cmd, args, False, emptycmd=True)
+                        if reply:
+                            self.send_simple_reply(msg, reply)
+                        # continue processing the other unprocessed cmd filters.
+                    except Exception:
+                        log.exception("Exception in a command filter command.")
         return True
 
     def _process_command_filters(self, msg, cmd, args, dry_run=False):
@@ -349,16 +350,16 @@ class ErrBot(Backend, StoreMixin):
             log.exception("Exception in a filter command, blocking the command in doubt")
             return None, None, None
 
-    def _process_command(self, mess, cmd, args, match):
+    def _process_command(self, msg, cmd, args, match):
         """Process and execute a bot command"""
 
         # first it must go through the command filters
-        mess, cmd, args = self._process_command_filters(mess, cmd, args, False)
-        if mess is None:
+        msg, cmd, args = self._process_command_filters(msg, cmd, args, False)
+        if msg is None:
             log.info("Command %s blocked or deferred." % cmd)
             return
 
-        frm = mess.frm
+        frm = msg.frm
         username = frm.person
         user_cmd_history = self.cmd_history[username]
 
@@ -373,7 +374,9 @@ class ErrBot(Backend, StoreMixin):
         if f._err_command_admin_only and self.bot_config.BOT_ASYNC:
             # If it is an admin command, wait until the queue is completely depleted so
             # we don't have strange concurrency issues on load/unload/updates etc...
-            self.thread_pool.wait()
+            self.thread_pool.close()
+            self.thread_pool.join()
+            self.thread_pool = ThreadPool(self.bot_config.BOT_ASYNC_POOLSIZE)
 
         if f._err_command_historize:
             user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
@@ -390,87 +393,88 @@ class ErrBot(Backend, StoreMixin):
                     args = args.split(f._err_command_split_args_with)
             except Exception as e:
                 self.send_simple_reply(
-                    mess,
+                    msg,
                     "Sorry, I couldn't parse your arguments. {}".format(e)
                 )
                 return
 
         if self.bot_config.BOT_ASYNC:
-            wr = WorkRequest(
+            result = self.thread_pool.apply_async(
                 self._execute_and_send,
                 [],
-                {'cmd': cmd, 'args': args, 'match': match, 'mess': mess,
-                 'template_name': f._err_command_template}
+                {'cmd': cmd, 'args': args, 'match': match, 'msg': msg, 'template_name': f._err_command_template}
             )
-            self.thread_pool.putRequest(wr)
             if f._err_command_admin_only:
                 # Again, if it is an admin command, wait until the queue is completely
                 # depleted so we don't have strange concurrency issues.
-                self.thread_pool.wait()
+                result.wait()
         else:
-            self._execute_and_send(cmd=cmd, args=args, match=match, mess=mess,
+            self._execute_and_send(cmd=cmd, args=args, match=match, msg=msg,
                                    template_name=f._err_command_template)
 
     @staticmethod
     def process_template(template_name, template_parameters):
         # integrated templating
-        if template_name:
+        # The template needs to be set and the answer from the user command needs to be a mapping
+        # If not just convert the answer to string.
+        if template_name and isinstance(template_parameters, collections.Mapping):
             return tenv().get_template(template_name + '.md').render(**template_parameters)
 
         # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)
         return str(template_parameters)
 
-    def _execute_and_send(self, cmd, args, match, mess, template_name=None):
+    def _execute_and_send(self, cmd, args, match, msg, template_name=None):
         """Execute a bot command and send output back to the caller
 
-        cmd: The command that was given to the bot (after being expanded)
-        args: Arguments given along with cmd
-        match: A re.MatchObject if command is coming from a regex-based command, else None
-        mess: The message object
-        template_name: The name of the jinja template which should be used to render
+        :param cmd: The command that was given to the bot (after being expanded)
+        :param args: Arguments given along with cmd
+        :param match: A re.MatchObject if command is coming from a regex-based command, else None
+        :param msg: The message object
+        :param template_name: The name of the jinja template which should be used to render
             the markdown output, if any
 
         """
         private = cmd in self.bot_config.DIVERT_TO_PRIVATE
+        threaded = cmd in self.bot_config.DIVERT_TO_THREAD
         commands = self.re_commands if match else self.commands
         try:
             with self._gbl:
                 method = commands[cmd]
             # first check if we need to reattach a flow context
-            flow, _ = self.flow_executor.check_inflight_flow_triggered(cmd, mess.frm)
+            flow, _ = self.flow_executor.check_inflight_flow_triggered(cmd, msg.frm)
             if flow:
                 log.debug("Reattach context from flow %s to the message", flow._root.name)
-                mess.ctx = flow.ctx
+                msg.ctx = flow.ctx
             elif method._err_command_flow_only:
                 # check if it is a flow_only command but we are not in a flow.
                 log.debug("%s is tagged flow_only and we are not in a flow. Ignores the command.", cmd)
                 return
 
             if inspect.isgeneratorfunction(method):
-                replies = method(mess, match) if match else method(mess, args)
+                replies = method(msg, match) if match else method(msg, args)
                 for reply in replies:
                     if reply:
-                        self.send_simple_reply(mess, self.process_template(template_name, reply), private)
+                        self.send_simple_reply(msg, self.process_template(template_name, reply), private, threaded)
             else:
-                reply = method(mess, match) if match else method(mess, args)
+                reply = method(msg, match) if match else method(msg, args)
                 if reply:
-                    self.send_simple_reply(mess, self.process_template(template_name, reply), private)
+                    self.send_simple_reply(msg, self.process_template(template_name, reply), private, threaded)
 
             # The command is a success, check if this has not made a flow progressed
-            self.flow_executor.trigger(cmd, mess.frm, mess.ctx)
+            self.flow_executor.trigger(cmd, msg.frm, msg.ctx)
 
         except CommandError as command_error:
             reason = command_error.reason
             if command_error.template:
                 reason = self.process_template(command_error.template, reason)
-            self.send_simple_reply(mess, reason, private)
+            self.send_simple_reply(msg, reason, private, threaded)
 
         except Exception as e:
             tb = traceback.format_exc()
             log.exception('An error happened while processing '
                           'a message ("%s"): %s"' %
-                          (mess.body, tb))
-            self.send_simple_reply(mess, self.MSG_ERROR_OCCURRED + ':\n %s' % e, private)
+                          (msg.body, tb))
+            self.send_simple_reply(msg, self.MSG_ERROR_OCCURRED + ':\n %s' % e, private, threaded)
 
     def unknown_command(self, _, cmd, args):
         """ Override the default unknown command behavior
@@ -480,7 +484,7 @@ class ErrBot(Backend, StoreMixin):
             part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
             part1 = 'Command "%s" not found.' % cmd
-        ununderscore_keys = [m.replace('_', ' ') for m in self.all_commands.keys()]
+        ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
@@ -493,7 +497,7 @@ class ErrBot(Backend, StoreMixin):
 
     def inject_commands_from(self, instance_to_inject):
         with self._gbl:
-            classname = instance_to_inject.__class__.__name__
+            plugin_name = instance_to_inject.name
             for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
                 if getattr(value, '_err_command', False):
                     commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
@@ -501,9 +505,9 @@ class ErrBot(Backend, StoreMixin):
 
                     if name in commands:
                         f = commands[name]
-                        new_name = (classname + '-' + name).lower()
+                        new_name = (plugin_name + '-' + name).lower()
                         self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
-                            classname, name, type(f.__self__).__name__, f.__name__, new_name))
+                            plugin_name, name, type(f.__self__).__name__, f.__name__, new_name))
                         name = new_name
                         value.__func__._err_command_name = new_name  # To keep track of the renaming.
                     commands[name] = value
@@ -558,24 +562,31 @@ class ErrBot(Backend, StoreMixin):
                     log.debug('Removing command filter: %s' % name)
                     self.command_filters.remove(method)
 
+    def _admins_to_notify(self):
+        """
+        Creates a list of administrators to notify
+        """
+        admins_to_notify = self.bot_config.BOT_ADMINS_NOTIFICATIONS
+        return admins_to_notify
+
     def warn_admins(self, warning: str) -> None:
         """
         Send a warning to the administrators of the bot.
 
         :param warning: The markdown-formatted text of the message to send.
         """
-        for admin in self.bot_config.BOT_ADMINS:
+        for admin in self._admins_to_notify():
             self.send(self.build_identifier(admin), warning)
 
-    def callback_message(self, mess):
+    def callback_message(self, msg):
         """Processes for commands and dispatches the message to all the plugins."""
-        if self.process_message(mess):
+        if self.process_message(msg):
             # Act only in the backend tells us that this message is OK to broadcast
-            self._dispatch_to_plugins('callback_message', mess)
+            self._dispatch_to_plugins('callback_message', msg)
 
-    def callback_mention(self, mess, people):
+    def callback_mention(self, msg, people):
         log.debug("%s has/have been mentioned", ', '.join(str(p) for p in people))
-        self._dispatch_to_plugins('callback_mention', mess, people)
+        self._dispatch_to_plugins('callback_mention', msg, people)
 
     def callback_presence(self, pres):
         self._dispatch_to_plugins('callback_presence', pres)
@@ -655,8 +666,15 @@ class ErrBot(Backend, StoreMixin):
         pat = re.compile(r'!({})'.format('|'.join(ununderscore_keys)))
         return re.sub(pat, self.prefix + '\1', command.__doc__)
 
+    @staticmethod
+    def get_plugin_class_from_method(meth):
+        for cls in inspect.getmro(type(meth.__self__)):
+            if meth.__name__ in cls.__dict__:
+                return cls
+        return None
+
     def get_command_classes(self):
-        return (get_class_that_defined_method(command)
+        return (self.get_plugin_class_from_method(command)
                 for command in self.all_commands.values())
 
     def shutdown(self):

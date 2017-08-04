@@ -4,12 +4,45 @@ from threading import Timer, current_thread
 from types import ModuleType
 from typing import Tuple, Callable, Mapping, Sequence
 from io import IOBase
+import re
 
-from .utils import recurse_check_structure
 from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
 
 log = logging.getLogger(__name__)
+
+
+class ValidationException(Exception):
+    pass
+
+
+def recurse_check_structure(sample, to_check):
+    sample_type = type(sample)
+    to_check_type = type(to_check)
+
+    # Skip this check if the sample is None because it will always be something
+    # other than NoneType when changed from the default. Raising ValidationException
+    # would make no sense then because it would defeat the whole purpose of having
+    # that key in the sample when it could only ever be None.
+    if sample is not None and sample_type != to_check_type:
+        raise ValidationException(
+            '%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
+
+    if sample_type in (list, tuple):
+        for element in to_check:
+            recurse_check_structure(sample[0], element)
+        return
+
+    if sample_type == dict:
+        for key in sample:
+            if key not in to_check:
+                raise ValidationException("%s doesn't contain the key %s" % (to_check, key))
+        for key in to_check:
+            if key not in sample:
+                raise ValidationException("%s contains an unknown key %s" % (to_check, key))
+        for key in sample:
+            recurse_check_structure(sample[key], to_check[key])
+        return
 
 
 class CommandError(Exception):
@@ -76,22 +109,27 @@ class BotPluginBase(StoreMixin):
      It is the main contract between the plugins and the bot
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot, name=None):
         self.is_activated = False
         self.current_pollers = []
         self.current_timers = []
         self.dependencies = []
         self._dynamic_plugins = {}
-        self.log = logging.getLogger("errbot.plugins.%s" % self.__class__.__name__)
-        if bot is not None:
-            self._load_bot(bot)
-        super().__init__()
-
-    def _load_bot(self, bot):
-        """ This should be eventually moved back to __init__ once plugin will forward correctly their params.
-        """
+        self.log = logging.getLogger("errbot.plugins.%s" % name)
+        self.log.debug('Logger for plugin initialized...')
         self._bot = bot
         self.plugin_dir = bot.repo_manager.plugin_dir
+        self._name = name
+        super().__init__()
+
+    @property
+    def name(self) -> str:
+        """
+        Get the name of this plugin as described in its .plug file.
+
+        :return: The plugin name.
+        """
+        return self._name
 
     @property
     def mode(self) -> str:
@@ -125,9 +163,8 @@ class BotPluginBase(StoreMixin):
         return self._bot.bot_identifier
 
     def init_storage(self) -> None:
-        classname = self.__class__.__name__
-        log.debug('Init storage for %s' % classname)
-        self.open_storage(self._bot.storage_plugin, classname)
+        log.debug('Init storage for %s' % self.name)
+        self.open_storage(self._bot.storage_plugin, self.name)
 
     def activate(self) -> None:
         """
@@ -164,12 +201,16 @@ class BotPluginBase(StoreMixin):
     def start_poller(self,
                      interval: float,
                      method: Callable[..., None],
+                     times: int=None,
                      args: Tuple=None,
                      kwargs: Mapping=None):
         """ Starts a poller that will be called at a regular interval
 
         :param interval: interval in seconds
         :param method: targetted method
+        :param times:
+            number of times polling should happen (defaults to``None`` which
+            causes the polling to happen indefinitely)
         :param args: args for the targetted method
         :param kwargs: kwargs for the targetting method
         """
@@ -184,12 +225,13 @@ class BotPluginBase(StoreMixin):
         # noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
-            self.program_next_poll(interval, method, args, kwargs)
+            self.program_next_poll(interval, method, times, args, kwargs)
         except Exception:
             log.exception('failed')
 
     def stop_poller(self,
                     method: Callable[..., None],
+                    times: int=None,
                     args: Tuple=None,
                     kwargs: Mapping=None):
         if not kwargs:
@@ -202,10 +244,15 @@ class BotPluginBase(StoreMixin):
     def program_next_poll(self,
                           interval: float,
                           method: Callable[..., None],
+                          times: int=None,
                           args: Tuple=None,
                           kwargs: Mapping=None):
+        if times is not None and times <= 0:
+            return
+
         t = Timer(interval=interval, function=self.poller,
-                  kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
+                  kwargs={'interval': interval, 'method': method,
+                          'times': times, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t)  # save the timer to be able to kill it
         t.setName('Poller thread for %s' % type(method.__self__).__name__)
         t.setDaemon(True)  # so it is not locking on exit
@@ -214,6 +261,7 @@ class BotPluginBase(StoreMixin):
     def poller(self,
                interval: float,
                method: Callable[..., None],
+               times: int=None,
                args: Tuple=None,
                kwargs: Mapping=None):
         previous_timer = current_thread()
@@ -227,7 +275,11 @@ class BotPluginBase(StoreMixin):
                 method(*args, **kwargs)
             except Exception:
                 log.exception('A poller crashed')
-            self.program_next_poll(interval, method, args, kwargs)
+
+            if times is not None:
+                times -= 1
+
+            self.program_next_poll(interval, method, times, args, kwargs)
 
     def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str=''):
         """
@@ -239,9 +291,11 @@ class BotPluginBase(StoreMixin):
         """
         if name in self._dynamic_plugins:
             raise ValueError('Dynamic plugin %s already created.')
-        plugin_class = type(name, (BotPlugin,), {command.name: command.definition for command in commands})
+        # cleans the name to be a valid python type.
+        plugin_class = type(re.sub('\W|^(?=\d)', '_', name), (BotPlugin,),
+                            {command.name: command.definition for command in commands})
         plugin_class.__errdoc__ = doc
-        plugin = plugin_class(self._bot)
+        plugin = plugin_class(self._bot, name=name)
         self._dynamic_plugins[name] = plugin
         self._bot.inject_commands_from(plugin)
 
@@ -372,7 +426,7 @@ class BotPlugin(BotPluginBase):
             [Note: This might not be implemented by all backends.]
 
             :param message:
-                representing the messige that was received.
+                representing the message that was received.
             :param mentioned_people:
                 all mentioned people in this message.
         """
@@ -459,22 +513,19 @@ class BotPlugin(BotPluginBase):
              identifier: Identifier,
              text: str,
              in_reply_to: Message=None,
-             message_type: str=None,
              groupchat_nick_reply: bool=False) -> None:
         """
             Send a message to a room or a user.
 
             :param groupchat_nick_reply: if True the message will mention the user in the chatroom.
-            :param message_type: this parameter is deprecated and will be removed in a future version.
             :param in_reply_to: the original message this message is a reply to (optional).
+                                In some backends it will start a thread.
             :param text: markdown formatted text to send to the user.
             :param identifier: An Identifier representing the user or room to message.
                                Identifiers may be created with :func:`build_identifier`.
         """
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
-        if message_type is not None:
-            self.log.warning("send message_type is DEPRECATED. Either pass a user identifier or a room to send.")
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def send_card(self,
@@ -510,7 +561,7 @@ class BotPlugin(BotPluginBase):
             if in_reply_to is None:
                 raise ValueError('Either to or in_reply_to needs to be set.')
             to = in_reply_to.frm
-        self._bot.send_card(Card(body, frm, to, summary, title, link, image, thumbnail, color, fields))
+        self._bot.send_card(Card(body, frm, to, in_reply_to, summary, title, link, image, thumbnail, color, fields))
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """
@@ -527,18 +578,14 @@ class BotPlugin(BotPluginBase):
                        template_name: str,
                        template_parameters: Mapping,
                        in_reply_to: Message=None,
-                       message_type: str=None,
                        groupchat_nick_reply: bool=False) -> None:
         """
         Sends asynchronously a message to a room or a user.
 
-        Same as send but passing a template name and parameters instead of directly the markdown text. If it is a room
-        message_type needs to by 'groupchat' and user the room.
-
+        Same as send but passing a template name and parameters instead of directly the markdown text.
         :param template_parameters: arguments for the template.
         :param template_name: name of the template to use.
         :param groupchat_nick_reply: if True it will mention the user in the chatroom.
-        :param message_type: DEPRECATED
         :param in_reply_to: optionally, the original message this message is the answer to.
         :param identifier: identifier of the user or room to which you want to send a message to.
         """
@@ -599,23 +646,29 @@ class BotPlugin(BotPluginBase):
     def start_poller(self,
                      interval: float,
                      method: Callable[..., None],
+                     times: int=None,
                      args: Tuple=None,
                      kwargs: Mapping=None):
         """
             Start to poll a method at specific interval in seconds.
 
-            Note: it will call the method with the initial interval delay for the first time
+            Note: it will call the method with the initial interval delay for
+            the first time
+
             Also, you can program
             for example : self.program_poller(self, 30, fetch_stuff)
             where you have def fetch_stuff(self) in your plugin
 
-            :param kwargs: kwargs for the method to callback.
-            :param args: args for the method to callback.
-            :param method: method to callback.
-            :param interval: interval in seconds.
+            :param interval: interval in seconds
+            :param method: targetted method
+            :param times:
+                number of times polling should happen (defaults to``None``
+                which causes the polling to happen indefinitely)
+            :param args: args for the targetted method
+            :param kwargs: kwargs for the targetting method
 
         """
-        super().start_poller(interval, method, args, kwargs)
+        super().start_poller(interval, method, times, args, kwargs)
 
     def stop_poller(self,
                     method: Callable[..., None],
@@ -624,8 +677,9 @@ class BotPlugin(BotPluginBase):
         """
             stop poller(s).
 
-            If the method equals None -> it stops all the pollers
-            you need to regive the same parameters as the original start_poller to match a specific poller to stop
+            If the method equals None -> it stops all the pollers you need to
+            regive the same parameters as the original start_poller to match a
+            specific poller to stop
 
             :param kwargs: The initial kwargs you gave to start_poller.
             :param args: The initial args you gave to start_poller.

@@ -1,7 +1,5 @@
 from os import path
 
-from errbot.backends.test import testbot  # noqa
-
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'dyna_plugin')
 
 

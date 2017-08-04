@@ -43,7 +43,7 @@ class Flows(BotPlugin):
 
     # noinspection PyUnusedLocal
     @botcmd
-    def flows_list(self, mess, args):
+    def flows_list(self, msg, args):
         """ Displays the list of setup flows.
         """
         with io.StringIO() as response:
@@ -52,7 +52,7 @@ class Flows(BotPlugin):
             return response.getvalue()
 
     @botcmd(split_args_with=' ', syntax='<name> [initial_payload]')
-    def flows_start(self, mess, args):
+    def flows_start(self, msg, args):
         """ Manually start a flow within the context of the calling user.
         You can prefeed the flow data with a json payload.
         Example:
@@ -69,11 +69,11 @@ class Flows(BotPlugin):
                 context = json.loads(json_payload)
             except Exception as e:
                 return 'Cannot parse json %s: %s' % (json_payload, e)
-        self._bot.flow_executor.start_flow(flow_name, mess.frm, context)
+        self._bot.flow_executor.start_flow(flow_name, msg.frm, context)
         return 'Flow **%s** started ...' % flow_name
 
     @botcmd(admin_only=True)
-    def flows_status(self, mess, args):
+    def flows_status(self, _, args):
         """ Displays the list of started flows.
         """
         with io.StringIO() as response:
@@ -86,16 +86,23 @@ class Flows(BotPlugin):
                     response.write('No Flow started.\n')
                 else:
                     for flow in self._bot.flow_executor.in_flight:
-                        response.write('**' + flow.name + "** " + str(flow.requestor) + '\n')
+                        next_steps = ['\*{}\*'.format(str(step[1].command)) for step in flow._current_step.children if
+                                      step[1].command]
+                        template = '\>>> {} is using flow \*{}\* on step \*{}\*\nNext Step(s): \n{}'
+                        text = template.format(str(flow.requestor),
+                                               flow.name,
+                                               str(flow.current_step),
+                                               '\n'.join(next_steps))
+                        response.write(text)
             return response.getvalue()
 
     @botcmd(syntax='[flow_name]')
-    def flows_stop(self, mess, args):
+    def flows_stop(self, msg, args):
         """ Stop flows you are in.
         optionally, stop a specific flow you are in.
         """
         if args:
-            flow = self._bot.flow_executor.stop_flow(args, mess.frm)
+            flow = self._bot.flow_executor.stop_flow(args, msg.frm)
             if flow:
                 yield flow.name + ' stopped.'
                 return
@@ -104,8 +111,8 @@ class Flows(BotPlugin):
 
         one_stopped = False
         for flow in self._bot.flow_executor.in_flight:
-            if flow.requestor == mess.frm:
-                flow = self._bot.flow_executor.stop_flow(flow.name, mess.frm)
+            if flow.requestor == msg.frm:
+                flow = self._bot.flow_executor.stop_flow(flow.name, msg.frm)
                 if flow:
                     one_stopped = True
                     yield flow.name + ' stopped.'

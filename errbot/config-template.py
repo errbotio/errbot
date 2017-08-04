@@ -95,7 +95,7 @@ BOT_EXTRA_PLUGIN_DIR = None
 
 # Defines an order in which the plugins are getting their callbacks. Useful if you want to have plugins do
 # pre- or post-processing on messages.
-# The 'None' tuple entry represents all the plugins that aren't to be expicitely ordered. For example, if
+# The 'None' tuple entry represents all the plugins that aren't to be explicitly ordered. For example, if
 # you want 'A' to run first, then everything else but 'B', then 'B', you would use ('A', None, 'B').
 PLUGINS_CALLBACK_ORDER = (None, )
 
@@ -186,6 +186,9 @@ BOT_IDENTITY = {
 # Unix-style glob patterns are supported, so 'gbin@localhost'
 # would be considered an admin if setting '*@localhost'.
 BOT_ADMINS = ('gbin@localhost',)
+
+# Set of admins that wish to receive administrative bot notifications.
+#BOT_ADMINS_NOTIFICATIONS = ()
 
 # Chatrooms your bot should join on startup. For the IRC backend you
 # should include the # sign here. For XMPP rooms that are password
@@ -291,9 +294,14 @@ BOT_ADMINS = ('gbin@localhost',)
 # DIVERT_TO_PRIVATE = ('help', 'about', 'status')
 DIVERT_TO_PRIVATE = ()
 
+# A list of commands which should be responded to in a thread if the backend supports it.
+# For example:
+# DIVERT_TO_THREAD = ('help', 'about', 'status')
+DIVERT_TO_THREAD = ()
+
 # Chat relay
 # Can be used to relay one to one message from specific users to the bot
-# to MUCs. This can be useful with XMPP notifiers like for example  the
+# to MUCs. This can be useful with XMPP notifiers like for example the
 # standard Altassian Jira which don't have native support for MUC.
 # For example: CHATROOM_RELAY = {'gbin@localhost' : (_TEST_ROOM,)}
 CHATROOM_RELAY = {}
@@ -329,7 +337,7 @@ REVERSE_CHATROOM_RELAY = {}
 # The default is to try anything:
 #XMPP_FEATURE_MECHANISMS = {}
 # To use only unencrypted plain auth:
-#XMPP_FEATURE_MECHANISMS =  {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
+#XMPP_FEATURE_MECHANISMS = {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
 
 # Modify the default keep-alive interval. By default, Errbot will send
 # some whitespace to the XMPP server every 300 seconds to keep the TCP
@@ -344,6 +352,9 @@ REVERSE_CHATROOM_RELAY = {}
 # try to gradually lower this value until it no longer happens.
 #XMPP_KEEPALIVE_INTERVAL = 300
 
+# Modify default settings for IPv6 usage. This key affect both
+# XMPP and HipChat backend.
+#XMPP_USE_IPV6 = False
 
 # XMPP supports some formatting with XEP-0071 (http://www.xmpp.org/extensions/xep-0071.html).
 # It is disabled by default because XMPP clients support has been found to be spotty.

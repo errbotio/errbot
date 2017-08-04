@@ -12,44 +12,36 @@ from errbot.storage import StoreMixin
 log = logging.getLogger(__name__)
 
 
-def vc(v1, v2):
+@pytest.mark.parametrize('v1,v2', [
+                         ('2.0.0', '2.0.1'),
+                         ('2.0.0', '2.1.0'),
+                         ('2.0.0', '3.0.0'),
+                         ('2.0.0-alpha', '2.0.0-beta'),
+                         ('2.0.0-beta', '2.0.0-rc1'),
+                         ('2.0.0-rc1', '2.0.0-rc2'),
+                         ('2.0.0-rc2', '2.0.0-rc3'),
+                         ('2.0.0-rc2', '2.0.0'),
+                         ('2.0.0-beta', '2.0.1'),
+                         ])
+def test_version_check(v1, v2):
     assert version2array(v1) < version2array(v2)
 
 
-def vc_neg(version):
+@pytest.mark.parametrize('version', [
+                         '1.2.3.4',
+                         '1.2',
+                         '1.2.-beta',
+                         '1.2.3-toto',
+                         '1.2.3-rc',
+                         ])
+def test_version_check_negative(version):
     with pytest.raises(ValueError):
         version2array(version)
-
-
-def test_version_check():
-    yield vc, '2.0.0', '2.0.1'
-    yield vc, '2.0.0', '2.1.0'
-    yield vc, '2.0.0', '3.0.0'
-    yield vc, '2.0.0-alpha', '2.0.0-beta'
-    yield vc, '2.0.0-beta', '2.0.0-rc1'
-    yield vc, '2.0.0-rc1', '2.0.0-rc2'
-    yield vc, '2.0.0-rc2', '2.0.0-rc3'
-    yield vc, '2.0.0-rc2', '2.0.0'
-    yield vc, '2.0.0-beta', '2.0.1'
-
-
-def test_version_check_negative():
-    yield vc_neg, '1.2.3.4'
-    yield vc_neg, '1.2'
-    yield vc_neg, '1.2.-beta'
-    yield vc_neg, '1.2.3-toto'
-    yield vc_neg, '1.2.3-rc'
 
 
 def test_formattimedelta():
     td = timedelta(0, 60 * 60 + 13 * 60)
     assert '1 hours and 13 minutes' == format_timedelta(td)
-
-
-def test_drawbar():
-    assert drawbar(5, 10) == '[████████▒▒▒▒▒▒▒]'
-    assert drawbar(0, 10) == '[▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]'
-    assert drawbar(10, 10) == '[███████████████]'
 
 
 def unescape_test():
@@ -75,56 +67,6 @@ def test_storage():
     del persistent_object[key]
     assert key not in persistent_object
     assert len(persistent_object) == 0
-
-
-def test_recurse_check_structure_valid():
-    sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar"}, none=None, true=True,
-                    false=False)
-    recurse_check_structure(sample, to_check)
-
-
-def test_recurse_check_structure_missingitem():
-    sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    to_check = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True)
-    with pytest.raises(ValidationException):
-        recurse_check_structure(sample, to_check)
-
-
-def test_recurse_check_structure_extrasubitem():
-    sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={'foo': "Bar", 'Bar': "Foo"}, none=None,
-                    true=True, false=False)
-    with pytest.raises(ValidationException):
-        recurse_check_structure(sample, to_check)
-
-
-def test_recurse_check_structure_missingsubitem():
-    sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    to_check = dict(string="Foobar", list=["Foo", "Bar", "Bas"], dict={}, none=None, true=True, false=False)
-    with pytest.raises(ValidationException):
-        recurse_check_structure(sample, to_check)
-
-
-def test_recurse_check_structure_wrongtype_1():
-    sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    to_check = dict(string=None, list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    with pytest.raises(ValidationException):
-        recurse_check_structure(sample, to_check)
-
-
-def test_recurse_check_structure_wrongtype_2():
-    sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    to_check = dict(string="Foobar", list={'foo': "Bar"}, dict={'foo': "Bar"}, none=None, true=True, false=False)
-    with pytest.raises(ValidationException):
-        recurse_check_structure(sample, to_check)
-
-
-def test_recurse_check_structure_wrongtype_3():
-    sample = dict(string="Foobar", list=["Foo", "Bar"], dict={'foo': "Bar"}, none=None, true=True, false=False)
-    to_check = dict(string="Foobar", list=["Foo", "Bar"], dict=["Foo", "Bar"], none=None, true=True, false=False)
-    with pytest.raises(ValidationException):
-        recurse_check_structure(sample, to_check)
 
 
 def test_split_string_after_returns_original_string_when_chunksize_equals_string_size():

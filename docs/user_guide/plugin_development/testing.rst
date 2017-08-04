@@ -38,26 +38,27 @@ This does absolutely nothing shocking, but how do you test it?
 We need to interact with the bot somehow, send it `!mycommand` and validate the reply.
 Fortunatly Errbot provides some help.
 
+
+
 Our test, *test_myplugin.py*:
 
 .. code-block:: python
 
-    import os
-    from errbot.backends.test import testbot
+    pytest_plugins = ["errbot.backends.test"]
 
+    extra_plugin_dir = '.'
 
-    class TestMyPlugin(object):
-        extra_plugin_dir = '.'
+    def test_command(testbot):
+        testbot.push_message('!mycommand')
+        assert 'This is my awesome command' in testbot.pop_message()
 
-        def test_command(self, testbot):
-            testbot.push_message('!mycommand')
-            assert 'This is my awesome command' in testbot.pop_message()
+Lets walk through this line for line. First of all, we specify our pytest fixture location :class:`~errbot.backends.test` in the backends tests, to allow us to spin up a bot for testing purposes and interact with the message queue. To avoid specifying the module in every test module, you can simply place this line in your conftest.py_.
 
-Lets walk through this line for line. First of all, we import :class:`~errbot.backends.test.testbot` from the backends tests, to allow us to spin up a bot for testing purposes and interact with the message queue.
-
-Then we define our own test class and inside of it we set `extra_plugin_dir` to `.`, the current directory so that the test bot will pick up on your plugin.
+Then we set `extra_plugin_dir` to `.`, the current directory so that the test bot will pick up on your plugin.
 
 After that we define our first `test_` method which simply sends a command to the bot using :func:`~errbot.backends.test.TestBot.push_message` and then asserts that the response we expect, *"This is my awesome command"* is in the message we receive from the bot which we get by calling :func:`~errbot.backends.test.TestBot.pop_message`.
+
+You can assert the response of a command using the method assertCommand of the testbot. `testbot.assertCommand('!mycommand', 'This is my awesome command')` to achieve the equivalent of pushing message and asserting the response in the popped message.`
 
 Helper methods
 --------------
@@ -85,12 +86,10 @@ Such methods can be tested very easily, without needing a bot:
 
     import myplugin
 
-    class TestMyPlugin(object):
-
-        def test_mycommand_helper(self):
-            expected = "This is my awesome command"
-            result = myplugin.MyPlugin.mycommand_helper()
-            assert result == expected
+    def test_mycommand_helper():
+        expected = "This is my awesome command"
+        result = myplugin.MyPlugin.mycommand_helper()
+        assert result == expected
 
 Here we simply import `myplugin` and since it's a `@staticmethod` we can directly access it through `myplugin.MyPlugin.method()`.
 
@@ -112,17 +111,13 @@ What we need now is get access to the instance of our plugin itself. Fortunately
 
 .. code-block:: python
 
-    import os
-    from errbot.backends.test import testbot
+    extra_plugin_dir = '.'
 
-    class TestMyPlugin(object)
-        extra_plugin_dir = '.'
-
-        def test_mycommand_helper(self, testbot):
-            plugin = testbot.bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
-            expected = "This is my awesome command"
-            result = plugin.mycommand_helper()
-            assert result == expected
+    def test_mycommand_helper(testbot):
+        plugin = testbot._bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
+        expected = "This is my awesome command"
+        result = plugin.mycommand_helper()
+        assert result == expected
 
 There we go, we first grab out plugin thanks to a helper method on :mod:`~errbot.plugin_manager` and then simply execute the method and compare what we get with what we expect. You can also access `@classmethod` or `@staticmethod` methods this way, you just don't have to.
 
@@ -177,39 +172,28 @@ All together now
 
 .. code-block:: python
 
-    import os
-    import unittest
     import myplugin
-    from errbot.backends.test import testbot
 
-    class TestMyPluginBot(object):
-        extra_plugin_dir = '.'
+    extra_plugin_dir = '.'
 
-        def test_mycommand(self, testbot):
-            testbot.push_message('!mycommand')
-            assert 'This is my awesome command' in testbot.pop_message()
+    def test_mycommand(testbot):
+        testbot.push_message('!mycommand')
+        assert 'This is my awesome command' in testbot.pop_message()
 
-        def test_mycommand_another(self, testbot):
-            testbot.push_message('!mycommand another')
-            assert 'This is another awesome command' in testbot.pop_message()
+    def test_mycommand_another(testbot):
+        testbot.push_message('!mycommand another')
+        assert 'This is another awesome command' in testbot.pop_message()
 
+    def test_mycommand_helper():
+        expected = "This is my awesome command"
+        result = myplugin.MyPlugin.mycommand_helper()
+        assert result == expected
 
-    class TestMyPluginStaticMethods(object):
-
-        def test_mycommand_helper(self):
-            expected = "This is my awesome command"
-            result = myplugin.MyPlugin.mycommand_helper()
-            assert result == expected
-
-
-    class TestMyPluginInstanceMethods(object):
-        extra_plugin_dir = '.'
-
-        def test_mycommand_another_helper(self):
-            plugin = self._bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
-            expected = "This is another awesome command"
-            result = plugin.mycommand_another_helper()
-            assert result == expected
+    def test_mycommand_another_helper():
+        plugin = testbot._bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
+        expected = "This is another awesome command"
+        result = plugin.mycommand_another_helper()
+        assert result == expected
 
 You can now simply run :command:`py.test` to execute the tests.
 
@@ -265,6 +249,7 @@ The `-q` flag causes pip to be a lot more quiet and `--use-wheel` will cause pip
 Both Travis-CI and Coveralls easily integrate with Github hosted code.
 
 .. _py.test: http://pytest.org
+.. _conftest.py: http://doc.pytest.org/en/latest/writing_plugins.html#conftest-py-local-per-directory-plugins
 .. _Coveralls.io: https://coveralls.io
 .. _Travis-CI: https://travis-ci.org
 .. _Yapsy: http://yapsy.sourceforge.net

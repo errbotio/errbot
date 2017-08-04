@@ -19,3 +19,13 @@ class DummyTest(BotPlugin):
     def re_bar(self, msg, match):
         """This runs re_foo."""
         return 'bar'
+
+    @botcmd
+    def run_subcommands(self, msg, args):
+        """Tests a simple subcommand"""
+        return args
+
+    @botcmd
+    def run_lots_of_subcommands(self, msg, args):
+        """Tests multiple subcommands"""
+        return args

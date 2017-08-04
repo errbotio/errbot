@@ -12,7 +12,7 @@ from errbot.repo_manager import RepoException
 class Plugins(BotPlugin):
 
     @botcmd(admin_only=True)
-    def repos_install(self, mess, args):
+    def repos_install(self, _, args):
         """ install a plugin repository from the given source or a known public repo (see !repos to find those).
         for example from a known repo : !install err-codebot
         for example a git url : git@github.com:gbin/plugin.git
@@ -145,7 +145,7 @@ class Plugins(BotPlugin):
         Copy paste, adapt so can configure the plugin :
         !plugin config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         It will then reload the plugin with this config.
-        You can at any moment retreive the current values:
+        You can at any moment retrieve the current values:
         !plugin config ExampleBot
         should return :
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}

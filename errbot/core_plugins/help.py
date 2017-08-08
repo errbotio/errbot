@@ -166,7 +166,8 @@ class Help(BotPlugin):
         patt = getattr(command, '_err_command_re_pattern', None)
 
         if patt:
-            name = patt.pattern
+            re_help_name = getattr(command, '_err_command_re_name_help', None)
+            name = re_help_name if re_help_name else patt.pattern
 
         if not show_doc:
             cmd_doc = cmd_doc.split('\n')[0]

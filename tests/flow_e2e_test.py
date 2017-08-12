@@ -7,15 +7,17 @@ extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), 'flow_plugin
 
 
 def test_list_flows(testbot):
-    assert len(testbot.bot.flow_executor.flow_roots) == 3
+    assert len(testbot.bot.flow_executor.flow_roots) == 4
     testbot.bot.push_message('!flows list')
     result = testbot.pop_message()
     assert 'documentation of W1' in result
     assert 'documentation of W2' in result
     assert 'documentation of W3' in result
+    assert 'documentation of W4' in result
     assert 'w1' in result
     assert 'w2' in result
     assert 'w3' in result
+    assert 'w4' in result
 
 
 def test_no_autotrigger(testbot):
@@ -59,6 +61,15 @@ def test_manual_flow(testbot):
     flow_message = testbot.pop_message()
     assert 'You are in the flow w1, you can continue with' in flow_message
     assert '!b' in flow_message
+    assert '!c' in flow_message
+
+
+def test_manual_flow_with_or_without_hinting(testbot):
+    assert 'Flow w4 started' in testbot.exec_command('!flows start w4')
+    assert 'a' in testbot.exec_command('!a')
+    assert 'b' in testbot.exec_command('!b')
+    flow_message = testbot.pop_message()
+    assert 'You are in the flow w4, you can continue with' in flow_message
     assert '!c' in flow_message
 
 

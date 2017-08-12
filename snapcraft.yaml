@@ -1,0 +1,22 @@
+name: errbot
+version: master
+summary: chatbot that brings your tools into the conversation.
+description: |
+  Errbot is a chatbot. It allows you to start scripts interactively from your
+  chatrooms for any reason: random humour, chatops, starting a build, monitoring
+  commits, triggering alerts...
+
+grade: devel
+confinement: strict
+
+apps:
+  errbot:
+    command: env LC_ALL=C.UTF-8 errbot
+    plugs: [home, network, network-bind]
+
+parts:
+  errbot:
+    source: .
+    plugin: python
+    build-packages: [gcc, libffi-dev, libssl-dev]
+    stage-packages: [git]

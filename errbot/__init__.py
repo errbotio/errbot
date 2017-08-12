@@ -68,7 +68,8 @@ def _tag_botcmd(func,
                 matchall=False,      # re_cmd_only
                 prefixed=True,       # re_cmd_only
                 _arg=False,
-                command_parser=None):  # arg_cmd only
+                command_parser=None,  # arg_cmd only
+                re_cmd_name_help=None):  # re_cmd_only
     """
     Mark a method as a bot command.
     """
@@ -90,6 +91,7 @@ def _tag_botcmd(func,
             func._err_command_matchall = matchall
             func._err_command_prefix_required = prefixed
             func._err_command_syntax = pattern
+            func._err_command_re_name_help = re_cmd_name_help
 
         # arg_cmd
         func._err_arg_command = _arg
@@ -161,7 +163,8 @@ def re_botcmd(*args,
               flags: int=0,
               matchall: bool=False,
               prefixed: bool=True,
-              flow_only: bool=False) -> Callable[[BotPlugin, Message, Any], Any]:
+              flow_only: bool=False,
+              re_cmd_name_help: str=None) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for regex-based bot command functions
 
@@ -210,7 +213,8 @@ def re_botcmd(*args,
                            flags=flags,
                            matchall=matchall,
                            prefixed=prefixed,
-                           flow_only=flow_only)
+                           flow_only=flow_only,
+                           re_cmd_name_help=re_cmd_name_help)
     return decorator(args[0]) if args else decorator
 
 

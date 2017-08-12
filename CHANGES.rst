@@ -1,3 +1,11 @@
+v5.1.1 (2017-08-12)
+-------------------
+
+fixes:
+
+- allows spaces in BOT_PREFIX.
+- Text: ACLs were not working (@user vs user inconsistency).
+
 v5.1.0 (2017-07-24)
 -------------------
 

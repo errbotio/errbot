@@ -480,7 +480,7 @@ class HipchatBackend(XMPPBackend):
         if not card.is_group:
             raise ValueError('Private notifications/cards are impossible to send on 1 to 1 messages on hipchat.')
         log.debug("room id = %s" % card.to)
-        room = self.conn.hypchat.get_room(str(card.to))
+        room = self.query_room(str(card.to)).room
 
         data = {'message': '-' if not card.body else self.md.convert(card.body),
                 'notify': False,

@@ -103,6 +103,7 @@ class HipChatRoomOccupant(XMPPRoomOccupant):
     def aclattr(self):
         return self._aclattr
 
+
 class HipChatRoom(Room):
     """
     This class represents a Multi-User Chatroom.
@@ -412,7 +413,11 @@ class HipchatBackend(XMPPBackend):
 
     def _build_room_occupant(self, txtrep):
         node, domain, resource = split_identifier(txtrep)
-        return self.roomoccupant_factory(node, domain, resource, self.query_room(node + '@' + domain), aclattr = self._find_user(resource, 'name'))
+        return self.roomoccupant_factory(node,
+                                         domain,
+                                         resource,
+                                         self.query_room(node + '@' + domain),
+                                         aclattr=self._find_user(resource, 'name'))
 
     def callback_message(self, msg):
         super().callback_message(msg)

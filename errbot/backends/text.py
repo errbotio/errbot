@@ -210,15 +210,30 @@ class TextPlugin(BotPlugin):
         self._bot.user = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         return 'You are now an admin: %s' % self._bot.user
 
+    @botcmd
+    def ml(self, msg, args):
+        """
+           Switch back and forth between normal mode and multiline mode. Use this if you want to test
+           commands spanning multiple lines. Note: in multiline, press enter twice to end and send the message.
+        """
+        self._bot._multiline = not self._bot._multiline
+        return 'Multiline mode, press enter twice to end messages' if self._bot._multiline else 'Normal one line mode.'
 
 INTRO = """
 ---
 You start as a **bot admin in a one-on-one conversation** with the bot.
 
+### Context of the chat
+
 - Use `!inroom`{:color='blue'} to switch to a room conversation.
 - Use `!inperson`{:color='blue'} to switch back to a one-on-one conversation.
 - Use `!asuser`{:color='green'} to talk as a normal user.
 - Use `!asadmin`{:color='red'} to switch back as a bot admin.
+
+### Preferences
+
+- Use `!ml`{:color='yellow'} to flip on/off the multiline mode (Enter twice at the end to send).
+
 ---
 """
 
@@ -237,6 +252,7 @@ class TextBackend(ErrBot):
         log.debug('Bot username set at %s.', self.bot_identifier)
         self._inroom = False
         self._rooms = []
+        self._multiline = False
 
         self.demo_mode = self.bot_config.TEXT_DEMO_MODE if hasattr(self.bot_config, 'TEXT_DEMO_MODE') else False
         if not self.demo_mode:
@@ -299,9 +315,9 @@ class TextBackend(ErrBot):
                     to = self.bot_identifier
 
                 print()
-                multiline = ''
+                full_msg = ''
                 while True:
-                    prompt = '[␍] ' if multiline else '>>> '
+                    prompt = '[␍] ' if full_msg else '>>> '
                     if ANSI or self.demo_mode:
                         color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
                         entry = input(str(color) +
@@ -311,11 +327,17 @@ class TextBackend(ErrBot):
                                       str(fx.reset))
                     else:
                         entry = input('[%s ➡ %s] ' % (frm, to) + prompt)
+
+                    if not self._multiline:
+                        full_msg = entry
+                        break
+
                     if not entry:
                         break
-                    multiline += entry + '\n'
 
-                msg = Message(multiline)
+                    full_msg += entry + '\n'
+
+                msg = Message(full_msg)
                 msg.frm = frm
                 msg.to = to
 

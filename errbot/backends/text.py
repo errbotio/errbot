@@ -228,7 +228,7 @@ class TextBackend(ErrBot):
         super().__init__(config)
         log.debug("Text Backend Init.")
 
-        if 'username' in self.bot_config.BOT_IDENTITY:
+        if hasattr(self.bot_config, 'BOT_IDENTITY') and 'username' in self.bot_config.BOT_IDENTITY:
             self.bot_identifier = self.build_identifier(self.bot_config.BOT_IDENTITY['username'])
         else:
             # Just a default identity for the bot if nothing has been specified.

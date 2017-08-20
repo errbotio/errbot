@@ -105,7 +105,9 @@ def parse_date(gh_date: str)-> datetime:
 
 
 def check_repo(repo):
-    repo_name = repo['full_name']
+    repo_name = repo.get('full_name', None)
+    if repo_name is None:
+        log.error('No name in %s', repo)
     log.debug('Checking %s...', repo_name)
     code_resp = requests.get('https://api.github.com/search/code?q=extension:plug+repo:%s' % repo_name, auth=AUTH)
     if code_resp.status_code != 200:

@@ -7,7 +7,6 @@ import time
 import sys
 import pprint
 from functools import lru_cache
-from multiprocessing.pool import ThreadPool
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension

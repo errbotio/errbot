@@ -1,6 +1,5 @@
 import logging
 import sys
-from multiprocessing.pool import ThreadPool
 
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
 from errbot.core import ErrBot

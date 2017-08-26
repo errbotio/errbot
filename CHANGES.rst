@@ -1,3 +1,12 @@
+v5.1.2 (2017-08-26)
+-------------------
+
+fixes:
+
+- Text: BOT_IDENTITY to stay optional in config.py
+- Hipchat: send_card fix for room name lookup (thx Jason Kincl)
+- Hipchat: ACL in rooms
+
 v5.1.1 (2017-08-12)
 -------------------
 

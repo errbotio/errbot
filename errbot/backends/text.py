@@ -219,6 +219,7 @@ class TextPlugin(BotPlugin):
         self._bot._multiline = not self._bot._multiline
         return 'Multiline mode, press enter twice to end messages' if self._bot._multiline else 'Normal one line mode.'
 
+
 INTRO = """
 ---
 You start as a **bot admin in a one-on-one conversation** with the bot.

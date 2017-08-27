@@ -1,0 +1,7 @@
+[Core]
+Name = TextCmds
+Module = textcmds
+Core = True
+
+[Documentation]
+Description = Commands only available in text mode to manage the chatting context (inperson, inroom, asadmin ...).

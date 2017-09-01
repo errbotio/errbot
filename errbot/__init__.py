@@ -343,8 +343,10 @@ def arg_botcmd(*args,
                 # Some clients automatically convert consecutive dashes into a fancy
                 # hyphen, which breaks long-form arguments. Undo this conversion to
                 # provide a better user experience.
+                # Same happens with quotations marks, which are required for parsing
+                # complex strings in arguments
                 try:
-                    args = shlex.split(args.replace('—', '--'))
+                    args = shlex.split(args.replace('—', '--').replace('“', '"').replace('”', '"'))
                     parsed_args = err_command_parser.parse_args(args)
                 except ArgumentParseError as e:
                     yield "I'm sorry, I couldn't parse the arguments; %s" % e

@@ -178,6 +178,9 @@ class SlackPerson(Person):
             return False
         return other.userid == self.userid
 
+    def __hash__(self):
+        return self.userid.__hash__()
+
     @property
     def person(self):
         # Don't use str(self) here because we want SlackRoomOccupant

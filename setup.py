@@ -106,7 +106,7 @@ if __name__ == "__main__":
                        'backends/styles/*.css',
                        'backends/images/*.svg',
                        'core_plugins/*.plug',
-                       'core_plugins/*.md',                       
+                       'core_plugins/*.md',
                        'core_plugins/templates/*.md',
                        'storage/*.plug',
                        'templates/initdir/example.py',

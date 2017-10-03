@@ -601,7 +601,7 @@ class SlackBackend(ErrBot):
                 return None
             else:
                 raise e
-                
+
     def get_user_profile(self, userid):
         """Get slack user profile"""
         try:

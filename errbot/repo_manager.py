@@ -104,14 +104,14 @@ class BotRepoManager(StoreMixin):
     def check_for_index_update(self):
         if REPO_INDEX not in self:
             log.info('No repo index, creating it.')
-            self[REPO_INDEX] = {LAST_UPDATE: 0}
+            self.index_update()
 
-        if datetime.utcfromtimestamp(self[REPO_INDEX][LAST_UPDATE]) < datetime.utcnow() - REPO_INDEXES_CHECK_INTERVAL:
+        if datetime.fromtimestamp(self[REPO_INDEX][LAST_UPDATE]) < datetime.now() - REPO_INDEXES_CHECK_INTERVAL:
             log.info('Index is too old, update it.')
             self.index_update()
 
     def index_update(self):
-        index = {LAST_UPDATE: datetime.utcnow().timestamp()}
+        index = {LAST_UPDATE: datetime.now().timestamp()}
         for source in reversed(self.plugin_indexes):
             try:
                 if urlparse(source).scheme in ('http', 'https'):

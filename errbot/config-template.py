@@ -148,15 +148,15 @@ BOT_IDENTITY = {
     # 'server': ('host.domain.tld',5222), # server override
 
     ## HipChat mode (Comment the above if using this mode)
-    # 'username' : '12345_123456@chat.hipchat.com',
-    # 'password' : 'changeme',
+    # 'username': '12345_123456@chat.hipchat.com',
+    # 'password': 'changeme',
     ## Group admins can create/view tokens on the settings page after logging
     ## in on HipChat's website
-    # 'token'    : 'ed4b74d62833267d98aa99f312ff04',
+    # 'token': 'ed4b74d62833267d98aa99f312ff04',
     ## If you're using HipChat server (self-hosted HipChat) then you should set
     ## the endpoint below. If you don't use HipChat server but use the hosted version
     ## of HipChat then you may leave this commented out.
-    # 'endpoint' : 'https://api.hipchat.com'
+    # 'endpoint': 'https://api.hipchat.com'
 
     ## Slack mode (comment the others above if using this mode)
     # 'token': 'xoxb-4426949411-aEM7...',
@@ -165,10 +165,10 @@ BOT_IDENTITY = {
     # 'token': '103419016:AAbcd1234...',
 
     ## IRC mode (Comment the others above if using this mode)
-    # 'nickname' : 'err-chatbot',
-    # 'username' : 'err-chatbot',    # optional, defaults to nickname if omitted
-    # 'password' : None,             # optional
-    # 'server' : 'irc.freenode.net',
+    # 'nickname': 'err-chatbot',
+    # 'username': 'err-chatbot',    # optional, defaults to nickname if omitted
+    # 'password': None,             # optional
+    # 'server': 'irc.freenode.net',
     # 'port': 6667,                  # optional
     # 'ssl': False,                  # optional
     # 'ipv6': False,                 # optional

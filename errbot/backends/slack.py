@@ -715,7 +715,6 @@ class SlackBackend(ErrBot):
             attachment['image_url'] = card.image
         if card.thumbnail:
             attachment['thumb_url'] = card.thumbnail
-        attachment['text'] = card.body
 
         if card.color:
             attachment['color'] = COLORS[card.color] if card.color in COLORS else card.color
@@ -723,20 +722,27 @@ class SlackBackend(ErrBot):
         if card.fields:
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
-        data = {
-            'text': ' ',
-            'channel': to_channel_id,
-            'attachments': json.dumps([attachment]),
-            'link_names': '1',
-            'as_user': 'true'
-        }
-        try:
-            log.debug('Sending data:\n%s', data)
-            self.api_call('chat.postMessage', data=data)
-        except Exception:
-            log.exception(
-                "An exception occurred while trying to send a card to %s.[%s]" % (to_humanreadable, card)
-            )
+        limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
+        parts = self.prepare_message_body(card.body, limit)
+
+        footer = attachment.get("footer", "")
+        for i in range(len(parts)):
+            attachment["footer"] = "{} [{} of {}]".format(footer, i + 1, len(parts))
+            attachment["text"] = parts[i]
+            data = {
+                'text': ' ',
+                'channel': to_channel_id,
+                'attachments': json.dumps([attachment]),
+                'link_names': '1',
+                'as_user': 'true'
+            }
+            try:
+                log.debug('Sending data:\n%s', data)
+                self.api_call('chat.postMessage', data=data)
+            except Exception:
+                log.exception(
+                    "An exception occurred while trying to send a card to %s.[%s]" % (to_humanreadable, card)
+                )
 
     def __hash__(self):
         return 0  # this is a singleton anyway

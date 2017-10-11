@@ -724,10 +724,11 @@ class SlackBackend(ErrBot):
 
         limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
         parts = self.prepare_message_body(card.body, limit)
-
+        part_count = len(parts)
         footer = attachment.get("footer", "")
-        for i in range(len(parts)):
-            attachment["footer"] = "{} [{} of {}]".format(footer, i + 1, len(parts))
+        for i in range(part_count):
+            if part_count > 1:
+                attachment["footer"] = "{} [{} of {}]".format(footer, i + 1, part_count)
             attachment["text"] = parts[i]
             data = {
                 'text': ' ',

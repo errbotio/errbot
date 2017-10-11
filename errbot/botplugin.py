@@ -231,7 +231,6 @@ class BotPluginBase(StoreMixin):
 
     def stop_poller(self,
                     method: Callable[..., None],
-                    times: int=None,
                     args: Tuple=None,
                     kwargs: Mapping=None):
         if not kwargs:

@@ -12,3 +12,12 @@ def test_delayed_hello(testbot):
     assert delayed_msg in testbot.pop_message(timeout=1)
     # Assert that only one message has been enqueued
     assert testbot.bot.outgoing_message_queue.empty()
+
+
+def test_delayed_hello_loop(testbot):
+    assert 'Hello, world!' in testbot.exec_command('!hello_loop')
+    time.sleep(1)
+    delayed_msg = 'Hello world! was sent 5 seconds ago'
+    assert delayed_msg in testbot.pop_message(timeout=1)
+    # Assert that only one message has been enqueued
+    assert testbot.bot.outgoing_message_queue.empty()

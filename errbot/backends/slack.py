@@ -728,7 +728,7 @@ class SlackBackend(ErrBot):
         footer = attachment.get("footer", "")
         for i in range(part_count):
             if part_count > 1:
-                attachment["footer"] = "{} [{} of {}]".format(footer, i + 1, part_count)
+                attachment["footer"] = "{} [{}/{}]".format(footer, i + 1, part_count)
             attachment["text"] = parts[i]
             data = {
                 'text': ' ',

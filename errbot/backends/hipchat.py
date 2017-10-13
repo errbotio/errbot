@@ -464,7 +464,9 @@ class HipchatBackend(XMPPBackend):
         :returns:
             An instance of :class:`~HipChatRoom`.
         """
-        if room.endswith('@conf.hipchat.com'):
+        # hipchat server support - conf.bts.hipchat.com
+        if room.endswith('@conf.hipchat.com') or \
+                room.endswith("@conf.btf.hipchat.com"):
             log.debug("Room specified by JID, looking up room name")
             rooms = self.conn.hypchat.rooms(expand='items').contents()
             try:

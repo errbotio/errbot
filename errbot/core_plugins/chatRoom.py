@@ -235,6 +235,8 @@ class ChatRoom(BotPlugin):
             elif msg.is_group:
                 fr = msg.frm
                 chat_room = str(fr.room)
+                # Hipchat Server, this might be a JID, look it up just in case
+                chat_room = self.query_room(chat_room)
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                     users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
                     self.log.debug('Message to relay to %s.' % users_to_relay_to)

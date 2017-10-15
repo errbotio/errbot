@@ -353,6 +353,7 @@ class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
         self.token = kwargs.pop('token')
         self.endpoint = kwargs.pop('endpoint')
+        self._cached_users = None
         verify = kwargs.pop('verify')
         if verify is None:
             verify = True
@@ -371,14 +372,17 @@ class HipchatClient(XMPPConnection):
 
         See also: https://www.hipchat.com/docs/apiv2/method/get_all_users
         """
-        result = self.hypchat.users(guests=True)
-        users = result['items']
-        next_link = 'next' in result['links']
-        while next_link:
-            result = result.next()
-            users += result['items']
+
+        if not self._cached_users:
+            result = self.hypchat.users(guests=True)
+            users = result['items']
             next_link = 'next' in result['links']
-        return users
+            while next_link:
+                result = result.next()
+                users += result['items']
+                next_link = 'next' in result['links']
+            self._cached_users = users
+        return self._cached_users
 
 
 class HipchatBackend(XMPPBackend):
@@ -564,6 +568,7 @@ class HipchatBackend(XMPPBackend):
         """
         users = [u for u in self.conn.users if u[criteria] == name]
         if not users:
+            log.debug('Failed to find user %s', name)
             return None
         userdetail = self.conn.hypchat.get_user("%s" % users[0]['id'])
         identifier = self.build_identifier(userdetail['xmpp_jid'])

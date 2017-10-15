@@ -3,17 +3,8 @@ import logging
 import random
 import time
 from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
-from abc import abstractproperty, abstractmethod
+from abc import ABC, abstractmethod
 from collections import deque, defaultdict
-
-try:
-    from abc import ABC
-except ImportError:
-    #  3.3 backward compatibility
-    from abc import ABCMeta
-
-    class ABC(metaclass=ABCMeta):
-        pass
 
 
 # Can't use __name__ because of Yapsy

@@ -25,8 +25,8 @@ PY35_OR_GREATER = py_version >= (3, 5)
 
 ON_WINDOWS = system() == 'Windows'
 
-if py_version < (3, 3):
-    raise RuntimeError('Errbot requires Python 3.3 or later')
+if py_version < (3, 4):
+    raise RuntimeError('Errbot requires Python 3.4 or later')
 
 VERSION_FILE = os.path.join('errbot', 'version.py')
 
@@ -139,9 +139,9 @@ if __name__ == "__main__":
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.3",
             "Programming Language :: Python :: 3.4",
             "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
         ],
         src_root=src_root,
         platforms='any',

@@ -36,7 +36,7 @@ deps = ['webtest',
         'rocket-errbot',
         'requests',
         'jinja2',
-        'pyOpenSSL',
+        'pyOpenSSL<17.3.0', # pyOpenSSL dropped Python 3.3 compat.
         'colorlog',
         'yapsy>=1.11',  # new contract for plugin instantiation
         'markdown',  # rendering stuff

@@ -1,3 +1,15 @@
+v5.1.3 (2017-10-15)
+-------------------
+
+fixes:
+
+- Default --init config is now compatible with Text backend requirements.
+- Windows: Config directories as raw string (Thx defAnfaenger)
+- Windows: Repo Manager first time update (Thx Jake Shadle)
+- Slack: fix Slack identities to be hashable
+- Hipchat: fix HicpChat Server XMPP namespace (Thx Antti Palsola)
+- Hipchat: more aggressive cashing of user list to avoid API quota exceeds (thx Roman)
+
 v5.1.2 (2017-08-26)
 -------------------
 

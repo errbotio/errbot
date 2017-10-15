@@ -14,6 +14,8 @@ try:
     from OpenSSL import crypto
     has_crypto = True
 except ImportError:
+    import logging
+    logging.exception('Could not import pyOpenSSL')
     has_crypto = False
 
 TEST_REPORT = """*** Test Report

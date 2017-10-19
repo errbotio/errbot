@@ -346,7 +346,10 @@ def arg_botcmd(*args,
                 # Same happens with quotations marks, which are required for parsing
                 # complex strings in arguments
                 try:
-                    args = shlex.split(args.replace('—', '--').replace('“', '"').replace('”', '"'))
+                    #Map of strings to replace with sanitized versions
+                    sanitizers = {'—': '--', '“': '"', '”': '"'}
+                    sanitizer_re = re.compile('|'.join(re.escape(ii) for ii in sanitizers))
+                    args = sanitizer_re.sub(lambda mm: sanitizers[mm.group()], args)
                     parsed_args = err_command_parser.parse_args(args)
                 except ArgumentParseError as e:
                     yield "I'm sorry, I couldn't parse the arguments; %s" % e

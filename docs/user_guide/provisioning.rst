@@ -12,6 +12,10 @@ ahead of time for example at errbot installation (also called provisioning).
 
 It is useful for installation scripts and deployments.
 
+.. NOTE::
+   When accessing the default "Shelf storage", errbot should not be running. Otherwise the error "Storage does not appear to have been opened yet" will be returned.
+   This is due to [the python `shelve` module restricting access to a shelf opened in another running program. For details see `shelve docs <https://docs.python.org/3/library/shelve.html#restrictions>`_.
+
 Reading stored values
 ---------------------
 

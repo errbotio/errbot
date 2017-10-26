@@ -14,6 +14,7 @@ Currently, the following networks are supported:
   * Gitter_ (maintained `separately <https://github.com/errbotio/err-backend-gitter>`__)
   * CampFire_ (maintained `separately <https://github.com/errbotio/err-backend-campfire>`__)
   * Skype_ (maintained `separately <https://github.com/errbotio/errbot-backend-skype>`__)
+  * Zulip_ (maintained `separately <https://github.com/zulip/errbot-backend-zulip>`__)
 
 
 Core features
@@ -71,3 +72,4 @@ Extensive plugin framework
 .. _irc: https://pypi.python.org/pypi/irc/
 .. _six: https://pypi.python.org/pypi/six/
 .. _`logged to Sentry`: https://github.com/errbotio/errbot/wiki/Logging-with-Sentry
+.. _Zulip: https://zulipchat.com/

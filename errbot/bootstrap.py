@@ -148,9 +148,7 @@ def setup_bot(backend_name, logger, config, restore=None):
             log.fatal('You cannot restore onto a non empty bot.')
             sys.exit(-1)
         log.info('**** RESTORING the bot from %s' % restore)
-        with open(restore) as f:
-            ast.literal_eval(f.read())
-        bot.close_storage()
+        restore_bot_from_backup(restore, bot=bot, log=log)
         print('Restore complete. You can restart the bot normally')
         sys.exit(0)
 
@@ -159,6 +157,21 @@ def setup_bot(backend_name, logger, config, restore=None):
         log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
         bot._plugin_errors_during_startup = "\n".join(errors.values())
     return bot
+
+
+def restore_bot_from_backup(backup_filename, *, bot, log):
+    """Restores the given bot by executing the 'backup' script.
+
+    The backup file is a python script which manually execute a series of commands on the bot to restore it
+    to its previous state.
+
+    :param backup_filename: the full path to the backup script.
+    :param bot: the bot instance to restore
+    :param log: logger to use during the restoration process
+    """
+    with open(backup_filename) as f:
+        exec(f.read(), {'log': log, 'bot': bot})
+    bot.close_storage()
 
 
 def get_storage_plugin(config):

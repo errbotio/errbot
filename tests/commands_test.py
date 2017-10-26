@@ -171,7 +171,7 @@ def test_backup(testbot):
     bot.push_message('!backup')
     msg = testbot.pop_message()
     assert 'has been written in' in msg
-    filename = re.search(r"'([A-Za-z0-9_./\\-]*)'", msg).group(1)
+    filename = re.search(r"'([:A-Za-z0-9_./\\-]*)'", msg).group(1)
 
     # At least the backup should mention the installed plugin
     assert 'errbotio/err-helloworld' in open(filename).read()
@@ -188,10 +188,9 @@ def test_backup(testbot):
     rmtree(plugins_dir)
     mkdir(plugins_dir)
 
-    # emulates the restore environment
+    from errbot.bootstrap import restore_bot_from_backup
     log = logging.getLogger(__name__)  # noqa
-    with open(filename) as f:
-        exec(f.read())
+    restore_bot_from_backup(filename, bot=bot, log=log)
 
     assert 'Plugin HelloWorld activated.' in testbot.exec_command('!plugin activate HelloWorld')
     assert 'Hello World !' in testbot.exec_command('!hello')

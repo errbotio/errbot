@@ -57,7 +57,7 @@ class ChatRoom(BotPlugin):
         room.create()
         return "Created the room {}".format(room)
 
-    @botcmd()
+    @botcmd(split_args_with=ShlexArgParser())
     def room_join(self, message, args):
         """
         Join (creating it first if needed) a chatroom.
@@ -72,9 +72,8 @@ class ChatRoom(BotPlugin):
         Examples (IRC):
         !room join #example-room
         !room join #example-room super-secret-password
+        !room join #example-room "password with spaces"
         """
-        # We must account for password with whitespace before, after or in the middle
-        args = args.split(' ', 1)
         arglen = len(args)
         if arglen < 1:
             return "Please tell me which chatroom to join."

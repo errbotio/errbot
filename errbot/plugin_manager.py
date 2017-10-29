@@ -421,7 +421,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             for candidate in candidates:
                 if not check_enabled_core_plugin(candidate[2].name, candidate[2].details, self.core_plugins):
                     self.removePluginCandidate(candidate)
-                    log.debug("%s plugin will not be loaded because it is not listed in CORE_PLUGINS", candidate[2].name)
+                    log.debug("%s plugin will not be loaded because it's not listed in CORE_PLUGINS", candidate[2].name)
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 

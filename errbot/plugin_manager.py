@@ -275,11 +275,6 @@ class BotPluginManager(PluginManager, StoreMixin):
         name = plugin_info.name
         config = self.get_plugin_configuration(name)
 
-        if self.core_plugins is not None:
-            if not check_enabled_core_plugin(name, plugin_info.details, self.core_plugins):
-                log.warning('Core plugin "%s" has been skipped because it is not in CORE_PLUGINS in config.py.' % name)
-                return None
-
         if not check_python_plug_section(name, plugin_info.details):
             log.error('%s failed python version check.', name)
             return None
@@ -418,6 +413,15 @@ class BotPluginManager(PluginManager, StoreMixin):
                 "removing all data and plugins from your bot and then trying again."
             )
             raise
+
+        # Checks if CORE_PLUGINS is defined in config. If so, iterate through plugin candidates and remove any
+        # that are not defined in the config before loading them.
+        if self.core_plugins is not None:
+            candidates = self.getPluginCandidates()
+            for candidate in candidates:
+                if not check_enabled_core_plugin(candidate[2].name, candidate[2].details, self.core_plugins):
+                    self.removePluginCandidate(candidate)
+                    log.debug("%s plugin will not be loaded because it is not listed in CORE_PLUGINS", candidate[2].name)
 
         self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
 

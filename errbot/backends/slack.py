@@ -39,7 +39,7 @@ except ImportError:
 SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
 
 # Empirically determined message size limit.
-SLACK_MESSAGE_LIMIT = 4096
+SLACK_MESSAGE_SIZE_LIMIT = 4096
 
 USER_IS_BOT_HELPTEXT = (
     "Connected to Slack using a bot account, which cannot manage "
@@ -289,6 +289,7 @@ class SlackBackend(ErrBot):
 
     def __init__(self, config):
         super().__init__(config)
+        config.MESSAGE_SIZE_LIMIT = SLACK_MESSAGE_SIZE_LIMIT
         identity = config.BOT_IDENTITY
         self.token = identity.get('token', None)
         if not self.token:
@@ -649,7 +650,7 @@ class SlackBackend(ErrBot):
             body = self.md.convert(msg.body)
             log.debug('Message size: %d' % len(body))
 
-            limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
+            limit = self.config.MESSAGE_SIZE_LIMIT
             parts = self.prepare_message_body(body, limit)
 
             timestamps = []

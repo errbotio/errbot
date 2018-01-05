@@ -21,21 +21,19 @@ class CommandNotFoundFilter(BotPlugin):
             return msg, cmd, args
 
         if self.bot_config.SUPPRESS_CMD_NOT_FOUND:
-            self.log.debug("Suppressing command not found feedback")
-        else:
-            if msg.body.find(' ') > 0:
-                command = msg.body[:msg.body.index(' ')]
-            else:
-                command = msg.body
+            self.log.debug('Suppressing command not found feedback.')
+            return
 
-            prefixes = self.bot_config.BOT_ALT_PREFIXES + (self.bot_config.BOT_PREFIX,)
-            for prefix in prefixes:
-                if command.startswith(prefix):
-                    command = command.replace(prefix, '', 1)
-                    break
+        command = msg.body.strip()
 
-            reply = self._bot.unknown_command(msg, command, args)
-            if reply is None:
-                reply = self.MSG_UNKNOWN_COMMAND % {'command': cmd}
-            if reply:
-                return reply
+        for prefix in self.bot_config.BOT_ALT_PREFIXES + (self.bot_config.BOT_PREFIX,):
+            if command.startswith(prefix):
+                command = command.replace(prefix, '', 1)
+                break
+
+        command_args = command.split(' ', 1)
+        command = command_args[0]
+        if len(command_args) > 1:
+            args = ' '.join(command_args[1:])
+
+        return self._bot.unknown_command(msg, command, args)

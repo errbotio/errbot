@@ -9,6 +9,7 @@ If you are looking for errbot documentation, it is there: [errbot.io](http://err
 
 - Python {{plugin.python}}
 - Install: `!repos install {{plugin.repo}}`
+- Activity: {{plugin.score}}
 
 ---
 {% endfor %}

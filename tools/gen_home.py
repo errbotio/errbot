@@ -17,12 +17,12 @@ with open('repos.json', 'r') as p:
     for repo, plugins in repos.items():
         for name, plugin in plugins.items():
             if plugin['path'].startswith('errbot/builtins'):
-                pass
+                continue
             if plugin['repo'][PREFIX_LEN:] in blacklisted:
-                pass
+                continue
             filtered_plugins.append(plugin)
 
-    sorted_plugins = sorted(filtered_plugins, key=lambda plugin: plugin['name'])
+    sorted_plugins = sorted(filtered_plugins, key=lambda plugin: -plugin['score'])
 
     with open('Home.md', 'w') as out:
         out.write(template.render(plugins=sorted_plugins))

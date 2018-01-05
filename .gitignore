@@ -1,6 +1,7 @@
 *.pyc
 __pycache__
 .venv
+/.coafile
 /.idea
 /atlassian-ide-plugin.xml
 /.settings

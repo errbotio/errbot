@@ -670,16 +670,16 @@ class IRCBackend(ErrBot):
         self.md = irc_md()
         config.MESSAGE_SIZE_LIMIT = IRC_MESSAGE_SIZE_LIMIT
 
-    def send_message(self, mess):
-        super().send_message(mess)
-        if mess.is_direct:
+    def send_message(self, msg):
+        super().send_message(msg)
+        if msg.is_direct:
             msg_func = self.conn.send_private_message
-            msg_to = mess.to.person
+            msg_to = msg.to.person
         else:
             msg_func = self.conn.send_public_message
-            msg_to = mess.to.room
+            msg_to = msg.to.room
 
-        body = self.md.convert(mess.body)
+        body = self.md.convert(msg.body)
         for line in body.split('\n'):
             msg_func(msg_to, line)
 
@@ -692,18 +692,18 @@ class IRCBackend(ErrBot):
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
-        if mess.is_group:
+        if msg.is_group:
             if private:
                 response.frm = self.bot_identifier
-                response.to = IRCPerson(str(mess.frm))
+                response.to = IRCPerson(str(msg.frm))
             else:
-                response.frm = IRCRoomOccupant(str(self.bot_identifier), mess.frm.room)
-                response.to = mess.frm.room
+                response.frm = IRCRoomOccupant(str(self.bot_identifier), msg.frm.room)
+                response.to = msg.frm.room
         else:
             response.frm = self.bot_identifier
-            response.to = mess.frm
+            response.to = msg.frm
         return response
 
     def serve_forever(self):

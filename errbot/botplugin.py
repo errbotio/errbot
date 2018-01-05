@@ -201,12 +201,16 @@ class BotPluginBase(StoreMixin):
     def start_poller(self,
                      interval: float,
                      method: Callable[..., None],
+                     times: int=None,
                      args: Tuple=None,
                      kwargs: Mapping=None):
         """ Starts a poller that will be called at a regular interval
 
         :param interval: interval in seconds
         :param method: targetted method
+        :param times:
+            number of times polling should happen (defaults to``None`` which
+            causes the polling to happen indefinitely)
         :param args: args for the targetted method
         :param kwargs: kwargs for the targetting method
         """
@@ -221,7 +225,7 @@ class BotPluginBase(StoreMixin):
         # noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
-            self.program_next_poll(interval, method, args, kwargs)
+            self.program_next_poll(interval, method, times, args, kwargs)
         except Exception:
             log.exception('failed')
 
@@ -239,10 +243,15 @@ class BotPluginBase(StoreMixin):
     def program_next_poll(self,
                           interval: float,
                           method: Callable[..., None],
+                          times: int=None,
                           args: Tuple=None,
                           kwargs: Mapping=None):
+        if times is not None and times <= 0:
+            return
+
         t = Timer(interval=interval, function=self.poller,
-                  kwargs={'interval': interval, 'method': method, 'args': args, 'kwargs': kwargs})
+                  kwargs={'interval': interval, 'method': method,
+                          'times': times, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t)  # save the timer to be able to kill it
         t.setName('Poller thread for %s' % type(method.__self__).__name__)
         t.setDaemon(True)  # so it is not locking on exit
@@ -251,6 +260,7 @@ class BotPluginBase(StoreMixin):
     def poller(self,
                interval: float,
                method: Callable[..., None],
+               times: int=None,
                args: Tuple=None,
                kwargs: Mapping=None):
         previous_timer = current_thread()
@@ -264,7 +274,11 @@ class BotPluginBase(StoreMixin):
                 method(*args, **kwargs)
             except Exception:
                 log.exception('A poller crashed')
-            self.program_next_poll(interval, method, args, kwargs)
+
+            if times is not None:
+                times -= 1
+
+            self.program_next_poll(interval, method, times, args, kwargs)
 
     def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str=''):
         """
@@ -504,6 +518,7 @@ class BotPlugin(BotPluginBase):
 
             :param groupchat_nick_reply: if True the message will mention the user in the chatroom.
             :param in_reply_to: the original message this message is a reply to (optional).
+                                In some backends it will start a thread.
             :param text: markdown formatted text to send to the user.
             :param identifier: An Identifier representing the user or room to message.
                                Identifiers may be created with :func:`build_identifier`.
@@ -545,7 +560,7 @@ class BotPlugin(BotPluginBase):
             if in_reply_to is None:
                 raise ValueError('Either to or in_reply_to needs to be set.')
             to = in_reply_to.frm
-        self._bot.send_card(Card(body, frm, to, summary, title, link, image, thumbnail, color, fields))
+        self._bot.send_card(Card(body, frm, to, in_reply_to, summary, title, link, image, thumbnail, color, fields))
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """
@@ -630,23 +645,29 @@ class BotPlugin(BotPluginBase):
     def start_poller(self,
                      interval: float,
                      method: Callable[..., None],
+                     times: int=None,
                      args: Tuple=None,
                      kwargs: Mapping=None):
         """
             Start to poll a method at specific interval in seconds.
 
-            Note: it will call the method with the initial interval delay for the first time
+            Note: it will call the method with the initial interval delay for
+            the first time
+
             Also, you can program
             for example : self.program_poller(self, 30, fetch_stuff)
             where you have def fetch_stuff(self) in your plugin
 
-            :param kwargs: kwargs for the method to callback.
-            :param args: args for the method to callback.
-            :param method: method to callback.
-            :param interval: interval in seconds.
+            :param interval: interval in seconds
+            :param method: targetted method
+            :param times:
+                number of times polling should happen (defaults to``None``
+                which causes the polling to happen indefinitely)
+            :param args: args for the targetted method
+            :param kwargs: kwargs for the targetting method
 
         """
-        super().start_poller(interval, method, args, kwargs)
+        super().start_poller(interval, method, times, args, kwargs)
 
     def stop_poller(self,
                     method: Callable[..., None],
@@ -655,8 +676,9 @@ class BotPlugin(BotPluginBase):
         """
             stop poller(s).
 
-            If the method equals None -> it stops all the pollers
-            you need to regive the same parameters as the original start_poller to match a specific poller to stop
+            If the method equals None -> it stops all the pollers you need to
+            regive the same parameters as the original start_poller to match a
+            specific poller to stop
 
             :param kwargs: The initial kwargs you gave to start_poller.
             :param args: The initial args you gave to start_poller.

@@ -1,3 +1,61 @@
+v5.1.3 (2017-10-15)
+-------------------
+
+fixes:
+
+- Default --init config is now compatible with Text backend requirements.
+- Windows: Config directories as raw string (Thx defAnfaenger)
+- Windows: Repo Manager first time update (Thx Jake Shadle)
+- Slack: fix Slack identities to be hashable
+- Hipchat: fix HicpChat Server XMPP namespace (Thx Antti Palsola)
+- Hipchat: more aggressive cashing of user list to avoid API quota exceeds (thx Roman)
+
+v5.1.2 (2017-08-26)
+-------------------
+
+fixes:
+
+- Text: BOT_IDENTITY to stay optional in config.py
+- Hipchat: send_card fix for room name lookup (thx Jason Kincl)
+- Hipchat: ACL in rooms
+
+v5.1.1 (2017-08-12)
+-------------------
+
+fixes:
+
+- allows spaces in BOT_PREFIX.
+- Text: ACLs were not working (@user vs user inconsistency).
+
+v5.1.0 (2017-07-24)
+-------------------
+
+fixes:
+
+- allow webhook receivers on / (tx Robin Gloster)
+- force utf-8 to release changes (thx Robert Krambovitis)
+- don't generate an errbot section if no version is specified in plugin gen (thx Meet Mangukiya)
+- callback on all unknown commands filters
+- user friendly message when a room is not found
+- webhook with no uri but kwargs now work as intended
+- Slack: support for Enterprise Grid (thx Jasper)
+- Hipchat: fix room str repr. (thx Roman)
+- XMPP: fix for MUC users with @ in their names (thx Joon Guillen)
+- certificate generation was failing under some conditions
+
+features:
+
+- Support for threaded messages (Slack initially but API is done for other backends to use)
+- Text: now the text backend can emulate an inroom/inperson or asuser/asadmin behavior
+- Text: autocomplete of command is now supported
+- Text: multiline messages are now supported
+- start_poller can now be restricted to a number of execution (thx Marek Suppa)
+- recurse_check_structure back to public API (thx Alex Sheluchin)
+- better flow status (thx lijah Roberts)
+- !about returns a git tag instead of just 9.9.9 as version for a git checkout. (thx Sven)
+- admin notifications can be set up to a set of users (thx Sijis Aviles)
+- logs can be colorized with drak, light or nocolor as preference.
+
 v5.0.1 (2017-05-08)
 -------------------
 hotfixes for v5.0.0.

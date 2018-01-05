@@ -225,10 +225,10 @@ class TestBackend(ErrBot):
         self.reset_rooms()
         self.md = text()
 
-    def send_message(self, mess):
-        log.info("\n\n\nMESSAGE:\n%s\n\n\n", mess.body)
-        super().send_message(mess)
-        self.outgoing_message_queue.put(self.md.convert(mess.body))
+    def send_message(self, msg):
+        log.info("\n\n\nMESSAGE:\n%s\n\n\n", msg.body)
+        super().send_message(msg)
+        self.outgoing_message_queue.put(self.md.convert(msg.body))
 
     def send_stream_request(self, user, fsource, name, size, stream_type):
         # Just dump the stream contents to the message queue
@@ -280,10 +280,10 @@ class TestBackend(ErrBot):
     def build_identifier(self, text_representation):
         return TestPerson(text_representation)
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         msg = self.build_message(text)
         msg.frm = self.bot_identifier
-        msg.to = mess.frm
+        msg.to = msg.frm
         return msg
 
     @property
@@ -454,11 +454,10 @@ class TestBot(object):
         """Assert the given command returns the given response"""
         self.bot.push_message(command)
         msg = self.bot.pop_message(timeout)
-        if response not in msg:
-            raise Exception('"%s" not in "%s"' % (response, msg))
+        assert response in msg, "'{}' not in '{}'".format(response, msg)
 
     def assertCommandFound(self, command, timeout=5):
-        """Assert the given command does not exist"""
+        """Assert the given command exists"""
         self.bot.push_message(command)
         assert 'not found' not in self.bot.pop_message(timeout)
 
@@ -519,7 +518,7 @@ def testbot(request) -> TestBot:
         extra_plugin_dir = '/foo/bar'
 
         def test_about(testbot):
-            testbot.pushMessage('!about')
+            testbot.push_message('!about')
             assert "Err version" in testbot.pop_message()
 
     ..or::

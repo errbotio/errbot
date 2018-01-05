@@ -104,7 +104,8 @@ class BotRepoManager(StoreMixin):
     def check_for_index_update(self):
         if REPO_INDEX not in self:
             log.info('No repo index, creating it.')
-            self[REPO_INDEX] = {LAST_UPDATE: 0}
+            self.index_update()
+            return
 
         if datetime.fromtimestamp(self[REPO_INDEX][LAST_UPDATE]) < datetime.now() - REPO_INDEXES_CHECK_INTERVAL:
             log.info('Index is too old, update it.')

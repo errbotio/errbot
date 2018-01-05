@@ -45,23 +45,24 @@ Chat servers support
 
 **Built-in**
 
-- `Slack support <https://slack.com/>`_
+- IRC support
 - `Hipchat support <http://www.hipchat.com/>`_
+- `Slack support <https://slack.com/>`_
 - `Telegram support <https://www.telegram.org/>`_
 - `XMPP support <http://xmpp.org>`_
-- IRC support
 
 **With add-ons**
 
-- `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`__)
-- `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)
-- `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/gbin/err-backend-discord>`__)
-- `Cisco Spark <https://www.ciscospark.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-spark>`__)
-- `Matrix <https://matrix.org/>`_ (See `instructions <https://github.com/SShrike/err-backend-matrix>`__)
-- `TOX <https://tox.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`__)
 - `CampFire <https://campfirenow.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-campfire>`__)
-- `VK <https://vk.com/>`_ (See `instructions <https://github.com/Ax3Effect/errbot-vk>`__)
+- `Cisco Spark <https://www.ciscospark.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-spark>`__)
+- `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/gbin/err-backend-discord>`__)
+- `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`__)
+- `Matrix <https://matrix.org/>`_ (See `instructions <https://github.com/SShrike/err-backend-matrix>`__)
 - `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
+- `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)
+- `TOX <https://tox.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`__)
+- `VK <https://vk.com/>`_ (See `instructions <https://github.com/Ax3Effect/errbot-vk>`__)
+- `Zulip <https://zulipchat.com/>`_ (See `instructions <https://github.com/zulip/errbot-backend-zulip>`__)
 
 
 Administration
@@ -213,7 +214,7 @@ As an example, this is all it takes to create a "Hello, world!" plugin for Errbo
 
 .. code:: python
 
-   from errbot import BotPlugin, botcmd
+    from errbot import BotPlugin, botcmd
    
     class Hello(BotPlugin):
         """Example 'Hello, world!' plugin for Errbot"""

@@ -25,8 +25,8 @@ PY35_OR_GREATER = py_version >= (3, 5)
 
 ON_WINDOWS = system() == 'Windows'
 
-if py_version < (3, 3):
-    raise RuntimeError('Errbot requires Python 3.3 or later')
+if py_version < (3, 4):
+    raise RuntimeError('Errbot requires Python 3.4 or later')
 
 VERSION_FILE = os.path.join('errbot', 'version.py')
 
@@ -68,8 +68,8 @@ def read_version():
     return variables['VERSION']
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def read(fname, encoding='ascii'):
+    return open(os.path.join(os.path.dirname(__file__), fname), 'r', encoding=encoding).read()
 
 
 if __name__ == "__main__":
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes = read('CHANGES.rst')
+    changes = read('CHANGES.rst', 'utf8')
 
     if changes.find(VERSION) == -1:
         raise Exception('You forgot to put a release note in CHANGES.rst ?!')
@@ -106,7 +106,7 @@ if __name__ == "__main__":
                        'backends/styles/*.css',
                        'backends/images/*.svg',
                        'core_plugins/*.plug',
-                       'core_plugins/*.md',                       
+                       'core_plugins/*.md',
                        'core_plugins/templates/*.md',
                        'storage/*.plug',
                        'templates/initdir/example.py',
@@ -139,9 +139,9 @@ if __name__ == "__main__":
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.3",
             "Programming Language :: Python :: 3.4",
             "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
         ],
         src_root=src_root,
         platforms='any',

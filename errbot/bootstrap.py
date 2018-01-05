@@ -9,6 +9,7 @@ from errbot.repo_manager import BotRepoManager
 from errbot.specific_plugin_manager import SpecificPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
+from errbot.logs import format_logs
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +41,8 @@ def bot_config_defaults(config):
         config.BOT_ALT_PREFIX_CASEINSENSITIVE = False
     if not hasattr(config, 'DIVERT_TO_PRIVATE'):
         config.DIVERT_TO_PRIVATE = ()
+    if not hasattr(config, 'DIVERT_TO_THREAD'):
+        config.DIVERT_TO_THREAD = ()
     if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
         config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
     if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):
@@ -64,6 +67,10 @@ def bot_config_defaults(config):
         config.TEXT_DEMO_MODE = True
     if not hasattr(config, 'BOT_ADMINS'):
         raise ValueError('BOT_ADMINS missing from config.py.')
+    if not hasattr(config, 'TEXT_COLOR_THEME'):
+        config.TEXT_COLOR_THEME = 'light'
+    if not hasattr(config, 'BOT_ADMINS_NOTIFICATIONS'):
+        config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
 
 
 def setup_bot(backend_name, logger, config, restore=None):
@@ -71,6 +78,8 @@ def setup_bot(backend_name, logger, config, restore=None):
     # config.py in the python path )
 
     bot_config_defaults(config)
+
+    format_logs(config.TEXT_COLOR_THEME)
 
     if config.BOT_LOG_FILE:
         hdlr = logging.FileHandler(config.BOT_LOG_FILE)
@@ -139,9 +148,7 @@ def setup_bot(backend_name, logger, config, restore=None):
             log.fatal('You cannot restore onto a non empty bot.')
             sys.exit(-1)
         log.info('**** RESTORING the bot from %s' % restore)
-        with open(restore) as f:
-            ast.literal_eval(f.read())
-        bot.close_storage()
+        restore_bot_from_backup(restore, bot=bot, log=log)
         print('Restore complete. You can restart the bot normally')
         sys.exit(0)
 
@@ -150,6 +157,21 @@ def setup_bot(backend_name, logger, config, restore=None):
         log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
         bot._plugin_errors_during_startup = "\n".join(errors.values())
     return bot
+
+
+def restore_bot_from_backup(backup_filename, *, bot, log):
+    """Restores the given bot by executing the 'backup' script.
+
+    The backup file is a python script which manually execute a series of commands on the bot to restore it
+    to its previous state.
+
+    :param backup_filename: the full path to the backup script.
+    :param bot: the bot instance to restore
+    :param log: logger to use during the restoration process
+    """
+    with open(backup_filename) as f:
+        exec(f.read(), {'log': log, 'bot': bot})
+    bot.close_storage()
 
 
 def get_storage_plugin(config):

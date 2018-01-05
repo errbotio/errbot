@@ -1,6 +1,5 @@
 import logging
 import sys
-from multiprocessing.pool import ThreadPool
 
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
 from errbot.core import ErrBot
@@ -278,15 +277,15 @@ class TelegramBackend(ErrBot):
             message_instance.to = room
         self.callback_message(message_instance)
 
-    def send_message(self, mess):
-        super().send_message(mess)
-        body = self.md_converter.convert(mess.body)
+    def send_message(self, msg):
+        super().send_message(msg)
+        body = self.md_converter.convert(msg.body)
         try:
-            self.telegram.sendMessage(mess.to.id, body)
+            self.telegram.sendMessage(msg.to.id, body)
         except Exception:
             log.exception(
                 "An exception occurred while trying to send the following message "
-                "to %s: %s" % (mess.to.id, mess.body)
+                "to %s: %s" % (msg.to.id, msg.body)
             )
             raise
 
@@ -307,13 +306,13 @@ class TelegramBackend(ErrBot):
         else:
             return TelegramRoom(id=id_)
 
-    def build_reply(self, mess, text=None, private=False):
+    def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
         response.frm = self.bot_identifier
         if private:
-            response.to = mess.frm
+            response.to = msg.frm
         else:
-            response.to = mess.frm if mess.is_direct else mess.to
+            response.to = msg.frm if msg.is_direct else msg.to
         return response
 
     @property

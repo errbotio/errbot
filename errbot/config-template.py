@@ -148,15 +148,15 @@ BOT_IDENTITY = {
     # 'server': ('host.domain.tld',5222), # server override
 
     ## HipChat mode (Comment the above if using this mode)
-    # 'username' : '12345_123456@chat.hipchat.com',
-    # 'password' : 'changeme',
+    # 'username': '12345_123456@chat.hipchat.com',
+    # 'password': 'changeme',
     ## Group admins can create/view tokens on the settings page after logging
     ## in on HipChat's website
-    # 'token'    : 'ed4b74d62833267d98aa99f312ff04',
+    # 'token': 'ed4b74d62833267d98aa99f312ff04',
     ## If you're using HipChat server (self-hosted HipChat) then you should set
     ## the endpoint below. If you don't use HipChat server but use the hosted version
     ## of HipChat then you may leave this commented out.
-    # 'endpoint' : 'https://api.hipchat.com'
+    # 'endpoint': 'https://api.hipchat.com'
 
     ## Slack mode (comment the others above if using this mode)
     # 'token': 'xoxb-4426949411-aEM7...',
@@ -165,10 +165,10 @@ BOT_IDENTITY = {
     # 'token': '103419016:AAbcd1234...',
 
     ## IRC mode (Comment the others above if using this mode)
-    # 'nickname' : 'err-chatbot',
-    # 'username' : 'err-chatbot',    # optional, defaults to nickname if omitted
-    # 'password' : None,             # optional
-    # 'server' : 'irc.freenode.net',
+    # 'nickname': 'err-chatbot',
+    # 'username': 'err-chatbot',    # optional, defaults to nickname if omitted
+    # 'password': None,             # optional
+    # 'server': 'irc.freenode.net',
     # 'port': 6667,                  # optional
     # 'ssl': False,                  # optional
     # 'ipv6': False,                 # optional
@@ -186,6 +186,9 @@ BOT_IDENTITY = {
 # Unix-style glob patterns are supported, so 'gbin@localhost'
 # would be considered an admin if setting '*@localhost'.
 BOT_ADMINS = ('gbin@localhost',)
+
+# Set of admins that wish to receive administrative bot notifications.
+#BOT_ADMINS_NOTIFICATIONS = ()
 
 # Chatrooms your bot should join on startup. For the IRC backend you
 # should include the # sign here. For XMPP rooms that are password
@@ -290,6 +293,11 @@ BOT_ADMINS = ('gbin@localhost',)
 # the command was given in a MUC. For example:
 # DIVERT_TO_PRIVATE = ('help', 'about', 'status')
 DIVERT_TO_PRIVATE = ()
+
+# A list of commands which should be responded to in a thread if the backend supports it.
+# For example:
+# DIVERT_TO_THREAD = ('help', 'about', 'status')
+DIVERT_TO_THREAD = ()
 
 # Chat relay
 # Can be used to relay one to one message from specific users to the bot

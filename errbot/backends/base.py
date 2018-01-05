@@ -3,17 +3,8 @@ import logging
 import random
 import time
 from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
-from abc import abstractproperty, abstractmethod
+from abc import ABC, abstractmethod
 from collections import deque, defaultdict
-
-try:
-    from abc import ABC
-except ImportError:
-    #  3.3 backward compatibility
-    from abc import ABCMeta
-
-    class ABC(metaclass=ABCMeta):
-        pass
 
 
 # Can't use __name__ because of Yapsy
@@ -227,28 +218,31 @@ class Message(object):
     A chat message.
 
     This class represents chat messages that are sent or received by
-    the bot. It is modeled after XMPP messages so not all methods
-    make sense in the context of other back-ends.
+    the bot.
     """
 
     def __init__(self,
                  body: str='',
                  frm: Identifier=None,
                  to: Identifier=None,
+                 parent: 'Message'=None,
                  delayed: bool=False,
                  extras: Mapping=None,
                  flow=None):
         """
         :param body:
-            The plaintext body of the message.
+            The markdown body of the message.
         :param extras:
             Extra data attached by a backend
         :param flow:
             The flow in which this message has been triggered.
+        :param parent:
+            The parent message of this message in a thread. (Not supported by all backends)
         """
         self._body = body
         self._from = frm
         self._to = to
+        self._parent = parent
         self._delayed = delayed
         self._extras = extras or dict()
         self._flow = flow
@@ -260,7 +254,7 @@ class Message(object):
             self.ctx = {}
 
     def clone(self):
-        return Message(self._body, self._from, self._to, self._delayed, self.extras)
+        return Message(self._body, self._from, self._to, self._parent, self._delayed, self.extras)
 
     @property
     def to(self) -> Identifier:
@@ -326,6 +320,14 @@ class Message(object):
         self._delayed = delayed
 
     @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent: 'Message'):
+        self._parent = parent
+
+    @property
     def extras(self) -> Mapping:
         return self._extras
 
@@ -350,6 +352,10 @@ class Message(object):
     def is_group(self) -> bool:
         return isinstance(self.to, Room)
 
+    @property
+    def is_threaded(self) -> bool:
+        return self._parent is not None
+
 
 class Card(Message):
     """
@@ -361,6 +367,7 @@ class Card(Message):
                  body: str='',
                  frm: Identifier=None,
                  to: Identifier=None,
+                 parent: Message=None,
                  summary: str=None,
                  title: str='',
                  link: str=None,
@@ -373,6 +380,7 @@ class Card(Message):
         :param body: main text of the card in markdown.
         :param frm: the card is sent from this identifier.
         :param to: the card is sent to this identifier (Room, RoomOccupant, Person...).
+        :param parent: the parent message this card replies to. (threads the message if the backend supports it).
         :param summary: (optional) One liner summary of the card, possibly collapsed to it.
         :param title: (optional) Title possibly linking.
         :param link: (optional) url the title link is pointing to.
@@ -381,7 +389,7 @@ class Card(Message):
         :param color: (optional) background color or color indicator.
         :param fields: (optional) a tuple of (key, value) pairs.
         """
-        super().__init__(body=body, frm=frm, to=to)
+        super().__init__(body=body, frm=frm, to=to, parent=parent)
         self._summary = summary
         self._title = title
         self._link = link
@@ -632,7 +640,7 @@ class Backend(ABC):
         self._reconnection_jitter = (0, 3)    # Random jitter added to delay (min, max)
 
     @abstractmethod
-    def send_message(self, mess: Message) -> None:
+    def send_message(self, msg: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
@@ -640,7 +648,7 @@ class Backend(ABC):
         """Signal a presence change for the bot. Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
-    def build_reply(self, mess: Message, text: str=None, private: bool=False):
+    def build_reply(self, msg: Message, text: str=None, private: bool=False, threaded: bool=False):
         """ Should be implemented by the backend """
 
     @abstractmethod

@@ -1,4 +1,5 @@
 import textwrap
+import subprocess
 
 from errbot import BotPlugin, botcmd
 from errbot.version import VERSION
@@ -9,15 +10,32 @@ class Help(BotPlugin):
                     'about that specific command.'
     MSG_HELP_UNDEFINED_COMMAND = 'That command is not defined.'
 
+    def is_git_directory(self, path='.'):
+        try:
+            git_call = subprocess.Popen(["git", "tag"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        except:
+            return None
+        tags, _ = git_call.communicate()
+        return_code = git_call.returncode
+        if return_code != 0:
+            return None
+        else:
+            tags = tags.rstrip(b"\n")
+            return tags.split(b"\n").pop(-1)
+
     # noinspection PyUnusedLocal
     @botcmd(template='about')
-    def about(self, mess, args):
+    def about(self, msg, args):
         """Return information about this Errbot instance and version"""
-        return {'version': VERSION}
+        git_version = self.is_git_directory()
+        if git_version:
+            return {'version': "{} GIT CHECKOUT".format(git_version.decode("utf-8"))}
+        else:
+            return {'version': VERSION}
 
     # noinspection PyUnusedLocal
     @botcmd
-    def apropos(self, mess, args):
+    def apropos(self, msg, args):
         """   Returns a help string listing available options.
 
         Automatically assigned to the "help" command."""
@@ -31,7 +49,7 @@ class Help(BotPlugin):
             cls = self._bot.get_plugin_class_from_method(command)
             cls = str.__module__ + '.' + cls.__name__  # makes the fuul qualified name
             commands = cls_commands.get(cls, [])
-            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self._bot.check_command_access(mess, name)[0]:
+            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or self._bot.check_command_access(msg, name)[0]:
                 commands.append((name, command))
                 cls_commands[cls] = commands
 
@@ -53,18 +71,18 @@ class Help(BotPlugin):
         return ''.join(filter(None, [description, usage])).strip()
 
     @botcmd
-    def help(self, mess, args):
+    def help(self, msg, args):
         """Returns a help string listing available options.
         Automatically assigned to the "help" command."""
 
-        def may_access_command(msg, cmd):
-            msg, _, _ = self._bot._process_command_filters(
-                msg=msg,
+        def may_access_command(m, cmd):
+            m, _, _ = self._bot._process_command_filters(
+                msg=m,
                 cmd=cmd,
                 args=None,
                 dry_run=True
             )
-            return msg is not None
+            return m is not None
 
         def get_name(named):
             return named.__name__.lower()
@@ -79,7 +97,7 @@ class Help(BotPlugin):
             cls = self._bot.get_plugin_class_from_method(command)
             obj = command.__self__
             _, commands = cls_obj_commands.get(cls, (None, []))
-            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name):
+            if not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(msg, name):
                 commands.append((name, command))
                 cls_obj_commands[cls] = (obj, commands)
 
@@ -127,7 +145,7 @@ class Help(BotPlugin):
                     (name, command)
                     for (name, command) in cmds
                     if not command._err_command_hidden and
-                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(mess, name))
+                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(msg, name))
                 ])
 
                 for (name, command) in pairs:
@@ -148,7 +166,8 @@ class Help(BotPlugin):
         patt = getattr(command, '_err_command_re_pattern', None)
 
         if patt:
-            name = patt.pattern
+            re_help_name = getattr(command, '_err_command_re_name_help', None)
+            name = re_help_name if re_help_name else patt.pattern
 
         if not show_doc:
             cmd_doc = cmd_doc.split('\n')[0]

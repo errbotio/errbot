@@ -74,7 +74,7 @@ class Flows(BotPlugin):
         return 'Flow **%s** started ...' % flow_name
 
     @botcmd()
-    def flows_status(self, _, args):
+    def flows_status(self, msg, args):
         """ Displays the list of started flows.
         """
         with io.StringIO() as response:
@@ -82,19 +82,19 @@ class Flows(BotPlugin):
                 response.write('No Flow started.\n')
 
             else:
-                if not [flow for flow in self._bot.flow_executor.in_flight if self.check_user(_, flow)]:
-                    response.write('No Flow started for current user: \n{}\n'.format(get_acl_usr(_)))
+                if not [flow for flow in self._bot.flow_executor.in_flight if self.check_user(msg, flow)]:
+                    response.write('No Flow started for current user: \n{}\n'.format(get_acl_usr(msg)))
 
                 else:
                     if args:
                         for flow in self._bot.flow_executor.in_flight:
-                            if self.check_user(_, flow):
+                            if self.check_user(msg, flow):
                                 if flow.name == args:
                                     self.recurse_node(response, [], flow.root, flow)
 
                     else:
                         for flow in self._bot.flow_executor.in_flight:
-                            if self.check_user(_, flow):
+                            if self.check_user(msg, flow):
                                 next_steps = ['\*{}\*'.format(str(step[1].command)) for step in
                                               flow._current_step.children if
                                               step[1].command]
@@ -141,9 +141,8 @@ class Flows(BotPlugin):
     def check_user(self, msg, flow):
         """Checks to make sure that either the user started the flow, or is a bot admin
         """
-        authorized = False
         if glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
-            authorized = True
+            return True
         elif glob(get_acl_usr(msg), flow.requestor.person):
-            authorized = True
-        return authorized
+            return True
+        return False

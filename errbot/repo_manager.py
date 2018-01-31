@@ -37,7 +37,7 @@ REPO_INDEX = 'repo_index'
 LAST_UPDATE = 'last_update'
 
 RepoEntry = namedtuple('RepoEntry', 'entry_name, name, python, repo, path, avatar_url, documentation')
-find_words = re.compile(r"(\w[\w']*\w|\w)")
+FIND_WORDS_RE = re.compile(r"(\w[\w']*\w|\w)")
 
 
 class RepoException(Exception):
@@ -58,7 +58,7 @@ def tokenizeJsonEntry(json_dict):
     """
     Returns all the words in a repo entry.
     """
-    return set(find_words.findall(' '.join((word.lower() for word in json_dict.values()))))
+    return set(FIND_WORDS_RE.findall(' '.join((word.lower() for word in json_dict.values()))))
 
 
 def which(program):
@@ -160,7 +160,7 @@ class BotRepoManager(StoreMixin):
         if REPO_INDEX not in self:
             log.error('No index.')
             return
-        query_work_set = set(find_words.findall(query.lower()))
+        query_work_set = set(FIND_WORDS_RE.findall(query.lower()))
         for repo_name, plugins in self[REPO_INDEX].items():
             if repo_name == LAST_UPDATE:
                 continue

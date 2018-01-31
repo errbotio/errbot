@@ -58,7 +58,8 @@ def tokenizeJsonEntry(json_dict):
     """
     Returns all the words in a repo entry.
     """
-    return set(FIND_WORDS_RE.findall(' '.join((word.lower() for word in json_dict.values()))))
+    search = ' '.join((str(word) for word in json_dict.values()))
+    return set(FIND_WORDS_RE.findall(search.lower()))
 
 
 def which(program):

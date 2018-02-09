@@ -1030,6 +1030,10 @@ class SlackRoom(Room):
         return "#%s" % self.name
 
     @property
+    def channelname(self):
+        return self._name
+
+    @property
     def _channel(self):
         """
         The channel object exposed by SlackClient

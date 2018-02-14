@@ -51,19 +51,26 @@ def get_log_colors(theme_color=None):
     )
 
 
-def format_logs(theme_color=None):
+def format_logs(formatter=None, theme_color=None):
+    """
+    You may either use the formatter parameter to provide your own
+    custom formatter, or the theme_color parameter to use the
+    built in color scheme formatter.
+    """
+    if formatter:
+        console_hdlr.setFormatter(formatter)
     # if isatty and not True:
-    if isatty:
+    elif isatty:
         from colorlog import ColoredFormatter  # noqa
         log_format, colors_dict = get_log_colors(theme_color)
-        formatter = ColoredFormatter(
+        color_formatter = ColoredFormatter(
             "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s " +
             log_format,
             datefmt="%H:%M:%S",
             reset=True,
             log_colors=colors_dict,
         )
-        console_hdlr.setFormatter(formatter)
+        console_hdlr.setFormatter(color_formatter)
     else:
         console_hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
     root_logger.addHandler(console_hdlr)

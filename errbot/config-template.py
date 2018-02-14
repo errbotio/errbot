@@ -109,6 +109,9 @@ PLUGINS_CALLBACK_ORDER = (None, )
 # the user running Err.
 #AUTOINSTALL_DEPS = True
 
+# To use your own custom log formatter, uncomment and set BOT_LOG_FORMATTER
+# BOT_LOG_FORMATTER =
+
 # The location of the log file. If you set this to None, then logging will
 # happen to console only.
 BOT_LOG_FILE = BOT_DATA_DIR + '/err.log'

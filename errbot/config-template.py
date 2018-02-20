@@ -110,6 +110,9 @@ PLUGINS_CALLBACK_ORDER = (None, )
 #AUTOINSTALL_DEPS = True
 
 # To use your own custom log formatter, uncomment and set BOT_LOG_FORMATTER
+# to your formatter instance (inherits from logging.Formatter)
+#   For information on how to create a logging formatter and what it can do, see
+#   https://docs.python.org/3.5/library/logging.html#formatter-objects
 # BOT_LOG_FORMATTER =
 
 # The location of the log file. If you set this to None, then logging will

@@ -82,7 +82,7 @@ def setup_bot(backend_name, logger, config, restore=None):
     if hasattr(config, 'BOT_LOG_FORMATTER'):
         format_logs(formatter=config.BOT_LOG_FORMATTER)
     else:
-        format_logs(config.TEXT_COLOR_THEME)
+        format_logs(theme_color=config.TEXT_COLOR_THEME)
 
         if config.BOT_LOG_FILE:
             hdlr = logging.FileHandler(config.BOT_LOG_FILE)

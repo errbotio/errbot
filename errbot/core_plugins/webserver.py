@@ -96,8 +96,19 @@ class Webserver(BotPlugin):
             # noinspection PyTypeChecker
             interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
         self.log.info('Firing up the Rocket')
+
+        from errbot.bootstrap import sentry_client
+
+        if sentry_client is None:
+            wsgi_app = bottle_app
+        else:
+            from raven.contrib.bottle import Sentry
+
+            bottle_app.catchall = False
+            wsgi_app = Sentry(bottle_app, sentry_client)
+
         self.webserver = Rocket(interfaces=interfaces,
-                                app_info={'wsgi_app': bottle_app}, )
+                                app_info={'wsgi_app': wsgi_app}, )
         self.webserver.start(background=True)
         self.log.debug('Liftoff!')
 

@@ -4,14 +4,20 @@ import logging
 import re
 import sys
 from functools import lru_cache
+from multiprocessing.pool import ThreadPool
 
-from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant
+from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream, Identifier
 from errbot.backends.xmpp import XMPPRoomOccupant, XMPPBackend, XMPPConnection, split_identifier
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
+
+from email.mime.multipart import MIMEMultipart
+import email.mime.application
+
+import requests
 
 
 # Can't use __name__ because of Yapsy
@@ -555,6 +561,52 @@ class HipchatBackend(XMPPBackend):
 
         log.debug("Sending request:" + str(data))
         room._requests.post(room.url + '/notification', data=data)  # noqa
+
+    def send_stream_request(self, identifier, fsource, name='file.txt', size=None, stream_type=None):
+        """Starts a file transfer.
+            note, fsource used to make the stream needs to be in open/rb state
+        """
+
+        stream = Stream(identifier=identifier, fsource=fsource, name=name, size=size, stream_type=stream_type)
+        result = self.thread_pool.apply_async(self._hipchat_upload, (stream,))
+        log.debug('Response from server: %s' % result.get(timeout=10))
+        return stream
+
+    def _hipchat_upload(self, stream):
+        """ Uploads file in a stream  """
+        try:
+            stream.accept()
+            room = self.query_room(str(stream.identifier)).room
+            headers = {
+                'Authorization': 'Bearer {}'.format(self.api_token),
+                'Accept-Charset': 'UTF-8',
+                'Content-Type': 'multipart/related',
+            }
+            raw_body = MIMEMultipart('related')
+            img = email.mime.application.MIMEApplication(stream.read())
+            img.add_header(
+                'Content-Disposition',
+                'attachment',
+                name='file',
+                filename=stream.name
+            )
+            raw_body.attach(img)
+            raw_headers, body = raw_body.as_string().split('\n\n', 1)
+            boundary = re.search('boundary="([^"]*)"', raw_headers).group(1)
+            headers['Content-Type'] = 'multipart/related; boundary="{}"'.format(boundary)
+            resp = requests.post(room.url + '/share/file', headers=headers, data=body)
+            log.info('Request ok: %s' % resp.ok)
+
+            if resp.ok:
+                log.info('Request status: %s' % resp.status_code)
+                stream.success()
+            else:
+                log.error('Request status: %s' % resp.status_code)
+                log.error('Request reason: %s' % resp.reason)
+                log.error('Request text: %s' % resp.text)
+                stream.error()
+        except Exception:
+            log.exception("Upload of {0} to {1} failed.".format(stream.name, stream.identifier.channelname))
 
     @lru_cache(1024)
     def _find_user(self, name, criteria):

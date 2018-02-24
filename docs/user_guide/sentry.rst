@@ -40,14 +40,14 @@ Once you have an instance of Sentry available, you'll probably want to create a
 team specifically for Errbot first.
 
 When you have, you should be able to access a page called "Client configuration".
-There, you will be presented with a so-called DNS value, which has the following format:
+There, you will be presented with a so-called DSN value, which has the following format:
 
     http://0000000000000000:000000000000000000@sentry.domain.tld/0
 
 To setup Errbot with Sentry:
 
 * Open up your bot's config.py
-* Set **BOT_LOG_SENTRY** to *True* and fill in **SENTRY_DSN** with the DNS value obtained previously
+* Set **BOT_LOG_SENTRY** to *True* and fill in **SENTRY_DSN** with the DSN value obtained previously
 * Optionally adjust **SENTRY_LOGLEVEL** to the desired level
 * Optionally adjust **SENTRY_TRANSPORT** to the desired transport
 * Restart Errbot

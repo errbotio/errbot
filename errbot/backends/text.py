@@ -286,8 +286,7 @@ class TextBackend(ErrBot):
 
                 self.callback_message(msg)
 
-                mentioned = [self.build_identifier(word[1:]) for word in re.findall(r"@[\w']+", entry)
-                             if word.startswith('@')]
+                mentioned = [self.build_identifier(word) for word in re.findall(r'(?<=\s)@[\w]+', entry)]
                 if mentioned:
                     self.callback_mention(msg, mentioned)
 

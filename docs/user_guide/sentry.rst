@@ -49,6 +49,9 @@ To setup Errbot with Sentry:
 * Open up your bot's config.py
 * Set **BOT_LOG_SENTRY** to *True* and fill in **SENTRY_DSN** with the DNS value obtained previously
 * Optionally adjust **SENTRY_LOGLEVEL** to the desired level
+* Optionally adjust **SENTRY_TRANSPORT** to the desired transport
 * Restart Errbot
+
+You can find a list of Sentry transport classes `here <https://docs.sentry.io/clients/python/transports/>`_.
 
 You should now see Exceptions and log messages show up in your Sentry stream.

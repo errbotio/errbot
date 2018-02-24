@@ -134,6 +134,10 @@ BOT_LOG_SENTRY = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 
+# Set an optional Sentry transport other than the default Threaded.
+# For more info, see https://docs.sentry.io/clients/python/transports/
+# SENTRY_TRANSPORT = ('RequestsHTTPTransport', 'raven.transport.requests')
+
 # Execute commands in asynchronous mode. In this mode, Errbot will spawn 10
 # separate threads to handle commands, instead of blocking on each
 # single command.

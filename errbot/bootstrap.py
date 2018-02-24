@@ -1,4 +1,5 @@
 from os import path, makedirs
+import importlib
 import logging
 import sys
 import ast
@@ -101,7 +102,21 @@ def setup_bot(backend_name, logger, config, restore=None):
             )
             exit(-1)
 
-        sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
+        if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
+            try:
+                mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
+                transport = getattr(mod, config.SENTRY_TRANSPORT[0])
+            except ImportError:
+                log.exception(
+                    "Unable to import selected SENTRY_TRANSPORT - {transport}".format(transport=config.SENTRY_TRANSPORT)
+                )
+                exit(-1)
+
+            sentryhandler = SentryHandler(config.SENTRY_DSN,
+                                          level=config.SENTRY_LOGLEVEL,
+                                          transport=transport)
+        else:
+            sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
         logger.addHandler(sentryhandler)
 
     logger.setLevel(config.BOT_LOG_LEVEL)

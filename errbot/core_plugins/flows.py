@@ -4,6 +4,7 @@ import json
 
 from errbot import BotPlugin, botcmd, arg_botcmd
 from errbot.flow import FlowNode, FlowRoot, Flow, FLOW_END
+from errbot.core_plugins.acls import glob, get_acl_usr
 
 
 class Flows(BotPlugin):
@@ -72,28 +73,37 @@ class Flows(BotPlugin):
         self._bot.flow_executor.start_flow(flow_name, msg.frm, context)
         return 'Flow **%s** started ...' % flow_name
 
-    @botcmd(admin_only=True)
-    def flows_status(self, _, args):
+    @botcmd()
+    def flows_status(self, msg, args):
         """ Displays the list of started flows.
         """
         with io.StringIO() as response:
-            if args:
-                for flow in self._bot.flow_executor.in_flight:
-                    if flow.name == args:
-                        self.recurse_node(response, [], flow.root, flow)
+            if not self._bot.flow_executor.in_flight:
+                response.write('No Flow started.\n')
+
             else:
-                if not self._bot.flow_executor.in_flight:
-                    response.write('No Flow started.\n')
+                if not [flow for flow in self._bot.flow_executor.in_flight if self.check_user(msg, flow)]:
+                    response.write('No Flow started for current user: \n{}\n'.format(get_acl_usr(msg)))
+
                 else:
-                    for flow in self._bot.flow_executor.in_flight:
-                        next_steps = ['\*{}\*'.format(str(step[1].command)) for step in flow._current_step.children if
-                                      step[1].command]
-                        template = '\>>> {} is using flow \*{}\* on step \*{}\*\nNext Step(s): \n{}'
-                        text = template.format(str(flow.requestor),
-                                               flow.name,
-                                               str(flow.current_step),
-                                               '\n'.join(next_steps))
-                        response.write(text)
+                    if args:
+                        for flow in self._bot.flow_executor.in_flight:
+                            if self.check_user(msg, flow):
+                                if flow.name == args:
+                                    self.recurse_node(response, [], flow.root, flow)
+
+                    else:
+                        for flow in self._bot.flow_executor.in_flight:
+                            if self.check_user(msg, flow):
+                                next_steps = ['\*{}\*'.format(str(step[1].command)) for step in
+                                              flow._current_step.children if
+                                              step[1].command]
+                                template = '\>>> {} is using flow \*{}\* on step \*{}\*\nNext Step(s): \n{}'
+                                text = template.format(str(flow.requestor),
+                                                       flow.name,
+                                                       str(flow.current_step),
+                                                       '\n'.join(next_steps))
+                                response.write(text)
             return response.getvalue()
 
     @botcmd(syntax='[flow_name]')
@@ -127,3 +137,12 @@ class Flows(BotPlugin):
         if flow:
             return flow.name + ' killed.'
         return 'Flow not found.'
+
+    def check_user(self, msg, flow):
+        """Checks to make sure that either the user started the flow, or is a bot admin
+        """
+        if glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
+            return True
+        elif glob(get_acl_usr(msg), flow.requestor.person):
+            return True
+        return False

@@ -18,7 +18,7 @@ HERE = path.dirname(path.abspath(__file__))
 CORE_BACKENDS = path.join(HERE, 'backends')
 CORE_STORAGE = path.join(HERE, 'storage')
 
-PLUGIN_DEFAULT_INDEX = 'https://repos.errbot.io/repos.json'
+PLUGIN_DEFAULT_INDEX = 'http://version.errbot.io/repos.json'
 
 
 def bot_config_defaults(config):

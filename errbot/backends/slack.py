@@ -534,7 +534,9 @@ class SlackBackend(ErrBot):
 
     def _member_joined_channel_event_handler(self, event):
         """Event handler for the 'member_joined_channel' event"""
-        self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
+        user = event['user']
+        if user == self.bot_identifier:
+            self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""

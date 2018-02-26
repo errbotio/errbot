@@ -58,7 +58,7 @@ Important to note: if you want to use a dependent plugin from within activate, y
 
         def activate(self):
             super().activate()  # <-- needs to be *before* get_plugin
-            self.other = get_plugin('OtherPlugin1')
+            self.other = self.get_plugin('OtherPlugin1')
 
         @botcmd
         def hello(self, msg, args):

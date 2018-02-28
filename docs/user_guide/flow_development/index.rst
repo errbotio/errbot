@@ -3,7 +3,7 @@ Flow development
 
 Flows are a feature in Errbot to enable plugin designers to chain several plugin commands together in a "conversation".
 
-For example, imagine interacting with the bot that needs more that one command, like setting up a poll in a
+For example, imagine interacting with a bot that needs more that one command, like setting up a poll in a
 chatroom::
 
   User: !poll new Where do we go for lunch ?

@@ -34,7 +34,7 @@ as flow decorator:
             """ Docs for the flow example comes here """
             # [...]
 
-Errbot will pass the root of the flow as the only parameter to you flow definition so you can build your graph
+Errbot will pass the root of the flow as the only parameter to your flow definition so you can build your graph
 from there.
 
 
@@ -42,7 +42,7 @@ Making a simple graph
 ---------------------
 
 Within your flow, you can connect commands together.
-For example to make a simple linear flow between !first, !second and !third:
+For example, to make a simple linear flow between ``!first``, ``!second`` and ``!third``:
 
 .. code-block:: python
 
@@ -72,7 +72,7 @@ Once you have executed ``!first``, you will be in that state:
 .. figure::  basics_2.svg
    :align:   center
 
-The bot will tell you that it expect ``!second`` etc.
+The bot will tell you that it expects ``!second``, etc.
 
 .. figure::  basics_4.svg
    :align:   center
@@ -80,10 +80,10 @@ The bot will tell you that it expect ``!second`` etc.
 Making a flow start automatically
 ---------------------------------
 
-Now, usually flows are linked to a first action you users want to do. For example: ``!poll new``, ``!vm create``,
-``!report init`` or first commands like that that suggests that you will have a follow up.
+Now, usually flows are linked to a first action your users want to do. For example: ``!poll new``, ``!vm create``,
+``!report init`` or first commands like that that suggests that you will have a follow-up.
 
-To trigger automatically a flow on those first commands you can use ``auto_trigger``.
+To trigger a flow automatically on those first commands, you can use ``auto_trigger``.
 
 .. code-block:: python
 
@@ -104,14 +104,14 @@ BUT, when a user will execute a ``!first`` command, the bot will instantly insta
 .. figure::  basics_2.svg
    :align:   center
 
-And tell the user that !second is the follow up.
+And tell the user that ``!second`` is the follow-up.
 
 Flow ending
 -----------
 
-If a node has no more children and a user passed it, it will automatically ends the flow.
+If a node has no more children and a user passed it, it will automatically end the flow.
 
-Sometimes, with loops etc, you might want to explicitly mark an END FlowNode with a predicate, you can do it like this,
+Sometimes, with loops etc., you might want to explicitly mark an END FlowNode with a predicate. You can do it like this,
 for example for a guessing game plugin:
 
 .. figure::  end.svg

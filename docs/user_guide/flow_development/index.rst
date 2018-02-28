@@ -11,7 +11,7 @@ chatroom::
   Bot: Flow poll_setup started, you can continue with:
        !poll newoption <your option>
 
-  User: !poll addoption Greek
+  User: !poll newoption Greek
 
   Bot: Option added, current options:
        - Greek
@@ -20,7 +20,7 @@ chatroom::
        !poll newoption <your option>
        !poll start
 
-  User: !poll addoption French
+  User: !poll newoption French
 
   Bot: Option added, current options:
        - Greek

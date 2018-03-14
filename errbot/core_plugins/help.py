@@ -112,7 +112,7 @@ class Help(BotPlugin):
                     doc=cls.__errdoc__.strip() or '',
                 )
 
-                for name, command in commands:
+                for name, command in sorted(commands):
                     if command._err_command_hidden:
                         continue
                     # show individual commands

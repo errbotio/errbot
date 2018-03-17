@@ -10,6 +10,7 @@ Currently, the following networks are supported:
   * IRC
   * Slack_
   * Telegram_
+  * `Bot Framework`_ (maintained `separately <https://github.com/vasilcovsky/errbot-backend-botframework>`__)
   * CampFire_ (maintained `separately <https://github.com/errbotio/err-backend-campfire>`__)
   * `Cisco Spark`_ (maintained `separately <https://github.com/marksull/err-backend-cisco-spark>`__)
   * Discord_ (maintained `separately <https://github.com/gbin/err-backend-discord>`__)
@@ -60,7 +61,7 @@ Extensive plugin framework
 * A test backend for unittests for plugins which can make assertions about issued commands and their responses
 * And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make separate text and HTML versions of your command output yourself
 
-
+.. _Bot Framework: https://botframework.com/
 .. _Campfire: https://campfirenow.com/
 .. _Cisco Spark: https://www.ciscospark.com/
 .. _Discord: https://www.discordapp.com/

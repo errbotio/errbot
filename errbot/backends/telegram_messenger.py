@@ -1,5 +1,6 @@
 import logging
 import sys
+import re
 
 from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
 from errbot.core import ErrBot
@@ -182,6 +183,7 @@ class TelegramBackend(ErrBot):
 
         identity = config.BOT_IDENTITY
         self.token = identity.get('token', None)
+        self.botname = identity.get('username', None)
         if not self.token:
             log.fatal(
                 "You need to supply a token for me to use. You can obtain "
@@ -256,6 +258,8 @@ class TelegramBackend(ErrBot):
             log.warning("Unhandled message type (not a text message) ignored")
             return
 
+        if re.match('\/.[^ ]*@{}'.format(self.botname), message.text):
+            message.text = message.text.strip("@{}".format(self.botname))
         message_instance = self.build_message(message.text)
         if message.chat['type'] == 'private':
             message_instance.frm = TelegramPerson(

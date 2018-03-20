@@ -29,6 +29,7 @@ by setting up `BOT_IDENTITY` as follows::
 
     BOT_IDENTITY = {
         'token': '103419016:AAbcd1234...',
+        'username': 'botname_bot',
     }
 
 

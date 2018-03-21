@@ -9,3 +9,6 @@ WorkingDirectory=/path/to/errbot/
 User=errbot
 Restart=always
 KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

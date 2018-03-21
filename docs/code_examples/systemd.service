@@ -4,6 +4,7 @@ After=network.service
 
 [Service]
 Environment="LC_ALL=en_US.UTF-8"
+Environment="PATH=/usr/bin:/path/to/errbot/virtualenv/bin"
 ExecStart=/path/to/errbot/virtualenv/bin/errbot --config /path/to/errbot/config.py
 WorkingDirectory=/path/to/errbot/
 User=errbot

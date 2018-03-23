@@ -602,6 +602,20 @@ class SlackBackend(ErrBot):
             else:
                 raise e
 
+    def get_user_profile(self, userid):
+        """Get slack user profile"""
+        try:
+            log.debug("get slack profile for %s" % userid)
+            response = self.api_call('users.info', data={'user': userid})
+            log.debug("slack user: %s", pprint.pformat(response))
+            return response["user"]["profile"]
+        except SlackAPIResponseError as e:
+            if e.error == "user_not_found":
+                log.info('User %s not found' % userid)
+                return None
+            else:
+                raise e
+
     def _prepare_message(self, msg):  # or card
         """
         Translates the common part of messaging for Slack.

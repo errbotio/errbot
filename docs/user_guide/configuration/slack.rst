@@ -32,6 +32,18 @@ by setting up `BOT_IDENTITY` as follows::
     }
 
 
+Proxy setup
+-------------
+
+In case you need to use a Proxy to connect to Slack, 
+you can set the proxies with the token config.
+
+    BOT_IDENTITY = {
+        'token': 'xoxb-4426949411-aEM7...',
+        'proxies': {'http': 'some-http-proxy', 'https': 'some-https-proxy'}
+    }
+
+
 Bot admins
 ----------
 

@@ -170,6 +170,8 @@ BOT_IDENTITY = {
 
     ## Slack mode (comment the others above if using this mode)
     # 'token': 'xoxb-4426949411-aEM7...',
+    ## you can also include the proxy for the SlackClient connection
+    # 'proxies': {'http': 'some-http-proxy', 'https': 'some-https-proxy'}
 
     ## Telegram mode (comment the others above if using this mode)
     # 'token': '103419016:AAbcd1234...',

@@ -291,6 +291,7 @@ class SlackBackend(ErrBot):
         super().__init__(config)
         identity = config.BOT_IDENTITY
         self.token = identity.get('token', None)
+        self.proxies = identity.get('proxies', None)
         if not self.token:
             log.fatal(
                 'You need to set your token (found under "Bot Integration" on Slack) in '
@@ -359,7 +360,11 @@ class SlackBackend(ErrBot):
         log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
 
     def serve_once(self):
-        self.sc = SlackClient(self.token)
+        if not self.proxies:
+            self.sc = SlackClient(self.token)
+        else:
+            self.sc = SlackClient(self.token, proxies=self.proxies)
+
         log.info("Verifying authentication token")
         self.auth = self.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:

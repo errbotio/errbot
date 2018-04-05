@@ -1,3 +1,27 @@
+v5.2.0 (2018-04-04)
+-------------------
+
+fixes:
+
+- backup fix : SyntaxError: literal_eval on file with statements (thx Bruno Oliveira)
+- plugin_manager: skip plugins not in CORE_PLUGIN entirely (thx Dylan Page)
+- repository search fix (thx Sijis)
+- Text: mentions in the Text backend (thx Sijis)
+- Text: double @ in replies (thx Sijis)
+- Slack: Support breaking messages body attachment
+- Slack: Add channelname to Slackroom (thx Davis Garana Pena)
+
+features:
+
+- Enable split arguments on room_join so you can use " (thx Robert Honig)
+- Add support for specifying a custom log formatter (Thx Oz Linden)
+- Add Sentry transport support (thx Dylan Page)
+- File transfert support (send_stream_request) on the Hipchat backend (thx Brad Payne)
+- Show user where they are in a flow (thx Elijah Roberts)
+- Help commands are sorted alphabetically (thx Fabian Chong)
+- Proxy support for Slack (thx deferato)
+
+
 v5.1.3 (2017-10-15)
 -------------------
 

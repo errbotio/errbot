@@ -227,6 +227,7 @@ class Message(object):
                  to: Identifier=None,
                  parent: 'Message'=None,
                  delayed: bool=False,
+                 partial: bool=False,
                  extras: Mapping=None,
                  flow=None):
         """
@@ -238,6 +239,9 @@ class Message(object):
             The flow in which this message has been triggered.
         :param parent:
             The parent message of this message in a thread. (Not supported by all backends)
+        :param partial:
+            Indicates whether the message was obtained by breaking down the message to fit
+            the ``MESSAGE_SIZE_LIMIT``.
         """
         self._body = body
         self._from = frm
@@ -246,6 +250,7 @@ class Message(object):
         self._delayed = delayed
         self._extras = extras or dict()
         self._flow = flow
+        self._partial = partial
 
         # Convenience shortcut to the flow context
         if flow:
@@ -355,6 +360,14 @@ class Message(object):
     @property
     def is_threaded(self) -> bool:
         return self._parent is not None
+
+    @property
+    def partial(self) -> bool:
+        return self._partial
+
+    @partial.setter
+    def partial(self, partial):
+        self._partial = partial
 
 
 class Card(Message):

@@ -125,6 +125,11 @@ Some commands are hardcoded to be admin-only so the people listed here will be g
 More advanced access controls can be set up using the `ACCESS_CONTROLS` and `ACCESS_CONTROLS_DEFAULT` options which allow you to set up sophisticated rules.
 The example :download:`config.py <config-template.py>` file contains more information about the format of these options.
 
+If you don't like encoding access controls into the config file, a member
+of the errbot community has also created a `dynamic ACL module
+<https://github.com/shengis/err-profiles>`_ which can be administered
+through chat commands instead.
+
 .. note::
     Different backends have different formats to identify users.
     Refer to the backend-specific notes at the end of the :ref:`configuration <configuration>` chapter to see which format you should use.

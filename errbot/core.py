@@ -162,6 +162,7 @@ class ErrBot(Backend, StoreMixin):
         for part in split_string_after(msg.body, self.bot_config.MESSAGE_SIZE_LIMIT):
             partial_message = msg.clone()
             partial_message.body = part
+            partial_message.partial = True
             self.send_message(partial_message)
 
     def send_message(self, msg):

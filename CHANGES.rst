@@ -1,3 +1,12 @@
+v5.2.0 (2018-04-05)
+-------------------
+
+fixes:
+
+- Message: Allow partial message size
+- Slack: include the option to set Proxy when connecting using SlackClient
+- Slack: fix member joined channel event handler
+
 v5.1.3 (2017-10-15)
 -------------------
 

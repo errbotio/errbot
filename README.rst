@@ -137,7 +137,7 @@ It will show you a prompt `>>>` so you can talk to your bot directly! Try `!help
 Adding support for a chat system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For the built-ins, just use one of those options `slack, hipchap, telegram, IRC, XMPP` with pip, you can still do it
+For the built-ins, just use one of those options `slack, hipchat, telegram, IRC, XMPP` with pip, you can still do it
 after the initial installation to add the missing support for example ::
 
    $ pip install "errbot[slack]"

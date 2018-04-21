@@ -802,6 +802,22 @@ class SlackBackend(ErrBot):
         result = self._bot.api_call('chat.postMessage', data=data)
         return self._extract_message_object(result)
 
+    def update_message(self, msg, new_text, cards=None):
+        """Update a message that already exists"""
+        to_channel_id = self._get_channel_id(msg)
+
+        data = {
+            'text': new_text,
+            'channel': to_channel_id,
+            'attachments': json.dumps(cards) if cards else "",
+            'link_names': '1',
+            'as_user': 'true',
+            'ts': self._bot._ts_for_message(msg)
+        }
+
+        result = self._bot.api_call('chat.update', data=data)
+        return self._extract_message_object(result)
+
     def _get_channel_id(self, msg: Message):
         """Get relevant channel/person ID from a message"""
         if msg.is_group:

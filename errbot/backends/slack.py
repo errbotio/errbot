@@ -772,6 +772,16 @@ class SlackBackend(ErrBot):
                     "An exception occurred while trying to send a card to %s.[%s]" % (to_humanreadable, card)
                 )
 
+
+    def _get_channel_id(self, msg: Message):
+        """Get relevant channel/person ID from a message"""
+        if msg.is_group:
+            to_channel_id = msg.to.id
+        else:
+            to_channel_id = msg.to.channelid
+
+        return to_channel_id
+
     def __hash__(self):
         return 0  # this is a singleton anyway
 

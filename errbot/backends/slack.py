@@ -772,6 +772,35 @@ class SlackBackend(ErrBot):
                     "An exception occurred while trying to send a card to %s.[%s]" % (to_humanreadable, card)
                 )
 
+    def send_multiple_cards(self, msg, cards, text) -> None:
+        """
+          Sends multiple cards at once.
+          For details on card/attachment fields, read https://api.slack.com/docs/message-attachments
+        """
+        to_channel_id = self._get_channel_id(msg)
+
+        data = {
+            'text': text,
+            'channel': to_channel_id,
+            'attachments': json.dumps(cards),
+            'link_names': '1',
+            'as_user': 'true'
+        }
+
+        if msg.parent is not None:
+            # we are asked to reply to a specify thread.
+            try:
+                msg.extras['thread_ts'] = self._ts_for_message(msg.parent)
+            except KeyError:
+                # Gives to the user a more interesting explanation if we cannot find a ts from the parent.
+                raise Exception('The provided parent message is not a Slack message or does not contain a Slack timestamp.')
+
+        # Keep the thread_ts to answer to the same thread.
+        if 'thread_ts' in msg.extras:
+            data['thread_ts'] = msg.extras['thread_ts']
+
+        result = self._bot.api_call('chat.postMessage', data=data)
+        return self._extract_message_object(result)
 
     def _get_channel_id(self, msg: Message):
         """Get relevant channel/person ID from a message"""

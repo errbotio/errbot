@@ -952,10 +952,7 @@ class SlackBackend(ErrBot):
     def _react(self, method: str, msg: Message, reaction: str) -> None:
         try:
             # this logic is from send_message
-            if msg.is_group:
-                to_channel_id = msg.to.id
-            else:
-                to_channel_id = msg.to.channelid
+            to_channel_id = self._get_channel_id(msg)
 
             ts = self._ts_for_message(msg)
 

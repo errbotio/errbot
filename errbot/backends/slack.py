@@ -480,6 +480,24 @@ class SlackBackend(ErrBot):
 
         if 'message' in event:
             text = event['message'].get('text', '')
+        else:
+            text = event.get('text', '')
+
+        _, mentioned = self.process_mentions(text)
+        msg = self._extract_message_object(event)
+
+        self.callback_message(msg)
+
+        if mentioned:
+            self.callback_mention(msg, mentioned)
+
+    def _extract_message_object(self, event):
+        """Converts an event into a Message object"""
+        channel = event['channel']
+        subtype = event.get('subtype', None)
+
+        if 'message' in event:
+            text = event['message'].get('text', '')
             user = event['message'].get('user', event.get('bot_id'))
         else:
             text = event.get('text', '')
@@ -532,10 +550,7 @@ class SlackBackend(ErrBot):
             ts=self._ts_for_message(msg).replace('.', '')
         )
 
-        self.callback_message(msg)
-
-        if mentioned:
-            self.callback_mention(msg, mentioned)
+        return msg
 
     def _member_joined_channel_event_handler(self, event):
         """Event handler for the 'member_joined_channel' event"""

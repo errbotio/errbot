@@ -792,8 +792,10 @@ class SlackBackend(ErrBot):
             try:
                 msg.extras['thread_ts'] = self._ts_for_message(msg.parent)
             except KeyError:
-                # Gives to the user a more interesting explanation if we cannot find a ts from the parent.
-                raise Exception('The provided parent message is not a Slack message or does not contain a Slack timestamp.')
+                # Gives to the user a more interesting explanation if we
+                # cannot find a ts from the parent.
+                raise Exception('The provided parent message is not a Slack '
+                                'message or does not contain a Slack timestamp.')
 
         # Keep the thread_ts to answer to the same thread.
         if 'thread_ts' in msg.extras:

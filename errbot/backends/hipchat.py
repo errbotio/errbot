@@ -4,9 +4,8 @@ import logging
 import re
 import sys
 from functools import lru_cache
-from multiprocessing.pool import ThreadPool
 
-from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream, Identifier
+from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream
 from errbot.backends.xmpp import XMPPRoomOccupant, XMPPBackend, XMPPConnection, split_identifier
 
 from markdown import Markdown

@@ -2,7 +2,6 @@ from os import path, makedirs
 import importlib
 import logging
 import sys
-import ast
 
 from errbot.core import ErrBot
 from errbot.plugin_manager import BotPluginManager

@@ -17,7 +17,6 @@ log = logging.getLogger('errbot.backends.xmpp')
 
 try:
     from sleekxmpp import ClientXMPP
-    from sleekxmpp.xmlstream import resolver, cert
 except ImportError:
     log.exception("Could not start the XMPP backend")
     log.fatal("""

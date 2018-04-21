@@ -818,6 +818,16 @@ class SlackBackend(ErrBot):
         result = self._bot.api_call('chat.update', data=data)
         return self._extract_message_object(result)
 
+    def delete_message(self, msg):
+        channel_id = self._get_channel_id(msg)
+
+        data = {
+            'ts': self._bot._ts_for_message(msg),
+            'channel': channel_id
+        }
+
+        return self._bot.api_call('chat.delete', data=data)
+
     def _get_channel_id(self, msg: Message):
         """Get relevant channel/person ID from a message"""
         if msg.is_group:

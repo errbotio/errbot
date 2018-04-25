@@ -160,7 +160,7 @@ class Help(BotPlugin):
         """
         cmd_name = name.replace('_', ' ')
         cmd_doc = textwrap.dedent(self._bot.get_doc(command)).strip()
-        prefix = self._bot.prefix
+        prefix = self._bot.prefix if getattr(command, '_err_command_prefix_required', True) else ''
 
         name = cmd_name
         patt = getattr(command, '_err_command_re_pattern', None)

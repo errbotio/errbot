@@ -70,13 +70,19 @@ def install_packages(req_path):
         Return an exc_info if it fails otherwise None.
     """
     log.info("Installing packages from '%s'." % req_path)
+    # use sys.executable explicitly instead of just 'pip' because depending on how the bot is deployed
+    # 'pip' might not be available on PATH: for example when installing errbot on a virtualenv and
+    # starting it with systemclt pointing directly to the executable:
+    # [Service]
+    # ExecStart=/home/errbot/.env/bin/errbot
+    pip_cmdline = [sys.executable, '-m', 'pip']
     try:
         if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
             # this is a virtualenv, so we can use it directly
-            subprocess.check_call(['pip', 'install', '--requirement', req_path])
+            subprocess.check_call(pip_cmdline + ['install', '--requirement', req_path])
         else:
             # otherwise only install it as a user package
-            subprocess.check_call(['pip', 'install', '--user', '--requirement', req_path])
+            subprocess.check_call(pip_cmdline + ['install', '--user', '--requirement', req_path])
     except Exception:
         log.exception('Failed to execute pip install for %s.', req_path)
         return sys.exc_info()

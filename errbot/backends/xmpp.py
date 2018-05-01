@@ -2,6 +2,7 @@ import logging
 import sys
 from functools import lru_cache
 
+from sleekxmpp import JID
 from sleekxmpp.exceptions import IqError
 from threading import Thread
 from time import sleep
@@ -298,6 +299,16 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
     @property
     def person(self):
         return str(self)  # this is the full identifier.
+
+    @property
+    def real_jid(self):
+        """
+        The JID of the room occupant, they used to login.
+        Will only work if the errbot is moderator in the MUC or it is not anonymous.
+        """
+        room_jid = self._node + '@' + self._domain
+        jid = JID(self._room.xep0045.getJidProperty(room_jid, self.resource, 'jid'))
+        return jid.bare
 
     @property
     def room(self):

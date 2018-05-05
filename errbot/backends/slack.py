@@ -735,7 +735,12 @@ class SlackBackend(ErrBot):
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
         limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
-        parts = self.prepare_message_body(card.body, limit)
+        # Slack attachment text will not display an empty string.  Use an empty string when no
+        # message body has been supplied to handle github issue #1202
+        if card.body:
+            parts = self.prepare_message_body(card.body, limit)
+        else:
+            parts = [""]
         part_count = len(parts)
         footer = attachment.get("footer", "")
         for i in range(part_count):

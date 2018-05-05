@@ -243,9 +243,9 @@ class ErrBot(Backend, StoreMixin):
             prefixed = True
             longest = 0
             for prefix in self.bot_alt_prefixes:
-                l = len(prefix)
-                if tomatch.startswith(prefix) and l > longest:
-                    longest = l
+                length = len(prefix)
+                if tomatch.startswith(prefix) and length > longest:
+                    longest = length
             log.debug("Called with alternate prefix '{}'".format(text[:longest]))
             text = text[longest:]
 
@@ -253,9 +253,9 @@ class ErrBot(Backend, StoreMixin):
             for sep in self.bot_config.BOT_ALT_PREFIX_SEPARATORS:
                 # While unlikely, one may have separators consisting of
                 # more than one character
-                l = len(sep)
-                if text[:l] == sep:
-                    text = text[l:]
+                length = len(sep)
+                if text[:length] == sep:
+                    text = text[length:]
         elif msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
             log.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
             # In order to keep noise down we surpress messages about the command

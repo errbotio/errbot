@@ -492,9 +492,9 @@ class BotPluginManager(PluginManager, StoreMixin):
         if not self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is not blacklisted' % name)
             return 'Plugin %s is not blacklisted' % name
-        l = self.get_blacklisted_plugin()
-        l.remove(name)
-        self[self.BL_PLUGINS] = l
+        plugin = self.get_blacklisted_plugin()
+        plugin.remove(name)
+        self[self.BL_PLUGINS] = plugin
         log.info('Plugin %s removed from blacklist' % name)
         return 'Plugin %s removed from blacklist' % name
 

@@ -373,7 +373,7 @@ class SlackBackend(ErrBot):
         self.bot_identifier = SlackPerson(self.sc, self.auth["user_id"])
 
         log.info("Connecting to Slack real-time-messaging API")
-        if self.sc.rtm_connect():
+        if self.sc.rtm_connect(auto_reconnect=True):
             log.info("Connected")
             # Block on reads instead of using the busy loop suggested in slackclient docs
             # https://github.com/slackapi/python-slackclient/issues/46#issuecomment-165674808

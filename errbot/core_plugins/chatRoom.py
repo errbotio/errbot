@@ -1,6 +1,6 @@
 import logging
 
-from errbot import BotPlugin, botcmd, SeparatorArgParser, ShlexArgParser
+from errbot import BotPlugin, SeparatorArgParser, ShlexArgParser, botcmd
 from errbot.backends.base import RoomNotJoinedError
 
 log = logging.getLogger(__name__)
@@ -11,11 +11,11 @@ class ChatRoom(BotPlugin):
     connected = False
 
     def callback_connect(self):
-        self.log.info('Callback_connect')
+        self.log.info("Callback_connect")
         if not self.connected:
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:
-                self.log.debug('Try to join room %s' % repr(room))
+                self.log.debug("Try to join room %s" % repr(room))
                 try:
                     self._join_room(room)
                 except Exception:
@@ -82,7 +82,7 @@ class ChatRoom(BotPlugin):
         room_name, password = (args[0], None) if arglen == 1 else (args[0], args[1])
         room = self.query_room(room_name)
         if room is None:
-            return 'Cannot find room {}.'.format(room_name)
+            return "Cannot find room {}.".format(room_name)
 
         room.join(username=self.bot_config.CHATROOM_FN, password=password)
         return "Joined the room {}".format(room_name)
@@ -226,7 +226,7 @@ class ChatRoom(BotPlugin):
             if msg.is_direct:
                 username = msg.frm.person
                 if username in self.bot_config.CHATROOM_RELAY:
-                    self.log.debug('Message to relay from %s.' % username)
+                    self.log.debug("Message to relay from %s." % username)
                     body = msg.body
                     rooms = self.bot_config.CHATROOM_RELAY[username]
                     for roomstr in rooms:
@@ -236,9 +236,9 @@ class ChatRoom(BotPlugin):
                 chat_room = str(fr.room)
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                     users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
-                    self.log.debug('Message to relay to %s.' % users_to_relay_to)
-                    body = '[%s] %s' % (fr.person, msg.body)
+                    self.log.debug("Message to relay to %s." % users_to_relay_to)
+                    body = "[%s] %s" % (fr.person, msg.body)
                     for user in users_to_relay_to:
                         self.send(user, body)
         except Exception as e:
-            self.log.exception('crashed in callback_message %s' % e)
+            self.log.exception("crashed in callback_message %s" % e)

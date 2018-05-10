@@ -2,18 +2,20 @@ import logging
 import os
 import re
 import sys
+
 from jinja2 import Environment, FileSystemLoader
 
 import errbot
-from errbot.backends.base import Message, ONLINE
-from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
+from errbot.backends.base import ONLINE, Message
+from errbot.backends.text import TextBackend  # we use that as we emulate MUC there already
 from errbot.rendering import xhtml
 
-CARD_TMPL = Environment(loader=FileSystemLoader(os.path.dirname(__file__)),
-                        autoescape=True).get_template('graphic_card.html')
+CARD_TMPL = Environment(loader=FileSystemLoader(os.path.dirname(__file__)), autoescape=True).get_template(
+    "graphic_card.html"
+)
 
 # Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.graphic')
+log = logging.getLogger("errbot.backends.graphic")
 
 try:
     from PySide import QtCore, QtGui, QtWebKit
@@ -21,9 +23,11 @@ try:
     from PySide.QtCore import Qt
 except ImportError:
     log.exception("Could not start the graphical backend")
-    log.fatal(""" To install graphic support use:
+    log.fatal(
+        """ To install graphic support use:
     pip install errbot[graphic]
-    """)
+    """
+    )
     sys.exit(-1)
 
 
@@ -48,7 +52,7 @@ class CommandBox(QtGui.QPlainTextEdit, object):
     def updateCompletion(self, commands):
         if self.completer:
             self.completer.activated.disconnect(self.onAutoComplete)
-        self.completer = QCompleter([(self.prefix + name).replace('_', ' ', 1) for name in commands], self)
+        self.completer = QCompleter([(self.prefix + name).replace("_", " ", 1) for name in commands], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setWidget(self)
         self.completer.activated.connect(self.onAutoComplete)
@@ -73,8 +77,11 @@ class CommandBox(QtGui.QPlainTextEdit, object):
             event.ignore()
             return
 
-        if self.autocompleteStart is not None and not event.text().isalnum() and \
-                not (key == Qt.Key_Backspace and self.textCursor().position() > self.autocompleteStart):
+        if (
+            self.autocompleteStart is not None
+            and not event.text().isalnum()
+            and not (key == Qt.Key_Backspace and self.textCursor().position() > self.autocompleteStart)
+        ):
             self.completer.popup().hide()
             self.autocompleteStart = None
 
@@ -97,12 +104,12 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         if key == Qt.Key_Up:
             if self.history_index > 0:
                 self.history_index -= 1
-                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
+                self.setPlainText("%s%s" % (self.prefix, " ".join(self.history[self.history_index])))
                 return
         elif key == Qt.Key_Down:
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
-                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
+                self.setPlainText("%s%s" % (self.prefix, " ".join(self.history[self.history_index])))
                 return
         elif key == QtCore.Qt.Key_Return and (ctrl or alt):
             self.newCommand.emit(self.toPlainText())
@@ -110,21 +117,21 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         super().keyPressEvent(*args, **kwargs)
 
 
-urlfinder = re.compile(r'http([^.\s]+\.[^.\s]*)+[^.\s]{2,}')
+urlfinder = re.compile(r"http([^.\s]+\.[^.\s]*)+[^.\s]{2,}")
 
-backends_path = os.path.join(os.path.dirname(errbot.__file__), 'backends')
+backends_path = os.path.join(os.path.dirname(errbot.__file__), "backends")
 
-images_path = os.path.join(backends_path, 'images')
-prompt_path = os.path.join(images_path, 'prompt.svg')
-icon_path = os.path.join(images_path, 'errbot.svg')
-bg_path = os.path.join(images_path, 'errbot-bg.svg')
+images_path = os.path.join(backends_path, "images")
+prompt_path = os.path.join(images_path, "prompt.svg")
+icon_path = os.path.join(images_path, "errbot.svg")
+bg_path = os.path.join(images_path, "errbot-bg.svg")
 
-style_path = os.path.join(backends_path, 'styles')
-css_path = os.path.join(style_path, 'style.css')
-demo_css_path = os.path.join(style_path, 'style-demo.css')
+style_path = os.path.join(backends_path, "styles")
+css_path = os.path.join(style_path, "style.css")
+demo_css_path = os.path.join(style_path, "style-demo.css")
 
-TOP = '<html><body style="background-image: url(\'file://%s\');">' % bg_path
-BOTTOM = '</body></html>'
+TOP = "<html><body style=\"background-image: url('file://%s');\">" % bg_path
+BOTTOM = "</body></html>"
 
 
 class ChatApplication(QtGui.QApplication):
@@ -134,12 +141,12 @@ class ChatApplication(QtGui.QApplication):
         self.bot = bot
         super().__init__(sys.argv)
         self.mainW = QtGui.QWidget()
-        self.mainW.setWindowTitle('Errbot')
+        self.mainW.setWindowTitle("Errbot")
         self.mainW.setWindowIcon(QtGui.QIcon(icon_path))
         vbox = QtGui.QVBoxLayout()
         help_label = QtGui.QLabel("ctrl or alt+space for autocomplete -- ctrl or alt+Enter to send your message")
         self.input = CommandBox(bot.cmd_history[str(bot.user)], bot.all_commands, bot.bot_config.BOT_PREFIX)
-        self.demo_mode = hasattr(bot.bot_config, 'TEXT_DEMO_MODE') and bot.bot_config.TEXT_DEMO_MODE
+        self.demo_mode = hasattr(bot.bot_config, "TEXT_DEMO_MODE") and bot.bot_config.TEXT_DEMO_MODE
         font = QtGui.QFont("Arial", QtGui.QFont.Bold)
         font.setPointSize(30 if self.demo_mode else 15)
         self.input.setFont(font)
@@ -175,9 +182,9 @@ class ChatApplication(QtGui.QApplication):
         size = 50 if self.demo_mode else 25
         user = '<img src="file://%s" height=%d />' % (prompt_path, size)
         bot = '<img src="file://%s" height=%d/>' % (icon_path, size)
-        self.buffer += '<div class="%s">%s<br/>%s</div>' % ('receiving' if receiving else 'sending',
-                                                            bot if receiving else user,
-                                                            text)
+        self.buffer += '<div class="%s">%s<br/>%s</div>' % (
+            "receiving" if receiving else "sending", bot if receiving else user, text
+        )
 
         self.update_webpage()
 
@@ -192,6 +199,7 @@ class ChatApplication(QtGui.QApplication):
 
 
 class GraphicBackend(TextBackend):
+
     def __init__(self, config):
         super().__init__(config)
         # create window and components
@@ -209,8 +217,7 @@ class GraphicBackend(TextBackend):
         msg.to = self.bot_identifier  # To me only
         self.callback_message(msg)
         # implements the mentions.
-        mentioned = [self.build_identifier(word[1:]) for word in re.findall(r"@[\w']+", text)
-                     if word.startswith('@')]
+        mentioned = [self.build_identifier(word[1:]) for word in re.findall(r"@[\w']+", text) if word.startswith("@")]
         if mentioned:
             self.callback_mention(msg, mentioned)
 
@@ -222,7 +229,7 @@ class GraphicBackend(TextBackend):
         return msg  # rebuild a pure html snippet to include directly in the console html
 
     def send_message(self, msg):
-        if hasattr(msg, 'body') and msg.body and not msg.body.isspace():
+        if hasattr(msg, "body") and msg.body and not msg.body.isspace():
             content = self.md.convert(msg.body)
             log.debug("html:\n%s", content)
             self.app.newAnswer.emit(content)
@@ -230,7 +237,7 @@ class GraphicBackend(TextBackend):
     def send_card(self, card):
         self.app.newAnswer.emit(CARD_TMPL.render(card=card))
 
-    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         pass
 
     def serve_forever(self):
@@ -245,8 +252,8 @@ class GraphicBackend(TextBackend):
 
     @property
     def mode(self):
-        return 'graphic'
+        return "graphic"
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '@{0} {1}'.format(identifier.nick, message.body)
+        message.body = "@{0} {1}".format(identifier.nick, message.body)

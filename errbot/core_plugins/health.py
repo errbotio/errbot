@@ -1,15 +1,16 @@
 import gc
 import os
 import signal
-
 from datetime import datetime
-from errbot import BotPlugin, botcmd, arg_botcmd
+
+from errbot import BotPlugin, arg_botcmd, botcmd
 from errbot.plugin_manager import global_restart
 from errbot.utils import format_timedelta
 
 
 class Health(BotPlugin):
-    @botcmd(template='status')
+
+    @botcmd(template="status")
     def status(self, msg, args):
         """ If I am alive I should be able to respond to this one
         """
@@ -17,29 +18,28 @@ class Health(BotPlugin):
         loads = self.status_load(msg, args)
         gc = self.status_gc(msg, args)
 
-        return {'plugins_statuses': plugins_statuses['plugins_statuses'],
-                'loads': loads['loads'],
-                'gc': gc['gc']}
+        return {"plugins_statuses": plugins_statuses["plugins_statuses"], "loads": loads["loads"], "gc": gc["gc"]}
 
-    @botcmd(template='status_load')
+    @botcmd(template="status_load")
     def status_load(self, _, args):
         """ shows the load status
         """
         try:
             from posix import getloadavg
+
             loads = getloadavg()
         except Exception:
             loads = None
 
-        return {'loads': loads}
+        return {"loads": loads}
 
-    @botcmd(template='status_gc')
+    @botcmd(template="status_gc")
     def status_gc(self, _, args):
         """ shows the garbage collection details
         """
-        return {'gc': gc.get_count()}
+        return {"gc": gc.get_count()}
 
-    @botcmd(template='status_plugins')
+    @botcmd(template="status_plugins")
     def status_plugins(self, _, args):
         """ shows the plugin status
         """
@@ -51,26 +51,31 @@ class Health(BotPlugin):
         for name in all_attempted:
             if name in all_blacklisted:
                 if name in all_loaded:
-                    plugins_statuses.append(('BA', name))
+                    plugins_statuses.append(("BA", name))
                 else:
-                    plugins_statuses.append(('BD', name))
+                    plugins_statuses.append(("BD", name))
             elif name in all_loaded:
-                plugins_statuses.append(('A', name))
-            elif pm.get_plugin_obj_by_name(name) is not None \
-                    and pm.get_plugin_obj_by_name(name).get_configuration_template() is not None \
-                    and pm.get_plugin_configuration(name) is None:
-                plugins_statuses.append(('C', name))
+                plugins_statuses.append(("A", name))
+            elif pm.get_plugin_obj_by_name(name) is not None and pm.get_plugin_obj_by_name(
+                name
+            ).get_configuration_template() is not None and pm.get_plugin_configuration(
+                name
+            ) is None:
+                plugins_statuses.append(("C", name))
             else:
-                plugins_statuses.append(('D', name))
+                plugins_statuses.append(("D", name))
 
-        return {'plugins_statuses': plugins_statuses}
+        return {"plugins_statuses": plugins_statuses}
 
     @botcmd
     def uptime(self, _, args):
         """ Return the uptime of the bot
         """
-        return "I've been up for %s %s (since %s)" % (args, format_timedelta(datetime.now() - self._bot.startup_time),
-                                                      self._bot.startup_time.strftime('%A, %b %d at %H:%M'))
+        return "I've been up for %s %s (since %s)" % (
+            args,
+            format_timedelta(datetime.now() - self._bot.startup_time),
+            self._bot.startup_time.strftime("%A, %b %d at %H:%M"),
+        )
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
@@ -84,10 +89,16 @@ class Health(BotPlugin):
         return "I'm restarting..."
 
     # noinspection PyUnusedLocal
-    @arg_botcmd('--confirm', dest="confirmed", action="store_true",
-                help="confirm you want to shut down", admin_only=True)
-    @arg_botcmd('--kill', dest="kill", action="store_true",
-                help="kill the bot instantly, don't shut down gracefully", admin_only=True)
+    @arg_botcmd(
+        "--confirm", dest="confirmed", action="store_true", help="confirm you want to shut down", admin_only=True
+    )
+    @arg_botcmd(
+        "--kill",
+        dest="kill",
+        action="store_true",
+        help="kill the bot instantly, don't shut down gracefully",
+        admin_only=True,
+    )
     def shutdown(self, msg, confirmed, kill):
         """
         Shutdown the bot.

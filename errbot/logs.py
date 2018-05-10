@@ -11,8 +11,8 @@ def ispydevd():
 
 
 root_logger = logging.getLogger()
-logging.getLogger('yapsy').setLevel(logging.INFO)  # this one is way too verbose in debug
-logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one is way too verbose in debug
+logging.getLogger("yapsy").setLevel(logging.INFO)  # this one is way too verbose in debug
+logging.getLogger("Rocket.Errors.ThreadPool").setLevel(logging.INFO)  # this one is way too verbose in debug
 root_logger.setLevel(logging.INFO)
 
 pydev = ispydevd()
@@ -23,31 +23,19 @@ console_hdlr = logging.StreamHandler(stream)
 
 def get_log_colors(theme_color=None):
     """Return a tuple containing the log format string and a log color dict"""
-    if theme_color == 'light':
-        text_color_theme = 'white'
-    elif theme_color == 'dark':
-        text_color_theme = 'black'
+    if theme_color == "light":
+        text_color_theme = "white"
+    elif theme_color == "dark":
+        text_color_theme = "black"
     else:  # Anything else produces nocolor
         return (
             "%(name)-25.25s%(reset)s %(message)s%(reset)s",
-            {
-                'DEBUG': '',
-                'INFO': '',
-                'WARNING': '',
-                'ERROR': '',
-                'CRITICAL': '',
-            },
+            {"DEBUG": "", "INFO": "", "WARNING": "", "ERROR": "", "CRITICAL": ""},
         )
 
     return (
         "%(name)-25.25s%(reset)s %({})s%(message)s%(reset)s".format(text_color_theme),
-        {
-            'DEBUG': 'cyan',
-            'INFO': 'green',
-            'WARNING': 'yellow',
-            'ERROR': 'red',
-            'CRITICAL': 'red',
-        }
+        {"DEBUG": "cyan", "INFO": "green", "WARNING": "yellow", "ERROR": "red", "CRITICAL": "red"},
     )
 
 
@@ -62,10 +50,10 @@ def format_logs(formatter=None, theme_color=None):
     # if isatty and not True:
     elif isatty:
         from colorlog import ColoredFormatter  # noqa
+
         log_format, colors_dict = get_log_colors(theme_color)
         color_formatter = ColoredFormatter(
-            "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s " +
-            log_format,
+            "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s " + log_format,
             datefmt="%H:%M:%S",
             reset=True,
             log_colors=colors_dict,

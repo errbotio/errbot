@@ -2,13 +2,12 @@ import io
 import logging
 import random
 import time
-from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
 from abc import ABC, abstractmethod
-from collections import deque, defaultdict
-
+from collections import defaultdict, deque
+from typing import Any, BinaryIO, List, Mapping, Sequence, Tuple
 
 # Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.base')
+log = logging.getLogger("errbot.backends.base")
 
 
 class Identifier(ABC):
@@ -73,6 +72,7 @@ class Person(Identifier):
 
 
 class RoomOccupant(Identifier):
+
     @property
     @abstractmethod
     def room(self) -> Any:  # this is oom defined below
@@ -89,7 +89,7 @@ class Room(Identifier):
     This class represents a Multi-User Chatroom.
     """
 
-    def join(self, username: str=None, password: str=None) -> None:
+    def join(self, username: str = None, password: str = None) -> None:
         """
         Join the room.
 
@@ -98,7 +98,7 @@ class Room(Identifier):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def leave(self, reason: str=None) -> None:
+    def leave(self, reason: str = None) -> None:
         """
         Leave the room.
 
@@ -221,15 +221,17 @@ class Message(object):
     the bot.
     """
 
-    def __init__(self,
-                 body: str='',
-                 frm: Identifier=None,
-                 to: Identifier=None,
-                 parent: 'Message'=None,
-                 delayed: bool=False,
-                 partial: bool=False,
-                 extras: Mapping=None,
-                 flow=None):
+    def __init__(
+        self,
+        body: str = "",
+        frm: Identifier = None,
+        to: Identifier = None,
+        parent: "Message" = None,
+        delayed: bool = False,
+        partial: bool = False,
+        extras: Mapping = None,
+        flow=None,
+    ):
         """
         :param body:
             The markdown body of the message.
@@ -329,7 +331,7 @@ class Message(object):
         return self._parent
 
     @parent.setter
-    def parent(self, parent: 'Message'):
+    def parent(self, parent: "Message"):
         self._parent = parent
 
     @property
@@ -376,18 +378,21 @@ class Card(Message):
         Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular message formatted with
         the card.md template.
     """
-    def __init__(self,
-                 body: str='',
-                 frm: Identifier=None,
-                 to: Identifier=None,
-                 parent: Message=None,
-                 summary: str=None,
-                 title: str='',
-                 link: str=None,
-                 image: str=None,
-                 thumbnail: str=None,
-                 color: str=None,
-                 fields: Tuple[Tuple[str, str]]=()):
+
+    def __init__(
+        self,
+        body: str = "",
+        frm: Identifier = None,
+        to: Identifier = None,
+        parent: Message = None,
+        summary: str = None,
+        title: str = "",
+        link: str = None,
+        image: str = None,
+        thumbnail: str = None,
+        color: str = None,
+        fields: Tuple[Tuple[str, str]] = (),
+    ):
         """
         Creates a Card.
         :param body: main text of the card in markdown.
@@ -437,19 +442,19 @@ class Card(Message):
 
     @property
     def text_color(self):
-        if self._color in ('black', 'blue'):
-            return 'white'
-        return 'black'
+        if self._color in ("black", "blue"):
+            return "white"
+        return "black"
 
     @property
     def fields(self):
         return self._fields
 
 
-ONLINE = 'online'
-OFFLINE = 'offline'
-AWAY = 'away'
-DND = 'dnd'
+ONLINE = "online"
+OFFLINE = "offline"
+AWAY = "away"
+DND = "dnd"
 
 
 class Presence(object):
@@ -460,14 +465,11 @@ class Presence(object):
        when the presence of people changes.
     """
 
-    def __init__(self,
-                 identifier: Identifier,
-                 status: str=None,
-                 message: str=None):
+    def __init__(self, identifier: Identifier, status: str = None, message: str = None):
         if identifier is None:
-            raise ValueError('Presence: identifiers is None')
+            raise ValueError("Presence: identifiers is None")
         if status is None and message is None:
-            raise ValueError('Presence: at least a new status or a new status message mustbe present')
+            raise ValueError("Presence: at least a new status or a new status message mustbe present")
         self._identifier = identifier
         self._status = status
         self._message = message
@@ -498,7 +500,7 @@ class Presence(object):
         return self._message
 
     def __str__(self):
-        response = ''
+        response = ""
         if self._identifier:
             response += 'identifier: "%s" ' % self._identifier
         if self._status:
@@ -511,14 +513,14 @@ class Presence(object):
         return str(self.__str__())
 
 
-STREAM_WAITING_TO_START = 'pending'
-STREAM_TRANSFER_IN_PROGRESS = 'in progress'
-STREAM_SUCCESSFULLY_TRANSFERED = 'success'
-STREAM_PAUSED = 'paused'
-STREAM_ERROR = 'error'
-STREAM_REJECTED = 'rejected'
+STREAM_WAITING_TO_START = "pending"
+STREAM_TRANSFER_IN_PROGRESS = "in progress"
+STREAM_SUCCESSFULLY_TRANSFERED = "success"
+STREAM_PAUSED = "paused"
+STREAM_ERROR = "error"
+STREAM_REJECTED = "rejected"
 
-DEFAULT_REASON = 'unknown'
+DEFAULT_REASON = "unknown"
 
 
 class Stream(io.BufferedReader):
@@ -529,12 +531,9 @@ class Stream(io.BufferedReader):
        when an incoming stream is requested.
     """
 
-    def __init__(self,
-                 identifier: Identifier,
-                 fsource: BinaryIO,
-                 name: str=None,
-                 size: int=None,
-                 stream_type: str=None):
+    def __init__(
+        self, identifier: Identifier, fsource: BinaryIO, name: str = None, size: int = None, stream_type: str = None
+    ):
         super().__init__(fsource)
         self._identifier = identifier
         self._name = name
@@ -619,7 +618,7 @@ class Stream(io.BufferedReader):
             raise ValueError("Invalid state, the stream is not in progress.")
         self._status = STREAM_SUCCESSFULLY_TRANSFERED
 
-    def clone(self, new_fsource: BinaryIO) -> 'Stream':
+    def clone(self, new_fsource: BinaryIO) -> "Stream":
         """
             Creates a clone and with an alternative stream
         """
@@ -638,30 +637,29 @@ class Backend(ABC):
 
     cmd_history = defaultdict(lambda: deque(maxlen=10))  # this will be a per user history
 
-    MSG_ERROR_OCCURRED = 'Sorry for your inconvenience. ' \
-                         'An unexpected error occurred.'
+    MSG_ERROR_OCCURRED = "Sorry for your inconvenience. An unexpected error occurred."
 
     def __init__(self, _):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
         log.debug("Backend init.")
-        self._reconnection_count = 0          # Increments with each failed (re)connection
-        self._reconnection_delay = 1          # Amount of seconds the bot will sleep on the
+        self._reconnection_count = 0  # Increments with each failed (re)connection
+        self._reconnection_delay = 1  # Amount of seconds the bot will sleep on the
         #                                     # next reconnection attempt
-        self._reconnection_max_delay = 600    # Maximum delay between reconnection attempts
+        self._reconnection_max_delay = 600  # Maximum delay between reconnection attempts
         self._reconnection_multiplier = 1.75  # Delay multiplier
-        self._reconnection_jitter = (0, 3)    # Random jitter added to delay (min, max)
+        self._reconnection_jitter = (0, 3)  # Random jitter added to delay (min, max)
 
     @abstractmethod
     def send_message(self, msg: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
-    def change_presence(self, status: str=ONLINE, message: str='') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         """Signal a presence change for the bot. Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
-    def build_reply(self, msg: Message, text: str=None, private: bool=False, threaded: bool=False):
+    def build_reply(self, msg: Message, text: str = None, private: bool = False, threaded: bool = False):
         """ Should be implemented by the backend """
 
     @abstractmethod
@@ -706,7 +704,8 @@ class Backend(ABC):
 
             log.info(
                 "Reconnecting in {delay} seconds ({count} attempted reconnections so far)".format(
-                    delay=self._reconnection_delay, count=self._reconnection_count)
+                    delay=self._reconnection_delay, count=self._reconnection_count
+                )
             )
             try:
                 self._delay_reconnect()
@@ -761,8 +760,9 @@ class Backend(ABC):
         """
         # Default implementation (XMPP-like check using an extra config).
         # Most of the backends should have a better way to determine this.
-        return (msg.is_direct and msg.frm == self.bot_identifier) or \
-               (msg.is_group and msg.frm.nick == self.bot_config.CHATROOM_FN)
+        return (msg.is_direct and msg.frm == self.bot_identifier) or (
+            msg.is_group and msg.frm.nick == self.bot_config.CHATROOM_FN
+        )
 
     def serve_once(self) -> None:
         """

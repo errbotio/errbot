@@ -1,34 +1,33 @@
 # -*- coding: utf-8 -*-
 # vim: ts=4:sw=4
+import copyreg
 import logging
+import re
 import sys
 from time import sleep
-import re
 
-import copyreg
 from ansi.color import fg, fx
+from markdown import Markdown
+from markdown.extensions.extra import ExtraExtension
 from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
-from errbot import botcmd, BotPlugin
-from errbot.rendering import ansi, text, xhtml, imtext
-from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
-from errbot.backends.base import Message, Person, Presence, ONLINE, OFFLINE, Room, RoomOccupant
+from errbot import BotPlugin, botcmd
+from errbot.backends.base import OFFLINE, ONLINE, Message, Person, Presence, Room, RoomOccupant
 from errbot.core import ErrBot
 from errbot.logs import console_hdlr
-
-from markdown import Markdown
-from markdown.extensions.extra import ExtraExtension
+from errbot.rendering import ansi, imtext, text, xhtml
+from errbot.rendering.ansiext import ANSI_CHRS, AnsiExtension, enable_format
 
 # Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.text')
+log = logging.getLogger("errbot.backends.text")
 
 ENCODING_INPUT = sys.stdin.encoding
-ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
+ANSI = hasattr(sys.stderr, "isatty") and sys.stderr.isatty()
 
 
-enable_format('borderless', ANSI_CHRS, borders=False)
+enable_format("borderless", ANSI_CHRS, borders=False)
 
 
 def borderless_ansi():
@@ -39,7 +38,7 @@ def borderless_ansi():
 
     ansi_txt = md_converter.convert(md_txt)
     """
-    md = Markdown(output_format='borderless', extensions=[ExtraExtension(), AnsiExtension()])
+    md = Markdown(output_format="borderless", extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
 
@@ -76,7 +75,7 @@ class TextPerson(Person):
         return str(self)
 
     def __str__(self):
-        return '@' + self._person
+        return "@" + self._person
 
     def __eq__(self, other):
         if not isinstance(other, Person):
@@ -90,15 +89,17 @@ class TextPerson(Person):
 class TextRoom(Room):
 
     def __init__(self, name, bot):
-        self._topic = ''
+        self._topic = ""
         self._joined = False
         self.name = name
         self._bot = bot
 
         # fill up the room with a coherent set of identities.
-        self._occupants = [TextOccupant('somebody', self),
-                           TextOccupant(TextPerson(bot.bot_config.BOT_ADMINS[0]), self),
-                           TextOccupant(bot.bot_identifier, self)]
+        self._occupants = [
+            TextOccupant("somebody", self),
+            TextOccupant(TextPerson(bot.bot_config.BOT_ADMINS[0]), self),
+            TextOccupant(bot.bot_identifier, self),
+        ]
 
     def join(self, username=None, password=None):
         self._joined = True
@@ -136,7 +137,7 @@ class TextRoom(Room):
         pass
 
     def __str__(self):
-        return '#' + self.name
+        return "#" + self.name
 
     def __eq__(self, other):
         return self.name == other.name
@@ -156,7 +157,7 @@ class TextOccupant(TextPerson, RoomOccupant):
         return self._room
 
     def __str__(self):
-        return '#%s/%s' % (self._room.name, self._person.person)
+        return "#%s/%s" % (self._room.name, self._person.person)
 
     def __eq__(self, other):
         return self.person == other.person and self.room == other.room
@@ -185,22 +186,23 @@ You start as a **bot admin in a one-on-one conversation** with the bot.
 
 
 class TextBackend(ErrBot):
+
     def __init__(self, config):
         super().__init__(config)
         log.debug("Text Backend Init.")
 
-        if hasattr(self.bot_config, 'BOT_IDENTITY') and 'username' in self.bot_config.BOT_IDENTITY:
-            self.bot_identifier = self.build_identifier(self.bot_config.BOT_IDENTITY['username'])
+        if hasattr(self.bot_config, "BOT_IDENTITY") and "username" in self.bot_config.BOT_IDENTITY:
+            self.bot_identifier = self.build_identifier(self.bot_config.BOT_IDENTITY["username"])
         else:
             # Just a default identity for the bot if nothing has been specified.
-            self.bot_identifier = self.build_identifier('@errbot')
+            self.bot_identifier = self.build_identifier("@errbot")
 
-        log.debug('Bot username set at %s.', self.bot_identifier)
+        log.debug("Bot username set at %s.", self.bot_identifier)
         self._inroom = False
         self._rooms = []
         self._multiline = False
 
-        self.demo_mode = self.bot_config.TEXT_DEMO_MODE if hasattr(self.bot_config, 'TEXT_DEMO_MODE') else False
+        self.demo_mode = self.bot_config.TEXT_DEMO_MODE if hasattr(self.bot_config, "TEXT_DEMO_MODE") else False
         if not self.demo_mode:
             self.md_html = xhtml()  # for more debug feedback on md
             self.md_text = text()  # for more debug feedback on md
@@ -210,7 +212,7 @@ class TextBackend(ErrBot):
 
         self.md_ansi = ansi()
         self.html_lexer = get_lexer_by_name("html", stripall=True)
-        self.terminal_formatter = Terminal256Formatter(style='paraiso-dark')
+        self.terminal_formatter = Terminal256Formatter(style="paraiso-dark")
         self.user = self.build_identifier(self.bot_config.BOT_ADMINS[0])
         self._register_identifiers_pickling()
 
@@ -235,7 +237,7 @@ class TextBackend(ErrBot):
 
         if not self._rooms:
             # artificially join a room if None were specified.
-            self.query_room('#testroom').join()
+            self.query_room("#testroom").join()
 
         if self.demo_mode:
             # disable the console logging once it is serving in demo mode.
@@ -258,18 +260,14 @@ class TextBackend(ErrBot):
                     to = self.bot_identifier
 
                 print()
-                full_msg = ''
+                full_msg = ""
                 while True:
-                    prompt = '[␍] ' if full_msg else '>>> '
+                    prompt = "[␍] " if full_msg else ">>> "
                     if ANSI or self.demo_mode:
                         color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
-                        entry = input(str(color) +
-                                      '[%s ➡ %s] ' % (frm, to) +
-                                      str(fg.cyan) +
-                                      prompt +
-                                      str(fx.reset))
+                        entry = input(str(color) + "[%s ➡ %s] " % (frm, to) + str(fg.cyan) + prompt + str(fx.reset))
                     else:
-                        entry = input('[%s ➡ %s] ' % (frm, to) + prompt)
+                        entry = input("[%s ➡ %s] " % (frm, to) + prompt)
 
                     if not self._multiline:
                         full_msg = entry
@@ -278,7 +276,7 @@ class TextBackend(ErrBot):
                     if not entry:
                         break
 
-                    full_msg += entry + '\n'
+                    full_msg += entry + "\n"
 
                 msg = Message(full_msg)
                 msg.frm = frm
@@ -286,7 +284,7 @@ class TextBackend(ErrBot):
 
                 self.callback_message(msg)
 
-                mentioned = [self.build_identifier(word) for word in re.findall(r'(?<=\s)@[\w]+', entry)]
+                mentioned = [self.build_identifier(word) for word in re.findall(r"(?<=\s)@[\w]+", entry)]
                 if mentioned:
                     self.callback_mention(msg, mentioned)
 
@@ -325,52 +323,52 @@ class TextBackend(ErrBot):
         if self.demo_mode:
             print(self.md_ansi.convert(msg.body))
         else:
-            bar = '\n╌╌[{mode}]' + ('╌' * 60)
+            bar = "\n╌╌[{mode}]" + ("╌" * 60)
             super().send_message(msg)
-            print(bar.format(mode='MD  '))
+            print(bar.format(mode="MD  "))
             if ANSI:
                 print(highlight(msg.body, self.md_lexer, self.terminal_formatter))
             else:
                 print(msg.body)
-            print(bar.format(mode='HTML'))
+            print(bar.format(mode="HTML"))
             html = self.md_html.convert(msg.body)
             if ANSI:
                 print(highlight(html, self.html_lexer, self.terminal_formatter))
             else:
                 print(html)
-            print(bar.format(mode='TEXT'))
+            print(bar.format(mode="TEXT"))
             print(self.md_text.convert(msg.body))
-            print(bar.format(mode='IM  '))
+            print(bar.format(mode="IM  "))
             print(self.md_im.convert(msg.body))
             if ANSI:
-                print(bar.format(mode='ANSI'))
+                print(bar.format(mode="ANSI"))
                 print(self.md_ansi.convert(msg.body))
-                print(bar.format(mode='BORDERLESS'))
+                print(bar.format(mode="BORDERLESS"))
                 print(self.md_borderless_ansi.convert(msg.body))
-            print('\n\n')
+            print("\n\n")
 
     def add_reaction(self, msg: Message, reaction: str) -> None:
         # this is like the Slack backend's add_reaction
-        self._react('+', msg, reaction)
+        self._react("+", msg, reaction)
 
     def remove_reaction(self, msg: Message, reaction: str) -> None:
-        self._react('-', msg, reaction)
+        self._react("-", msg, reaction)
 
     def _react(self, sign, msg, reaction):
-        self.send(msg.frm, 'reaction {}:{}:'.format(sign, reaction), in_reply_to=msg)
+        self.send(msg.frm, "reaction {}:{}:".format(sign, reaction), in_reply_to=msg)
 
-    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         log.debug("*** Changed presence to [%s] %s", (status, message))
 
     def build_identifier(self, text_representation):
-        if text_representation.startswith('#'):
+        if text_representation.startswith("#"):
             rem = text_representation[1:]
-            if '/' in text_representation:
-                room, person = rem.split('/')
+            if "/" in text_representation:
+                room, person = rem.split("/")
                 return TextOccupant(TextPerson(person), TextRoom(room, self))
-            return self.query_room('#' + rem)
-        if not text_representation.startswith('@'):
-            raise ValueError('An identifier for the Text backend needs to start with # for a room or @ for a person.')
+            return self.query_room("#" + rem)
+        if not text_representation.startswith("@"):
+            raise ValueError("An identifier for the Text backend needs to start with # for a room or @ for a person.")
         return TextPerson(text_representation[1:])
 
     def build_reply(self, msg, text=None, private=False, threaded=False):
@@ -384,11 +382,11 @@ class TextBackend(ErrBot):
 
     @property
     def mode(self):
-        return 'text'
+        return "text"
 
     def query_room(self, room):
-        if not room.startswith('#'):
-            raise ValueError('A Room name must start by #.')
+        if not room.startswith("#"):
+            raise ValueError("A Room name must start by #.")
         text_room = TextRoom(room[1:], self)
         if text_room not in self._rooms:
             self._rooms.append(text_room)
@@ -399,4 +397,4 @@ class TextBackend(ErrBot):
         return self._rooms
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '{0} {1}'.format(identifier.person, message.body)
+        message.body = "{0} {1}".format(identifier.person, message.body)

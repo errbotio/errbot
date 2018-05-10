@@ -1,8 +1,8 @@
 import logging
-from threading import RLock
-from typing import Mapping, List, Tuple, Union, Callable, Any
-
 from multiprocessing.pool import ThreadPool
+from threading import RLock
+from typing import Any, Callable, List, Mapping, Tuple, Union
+
 from yapsy.IPlugin import IPlugin
 
 from errbot import Message
@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 Predicate = Callable[[Mapping[str, Any]], bool]
 
-EXECUTOR_THREADS = 5   # the maximum number of simultaneous flows in automatic mode at the same time.
+EXECUTOR_THREADS = 5  # the maximum number of simultaneous flows in automatic mode at the same time.
 
 
 class FlowNode(object):
@@ -25,7 +25,7 @@ class FlowNode(object):
     The predicate is a function that takes one parameter, the context of the conversation.
     """
 
-    def __init__(self, command: str=None, hints: bool=True):
+    def __init__(self, command: str = None, hints: bool = True):
         """
         Creates a FlowNone, takes the command to which the Node is linked to.
         :param command: the command this Node is linked to. Can only be None if this Node is a Root.
@@ -35,7 +35,7 @@ class FlowNode(object):
         self.children = []  # (predicate, node)
         self.hints = hints
 
-    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate=lambda _: False):
+    def connect(self, node_or_command: Union["FlowNode", str], predicate: Predicate = lambda _: False):
         """
         Construct the flow graph by connecting this node to another node or a command.
         The predicate is a function that tells the flow executor if the flow can enter the step without the user
@@ -51,7 +51,7 @@ class FlowNode(object):
         self.children.append((predicate, node_to_connect_to))
         return node_to_connect_to
 
-    def predicate_for_node(self, node: 'FlowNode'):
+    def predicate_for_node(self, node: "FlowNode"):
         """
         gets the predicate function for the specified child node.
         :param node: the child node
@@ -70,6 +70,7 @@ class FlowRoot(FlowNode):
     """
     This represent the entry point of a flow description.
     """
+
     def __init__(self, name: str, description: str):
         """
 
@@ -83,11 +84,13 @@ class FlowRoot(FlowNode):
         self.auto_triggers = set()
         self.room_flow = False
 
-    def connect(self,
-                node_or_command: Union['FlowNode', str],
-                predicate: Predicate=lambda _: False,
-                auto_trigger: bool=False,
-                room_flow: bool=False):
+    def connect(
+        self,
+        node_or_command: Union["FlowNode", str],
+        predicate: Predicate = lambda _: False,
+        auto_trigger: bool = False,
+        room_flow: bool = False,
+    ):
         """
         :see: FlowNode except fot auto_trigger
         :param predicate: :see: FlowNode
@@ -107,8 +110,9 @@ class FlowRoot(FlowNode):
 
 
 class _FlowEnd(FlowNode):
+
     def __str__(self):
-        return 'END'
+        return "END"
 
 
 #: Flow marker indicating that the flow ends.
@@ -127,6 +131,7 @@ class Flow(object):
     This is a live Flow. It keeps context of the conversation (requestor and context).
     Context is just a python dictionary representing the state of the conversation.
     """
+
     def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any]):
         """
 
@@ -246,6 +251,7 @@ class FlowExecutor(object):
     """
     This is a instance that can monitor and execute flow instances.
     """
+
     def __init__(self, bot):
         self._lock = RLock()
         self.flow_roots = {}
@@ -375,7 +381,7 @@ class FlowExecutor(object):
         with self._lock:
             if flow not in self.in_flight:
                 self.in_flight.append(flow)
-        self._pool.apply_async(self.execute, (flow, ))
+        self._pool.apply_async(self.execute, (flow,))
 
     def execute(self, flow: Flow):
         """
@@ -400,33 +406,32 @@ class FlowExecutor(object):
                     syntax_args = cmd_fnc._err_command_syntax
                     reg_prefixed = cmd_fnc._err_command_prefix_required if reg_cmd else True
                     # syntax = '' if syntax is None else syntax
-                    syntax = self._bot.prefix if reg_prefixed else ''
+                    syntax = self._bot.prefix if reg_prefixed else ""
                     if not reg_cmd:
-                        syntax += cmd.replace('_', ' ')
+                        syntax += cmd.replace("_", " ")
                     if syntax_args:
                         syntax += syntax_args
                     possible_next_steps.append("- %s" % syntax)
                 self._bot.send(flow.requestor, "\n".join(possible_next_steps))
                 break
 
-            log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))
-            log.debug("All possible next steps: %s", ', '.join(str(node) for node in steps))
+            log.debug("Steps triggered automatically %s", ", ".join(str(node) for node in autosteps))
+            log.debug("All possible next steps: %s", ", ".join(str(node) for node in steps))
 
             for autostep in autosteps:
                 log.debug("Proceeding automatically with step %s", autostep)
                 if autostep == FLOW_END:
-                    log.debug('This flow ENDED.')
+                    log.debug("This flow ENDED.")
                     with self._lock:
                         self.in_flight.remove(flow)
                     return
                 try:
                     msg = Message(frm=flow.requestor, flow=flow)
                     result = self._bot.commands[autostep.command](msg, None)
-                    log.debug('Step result %s: %s', flow.requestor, result)
+                    log.debug("Step result %s: %s", flow.requestor, result)
 
                 except Exception as e:
-                    log.exception('%s errored at %s', flow, autostep)
-                    self._bot.send(flow.requestor,
-                                   '%s errored at %s with "%s"' % (flow, autostep, e))
+                    log.exception("%s errored at %s", flow, autostep)
+                    self._bot.send(flow.requestor, '%s errored at %s with "%s"' % (flow, autostep, e))
                 flow.advance(autostep)  # TODO: this is only true for a single step, make it forkable.
         log.debug("Flow execution suspended/ended normally.")

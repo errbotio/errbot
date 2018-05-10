@@ -63,7 +63,7 @@ import logging
 
 # The location where all of Err's data should be stored. Make sure to set
 # this to a directory that is writable by the user running the bot.
-BOT_DATA_DIR = '/var/lib/err'
+BOT_DATA_DIR = "/var/lib/err"
 
 ### Repos and plugins config.
 
@@ -97,7 +97,7 @@ BOT_EXTRA_PLUGIN_DIR = None
 # pre- or post-processing on messages.
 # The 'None' tuple entry represents all the plugins that aren't to be explicitly ordered. For example, if
 # you want 'A' to run first, then everything else but 'B', then 'B', you would use ('A', None, 'B').
-PLUGINS_CALLBACK_ORDER = (None, )
+PLUGINS_CALLBACK_ORDER = (None,)
 
 # Should plugin dependencies be installed automatically? If this is true
 # then Errbot will use pip to install any missing dependencies automatically.
@@ -117,7 +117,7 @@ PLUGINS_CALLBACK_ORDER = (None, )
 
 # The location of the log file. If you set this to None, then logging will
 # happen to console only.
-BOT_LOG_FILE = BOT_DATA_DIR + '/err.log'
+BOT_LOG_FILE = BOT_DATA_DIR + "/err.log"
 
 # The verbosity level of logging that is done to the above logfile, and to
 # the console. This takes the standard Python logging levels, DEBUG, INFO,
@@ -131,7 +131,7 @@ BOT_LOG_LEVEL = logging.INFO
 # Enable logging to sentry (find out more about sentry at www.getsentry.com).
 # This is optional and disabled by default.
 BOT_LOG_SENTRY = False
-SENTRY_DSN = ''
+SENTRY_DSN = ""
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 
 # Set an optional Sentry transport other than the default Threaded.
@@ -197,7 +197,7 @@ BOT_IDENTITY = {
 #
 # Unix-style glob patterns are supported, so 'gbin@localhost'
 # would be considered an admin if setting '*@localhost'.
-BOT_ADMINS = ('gbin@localhost',)
+BOT_ADMINS = ("gbin@localhost",)
 
 # Set of admins that wish to receive administrative bot notifications.
 #BOT_ADMINS_NOTIFICATIONS = ()

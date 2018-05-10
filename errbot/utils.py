@@ -172,7 +172,7 @@ def split_string_after(str_, n):
     :param n: length of the chunks.
     :param str_: the given string.
     """
-    for start in range(0, len(str_), n):
+    for start in range(0, max(len(str_), 1), n):
         yield str_[start:start + n]
 
 

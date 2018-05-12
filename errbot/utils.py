@@ -132,7 +132,7 @@ def unescape_xml(text):
                 pass
         return txt  # leave as is
 
-    return re.sub("&#?\w+;", fixup, text)
+    return re.sub(r'&#?\w+;', fixup, text)
 
 
 REMOVE_EOL = re.compile(r'\n')

@@ -48,7 +48,7 @@ class FlowNode(object):
         :return: the newly created node if you passed a command or the node you gave it to be easily chainable.
         """
         node_to_connect_to = node_or_command if isinstance(node_or_command, FlowNode) else FlowNode(node_or_command,
-                                                                                                    hints=True)
+                                                                                                    hints=hints)
         self.children.append((predicate, node_to_connect_to))
         return node_to_connect_to
 

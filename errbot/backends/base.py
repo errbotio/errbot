@@ -6,7 +6,6 @@ from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
 from abc import ABC, abstractmethod
 from collections import deque, defaultdict
 
-
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.base')
 
@@ -89,7 +88,7 @@ class Room(Identifier):
     This class represents a Multi-User Chatroom.
     """
 
-    def join(self, username: str=None, password: str=None) -> None:
+    def join(self, username: str = None, password: str = None) -> None:
         """
         Join the room.
 
@@ -98,7 +97,7 @@ class Room(Identifier):
         """
         raise NotImplementedError("It should be implemented specifically for your backend")
 
-    def leave(self, reason: str=None) -> None:
+    def leave(self, reason: str = None) -> None:
         """
         Leave the room.
 
@@ -222,13 +221,13 @@ class Message(object):
     """
 
     def __init__(self,
-                 body: str='',
-                 frm: Identifier=None,
-                 to: Identifier=None,
-                 parent: 'Message'=None,
-                 delayed: bool=False,
-                 partial: bool=False,
-                 extras: Mapping=None,
+                 body: str = '',
+                 frm: Identifier = None,
+                 to: Identifier = None,
+                 parent: 'Message' = None,
+                 delayed: bool = False,
+                 partial: bool = False,
+                 extras: Mapping = None,
                  flow=None):
         """
         :param body:
@@ -376,18 +375,19 @@ class Card(Message):
         Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular message formatted with
         the card.md template.
     """
+
     def __init__(self,
-                 body: str='',
-                 frm: Identifier=None,
-                 to: Identifier=None,
-                 parent: Message=None,
-                 summary: str=None,
-                 title: str='',
-                 link: str=None,
-                 image: str=None,
-                 thumbnail: str=None,
-                 color: str=None,
-                 fields: Tuple[Tuple[str, str]]=()):
+                 body: str = '',
+                 frm: Identifier = None,
+                 to: Identifier = None,
+                 parent: Message = None,
+                 summary: str = None,
+                 title: str = '',
+                 link: str = None,
+                 image: str = None,
+                 thumbnail: str = None,
+                 color: str = None,
+                 fields: Tuple[Tuple[str, str]] = ()):
         """
         Creates a Card.
         :param body: main text of the card in markdown.
@@ -462,8 +462,8 @@ class Presence(object):
 
     def __init__(self,
                  identifier: Identifier,
-                 status: str=None,
-                 message: str=None):
+                 status: str = None,
+                 message: str = None):
         if identifier is None:
             raise ValueError('Presence: identifiers is None')
         if status is None and message is None:
@@ -532,9 +532,9 @@ class Stream(io.BufferedReader):
     def __init__(self,
                  identifier: Identifier,
                  fsource: BinaryIO,
-                 name: str=None,
-                 size: int=None,
-                 stream_type: str=None):
+                 name: str = None,
+                 size: int = None,
+                 stream_type: str = None):
         super().__init__(fsource)
         self._identifier = identifier
         self._name = name
@@ -645,23 +645,23 @@ class Backend(ABC):
         """ Those arguments will be directly those put in BOT_IDENTITY
         """
         log.debug("Backend init.")
-        self._reconnection_count = 0          # Increments with each failed (re)connection
-        self._reconnection_delay = 1          # Amount of seconds the bot will sleep on the
+        self._reconnection_count = 0  # Increments with each failed (re)connection
+        self._reconnection_delay = 1  # Amount of seconds the bot will sleep on the
         #                                     # next reconnection attempt
-        self._reconnection_max_delay = 600    # Maximum delay between reconnection attempts
+        self._reconnection_max_delay = 600  # Maximum delay between reconnection attempts
         self._reconnection_multiplier = 1.75  # Delay multiplier
-        self._reconnection_jitter = (0, 3)    # Random jitter added to delay (min, max)
+        self._reconnection_jitter = (0, 3)  # Random jitter added to delay (min, max)
 
     @abstractmethod
     def send_message(self, msg: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
-    def change_presence(self, status: str=ONLINE, message: str='') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """Signal a presence change for the bot. Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
-    def build_reply(self, msg: Message, text: str=None, private: bool=False, threaded: bool=False):
+    def build_reply(self, msg: Message, text: str = None, private: bool = False, threaded: bool = False):
         """ Should be implemented by the backend """
 
     @abstractmethod

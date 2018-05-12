@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 Predicate = Callable[[Mapping[str, Any]], bool]
 
-EXECUTOR_THREADS = 5   # the maximum number of simultaneous flows in automatic mode at the same time.
+EXECUTOR_THREADS = 5  # the maximum number of simultaneous flows in automatic mode at the same time.
 
 
 class FlowNode(object):
@@ -25,7 +25,7 @@ class FlowNode(object):
     The predicate is a function that takes one parameter, the context of the conversation.
     """
 
-    def __init__(self, command: str=None, hints: bool=True):
+    def __init__(self, command: str = None, hints: bool = True):
         """
         Creates a FlowNone, takes the command to which the Node is linked to.
         :param command: the command this Node is linked to. Can only be None if this Node is a Root.
@@ -71,6 +71,7 @@ class FlowRoot(FlowNode):
     """
     This represent the entry point of a flow description.
     """
+
     def __init__(self, name: str, description: str):
         """
 
@@ -86,9 +87,9 @@ class FlowRoot(FlowNode):
 
     def connect(self,
                 node_or_command: Union['FlowNode', str],
-                predicate: Predicate=lambda _: False,
-                auto_trigger: bool=False,
-                room_flow: bool=False):
+                predicate: Predicate = lambda _: False,
+                auto_trigger: bool = False,
+                room_flow: bool = False):
         """
         :see: FlowNode except fot auto_trigger
         :param predicate: :see: FlowNode
@@ -128,6 +129,7 @@ class Flow(object):
     This is a live Flow. It keeps context of the conversation (requestor and context).
     Context is just a python dictionary representing the state of the conversation.
     """
+
     def __init__(self, root: FlowRoot, requestor: Identifier, initial_context: Mapping[str, Any]):
         """
 
@@ -247,6 +249,7 @@ class FlowExecutor(object):
     """
     This is a instance that can monitor and execute flow instances.
     """
+
     def __init__(self, bot):
         self._lock = RLock()
         self.flow_roots = {}
@@ -376,7 +379,7 @@ class FlowExecutor(object):
         with self._lock:
             if flow not in self.in_flight:
                 self.in_flight.append(flow)
-        self._pool.apply_async(self.execute, (flow, ))
+        self._pool.apply_async(self.execute, (flow,))
 
     def execute(self, flow: Flow):
         """

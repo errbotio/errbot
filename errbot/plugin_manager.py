@@ -252,7 +252,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.info('Plugin %s from URL %s.', (name, url))
                 repo_manager.add_plugin_repo(name, url)
             log.info('update successful, removing old entry.')
-            del(self[ex_entry])
+            del (self[ex_entry])
 
         # be sure we have a configs entry for the plugin configurations
         if self.CONFIGS not in self:
@@ -441,7 +441,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
         if None not in self.plugins_callback_order:
-            self.plugins_callback_order = self.plugins_callback_order + (None, )
+            self.plugins_callback_order = self.plugins_callback_order + (None,)
 
         all_plugins = []
         for name in self.plugins_callback_order:
@@ -449,8 +449,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             if name is None:
                 all_plugins += [
                     p.plugin_object for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)
-                    if p.name not in self.plugins_callback_order and
-                    hasattr(p, 'is_activated') and p.is_activated
+                    if p.name not in self.plugins_callback_order and hasattr(p, 'is_activated') and p.is_activated
                 ]
             else:
                 p = self.get_plugin_by_name(name)

@@ -482,19 +482,20 @@ class ErrBot(Backend, StoreMixin):
         """
         full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
         if full_cmd:
-            part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
+            msg = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
-            part1 = 'Command "%s" not found.' % cmd
+            msg = 'Command "%s" not found.' % cmd
         ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            return (part1 + '\n\nDid you mean "' + self.bot_config.BOT_PREFIX +
-                    ('" or "' + self.bot_config.BOT_PREFIX).join(matches) + '" ?')
-        else:
-            return part1
+            msg += '\n\n'
+            msg += 'Did you mean "' + self.bot_config.BOT_PREFIX
+            msg += ('" or "' + self.bot_config.BOT_PREFIX).join(matches)
+            msg += '" ?'
+        return msg
 
     def inject_commands_from(self, instance_to_inject):
         with self._gbl:

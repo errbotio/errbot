@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import errno
-import jinja2
 import os
 import re
 import sys
 from configparser import ConfigParser
+
+import jinja2
 
 from errbot.version import VERSION
 
@@ -24,17 +25,12 @@ def new_plugin_wizard(directory=None):
         print("Error: The path '%s' exists but it isn't a directory" % directory)
         sys.exit(1)
 
-    name = ask(
-        "What should the name of your new plugin be?",
-        validation_regex=r'^[a-zA-Z][a-zA-Z0-9 _-]*$'
-    ).strip()
-    module_name = name.lower().replace(' ', '_')
-    directory_name = name.lower().replace(' ', '-')
-    class_name = "".join([s.capitalize() for s in name.lower().split(' ')])
+    name = ask("What should the name of your new plugin be?", validation_regex=r"^[a-zA-Z][a-zA-Z0-9 _-]*$").strip()
+    module_name = name.lower().replace(" ", "_")
+    directory_name = name.lower().replace(" ", "-")
+    class_name = "".join([s.capitalize() for s in name.lower().split(" ")])
 
-    description = ask(
-        "What may I use as a short (one-line) description of your plugin?"
-    )
+    description = ask("What may I use as a short (one-line) description of your plugin?")
     python_version = "3"
     errbot_min_version = ask(
         "Which minimum version of errbot will your plugin work with? "
@@ -52,16 +48,9 @@ def new_plugin_wizard(directory=None):
         errbot_max_version = VERSION
 
     plug = ConfigParser()
-    plug["Core"] = {
-        "Name": name,
-        "Module": module_name,
-    }
-    plug["Documentation"] = {
-        "Description": description,
-    }
-    plug["Python"] = {
-        "Version": python_version,
-    }
+    plug["Core"] = {"Name": name, "Module": module_name}
+    plug["Documentation"] = {"Description": description}
+    plug["Python"] = {"Version": python_version}
 
     if errbot_max_version != "" or errbot_min_version != "":
         plug["Errbot"] = {}
@@ -85,16 +74,14 @@ def new_plugin_wizard(directory=None):
             "Warning: A plugin with this name was already found at {path}\n"
             "If you continue, these will be overwritten.\n"
             "Press Ctrl+C to abort now or type in 'overwrite' to confirm overwriting of these files."
-            "".format(
-                path=os.path.join(directory, module_name + ".{py,plug}")
-            ),
+            "".format(path=os.path.join(directory, module_name + ".{py,plug}")),
             valid_responses=["overwrite"],
         )
 
-    with open(plugfile_path, 'w') as f:
+    with open(plugfile_path, "w") as f:
         plug.write(f)
 
-    with open(pyfile_path, 'w') as f:
+    with open(pyfile_path, "w") as f:
         f.write(render_plugin(locals()))
 
     print("Success! You'll find your new plugin at '%s'" % plugfile_path)
@@ -132,10 +119,10 @@ def render_plugin(values):
     Render the Jinja template for the plugin with the given values.
     """
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
+        loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")),
         auto_reload=False,
         keep_trailing_newline=True,
-        autoescape=True
+        autoescape=True,
     )
     template = env.get_template("new_plugin.py.tmpl")
     return template.render(**values)

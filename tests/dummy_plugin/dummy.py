@@ -1,24 +1,26 @@
 from __future__ import absolute_import
-from errbot import BotPlugin, botcmd, re_botcmd, botmatch
+
+from errbot import BotPlugin, botcmd, botmatch, re_botcmd
 
 
 class DummyTest(BotPlugin):
     """Just a test plugin to see if it is picked up.
     """
+
     @botcmd
     def foo(self, msg, args):
         """This runs foo."""
-        return 'bar'
+        return "bar"
 
     @re_botcmd(pattern=r"plz dont match this")
     def re_foo(self, msg, match):
         """This runs re_foo."""
-        return 'bar'
+        return "bar"
 
     @botmatch(r"match this")
     def re_bar(self, msg, match):
         """This runs re_foo."""
-        return 'bar'
+        return "bar"
 
     @botcmd
     def run_subcommands(self, msg, args):

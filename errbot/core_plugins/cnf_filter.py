@@ -2,6 +2,7 @@ from errbot import BotPlugin, cmdfilter
 
 
 class CommandNotFoundFilter(BotPlugin):
+
     @cmdfilter(catch_unprocessed=True)
     def cnf_filter(self, msg, cmd, args, dry_run, emptycmd=False):
         """
@@ -21,19 +22,19 @@ class CommandNotFoundFilter(BotPlugin):
             return msg, cmd, args
 
         if self.bot_config.SUPPRESS_CMD_NOT_FOUND:
-            self.log.debug('Suppressing command not found feedback.')
+            self.log.debug("Suppressing command not found feedback.")
             return
 
         command = msg.body.strip()
 
         for prefix in self.bot_config.BOT_ALT_PREFIXES + (self.bot_config.BOT_PREFIX,):
             if command.startswith(prefix):
-                command = command.replace(prefix, '', 1)
+                command = command.replace(prefix, "", 1)
                 break
 
-        command_args = command.split(' ', 1)
+        command_args = command.split(" ", 1)
         command = command_args[0]
         if len(command_args) > 1:
-            args = ' '.join(command_args[1:])
+            args = " ".join(command_args[1:])
 
         return self._bot.unknown_command(msg, command, args)

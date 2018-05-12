@@ -2,16 +2,20 @@ sudo: false
 language: python
 matrix:
   include:
+    - python: 3.6
+      env: TOXENV=black
+    - python: 3.6
+      env: TOXENV=codestyle
+    - python: 3.6
+      env: TOXENV=isort
+    - python: 3.6
+      env: TOXENV=pypi-lint
     - python: 3.4
       env: TOXENV=py34
     - python: 3.5
       env: TOXENV=py35
     - python: 3.6
       env: TOXENV=py36
-    - python: 3.6
-      env: TOXENV=pypi-lint
-    - python: 3.6
-      env: TOXENV=codestyle
 
 install: pip install tox
 before_script: cp tests/config-travisci.py config.py

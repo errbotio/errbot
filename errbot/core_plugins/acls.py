@@ -1,4 +1,5 @@
 import fnmatch
+
 from errbot import BotPlugin, cmdfilter
 from errbot.backends.base import RoomOccupant
 
@@ -7,7 +8,7 @@ BLOCK_COMMAND = (None, None, None)
 
 def get_acl_usr(msg):
     """Return the ACL attribute of the sender of the given message"""
-    if hasattr(msg.frm, 'aclattr'):  # if the identity requires a special field to be used for acl
+    if hasattr(msg.frm, "aclattr"):  # if the identity requires a special field to be used for acl
         return msg.frm.aclattr
     return msg.frm.person  # default
 
@@ -59,43 +60,38 @@ class ACLS(BotPlugin):
         """
         self.log.debug("Check %s for ACLs." % cmd)
         f = self._bot.all_commands[cmd]
-        cmd_str = "{plugin}:{command}".format(
-            plugin=f.__self__.name,
-            command=cmd,
-        )
+        cmd_str = "{plugin}:{command}".format(plugin=f.__self__.name, command=cmd)
 
         usr = get_acl_usr(msg)
         acl = self.bot_config.ACCESS_CONTROLS_DEFAULT.copy()
         for pattern, acls in self.bot_config.ACCESS_CONTROLS.items():
-            if ':' not in pattern:
-                pattern = '*:{command}'.format(command=pattern)
+            if ":" not in pattern:
+                pattern = "*:{command}".format(command=pattern)
             if ciglob(cmd_str, (pattern,)):
                 acl.update(acls)
                 break
 
         self.log.info("Matching ACL %s against username %s for command %s" % (acl, usr, cmd_str))
 
-        if 'allowusers' in acl and not glob(usr, acl['allowusers']):
+        if "allowusers" in acl and not glob(usr, acl["allowusers"]):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
-        if 'denyusers' in acl and glob(usr, acl['denyusers']):
+        if "denyusers" in acl and glob(usr, acl["denyusers"]):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
         if msg.is_group:
             if not isinstance(msg.frm, RoomOccupant):
-                raise Exception('msg.frm is not a RoomOccupant. Class of frm: %s' % msg.frm.__class__)
+                raise Exception("msg.frm is not a RoomOccupant. Class of frm: %s" % msg.frm.__class__)
             room = str(msg.frm.room)
-            if 'allowmuc' in acl and acl['allowmuc'] is False:
+            if "allowmuc" in acl and acl["allowmuc"] is False:
                 return self.access_denied(msg, "You're not allowed to access this command from a chatroom", dry_run)
 
-            if 'allowrooms' in acl and not glob(room, acl['allowrooms']):
+            if "allowrooms" in acl and not glob(room, acl["allowrooms"]):
                 return self.access_denied(msg, "You're not allowed to access this command from this room", dry_run)
 
-            if 'denyrooms' in acl and glob(room, acl['denyrooms']):
+            if "denyrooms" in acl and glob(room, acl["denyrooms"]):
                 return self.access_denied(msg, "You're not allowed to access this command from this room", dry_run)
-        elif 'allowprivate' in acl and acl['allowprivate'] is False:
+        elif "allowprivate" in acl and acl["allowprivate"] is False:
             return self.access_denied(
-                msg,
-                "You're not allowed to access this command via private message to me",
-                dry_run
+                msg, "You're not allowed to access this command via private message to me", dry_run
             )
 
         self.log.info("Check if %s is admin only command." % cmd)

@@ -1,17 +1,18 @@
-import sys
 import os
+import sys
 from json import loads
 from random import randrange
+from urllib.request import unquote
+
+from rocket import Rocket
 from webtest import TestApp
 
-from errbot import botcmd, BotPlugin, webhook
+from errbot import BotPlugin, botcmd, webhook
 from errbot.core_plugins.wsview import bottle_app
-from rocket import Rocket
-
-from urllib.request import unquote
 
 try:
     from OpenSSL import crypto
+
     has_crypto = True
 except ImportError:
     has_crypto = False
@@ -38,24 +39,24 @@ def make_ssl_certificate(key_path, cert_path):
     cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
 
     subject = cert.get_subject()
-    subject.CN = '*'
-    subject.O = 'Self-Signed Certificate for Err'
+    subject.CN = "*"
+    subject.O = "Self-Signed Certificate for Err"
 
     issuer = cert.get_issuer()
-    issuer.CN = 'Self-proclaimed Authority'
-    issuer.O = 'Self-Signed'
+    issuer.CN = "Self-proclaimed Authority"
+    issuer.O = "Self-Signed"
 
     pkey = crypto.PKey()
     pkey.generate_key(crypto.TYPE_RSA, 4096)
     cert.set_pubkey(pkey)
-    cert.sign(pkey, 'sha256')
+    cert.sign(pkey, "sha256")
 
-    f = open(cert_path, 'w')
-    f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8'))
+    f = open(cert_path, "w")
+    f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8"))
     f.close()
 
-    f = open(key_path, 'w')
-    f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey).decode('utf-8'))
+    f = open(key_path, "w")
+    f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey).decode("utf-8"))
     f.close()
 
 
@@ -69,53 +70,50 @@ class Webserver(BotPlugin):
         super().__init__(*args, **kwargs)
 
     def get_configuration_template(self):
-        return {'HOST': '0.0.0.0',
-                'PORT': 3141,
-                'SSL': {'enabled': False,
-                        'host': '0.0.0.0',
-                        'port': 3142,
-                        'certificate': "",
-                        'key': ""}}
+        return {
+            "HOST": "0.0.0.0",
+            "PORT": 3141,
+            "SSL": {"enabled": False, "host": "0.0.0.0", "port": 3142, "certificate": "", "key": ""},
+        }
 
     def check_configuration(self, configuration):
         # it is a pain, just assume a default config if SSL is absent or set to None
-        if configuration.get('SSL', None) is None:
-            configuration['SSL'] = {'enabled': False, 'host': '0.0.0.0', 'port': 3142, 'certificate': "", 'key': ""}
+        if configuration.get("SSL", None) is None:
+            configuration["SSL"] = {"enabled": False, "host": "0.0.0.0", "port": 3142, "certificate": "", "key": ""}
         super().check_configuration(configuration)
 
     def activate(self):
         if not self.config:
-            self.log.info('Webserver is not configured. Forbid activation')
+            self.log.info("Webserver is not configured. Forbid activation")
             return
 
-        host = self.config['HOST']
-        port = self.config['PORT']
-        ssl = self.config['SSL']
+        host = self.config["HOST"]
+        port = self.config["PORT"]
+        ssl = self.config["SSL"]
         interfaces = [(host, port)]
-        if ssl['enabled']:
+        if ssl["enabled"]:
             # noinspection PyTypeChecker
-            interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
-        self.log.info('Firing up the Rocket')
-        self.webserver = Rocket(interfaces=interfaces,
-                                app_info={'wsgi_app': bottle_app}, )
+            interfaces.append((ssl["host"], ssl["port"], ssl["key"], ssl["certificate"]))
+        self.log.info("Firing up the Rocket")
+        self.webserver = Rocket(interfaces=interfaces, app_info={"wsgi_app": bottle_app})
         self.webserver.start(background=True)
-        self.log.debug('Liftoff!')
+        self.log.debug("Liftoff!")
 
         super().activate()
 
     def deactivate(self):
         if self.webserver is not None:
-            self.log.debug('Sending signal to stop the webserver')
+            self.log.debug("Sending signal to stop the webserver")
             self.webserver.stop()
         super().deactivate()
 
     # noinspection PyUnusedLocal
-    @botcmd(template='webstatus')
+    @botcmd(template="webstatus")
     def webstatus(self, msg, args):
         """
         Gives a quick status of what is mapped in the internal webserver
         """
-        return {'rules': (((route.rule, route.name) for route in bottle_app.routes))}
+        return {"rules": (((route.rule, route.name) for route in bottle_app.routes))}
 
     @webhook
     def echo(self, incoming_request):
@@ -125,7 +123,7 @@ class Webserver(BotPlugin):
         self.log.debug("Your incoming request is :" + str(incoming_request))
         return str(incoming_request)
 
-    @botcmd(split_args_with=' ')
+    @botcmd(split_args_with=" ")
     def webhook_test(self, _, args):
         """
             Test your webhooks from within err.
@@ -136,25 +134,25 @@ class Webserver(BotPlugin):
         It triggers the notification and generate also a little test report.
         """
         url = args[0]
-        content = ' '.join(args[1:])
+        content = " ".join(args[1:])
 
         # try to guess the content-type of what has been passed
         try:
             # try if it is plain json
             loads(content)
-            contenttype = 'application/json'
+            contenttype = "application/json"
         except ValueError:
             # try if it is a form
-            splitted = content.split('=')
+            splitted = content.split("=")
             # noinspection PyBroadException
             try:
-                payload = '='.join(splitted[1:])
+                payload = "=".join(splitted[1:])
                 loads(unquote(payload))
-                contenttype = 'application/x-www-form-urlencoded'
+                contenttype = "application/x-www-form-urlencoded"
             except Exception as _:
-                contenttype = 'text/plain'  # dunno what it is
+                contenttype = "text/plain"  # dunno what it is
 
-        self.log.debug('Detected your post as : %s' % contenttype)
+        self.log.debug("Detected your post as : %s" % contenttype)
 
         response = self.test_app.post(url, params=content, content_type=contenttype)
         return TEST_REPORT % (url, contenttype, response.status_code)
@@ -165,23 +163,26 @@ class Webserver(BotPlugin):
         Generate a self-signed SSL certificate for the Webserver
         """
         if not has_crypto:
-            yield ("It looks like pyOpenSSL isn't installed. Please install this "
-                   "package using for example `pip install pyOpenSSL`, then try again")
+            yield (
+                "It looks like pyOpenSSL isn't installed. Please install this "
+                "package using for example `pip install pyOpenSSL`, then try again"
+            )
             return
 
-        yield ("Generating a new private key and certificate. This could take a "
-               "while if your system is slow or low on entropy")
+        yield (
+            "Generating a new private key and certificate. This could take a "
+            "while if your system is slow or low on entropy"
+        )
         key_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_key.pem"))
         cert_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_certificate.pem"))
         make_ssl_certificate(key_path=key_path, cert_path=cert_path)
         yield "Certificate successfully generated and saved in {}".format(self.bot_config.BOT_DATA_DIR)
 
         suggested_config = self.config
-        suggested_config['SSL']['enabled'] = True
-        suggested_config['SSL']['host'] = suggested_config['HOST']
-        suggested_config['SSL']['port'] = suggested_config['PORT'] + 1
-        suggested_config['SSL']['key'] = key_path
-        suggested_config['SSL']['certificate'] = cert_path
-        yield ("To enable SSL with this certificate, the following config "
-               "is recommended:")
+        suggested_config["SSL"]["enabled"] = True
+        suggested_config["SSL"]["host"] = suggested_config["HOST"]
+        suggested_config["SSL"]["port"] = suggested_config["PORT"] + 1
+        suggested_config["SSL"]["key"] = key_path
+        suggested_config["SSL"]["certificate"] = cert_path
+        yield ("To enable SSL with this certificate, the following config " "is recommended:")
         yield "{!r}".format(suggested_config)

@@ -1,57 +1,56 @@
 from __future__ import absolute_import
+
 import logging
+import re
+import struct
+import subprocess
 import sys
 import threading
-import subprocess
-import struct
-import re
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-from errbot.backends.base import Message, Room, RoomError, \
-    RoomNotJoinedError, Stream, \
-    RoomOccupant, ONLINE, Person
+from errbot.backends.base import ONLINE, Message, Person, Room, RoomError, RoomNotJoinedError, RoomOccupant, Stream
 from errbot.core import ErrBot
+from errbot.rendering.ansiext import NSC, AnsiExtension, CharacterTable, enable_format
 from errbot.utils import rate_limited
-from errbot.rendering.ansiext import AnsiExtension, enable_format, \
-    CharacterTable, NSC
-
 
 # Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.irc')
+log = logging.getLogger("errbot.backends.irc")
 
-IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
-                          fg_red=NSC('\x0304'),
-                          fg_green=NSC('\x0303'),
-                          fg_yellow=NSC('\x0308'),
-                          fg_blue=NSC('\x0302'),
-                          fg_magenta=NSC('\x0306'),
-                          fg_cyan=NSC('\x0310'),
-                          fg_white=NSC('\x0300'),
-                          fg_default=NSC('\x03'),
-                          bg_black=NSC('\x03,01'),
-                          bg_red=NSC('\x03,04'),
-                          bg_green=NSC('\x03,03'),
-                          bg_yellow=NSC('\x03,08'),
-                          bg_blue=NSC('\x03,02'),
-                          bg_magenta=NSC('\x03,06'),
-                          bg_cyan=NSC('\x03,10'),
-                          bg_white=NSC('\x03,00'),
-                          bg_default=NSC('\x03,'),
-                          fx_reset=NSC('\x03'),
-                          fx_bold=NSC('\x02'),
-                          fx_italic=NSC('\x1D'),
-                          fx_underline=NSC('\x1F'),
-                          fx_not_italic=NSC('\x0F'),
-                          fx_not_underline=NSC('\x0F'),
-                          fx_normal=NSC('\x0F'),
-                          fixed_width='',
-                          end_fixed_width='',
-                          inline_code='',
-                          end_inline_code='')
+IRC_CHRS = CharacterTable(
+    fg_black=NSC("\x0301"),
+    fg_red=NSC("\x0304"),
+    fg_green=NSC("\x0303"),
+    fg_yellow=NSC("\x0308"),
+    fg_blue=NSC("\x0302"),
+    fg_magenta=NSC("\x0306"),
+    fg_cyan=NSC("\x0310"),
+    fg_white=NSC("\x0300"),
+    fg_default=NSC("\x03"),
+    bg_black=NSC("\x03,01"),
+    bg_red=NSC("\x03,04"),
+    bg_green=NSC("\x03,03"),
+    bg_yellow=NSC("\x03,08"),
+    bg_blue=NSC("\x03,02"),
+    bg_magenta=NSC("\x03,06"),
+    bg_cyan=NSC("\x03,10"),
+    bg_white=NSC("\x03,00"),
+    bg_default=NSC("\x03,"),
+    fx_reset=NSC("\x03"),
+    fx_bold=NSC("\x02"),
+    fx_italic=NSC("\x1D"),
+    fx_underline=NSC("\x1F"),
+    fx_not_italic=NSC("\x0F"),
+    fx_not_underline=NSC("\x0F"),
+    fx_normal=NSC("\x0F"),
+    fixed_width="",
+    end_fixed_width="",
+    inline_code="",
+    end_inline_code="",
+)
 
-IRC_NICK_REGEX = r'[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+'
+IRC_NICK_REGEX = r"[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+"
 IRC_MESSAGE_SIZE_LIMIT = 510
 
 try:
@@ -59,16 +58,18 @@ try:
     from irc.client import ServerNotConnectedError, NickMask
     from irc.bot import SingleServerIRCBot
 except ImportError:
-    log.fatal("""You need the IRC support to use IRC, you can install it with:
+    log.fatal(
+        """You need the IRC support to use IRC, you can install it with:
     pip install errbot[IRC]
-    """)
+    """
+    )
     sys.exit(-1)
 
 
 def irc_md():
     """This makes a converter from markdown to mirc color format.
     """
-    md = Markdown(output_format='irc', extensions=[ExtraExtension(), AnsiExtension()])
+    md = Markdown(output_format="irc", extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
 
@@ -104,9 +105,9 @@ class IRCPerson(Person):
 
     @property
     def aclattr(self):
-        return IRCBackend.aclpattern.format(nick=self._nickmask.nick,
-                                            user=self._nickmask.user,
-                                            host=self._nickmask.host)
+        return IRCBackend.aclpattern.format(
+            nick=self._nickmask.nick, user=self._nickmask.user, host=self._nickmask.host
+        )
 
     def __unicode__(self):
         return str(self._nickmask)
@@ -206,16 +207,13 @@ class IRCRoom(Room):
             reason = ""
 
         self.connection.part(self.room, reason)
-        log.info("Leaving room {} with reason '{}'".format(self.room, reason if reason is not None else ''))
+        log.info("Leaving room {} with reason '{}'".format(self.room, reason if reason is not None else ""))
 
     def create(self):
         """
         Not supported on this back-end. Will join the room to ensure it exists, instead.
         """
-        logging.warning(
-            "IRC back-end does not support explicit creation, joining room "
-            "instead to ensure it exists."
-        )
+        logging.warning("IRC back-end does not support explicit creation, joining room " "instead to ensure it exists.")
         self.join()
 
     def destroy(self):
@@ -233,8 +231,7 @@ class IRCRoom(Room):
             Returns `True` if the room exists, `False` otherwise.
         """
         logging.warning(
-            "IRC back-end does not support determining if a room exists. "
-            "Returning the result of joined instead."
+            "IRC back-end does not support determining if a room exists. " "Returning the result of joined instead."
         )
         return self.joined
 
@@ -289,8 +286,10 @@ class IRCRoom(Room):
             for nick in self._bot.conn.channels[self.room].users():
                 occupants.append(IRCRoomOccupant(nick, room=self.room))
         except KeyError:
-            raise RoomNotJoinedError("Must be in a room in order to \
-                                     see occupants.")
+            raise RoomNotJoinedError(
+                "Must be in a room in order to \
+                                     see occupants."
+            )
         return occupants
 
     def invite(self, *args):
@@ -313,21 +312,23 @@ class IRCRoom(Room):
 
 class IRCConnection(SingleServerIRCBot):
 
-    def __init__(self,
-                 bot,
-                 nickname,
-                 server,
-                 port=6667,
-                 ssl=False,
-                 bind_address=None,
-                 ipv6=False,
-                 password=None,
-                 username=None,
-                 nickserv_password=None,
-                 private_rate=1,
-                 channel_rate=1,
-                 reconnect_on_kick=5,
-                 reconnect_on_disconnect=5):
+    def __init__(
+        self,
+        bot,
+        nickname,
+        server,
+        port=6667,
+        ssl=False,
+        bind_address=None,
+        ipv6=False,
+        password=None,
+        username=None,
+        nickserv_password=None,
+        private_rate=1,
+        channel_rate=1,
+        reconnect_on_kick=5,
+        reconnect_on_disconnect=5,
+    ):
         self.use_ssl = ssl
         self.use_ipv6 = ipv6
         self.bind_address = bind_address
@@ -354,16 +355,17 @@ class IRCConnection(SingleServerIRCBot):
         # Decode all input to UTF-8, but use a replacement character for
         # unrecognized byte sequences
         # (as described at https://pypi.python.org/pypi/irc)
-        self.connection.buffer_class.errors = 'replace'
+        self.connection.buffer_class.errors = "replace"
 
         connection_factory_kwargs = {}
         if self.use_ssl:
             import ssl
-            connection_factory_kwargs['wrapper'] = ssl.wrap_socket
+
+            connection_factory_kwargs["wrapper"] = ssl.wrap_socket
         if self.bind_address is not None:
-            connection_factory_kwargs['bind_address'] = self.bind_address
+            connection_factory_kwargs["bind_address"] = self.bind_address
         if self.use_ipv6:
-            connection_factory_kwargs['ipv6'] = True
+            connection_factory_kwargs["ipv6"] = True
 
         connection_factory = irc.connection.Factory(**connection_factory_kwargs)
         self.connection.connect(*args, connect_factory=connection_factory, **kwargs)
@@ -374,8 +376,8 @@ class IRCConnection(SingleServerIRCBot):
         # try to identify with NickServ if there is a NickServ password in the
         # config
         if self.nickserv_password:
-            msg = 'identify %s' % self.nickserv_password
-            self.send_private_message('NickServ', msg)
+            msg = "identify %s" % self.nickserv_password
+            self.send_private_message("NickServ", msg)
 
         # Must be done in a background thread, otherwise the join room
         # from the ChatRoom plugin joining channels from CHATROOM_PRESENCE
@@ -385,10 +387,10 @@ class IRCConnection(SingleServerIRCBot):
         t.start()
 
     def _pubmsg(self, e, notice=False):
-        msg = Message(e.arguments[0], extras={'notice': notice})
+        msg = Message(e.arguments[0], extras={"notice": notice})
         room_name = e.target
-        if room_name[0] != '#' and room_name[0] != '$':
-            raise Exception('[%s] is not a room' % room_name)
+        if room_name[0] != "#" and room_name[0] != "$":
+            raise Exception("[%s] is not a room" % room_name)
         room = IRCRoom(room_name, self.bot)
         msg.frm = IRCRoomOccupant(e.source, room)
         msg.to = room
@@ -403,7 +405,7 @@ class IRCConnection(SingleServerIRCBot):
             self.bot.callback_mention(msg, mentions)
 
     def _privmsg(self, e, notice=False):
-        msg = Message(e.arguments[0], extras={'notice': notice})
+        msg = Message(e.arguments[0], extras={"notice": notice})
         msg.frm = IRCPerson(e.source)
         msg.to = IRCPerson(e.target)
         self.bot.callback_message(msg)
@@ -429,7 +431,8 @@ class IRCConnection(SingleServerIRCBot):
         def reconnect_channel(name):
             log.info("Reconnecting to %s after having beeing kicked" % name)
             self.bot.query_room(name).join()
-        t = threading.Timer(self._reconnect_on_kick, reconnect_channel, [e.target, ])
+
+        t = threading.Timer(self._reconnect_on_kick, reconnect_channel, [e.target])
         t.daemon = True
         t.start()
 
@@ -452,13 +455,7 @@ class IRCConnection(SingleServerIRCBot):
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         # Creates a new connection
         dcc = self.dcc_listen("raw")
-        msg_parts = map(str, (
-            'SEND',
-            name,
-            irc.client.ip_quad_to_numstr(dcc.localaddress),
-            dcc.localport,
-            size,
-        ))
+        msg_parts = map(str, ("SEND", name, irc.client.ip_quad_to_numstr(dcc.localaddress), dcc.localport, size))
         msg = subprocess.list2cmdline(msg_parts)
         self.connection.ctcp("DCC", identifier.nick, msg)
         stream = Stream(identifier, fsource, name, size, stream_type)
@@ -608,12 +605,16 @@ class IRCConnection(SingleServerIRCBot):
             dcc.disconnect()
             self.transfers.pop(dcc)
         elif acked == stream.transfered:
-            log.debug("Chunk for file %s successfully transfered to %s (%d/%d)  " %
-                      (stream.name, stream.identifier, stream.transfered, stream.size))
+            log.debug(
+                "Chunk for file %s successfully transfered to %s (%d/%d)  "
+                % (stream.name, stream.identifier, stream.transfered, stream.size)
+            )
             self.send_chunk(stream, dcc)
         else:
-            log.debug("Partial chunk for file %s successfully transfered to %s (%d/%d), wait for more" %
-                      (stream.name, stream.identifier, stream.transfered, stream.size))
+            log.debug(
+                "Partial chunk for file %s successfully transfered to %s (%d/%d), wait for more"
+                % (stream.name, stream.identifier, stream.transfered, stream.size)
+            )
 
     def away(self, message=""):
         """
@@ -625,48 +626,49 @@ class IRCConnection(SingleServerIRCBot):
 
 
 class IRCBackend(ErrBot):
-    aclpattern = '{nick}!{user}@{host}'
+    aclpattern = "{nick}!{user}@{host}"
 
     def __init__(self, config):
-        if hasattr(config, 'IRC_ACL_PATTERN'):
+        if hasattr(config, "IRC_ACL_PATTERN"):
             IRCBackend.aclpattern = config.IRC_ACL_PATTERN
 
         identity = config.BOT_IDENTITY
-        nickname = identity['nickname']
-        server = identity['server']
-        port = identity.get('port', 6667)
-        password = identity.get('password', None)
-        ssl = identity.get('ssl', False)
-        bind_address = identity.get('bind_address', None)
-        ipv6 = identity.get('ipv6', False)
-        username = identity.get('username', None)
-        nickserv_password = identity.get('nickserv_password', None)
+        nickname = identity["nickname"]
+        server = identity["server"]
+        port = identity.get("port", 6667)
+        password = identity.get("password", None)
+        ssl = identity.get("ssl", False)
+        bind_address = identity.get("bind_address", None)
+        ipv6 = identity.get("ipv6", False)
+        username = identity.get("username", None)
+        nickserv_password = identity.get("nickserv_password", None)
 
-        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else True
-        enable_format('irc', IRC_CHRS, borders=not compact)
+        compact = config.COMPACT_OUTPUT if hasattr(config, "COMPACT_OUTPUT") else True
+        enable_format("irc", IRC_CHRS, borders=not compact)
 
-        private_rate = getattr(config, 'IRC_PRIVATE_RATE', 1)
-        channel_rate = getattr(config, 'IRC_CHANNEL_RATE', 1)
-        reconnect_on_kick = getattr(config, 'IRC_RECONNECT_ON_KICK', 5)
-        reconnect_on_disconnect = getattr(config, 'IRC_RECONNECT_ON_DISCONNECT', 5)
+        private_rate = getattr(config, "IRC_PRIVATE_RATE", 1)
+        channel_rate = getattr(config, "IRC_CHANNEL_RATE", 1)
+        reconnect_on_kick = getattr(config, "IRC_RECONNECT_ON_KICK", 5)
+        reconnect_on_disconnect = getattr(config, "IRC_RECONNECT_ON_DISCONNECT", 5)
 
-        self.bot_identifier = IRCPerson(nickname + '!' + nickname + '@' + server)
+        self.bot_identifier = IRCPerson(nickname + "!" + nickname + "@" + server)
         super().__init__(config)
-        self.conn = IRCConnection(bot=self,
-                                  nickname=nickname,
-                                  server=server,
-                                  port=port,
-                                  ssl=ssl,
-                                  bind_address=bind_address,
-                                  ipv6=ipv6,
-                                  password=password,
-                                  username=username,
-                                  nickserv_password=nickserv_password,
-                                  private_rate=private_rate,
-                                  channel_rate=channel_rate,
-                                  reconnect_on_kick=reconnect_on_kick,
-                                  reconnect_on_disconnect=reconnect_on_disconnect,
-                                  )
+        self.conn = IRCConnection(
+            bot=self,
+            nickname=nickname,
+            server=server,
+            port=port,
+            ssl=ssl,
+            bind_address=bind_address,
+            ipv6=ipv6,
+            password=password,
+            username=username,
+            nickserv_password=nickserv_password,
+            private_rate=private_rate,
+            channel_rate=channel_rate,
+            reconnect_on_kick=reconnect_on_kick,
+            reconnect_on_disconnect=reconnect_on_disconnect,
+        )
         self.md = irc_md()
         config.MESSAGE_SIZE_LIMIT = IRC_MESSAGE_SIZE_LIMIT
 
@@ -680,14 +682,14 @@ class IRCBackend(ErrBot):
             msg_to = msg.to.room
 
         body = self.md.convert(msg.body)
-        for line in body.split('\n'):
+        for line in body.split("\n"):
             msg_func(msg_to, line)
 
-    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         if status == ONLINE:
             self.conn.away()  # cancels the away message
         else:
-            self.conn.away('[%s] %s' % (status, message))
+            self.conn.away("[%s] %s" % (status, message))
 
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)
@@ -722,19 +724,19 @@ class IRCBackend(ErrBot):
         return self.conn
 
     def build_message(self, text):
-        text = text.replace('', '*')  # there is a weird chr IRC is sending that we need to filter out
+        text = text.replace("", "*")  # there is a weird chr IRC is sending that we need to filter out
         return super().build_message(text)
 
     def build_identifier(self, txtrep):
         log.debug("Build identifier from [%s]" % txtrep)
         # A textual representation starting with # means that we are talking
         # about an IRC channel -- IRCRoom in internal err-speak.
-        if txtrep.startswith('#'):
+        if txtrep.startswith("#"):
             return IRCRoom(txtrep, self)
 
         # Occupants are represented as 2 lines, one is the IRC mask and the second is the Room.
-        if '\n' in txtrep:
-            m, r = txtrep.split('\n')
+        if "\n" in txtrep:
+            m, r = txtrep.split("\n")
             return IRCRoomOccupant(m, IRCRoom(r, self))
         return IRCPerson(txtrep)
 
@@ -757,7 +759,7 @@ class IRCBackend(ErrBot):
 
     @property
     def mode(self):
-        return 'irc'
+        return "irc"
 
     def rooms(self):
         """
@@ -771,4 +773,4 @@ class IRCBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '{0}: {1}'.format(identifier.nick, message.body)
+        message.body = "{0}: {1}".format(identifier.nick, message.body)

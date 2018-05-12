@@ -23,35 +23,36 @@ from setuptools import setup, find_packages
 py_version = sys.version_info[:2]
 PY35_OR_GREATER = py_version >= (3, 5)
 
-ON_WINDOWS = system() == 'Windows'
+ON_WINDOWS = system() == "Windows"
 
 if py_version < (3, 4):
-    raise RuntimeError('Errbot requires Python 3.4 or later')
+    raise RuntimeError("Errbot requires Python 3.4 or later")
 
-VERSION_FILE = os.path.join('errbot', 'version.py')
+VERSION_FILE = os.path.join("errbot", "version.py")
 
-deps = ['webtest',
-        'setuptools',
-        'bottle',
-        'rocket-errbot',
-        'requests',
-        'jinja2',
-        'pyOpenSSL',
-        'colorlog',
-        'yapsy>=1.11',  # new contract for plugin instantiation
-        'markdown',  # rendering stuff
-        'ansi',
-        'Pygments>=2.0.2',
-        'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
-        'dnspython3',
-        ]
+deps = [
+    "webtest",
+    "setuptools",
+    "bottle",
+    "rocket-errbot",
+    "requests",
+    "jinja2",
+    "pyOpenSSL",
+    "colorlog",
+    "yapsy>=1.11",  # new contract for plugin instantiation
+    "markdown",  # rendering stuff
+    "ansi",
+    "Pygments>=2.0.2",
+    "pygments-markdown-lexer>=0.1.0.dev39",  # sytax coloring to debug md
+    "dnspython3",
+]
 
 if not PY35_OR_GREATER:
-    deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
+    deps += ["typing"]  # backward compatibility for 3.3 and 3.4
 
 
 if not ON_WINDOWS:
-    deps += ['daemonize']
+    deps += ["daemonize"]
 
 src_root = os.curdir
 
@@ -64,12 +65,12 @@ def read_version():
 
     variables = {}
     with open(VERSION_FILE) as f:
-        exec(compile(f.read(), 'version.py', 'exec'), variables)
-    return variables['VERSION']
+        exec(compile(f.read(), "version.py", "exec"), variables)
+    return variables["VERSION"]
 
 
-def read(fname, encoding='ascii'):
-    return open(os.path.join(os.path.dirname(__file__), fname), 'r', encoding=encoding).read()
+def read(fname, encoding="ascii"):
+    return open(os.path.join(os.path.dirname(__file__), fname), "r", encoding=encoding).read()
 
 
 if __name__ == "__main__":
@@ -78,57 +79,52 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes = read('CHANGES.rst', 'utf8')
+    changes = read("CHANGES.rst", "utf8")
 
     if changes.find(VERSION) == -1:
-        raise Exception('You forgot to put a release note in CHANGES.rst ?!')
+        raise Exception("You forgot to put a release note in CHANGES.rst ?!")
 
-    if args & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
+    if args & {"bdist", "bdist_dumb", "bdist_rpm", "bdist_wininst", "bdist_msi"}:
         raise Exception("err doesn't support binary distributions")
 
-    packages = find_packages(src_root, include=['errbot', 'errbot.*'])
+    packages = find_packages(src_root, include=["errbot", "errbot.*"])
 
     setup(
         name="errbot",
         version=VERSION,
         packages=packages,
-        entry_points={
-            'console_scripts': [
-                'errbot = errbot.cli:main',
+        entry_points={"console_scripts": ["errbot = errbot.cli:main"]},
+        install_requires=deps,
+        tests_require=["nose", "webtest", "requests"],
+        package_data={
+            "errbot": [
+                "backends/*.plug",
+                "backends/*.html",
+                "backends/styles/*.css",
+                "backends/images/*.svg",
+                "core_plugins/*.plug",
+                "core_plugins/*.md",
+                "core_plugins/templates/*.md",
+                "storage/*.plug",
+                "templates/initdir/example.py",
+                "templates/initdir/example.plug",
+                "templates/initdir/config.py.tmpl",
+                "templates/*.md",
+                "templates/new_plugin.py.tmpl",
             ]
         },
-
-        install_requires=deps,
-        tests_require=['nose', 'webtest', 'requests'],
-        package_data={
-            'errbot': ['backends/*.plug',
-                       'backends/*.html',
-                       'backends/styles/*.css',
-                       'backends/images/*.svg',
-                       'core_plugins/*.plug',
-                       'core_plugins/*.md',
-                       'core_plugins/templates/*.md',
-                       'storage/*.plug',
-                       'templates/initdir/example.py',
-                       'templates/initdir/example.plug',
-                       'templates/initdir/config.py.tmpl',
-                       'templates/*.md',
-                       'templates/new_plugin.py.tmpl',
-                       ],
-        },
         extras_require={
-            'graphic':  ['PySide', ],
-            'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
-            'IRC': ['irc', ],
-            'slack': ['slackclient>=1.0.5', ],
-            'telegram': ['python-telegram-bot', ],
-            'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
+            "graphic": ["PySide"],
+            "hipchat": ["hypchat", "sleekxmpp", "pyasn1", "pyasn1-modules"],
+            "IRC": ["irc"],
+            "slack": ["slackclient>=1.0.5"],
+            "telegram": ["python-telegram-bot"],
+            "XMPP": ["sleekxmpp", "pyasn1", "pyasn1-modules"],
         },
-
         author="errbot.io",
         author_email="info@errbot.io",
         description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
-        long_description=''.join([read('README.rst'), '\n\n', changes]),
+        long_description="".join([read("README.rst"), "\n\n", changes]),
         license="GPL",
         keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
         url="http://errbot.io/",
@@ -144,5 +140,5 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.6",
         ],
         src_root=src_root,
-        platforms='any',
+        platforms="any",
     )

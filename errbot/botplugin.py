@@ -1,13 +1,14 @@
 import logging
+import re
 import shlex
+from io import IOBase
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Tuple, Callable, Mapping, Sequence
-from io import IOBase
-import re
+from typing import Callable, Mapping, Sequence, Tuple
+
+from errbot.backends.base import ONLINE, Card, Identifier, Message, Presence, Room, Stream
 
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +27,8 @@ def recurse_check_structure(sample, to_check):
     # that key in the sample when it could only ever be None.
     if sample is not None and sample_type != to_check_type:
         raise ValidationException(
-            '%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
+            "%s [%s] is not the same type as %s [%s]" % (sample, sample_type, to_check, to_check_type)
+        )
 
     if sample_type in (list, tuple):
         for element in to_check:
@@ -50,7 +52,8 @@ class CommandError(Exception):
     Use this class to report an error condition from your commands, the command
     did not proceed for a known "business" reason.
     """
-    def __init__(self, reason: str, template: str=None):
+
+    def __init__(self, reason: str, template: str = None):
         """
         :param reason: the reason for the error in the command.
         :param template: apply this specific template to report the error.
@@ -66,6 +69,7 @@ class Command(object):
     """
     This is a dynamic definition of an errbot command.
     """
+
     def __init__(self, function, cmd_type=None, cmd_args=None, cmd_kwargs=None, name=None, doc=None):
         """
         Create a Command definition.
@@ -86,10 +90,11 @@ class Command(object):
             overridden for a function with this.  """
         if cmd_type is None:
             from errbot import botcmd  # TODO refactor this out of __init__ so it can be reusable.
+
             cmd_type = botcmd
         if name is None:
-            if function.__name__ == '<lambda>':
-                raise ValueError('function is a lambda (anonymous), parameter name needs to be set.')
+            if function.__name__ == "<lambda>":
+                raise ValueError("function is a lambda (anonymous), parameter name needs to be set.")
             name = function.__name__
         self.name = name
         if cmd_kwargs is None:
@@ -116,7 +121,7 @@ class BotPluginBase(StoreMixin):
         self.dependencies = []
         self._dynamic_plugins = {}
         self.log = logging.getLogger("errbot.plugins.%s" % name)
-        self.log.debug('Logger for plugin initialized...')
+        self.log.debug("Logger for plugin initialized...")
         self._bot = bot
         self.plugin_dir = bot.repo_manager.plugin_dir
         self._name = name
@@ -163,7 +168,7 @@ class BotPluginBase(StoreMixin):
         return self._bot.bot_identifier
 
     def init_storage(self) -> None:
-        log.debug('Init storage for %s' % self.name)
+        log.debug("Init storage for %s" % self.name)
         self.open_storage(self._bot.storage_plugin, self.name)
 
     def activate(self) -> None:
@@ -181,7 +186,7 @@ class BotPluginBase(StoreMixin):
             Override if you want to do something at tear down phase (don't forget to super(Gnagna, self).deactivate())
         """
         if self.current_pollers:
-            log.debug('You still have active pollers at deactivation stage, I cleaned them up for you.')
+            log.debug("You still have active pollers at deactivation stage, I cleaned them up for you.")
             self.current_pollers = []
             for timer in self.current_timers:
                 timer.cancel()
@@ -198,12 +203,14 @@ class BotPluginBase(StoreMixin):
             self._bot.remove_command_filters_from(plugin)
             self._bot.remove_commands_from(plugin)
 
-    def start_poller(self,
-                     interval: float,
-                     method: Callable[..., None],
-                     times: int=None,
-                     args: Tuple=None,
-                     kwargs: Mapping=None):
+    def start_poller(
+        self,
+        interval: float,
+        method: Callable[..., None],
+        times: int = None,
+        args: Tuple = None,
+        kwargs: Mapping = None,
+    ):
         """ Starts a poller that will be called at a regular interval
 
         :param interval: interval in seconds
@@ -219,53 +226,57 @@ class BotPluginBase(StoreMixin):
         if not args:
             args = []
 
-        log.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (
-            method.__name__, interval, str(args), str(kwargs))
+        log.debug(
+            "Programming the polling of %s every %i seconds with args %s and kwargs %s"
+            % (method.__name__, interval, str(args), str(kwargs))
         )
         # noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
             self.program_next_poll(interval, method, times, args, kwargs)
         except Exception:
-            log.exception('failed')
+            log.exception("failed")
 
-    def stop_poller(self,
-                    method: Callable[..., None],
-                    args: Tuple=None,
-                    kwargs: Mapping=None):
+    def stop_poller(self, method: Callable[..., None], args: Tuple = None, kwargs: Mapping = None):
         if not kwargs:
             kwargs = {}
         if not args:
             args = []
-        log.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
+        log.debug("Stop polling of %s with args %s and kwargs %s" % (method, args, kwargs))
         self.current_pollers.remove((method, args, kwargs))
 
-    def program_next_poll(self,
-                          interval: float,
-                          method: Callable[..., None],
-                          times: int=None,
-                          args: Tuple=None,
-                          kwargs: Mapping=None):
+    def program_next_poll(
+        self,
+        interval: float,
+        method: Callable[..., None],
+        times: int = None,
+        args: Tuple = None,
+        kwargs: Mapping = None,
+    ):
         if times is not None and times <= 0:
             return
 
-        t = Timer(interval=interval, function=self.poller,
-                  kwargs={'interval': interval, 'method': method,
-                          'times': times, 'args': args, 'kwargs': kwargs})
+        t = Timer(
+            interval=interval,
+            function=self.poller,
+            kwargs={"interval": interval, "method": method, "times": times, "args": args, "kwargs": kwargs},
+        )
         self.current_timers.append(t)  # save the timer to be able to kill it
-        t.setName('Poller thread for %s' % type(method.__self__).__name__)
+        t.setName("Poller thread for %s" % type(method.__self__).__name__)
         t.setDaemon(True)  # so it is not locking on exit
         t.start()
 
-    def poller(self,
-               interval: float,
-               method: Callable[..., None],
-               times: int=None,
-               args: Tuple=None,
-               kwargs: Mapping=None):
+    def poller(
+        self,
+        interval: float,
+        method: Callable[..., None],
+        times: int = None,
+        args: Tuple = None,
+        kwargs: Mapping = None,
+    ):
         previous_timer = current_thread()
         if previous_timer in self.current_timers:
-            log.debug('Previous timer found and removed')
+            log.debug("Previous timer found and removed")
             self.current_timers.remove(previous_timer)
 
         if (method, args, kwargs) in self.current_pollers:
@@ -273,14 +284,14 @@ class BotPluginBase(StoreMixin):
             try:
                 method(*args, **kwargs)
             except Exception:
-                log.exception('A poller crashed')
+                log.exception("A poller crashed")
 
             if times is not None:
                 times -= 1
 
             self.program_next_poll(interval, method, times, args, kwargs)
 
-    def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str=''):
+    def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str = ""):
         """
             Creates a plugin dynamically and exposes its commands right away.
 
@@ -289,10 +300,11 @@ class BotPluginBase(StoreMixin):
             :param doc: the main documentation of the plugin.
         """
         if name in self._dynamic_plugins:
-            raise ValueError('Dynamic plugin %s already created.')
+            raise ValueError("Dynamic plugin %s already created.")
         # cleans the name to be a valid python type.
-        plugin_class = type(re.sub('\W|^(?=\d)', '_', name), (BotPlugin,),
-                            {command.name: command.definition for command in commands})
+        plugin_class = type(
+            re.sub(r"\W|^(?=\d)", "_", name), (BotPlugin,), {command.name: command.definition for command in commands}
+        )
         plugin_class.__errdoc__ = doc
         plugin = plugin_class(self._bot, name=name)
         self._dynamic_plugins[name] = plugin
@@ -312,7 +324,7 @@ class BotPluginBase(StoreMixin):
         self._bot.remove_commands_from(plugin)
         del self._dynamic_plugins[name]
 
-    def get_plugin(self, name) -> 'BotPlugin':
+    def get_plugin(self, name) -> "BotPlugin":
         """
         Gets a plugin your plugin depends on. The name of the dependency needs to be listed in [Code] section
         key DependsOn of your plug file. This method can only be used after your plugin activation
@@ -323,11 +335,13 @@ class BotPluginBase(StoreMixin):
         :return: the BotPlugin object requested.
         """
         if not self.is_activated:
-            raise Exception('Plugin needs to be in activated state to be able to get its dependencies.')
+            raise Exception("Plugin needs to be in activated state to be able to get its dependencies.")
 
         if name not in self.dependencies:
-            raise Exception('Plugin dependency %s needs to be listed in '
-                            'section [Core] key "DependsOn" to be used in get_plugin.' % name)
+            raise Exception(
+                "Plugin dependency %s needs to be listed in "
+                'section [Core] key "DependsOn" to be used in get_plugin.' % name
+            )
 
         return self._bot.plugin_manager.get_plugin_obj_by_name(name)
 
@@ -508,11 +522,9 @@ class BotPlugin(BotPluginBase):
         """
         self._bot.warn_admins(warning)
 
-    def send(self,
-             identifier: Identifier,
-             text: str,
-             in_reply_to: Message=None,
-             groupchat_nick_reply: bool=False) -> None:
+    def send(
+        self, identifier: Identifier, text: str, in_reply_to: Message = None, groupchat_nick_reply: bool = False
+    ) -> None:
         """
             Send a message to a room or a user.
 
@@ -527,17 +539,19 @@ class BotPlugin(BotPluginBase):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
-    def send_card(self,
-                  body: str='',
-                  to: Identifier=None,
-                  in_reply_to: Message=None,
-                  summary: str=None,
-                  title: str='',
-                  link: str=None,
-                  image: str=None,
-                  thumbnail: str=None,
-                  color: str='green',
-                  fields: Tuple[Tuple[str, str], ...]=()) -> None:
+    def send_card(
+        self,
+        body: str = "",
+        to: Identifier = None,
+        in_reply_to: Message = None,
+        summary: str = None,
+        title: str = "",
+        link: str = None,
+        image: str = None,
+        thumbnail: str = None,
+        color: str = "green",
+        fields: Tuple[Tuple[str, str], ...] = (),
+    ) -> None:
         """
         Sends a card.
 
@@ -558,11 +572,11 @@ class BotPlugin(BotPluginBase):
         frm = in_reply_to.to if in_reply_to else self.bot_identifier
         if to is None:
             if in_reply_to is None:
-                raise ValueError('Either to or in_reply_to needs to be set.')
+                raise ValueError("Either to or in_reply_to needs to be set.")
             to = in_reply_to.frm
         self._bot.send_card(Card(body, frm, to, in_reply_to, summary, title, link, image, thumbnail, color, fields))
 
-    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         """
             Changes the presence/status of the bot.
 
@@ -572,12 +586,14 @@ class BotPlugin(BotPluginBase):
         """
         self._bot.change_presence(status, message)
 
-    def send_templated(self,
-                       identifier: Identifier,
-                       template_name: str,
-                       template_parameters: Mapping,
-                       in_reply_to: Message=None,
-                       groupchat_nick_reply: bool=False) -> None:
+    def send_templated(
+        self,
+        identifier: Identifier,
+        template_name: str,
+        template_parameters: Mapping,
+        in_reply_to: Message = None,
+        groupchat_nick_reply: bool = False,
+    ) -> None:
         """
         Sends asynchronously a message to a room or a user.
 
@@ -588,11 +604,13 @@ class BotPlugin(BotPluginBase):
         :param in_reply_to: optionally, the original message this message is the answer to.
         :param identifier: identifier of the user or room to which you want to send a message to.
         """
-        return self._bot.send_templated(identifier=identifier,
-                                        template_name=template_name,
-                                        template_parameters=template_parameters,
-                                        in_reply_to=in_reply_to,
-                                        groupchat_nick_reply=groupchat_nick_reply)
+        return self._bot.send_templated(
+            identifier=identifier,
+            template_name=template_name,
+            template_parameters=template_parameters,
+            in_reply_to=in_reply_to,
+            groupchat_nick_reply=groupchat_nick_reply,
+        )
 
     def build_identifier(self, txtrep: str) -> Identifier:
         """
@@ -604,12 +622,9 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.build_identifier(txtrep)
 
-    def send_stream_request(self,
-                            user: Identifier,
-                            fsource: IOBase,
-                            name: str=None,
-                            size: int=None,
-                            stream_type: str=None):
+    def send_stream_request(
+        self, user: Identifier, fsource: IOBase, name: str = None, size: int = None, stream_type: str = None
+    ):
         """
             Sends asynchronously a stream/file to a user.
 
@@ -642,12 +657,14 @@ class BotPlugin(BotPluginBase):
         """
         return self._bot.query_room(room)
 
-    def start_poller(self,
-                     interval: float,
-                     method: Callable[..., None],
-                     times: int=None,
-                     args: Tuple=None,
-                     kwargs: Mapping=None):
+    def start_poller(
+        self,
+        interval: float,
+        method: Callable[..., None],
+        times: int = None,
+        args: Tuple = None,
+        kwargs: Mapping = None,
+    ):
         """
             Start to poll a method at specific interval in seconds.
 
@@ -669,10 +686,7 @@ class BotPlugin(BotPluginBase):
         """
         super().start_poller(interval, method, times, args, kwargs)
 
-    def stop_poller(self,
-                    method: Callable[..., None],
-                    args: Tuple=None,
-                    kwargs: Mapping=None):
+    def stop_poller(self, method: Callable[..., None], args: Tuple = None, kwargs: Mapping = None):
         """
             stop poller(s).
 
@@ -714,7 +728,7 @@ class SeparatorArgParser(ArgParserBase):
     :func:`str.split` does.
     """
 
-    def __init__(self, separator: str=None, maxsplit: int=-1):
+    def __init__(self, separator: str = None, maxsplit: int = -1):
         """
         :param separator:
             The separator on which arguments should be split. If sep is

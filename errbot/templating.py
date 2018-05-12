@@ -1,22 +1,23 @@
 import logging
 import os
+
 from jinja2 import Environment, FileSystemLoader
+
 from bottle import TEMPLATE_PATH
 
 log = logging.getLogger(__name__)
 
 
 def make_templates_path(root):
-    return os.path.join(root, 'templates')
+    return os.path.join(root, "templates")
 
 
 system_templates_path = make_templates_path(os.path.dirname(__file__))
 template_path = [system_templates_path]
 TEMPLATE_PATH.insert(0, system_templates_path)  # for views
-env = Environment(loader=FileSystemLoader(template_path),
-                  trim_blocks=True,
-                  keep_trailing_newline=False,
-                  autoescape=True)
+env = Environment(
+    loader=FileSystemLoader(template_path), trim_blocks=True, keep_trailing_newline=False, autoescape=True
+)
 
 
 def tenv():

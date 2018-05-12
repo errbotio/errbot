@@ -1,27 +1,27 @@
+import logging
 from inspect import getmembers, ismethod
 from json import loads
-import logging
-
-from bottle import Bottle, request
 
 # noinspection PyUnresolvedReferences
-from bottle import jinja2_view as view
 # noinspection PyUnresolvedReferences
+from bottle import Bottle
 from bottle import jinja2_template as template
+from bottle import jinja2_view as view
+from bottle import request
 
 log = logging.getLogger(__name__)
 
 
 def strip_path():
     # strip the trailing slashes on incoming requests
-    request.environ['PATH_INFO'] = request.environ['PATH_INFO'].rstrip('/')
+    request.environ["PATH_INFO"] = request.environ["PATH_INFO"].rstrip("/")
 
 
 class DynamicBottle(Bottle):
 
     def __init__(self, catchall=True, autojson=True):
         super().__init__(catchall, autojson)
-        self.add_hook('before_request', strip_path)
+        self.add_hook("before_request", strip_path)
 
     def del_route(self, route_name):
         deleted_route = None
@@ -31,7 +31,7 @@ class DynamicBottle(Bottle):
                 deleted_route = route_
                 break
         if not deleted_route:
-            raise ValueError('Cannot find the route %s to delete' % route_name)
+            raise ValueError("Cannot find the route %s to delete" % route_name)
         del (self.router.rules[deleted_route.rule])
 
 
@@ -58,17 +58,15 @@ def route(obj):
     classname = obj.__class__.__name__
     log.info("Checking %s for webhooks", classname)
     for name, func in getmembers(obj, ismethod):
-        if getattr(func, '_err_webhook_uri_rule', False):
+        if getattr(func, "_err_webhook_uri_rule", False):
             log.info("Webhook routing %s", func.__name__)
             for verb in func._err_webhook_methods:
-                wv = WebView(func,
-                             func._err_webhook_form_param,
-                             func._err_webhook_raw)
-                bottle_app.route(func._err_webhook_uri_rule, verb,
-                                 callback=wv, name=func.__name__ + '_' + verb)
+                wv = WebView(func, func._err_webhook_form_param, func._err_webhook_raw)
+                bottle_app.route(func._err_webhook_uri_rule, verb, callback=wv, name=func.__name__ + "_" + verb)
 
 
 class WebView(object):
+
     def __init__(self, func, form_param, raw):
         if form_param is not None and raw:
             raise Exception("Incompatible parameters: form_param cannot be set if raw is True")
@@ -83,19 +81,21 @@ class WebView(object):
         elif self.form_param:
             content = request.forms.get(self.form_param)
             if content is None:
-                raise Exception("Received a request on a webhook with a form_param defined, "
-                                "but that key ({}) is missing from the request.".format(self.form_param))
+                raise Exception(
+                    "Received a request on a webhook with a form_param defined, "
+                    "but that key ({}) is missing from the request.".format(self.form_param)
+                )
             try:
                 content = loads(content)
             except ValueError:
-                log.debug('The form parameter is not JSON, return it as a string')
+                log.debug("The form parameter is not JSON, return it as a string")
             response = self.func(content, **kwargs)
         else:
             data = try_decode_json(request)
             if not data:
-                if hasattr(request, 'forms'):
+                if hasattr(request, "forms"):
                     data = dict(request.forms)  # form encoded
                 else:
                     data = request.body.read().decode()
             response = self.func(data, **kwargs)
-        return response if response else ''  # assume None as an OK response (simplifies the client side)
+        return response if response else ""  # assume None as an OK response (simplifies the client side)

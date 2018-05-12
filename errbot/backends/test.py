@@ -2,23 +2,23 @@ import importlib
 import logging
 import sys
 import unittest
-from os.path import sep, abspath
+from os.path import abspath, sep
 from queue import Queue
 from tempfile import mkdtemp
 from threading import Thread
 
 import pytest
 
-from errbot.rendering import text
-from errbot.backends.base import Message, Room, Person, RoomOccupant, ONLINE
-from errbot.core_plugins.wsview import reset_app
-from errbot.core import ErrBot
+from errbot.backends.base import ONLINE, Message, Person, Room, RoomOccupant
 from errbot.bootstrap import setup_bot
+from errbot.core import ErrBot
+from errbot.core_plugins.wsview import reset_app
+from errbot.rendering import text
 
 # Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.test')
+log = logging.getLogger("errbot.backends.test")
 
-QUIT_MESSAGE = '$STOP$'
+QUIT_MESSAGE = "$STOP$"
 
 STZ_MSG = 1
 STZ_PRE = 2
@@ -52,8 +52,12 @@ class TestPerson(Person):
 
     @property
     def client(self):
-        """This needs to return the part of the identifier pointing to a client from which a person is sending a message from.
-        Returns None is unspecified"""
+        """
+        This needs to return the part of the identifier pointing to a client
+        from which a person is sending a message from.
+
+        Returns None is unspecified
+        """
         return self._client
 
     @property
@@ -72,8 +76,8 @@ class TestPerson(Person):
 
     def __unicode__(self):
         if self.client:
-            return '{}/{}'.format(self._person, self._client)
-        return '{}'.format(self._person)
+            return "{}/{}".format(self._person, self._client)
+        return "{}".format(self._person)
 
     __str__ = __unicode__
 
@@ -98,7 +102,7 @@ class TestOccupant(TestPerson, RoomOccupant):
         return self._room
 
     def __unicode__(self):
-        return self._person + '@' + str(self._room)
+        return self._person + "@" + str(self._room)
 
     __str__ = __unicode__
 
@@ -107,6 +111,7 @@ class TestOccupant(TestPerson, RoomOccupant):
 
 
 class TestRoom(Room):
+
     def invite(self, *args):
         pass
 
@@ -122,7 +127,7 @@ class TestRoom(Room):
         self._topic = topic
         self._bot = bot
         self._name = name
-        self._bot_mucid = TestOccupant(self._bot.bot_config.BOT_IDENTITY['username'], self._name)
+        self._bot_mucid = TestOccupant(self._bot.bot_config.BOT_IDENTITY["username"], self._name)
 
     @property
     def occupants(self):
@@ -209,14 +214,15 @@ class TestRoom(Room):
 
 
 class TestBackend(ErrBot):
-    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         pass
 
     def __init__(self, config):
         config.BOT_LOG_LEVEL = logging.DEBUG
-        config.CHATROOM_PRESENCE = ('testroom',)  # we are testing with simple identfiers
-        config.BOT_IDENTITY = {'username': 'err'}  # we are testing with simple identfiers
-        self.bot_identifier = self.build_identifier('Err')  # whatever
+        config.CHATROOM_PRESENCE = ("testroom",)  # we are testing with simple identfiers
+        config.BOT_IDENTITY = {"username": "err"}  # we are testing with simple identfiers
+        self.bot_identifier = self.build_identifier("Err")  # whatever
 
         super().__init__(config)
         self.incoming_stanza_queue = Queue()
@@ -238,9 +244,9 @@ class TestBackend(ErrBot):
         self.connect_callback()  # notify that the connection occured
         try:
             while True:
-                print('waiting on queue')
+                print("waiting on queue")
                 stanza_type, entry = self.incoming_stanza_queue.get()
-                print('message received')
+                print("message received")
                 if entry == QUIT_MESSAGE:
                     log.info("Stop magic message received, quitting...")
                     break
@@ -252,7 +258,7 @@ class TestBackend(ErrBot):
                     self.callback_message(msg)
 
                     # implements the mentions.
-                    mentioned = [self.build_identifier(word[1:]) for word in entry.split() if word.startswith('@')]
+                    mentioned = [self.build_identifier(word[1:]) for word in entry.split() if word.startswith("@")]
                     if mentioned:
                         self.callback_mention(msg, mentioned)
 
@@ -288,7 +294,7 @@ class TestBackend(ErrBot):
 
     @property
     def mode(self):
-        return 'test'
+        return "test"
 
     def rooms(self):
         return [r for r in self._rooms if r.joined]
@@ -302,7 +308,7 @@ class TestBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '@{0} {1}'.format(identifier.nick, message.body)
+        message.body = "@{0} {1}".format(identifier.nick, message.body)
 
     def pop_message(self, timeout=5, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
@@ -318,11 +324,11 @@ class TestBackend(ErrBot):
     def zap_queues(self):
         while not self.incoming_stanza_queue.empty():
             msg = self.incoming_stanza_queue.get(block=False)
-            log.error('Message left in the incoming queue during a test : %s' % msg)
+            log.error("Message left in the incoming queue during a test : %s" % msg)
 
         while not self.outgoing_message_queue.empty():
             msg = self.outgoing_message_queue.get(block=False)
-            log.error('Message left in the outgoing queue during a test : %s' % msg)
+            log.error("Message left in the outgoing queue during a test : %s" % msg)
 
     def reset_rooms(self):
         """Reset/clear all rooms"""
@@ -362,20 +368,20 @@ class TestBot(object):
 
         # This is for test isolation.
         config = ShallowConfig()
-        config.__dict__.update(importlib.import_module('errbot.config-template').__dict__)
+        config.__dict__.update(importlib.import_module("errbot.config-template").__dict__)
         config.BOT_DATA_DIR = tempdir
-        config.BOT_LOG_FILE = tempdir + sep + 'log.txt'
-        config.STORAGE = 'Memory'
+        config.BOT_LOG_FILE = tempdir + sep + "log.txt"
+        config.STORAGE = "Memory"
 
         if extra_config is not None:
-            log.debug('Merging %s to the bot config.' % repr(extra_config))
+            log.debug("Merging %s to the bot config." % repr(extra_config))
             for k, v in extra_config.items():
                 setattr(config, k, v)
 
         # reset logging to console
-        logging.basicConfig(format='%(levelname)s:%(message)s')
-        file = logging.FileHandler(config.BOT_LOG_FILE, encoding='utf-8')
-        self.logger = logging.getLogger('')
+        logging.basicConfig(format="%(levelname)s:%(message)s")
+        file = logging.FileHandler(config.BOT_LOG_FILE, encoding="utf-8")
+        self.logger = logging.getLogger("")
         self.logger.setLevel(loglevel)
         self.logger.addHandler(file)
 
@@ -392,8 +398,8 @@ class TestBot(object):
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
-        self._bot = setup_bot('Test', self.logger, self.bot_config)
-        self.bot_thread = Thread(target=self.bot.serve_forever, name='TestBot main thread')
+        self._bot = setup_bot("Test", self.logger, self.bot_config)
+        self.bot_thread = Thread(target=self.bot.serve_forever, name="TestBot main thread")
         self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 
@@ -459,7 +465,7 @@ class TestBot(object):
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command exists"""
         self.bot.push_message(command)
-        assert 'not found' not in self.bot.pop_message(timeout)
+        assert "not found" not in self.bot.pop_message(timeout)
 
 
 class FullStackTest(unittest.TestCase, TestBot):
@@ -545,10 +551,10 @@ def testbot(request) -> TestBot:
         bot.stop()
 
     #  setup the logging to something digestable.
-    logger = logging.getLogger('')
-    logging.getLogger('yapsy').setLevel(logging.ERROR)  # this one is way too verbose in debug
-    logging.getLogger('MARKDOWN').setLevel(logging.ERROR)  # this one is way too verbose in debug
-    logging.getLogger('Rocket.Errors').setLevel(logging.ERROR)  # this one is way too verbose in debug
+    logger = logging.getLogger("")
+    logging.getLogger("yapsy").setLevel(logging.ERROR)  # this one is way too verbose in debug
+    logging.getLogger("MARKDOWN").setLevel(logging.ERROR)  # this one is way too verbose in debug
+    logging.getLogger("Rocket.Errors").setLevel(logging.ERROR)  # this one is way too verbose in debug
     logger.setLevel(logging.DEBUG)
     console_hdlr = logging.StreamHandler(sys.stdout)
     console_hdlr.setFormatter(logging.Formatter("%(levelname)-8s %(name)-25s %(message)s"))
@@ -557,8 +563,8 @@ def testbot(request) -> TestBot:
 
     kwargs = {}
 
-    for attr, default in (('extra_plugin_dir', None), ('extra_config', None), ('loglevel', logging.DEBUG),):
-        if hasattr(request, 'instance'):
+    for attr, default in (("extra_plugin_dir", None), ("extra_config", None), ("loglevel", logging.DEBUG)):
+        if hasattr(request, "instance"):
             kwargs[attr] = getattr(request.instance, attr, None)
         if kwargs[attr] is None:
             kwargs[attr] = getattr(request.module, attr, default)

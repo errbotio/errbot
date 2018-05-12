@@ -4,7 +4,7 @@ from errbot import BotPlugin, botcmd
 
 
 def tail(f, window=20):
-    return ''.join(f.readlines()[-window:])
+    return "".join(f.readlines()[-window:])
 
 
 class Utils(BotPlugin):
@@ -32,7 +32,7 @@ class Utils(BotPlugin):
         resp += "| client   | `%s`\n\n" % frm.client
 
         #  extra info if it is a MUC
-        if hasattr(frm, 'room'):
+        if hasattr(frm, "room"):
             resp += "\n`room` is %s\n" % frm.room
         resp += "\n\n- string representation is '%s'\n" % frm
         resp += "- class is '%s'\n" % frm.__class__.__name__
@@ -48,8 +48,8 @@ class Utils(BotPlugin):
         l = len(user_cmd_history)
         for i in range(0, l):
             c = user_cmd_history[i]
-            answer.append('%2i:%s%s %s' % (l - i, self._bot.prefix, c[0], c[1]))
-        return '\n'.join(answer)
+            answer.append("%2i:%s%s %s" % (l - i, self._bot.prefix, c[0], c[1]))
+        return "\n".join(answer)
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
@@ -63,12 +63,12 @@ class Utils(BotPlugin):
 
         if self.bot_config.BOT_LOG_FILE:
             with open(self.bot_config.BOT_LOG_FILE) as f:
-                return '```\n' + tail(f, n) + '\n```'
-        return 'No log is configured, please define BOT_LOG_FILE in config.py'
+                return "```\n" + tail(f, n) + "\n```"
+        return "No log is configured, please define BOT_LOG_FILE in config.py"
 
     @botcmd
     def render_test(self, _, args):
         """ Tests / showcases the markdown rendering on your current backend
         """
-        with open(path.join(path.dirname(path.realpath(__file__)), 'test.md')) as f:
+        with open(path.join(path.dirname(path.realpath(__file__)), "test.md")) as f:
             return f.read()

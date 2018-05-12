@@ -11,7 +11,7 @@ class Flows(BotPlugin):
     """ Management commands related to flows / conversations.
     """
 
-    def recurse_node(self, response: io.StringIO, stack, f: FlowNode, flow: Flow=None):
+    def recurse_node(self, response: io.StringIO, stack, f: FlowNode, flow: Flow = None):
         if f in stack:
             response.write('%s↺<br>' % ('&emsp;&nbsp;' * (len(stack))))
             return
@@ -25,7 +25,8 @@ class Flows(BotPlugin):
             requestor = '(_%s_)' % str(flow.requestor) if flow and flow.current_step == f else ''
             doc = cmd.__doc__ if flow and f is not FLOW_END else ''
             response.write('%s↪&nbsp;&nbsp;**%s** %s %s<br>' % ('&emsp;&nbsp;' * len(stack),
-                           f if f is not FLOW_END else 'END', doc if doc else '', requestor))
+                                                                f if f is not FLOW_END else 'END', doc if doc else '',
+                                                                requestor))
         for _, sf in f.children:
             self.recurse_node(response, stack + [f], sf, flow)
 
@@ -95,10 +96,9 @@ class Flows(BotPlugin):
                     else:
                         for flow in self._bot.flow_executor.in_flight:
                             if self.check_user(msg, flow):
-                                next_steps = ['\*{}\*'.format(str(step[1].command)) for step in
-                                              flow._current_step.children if
-                                              step[1].command]
-                                template = '\>>> {} is using flow \*{}\* on step \*{}\*\nNext Step(s): \n{}'
+                                next_steps = ['\\*{}\\*'.format(str(step[1].command)) for step in
+                                              flow._current_step.children if step[1].command]
+                                template = '\\>>> {} is using flow \\*{}\\* on step \\*{}\\*\nNext Step(s): \n{}'
                                 text = template.format(str(flow.requestor),
                                                        flow.name,
                                                        str(flow.current_step),

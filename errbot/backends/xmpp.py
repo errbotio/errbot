@@ -12,7 +12,6 @@ from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.core import ErrBot
 from errbot.rendering import text, xhtml, xhtmlim
 
-
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.xmpp')
 
@@ -519,7 +518,7 @@ class XMPPBackend(ErrBot):
                                       mhtml=mhtml,
                                       mtype='chat' if msg.is_direct else 'groupchat')
 
-    def change_presence(self, status: str=ONLINE, message: str='') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         log.debug("Change bot status to %s, message %s" % (status, message))
         self.conn.client.send_presence(pshow=status, pstatus=message)
 

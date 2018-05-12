@@ -27,7 +27,6 @@ log = logging.getLogger('errbot.backends.text')
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
 
-
 enable_format('borderless', ANSI_CHRS, borders=False)
 
 
@@ -263,11 +262,8 @@ class TextBackend(ErrBot):
                     prompt = '[␍] ' if full_msg else '>>> '
                     if ANSI or self.demo_mode:
                         color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
-                        entry = input(str(color) +
-                                      '[%s ➡ %s] ' % (frm, to) +
-                                      str(fg.cyan) +
-                                      prompt +
-                                      str(fx.reset))
+                        prompt = str(color) + '[%s ➡ %s] ' % (frm, to) + str(fg.cyan) + prompt + str(fx.reset)
+                        entry = input(prompt)
                     else:
                         entry = input('[%s ➡ %s] ' % (frm, to) + prompt)
 

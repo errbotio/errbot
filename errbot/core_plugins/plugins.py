@@ -219,21 +219,22 @@ class Plugins(BotPlugin):
         """reload a plugin: reload the code of the plugin leaving the activation status intact."""
         name = args.strip()
         if not name:
-            yield ("Please tell me which of the following plugins to reload:\n"
-                   "{}".format(self.formatted_plugin_list(active_only=False)))
+            yield ('Please tell me which of the following plugins to reload:\n'
+                   '{}'.format(self.formatted_plugin_list(active_only=False)))
             return
         if name not in self._bot.plugin_manager.get_all_plugin_names():
             yield ("{} isn't a valid plugin name. The current plugins are:\n"
-                   "{}".format(name, self.formatted_plugin_list(active_only=False)))
+                   '{}'.format(name, self.formatted_plugin_list(active_only=False)))
             return
 
         if name not in self._bot.plugin_manager.get_all_active_plugin_names():
-            yield (("Warning: plugin %s is currently not activated. " +
-                   "Use `%splugin activate %s` to activate it.") % (name, self._bot.prefix, name))
+            answer = 'Warning: plugin %s is currently not activated. ' % name
+            answer += 'Use `%splugin activate %s` to activate it.' % (self._bot.prefix, name)
+            yield answer
 
         try:
             self._bot.plugin_manager.reload_plugin_by_name(name)
-            yield "Plugin %s reloaded." % name
+            yield 'Plugin %s reloaded.' % name
         except PluginActivationException as pae:
             yield 'Error activating plugin %s: %s' % (name, pae)
 

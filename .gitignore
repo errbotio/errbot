@@ -19,6 +19,7 @@ nohup.out
 /.coverage
 /data
 /config.py.*
+/.pytest_cache
 
 # tools
 /tools/Home.md

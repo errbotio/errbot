@@ -35,7 +35,7 @@ class FlowNode(object):
         self.children = []  # (predicate, node)
         self.hints = hints
 
-    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate=lambda _: False):
+    def connect(self, node_or_command: Union['FlowNode', str], predicate: Predicate=lambda _: False, hints: bool=True):
         """
         Construct the flow graph by connecting this node to another node or a command.
         The predicate is a function that tells the flow executor if the flow can enter the step without the user
@@ -47,7 +47,8 @@ class FlowNode(object):
         :param hints: hints the user on the next step possible.
         :return: the newly created node if you passed a command or the node you gave it to be easily chainable.
         """
-        node_to_connect_to = node_or_command if isinstance(node_or_command, FlowNode) else FlowNode(node_or_command)
+        node_to_connect_to = node_or_command if isinstance(node_or_command, FlowNode) else FlowNode(node_or_command,
+                                                                                                    hints=True)
         self.children.append((predicate, node_to_connect_to))
         return node_to_connect_to
 

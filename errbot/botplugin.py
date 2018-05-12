@@ -291,7 +291,7 @@ class BotPluginBase(StoreMixin):
         if name in self._dynamic_plugins:
             raise ValueError('Dynamic plugin %s already created.')
         # cleans the name to be a valid python type.
-        plugin_class = type(re.sub('\W|^(?=\d)', '_', name), (BotPlugin,),
+        plugin_class = type(re.sub(r'\W|^(?=\d)', '_', name), (BotPlugin,),
                             {command.name: command.definition for command in commands})
         plugin_class.__errdoc__ = doc
         plugin = plugin_class(self._bot, name=name)

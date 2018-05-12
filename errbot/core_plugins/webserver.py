@@ -39,11 +39,11 @@ def make_ssl_certificate(key_path, cert_path):
 
     subject = cert.get_subject()
     subject.CN = '*'
-    setattr(subject, ' O', 'Self-Signed Certificate for Errbot')  # Pep8 annoyance workaround
+    setattr(subject, 'O', 'Self-Signed Certificate for Errbot')  # Pep8 annoyance workaround
 
     issuer = cert.get_issuer()
     issuer.CN = 'Self-proclaimed Authority'
-    setattr(issuer, ' O', 'Self-Signed')  # Pep8 annoyance workaround
+    setattr(issuer, 'O', 'Self-Signed')  # Pep8 annoyance workaround
 
     pkey = crypto.PKey()
     pkey.generate_key(crypto.TYPE_RSA, 4096)

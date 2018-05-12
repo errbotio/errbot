@@ -55,17 +55,24 @@ class Help(BotPlugin):
 
         usage = ''
         for cls in sorted(cls_commands):
-            usage += '\n'.join(sorted([
-                '\t' + self._bot.prefix + '%s: %s' % (
-                    name.replace('_', ' ', 1),
-                    (command.__doc__ or '(undocumented)').strip().split('\n', 1)[0]
-                )
-                for (name, command) in cls_commands[cls]
-                if args is not None and
-                command.__doc__ is not None and
-                args.lower() in command.__doc__.lower() and
-                name != 'help' and not command._err_command_hidden
-            ]))
+            commands = []
+            for (name, command) in cls_commands[cls]:
+                if name == 'help':
+                    continue
+
+                if command._err_command_hidden:
+                    continue
+
+                doc = command.__doc__
+
+                if doc is not None and args.lower() not in doc.lower():
+                    continue
+
+                name_with_spaces = name.replace('_', ' ', 1)
+                doc = (doc or '(undocumented)').strip().split('\n', 1)[0]
+                commands.append('\t' + self._bot.prefix + name_with_spaces + ': ' + doc)
+
+            usage += '\n'.join(commands)
         usage += '\n\n'
 
         return ''.join(filter(None, [description, usage])).strip()
@@ -141,12 +148,17 @@ class Help(BotPlugin):
                     name=obj.name,
                     doc=cls.__errdoc__.strip() or '',
                 )
-                pairs = sorted([
-                    (name, command)
-                    for (name, command) in cmds
-                    if not command._err_command_hidden and
-                    (not self.bot_config.HIDE_RESTRICTED_COMMANDS or may_access_command(msg, name))
-                ])
+                pairs = []
+                for (name, command) in cmds:
+                    if self.bot_config.HIDE_RESTRICTED_COMMANDS:
+                        if command._err_command_hidden:
+                            continue
+
+                        if not may_access_command(msg, name):
+                            continue
+                    pairs.append((name, command))
+
+                pairs = sorted(pairs)
 
                 for (name, command) in pairs:
                     usage += self._cmd_help_line(name, command)

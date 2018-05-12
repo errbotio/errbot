@@ -50,7 +50,8 @@ class CommandError(Exception):
     Use this class to report an error condition from your commands, the command
     did not proceed for a known "business" reason.
     """
-    def __init__(self, reason: str, template: str=None):
+
+    def __init__(self, reason: str, template: str = None):
         """
         :param reason: the reason for the error in the command.
         :param template: apply this specific template to report the error.
@@ -66,6 +67,7 @@ class Command(object):
     """
     This is a dynamic definition of an errbot command.
     """
+
     def __init__(self, function, cmd_type=None, cmd_args=None, cmd_kwargs=None, name=None, doc=None):
         """
         Create a Command definition.
@@ -201,9 +203,9 @@ class BotPluginBase(StoreMixin):
     def start_poller(self,
                      interval: float,
                      method: Callable[..., None],
-                     times: int=None,
-                     args: Tuple=None,
-                     kwargs: Mapping=None):
+                     times: int = None,
+                     args: Tuple = None,
+                     kwargs: Mapping = None):
         """ Starts a poller that will be called at a regular interval
 
         :param interval: interval in seconds
@@ -220,8 +222,7 @@ class BotPluginBase(StoreMixin):
             args = []
 
         log.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (
-            method.__name__, interval, str(args), str(kwargs))
-        )
+            method.__name__, interval, str(args), str(kwargs)))
         # noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
@@ -231,8 +232,8 @@ class BotPluginBase(StoreMixin):
 
     def stop_poller(self,
                     method: Callable[..., None],
-                    args: Tuple=None,
-                    kwargs: Mapping=None):
+                    args: Tuple = None,
+                    kwargs: Mapping = None):
         if not kwargs:
             kwargs = {}
         if not args:
@@ -243,9 +244,9 @@ class BotPluginBase(StoreMixin):
     def program_next_poll(self,
                           interval: float,
                           method: Callable[..., None],
-                          times: int=None,
-                          args: Tuple=None,
-                          kwargs: Mapping=None):
+                          times: int = None,
+                          args: Tuple = None,
+                          kwargs: Mapping = None):
         if times is not None and times <= 0:
             return
 
@@ -260,9 +261,9 @@ class BotPluginBase(StoreMixin):
     def poller(self,
                interval: float,
                method: Callable[..., None],
-               times: int=None,
-               args: Tuple=None,
-               kwargs: Mapping=None):
+               times: int = None,
+               args: Tuple = None,
+               kwargs: Mapping = None):
         previous_timer = current_thread()
         if previous_timer in self.current_timers:
             log.debug('Previous timer found and removed')
@@ -280,7 +281,7 @@ class BotPluginBase(StoreMixin):
 
             self.program_next_poll(interval, method, times, args, kwargs)
 
-    def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str=''):
+    def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str = ''):
         """
             Creates a plugin dynamically and exposes its commands right away.
 
@@ -511,8 +512,8 @@ class BotPlugin(BotPluginBase):
     def send(self,
              identifier: Identifier,
              text: str,
-             in_reply_to: Message=None,
-             groupchat_nick_reply: bool=False) -> None:
+             in_reply_to: Message = None,
+             groupchat_nick_reply: bool = False) -> None:
         """
             Send a message to a room or a user.
 
@@ -528,16 +529,16 @@ class BotPlugin(BotPluginBase):
         return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def send_card(self,
-                  body: str='',
-                  to: Identifier=None,
-                  in_reply_to: Message=None,
-                  summary: str=None,
-                  title: str='',
-                  link: str=None,
-                  image: str=None,
-                  thumbnail: str=None,
-                  color: str='green',
-                  fields: Tuple[Tuple[str, str], ...]=()) -> None:
+                  body: str = '',
+                  to: Identifier = None,
+                  in_reply_to: Message = None,
+                  summary: str = None,
+                  title: str = '',
+                  link: str = None,
+                  image: str = None,
+                  thumbnail: str = None,
+                  color: str = 'green',
+                  fields: Tuple[Tuple[str, str], ...] = ()) -> None:
         """
         Sends a card.
 
@@ -576,8 +577,8 @@ class BotPlugin(BotPluginBase):
                        identifier: Identifier,
                        template_name: str,
                        template_parameters: Mapping,
-                       in_reply_to: Message=None,
-                       groupchat_nick_reply: bool=False) -> None:
+                       in_reply_to: Message = None,
+                       groupchat_nick_reply: bool = False) -> None:
         """
         Sends asynchronously a message to a room or a user.
 
@@ -607,9 +608,9 @@ class BotPlugin(BotPluginBase):
     def send_stream_request(self,
                             user: Identifier,
                             fsource: IOBase,
-                            name: str=None,
-                            size: int=None,
-                            stream_type: str=None):
+                            name: str = None,
+                            size: int = None,
+                            stream_type: str = None):
         """
             Sends asynchronously a stream/file to a user.
 
@@ -645,9 +646,9 @@ class BotPlugin(BotPluginBase):
     def start_poller(self,
                      interval: float,
                      method: Callable[..., None],
-                     times: int=None,
-                     args: Tuple=None,
-                     kwargs: Mapping=None):
+                     times: int = None,
+                     args: Tuple = None,
+                     kwargs: Mapping = None):
         """
             Start to poll a method at specific interval in seconds.
 
@@ -671,8 +672,8 @@ class BotPlugin(BotPluginBase):
 
     def stop_poller(self,
                     method: Callable[..., None],
-                    args: Tuple=None,
-                    kwargs: Mapping=None):
+                    args: Tuple = None,
+                    kwargs: Mapping = None):
         """
             stop poller(s).
 
@@ -714,7 +715,7 @@ class SeparatorArgParser(ArgParserBase):
     :func:`str.split` does.
     """
 
-    def __init__(self, separator: str=None, maxsplit: int=-1):
+    def __init__(self, separator: str = None, maxsplit: int = -1):
         """
         :param separator:
             The separator on which arguments should be split. If sep is

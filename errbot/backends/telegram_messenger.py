@@ -6,7 +6,6 @@ from errbot.core import ErrBot
 from errbot.rendering import text
 from errbot.rendering.ansiext import enable_format, TEXT_CHRS
 
-
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.telegram')
 
@@ -125,13 +124,13 @@ class TelegramRoom(TelegramIdentifier, Room):
         """Return the groupchat title (only applies to groupchats)"""
         return self._title
 
-    def join(self, username: str=None, password: str=None):
+    def join(self, username: str = None, password: str = None):
         raise RoomsNotSupportedError()
 
     def create(self):
         raise RoomsNotSupportedError()
 
-    def leave(self, reason: str=None):
+    def leave(self, reason: str = None):
         raise RoomsNotSupportedError()
 
     def destroy(self):
@@ -161,6 +160,7 @@ class TelegramMUCOccupant(TelegramPerson, RoomOccupant):
     """
     This class represents a person inside a MUC.
     """
+
     def __init__(self, id, room, first_name=None, last_name=None, username=None):
         super().__init__(id=id, first_name=first_name, last_name=last_name, username=username)
         self._room = room
@@ -422,6 +422,7 @@ class TelegramBackend(ErrBot):
         :return stream: str or Stream
             If `fsource` is str will return str, else return Stream.
         """
+
         def _telegram_metadata(fsource):
             if isinstance(fsource, dict):
                 return fsource.pop('content'), fsource
@@ -446,13 +447,15 @@ class TelegramBackend(ErrBot):
                                            msg_type=stream_type,
                                            **meta)
             log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                      identifier.username, size, stream_type))
+                                                                                                  identifier.username,
+                                                                                                  size, stream_type))
 
             stream = content
         else:
             stream = Stream(identifier, content, name, size, stream_type)
             log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                      identifier, size, stream_type))
+                                                                                                  identifier, size,
+                                                                                                  stream_type))
             self.thread_pool.apply_async(self._telegram_upload_stream, (stream,))
 
         return stream

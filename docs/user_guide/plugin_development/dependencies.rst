@@ -23,7 +23,7 @@ on in the **Core** section of your plug file like this:
 Using dependencies
 ------------------
 
-Once a dependent plugin has been declared, you can use it at soon as your plugin is activated.
+Once a dependent plugin has been declared, you can use it as soon as your plugin is activated.
 
 .. code-block:: python
 

@@ -2,7 +2,10 @@ import sys
 import os
 from json import loads
 from random import randrange
+from threading import Thread
+
 from webtest import TestApp
+from werkzeug.serving import ThreadedWSGIServer
 
 from errbot import botcmd, BotPlugin, webhook
 from errbot.core_plugins.wsview import bottle_app
@@ -22,6 +25,8 @@ Detected your post as : %s
 Status code : %i
 """
 
+from flask.app import Flask
+flask_app = Flask(__name__)
 
 def make_ssl_certificate(key_path, cert_path):
     """
@@ -74,13 +79,13 @@ class Webserver(BotPlugin):
                 'SSL': {'enabled': False,
                         'host': '0.0.0.0',
                         'port': 3142,
-                        'certificate': "",
-                        'key': ""}}
+                        'certificate': '',
+                        'key': ''}}
 
     def check_configuration(self, configuration):
         # it is a pain, just assume a default config if SSL is absent or set to None
         if configuration.get('SSL', None) is None:
-            configuration['SSL'] = {'enabled': False, 'host': '0.0.0.0', 'port': 3142, 'certificate': "", 'key': ""}
+            configuration['SSL'] = {'enabled': False, 'host': '0.0.0.0', 'port': 3142, 'certificate': '', 'key': ''}
         super().check_configuration(configuration)
 
     def activate(self):
@@ -88,28 +93,43 @@ class Webserver(BotPlugin):
             self.log.info('Webserver is not configured. Forbid activation')
             return
 
-        host = self.config['HOST']
-        port = self.config['PORT']
-        ssl = self.config['SSL']
-        interfaces = [(host, port)]
-        if ssl['enabled']:
-            # noinspection PyTypeChecker
-            interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
-        self.log.info('Firing up the Rocket')
-        self.webserver = Rocket(interfaces=interfaces,
-                                app_info={'wsgi_app': bottle_app}, )
-        self.webserver.start(background=True)
-        self.log.debug('Liftoff!')
+        #self.webserver = Rocket(interfaces=interfaces,
+        #                        app_info={'wsgi_app': bottle_app}, )
+
+        if self.webserver_thread:
+            raise Exception('Invalid state, you should not have a webserver already running.')
+        self.webserver_thread = Thread(target=self.run_webserver, name='Webserver Thread')
+        self.webserver_thread.start()
+        self.log.debug('Webserver started.')
 
         super().activate()
 
     def deactivate(self):
         if self.webserver is not None:
-            self.log.debug('Sending signal to stop the webserver')
-            self.webserver.stop()
+            self.log.info('Shutting down the internal webserver.')
+            self.server.shutdown()
+            self.debug.info('Waiting for the webserver thread to quit.')
+            self.webserver_thread.join()
+            self.log.info('Webserver shut down correcly.')
         super().deactivate()
 
-    # noinspection PyUnusedLocal
+    def run_webserver(self):
+        try:
+            host = self.config['HOST']
+            port = self.config['PORT']
+            ssl = self.config['SSL']
+            self.log.info('Starting the webserver on %s:%i' % (host, port))
+            ssl_context = (ssl['certificate'], ssl['key']) if ssl['enabled'] else None
+            self.server = ThreadedWSGIServer(host, port, bottle_app, ssl_context=ssl_context)
+            self.server.serve_forever()
+            self.log.debug('Webserver stopped')
+        except KeyboardInterrupt as _:
+            self.log.exception('Keyboard interrupt, request a global shutdown.')
+            self.log.info('webserver is ThreadedWSGIServer')
+            self.server.shutdown()
+        except Exception as _:
+            self.log.exception('The webserver exploded.')
+
     @botcmd(template='webstatus')
     def webstatus(self, msg, args):
         """

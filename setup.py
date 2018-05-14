@@ -32,8 +32,7 @@ VERSION_FILE = os.path.join('errbot', 'version.py')
 
 deps = ['webtest',
         'setuptools',
-        'bottle',
-        'rocket-errbot',
+        'flask',
         'requests',
         'jinja2',
         'pyOpenSSL',

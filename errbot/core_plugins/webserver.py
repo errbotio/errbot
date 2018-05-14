@@ -5,11 +5,10 @@ from random import randrange
 from threading import Thread
 
 from webtest import TestApp
+from errbot.core_plugins import flask_app
 from werkzeug.serving import ThreadedWSGIServer
 
 from errbot import botcmd, BotPlugin, webhook
-from errbot.core_plugins.wsview import bottle_app
-from rocket import Rocket
 
 from urllib.request import unquote
 
@@ -25,8 +24,6 @@ Detected your post as : %s
 Status code : %i
 """
 
-from flask.app import Flask
-flask_app = Flask(__name__)
 
 def make_ssl_certificate(key_path, cert_path):
     """
@@ -67,10 +64,10 @@ def make_ssl_certificate(key_path, cert_path):
 class Webserver(BotPlugin):
 
     def __init__(self, *args, **kwargs):
-        self.webserver = None
-        self.webchat_mode = False
+        self.server = None
+        self.server_thread = None
         self.ssl_context = None
-        self.test_app = TestApp(bottle_app)
+        self.test_app = TestApp(flask_app)
         super().__init__(*args, **kwargs)
 
     def get_configuration_template(self):
@@ -96,31 +93,31 @@ class Webserver(BotPlugin):
         #self.webserver = Rocket(interfaces=interfaces,
         #                        app_info={'wsgi_app': bottle_app}, )
 
-        if self.webserver_thread:
+        if self.server_thread:
             raise Exception('Invalid state, you should not have a webserver already running.')
-        self.webserver_thread = Thread(target=self.run_webserver, name='Webserver Thread')
-        self.webserver_thread.start()
+        self.server_thread = Thread(target=self.run_server, name='Webserver Thread')
+        self.server_thread.start()
         self.log.debug('Webserver started.')
 
         super().activate()
 
     def deactivate(self):
-        if self.webserver is not None:
+        if self.server is not None:
             self.log.info('Shutting down the internal webserver.')
             self.server.shutdown()
-            self.debug.info('Waiting for the webserver thread to quit.')
-            self.webserver_thread.join()
+            self.log.info('Waiting for the webserver thread to quit.')
+            self.server_thread.join()
             self.log.info('Webserver shut down correcly.')
         super().deactivate()
 
-    def run_webserver(self):
+    def run_server(self):
         try:
             host = self.config['HOST']
             port = self.config['PORT']
             ssl = self.config['SSL']
             self.log.info('Starting the webserver on %s:%i' % (host, port))
             ssl_context = (ssl['certificate'], ssl['key']) if ssl['enabled'] else None
-            self.server = ThreadedWSGIServer(host, port, bottle_app, ssl_context=ssl_context)
+            self.server = ThreadedWSGIServer(host, port, flask_app, ssl_context=ssl_context)
             self.server.serve_forever()
             self.log.debug('Webserver stopped')
         except KeyboardInterrupt as _:
@@ -135,7 +132,7 @@ class Webserver(BotPlugin):
         """
         Gives a quick status of what is mapped in the internal webserver
         """
-        return {'rules': (((route.rule, route.name) for route in bottle_app.routes))}
+        return {'rules': (((rule.rule, rule.endpoint) for rule in flask_app.url_map._rules))}
 
     @webhook
     def echo(self, incoming_request):

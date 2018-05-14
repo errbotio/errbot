@@ -70,6 +70,7 @@ class TestPerson(Person):
         """This needs to return a long display name for this identifier e.g. Guillaume Binet.
         Returns None is unspecified"""
         return self._fullname
+
     @property
     def email(self):
         """This needs to return an email for this identifier e.g. Guillaume.Binet@gmail.com.

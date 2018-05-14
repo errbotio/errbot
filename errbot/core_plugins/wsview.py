@@ -5,9 +5,9 @@ import logging
 from flask.app import Flask
 from flask.views import View
 from flask import request
-from errbot.core_plugins import flask_app
 
 log = logging.getLogger(__name__)
+
 
 def strip_path():
     # strip the trailing slashes on incoming requests
@@ -25,8 +25,8 @@ def try_decode_json(req):
 def reset_app():
     """Zap everything here, useful for unit tests
     """
-    global flask_app
-    flask_app = Flask(__name__)
+    import errbot.core_plugins
+    errbot.core_plugins.flask_app = Flask(__name__)
 
 
 def route(obj):

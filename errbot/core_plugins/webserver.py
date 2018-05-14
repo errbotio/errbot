@@ -90,9 +90,6 @@ class Webserver(BotPlugin):
             self.log.info('Webserver is not configured. Forbid activation')
             return
 
-        #self.webserver = Rocket(interfaces=interfaces,
-        #                        app_info={'wsgi_app': bottle_app}, )
-
         if self.server_thread:
             raise Exception('Invalid state, you should not have a webserver already running.')
         self.server_thread = Thread(target=self.run_server, name='Webserver Thread')

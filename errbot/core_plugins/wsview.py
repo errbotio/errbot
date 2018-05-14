@@ -5,6 +5,7 @@ import logging
 from flask.app import Flask
 from flask.views import View
 from flask import request
+import errbot.core_plugins
 
 log = logging.getLogger(__name__)
 
@@ -25,12 +26,12 @@ def try_decode_json(req):
 def reset_app():
     """Zap everything here, useful for unit tests
     """
-    import errbot.core_plugins
     errbot.core_plugins.flask_app = Flask(__name__)
 
 
 def route(obj):
     """Check for functions to route in obj and route them."""
+    flask_app = errbot.core_plugins.flask_app
     classname = obj.__class__.__name__
     log.info("Checking %s for webhooks", classname)
     for name, func in getmembers(obj, ismethod):

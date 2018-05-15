@@ -132,7 +132,6 @@ def test_webhooks_with_naked_decorator_raw_request(webhook_testbot):
     assert 'LocalProxy' in requests.post('http://localhost:{}/raw2'.format(WEBSERVER_PORT), data=form).text
 
 
-#@pytest.mark.skip()
 def test_generate_certificate_creates_usable_cert(webhook_testbot):
     d = webhook_testbot.bot.bot_config.BOT_DATA_DIR
     key_path = os.sep.join((d, "webserver_key.pem"))

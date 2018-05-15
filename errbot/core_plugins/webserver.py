@@ -90,7 +90,7 @@ class Webserver(BotPlugin):
             self.log.info('Webserver is not configured. Forbid activation')
             return
 
-        if self.server_thread:
+        if self.server_thread and self.server_thread.is_alive():
             raise Exception('Invalid state, you should not have a webserver already running.')
         self.server_thread = Thread(target=self.run_server, name='Webserver Thread')
         self.server_thread.start()
@@ -114,7 +114,7 @@ class Webserver(BotPlugin):
             ssl = self.config['SSL']
             self.log.info('Starting the webserver on %s:%i' % (host, port))
             ssl_context = (ssl['certificate'], ssl['key']) if ssl['enabled'] else None
-            self.server = ThreadedWSGIServer(host, port, flask_app, ssl_context=ssl_context)
+            self.server = ThreadedWSGIServer(host, ssl['port'] if ssl_context else port, flask_app, ssl_context=ssl_context)
             self.server.serve_forever()
             self.log.debug('Webserver stopped')
         except KeyboardInterrupt as _:

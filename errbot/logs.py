@@ -64,8 +64,7 @@ def format_logs(formatter=None, theme_color=None):
         from colorlog import ColoredFormatter  # noqa
         log_format, colors_dict = get_log_colors(theme_color)
         color_formatter = ColoredFormatter(
-            "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s " +
-            log_format,
+            "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s " + log_format,
             datefmt="%H:%M:%S",
             reset=True,
             log_colors=colors_dict,

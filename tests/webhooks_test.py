@@ -36,12 +36,17 @@ extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'we
 @pytest.fixture
 def webhook_testbot(request):
     tbot = testbot(request)
-    tbot.push_message("!plugin config Webserver " +
-                      "{{'HOST': 'localhost', 'PORT': {}, 'SSL':  None}}".format(WEBSERVER_PORT))
-    tbot.pop_message()
+    tbot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': %s, 'SSL': None}" % WEBSERVER_PORT)
+    log.info(tbot.pop_message())
+    failure_count = 10
     while not webserver_ready('localhost', WEBSERVER_PORT):
-        log.debug("Webserver not ready yet, sleeping 0.1 second")
-        sleep(0.1)
+        waiting_time = 1.0 / failure_count
+        log.info('Webserver not ready yet, sleeping for %f second.', waiting_time)
+        sleep(waiting_time)
+        failure_count -= 1
+        if failure_count == 0:
+            raise TimeoutError("Could not start the internal Webserver to test.")
+
     return tbot
 
 

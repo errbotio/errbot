@@ -52,7 +52,8 @@ class TestPerson(Person):
 
     @property
     def client(self):
-        """This needs to return the part of the identifier pointing to a client from which a person is sending a message from.
+        """This needs to return the part of the identifier pointing to a client
+        from which a person is sending a message from.
         Returns None is unspecified"""
         return self._client
 

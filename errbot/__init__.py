@@ -17,7 +17,7 @@ from .core_plugins.wsview import route, view  # noqa
 from . import core
 
 __all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'webview', 'cmdfilter',
-           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END',
+           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'botmatch', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END',
            ]
 
 log = logging.getLogger(__name__)
@@ -70,11 +70,11 @@ def _tag_botcmd(func,
                 template=None,
                 flow_only=False,
                 _re=False,
-                syntax=None,         # botcmd_only
-                pattern=None,        # re_cmd only
-                flags=0,              # re_cmd only
-                matchall=False,      # re_cmd_only
-                prefixed=True,       # re_cmd_only
+                syntax=None,  # botcmd_only
+                pattern=None,  # re_cmd only
+                flags=0,  # re_cmd only
+                matchall=False,  # re_cmd_only
+                prefixed=True,  # re_cmd_only
                 _arg=False,
                 command_parser=None,  # arg_cmd only
                 re_cmd_name_help=None):  # re_cmd_only
@@ -110,14 +110,14 @@ def _tag_botcmd(func,
 
 
 def botcmd(*args,
-           hidden: bool=None,
-           name: str=None,
-           split_args_with: str='',
-           admin_only: bool=False,
-           historize: bool=True,
-           template: str=None,
-           flow_only: bool=False,
-           syntax: str=None) -> Callable[[BotPlugin, Message, Any], Any]:
+           hidden: bool = None,
+           name: str = None,
+           split_args_with: str = '',
+           admin_only: bool = False,
+           historize: bool = True,
+           template: str = None,
+           flow_only: bool = False,
+           syntax: str = None) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for bot command functions
 
@@ -146,6 +146,7 @@ def botcmd(*args,
     be a string or list (depending on your value of `split_args_with`) of parameters that
     were given to the command by the user.
     """
+
     def decorator(func):
         return _tag_botcmd(func,
                            _re=False,
@@ -158,21 +159,22 @@ def botcmd(*args,
                            template=template,
                            syntax=syntax,
                            flow_only=flow_only)
+
     return decorator(args[0]) if args else decorator
 
 
 def re_botcmd(*args,
-              hidden: bool=None,
-              name: str=None,
-              admin_only: bool=False,
-              historize: bool=True,
-              template: str=None,
-              pattern: str=None,
-              flags: int=0,
-              matchall: bool=False,
-              prefixed: bool=True,
-              flow_only: bool=False,
-              re_cmd_name_help: str=None) -> Callable[[BotPlugin, Message, Any], Any]:
+              hidden: bool = None,
+              name: str = None,
+              admin_only: bool = False,
+              historize: bool = True,
+              template: str = None,
+              pattern: str = None,
+              flags: int = 0,
+              matchall: bool = False,
+              prefixed: bool = True,
+              flow_only: bool = False,
+              re_cmd_name_help: str = None) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for regex-based bot command functions
 
@@ -208,6 +210,7 @@ def re_botcmd(*args,
     be a :class:`re.MatchObject` containing the result of applying the regular expression on the
     user's input.
     """
+
     def decorator(func):
         return _tag_botcmd(func,
                            _re=True,
@@ -223,6 +226,7 @@ def re_botcmd(*args,
                            prefixed=prefixed,
                            flow_only=flow_only,
                            re_cmd_name_help=re_cmd_name_help)
+
     return decorator(args[0]) if args else decorator
 
 
@@ -253,6 +257,7 @@ def botmatch(*args, **kwargs):
         def yes_or_no(self, msg, match):
             pass
     """
+
     def decorator(func, pattern):
         return _tag_botcmd(func,
                            _re=True,
@@ -267,6 +272,7 @@ def botmatch(*args, **kwargs):
                            pattern=pattern,
                            flags=kwargs.get('flags', 0),
                            matchall=kwargs.get('matchall', False))
+
     if len(args) == 2:
         return decorator(*args)
     if len(args) == 1:
@@ -275,13 +281,13 @@ def botmatch(*args, **kwargs):
 
 
 def arg_botcmd(*args,
-               hidden: bool=None,
-               name: str=None,
-               admin_only: bool=False,
-               historize: bool=True,
-               template: str=None,
-               flow_only: bool=False,
-               unpack_args: bool=True,
+               hidden: bool = None,
+               name: str = None,
+               admin_only: bool = False,
+               historize: bool = True,
+               template: str = None,
+               flow_only: bool = False,
+               unpack_args: bool = True,
                **kwargs) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for argparse-based bot command functions
@@ -418,9 +424,9 @@ def _uri_from_func(func):
 
 
 def webhook(*args,
-            methods: Tuple[str]=('POST', 'GET'),
-            form_param: str=None,
-            raw: bool=False) -> Callable[[BotPlugin, Any], str]:
+            methods: Tuple[str] = ('POST', 'GET'),
+            form_param: str = None,
+            raw: bool = False) -> Callable[[BotPlugin, Any], str]:
     """
     Decorator for webhooks
 
@@ -509,6 +515,7 @@ def cmdfilter(*args, **kwargs):
     and send that through in order to make it appear as if the user
     issued a different command.
     """
+
     def decorate(func):
         if not hasattr(func, '_err_command_filter'):  # don't override generated functions
             func._err_command_filter = True
@@ -526,6 +533,7 @@ def botflow(*args, **kwargs):
 
     TODO(gbin): example / docs
     """
+
     def decorate(func):
         if not hasattr(func, '_err_flow'):  # don't override generated functions
             func._err_flow = True

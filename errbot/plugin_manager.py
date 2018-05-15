@@ -70,13 +70,19 @@ def install_packages(req_path):
         Return an exc_info if it fails otherwise None.
     """
     log.info("Installing packages from '%s'." % req_path)
+    # use sys.executable explicitly instead of just 'pip' because depending on how the bot is deployed
+    # 'pip' might not be available on PATH: for example when installing errbot on a virtualenv and
+    # starting it with systemclt pointing directly to the executable:
+    # [Service]
+    # ExecStart=/home/errbot/.env/bin/errbot
+    pip_cmdline = [sys.executable, '-m', 'pip']
     try:
         if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
             # this is a virtualenv, so we can use it directly
-            subprocess.check_call(['pip', 'install', '--requirement', req_path])
+            subprocess.check_call(pip_cmdline + ['install', '--requirement', req_path])
         else:
             # otherwise only install it as a user package
-            subprocess.check_call(['pip', 'install', '--user', '--requirement', req_path])
+            subprocess.check_call(pip_cmdline + ['install', '--user', '--requirement', req_path])
     except Exception:
         log.exception('Failed to execute pip install for %s.', req_path)
         return sys.exc_info()
@@ -246,7 +252,7 @@ class BotPluginManager(PluginManager, StoreMixin):
                 log.info('Plugin %s from URL %s.', (name, url))
                 repo_manager.add_plugin_repo(name, url)
             log.info('update successful, removing old entry.')
-            del(self[ex_entry])
+            del (self[ex_entry])
 
         # be sure we have a configs entry for the plugin configurations
         if self.CONFIGS not in self:
@@ -435,7 +441,7 @@ class BotPluginManager(PluginManager, StoreMixin):
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
         if None not in self.plugins_callback_order:
-            self.plugins_callback_order = self.plugins_callback_order + (None, )
+            self.plugins_callback_order = self.plugins_callback_order + (None,)
 
         all_plugins = []
         for name in self.plugins_callback_order:
@@ -443,8 +449,7 @@ class BotPluginManager(PluginManager, StoreMixin):
             if name is None:
                 all_plugins += [
                     p.plugin_object for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)
-                    if p.name not in self.plugins_callback_order and
-                    hasattr(p, 'is_activated') and p.is_activated
+                    if p.name not in self.plugins_callback_order and hasattr(p, 'is_activated') and p.is_activated
                 ]
             else:
                 p = self.get_plugin_by_name(name)
@@ -486,9 +491,9 @@ class BotPluginManager(PluginManager, StoreMixin):
         if not self.is_plugin_blacklisted(name):
             logging.warning('Plugin %s is not blacklisted' % name)
             return 'Plugin %s is not blacklisted' % name
-        l = self.get_blacklisted_plugin()
-        l.remove(name)
-        self[self.BL_PLUGINS] = l
+        plugin = self.get_blacklisted_plugin()
+        plugin.remove(name)
+        self[self.BL_PLUGINS] = plugin
         log.info('Plugin %s removed from blacklist' % name)
         return 'Plugin %s removed from blacklist' % name
 

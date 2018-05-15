@@ -243,9 +243,9 @@ class ErrBot(Backend, StoreMixin):
             prefixed = True
             longest = 0
             for prefix in self.bot_alt_prefixes:
-                l = len(prefix)
-                if tomatch.startswith(prefix) and l > longest:
-                    longest = l
+                length = len(prefix)
+                if tomatch.startswith(prefix) and length > longest:
+                    longest = length
             log.debug("Called with alternate prefix '{}'".format(text[:longest]))
             text = text[longest:]
 
@@ -253,9 +253,9 @@ class ErrBot(Backend, StoreMixin):
             for sep in self.bot_config.BOT_ALT_PREFIX_SEPARATORS:
                 # While unlikely, one may have separators consisting of
                 # more than one character
-                l = len(sep)
-                if text[:l] == sep:
-                    text = text[l:]
+                length = len(sep)
+                if text[:length] == sep:
+                    text = text[length:]
         elif msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
             log.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
             # In order to keep noise down we surpress messages about the command
@@ -482,19 +482,20 @@ class ErrBot(Backend, StoreMixin):
         """
         full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
         if full_cmd:
-            part1 = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
+            msg = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
         else:
-            part1 = 'Command "%s" not found.' % cmd
+            msg = 'Command "%s" not found.' % cmd
         ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            return (part1 + '\n\nDid you mean "' + self.bot_config.BOT_PREFIX +
-                    ('" or "' + self.bot_config.BOT_PREFIX).join(matches) + '" ?')
-        else:
-            return part1
+            msg += '\n\n'
+            msg += 'Did you mean "' + self.bot_config.BOT_PREFIX
+            msg += ('" or "' + self.bot_config.BOT_PREFIX).join(matches)
+            msg += '" ?'
+        return msg
 
     def inject_commands_from(self, instance_to_inject):
         with self._gbl:

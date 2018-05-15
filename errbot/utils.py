@@ -132,7 +132,7 @@ def unescape_xml(text):
                 pass
         return txt  # leave as is
 
-    return re.sub("&#?\w+;", fixup, text)
+    return re.sub(r'&#?\w+;', fixup, text)
 
 
 REMOVE_EOL = re.compile(r'\n')
@@ -172,7 +172,7 @@ def split_string_after(str_, n):
     :param n: length of the chunks.
     :param str_: the given string.
     """
-    for start in range(0, len(str_), n):
+    for start in range(0, max(len(str_), 1), n):
         yield str_[start:start + n]
 
 

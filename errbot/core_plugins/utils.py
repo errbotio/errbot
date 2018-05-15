@@ -45,10 +45,10 @@ class Utils(BotPlugin):
         """display the command history"""
         answer = []
         user_cmd_history = self._bot.cmd_history[msg.frm.person]
-        l = len(user_cmd_history)
-        for i in range(0, l):
+        length = len(user_cmd_history)
+        for i in range(0, length):
             c = user_cmd_history[i]
-            answer.append('%2i:%s%s %s' % (l - i, self._bot.prefix, c[0], c[1]))
+            answer.append('%2i:%s%s %s' % (length - i, self._bot.prefix, c[0], c[1]))
         return '\n'.join(answer)
 
     # noinspection PyUnusedLocal

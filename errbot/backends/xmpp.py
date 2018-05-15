@@ -2,6 +2,7 @@ import logging
 import sys
 from functools import lru_cache
 
+from sleekxmpp import JID
 from sleekxmpp.exceptions import IqError
 from threading import Thread
 from time import sleep
@@ -10,7 +11,6 @@ from errbot.backends.base import Message, Room, Presence, RoomNotJoinedError, Id
 from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.core import ErrBot
 from errbot.rendering import text, xhtml, xhtmlim
-
 
 # Can't use __name__ because of Yapsy
 log = logging.getLogger('errbot.backends.xmpp')
@@ -300,6 +300,16 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
         return str(self)  # this is the full identifier.
 
     @property
+    def real_jid(self):
+        """
+        The JID of the room occupant, they used to login.
+        Will only work if the errbot is moderator in the MUC or it is not anonymous.
+        """
+        room_jid = self._node + '@' + self._domain
+        jid = JID(self._room.xep0045.getJidProperty(room_jid, self.resource, 'jid'))
+        return jid.bare
+
+    @property
     def room(self):
         return self._room
 
@@ -508,7 +518,7 @@ class XMPPBackend(ErrBot):
                                       mhtml=mhtml,
                                       mtype='chat' if msg.is_direct else 'groupchat')
 
-    def change_presence(self, status: str=ONLINE, message: str='') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         log.debug("Change bot status to %s, message %s" % (status, message))
         self.conn.client.send_presence(pshow=status, pstatus=message)
 

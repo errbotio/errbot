@@ -236,8 +236,8 @@ class Table(object):
                     output.write('\n')
                 first = False
                 for i, header in enumerate(row):
-                    text, l = header
-                    output.write('┃ ' + text + ' ' * (maxes[i] - 2 - l) + ' ')
+                    text, ln = header
+                    output.write('┃ ' + text + ' ' * (maxes[i] - 2 - ln) + ' ')
                 output.write('┃')
                 output.write('\n')
             output.write('┡' + '╇'.join('━' * m for m in maxes) + '┩')
@@ -249,7 +249,7 @@ class Table(object):
         for row in self.rows:
             max_row_height = 1
             for i, item in enumerate(row):
-                text, l = item
+                text, _ = item
                 row_height = str(text).count(NEXT_ROW) + 1
                 if row_height > max_row_height:
                     max_row_height = row_height
@@ -259,15 +259,15 @@ class Table(object):
             first = False
             for j in range(max_row_height):
                 for i, item in enumerate(row):
-                    text, l = item
+                    text, ln = item
                     multi = text.split(NEXT_ROW)
                     if len(multi) > j:
                         text = multi[j]
-                        l = len(text)
+                        ln = len(text)
                     else:
-                        l = 1
+                        ln = 1
                         text = ' '
-                    output.write('│ ' + text + ' ' * (maxes[i] - 2 - l) + ' ')
+                    output.write('│ ' + text + ' ' * (maxes[i] - 2 - ln) + ' ')
                 output.write('│')
                 output.write('\n')
         output.write('└' + '┴'.join('─' * m for m in maxes) + '┘')
@@ -339,27 +339,27 @@ class BorderlessTable(object):
         if self.headers:
             for row in self.headers:
                 for i, header in enumerate(row):
-                    text, l = header
-                    output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
+                    text, ln = header
+                    output.write(text + ' ' * (maxes[i] - 2 - ln) + ' ')
                 output.write('\n')
         for row in self.rows:
             max_row_height = 1
             for i, item in enumerate(row):
-                text, l = item
+                text, _ = item
                 row_height = str(text).count(NEXT_ROW) + 1
                 if row_height > max_row_height:
                     max_row_height = row_height
             for j in range(max_row_height):
                 for i, item in enumerate(row):
-                    text, l = item
+                    text, ln = item
                     multi = text.split(NEXT_ROW)
                     if len(multi) > j:
                         text = multi[j]
-                        l = len(text)
+                        ln = len(text)
                     else:
-                        l = 1
+                        ln = 1
                         text = ' '
-                    output.write(text + ' ' * (maxes[i] - 2 - l) + ' ')
+                    output.write(text + ' ' * (maxes[i] - 2 - ln) + ' ')
                 output.write('\n')
         return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
 

@@ -1,16 +1,18 @@
 """ Logic related to plugin loading and lifecycle """
-from configparser import NoSectionError, NoOptionError, ConfigParser
+from configparser import ConfigParser
+
 from importlib import machinery, import_module
 import logging
 import os
 import subprocess
 import sys
 import traceback
+
 from typing import Tuple, Sequence
 
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
-from .utils import version2array, collect_roots
+from .utils import version2tuple, collect_roots
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from .core_plugins.wsview import route
@@ -86,7 +88,7 @@ def install_packages(req_path):
 
 def check_dependencies(req_path: str) -> Tuple[str, Sequence[str]]:
     """ This methods returns a pair of (message, packages missing).
-    Or None, [] if everything is OK.
+    Or None, [] if everything is OK.In order to let us help you better, please fill out the following fields as best you can:
     """
     log.debug("check dependencies of %s" % req_path)
     # noinspection PyBroadException
@@ -169,14 +171,14 @@ def check_errbot_version(name: str, min_version: str, max_version: str):
     """
     log.info('Activating %s with min_err_version = %s and max_version = %s',
              name, min_version, max_version)
-    current_version = version2array(VERSION)
-    if min_version and version2array(min_version) > current_version:
+    current_version = version2tuple(VERSION)
+    if min_version and version2tuple(min_version) > current_version:
         raise IncompatiblePluginException(
             'The plugin %s asks for Errbot with a minimal version of %s while Errbot is version %s' % (
                 name, min_version, VERSION)
         )
 
-    if max_version and version2array(max_version) < current_version:
+    if max_version and version2tuple(max_version) < current_version:
         raise IncompatiblePluginException(
             'The plugin %s asks for Errbot with a maximum version of %s while Errbot is version %s' % (
                 name, max_version, VERSION)
@@ -218,7 +220,7 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
         return False
     return True
 
-
+# TODO: move this out, this has nothing to do with plugins
 def global_restart():
     python = sys.executable
     os.execl(python, python, *sys.argv)
@@ -332,8 +334,6 @@ class BotPluginManager(StoreMixin):
             return depends_on
         except NoOptionError:
             return []
-
-    def deactivate_plugin_by_name(self, name):
 
     def reload_plugin_by_name(self, name):
         """

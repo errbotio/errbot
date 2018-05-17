@@ -8,15 +8,11 @@ import sys
 import traceback
 from typing import Tuple, Sequence
 
-from yapsy import PluginInfo
-
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
 from .utils import version2array, collect_roots
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
-from yapsy.PluginManager import PluginManager
-from yapsy.PluginFileLocator import PluginFileLocator, PluginFileAnalyzerWithInfoFile
 from .core_plugins.wsview import route
 from .storage import StoreMixin
 
@@ -59,9 +55,9 @@ def _ensure_sys_path_contains(paths):
             sys.path.append(entry)
 
 
-def populate_doc(plugin_info: PluginInfo) -> None:
-    plugin_class = type(plugin_info.plugin_object)
-    plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plugin_info.description
+def populate_doc(plugin_object: BotPlugin, plug: ConfigParser) -> None:
+    plugin_class = type(plugin_object)
+    plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plug.get('Documentation', 'Description')
 
 
 def install_packages(req_path):
@@ -228,9 +224,7 @@ def global_restart():
     os.execl(python, python, *sys.argv)
 
 
-class BotPluginManager(PluginManager, StoreMixin):
-    """Customized yapsy PluginManager for ErrBot."""
-
+class BotPluginManager(StoreMixin):
     # Storage names
     CONFIGS = 'configs'
     BL_PLUGINS = 'bl_plugins'
@@ -244,54 +238,55 @@ class BotPluginManager(PluginManager, StoreMixin):
         self.plugins_callback_order = plugins_callback_order
         self.repo_manager = repo_manager
 
-        # if this is the old format migrate the entries in repo_manager
-        ex_entry = 'repos'
-        if ex_entry in self:
-            log.info('You are migrating from v3 to v4, porting your repo info...')
-            for name, url in self[ex_entry].items():
-                log.info('Plugin %s from URL %s.', (name, url))
-                repo_manager.add_plugin_repo(name, url)
-            log.info('update successful, removing old entry.')
-            del (self[ex_entry])
-
         # be sure we have a configs entry for the plugin configurations
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}
 
-        locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'),
-                                     PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
-        locator.disableRecursiveScan()  # We do that ourselves
-        super().__init__(categories_filter={BOTPLUGIN_TAG: BotPlugin, BOTFLOW_TAG: BotFlow}, plugin_locator=locator)
+        self.plugins = {}  # Name ->  (None or plugin object, path)
+        self.flows = {}  # Name ->  Flow
+        #locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'),
+        #                            PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
 
     def attach_bot(self, bot):
         self.bot = bot
 
-    def instanciateElement(self, element) -> BotPlugin:
-        """Overrides the instanciation of plugins to inject the bot reference."""
-        return element(self.bot, name=self._current_pluginfo.name)
+    #def instanciateElement(self, element) -> BotPlugin:
+    #    """Overrides the instanciation of plugins to inject the bot reference."""
+    #    return element(self.bot, name=self._current_pluginfo.name)
 
-    def get_plugin_by_name(self, name: str) -> PluginInfo:
-        return self.getPluginByName(name, BOTPLUGIN_TAG)
+    def activate_plugin(self, name: str):
+        obj = self.get_plugin_obj_by_name(name)
+        obj.activate()
+
+    def deactivate_plugin(self, name: str):
+        obj, path = self.plugins[name]
+        # TODO handle the "un"routing.
+
+        remove_plugin_templates_path(path)
+        try:
+            return obj.deactivate()
+        except Exception:
+            add_plugin_templates_path(path)
+            raise
 
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
-        plugin = self.get_plugin_by_name(name)
-        return None if plugin is None else plugin.plugin_object
+        obj, _ = self.plugins.get(name, (None, None))
+        return obj
 
-    def activate_plugin_with_version_check(self, plugin_info: PluginInfo, dep_track=None) -> BotPlugin:
-        name = plugin_info.name
+    def activate_plugin_with_version_check(self, name: str, plugin_object: BotPlugin, plug: ConfigParser, dep_track=None) -> BotPlugin:
         config = self.get_plugin_configuration(name)
 
-        if not check_python_plug_section(name, plugin_info.details):
+        if not check_python_plug_section(name, plug):
             log.error('%s failed python version check.', name)
             return None
 
-        if not check_errbot_plug_section(name, plugin_info.details):
+        if not check_errbot_plug_section(name, plug):
             log.error('%s failed errbot version check.', name)
             return None
 
-        depends_on = self._activate_plugin_dependencies(plugin_info, dep_track)
+        depends_on = self._activate_plugin_dependencies(name, plug, dep_track)
 
-        obj = plugin_info.plugin_object
+        obj = plugin_object
 
         obj.dependencies = depends_on
 
@@ -305,33 +300,33 @@ class BotPluginManager(PluginManager, StoreMixin):
             log.exception('Something is wrong with the configuration of the plugin %s', name)
             obj.config = None
             raise PluginConfigurationException(str(ex))
-        add_plugin_templates_path(plugin_info.path)
-        populate_doc(plugin_info)
+        plugin_path = os.path.dirname(sys.modules[plugin_object.__class__.__module__].__file__)
+        add_plugin_templates_path(plugin_path)
+        populate_doc(obj, plug)
         try:
-            self.activatePluginByName(name, BOTPLUGIN_TAG)
+            self.activate_plugin(name)
             route(obj)
             return obj
         except Exception:
-            plugin_info.activated = False  # Yapsy doesn't revert this in case of error
-            remove_plugin_templates_path(plugin_info.path)
+            remove_plugin_templates_path(plugin_path)
             log.error("Plugin %s failed at activation stage, deactivating it...", name)
-            self.deactivatePluginByName(name, BOTPLUGIN_TAG)
+            self.deactivate_plugin(name)
             raise
 
-    def _activate_plugin_dependencies(self, plugin_info, dep_track):
+    def _activate_plugin_dependencies(self, name: str, plug: ConfigParser, dep_track):
         try:
             if dep_track is None:
                 dep_track = set()
 
-            dep_track.add(plugin_info.name)
+            dep_track.add(name)
 
-            depends_on = [dep_name.strip() for dep_name in plugin_info.details.get("Core", "DependsOn").split(',')]
+            depends_on = [dep_name.strip() for dep_name in plug.get("Core", "DependsOn").split(',')]
             for dep_name in depends_on:
                 if dep_name in dep_track:
                     raise PluginActivationException("Circular dependency in the set of plugins (%s)" %
                                                     ', '.join(dep_track))
                 if dep_name not in self.get_all_active_plugin_names():
-                    log.debug('%s depends on %s and %s is not activated. Activating it ...', plugin_info.name, dep_name,
+                    log.debug('%s depends on %s and %s is not activated. Activating it ...', name, dep_name,
                               dep_name)
                     self._activate_plugin(dep_name, dep_track)
             return depends_on
@@ -339,15 +334,6 @@ class BotPluginManager(PluginManager, StoreMixin):
             return []
 
     def deactivate_plugin_by_name(self, name):
-        # TODO handle the "un"routing.
-
-        pta_item = self.getPluginByName(name, BOTPLUGIN_TAG)
-        remove_plugin_templates_path(pta_item.path)
-        try:
-            return self.deactivatePluginByName(name, BOTPLUGIN_TAG)
-        except Exception:
-            add_plugin_templates_path(pta_item.path)
-            raise
 
     def reload_plugin_by_name(self, name):
         """

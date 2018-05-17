@@ -7,8 +7,9 @@ import os
 import subprocess
 import sys
 import traceback
+from pathlib import Path, PurePath
 
-from typing import Tuple, Sequence
+from typing import Tuple, Sequence, Mapping, Dict
 
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
@@ -63,7 +64,7 @@ def populate_doc(plugin_object: BotPlugin, plugin_info: PluginInfo) -> None:
     plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plugin_info.doc
 
 
-def install_packages(req_path):
+def install_packages(req_path: Path):
     """ Installs all the packages from the given requirements.txt
 
         Return an exc_info if it fails otherwise None.
@@ -78,16 +79,16 @@ def install_packages(req_path):
     try:
         if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
             # this is a virtualenv, so we can use it directly
-            subprocess.check_call(pip_cmdline + ['install', '--requirement', req_path])
+            subprocess.check_call(pip_cmdline + ['install', '--requirement', str(req_path)])
         else:
             # otherwise only install it as a user package
-            subprocess.check_call(pip_cmdline + ['install', '--user', '--requirement', req_path])
+            subprocess.check_call(pip_cmdline + ['install', '--user', '--requirement', str(req_path)])
     except Exception:
         log.exception('Failed to execute pip install for %s.', req_path)
         return sys.exc_info()
 
 
-def check_dependencies(req_path: str) -> Tuple[str, Sequence[str]]:
+def check_dependencies(req_path: Path) -> Tuple[str, Sequence[str]]:
     """ This methods returns a pair of (message, packages missing).
     Or None, [] if everything is OK.In order to let us help you better, please fill out the following fields as best you can:
     """
@@ -198,9 +199,10 @@ class BotPluginManager(StoreMixin):
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}
 
-        self.plug_infos = {}  # Name ->  PluginInfo
+        self.plugin_infos = {}  # Name ->  PluginInfo
         self.plugins = {}  # Name ->  BotPlugin
         self.flows = {}  # Name ->  Flow
+        self.plugin_places = []
         #locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'),
         #                            PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
 
@@ -212,23 +214,22 @@ class BotPluginManager(StoreMixin):
     #    return element(self.bot, name=self._current_pluginfo.name)
 
     def activate_plugin(self, name: str):
-        obj = self.get_plugin_obj_by_name(name)
-        obj.activate()
+        self.plugins[name].activate()
+        plugin_info = self.plugin_infos[name]
+        add_plugin_templates_path(plugin_info)
 
     def deactivate_plugin(self, name: str):
-        obj, path = self.plugins[name]
-        # TODO handle the "un"routing.
-
-        remove_plugin_templates_path(path)
+        obj = self.plugins[name]
+        plugin_info = self.plugin_infos[name]
+        remove_plugin_templates_path(plugin_info)
         try:
             return obj.deactivate()
         except Exception:
-            add_plugin_templates_path(path)
+            add_plugin_templates_path(plugin_info)
             raise
 
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
-        obj, _ = self.plugins.get(name, (None, None))
-        return obj
+        return self.plugins.get(name, None)
 
     def activate_plugin_with_version_check(self, plugin_object: BotPlugin, plugin_info: PluginInfo, dep_track=None) -> BotPlugin:
         name = plugin_info.name
@@ -241,7 +242,7 @@ class BotPluginManager(StoreMixin):
         if not check_errbot_version(plugin_info):
             return None
 
-        depends_on = self._activate_plugin_dependencies(name, plug, dep_track)
+        depends_on = self._activate_plugin_dependencies(plugin_info, dep_track)
 
         obj = plugin_object
 
@@ -257,65 +258,81 @@ class BotPluginManager(StoreMixin):
             log.exception('Something is wrong with the configuration of the plugin %s', name)
             obj.config = None
             raise PluginConfigurationException(str(ex))
-        plugin_path = os.path.dirname(sys.modules[plugin_object.__class__.__module__].__file__)
-        add_plugin_templates_path(plugin_path)
-        populate_doc(obj, plug)
+        add_plugin_templates_path(plugin_info)
+        populate_doc(obj, plugin_info)
         try:
             self.activate_plugin(name)
             route(obj)
             return obj
         except Exception:
-            remove_plugin_templates_path(plugin_path)
-            log.error("Plugin %s failed at activation stage, deactivating it...", name)
+            remove_plugin_templates_path(plugin_info)
+            log.error('Plugin %s failed at activation stage, deactivating it...', name)
             self.deactivate_plugin(name)
             raise
 
-    def _activate_plugin_dependencies(self, name: str, plug: ConfigParser, dep_track):
-        try:
-            if dep_track is None:
-                dep_track = set()
+    def _activate_plugin_dependencies(self, plugin_info: PluginInfo, dep_track):
+        if dep_track is None:
+            dep_track = set()
 
-            dep_track.add(name)
+        name = plugin_info.name
+        dep_track.add(name)
 
-            depends_on = [dep_name.strip() for dep_name in plug.get("Core", "DependsOn").split(',')]
-            for dep_name in depends_on:
-                if dep_name in dep_track:
-                    raise PluginActivationException("Circular dependency in the set of plugins (%s)" %
-                                                    ', '.join(dep_track))
-                if dep_name not in self.get_all_active_plugin_names():
-                    log.debug('%s depends on %s and %s is not activated. Activating it ...', name, dep_name,
-                              dep_name)
-                    self._activate_plugin(dep_name, dep_track)
-            return depends_on
-        except NoOptionError:
-            return []
+        depends_on = plugin_info.dependencies
+        for dep_name in depends_on:
+            if dep_name in dep_track:
+                raise PluginActivationException('Circular dependency in the set of plugins (%s)' %
+                                                ', '.join(dep_track))
+            if dep_name not in self.get_all_active_plugin_names():
+                log.debug('%s depends on %s and %s is not activated. Activating it ...', name, dep_name, dep_name)
+                self._activate_plugin(dep_name, dep_track)
+        return depends_on
 
     def reload_plugin_by_name(self, name):
         """
         Completely reload the given plugin, including reloading of the module's code
         :throws PluginActivationException: needs to be taken care of by the callers.
         """
-        was_activated = name in self.get_all_active_plugin_names()
+        plugin = self.plugins[name]
+        was_activated = plugin.is_activated
 
         if was_activated:
-            self.deactivate_plugin_by_name(name)
+            self.deactivate_plugin(name)
 
-        plugin = self.get_plugin_by_name(name)
-
-        module_alias = plugin.plugin_object.__module__
+        module_alias = plugin.__module__
         module_old = __import__(module_alias)
         f = module_old.__file__
         module_new = machinery.SourceFileLoader(module_alias, f).load_module(module_alias)
         class_name = type(plugin.plugin_object).__name__
         new_class = getattr(module_new, class_name)
-        plugin.plugin_object.__class__ = new_class
+        plugin.__class__ = new_class
 
         if was_activated:
             self.activate_plugin(name)
 
-    def _plugin_info_currently_loading(self, pluginfo):
-        # Keeps track of what is the current plugin we are attempting to load.
-        self._current_pluginfo = pluginfo
+    def _install_potential_package_dependencies(self, path: Path,
+                                                feedback: Dict[Path, str],
+                                                autoinstall_deps: bool=True):
+        req_path = path / 'requirements.txt'
+        if req_path.exists():
+            log.info('Checking package dependencies from %s.', req_path)
+            if autoinstall_deps:
+                exc_info = install_packages(req_path)
+                if exc_info is not None:
+                    typ, value, trace = exc_info
+                    feedback[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
+            else:
+                msg, _ = check_dependencies(req_path)
+                if msg and path not in feedback:  # favor the first error.
+                    feedback[path] = msg
+
+    def load_plugins(self, feedback: Dict[Path, str], autoinstall_deps: bool=True):
+        for path in self.plugin_places:
+            self._install_potential_package_dependencies(path, feedback, autoinstall_deps)
+            plugfiles = path.glob('**/*.plug')
+            for plugfile in plugfiles:
+                plugin_info = PluginInfo.load(plugfile)
+
+
 
     def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
         """ It returns a dictionary of path -> error strings."""
@@ -331,24 +348,11 @@ class BotPluginManager(StoreMixin):
                 sys.path.append(entry)
         # so plugins can relatively import their repos
         _ensure_sys_path_contains(repo_roots)
-
+        self.plugin_places = [Path(root) for root in all_roots]
         errors = {}
-        if autoinstall_deps:
-            for path in all_roots:
-                req_path = os.path.join(path, 'requirements.txt')
-                if not os.path.isfile(req_path):
-                    log.debug('%s has no requirements.txt file' % path)
-                    continue
-                exc_info = install_packages(req_path)
-                if exc_info is not None:
-                    typ, value, trace = exc_info
-                    errors[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
-        else:
-            dependencies_result = {path: check_dependencies(path)[0] for path in all_roots}
-            errors.update({path: dep_error for path, dep_error in dependencies_result.items() if dep_error is not None})
-        self.setPluginPlaces(all_roots)
+
         try:
-            self.locatePlugins()
+            self.load_plugins(errors, autoinstall_deps)
         except ValueError:
             # See https://github.com/errbotio/errbot/issues/769.
             # Unfortunately we cannot obtain information on which file specifically caused the issue,

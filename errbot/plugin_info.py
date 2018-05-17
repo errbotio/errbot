@@ -2,7 +2,7 @@ from configparser import ConfigParser
 from dataclasses import dataclass
 from errbot.utils import version2tuple
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, List
 from configparser import Error as ConfigParserError
 
 VersionType = Tuple[int, int, int]
@@ -17,6 +17,7 @@ class PluginInfo:
     python_version: VersionType
     errbot_minversion: VersionType
     errbot_maxversion: VersionType
+    dependencies: List[str]
     location: Path = None
 
     @staticmethod
@@ -70,5 +71,6 @@ class PluginInfo:
         except ValueError as ve:
             raise ConfigParserError('Invalid Errbot max version format: %s (%s)' % (max_version, ve))
 
-        return PluginInfo(name, module, doc, core, python_version, min_version, max_version)
+        deps = [name.strip for name in config.get('Core', 'DependsOn', fallback='').split(',')]
+        return PluginInfo(name, module, doc, core, python_version, min_version, max_version, deps)
 

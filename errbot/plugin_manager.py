@@ -12,6 +12,7 @@ from typing import Tuple, Sequence
 
 from errbot.flow import BotFlow
 from .botplugin import BotPlugin
+from .plugin_info import PluginInfo
 from .utils import version2tuple, collect_roots
 from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
@@ -57,9 +58,9 @@ def _ensure_sys_path_contains(paths):
             sys.path.append(entry)
 
 
-def populate_doc(plugin_object: BotPlugin, plug: ConfigParser) -> None:
+def populate_doc(plugin_object: BotPlugin, plugin_info: PluginInfo) -> None:
     plugin_class = type(plugin_object)
-    plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plug.get('Documentation', 'Description')
+    plugin_class.__errdoc__ = plugin_class.__doc__ if plugin_class.__doc__ else plugin_info.doc
 
 
 def install_packages(req_path):
@@ -121,104 +122,57 @@ def check_dependencies(req_path: str) -> Tuple[str, Sequence[str]]:
         return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
-def check_enabled_core_plugin(name: str, config: ConfigParser, core_plugin_list) -> bool:
+def check_enabled_core_plugin(plugin_info: PluginInfo, core_plugin_list) -> bool:
     """ Checks if the given plugin is core and if it is, if it is part of the enabled core_plugins_list.
-
-    :param name: The plugin name
-    :param config: Its config
+    :param plugin_info: the info from the plugin
     :param core_plugin_list: the list from CORE_PLUGINS in the config.
     :return: True if it is OK to load this plugin.
     """
-    try:
-        core = config.get("Core", "Core")
-        if core.lower() == 'true' and name not in core_plugin_list:
-            return False
-    except NoOptionError:
-        pass
-    return True
+    return plugin_info.core and plugin_info.name in core_plugin_list
 
 
-def check_python_plug_section(name: str, config: ConfigParser) -> bool:
+def check_python_plug_section(plugin_info: PluginInfo) -> bool:
     """ Checks if we have the correct version to run this plugin.
     Returns true if the plugin is loadable """
-    try:
-        python_version = config.get("Python", "Version")
-    except NoSectionError:
-        log.info(
-            'Plugin %s has no section [Python]. Assuming this '
-            'plugin is running only under python 3.', name)
-        python_version = '3'
-
-    if python_version not in ('2', '2+', '3'):
-        log.warning(
-            'Plugin %s has an invalid Version specified in section [Python]. '
-            'The Version can only be 2, 2+ and 3', name)
+    version = plugin_info.python_version
+    sys_version = sys.version_info[:3]
+    if version < (3, 0, 0):
+        log.error('Plugin %s is made for python 2 only and Errbot is not compatible with Python 2 anymore.',
+                  plugin_info.name)
+        log.error('Please contact the plugin developer or try to contribute to port the plugin.')
         return False
 
-    if python_version == '2':
-        log.error(
-            '\nPlugin %s is made for python 2 only and Errbot is not compatible with Python 2 anymore.'
-            'Please contact the plugin developer or try to contribute to port the plugin.')
+    if version >= sys_version:
+        log.error('Plugin %s requires python >= %s and this Errbot instance runs %s.',
+                  plugin_info.name, '.'.join(str(v) for v in version), '.'.join(str(v) for v in sys_version))
+        log.error('Upgrade your python interpreter if you want to use this plugin.')
         return False
 
     return True
 
 
-def check_errbot_version(name: str, min_version: str, max_version: str):
+def check_errbot_version(plugin_info: PluginInfo):
     """ Checks if a plugin version between min_version and max_version is ok
     for this errbot.
     Raises IncompatiblePluginException if not.
     """
+    name, min_version, max_version = plugin_info.name, plugin_info.min_version, plugin_info.max_version
     log.info('Activating %s with min_err_version = %s and max_version = %s',
              name, min_version, max_version)
     current_version = version2tuple(VERSION)
-    if min_version and version2tuple(min_version) > current_version:
+    if min_version and min_version > current_version:
         raise IncompatiblePluginException(
             'The plugin %s asks for Errbot with a minimal version of %s while Errbot is version %s' % (
                 name, min_version, VERSION)
         )
 
-    if max_version and version2tuple(max_version) < current_version:
+    if max_version and max_version < current_version:
         raise IncompatiblePluginException(
             'The plugin %s asks for Errbot with a maximum version of %s while Errbot is version %s' % (
                 name, max_version, VERSION)
         )
 
 
-def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
-    """ Checks if we have the correct Errbot version.
-    Returns true if the plugin is loadable """
-
-    # Errbot version check
-    try:
-
-        try:
-            min_version = config.get("Errbot", "Min")
-        except NoOptionError:
-            log.debug('Plugin %s has no Min Option in [Errbot] section. '
-                      'Assuming this plugin is running on this Errbot'
-                      'version as min version.', name)
-            min_version = VERSION
-
-        try:
-            max_version = config.get("Errbot", "Max")
-        except NoOptionError:
-            log.debug('Plugin %s has no Max Option in [Errbot] section. '
-                      'Assuming this plugin is running on this Errbot'
-                      'version as max version.', name)
-            max_version = VERSION
-
-    except NoSectionError:
-        log.debug('Plugin %s has no section [Errbot]. Assuming this '
-                  'plugin is running on any Errbot version.', name)
-        min_version = VERSION
-        max_version = VERSION
-    try:
-        check_errbot_version(name, min_version, max_version)
-    except IncompatiblePluginException as ex:
-        log.error("Could not load plugin:\n%s", str(ex))
-        return False
-    return True
 
 # TODO: move this out, this has nothing to do with plugins
 def global_restart():
@@ -244,7 +198,8 @@ class BotPluginManager(StoreMixin):
         if self.CONFIGS not in self:
             self[self.CONFIGS] = {}
 
-        self.plugins = {}  # Name ->  (None or plugin object, path)
+        self.plug_infos = {}  # Name ->  PluginInfo
+        self.plugins = {}  # Name ->  BotPlugin
         self.flows = {}  # Name ->  Flow
         #locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'),
         #                            PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
@@ -275,15 +230,15 @@ class BotPluginManager(StoreMixin):
         obj, _ = self.plugins.get(name, (None, None))
         return obj
 
-    def activate_plugin_with_version_check(self, name: str, plugin_object: BotPlugin, plug: ConfigParser, dep_track=None) -> BotPlugin:
+    def activate_plugin_with_version_check(self, plugin_object: BotPlugin, plugin_info: PluginInfo, dep_track=None) -> BotPlugin:
+        name = plugin_info.name
+
         config = self.get_plugin_configuration(name)
 
-        if not check_python_plug_section(name, plug):
-            log.error('%s failed python version check.', name)
+        if not check_python_plug_section(plugin_info):
             return None
 
-        if not check_errbot_plug_section(name, plug):
-            log.error('%s failed errbot version check.', name)
+        if not check_errbot_version(plugin_info):
             return None
 
         depends_on = self._activate_plugin_dependencies(name, plug, dep_track)

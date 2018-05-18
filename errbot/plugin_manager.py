@@ -10,9 +10,9 @@ import traceback
 from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
 
-from typing import Tuple, Sequence, Dict, Union
+from typing import Tuple, Sequence, Dict, Union, Any, Type
 
-from errbot.flow import BotFlow
+from errbot.flow import BotFlow, Flow
 from .botplugin import BotPlugin
 from .plugin_info import PluginInfo
 from .utils import version2tuple, collect_roots
@@ -322,47 +322,57 @@ class BotPluginManager(StoreMixin):
                 if msg and path not in feedback:  # favor the first error.
                     feedback[path] = msg
 
+    def _load_plugins_generic(self,
+                              path: Path,
+                              extension: str,
+                              base_module_name,
+                              baseclass: Type,
+                              dest_dict: Dict[str, Any],
+                              feedback: Dict[Path, str]):
+        self._install_potential_package_dependencies(path, feedback)
+        plugfiles = path.glob('**/*.' + extension)
+        for plugfile in plugfiles:
+            try:
+                plugin_info = PluginInfo.load(plugfile)
+                name = plugin_info.name
+
+                # save the plugin_info for ref.
+                self.plugin_infos[name] = plugin_info
+
+                # Skip the core plugins not listed in CORE_PLUGINS if CORE_PLUGINS is defined.
+                if self.core_plugins and plugin_info.core and (plugin_info.name not in self.core_plugins):
+                    log.debug("%s plugin will not be loaded because it's not listed in CORE_PLUGINS", name)
+                    continue
+
+                # load the module
+                spec = spec_from_file_location(base_module_name, plugin_info.location / (plugin_info.module + '.py'))
+                module = module_from_spec(spec)
+                spec.loader.exec_module(module)
+                sys.modules[base_module_name] = module
+
+
+                # introspect the modules to find plugin classes
+                def is_plugin(member):
+                    return inspect.isclass(member) and issubclass(member, baseclass) and member != baseclass
+                plugin_classes = inspect.getmembers(module, is_plugin)
+                if not plugin_classes:
+                    feedback[path] = 'Did not find any plugin in %s.' % path
+                    continue
+                if len(plugin_classes) > 1:
+                    # TODO: This is something we can support as "subplugins" or something similar.
+                    feedback[path] = 'Contains more than one plugin, only one will be loaded.'
+
+                # instantiate the plugin object.
+                _, clazz = plugin_classes[0]
+                dest_dict[name] = clazz(self.bot, name)
+
+            except Exception as e:
+                feedback[path] = str(e)
+
     def load_plugins(self, feedback: Dict[Path, str]):
         for path in self.plugin_places:
-            self._install_potential_package_dependencies(path, feedback)
-            plugfiles = path.glob('**/*.plug')
-            for plugfile in plugfiles:
-                try:
-                    plugin_info = PluginInfo.load(plugfile)
-                    name = plugin_info.name
-
-                    # save the plugin_info for ref.
-                    self.plugin_infos[name] = plugin_info
-
-                    # Skip the core plugins not listed in CORE_PLUGINS if CORE_PLUGINS is defined.
-                    if self.core_plugins and plugin_info.core and (plugin_info.name not in self.core_plugins):
-                        log.debug("%s plugin will not be loaded because it's not listed in CORE_PLUGINS", name)
-                        continue
-
-                    # load the module
-                    base_module_name = 'errbot.plugins'
-                    spec = spec_from_file_location(base_module_name, plugin_info.location / (plugin_info.module + '.py'))
-                    module = module_from_spec(spec)
-                    spec.loader.exec_module(module)
-                    sys.modules[base_module_name] = module
-
-
-                    # introspect the modules to find plugin classes
-                    def is_plugin(obj):
-                        return inspect.isclass(obj) and issubclass(obj, BotPlugin) and obj != BotPlugin
-                    plugin_classes = inspect.getmembers(module, is_plugin)
-                    if not plugin_classes:
-                        feedback[path] = 'Did not find any plugin in %s.' % path
-                        continue
-                    if len(plugin_classes) > 1:
-                        # TODO: This is something we can support as "subplugins" or something similar.
-                        feedback[path] = 'Contains more than one plugin, only one will be loaded.'
-
-                    # instantiate the plugin object.
-                    _, clazz = plugin_classes[0]
-                    self.plugins[name] = clazz(self.bot, name)
-                except Exception as e:
-                    feedback[path] = str(e)
+            self._load_plugins_generic(path, 'plug', 'errbot.plugins', BotPlugin, self.plugins, feedback)
+            self._load_plugins_generic(path, 'flow', 'errbot.flows', BotFlow, self.flows, feedback)
 
     def update_plugin_places(self, path_list, extra_plugin_dir):
         """ It returns a dictionary of path -> error strings."""

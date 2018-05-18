@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import traceback
+from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path, PurePath
 
 from typing import Tuple, Sequence, Mapping, Dict
@@ -22,8 +23,7 @@ from .storage import StoreMixin
 
 log = logging.getLogger(__name__)
 
-CORE_PLUGINS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            'core_plugins')
+CORE_PLUGINS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'core_plugins')
 
 BOTPLUGIN_TAG = 'botplugin'
 BOTFLOW_TAG = 'botflow'
@@ -123,13 +123,6 @@ def check_dependencies(req_path: Path) -> Tuple[str, Sequence[str]]:
         return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
-def check_enabled_core_plugin(plugin_info: PluginInfo, core_plugin_list) -> bool:
-    """ Checks if the given plugin is core and if it is, if it is part of the enabled core_plugins_list.
-    :param plugin_info: the info from the plugin
-    :param core_plugin_list: the list from CORE_PLUGINS in the config.
-    :return: True if it is OK to load this plugin.
-    """
-    return plugin_info.core and plugin_info.name in core_plugin_list
 
 
 def check_python_plug_section(plugin_info: PluginInfo) -> bool:
@@ -213,7 +206,7 @@ class BotPluginManager(StoreMixin):
     #    """Overrides the instanciation of plugins to inject the bot reference."""
     #    return element(self.bot, name=self._current_pluginfo.name)
 
-    def activate_plugin(self, name: str):
+    def _activate_plugin(self, name: str):
         self.plugins[name].activate()
         plugin_info = self.plugin_infos[name]
         add_plugin_templates_path(plugin_info)
@@ -227,6 +220,13 @@ class BotPluginManager(StoreMixin):
         except Exception:
             add_plugin_templates_path(plugin_info)
             raise
+
+    def check_enabled_core_plugin(self, plugin_info: PluginInfo) -> bool:
+        """ Checks if the given plugin is core and if it is, if it is part of the enabled core_plugins_list.
+        :param plugin_info: the info from the plugin
+        :return: True if it is OK to load this plugin.
+        """
+        return plugin_info.core and plugin_info.name in self.core_plugins
 
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         return self.plugins.get(name, None)
@@ -261,7 +261,7 @@ class BotPluginManager(StoreMixin):
         add_plugin_templates_path(plugin_info)
         populate_doc(obj, plugin_info)
         try:
-            self.activate_plugin(name)
+            self._activate_plugin(name)
             route(obj)
             return obj
         except Exception:
@@ -310,12 +310,11 @@ class BotPluginManager(StoreMixin):
             self.activate_plugin(name)
 
     def _install_potential_package_dependencies(self, path: Path,
-                                                feedback: Dict[Path, str],
-                                                autoinstall_deps: bool=True):
+                                                feedback: Dict[Path, str]):
         req_path = path / 'requirements.txt'
         if req_path.exists():
             log.info('Checking package dependencies from %s.', req_path)
-            if autoinstall_deps:
+            if self.autoinstall_deps:
                 exc_info = install_packages(req_path)
                 if exc_info is not None:
                     typ, value, trace = exc_info
@@ -325,16 +324,28 @@ class BotPluginManager(StoreMixin):
                 if msg and path not in feedback:  # favor the first error.
                     feedback[path] = msg
 
-    def load_plugins(self, feedback: Dict[Path, str], autoinstall_deps: bool=True):
+    def load_plugins(self, feedback: Dict[Path, str]):
         for path in self.plugin_places:
-            self._install_potential_package_dependencies(path, feedback, autoinstall_deps)
+            self._install_potential_package_dependencies(path, feedback)
             plugfiles = path.glob('**/*.plug')
             for plugfile in plugfiles:
-                plugin_info = PluginInfo.load(plugfile)
+                try:
+                    plugin_info = PluginInfo.load(plugfile)
+                    name = plugin_info.name
 
+                    # Skip the core plugins not listed in CORE_PLUGINS
+                    if self.core_plugins and not self.check_enabled_core_plugin(plugin_info):
+                        log.debug("%s plugin will not be loaded because it's not listed in CORE_PLUGINS", name)
+                        continue
 
+                    module_name = 'errbot.plugins.' + name
+                    spec = spec_from_file_location(module_name, plugin_info.location / (plugin_info.module + '.py'))
+                    module = module_from_spec(spec)
+                    sys.modules[module_name] = module
+                except Exception as e:
+                    feedback[path] = str(e)
 
-    def update_plugin_places(self, path_list, extra_plugin_dir, autoinstall_deps=True):
+    def update_plugin_places(self, path_list, extra_plugin_dir):
         """ It returns a dictionary of path -> error strings."""
         repo_roots = (CORE_PLUGINS, extra_plugin_dir, path_list)
 
@@ -351,35 +362,7 @@ class BotPluginManager(StoreMixin):
         self.plugin_places = [Path(root) for root in all_roots]
         errors = {}
 
-        try:
-            self.load_plugins(errors, autoinstall_deps)
-        except ValueError:
-            # See https://github.com/errbotio/errbot/issues/769.
-            # Unfortunately we cannot obtain information on which file specifically caused the issue,
-            # but we can point users in the right direction at least.
-            log.error(
-                "ValueError was raised while scanning directories for plugins. "
-                "This typically happens when your bot and/or plugin directories contain "
-                "badly formatted .plug files. To help troubleshoot, we suggest temporarily "
-                "removing all data and plugins from your bot and then trying again."
-            )
-            raise
-
-        # Checks if CORE_PLUGINS is defined in config. If so, iterate through plugin candidates and remove any
-        # that are not defined in the config before loading them.
-        if self.core_plugins is not None:
-            candidates = self.getPluginCandidates()
-            for candidate in candidates:
-                if not check_enabled_core_plugin(candidate[2].name, candidate[2].details, self.core_plugins):
-                    self.removePluginCandidate(candidate)
-                    log.debug("%s plugin will not be loaded because it's not listed in CORE_PLUGINS", candidate[2].name)
-
-        self.all_candidates = [candidate[2] for candidate in self.getPluginCandidates()]
-
-        loaded_plugins = self.loadPlugins(self._plugin_info_currently_loading)
-
-        errors.update({pluginfo.path: ''.join(traceback.format_tb(pluginfo.error[2]))
-                       for pluginfo in loaded_plugins if pluginfo.error is not None})
+        self.load_plugins(errors)
         return errors
 
     def get_all_active_plugin_objects_ordered(self):
@@ -393,29 +376,27 @@ class BotPluginManager(StoreMixin):
             # None is a placeholder for any plugin not having a defined order
             if name is None:
                 all_plugins += [
-                    p.plugin_object for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)
-                    if p.name not in self.plugins_callback_order and hasattr(p, 'is_activated') and p.is_activated
+                    p.plugin_object for p in self.plugins
+                    if p.name not in self.plugins_callback_order and p.is_activated
                 ]
             else:
-                p = self.get_plugin_by_name(name)
+                p = self.plugins[name]
                 if p is not None and hasattr(p, 'is_activated') and p.is_activated:
                     all_plugins.append(p.plugin_object)
         return all_plugins
 
     def get_all_active_plugin_objects(self):
-        return [plug.plugin_object
-                for plug in self.getPluginsOfCategory(BOTPLUGIN_TAG)
-                if hasattr(plug, 'is_activated') and plug.is_activated]
+        return [p for p in self.plugins if p.is_activated]
 
     def get_all_active_plugin_names(self):
-        return [p.name for p in self.getAllPlugins() if hasattr(p, 'is_activated') and p.is_activated]
+        return [p.name for p in self.plugins if p.is_activated]
 
     def get_all_plugin_names(self):
-        return [p.name for p in self.getPluginsOfCategory(BOTPLUGIN_TAG)]
+        return [p.name for p in self.plugins]
 
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
-            self.deactivatePluginByName(name, BOTPLUGIN_TAG)
+            self.deactivate_plugin(name)
 
     # plugin blacklisting management
     def get_blacklisted_plugin(self):
@@ -457,7 +438,7 @@ class BotPluginManager(StoreMixin):
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
         """ It returns a dictionary of path -> error strings."""
-        return self.update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra, self.autoinstall_deps)
+        return self.update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra)
 
     def activate_non_started_plugins(self):
         """
@@ -467,52 +448,33 @@ class BotPluginManager(StoreMixin):
         """
         log.info('Activate bot plugins...')
         errors = ''
-        for pluginInfo in self.getPluginsOfCategory(BOTPLUGIN_TAG):
+        for plugin in self.plugins:
+            name = plugin.name
             try:
-                if self.is_plugin_blacklisted(pluginInfo.name):
+                if self.is_plugin_blacklisted(name):
                     errors += 'Notice: %s is blacklisted, use %splugin unblacklist %s to unblacklist it\n' % (
-                        pluginInfo.name, self.bot.prefix, pluginInfo.name)
+                        plugin.name, self.bot.prefix, name)
                     continue
-                if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
-                    log.info('Activate plugin: %s' % pluginInfo.name)
-                    self.activate_plugin_with_version_check(pluginInfo)
+                if not plugin.is_activated:
+                    log.info('Activate plugin: %s', name)
+                    self.activate_plugin_with_version_check(plugin, self.plugin_infos[name])
             except Exception as e:
-                log.exception("Error loading %s" % pluginInfo.name)
-                errors += 'Error: %s failed to start: %s\n' % (pluginInfo.name, e)
+                log.exception('Error loading %s', name)
+                errors += 'Error: %s failed to start: %s\n' % (name, e)
 
         log.debug('Activate flow plugins ...')
-        for pluginInfo in self.getPluginsOfCategory(BOTFLOW_TAG):
+        for flow in self.flows:
             try:
-                if hasattr(pluginInfo, 'is_activated') and not pluginInfo.is_activated:
-                    name = pluginInfo.name
-
+                if not flow.is_activated:
+                    name = flow.name
                     log.info('Activate flow: %s' % name)
-
-                    pta_item = self.getPluginByName(name, BOTFLOW_TAG)
-                    if pta_item is None:
-                        log.warning('Could not activate %s', name)
-                        continue
-                    try:
-                        self.activatePluginByName(name, BOTFLOW_TAG)
-                    except Exception as e:
-                        pta_item.activated = False  # Yapsy doesn't revert this in case of error
-                        log.error("Plugin %s failed at activation stage with e, deactivating it...", e, name)
-                        self.deactivatePluginByName(name, BOTFLOW_TAG)
+                    self.activate_plugin(name)
             except Exception as e:
-                log.exception("Error loading flow %s" % pluginInfo.name)
-                errors += 'Error: flow %s failed to start: %s\n' % (pluginInfo.name, e)
+                log.exception("Error loading flow %s" % name)
+                errors += 'Error: flow %s failed to start: %s\n' % (name, e)
         return errors
 
-    def activate_plugin(self, name):
-        """
-        Activate the given plugin.
-
-        :param name: the name of the plugin you want to activate.
-        :throws PluginActivationException: if an error occured while activating the plugin.
-        """
-        self._activate_plugin(name)
-
-    def _activate_plugin(self, name, dep_track=None):
+    def activate_plugin(self, name, dep_track=None):
         """
         Internal recursive version of activate_plugin.
         """
@@ -521,7 +483,7 @@ class BotPluginManager(StoreMixin):
                 raise PluginActivationException("Plugin already in active list")
             if name not in self.get_all_plugin_names():
                 raise PluginActivationException("I don't know this %s plugin" % name)
-            plugin_info = self.get_plugin_by_name(name)
+            plugin_info = self.plugin_infos[name]
             if plugin_info is None:
                 raise PluginActivationException("get_plugin_by_name did not find %s (should not happen)." % name)
             self.activate_plugin_with_version_check(plugin_info, dep_track)
@@ -532,35 +494,26 @@ class BotPluginManager(StoreMixin):
             log.exception("Error loading %s" % name)
             raise PluginActivationException('%s failed to start : %s\n' % (name, e))
 
-    def deactivate_plugin(self, name):
-        self.deactivate_plugin_by_name(name)
-
-    def remove_plugin(self, plugin):
+    def remove_plugin(self, plugin: BotPlugin):
         """
         Deactivate and remove a plugin completely.
         :param plugin: the plugin to remove
         :return:
         """
         # First deactivate it if it was activated
-        if hasattr(plugin, 'is_activated') and plugin.is_activated:
+        if plugin.is_activated:
             self.deactivate_plugin(plugin.name)
 
-        # Remove it from the candidate list (so it doesn't appear as a failed plugin)
-        self.all_candidates.remove(plugin)
-
-        # Remove it from yapsy itself
-        for category, plugins in self.category_mapping.items():
-            if plugin in plugins:
-                log.debug('plugin found and removed from category %s', category)
-                plugins.remove(plugin)
+        del(self.plugins[plugin.name])
+        del(self.plugin_infos[plugin.name])
 
     def remove_plugins_from_path(self, root):
         """
         Remove all the plugins that are in the filetree pointed by root.
         """
-        for plugin in self.getAllPlugins():
-            if plugin.path.startswith(root):
-                self.remove_plugin(plugin)
+        for pi in self.plugin_infos:
+            if str(pi.location).startswith(root):
+                self.remove_plugin(self.plugins[pi.name])
 
     def shutdown(self):
         log.info('Shutdown.')

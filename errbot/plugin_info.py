@@ -70,7 +70,8 @@ class PluginInfo:
                 max_version = version2tuple(max_version)
         except ValueError as ve:
             raise ConfigParserError('Invalid Errbot max version format: %s (%s)' % (max_version, ve))
+        depends_on = config.get('Core', 'DependsOn', fallback=None)
+        deps = [name.strip() for name in depends_on.split(',')] if depends_on else []
 
-        deps = [name.strip for name in config.get('Core', 'DependsOn', fallback='').split(',')]
         return PluginInfo(name, module, doc, core, python_version, min_version, max_version, deps)
 

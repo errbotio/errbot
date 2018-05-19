@@ -187,21 +187,16 @@ class BotPluginManager(StoreMixin):
         self.bot = None
         self.autoinstall_deps = autoinstall_deps
         self.extra = extra
-        self.open_storage(storage_plugin, 'core')
         self.core_plugins = core_plugins
         self.plugins_callback_order = plugins_callback_order
         self.repo_manager = repo_manager
-
-        # be sure we have a configs entry for the plugin configurations
-        if CONFIGS not in self:
-            self[CONFIGS] = {}
-
         self.plugin_infos = {}  # Name ->  PluginInfo
         self.plugins = {}  # Name ->  BotPlugin
         self.flows = {}  # Name ->  Flow
         self.plugin_places = []
-        #locator = PluginFileLocator([PluginFileAnalyzerWithInfoFile("info_ext", 'plug'),
-        #                            PluginFileAnalyzerWithInfoFile("info_ext", 'flow')])
+        self.open_storage(storage_plugin, 'core')
+        if CONFIGS not in self:
+            self[CONFIGS] = {}
 
     def attach_bot(self, bot):
         self.bot = bot
@@ -345,7 +340,7 @@ class BotPluginManager(StoreMixin):
                     continue
 
                 # load the module
-                spec = spec_from_file_location(base_module_name, plugin_info.location / (plugin_info.module + '.py'))
+                spec = spec_from_file_location(base_module_name, plugin_info.location.parent / (plugin_info.module + '.py'))
                 module = module_from_spec(spec)
                 spec.loader.exec_module(module)
                 sys.modules[base_module_name] = module

@@ -23,7 +23,7 @@ class PluginInfo:
     @staticmethod
     def load(plugfile_path: Path) -> 'PluginInfo':
         with plugfile_path.open(encoding='utf-8') as plugfile:
-            return PluginInfo.load_file(plugfile, plugfile_path.parent)
+            return PluginInfo.load_file(plugfile, plugfile_path)
 
     @staticmethod
     def load_file(plugfile, location: Path) -> 'PluginInfo':

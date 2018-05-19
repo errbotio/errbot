@@ -23,13 +23,9 @@ def tenv():
     return env
 
 
-def make_templates_from_plugin_path(pluginfo_path: Path) -> Path:
-    return make_templates_path(pluginfo_path.parent)
-
-
 def add_plugin_templates_path(plugin_info: PluginInfo):
     global env
-    tmpl_path = make_templates_from_plugin_path(plugin_info.location)
+    tmpl_path = make_templates_path(plugin_info.location.parent)
     if tmpl_path.exists():
         log.debug("Templates directory found for this plugin [%s]" % tmpl_path)
         template_path.append(str(tmpl_path))  # for webhooks
@@ -42,7 +38,7 @@ def add_plugin_templates_path(plugin_info: PluginInfo):
 
 def remove_plugin_templates_path(plugin_info: PluginInfo):
     global env
-    tmpl_path = str(make_templates_from_plugin_path(plugin_info.location))
+    tmpl_path = str(make_templates_path(plugin_info.location.parent))
     if tmpl_path in template_path:
         template_path.remove(tmpl_path)
         # Ditch and recreate a new templating environment

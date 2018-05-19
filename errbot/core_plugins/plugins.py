@@ -31,7 +31,7 @@ class Plugins(BotPlugin):
                 yield 'Some plugins are generating errors:\n' + '\n'.join(errors.values())
                 # if the load of the plugin failed, uninstall cleanly teh repo
                 for path in errors.keys():
-                    if path.startswith(local_path):
+                    if str(path).startswith(local_path):
                         yield 'Removing %s as it did not load correctly.' % local_path
                         shutil.rmtree(local_path)
             else:

@@ -1,6 +1,7 @@
 """ Logic related to plugin loading and lifecycle """
 import inspect
 
+from copy import deepcopy
 from importlib import machinery
 import logging
 import os
@@ -10,7 +11,7 @@ import traceback
 from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
 
-from typing import Tuple, Sequence, Dict, Union, Any, Type
+from typing import Tuple, Sequence, Dict, Union, Any, Type, Set, List
 
 from errbot.flow import BotFlow, Flow
 from .botplugin import BotPlugin
@@ -166,7 +167,6 @@ def check_errbot_version(plugin_info: PluginInfo):
             'The plugin %s asks for Errbot with a maximum version of %s while Errbot is version %s' % (
                 name, max_version, VERSION)
         )
-    return True
 
 
 # TODO: move this out, this has nothing to do with plugins
@@ -201,20 +201,6 @@ class BotPluginManager(StoreMixin):
     def attach_bot(self, bot):
         self.bot = bot
 
-    def _activate_plugin(self, name: str):
-        self.plugins[name].activate()
-        plugin_info = self.plugin_infos[name]
-        add_plugin_templates_path(plugin_info)
-
-    def deactivate_plugin(self, name: str):
-        obj = self.plugins[name]
-        plugin_info = self.plugin_infos[name]
-        remove_plugin_templates_path(plugin_info)
-        try:
-            return obj.deactivate()
-        except Exception:
-            add_plugin_templates_path(plugin_info)
-            raise
 
     def check_enabled_core_plugin(self, plugin_info: PluginInfo) -> bool:
         """ Checks if the given plugin is core and if it is, if it is part of the enabled core_plugins_list.
@@ -226,59 +212,6 @@ class BotPluginManager(StoreMixin):
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         return self.plugins.get(name, None)
 
-    def activate_plugin_with_version_check(self, plugin: BotPlugin, dep_track=None):
-        name = plugin.name
-        plugin_info = self.plugin_infos[name]
-
-        config = self.get_plugin_configuration(name)
-
-        if not check_python_plug_section(plugin_info):
-            return None
-
-        if not check_errbot_version(plugin_info):
-            return None
-
-        depends_on = self._activate_plugin_dependencies(plugin_info, dep_track)
-
-        plugin.dependencies = depends_on
-
-        try:
-            if plugin.get_configuration_template() is not None and config is not None:
-                log.debug('Checking configuration for %s...', name)
-                plugin.check_configuration(config)
-                log.debug('Configuration for %s checked OK.', name)
-            plugin.configure(config)  # even if it is None we pass it on
-        except Exception as ex:
-            log.exception('Something is wrong with the configuration of the plugin %s', name)
-            plugin.config = None
-            raise PluginConfigurationException(str(ex))
-        add_plugin_templates_path(plugin_info)
-        populate_doc(plugin, plugin_info)
-        try:
-            self._activate_plugin(name)
-            route(plugin)
-        except Exception:
-            remove_plugin_templates_path(plugin_info)
-            log.error('Plugin %s failed at activation stage, deactivating it...', name)
-            self.deactivate_plugin(name)
-            raise
-
-    def _activate_plugin_dependencies(self, plugin_info: PluginInfo, dep_track):
-        if dep_track is None:
-            dep_track = set()
-
-        name = plugin_info.name
-        dep_track.add(name)
-
-        depends_on = plugin_info.dependencies
-        for dep_name in depends_on:
-            if dep_name in dep_track:
-                raise PluginActivationException('Circular dependency in the set of plugins (%s)' %
-                                                ', '.join(dep_track))
-            if dep_name not in self.get_all_active_plugin_names():
-                log.debug('%s depends on %s and %s is not activated. Activating it ...', name, dep_name, dep_name)
-                self._activate_plugin_dependencies(self.plugin_infos[dep_name], dep_track)
-        return depends_on
 
     def reload_plugin_by_name(self, name):
         """
@@ -286,21 +219,19 @@ class BotPluginManager(StoreMixin):
         :throws PluginActivationException: needs to be taken care of by the callers.
         """
         plugin = self.plugins[name]
-        was_activated = plugin.is_activated
 
-        if was_activated:
+        if plugin.is_activated:
             self.deactivate_plugin(name)
 
         module_alias = plugin.__module__
         module_old = __import__(module_alias)
         f = module_old.__file__
         module_new = machinery.SourceFileLoader(module_alias, f).load_module(module_alias)
-        class_name = type(plugin.plugin_object).__name__
+        class_name = type(plugin).__name__
         new_class = getattr(module_new, class_name)
         plugin.__class__ = new_class
 
-        if was_activated:
-            self.activate_plugin(name)
+        self.activate_plugin(name)
 
     def _install_potential_package_dependencies(self, path: Path,
                                                 feedback: Dict[Path, str]):
@@ -330,6 +261,11 @@ class BotPluginManager(StoreMixin):
             try:
                 plugin_info = PluginInfo.load(plugfile)
                 name = plugin_info.name
+                if name in self.plugin_infos:
+                    log.warning('Plugin %s already loaded.', name)
+                    continue
+
+                module_name = base_module_name + '.' + plugin_info.module
 
                 # save the plugin_info for ref.
                 self.plugin_infos[name] = plugin_info
@@ -340,16 +276,16 @@ class BotPluginManager(StoreMixin):
                     continue
 
                 # load the module
-                spec = spec_from_file_location(base_module_name, plugin_info.location.parent / (plugin_info.module + '.py'))
-                module = module_from_spec(spec)
-                spec.loader.exec_module(module)
-                sys.modules[base_module_name] = module
+                spec = spec_from_file_location(module_name, plugin_info.location.parent / (plugin_info.module + '.py'))
+                modu1e = module_from_spec(spec)
+                spec.loader.exec_module(modu1e)
+                sys.modules[module_name] = modu1e
 
 
                 # introspect the modules to find plugin classes
                 def is_plugin(member):
                     return inspect.isclass(member) and issubclass(member, baseclass) and member != baseclass
-                plugin_classes = inspect.getmembers(module, is_plugin)
+                plugin_classes = inspect.getmembers(modu1e, is_plugin)
                 if not plugin_classes:
                     feedback[path] = 'Did not find any plugin in %s.' % path
                     continue
@@ -361,8 +297,8 @@ class BotPluginManager(StoreMixin):
                 _, clazz = plugin_classes[0]
                 dest_dict[name] = clazz(self.bot, name)
 
-            except Exception as e:
-                feedback[path] = str(e)
+            except Exception:
+                feedback[path] = traceback.format_exc()
 
     def load_plugins(self, feedback: Dict[Path, str]):
         for path in self.plugin_places:
@@ -480,40 +416,112 @@ class BotPluginManager(StoreMixin):
                     continue
                 if not plugin.is_activated:
                     log.info('Activate plugin: %s', name)
-                    self.activate_plugin_with_version_check(plugin)
+                    self.activate_plugin(name)
             except Exception as e:
                 log.exception('Error loading %s', name)
                 errors += 'Error: %s failed to activate: %s\n' % (name, e)
 
-        log.debug('Activate flow plugins ...')
-        for flow in self.flows:
-            try:
-                if not flow.is_activated:
-                    name = flow.name
-                    log.info('Activate flow: %s' % name)
-                    self.activate_plugin(name)
-            except Exception as e:
-                log.exception("Error loading flow %s" % name)
-                errors += 'Error: flow %s failed to start: %s\n' % (name, e)
+        # log.debug('Activate flow plugins ...')
+        # for flow in self.flows:
+        #     try:
+        #         if not flow.is_activated:
+        #             name = flow.name
+        #             log.info('Activate flow: %s' % name)
+        #             self.activate_flow(name)
+        #     except Exception as e:
+        #         log.exception("Error loading flow %s" % name)
+        #         errors += 'Error: flow %s failed to start: %s\n' % (name, e)
         return errors
 
-    def activate_plugin(self, name, dep_track=None):
+    def _activate_plugin(self, plugin: BotPlugin, plugin_info: PluginInfo):
         """
-        Internal recursive version of activate_plugin.
+        Activate a specific plugin with no check.
+        """
+        if plugin.is_activated:
+            raise Exception('Internal Error, invalid activated state.')
+
+        name = plugin.name
+        try:
+            config = self.get_plugin_configuration(name)
+            if plugin.get_configuration_template() is not None and config is not None:
+                log.debug('Checking configuration for %s...', name)
+                plugin.check_configuration(config)
+                log.debug('Configuration for %s checked OK.', name)
+            plugin.configure(config)  # even if it is None we pass it on
+        except Exception as ex:
+            log.exception('Something is wrong with the configuration of the plugin %s', name)
+            plugin.config = None
+            raise PluginConfigurationException(str(ex))
+
+        try:
+            add_plugin_templates_path(plugin_info)
+            populate_doc(plugin, plugin_info)
+            plugin.activate()
+            route(plugin)
+            plugin.callback_connect()
+        except Exception:
+            log.error('Plugin %s failed at activation stage, deactivating it...', name)
+            self.deactivate_plugin(name)
+            raise
+
+    def activate_plugin(self, name: str):
+        """
+        Activate a plugin with its dependencies.
         """
         try:
-            if name in self.get_all_active_plugin_names():
-                raise PluginActivationException('Plugin already in active list')
             if name not in self.plugins:
                 raise PluginActivationException('Could not find the plugin named %s.' % name)
+
             plugin = self.plugins[name]
-            self.activate_plugin_with_version_check(plugin, dep_track)
-            plugin.callback_connect()
+            if plugin.is_activated:
+                raise PluginActivationException('Plugin already in active list')
+
+            plugin_info = self.plugin_infos[name]
+
+            if not check_python_plug_section(plugin_info):
+                return None
+
+            if not check_errbot_version(plugin_info):
+                return None
+
+            dep_track = set()
+            depends_on = self._activate_plugin_dependencies(name, dep_track)
+            plugin.dependencies = depends_on
+            self._activate_plugin(plugin, plugin_info)
+
         except PluginActivationException:
             raise
         except Exception as e:
             log.exception('Error loading %s.' % name)
             raise PluginActivationException('%s failed to start : %s.' % (name, e))
+
+    def _activate_plugin_dependencies(self, name: str, dep_track: Set[str]) -> List[str]:
+
+        plugin_info = self.plugin_infos[name]
+        dep_track.add(name)
+
+        depends_on = plugin_info.dependencies
+        for dep_name in depends_on:
+            if dep_name in dep_track:
+                raise PluginActivationException('Circular dependency in the set of plugins (%s)' % ', '.join(dep_track))
+            if dep_name not in self.plugins:
+                raise PluginActivationException('Unknown plugin dependency (%s)' % dep_name)
+            dep_plugin = self.plugins[dep_name]
+            dep_plugin_info = self.plugin_infos[dep_name]
+            if not dep_plugin.is_activated:
+                log.debug('%s depends on %s and %s is not activated. Activating it ...', name, dep_name, dep_name)
+                self._activate_plugin_dependencies(dep_name, dep_track)
+                self._activate_plugin(dep_plugin, dep_plugin_info)
+        return depends_on
+
+    def deactivate_plugin(self, name: str):
+        plugin = self.plugins[name]
+        if not plugin.is_activated:
+            log.warning('Plugin already deactivated, ignore.')
+            return
+        plugin_info = self.plugin_infos[name]
+        plugin.deactivate()
+        remove_plugin_templates_path(plugin_info)
 
     def remove_plugin(self, plugin: BotPlugin):
         """
@@ -532,9 +540,10 @@ class BotPluginManager(StoreMixin):
         """
         Remove all the plugins that are in the filetree pointed by root.
         """
-        for pi in self.plugin_infos:
+        old_plugin_infos = deepcopy(self.plugin_infos)
+        for name, pi in old_plugin_infos.items():
             if str(pi.location).startswith(root):
-                self.remove_plugin(self.plugins[pi.name])
+                self.remove_plugin(self.plugins[name])
 
     def shutdown(self):
         log.info('Shutdown.')

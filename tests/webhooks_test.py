@@ -33,13 +33,9 @@ def webserver_ready(host, port):
 extra_plugin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'webhooks_plugin')
 
 
-@pytest.fixture
-def webhook_testbot(request):
-    tbot = testbot(request)
-    tbot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': %s, 'SSL': None}" % WEBSERVER_PORT)
-    log.info(tbot.pop_message())
+def wait_for_server(port: int):
     failure_count = 10
-    while not webserver_ready('localhost', WEBSERVER_PORT):
+    while not webserver_ready('localhost', port):
         waiting_time = 1.0 / failure_count
         log.info('Webserver not ready yet, sleeping for %f second.', waiting_time)
         sleep(waiting_time)
@@ -47,6 +43,13 @@ def webhook_testbot(request):
         if failure_count == 0:
             raise TimeoutError("Could not start the internal Webserver to test.")
 
+
+@pytest.fixture
+def webhook_testbot(request):
+    tbot = testbot(request)
+    tbot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': %s, 'SSL': None}" % WEBSERVER_PORT)
+    log.info(tbot.pop_message())
+    wait_for_server(WEBSERVER_PORT)
     return tbot
 
 
@@ -121,18 +124,12 @@ def test_webhooks_with_form_parameter_on_custom_url_decode_json_automatically(we
 
 def test_webhooks_with_raw_request(webhook_testbot):
     form = {'form': JSONOBJECT}
-    assert requests.post(
-        'http://localhost:{}/raw'.format(WEBSERVER_PORT),
-        data=form
-    ).text == "<class 'bottle.LocalRequest'>"
+    assert 'LocalProxy' in requests.post('http://localhost:{}/raw'.format(WEBSERVER_PORT), data=form).text
 
 
 def test_webhooks_with_naked_decorator_raw_request(webhook_testbot):
     form = {'form': JSONOBJECT}
-    assert requests.post(
-        'http://localhost:{}/raw2'.format(WEBSERVER_PORT),
-        data=form
-    ).text == "<class 'bottle.LocalRequest'>"
+    assert 'LocalProxy' in requests.post('http://localhost:{}/raw2'.format(WEBSERVER_PORT), data=form).text
 
 
 def test_generate_certificate_creates_usable_cert(webhook_testbot):
@@ -159,12 +156,10 @@ def test_generate_certificate_creates_usable_cert(webhook_testbot):
             'enabled': True,
         }
     }
-    webhook_testbot.push_message("!plugin config Webserver {!r}".format(webserver_config))
-    webhook_testbot.pop_message()
+    webhook_testbot.push_message('!plugin config Webserver {!r}'.format(webserver_config))
+    assert 'Plugin configuration done.' in webhook_testbot.pop_message(timeout=2)
 
-    while not webserver_ready('localhost', WEBSERVER_SSL_PORT):
-        log.debug("Webserver not ready yet, sleeping 0.1 second")
-        sleep(0.1)
+    wait_for_server(WEBSERVER_SSL_PORT)
 
     assert requests.post(
         'https://localhost:{}/webhook1'.format(WEBSERVER_SSL_PORT),
@@ -176,7 +171,7 @@ def test_generate_certificate_creates_usable_cert(webhook_testbot):
 def test_custom_headers_and_status_codes(webhook_testbot):
     assert requests.post(
         'http://localhost:{}/webhook6'.format(WEBSERVER_PORT)
-    ).headers['X-Powered-By'] == "Err"
+    ).headers['X-Powered-By'] == 'Errbot'
 
     assert requests.post(
         'http://localhost:{}/webhook7'.format(WEBSERVER_PORT)

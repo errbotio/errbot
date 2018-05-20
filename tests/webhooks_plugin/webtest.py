@@ -1,7 +1,7 @@
 import logging
 from errbot import BotPlugin
 from errbot.core_plugins.webserver import webhook
-from bottle import abort, response
+from flask import abort, after_this_request
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +35,11 @@ class WebTest(BotPlugin):
     @webhook
     def webhook6(self, payload):
         log.debug(str(payload))
-        response.set_header("X-Powered-By", "Err")
+
+        @after_this_request
+        def add_header(response):
+            response.headers['X-Powered-By'] = 'Errbot'
+            return response
         return str(payload)
 
     @webhook

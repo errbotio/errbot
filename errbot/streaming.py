@@ -50,8 +50,8 @@ class Tee(object):
                 if streams[index].status == STREAM_WAITING_TO_START:
                     streams[index].reject()
                     plugin = self.clients[index].name
-                    logging.warning("%s did not accept nor reject the incoming file transfer" % plugin)
-                    logging.warning("I reject it as a fallback.")
+                    logging.warning('%s did not accept nor reject the incoming file transfer', plugin)
+                    logging.warning('I reject it as a fallback.')
             except Exception as _:
                 # internal error, mark the error.
                 streams[index].error()

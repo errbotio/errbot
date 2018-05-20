@@ -72,8 +72,8 @@ class TestPerson(Person):
 
     def __unicode__(self):
         if self.client:
-            return '{}/{}'.format(self._person, self._client)
-        return '{}'.format(self._person)
+            return f'{self._person}/{self._client}'
+        return f'{self._person}'
 
     __str__ = __unicode__
 
@@ -144,26 +144,26 @@ class TestRoom(Room):
 
     def join(self, username=None, password=None):
         if self.joined:
-            logging.warning("Attempted to join room '{!s}', but already in this room".format(self))
+            logging.warning('Attempted to join room %s, but already in this room.', self)
             return
 
         if not self.exists:
-            log.debug("Room {!s} doesn't exist yet, creating it".format(self))
+            log.debug("Room %s doesn't exist yet, creating it.", self)
             self.create()
 
         room = self.find_croom()
         room._occupants.append(self._bot_mucid)
-        log.info("Joined room {!s}".format(self))
+        log.info('Joined room %s.', self)
         self._bot.callback_room_joined(room)
 
     def leave(self, reason=None):
         if not self.joined:
-            logging.warning("Attempted to leave room '{!s}', but not in this room".format(self))
+            logging.warning('Attempted to leave room %s, but not in this room.', self)
             return
 
         room = self.find_croom()
         room._occupants.remove(self._bot_mucid)
-        log.info("Left room {!s}".format(self))
+        log.info('Left room %s.', self)
         self._bot.callback_room_left(room)
 
     @property
@@ -172,19 +172,19 @@ class TestRoom(Room):
 
     def create(self):
         if self.exists:
-            logging.warning("Room {!s} already created".format(self))
+            logging.warning('Room %s already created.', self)
             return
 
         self._bot._rooms.append(self)
-        log.info("Created room {!s}".format(self))
+        log.info('Created room %s.', self)
 
     def destroy(self):
         if not self.exists:
-            logging.warning("Cannot destroy room {!s}, it doesn't exist".format(self))
+            logging.warning("Cannot destroy room %s, it doesn't exist.", self)
             return
 
         self._bot._rooms.remove(self)
-        log.info("Destroyed room {!s}".format(self))
+        log.info('Destroyed room %s.', self)
 
     @property
     def topic(self):
@@ -195,7 +195,7 @@ class TestRoom(Room):
         self._topic = topic
         room = self.find_croom()
         room._topic = self._topic
-        log.info("Topic for room {!s} set to '{}'".format(self, topic))
+        log.info('Topic for room %s set to %s.', self, topic)
         self._bot.callback_room_topic(self)
 
     def __unicode__(self):
@@ -302,7 +302,7 @@ class TestBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '@{0} {1}'.format(identifier.nick, message.body)
+        message.body = f'@{identifier.nick} {message.body}'
 
     def pop_message(self, timeout=5, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
@@ -318,11 +318,11 @@ class TestBackend(ErrBot):
     def zap_queues(self):
         while not self.incoming_stanza_queue.empty():
             msg = self.incoming_stanza_queue.get(block=False)
-            log.error('Message left in the incoming queue during a test : %s' % msg)
+            log.error('Message left in the incoming queue during a test: %s.', msg)
 
         while not self.outgoing_message_queue.empty():
             msg = self.outgoing_message_queue.get(block=False)
-            log.error('Message left in the outgoing queue during a test : %s' % msg)
+            log.error('Message left in the outgoing queue during a test: %s.', msg)
 
     def reset_rooms(self):
         """Reset/clear all rooms"""
@@ -368,7 +368,7 @@ class TestBot(object):
         config.STORAGE = 'Memory'
 
         if extra_config is not None:
-            log.debug('Merging %s to the bot config.' % repr(extra_config))
+            log.debug('Merging %s to the bot config.', repr(extra_config))
             for k, v in extra_config.items():
                 setattr(config, k, v)
 
@@ -454,7 +454,7 @@ class TestBot(object):
         """Assert the given command returns the given response"""
         self.bot.push_message(command)
         msg = self.bot.pop_message(timeout)
-        assert response in msg, "'{}' not in '{}'".format(response, msg)
+        assert response in msg, f'{response} not in {msg}.'
 
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command exists"""

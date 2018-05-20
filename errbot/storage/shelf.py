@@ -12,7 +12,7 @@ log = logging.getLogger('errbot.storage.shelf')
 
 class ShelfStorage(StorageBase):
     def __init__(self, path):
-        log.debug('Open shelf storage %s' % path)
+        log.debug('Open shelf storage %s', path)
         self.shelf = shelve.DbfilenameShelf(path, protocol=2)
 
     def get(self, key: str) -> Any:
@@ -20,7 +20,7 @@ class ShelfStorage(StorageBase):
 
     def remove(self, key: str):
         if key not in self.shelf:
-            raise KeyError("%s doesn't exist." % key)
+            raise KeyError(f"{key} doesn't exist.")
         del self.shelf[key]
 
     def set(self, key: str, value: Any) -> None:
@@ -50,10 +50,10 @@ class ShelfStoragePlugin(StoragePluginBase):
         old_spot = os.path.join(config['basedir'], 'plugins', namespace + '.db')
         if os.path.isfile(old_spot):
             if os.path.isfile(new_spot):
-                log.warning('You have an old v3 DB at %s and a duplicate new one at %s.' % (old_spot, new_spot))
+                log.warning('You have an old v3 DB at %s and a duplicate new one at %s.', old_spot, new_spot)
                 log.warning('You need to either remove the old one or move it in place of the new one manually.')
             else:
-                log.info('Moving your old v3 DB from %s to %s.' % (old_spot, new_spot))
+                log.info('Moving your old v3 DB from %s to %s.', old_spot, new_spot)
                 shutil.move(old_spot, new_spot)
 
         return ShelfStorage(new_spot)

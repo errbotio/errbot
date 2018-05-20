@@ -13,7 +13,7 @@ class MemoryStorage(StorageBase):
 
     def get(self, key: str) -> Any:
         if key not in self.root:
-            raise KeyError("%s doesn't exist." % key)
+            raise KeyError(f"{key} doesn't exist.")
         return self.root[key]
 
     def set(self, key: str, value: Any) -> None:
@@ -21,7 +21,7 @@ class MemoryStorage(StorageBase):
 
     def remove(self, key: str):
         if key not in self.root:
-            raise KeyError("%s doesn't exist." % key)
+            raise KeyError(f"{key} doesn't exist.")
         del self.root[key]
 
     def len(self):

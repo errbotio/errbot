@@ -29,7 +29,7 @@ class StoreMixin(MutableMapping):
     def open_storage(self, storage_plugin, namespace):
         if hasattr(self, 'store') and self._store is not None:
             raise StoreAlreadyOpenError("Storage appears to be opened already")
-        log.debug("Opening storage '%s'" % namespace)
+        log.debug("Opening storage '%s'", namespace)
         self._store = storage_plugin.open(namespace)
         self.namespace = namespace
 
@@ -38,7 +38,7 @@ class StoreMixin(MutableMapping):
             raise StoreNotOpenError("Storage does not appear to have been opened yet")
         self._store.close()
         self._store = None
-        log.debug("Closed storage '%s'" % self.namespace)
+        log.debug("Closed storage '%s'", self.namespace)
 
     # those are the minimal things to behave like a dictionary with the UserDict.DictMixin
     def __getitem__(self, key):

@@ -61,21 +61,21 @@ class PluginInfo:
                 try:
                     python_version = tuple(version2tuple(python_version)[0:3])  # We can ignore the alpha/beta part.
                 except ValueError as ve:
-                    raise ConfigParserError('Invalid Python Version format: %s (%s)' % (python_version, ve))
+                    raise ConfigParserError(f'Invalid Python Version format: {python_version} ({ve})')
 
-        min_version = config.get("Errbot", "Min", fallback=None)
-        max_version = config.get("Errbot", "Max", fallback=None)
+        min_version = config.get('Errbot', 'Min', fallback=None)
+        max_version = config.get('Errbot', 'Max', fallback=None)
         try:
             if min_version:
                 min_version = version2tuple(min_version)
         except ValueError as ve:
-            raise ConfigParserError('Invalid Errbot min version format: %s (%s)' % (min_version, ve))
+            raise ConfigParserError(f'Invalid Errbot min version format: {min_version} ({ve})')
 
         try:
             if max_version:
                 max_version = version2tuple(max_version)
         except ValueError as ve:
-            raise ConfigParserError('Invalid Errbot max version format: %s (%s)' % (max_version, ve))
+            raise ConfigParserError(f'Invalid Errbot max version format: {max_version} ({ve})')
         depends_on = config.get('Core', 'DependsOn', fallback=None)
         deps = [name.strip() for name in depends_on.split(',')] if depends_on else []
 

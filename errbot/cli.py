@@ -29,12 +29,6 @@ from errbot.version import VERSION
 
 log = logging.getLogger(__name__)
 
-if locale.getpreferredencoding().lower() != 'utf-8':
-    log.warning('Starting errbot with a default system encoding other than \'utf-8\''
-                ' might cause you a heap of troubles.'
-                ' Your current encoding is set at \'%s\'' % locale.getpreferredencoding().lower())
-
-
 # noinspection PyUnusedLocal
 def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for
@@ -44,7 +38,7 @@ def debug(sig, frame):
     d.update(frame.f_locals)
 
     i = code.InteractiveConsole(d)
-    message = "Signal received : entering python shell.\nTraceback:\n"
+    message = 'Signal received : entering python shell.\nTraceback:\n'
     message += ''.join(traceback.format_stack(frame))
     i.interact(message)
 
@@ -63,14 +57,11 @@ if not ON_WINDOWS:
 def get_config(config_path):
     config_fullpath = config_path
     if not path.exists(config_fullpath):
-        log.error(
-            'I cannot find the config file %s \n'
-            '(You can change this path with the -c parameter see --help)' % config_path
-        )
-        log.info(
-            'You can use the template %s as a base and copy it to %s. \nYou can then customize it.' % (
-                os.path.realpath(os.path.join(__file__, os.pardir, 'config-template.py')), config_path)
-        )
+        log.error(f'I cannot find the config file {config_path}.')
+        log.error('You can change this path with the -c parameter see --help')
+        log.info(f'You can use the template {os.path.realpath(os.path.join(__file__, os.pardir, "config-template.py"))}'
+                 f' as a base and copy it to {config_path}.')
+        log.info('You can then customize it.')
         exit(-1)
 
     try:
@@ -78,7 +69,7 @@ def get_config(config_path):
         log.info('Config check passed...')
         return config
     except Exception:
-        log.exception('I could not import your config from %s, please check the error below...' % config_fullpath)
+        log.exception(f'I could not import your config from {config_fullpath}, please check the error below...')
         exit(-1)
 
 
@@ -86,8 +77,8 @@ def _read_dict():
     import collections
     new_dict = ast.literal_eval(sys.stdin.read())
     if not isinstance(new_dict, collections.Mapping):
-        raise ValueError("A dictionary written in python is needed from stdin. Type=%s, Value = %s" % (type(new_dict),
-                                                                                                       repr(new_dict)))
+        raise ValueError(f'A dictionary written in python is needed from stdin. '
+                         f'Type={type(new_dict)}, Value = {repr(new_dict)}.')
     return new_dict
 
 
@@ -104,7 +95,7 @@ def main():
                         help='Full path to your config.py (default: config.py in current working directory).')
 
     mode_selection = parser.add_mutually_exclusive_group()
-    mode_selection.add_argument('-v', '--version', action='version', version='Errbot version {}'.format(VERSION))
+    mode_selection.add_argument('-v', '--version', action='version', version=f'Errbot version {VERSION}')
     mode_selection.add_argument('-r', '--restore', nargs='?', default=None, const='default',
                                 help='restore a bot from backup.py (default: backup.py from the bot data directory)')
     mode_selection.add_argument('-l', '--list', action='store_true', help='list all available backends')
@@ -148,7 +139,7 @@ def main():
             base_dir = os.getcwd() if args['init'] == '.' else args['init']
 
             if not os.path.isdir(base_dir):
-                print('Target directory %s must exist. Please create it.' % base_dir)
+                print(f'Target directory {base_dir} must exist. Please create it.')
 
             base_dir = os.path.abspath(base_dir)
             data_dir = os.path.join(base_dir, 'data')
@@ -174,10 +165,10 @@ def main():
             if base_dir == os.getcwd():
                 print('Just do "errbot" and it should start in text/development mode.')
             else:
-                print('Just do "cd %s" then "errbot" and it should start in text/development mode.' % args['init'])
+                print(f'Just do "cd {args["init"]}" then "errbot" and it should start in text/development mode.')
             sys.exit(0)
         except Exception as e:
-            print('The initialization of your errbot directory failed: %s' % e)
+            print(f'The initialization of your errbot directory failed: {e}.')
             sys.exit(1)
 
     # This must come BEFORE the config is loaded below, to avoid printing
@@ -209,7 +200,7 @@ def main():
         from errbot.bootstrap import enumerate_backends
         print('Available backends:')
         for backend_name in enumerate_backends(config):
-            print('\t\t%s' % backend_name)
+            print(f'\t\t{backend_name}')
         sys.exit(0)
 
     def storage_action(namespace, fn):
@@ -256,19 +247,19 @@ def main():
     else:
         backend = args['backend']
 
-    log.info("Selected backend '%s'." % backend)
+    log.info(f'Selected backend {backend}.')
 
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).
 
-    log.info("Checking for '%s'..." % config.BOT_DATA_DIR)
+    log.info(f'Checking for {config.BOT_DATA_DIR}...')
     if not path.exists(config.BOT_DATA_DIR):
-        raise Exception("The data directory '%s' for the bot does not exist" % config.BOT_DATA_DIR)
+        raise Exception(f'The data directory "{config.BOT_DATA_DIR}" for the bot does not exist.')
     if not access(config.BOT_DATA_DIR, W_OK):
-        raise Exception("The data directory '%s' should be writable for the bot" % config.BOT_DATA_DIR)
+        raise Exception(f'The data directory "{config.BOT_DATA_DIR}" should be writable for the bot.')
 
     if (not ON_WINDOWS) and args['daemon']:
-        if args['backend'] == "Text":
+        if args['backend'] == 'Text':
             raise Exception('You cannot run in text and daemon mode at the same time')
         if args['restore']:
             raise Exception('You cannot restore a backup in daemon mode.')

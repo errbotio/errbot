@@ -499,11 +499,11 @@ class Presence(object):
     def __str__(self):
         response = ''
         if self._identifier:
-            response += 'identifier: "%s" ' % self._identifier
+            response += f'identifier: "{self._identifier}" '
         if self._status:
-            response += 'status: "%s" ' % self._status
+            response += f'status: "{self._status}" '
         if self._message:
-            response += 'message: "%s" ' % self._message
+            response += f'message: "{self._message}" '
         return response
 
     def __unicode__(self):
@@ -698,23 +698,21 @@ class Backend(ABC):
                 if self.serve_once():
                     break  # Truth-y exit from serve_once means shutdown was requested
             except KeyboardInterrupt:
-                log.info("Interrupt received, shutting down..")
+                log.info('Interrupt received, shutting down..')
                 break
             except Exception:
-                log.exception("Exception occurred in serve_once:")
+                log.exception('Exception occurred in serve_once:')
 
-            log.info(
-                "Reconnecting in {delay} seconds ({count} attempted reconnections so far)".format(
-                    delay=self._reconnection_delay, count=self._reconnection_count)
-            )
+            log.info('Reconnecting in %d seconds (%d attempted reconnections so far).'
+                     , self._reconnection_delay, self._reconnection_count)
             try:
                 self._delay_reconnect()
                 self._reconnection_count += 1
             except KeyboardInterrupt:
-                log.info("Interrupt received, shutting down..")
+                log.info('Interrupt received, shutting down..')
                 break
 
-        log.info("Trigger shutdown")
+        log.info('Trigger shutdown')
         self.shutdown()
 
     def _delay_reconnect(self):

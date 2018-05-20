@@ -123,7 +123,7 @@ def test_plugin_cycle(testbot):
         assert 'Hello World !' == testbot.pop_message()
 
         testbot.push_message('!plugin blacklist HelloWorld')
-        assert 'Plugin HelloWorld is now blacklisted' == testbot.pop_message()
+        assert 'Plugin HelloWorld is now blacklisted.' == testbot.pop_message()
         testbot.push_message('!plugin deactivate HelloWorld')
         assert 'HelloWorld is already deactivated.' == testbot.pop_message()
 
@@ -131,7 +131,7 @@ def test_plugin_cycle(testbot):
         assert 'Command "hello" not found' in testbot.pop_message()
 
         testbot.push_message('!plugin unblacklist HelloWorld')
-        assert 'Plugin HelloWorld removed from blacklist' == testbot.pop_message()
+        assert 'Plugin HelloWorld removed from blacklist.' == testbot.pop_message()
         testbot.push_message('!plugin activate HelloWorld')
         assert 'HelloWorld is already activated.' == testbot.pop_message()
 
@@ -170,7 +170,7 @@ def test_backup(testbot):
     bot.push_message('!backup')
     msg = testbot.pop_message()
     assert 'has been written in' in msg
-    filename = re.search(r"'([:A-Za-z0-9_./\\-]*)'", msg).group(1)
+    filename = re.search(r'"(.*)"', msg).group(1)
 
     # At least the backup should mention the installed plugin
     assert 'errbotio/err-helloworld' in open(filename).read()
@@ -214,9 +214,9 @@ def test_activate_reload_and_deactivate(testbot):
         assert 'Please tell me which of the following plugins to' in m
         assert 'ChatRoom' in m
 
-        testbot.push_message('!plugin {} nosuchplugin'.format(command))
+        testbot.push_message(f'!plugin {command} nosuchplugin')
         m = testbot.pop_message()
-        assert 'nosuchplugin isn\'t a valid plugin name. The current plugins are' in m
+        assert "nosuchplugin isn't a valid plugin name. The current plugins are" in m
         assert 'ChatRoom' in m
 
     testbot.push_message('!plugin reload ChatRoom')
@@ -251,7 +251,7 @@ def test_activate_reload_and_deactivate(testbot):
     assert 'Plugin ChatRoom reloaded.' == testbot.pop_message()
 
     testbot.push_message('!plugin blacklist ChatRoom')
-    assert 'Plugin ChatRoom is now blacklisted' == testbot.pop_message()
+    assert 'Plugin ChatRoom is now blacklisted.' == testbot.pop_message()
 
     testbot.push_message('!status plugins')
     assert 'B,D    │ ChatRoom' in testbot.pop_message()
@@ -277,16 +277,16 @@ def test_unblacklist_and_blacklist(testbot):
     assert 'Plugin ChatRoom is now blacklisted' in testbot.pop_message()
 
     testbot.push_message('!plugin blacklist ChatRoom')
-    assert 'Plugin ChatRoom is already blacklisted' == testbot.pop_message()
+    assert 'Plugin ChatRoom is already blacklisted.' == testbot.pop_message()
 
     testbot.push_message('!status plugins')
     assert 'B,D    │ ChatRoom' in testbot.pop_message()
 
     testbot.push_message('!plugin unblacklist ChatRoom')
-    assert 'Plugin ChatRoom removed from blacklist' == testbot.pop_message()
+    assert 'Plugin ChatRoom removed from blacklist.' == testbot.pop_message()
 
     testbot.push_message('!plugin unblacklist ChatRoom')
-    assert 'Plugin ChatRoom is not blacklisted' == testbot.pop_message()
+    assert 'Plugin ChatRoom is not blacklisted.' == testbot.pop_message()
 
     testbot.push_message('!status plugins')
     assert 'A      │ ChatRoom' in testbot.pop_message()

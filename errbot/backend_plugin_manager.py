@@ -34,7 +34,7 @@ class BackendPluginManager:
                 if plugin_info.name == plugin_name:
                     self.plugin_info = plugin_info
                     return
-        raise PluginNotFoundException('Could not find the plugin named %s in %s.' % (plugin_name, all_plugins_paths))
+        raise PluginNotFoundException(f'Could not find the plugin named {plugin_name} in {all_plugin_paths}.')
 
     def load_plugin(self) -> Any:
         plugin_path = self.plugin_info.location.parent
@@ -42,7 +42,7 @@ class BackendPluginManager:
             sys.path.append(plugin_path)
         plugin_classes = self.plugin_info.load_plugin_classes(self._base_module, self._base_class)
         if len(plugin_classes) != 1:
-            raise PluginNotFoundException('Found more that one plugin for %s.' % self._base_class)
+            raise PluginNotFoundException(f'Found more that one plugin for {self._base_class}.')
 
         _, clazz = plugin_classes[0]
         return clazz(self._config)

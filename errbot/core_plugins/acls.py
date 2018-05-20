@@ -57,23 +57,20 @@ class ACLS(BotPlugin):
         :param args: Arguments passed to the command.
         :param dry_run: True when this is a dry-run.
         """
-        self.log.debug("Check %s for ACLs." % cmd)
+        self.log.debug('Check %s for ACLs.', cmd)
         f = self._bot.all_commands[cmd]
-        cmd_str = "{plugin}:{command}".format(
-            plugin=f.__self__.name,
-            command=cmd,
-        )
+        cmd_str = f'{f.__self__.name}:{cmd}'
 
         usr = get_acl_usr(msg)
         acl = self.bot_config.ACCESS_CONTROLS_DEFAULT.copy()
         for pattern, acls in self.bot_config.ACCESS_CONTROLS.items():
             if ':' not in pattern:
-                pattern = '*:{command}'.format(command=pattern)
+                pattern = f'*:{pattern}'
             if ciglob(cmd_str, (pattern,)):
                 acl.update(acls)
                 break
 
-        self.log.info("Matching ACL %s against username %s for command %s" % (acl, usr, cmd_str))
+        self.log.info('Matching ACL %s against username %s for command %s.', acl, usr, cmd_str)
 
         if 'allowusers' in acl and not glob(usr, acl['allowusers']):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
@@ -81,7 +78,7 @@ class ACLS(BotPlugin):
             return self.access_denied(msg, "You're not allowed to access this command from this user", dry_run)
         if msg.is_group:
             if not isinstance(msg.frm, RoomOccupant):
-                raise Exception('msg.frm is not a RoomOccupant. Class of frm: %s' % msg.frm.__class__)
+                raise Exception(f'msg.frm is not a RoomOccupant. Class of frm: {msg.frm.__class__}')
             room = str(msg.frm.room)
             if 'allowmuc' in acl and acl['allowmuc'] is False:
                 return self.access_denied(msg, "You're not allowed to access this command from a chatroom", dry_run)
@@ -98,13 +95,13 @@ class ACLS(BotPlugin):
                 dry_run
             )
 
-        self.log.info("Check if %s is admin only command." % cmd)
+        self.log.info('Check if %s is admin only command.', cmd)
         if f._err_command_admin_only:
             if not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
-                return self.access_denied(msg, "This command requires bot-admin privileges", dry_run)
+                return self.access_denied(msg, 'This command requires bot-admin privileges', dry_run)
             # For security reasons, admin-only commands are direct-message only UNLESS
             # specifically overridden by setting allowmuc to True for such commands.
-            if msg.is_group and not acl.get("allowmuc", False):
-                return self.access_denied(msg, "This command may only be issued through a direct message", dry_run)
+            if msg.is_group and not acl.get('allowmuc', False):
+                return self.access_denied(msg, 'This command may only be issued through a direct message', dry_run)
 
         return msg, cmd, args

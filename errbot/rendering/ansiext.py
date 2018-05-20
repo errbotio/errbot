@@ -371,14 +371,14 @@ def recurse(write, chr_table, element, table=None, borders=True):
         if k == 'color':
             color_attr = getattr(chr_table, 'fg_' + v, None)
             if color_attr is None:
-                log.warning("there is no '%s' color in ansi" % v)
+                log.warning("there is no '%s' color in ansi.", v)
                 continue
             write(color_attr)
             post_element.append(chr_table.fg_default)
         elif k == 'bgcolor':
             color_attr = getattr(chr_table, 'bg_' + v, None)
             if color_attr is None:
-                log.warning("there is no '%s' bgcolor in ansi" % v)
+                log.warning("there is no '%s' bgcolor in ansi", v)
                 continue
             write(color_attr)
             post_element.append(chr_table.bg_default)
@@ -503,12 +503,10 @@ class AnsiPreprocessor(FencedBlockPreprocessor):
                 code = self._escape(m.group('code'))
 
                 placeholder = self.markdown.htmlStash.store(code, safe=False)
-                text = '%s\n%s\n%s' % (text[:m.start()],
-                                       placeholder,
-                                       text[m.end():])
+                text = f'{text[:m.start()]}\n{placeholder}\n{text[m.end():]}'
             else:
                 break
-        return text.split("\n")
+        return text.split('\n')
 
     def _escape(self, txt):
         """ basic html escaping """

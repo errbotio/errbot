@@ -70,12 +70,12 @@ class WebView(View):
         elif self.form_param:
             content = request.form.get(self.form_param)
             if content is None:
-                raise Exception("Received a request on a webhook with a form_param defined, "
-                                "but that key ({}) is missing from the request.".format(self.form_param))
+                raise Exception('Received a request on a webhook with a form_param defined, '
+                                'but that key (%s) is missing from the request.', self.form_param)
             try:
                 content = loads(content)
             except ValueError:
-                log.debug('The form parameter is not JSON, return it as a string')
+                log.debug('The form parameter is not JSON, return it as a string.')
             response = self.func(content, **kwargs)
         else:
             data = try_decode_json(request)

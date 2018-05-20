@@ -113,9 +113,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
                 sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
             logger.addHandler(sentryhandler)
         except ImportError:
-            log.exception(
-                "Unable to import selected SENTRY_TRANSPORT - {transport}".format(transport=config.SENTRY_TRANSPORT)
-            )
+            log.exception(f'Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}')
             exit(-1)
 
     logger.setLevel(config.BOT_LOG_LEVEL)
@@ -146,7 +144,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     backendpm = BackendPluginManager(config, 'errbot.backends', backend_name,
                                      ErrBot, CORE_BACKENDS, getattr(config, 'BOT_EXTRA_BACKEND_DIR', []))
 
-    log.info('Found Backend plugin: %s' % backendpm.plugin_info.name)
+    log.info(f'Found Backend plugin: {backendpm.plugin_info.name}')
 
     try:
         bot = backendpm.load_plugin()
@@ -161,7 +159,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             if 'repos' in bot:
                 log.fatal('You cannot restore onto a non empty bot.')
                 sys.exit(-1)
-            log.info('**** RESTORING the bot from %s' % restore)
+            log.info(f'**** RESTORING the bot from {restore}')
             restore_bot_from_backup(restore, bot=bot, log=log)
             print('Restore complete. You can restart the bot normally')
             sys.exit(0)
@@ -201,7 +199,7 @@ def get_storage_plugin(config):
     extra_storage_plugins_dir = getattr(config, 'BOT_EXTRA_STORAGE_PLUGINS_DIR', None)
     spm = BackendPluginManager(config, 'errbot.storage', storage_name, StoragePluginBase,
                                CORE_STORAGE, extra_storage_plugins_dir)
-    log.info('Found Storage plugin: %s.' % spm.plugin_info.name)
+    log.info(f'Found Storage plugin: {spm.plugin_info.name}.')
     return spm.load_plugin()
 
 
@@ -215,5 +213,5 @@ def bootstrap(bot_class, logger, config, restore=None):
     :param restore: Start Errbot in restore mode (from a backup).
     """
     bot = setup_bot(bot_class, logger, config, restore)
-    log.debug('Start serving commands from the %s backend' % bot.mode)
+    log.debug(f'Start serving commands from the {bot.mode} backend.')
     bot.serve_forever()

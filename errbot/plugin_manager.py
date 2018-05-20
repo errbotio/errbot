@@ -61,7 +61,7 @@ def install_packages(req_path: Path):
 
         Return an exc_info if it fails otherwise None.
     """
-    log.info("Installing packages from '%s'." % req_path)
+    log.info('Installing packages from "%s".', req_path)
     # use sys.executable explicitly instead of just 'pip' because depending on how the bot is deployed
     # 'pip' might not be available on PATH: for example when installing errbot on a virtualenv and
     # starting it with systemclt pointing directly to the executable:
@@ -85,14 +85,14 @@ def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]
     """ This methods returns a pair of (message, packages missing).
     Or None, [] if everything is OK.
     """
-    log.debug("check dependencies of %s" % req_path)
+    log.debug('check dependencies of %s', req_path)
     # noinspection PyBroadException
     try:
         from pkg_resources import get_distribution
         missing_pkg = []
 
         if not os.path.isfile(req_path):
-            log.debug('%s has no requirements.txt file' % req_path)
+            log.debug('%s has no requirements.txt file', req_path)
             return None, missing_pkg
 
         with open(req_path) as f:
@@ -108,8 +108,7 @@ def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]
                 except Exception:
                     missing_pkg.append(stripped)
         if missing_pkg:
-            return (('You need these dependencies for %s: ' % req_path) + ','.join(missing_pkg),
-                    missing_pkg)
+            return ((f'You need these dependencies for {req_path}: ') + ','.join(missing_pkg), missing_pkg)
         return None, missing_pkg
     except Exception:
         log.exception('Problem checking for dependencies.')
@@ -149,16 +148,12 @@ def check_errbot_version(plugin_info: PluginInfo):
     name, min_version, max_version = plugin_info.name, plugin_info.errbot_minversion, plugin_info.errbot_maxversion
     current_version = version2tuple(VERSION)
     if min_version and min_version > current_version:
-        raise IncompatiblePluginException(
-            'The plugin %s asks for Errbot with a minimal version of %s while Errbot is version %s' % (
-                name, min_version, VERSION)
-        )
+        raise IncompatiblePluginException(f'The plugin {name} asks for Errbot with a minimal version of '
+                                          f'{min_version} while Errbot is version {VERSION}.')
 
     if max_version and max_version < current_version:
-        raise IncompatiblePluginException(
-            'The plugin %s asks for Errbot with a maximum version of %s while Errbot is version %s' % (
-                name, max_version, VERSION)
-        )
+        raise IncompatiblePluginException(f'The plugin {name} asks for Errbot with a maximum version of {max_version} '
+                                          f'while Errbot is version {VERSION}')
 
 
 # TODO: move this out, this has nothing to do with plugins
@@ -233,7 +228,7 @@ class BotPluginManager(StoreMixin):
                 exc_info = install_packages(req_path)
                 if exc_info is not None:
                     typ, value, trace = exc_info
-                    feedback[path] = '%s: %s\n%s' % (typ, value, ''.join(traceback.format_tb(trace)))
+                    feedback[path] = f'{typ}: {value}\n{"".join(traceback.format_tb(trace))}'
             else:
                 msg, _ = check_dependencies(req_path)
                 if msg and path not in feedback:  # favor the first error.
@@ -267,7 +262,7 @@ class BotPluginManager(StoreMixin):
 
                 plugin_classes = plugin_info.load_plugin_classes(base_module_name, baseclass)
                 if not plugin_classes:
-                    feedback[path] = 'Did not find any plugin in %s.' % path
+                    feedback[path] = f'Did not find any plugin in {path}.'
                     continue
                 if len(plugin_classes) > 1:
                     # TODO: This is something we can support as "subplugins" or something similar.
@@ -348,21 +343,21 @@ class BotPluginManager(StoreMixin):
 
     def blacklist_plugin(self, name):
         if self.is_plugin_blacklisted(name):
-            logging.warning('Plugin %s is already blacklisted' % name)
-            return 'Plugin %s is already blacklisted' % name
+            logging.warning('Plugin %s is already blacklisted.', name)
+            return f'Plugin {name} is already blacklisted.'
         self[BL_PLUGINS] = self.get_blacklisted_plugin() + [name]
-        log.info('Plugin %s is now blacklisted' % name)
-        return 'Plugin %s is now blacklisted' % name
+        log.info('Plugin %s is now blacklisted.', name)
+        return f'Plugin {name} is now blacklisted.'
 
     def unblacklist_plugin(self, name):
         if not self.is_plugin_blacklisted(name):
-            logging.warning('Plugin %s is not blacklisted' % name)
-            return 'Plugin %s is not blacklisted' % name
+            logging.warning('Plugin %s is not blacklisted.', name)
+            return f'Plugin {name} is not blacklisted.'
         plugin = self.get_blacklisted_plugin()
         plugin.remove(name)
         self[BL_PLUGINS] = plugin
-        log.info('Plugin %s removed from blacklist' % name)
-        return 'Plugin %s removed from blacklist' % name
+        log.info('Plugin %s removed from blacklist.', name)
+        return f'Plugin {name} removed from blacklist.'
 
     # configurations management
     def get_plugin_configuration(self, name):
@@ -393,25 +388,25 @@ class BotPluginManager(StoreMixin):
         for name, plugin in self.plugins.items():
             try:
                 if self.is_plugin_blacklisted(name):
-                    errors += 'Notice: %s is blacklisted, use %splugin unblacklist %s to unblacklist it\n' % (
-                        plugin.name, self.bot.prefix, name)
+                    errors += f'Notice: {plugin.name} is blacklisted, ' \
+                              f'use {self.bot.prefix}plugin unblacklist {name} to unblacklist it.\n'
                     continue
                 if not plugin.is_activated:
-                    log.info('Activate plugin: %s', name)
+                    log.info('Activate plugin: %s.', name)
                     self.activate_plugin(name)
             except Exception as e:
-                log.exception('Error loading %s', name)
-                errors += 'Error: %s failed to activate: %s\n' % (name, e)
+                log.exception('Error loading %s.', name)
+                errors += f'Error: {name} failed to activate: {e}.\n'
 
         log.debug('Activate flow plugins ...')
         for name, flow in self.flows.items():
             try:
                 if not flow.is_activated:
-                    log.info('Activate flow: %s' % name)
+                    log.info('Activate flow: %s', name)
                     self.activate_flow(name)
             except Exception as e:
-                log.exception("Error loading flow %s" % name)
-                errors += 'Error: flow %s failed to start: %s\n' % (name, e)
+                log.exception(f'Error loading flow {name}.')
+                errors += f'Error: flow {name} failed to start: {e}.\n'
         return errors
 
     def _activate_plugin(self, plugin: BotPlugin, plugin_info: PluginInfo):
@@ -447,17 +442,17 @@ class BotPluginManager(StoreMixin):
 
     def activate_flow(self, name: str):
         if name not in self.flows:
-            raise PluginActivationException('Could not find the flow named %s.' % name)
+            raise PluginActivationException(f'Could not find the flow named {name}.')
 
         flow = self.flows[name]
         if flow.is_activated:
-            raise PluginActivationException('Flow %s is already active.' % name)
+            raise PluginActivationException(f'Flow {name} is already active.')
         flow.activate()
 
     def deactivate_flow(self, name: str):
         flow = self.flows[name]
         if not flow.is_activated:
-            raise PluginActivationException('Flow %s is already inactive.' % name)
+            raise PluginActivationException(f'Flow {name} is already inactive.')
         flow.deactivate()
 
     def activate_plugin(self, name: str):
@@ -466,11 +461,11 @@ class BotPluginManager(StoreMixin):
         """
         try:
             if name not in self.plugins:
-                raise PluginActivationException('Could not find the plugin named %s.' % name)
+                raise PluginActivationException(f'Could not find the plugin named {name}.')
 
             plugin = self.plugins[name]
             if plugin.is_activated:
-                raise PluginActivationException('Plugin %s already activate.' % name)
+                raise PluginActivationException(f'Plugin {name} already activate.')
 
             plugin_info = self.plugin_infos[name]
 
@@ -487,8 +482,8 @@ class BotPluginManager(StoreMixin):
         except PluginActivationException:
             raise
         except Exception as e:
-            log.exception('Error loading %s.' % name)
-            raise PluginActivationException('%s failed to start : %s.' % (name, e))
+            log.exception(f'Error loading {name}.')
+            raise PluginActivationException(f'{name} failed to start : {e}.')
 
     def _activate_plugin_dependencies(self, name: str, dep_track: Set[str]) -> List[str]:
 
@@ -498,9 +493,9 @@ class BotPluginManager(StoreMixin):
         depends_on = plugin_info.dependencies
         for dep_name in depends_on:
             if dep_name in dep_track:
-                raise PluginActivationException('Circular dependency in the set of plugins (%s)' % ', '.join(dep_track))
+                raise PluginActivationException(f'Circular dependency in the set of plugins ({", ".join(dep_track)})')
             if dep_name not in self.plugins:
-                raise PluginActivationException('Unknown plugin dependency (%s)' % dep_name)
+                raise PluginActivationException(f'Unknown plugin dependency {dep_name}.')
             dep_plugin = self.plugins[dep_name]
             dep_plugin_info = self.plugin_infos[dep_name]
             if not dep_plugin.is_activated:

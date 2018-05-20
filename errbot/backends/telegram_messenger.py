@@ -283,9 +283,7 @@ class TelegramBackend(ErrBot):
             self.telegram.sendMessage(msg.to.id, body)
         except Exception:
             log.exception(
-                "An exception occurred while trying to send the following message "
-                "to %s: %s" % (msg.to.id, msg.body)
-            )
+                f'An exception occurred while trying to send the following message to {msg.to.id}: {msg.body}')
             raise
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
@@ -296,9 +294,9 @@ class TelegramBackend(ErrBot):
         """
         Convert a textual representation into a :class:`~TelegramPerson` or :class:`~TelegramRoom`.
         """
-        log.debug("building an identifier from %s" % txtrep)
+        log.debug('building an identifier from %s.', txtrep)
         if not self._is_numeric(txtrep):
-            raise ValueError("Telegram identifiers must be numeric")
+            raise ValueError('Telegram identifiers must be numeric.')
         id_ = int(txtrep)
         if id_ > 0:
             return TelegramPerson(id=id_)
@@ -336,7 +334,7 @@ class TelegramBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '@{0}: {1}'.format(identifier.nick, message.body)
+        message.body = f'@{identifier.nick}: {message.body}'
 
     def _telegram_special_message(self, chat_id, content, msg_type, **kwargs):
         """Send special message."""
@@ -368,8 +366,7 @@ class TelegramBackend(ErrBot):
                                              longitude=kwargs.pop('longitude', ''),
                                              **kwargs)
         else:
-            raise ValueError('Expected a valid choice for `msg_type`, '
-                             'got: {}.'.format(msg_type))
+            raise ValueError(f'Expected a valid choice for `msg_type`, got: {msg_type}.')
         return msg
 
     def _telegram_upload_stream(self, stream, **kwargs):
@@ -382,8 +379,7 @@ class TelegramBackend(ErrBot):
                                                  msg_type=stream.stream_type,
                                                  **kwargs)
         except Exception:
-            log.exception("Upload of {0} to {1} failed.".format(stream.name,
-                                                                stream.identifier))
+            log.exception(f'Upload of {stream.name} to {stream.identifier} failed.')
         else:
             if msg is None:
                 stream.error()
@@ -439,22 +435,20 @@ class TelegramBackend(ErrBot):
         content, meta = _telegram_metadata(fsource)
         if isinstance(content, str):
             if not _is_valid_url(content):
-                raise ValueError("Not valid URL: {}".format(content))
+                raise ValueError(f'Not valid URL: {content}')
 
             self._telegram_special_message(chat_id=identifier.id,
                                            content=content,
                                            msg_type=stream_type,
                                            **meta)
-            log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                                                                                                  identifier.username,
-                                                                                                  size, stream_type))
+            log.debug('Requesting upload of %s to %s (size hint: %d, stream type: %s).',
+                      name, identifier.username, size, stream_type)
 
             stream = content
         else:
             stream = Stream(identifier, content, name, size, stream_type)
-            log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                                                                                                  identifier, size,
-                                                                                                  stream_type))
+            log.debug('Requesting upload of %s to %s (size hint: %d, stream type: %s)',
+                      name, identifier, size, stream_type)
             self.thread_pool.apply_async(self._telegram_upload_stream, (stream,))
 
         return stream

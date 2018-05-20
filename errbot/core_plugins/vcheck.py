@@ -27,7 +27,7 @@ class VersionChecker(BotPlugin):
             self.start_poller(3600 * 24, self.version_check)  # once every 24H
             super().activate()
         else:
-            self.log.info('Skip version checking under %s mode' % self.mode)
+            self.log.info('Skip version checking under %s mode.', self.mode)
 
     def deactivate(self):
         self.activated = False
@@ -40,12 +40,10 @@ class VersionChecker(BotPlugin):
             self.log.debug("Tested current Errbot version and it is " + current_version_txt)
             current_version = version2tuple(current_version_txt)
             if installed_version < current_version:
-                self.log.debug('A new version %s has been found, notify the admins !' % current_version)
-                self.warn_admins(
-                    'Version {0} of Errbot is available. http://pypi.python.org/pypi/errbot/{0}.'
-                    ' You can disable this check '
-                    'by doing {1}plugin blacklist VersionChecker'.format(current_version_txt, self._bot.prefix)
-                )
+                self.log.debug('A new version %s has been found, notify the admins!', current_version)
+                self.warn_admins(f'Version {current_version_txt} of Errbot is available. '
+                                 f'http://pypi.python.org/pypi/errbot/{current_version_txt}. '
+                                 f'To disable this check do: {self._bot.prefix}plugin blacklist VersionChecker')
         except (HTTPError, URLError):
             self.log.info('Could not establish connection to retrieve latest version.')
 

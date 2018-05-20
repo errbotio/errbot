@@ -165,10 +165,10 @@ class Flow(object):
         if enforce_predicate:
             predicate = self._current_step.predicate_for_node(next_step)
             if predicate is None:
-                raise ValueError("There is no such children: %s" % next_step)
+                raise ValueError(f'There is no such children: {next_step}.')
 
             if not predicate(self.ctx):
-                raise InvalidState("It is not possible to advance to this step because its predicate is false")
+                raise InvalidState('It is not possible to advance to this step because its predicate is false.')
 
         self._current_step = next_step
 
@@ -200,7 +200,7 @@ class Flow(object):
         return is_room or self.requestor == identifier
 
     def __str__(self):
-        return "%s (%s) with params %s" % (self._root, self.requestor, dict(self.ctx))
+        return f'{self._root} ({self.requestor}) with params {dict(self.ctx)}'
 
 
 class BotFlow:
@@ -349,9 +349,9 @@ class FlowExecutor(object):
         Starts the execution of a Flow.
         """
         if name not in self.flow_roots:
-            raise ValueError("Flow %s doesn't exist" % name)
+            raise ValueError(f'Flow {name} doesn\'t exist')
         if self.check_inflight_already_running(requestor):
-            raise ValueError("User %s is already running a flow." % str(requestor))
+            raise ValueError(f'User {str(requestor)} is already running a flow.')
 
         flow_root = self.flow_roots[name]
         identity = requestor
@@ -370,7 +370,7 @@ class FlowExecutor(object):
         with self._lock:
             for flow in self.in_flight:
                 if flow.name == name and flow.check_identifier(requestor):
-                    log.debug("Removing flow %s." % str(flow))
+                    log.debug(f'Removing flow {str(flow)}.')
                     self.in_flight.remove(flow)
                     return flow
         return None
@@ -396,25 +396,24 @@ class FlowExecutor(object):
                 break
 
             if not autosteps and flow.current_step.hints:
-                possible_next_steps = ["You are in the flow **%s**, you can continue with:\n\n" % flow.name]
+                possible_next_steps = [f'You are in the flow **{flow.name}**, you can continue with:\n\n']
                 for step in steps:
                     cmd = step.command
                     cmd_fnc = self._bot.all_commands[cmd]
                     reg_cmd = cmd_fnc._err_re_command
                     syntax_args = cmd_fnc._err_command_syntax
                     reg_prefixed = cmd_fnc._err_command_prefix_required if reg_cmd else True
-                    # syntax = '' if syntax is None else syntax
                     syntax = self._bot.prefix if reg_prefixed else ''
                     if not reg_cmd:
                         syntax += cmd.replace('_', ' ')
                     if syntax_args:
                         syntax += syntax_args
-                    possible_next_steps.append("- %s" % syntax)
-                self._bot.send(flow.requestor, "\n".join(possible_next_steps))
+                    possible_next_steps.append(f'- {syntax}')
+                self._bot.send(flow.requestor, '\n'.join(possible_next_steps))
                 break
 
-            log.debug("Steps triggered automatically %s", ', '.join(str(node) for node in autosteps))
-            log.debug("All possible next steps: %s", ', '.join(str(node) for node in steps))
+            log.debug('Steps triggered automatically %s.', ', '.join(str(node) for node in autosteps))
+            log.debug('All possible next steps: %s.', ', '.join(str(node) for node in steps))
 
             for autostep in autosteps:
                 log.debug("Proceeding automatically with step %s", autostep)
@@ -430,7 +429,6 @@ class FlowExecutor(object):
 
                 except Exception as e:
                     log.exception('%s errored at %s', flow, autostep)
-                    self._bot.send(flow.requestor,
-                                   '%s errored at %s with "%s"' % (flow, autostep, e))
+                    self._bot.send(flow.requestor, f'{flow} errored at {autostep} with "{e}"')
                 flow.advance(autostep)  # TODO: this is only true for a single step, make it forkable.
-        log.debug("Flow execution suspended/ended normally.")
+        log.debug('Flow execution suspended/ended normally.')

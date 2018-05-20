@@ -88,9 +88,6 @@ class {{ class_name }}(BotPlugin):
         favorite number.
         """
         if args.favorite_number is None:
-            return "Hello {name}".format(name=args.name)
+            return f'Hello {args.name}.'
         else:
-            return "Hello {name}, I hear your favorite number is {number}".format(
-                name=args.name,
-                number=args.favorite_number,
-            )
+            return f'Hello {args.name}, I hear your favorite number is {args.favorite_number}.'

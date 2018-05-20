@@ -15,8 +15,7 @@ from errbot.core_plugins.wsview import reset_app
 from errbot.core import ErrBot
 from errbot.bootstrap import setup_bot
 
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.test')
+log = logging.getLogger(__name__)
 
 QUIT_MESSAGE = '$STOP$'
 
@@ -547,9 +546,7 @@ def testbot(request) -> TestBot:
 
     #  setup the logging to something digestable.
     logger = logging.getLogger('')
-    logging.getLogger('yapsy').setLevel(logging.ERROR)  # this one is way too verbose in debug
     logging.getLogger('MARKDOWN').setLevel(logging.ERROR)  # this one is way too verbose in debug
-    logging.getLogger('Rocket.Errors').setLevel(logging.ERROR)  # this one is way too verbose in debug
     logger.setLevel(logging.DEBUG)
     console_hdlr = logging.StreamHandler(sys.stdout)
     console_hdlr.setFormatter(logging.Formatter("%(levelname)-8s %(name)-25s %(message)s"))

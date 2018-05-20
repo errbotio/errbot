@@ -252,5 +252,4 @@ Both Travis-CI and Coveralls easily integrate with Github hosted code.
 .. _conftest.py: http://doc.pytest.org/en/latest/writing_plugins.html#conftest-py-local-per-directory-plugins
 .. _Coveralls.io: https://coveralls.io
 .. _Travis-CI: https://travis-ci.org
-.. _Yapsy: http://yapsy.sourceforge.net
 .. _wheels: http://www.python.org/dev/peps/pep-0427/

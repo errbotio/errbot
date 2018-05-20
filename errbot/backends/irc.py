@@ -17,9 +17,7 @@ from errbot.utils import rate_limited
 from errbot.rendering.ansiext import AnsiExtension, enable_format, \
     CharacterTable, NSC
 
-
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.irc')
+log = logging.getLogger(__name__)
 
 IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           fg_red=NSC('\x0304'),

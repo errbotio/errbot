@@ -12,8 +12,7 @@ from errbot.rendering import xhtml
 CARD_TMPL = Environment(loader=FileSystemLoader(os.path.dirname(__file__)),
                         autoescape=True).get_template('graphic_card.html')
 
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.graphic')
+log = logging.getLogger(__name__)
 
 try:
     from PySide import QtCore, QtGui, QtWebKit

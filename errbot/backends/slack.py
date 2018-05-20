@@ -3,7 +3,6 @@ import copyreg
 import json
 import logging
 import re
-import time
 import sys
 import pprint
 from functools import lru_cache
@@ -18,9 +17,7 @@ from errbot.core import ErrBot
 from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
-
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.slack')
+log = logging.getLogger(__name__)
 
 
 try:

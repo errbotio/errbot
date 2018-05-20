@@ -57,10 +57,10 @@ parameter:
         def test(self, request, name, action):
             return "User %s is performing %s" % (name, action)
 
-Refer to the documentation on Bottle's
-`request routing <http://bottlepy.org/docs/dev/routing.html>`_
+Refer to the documentation on Flask's
+`route <http://flask.pocoo.org/docs/1.0/api/#flask.Flask.route>`_
 for details on the supported syntax
-(Errbot uses Bottle internally).
+(Errbot uses Flask internally).
 
 
 Handling JSON request
@@ -123,31 +123,33 @@ Returning custom headers and status codes
 
 Adjusting the response headers, setting cookies or returning a
 different status code can all be done by manipulating the
-`bottle.response <http://bottlepy.org/docs/dev/api.html#bottle.response>`_
-object. The bottle docs on `the response object
-<http://bottlepy.org/docs/dev/tutorial.html#the-response-object>`_
+`flask response <http://flask.pocoo.org/docs/1.0/patterns/deferredcallbacks/>`_
+object. The Flask docs on `the response object
+<http://flask.pocoo.org/docs/1.0/api/#response-objects>`_
 explain this in more detail. Here's an example of setting a 
 custom header:
 
 .. code-block:: python
 
     from errbot import BotPlugin, webhook
-    from bottle import response
+    from flask import after_this_request
 
     class PluginExample(BotPlugin):
         @webhook
         def example(self, incoming_request):
-            response.set_header("X-Powered-By", "Errbot")
+            @after_this_request
+            def add_header(response):
+                response.headers['X-Powered-By'] = 'Errbot'
             return "OK"
 
-Bottle also has various helpers such as the `abort()` method.
+Flask also has various helpers such as the `abort()` method.
 Using this method we could, for example, return a 403 forbidden
 response like so:
 
 .. code-block:: python
 
     from errbot import BotPlugin, webhook
-    from bottle import abort
+    from flask import abort
 
     class PluginExample(BotPlugin):
         @webhook

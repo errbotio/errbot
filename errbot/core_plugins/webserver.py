@@ -104,7 +104,7 @@ class Webserver(BotPlugin):
             self.server.shutdown()
             self.log.info('Waiting for the webserver thread to quit.')
             self.server_thread.join()
-            self.log.info('Webserver shut down correcly.')
+            self.log.info('Webserver shut down correctly.')
         super().deactivate()
 
     def run_server(self):
@@ -118,11 +118,10 @@ class Webserver(BotPlugin):
                                              ssl_context=ssl_context)
             self.server.serve_forever()
             self.log.debug('Webserver stopped')
-        except KeyboardInterrupt as _:
-            self.log.exception('Keyboard interrupt, request a global shutdown.')
-            self.log.info('webserver is ThreadedWSGIServer')
+        except KeyboardInterrupt:
+            self.log.info('Keyboard interrupt, request a global shutdown.')
             self.server.shutdown()
-        except Exception as _:
+        except Exception:
             self.log.exception('The webserver exploded.')
 
     @botcmd(template='webstatus')

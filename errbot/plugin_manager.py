@@ -190,6 +190,7 @@ class BotPluginManager(StoreMixin):
         self.repo_manager = repo_manager
         self.plugin_infos = {}  # Name ->  PluginInfo
         self.plugins = {}  # Name ->  BotPlugin
+        self.flow_infos = {}  # Name ->  PluginInfo
         self.flows = {}  # Name ->  Flow
         self.plugin_places = []
         self.open_storage(storage_plugin, 'core')
@@ -250,6 +251,7 @@ class BotPluginManager(StoreMixin):
                               base_module_name,
                               baseclass: Type,
                               dest_dict: Dict[str, Any],
+                              dest_info_dict: Dict[str, Any],
                               feedback: Dict[Path, str]):
         self._install_potential_package_dependencies(path, feedback)
         plugfiles = path.glob('**/*.' + extension)
@@ -257,14 +259,14 @@ class BotPluginManager(StoreMixin):
             try:
                 plugin_info = PluginInfo.load(plugfile)
                 name = plugin_info.name
-                if name in self.plugin_infos:
+                if name in dest_info_dict:
                     log.warning('Plugin %s already loaded.', name)
                     continue
 
                 module_name = base_module_name + '.' + plugin_info.module
 
                 # save the plugin_info for ref.
-                self.plugin_infos[name] = plugin_info
+                dest_info_dict[name] = plugin_info
 
                 # Skip the core plugins not listed in CORE_PLUGINS if CORE_PLUGINS is defined.
                 if self.core_plugins and plugin_info.core and (plugin_info.name not in self.core_plugins):
@@ -297,8 +299,10 @@ class BotPluginManager(StoreMixin):
 
     def load_plugins(self, feedback: Dict[Path, str]):
         for path in self.plugin_places:
-            self._load_plugins_generic(path, 'plug', 'errbot.plugins', BotPlugin, self.plugins, feedback)
-            self._load_plugins_generic(path, 'flow', 'errbot.flows', BotFlow, self.flows, feedback)
+            self._load_plugins_generic(path, 'plug', 'errbot.plugins', BotPlugin,
+                                       self.plugins, self.plugin_infos, feedback)
+            self._load_plugins_generic(path, 'flow', 'errbot.flows', BotFlow,
+                                       self.flows, self.flow_infos, feedback)
 
     def update_plugin_places(self, path_list, extra_plugin_dir):
         """ It returns a dictionary of path -> error strings."""
@@ -417,10 +421,9 @@ class BotPluginManager(StoreMixin):
                 errors += 'Error: %s failed to activate: %s\n' % (name, e)
 
         log.debug('Activate flow plugins ...')
-        for flow in self.flows:
+        for name, flow in self.flows.items():
             try:
                 if not flow.is_activated:
-                    name = flow.name
                     log.info('Activate flow: %s' % name)
                     self.activate_flow(name)
             except Exception as e:

@@ -33,7 +33,7 @@ def test_python_version_parse(test_input, expected):
     Module = config
 
     [Python]
-    Version = %s 
+    Version = %s
     """ % test_input)
 
     assert PluginInfo.load_file(f, None).python_version == expected
@@ -44,7 +44,7 @@ def test_doc():
     [Core]
     Name = Config
     Module = config
-    
+
     [Documentation]
     Description = something
     """)
@@ -59,9 +59,8 @@ def test_errbot_version():
     Module = config
     [Errbot]
     Min = 1.2.3
-    Max = 4.5.6-beta 
+    Max = 4.5.6-beta
     """)
     info = PluginInfo.load_file(f, None)
     assert info.errbot_minversion == (1, 2, 3, sys.maxsize)
     assert info.errbot_maxversion == (4, 5, 6, 0)
-

@@ -74,4 +74,3 @@ class PluginInfo:
         deps = [name.strip() for name in depends_on.split(',')] if depends_on else []
 
         return PluginInfo(name, module, doc, core, python_version, min_version, max_version, deps)
-

@@ -1,8 +1,14 @@
+import sys
+
+import inspect
 from configparser import ConfigParser
 from dataclasses import dataclass
+from importlib._bootstrap import module_from_spec
+from importlib._bootstrap_external import spec_from_file_location
+
 from errbot.utils import version2tuple
 from pathlib import Path
-from typing import Tuple, List
+from typing import Tuple, List, Type
 from configparser import Error as ConfigParserError
 
 VersionType = Tuple[int, int, int]
@@ -74,3 +80,18 @@ class PluginInfo:
         deps = [name.strip() for name in depends_on.split(',')] if depends_on else []
 
         return PluginInfo(name, module, doc, core, python_version, min_version, max_version, deps)
+
+    def load_plugin_classes(self, base_module_name: str, baseclass: Type):
+        # load the module
+        module_name = base_module_name + '.' + self.module
+        spec = spec_from_file_location(module_name, self.location.parent / (self.module + '.py'))
+        modu1e = module_from_spec(spec)
+        spec.loader.exec_module(modu1e)
+        sys.modules[module_name] = modu1e
+
+        # introspect the modules to find plugin classes
+        def is_plugin(member):
+            return inspect.isclass(member) and issubclass(member, baseclass) and member != baseclass
+
+        plugin_classes = inspect.getmembers(modu1e, is_plugin)
+        return plugin_classes

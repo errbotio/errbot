@@ -3,4 +3,4 @@ Name = Telegram
 Module = telegram_messenger
 
 [Documentation]
-Description = This is the Telegram backend for Err.
+Description = This is the Telegram backend for Errbot.

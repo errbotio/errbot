@@ -21,8 +21,7 @@ from errbot.logs import console_hdlr
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.text')
+log = logging.getLogger(__name__)
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()

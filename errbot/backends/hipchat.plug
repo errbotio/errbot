@@ -3,4 +3,4 @@ Name = Hipchat
 Module = hipchat
 
 [Documentation]
-Description = This is the hipchat backend for Err.
+Description = This is the hipchat backend for Errbot.

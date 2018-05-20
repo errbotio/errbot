@@ -1,23 +1,16 @@
-import unittest
-
 import logging
 
+import pytest
 from errbot.core import ErrBot
 from errbot.bootstrap import CORE_BACKENDS
-from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.backend_plugin_manager import BackendPluginManager
 
 logging.basicConfig(level=logging.DEBUG)
 
+backends_to_check = ['Text', 'Test', 'Null']
 
-def test_builtins():
-    bpm = SpecificPluginManager(
-        {},
-        'backends',
-        ErrBot,
-        CORE_BACKENDS,
-        extra_search_dirs=())
-    backend_plug = bpm.getPluginCandidates()
-    names = [plug.name for (_, _, plug) in backend_plug]
-    assert 'Text' in names
-    assert 'Test' in names
-    assert 'Null' in names
+
+@pytest.mark.parametrize('backend_name', backends_to_check)
+def test_builtins(backend_name):
+    bpm = BackendPluginManager({}, 'errbot.backends', backend_name, ErrBot, CORE_BACKENDS)
+    assert bpm.plugin_info.name == backend_name

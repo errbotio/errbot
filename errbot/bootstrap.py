@@ -2,12 +2,11 @@ from os import path, makedirs
 import importlib
 import logging
 import sys
-import ast
 
 from errbot.core import ErrBot
 from errbot.plugin_manager import BotPluginManager
 from errbot.repo_manager import BotRepoManager
-from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
 from errbot.logs import format_logs
@@ -74,7 +73,7 @@ def bot_config_defaults(config):
         config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
 
 
-def setup_bot(backend_name, logger, config, restore=None):
+def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
@@ -102,22 +101,22 @@ def setup_bot(backend_name, logger, config, restore=None):
             )
             exit(-1)
 
-        if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
-            try:
-                mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
-                transport = getattr(mod, config.SENTRY_TRANSPORT[0])
-            except ImportError:
-                log.exception(
-                    "Unable to import selected SENTRY_TRANSPORT - {transport}".format(transport=config.SENTRY_TRANSPORT)
-                )
-                exit(-1)
+        try:
+            if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
+                    mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
+                    transport = getattr(mod, config.SENTRY_TRANSPORT[0])
 
-            sentryhandler = SentryHandler(config.SENTRY_DSN,
-                                          level=config.SENTRY_LOGLEVEL,
-                                          transport=transport)
-        else:
-            sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
-        logger.addHandler(sentryhandler)
+                    sentryhandler = SentryHandler(config.SENTRY_DSN,
+                                                  level=config.SENTRY_LOGLEVEL,
+                                                  transport=transport)
+            else:
+                sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
+            logger.addHandler(sentryhandler)
+        except ImportError:
+            log.exception(
+                "Unable to import selected SENTRY_TRANSPORT - {transport}".format(transport=config.SENTRY_TRANSPORT)
+            )
+            exit(-1)
 
     logger.setLevel(config.BOT_LOG_LEVEL)
 
@@ -143,38 +142,38 @@ def setup_bot(backend_name, logger, config, restore=None):
                              getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )))
 
     # init the backend manager & the bot
-    backendpm = bpm_from_config(config)
 
-    backend_plug = backendpm.get_candidate(backend_name)
+    backendpm = BackendPluginManager(config, 'errbot.backends', backend_name,
+                                     ErrBot, CORE_BACKENDS, getattr(config, 'BOT_EXTRA_BACKEND_DIR', []))
 
-    log.info("Found Backend plugin: '%s'\n\t\t\t\t\t\tDescription: %s" % (backend_plug.name, backend_plug.description))
+    log.info('Found Backend plugin: %s' % backendpm.plugin_info.name)
 
     try:
-        bot = backendpm.get_plugin_by_name(backend_name)
+        bot = backendpm.load_plugin()
         bot.attach_storage_plugin(storage_plugin)
         bot.attach_repo_manager(repo_manager)
         bot.attach_plugin_manager(botpm)
         bot.initialize_backend_storage()
+
+        # restore the bot from the restore script
+        if restore:
+            # Prepare the context for the restore script
+            if 'repos' in bot:
+                log.fatal('You cannot restore onto a non empty bot.')
+                sys.exit(-1)
+            log.info('**** RESTORING the bot from %s' % restore)
+            restore_bot_from_backup(restore, bot=bot, log=log)
+            print('Restore complete. You can restart the bot normally')
+            sys.exit(0)
+
+        errors = bot.plugin_manager.update_dynamic_plugins()
+        if errors:
+            log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
+            bot._plugin_errors_during_startup = "\n".join(errors.values())
+        return bot
     except Exception:
         log.exception("Unable to load or configure the backend.")
         exit(-1)
-
-    # restore the bot from the restore script
-    if restore:
-        # Prepare the context for the restore script
-        if 'repos' in bot:
-            log.fatal('You cannot restore onto a non empty bot.')
-            sys.exit(-1)
-        log.info('**** RESTORING the bot from %s' % restore)
-        restore_bot_from_backup(restore, bot=bot, log=log)
-        print('Restore complete. You can restart the bot normally')
-        sys.exit(0)
-
-    errors = bot.plugin_manager.update_dynamic_plugins()
-    if errors:
-        log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
-        bot._plugin_errors_during_startup = "\n".join(errors.values())
-    return bot
 
 
 def restore_bot_from_backup(backup_filename, *, bot, log):
@@ -200,30 +199,10 @@ def get_storage_plugin(config):
     """
     storage_name = getattr(config, 'STORAGE', 'Shelf')
     extra_storage_plugins_dir = getattr(config, 'BOT_EXTRA_STORAGE_PLUGINS_DIR', None)
-    spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, extra_storage_plugins_dir)
-    storage_pluginfo = spm.get_candidate(storage_name)
-    log.info("Found Storage plugin: '%s'\nDescription: %s" % (storage_pluginfo.name, storage_pluginfo.description))
-    storage_plugin = spm.get_plugin_by_name(storage_name)
-    return storage_plugin
-
-
-def bpm_from_config(config):
-    """Creates a backend plugin manager from a given config."""
-    extra = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
-    return SpecificPluginManager(
-        config,
-        'backends',
-        ErrBot,
-        CORE_BACKENDS,
-        extra_search_dirs=extra
-    )
-
-
-def enumerate_backends(config):
-    """ Returns all the backends found for the given config.
-    """
-    bpm = bpm_from_config(config)
-    return [plug.name for (_, _, plug) in bpm.getPluginCandidates()]
+    spm = BackendPluginManager(config, 'errbot.storage', storage_name, StoragePluginBase,
+                               CORE_STORAGE, extra_storage_plugins_dir)
+    log.info('Found Storage plugin: %s.' % spm.plugin_info.name)
+    return spm.load_plugin()
 
 
 def bootstrap(bot_class, logger, config, restore=None):

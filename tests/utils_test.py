@@ -4,7 +4,7 @@ import pytest
 
 from errbot.backends.test import ShallowConfig
 from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
-from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import *
 from errbot.storage import StoreMixin
@@ -56,8 +56,8 @@ def test_storage():
     config.__dict__.update(sys.modules['errbot.config-template'].__dict__)
     bot_config_defaults(config)
 
-    spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, None)
-    storage_plugin = spm.get_plugin_by_name('Memory')
+    spm = BackendPluginManager(config, 'errbot.storage', 'Memory', StoragePluginBase, CORE_STORAGE)
+    storage_plugin = spm.load_plugin()
 
     persistent_object = StoreMixin()
     persistent_object.open_storage(storage_plugin, 'test')

@@ -86,7 +86,7 @@ class ErrBot(Backend, StoreMixin):
         log.debug("Initializing backend storage")
         assert self.plugin_manager is not None
         assert self.storage_plugin is not None
-        self.open_storage(self.storage_plugin, '%s_backend' % self.mode)
+        self.open_storage(self.storage_plugin, f'{self.mode}_backend')
 
     @property
     def all_commands(self):
@@ -212,23 +212,23 @@ class ErrBot(Backend, StoreMixin):
         frm = msg.frm
         text = msg.body
         if not hasattr(msg.frm, 'person'):
-            raise Exception('msg.frm not an Identifier as it misses the "person" property. Class of frm : %s'
-                            % msg.frm.__class__)
+            raise Exception(f'msg.frm not an Identifier as it misses the "person" property.'
+                            f' Class of frm : {msg.frm.__class__}.')
 
         username = msg.frm.person
         user_cmd_history = self.cmd_history[username]
 
         if msg.delayed:
-            log.debug("Message from history, ignore it")
+            log.debug('Message from history, ignore it.')
             return False
 
         if self.is_from_self(msg):
-            log.debug("Ignoring message from self")
+            log.debug("Ignoring message from self.")
             return False
 
-        log.debug("*** frm = %s" % frm)
-        log.debug("*** username = %s" % username)
-        log.debug("*** text = %s" % text)
+        log.debug('*** frm = %s', frm)
+        log.debug('*** username = %s', username)
+        log.debug('*** text = %s', text)
 
         suppress_cmd_not_found = self.bot_config.SUPPRESS_CMD_NOT_FOUND
 
@@ -257,7 +257,7 @@ class ErrBot(Backend, StoreMixin):
                 if text[:length] == sep:
                     text = text[length:]
         elif msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
-            log.debug("Assuming '%s' to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True" % text)
+            log.debug('Assuming "%s" to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True', text)
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
             # was said with trigger_message.
@@ -357,14 +357,14 @@ class ErrBot(Backend, StoreMixin):
         # first it must go through the command filters
         msg, cmd, args = self._process_command_filters(msg, cmd, args, False)
         if msg is None:
-            log.info("Command %s blocked or deferred." % cmd)
+            log.info('Command %s blocked or deferred.', cmd)
             return
 
         frm = msg.frm
         username = frm.person
         user_cmd_history = self.cmd_history[username]
 
-        log.info("Processing command '{}' with parameters '{}' from {}".format(cmd, args, frm))
+        log.info(f'Processing command "{cmd}" with parameters "{args}" from {frm}')
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
@@ -472,29 +472,25 @@ class ErrBot(Backend, StoreMixin):
 
         except Exception as e:
             tb = traceback.format_exc()
-            log.exception('An error happened while processing '
-                          'a message ("%s"): %s"' %
-                          (msg.body, tb))
-            self.send_simple_reply(msg, self.MSG_ERROR_OCCURRED + ':\n %s' % e, private, threaded)
+            log.exception(f'An error happened while processing a message ("{msg.body}"): {tb}"')
+            self.send_simple_reply(msg, self.MSG_ERROR_OCCURRED + f':\n{e}', private, threaded)
 
     def unknown_command(self, _, cmd, args):
         """ Override the default unknown command behavior
         """
         full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
         if full_cmd:
-            msg = 'Command "%s" / "%s" not found.' % (cmd, full_cmd)
+            msg = f'Command "{cmd}" / "{full_cmd}" not found.'
         else:
-            msg = 'Command "%s" not found.' % cmd
+            msg = f'Command "{cmd}" not found.'
         ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
         matches = set(matches)
         if matches:
-            msg += '\n\n'
-            msg += 'Did you mean "' + self.bot_config.BOT_PREFIX
-            msg += ('" or "' + self.bot_config.BOT_PREFIX).join(matches)
-            msg += '" ?'
+            alternatives = ('" or "' + self.bot_config.BOT_PREFIX).join(matches)
+            msg += '\n\nDid you mean "{self.bot_config.BOT_PREFIX}{alternatives}" ?'
         return msg
 
     def inject_commands_from(self, instance_to_inject):
@@ -508,17 +504,17 @@ class ErrBot(Backend, StoreMixin):
                     if name in commands:
                         f = commands[name]
                         new_name = (plugin_name + '-' + name).lower()
-                        self.warn_admins('%s.%s clashes with %s.%s so it has been renamed %s' % (
-                            plugin_name, name, type(f.__self__).__name__, f.__name__, new_name))
+                        self.warn_admins(f'{plugin_name}.{name} clashes with {type(f.__self__).__name__}.{f.__name__} '
+                                         f'so it has been renamed {new_name}')
                         name = new_name
                         value.__func__._err_command_name = new_name  # To keep track of the renaming.
                     commands[name] = value
 
                     if getattr(value, '_err_re_command'):
-                        log.debug('Adding regex command : %s -> %s' % (name, value.__name__))
+                        log.debug('Adding regex command : %s -> %s.', name, value.__name__)
                         self.re_commands = commands
                     else:
-                        log.debug('Adding command : %s -> %s' % (name, value.__name__))
+                        log.debug('Adding command : %s -> %s.', name, value.__name__)
                         self.commands = commands
 
     def inject_flows_from(self, instance_to_inject):
@@ -538,7 +534,7 @@ class ErrBot(Backend, StoreMixin):
         with self._gbl:
             for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
                 if getattr(method, '_err_command_filter', False):
-                    log.debug('Adding command filter: %s' % name)
+                    log.debug('Adding command filter: %s', name)
                     self.command_filters.append(method)
 
     def remove_flows_from(self, instance_to_inject):
@@ -561,7 +557,7 @@ class ErrBot(Backend, StoreMixin):
         with self._gbl:
             for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
                 if getattr(method, '_err_command_filter', False):
-                    log.debug('Removing command filter: %s' % name)
+                    log.debug('Removing command filter: %s', name)
                     self.command_filters.remove(method)
 
     def _admins_to_notify(self):
@@ -624,7 +620,7 @@ class ErrBot(Backend, StoreMixin):
         self._dispatch_to_plugins('callback_room_topic', room)
 
     def callback_stream(self, stream):
-        log.info("Initiated an incoming transfer %s" % stream)
+        log.info('Initiated an incoming transfer %s.', stream)
         Tee(stream, self.plugin_manager.get_all_active_plugin_objects()).start()
 
     def signal_connect_to_all_plugins(self):
@@ -632,10 +628,10 @@ class ErrBot(Backend, StoreMixin):
             if hasattr(bot, 'callback_connect'):
                 # noinspection PyBroadException
                 try:
-                    log.debug('Trigger callback_connect on %s' % bot.__class__.__name__)
+                    log.debug('Trigger callback_connect on %s.', bot.__class__.__name__)
                     bot.callback_connect()
                 except Exception:
-                    log.exception("callback_connect failed for %s" % bot)
+                    log.exception(f'callback_connect failed for {bot}.')
 
     def connect_callback(self):
         log.info('Activate internal commands')

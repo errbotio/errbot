@@ -154,7 +154,7 @@ class TextOccupant(TextPerson, RoomOccupant):
         return self._room
 
     def __str__(self):
-        return '#%s/%s' % (self._room.name, self._person.person)
+        return f'#{self._room.name}/{self._person.person}'
 
     def __eq__(self, other):
         return self.person == other.person and self.room == other.room
@@ -261,10 +261,10 @@ class TextBackend(ErrBot):
                     prompt = '[␍] ' if full_msg else '>>> '
                     if ANSI or self.demo_mode:
                         color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
-                        prompt = str(color) + '[%s ➡ %s] ' % (frm, to) + str(fg.cyan) + prompt + str(fx.reset)
+                        prompt = f'{color}[{frm} ➡ {to}] {fg.cyan}{prompt}{fx.reset}'
                         entry = input(prompt)
                     else:
-                        entry = input('[%s ➡ %s] ' % (frm, to) + prompt)
+                        entry = input(f'[{frm} ➡ {to}] {prompt}')
 
                     if not self._multiline:
                         full_msg = entry

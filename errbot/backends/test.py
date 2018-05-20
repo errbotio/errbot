@@ -318,11 +318,11 @@ class TestBackend(ErrBot):
     def zap_queues(self):
         while not self.incoming_stanza_queue.empty():
             msg = self.incoming_stanza_queue.get(block=False)
-            log.error('Message left in the incoming queue during a test : %s' % msg)
+            log.error('Message left in the incoming queue during a test: %s.', msg)
 
         while not self.outgoing_message_queue.empty():
             msg = self.outgoing_message_queue.get(block=False)
-            log.error('Message left in the outgoing queue during a test : %s' % msg)
+            log.error('Message left in the outgoing queue during a test: %s.', msg)
 
     def reset_rooms(self):
         """Reset/clear all rooms"""
@@ -368,7 +368,7 @@ class TestBot(object):
         config.STORAGE = 'Memory'
 
         if extra_config is not None:
-            log.debug('Merging %s to the bot config.' % repr(extra_config))
+            log.debug('Merging %s to the bot config.', repr(extra_config))
             for k, v in extra_config.items():
                 setattr(config, k, v)
 

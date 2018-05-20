@@ -112,7 +112,7 @@ class Webserver(BotPlugin):
             host = self.config['HOST']
             port = self.config['PORT']
             ssl = self.config['SSL']
-            self.log.info('Starting the webserver on %s:%i' % (host, port))
+            self.log.info('Starting the webserver on %s:%i', host, port)
             ssl_context = (ssl['certificate'], ssl['key']) if ssl['enabled'] else None
             self.server = ThreadedWSGIServer(host, ssl['port'] if ssl_context else port, flask_app,
                                              ssl_context=ssl_context)
@@ -168,7 +168,7 @@ class Webserver(BotPlugin):
             except Exception as _:
                 contenttype = 'text/plain'  # dunno what it is
 
-        self.log.debug('Detected your post as : %s' % contenttype)
+        self.log.debug('Detected your post as : %s.', contenttype)
 
         response = self.test_app.post(url, params=content, content_type=contenttype)
         return TEST_REPORT % (url, contenttype, response.status_code)

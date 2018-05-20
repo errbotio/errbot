@@ -463,23 +463,23 @@ class XMPPBackend(ErrBot):
         return self._build_room_occupant(txtrep) if 'muc' in event else self._build_person(txtrep)
 
     def contact_online(self, event):
-        log.debug("contact_online %s" % event)
+        log.debug('contact_online %s.', event)
         self.callback_presence(Presence(identifier=self._idd_from_event(event), status=ONLINE))
 
     def contact_offline(self, event):
-        log.debug("contact_offline %s" % event)
+        log.debug('contact_offline %s.', event)
         self.callback_presence(Presence(identifier=self._idd_from_event(event), status=OFFLINE))
 
     def user_joined_chat(self, event):
-        log.debug("user_join_chat %s" % event)
+        log.debug('user_join_chat %s', event)
         self.callback_presence(Presence(identifier=self._idd_from_event(event), status=ONLINE))
 
     def user_left_chat(self, event):
-        log.debug("user_left_chat %s" % event)
+        log.debug('user_left_chat %s', event)
         self.callback_presence(Presence(identifier=self._idd_from_event(event), status=OFFLINE))
 
     def chat_topic(self, event):
-        log.debug("chat_topic %s" % event)
+        log.debug("chat_topic %s.", event)
         room = event.values['mucroom']
         topic = event.values['subject']
         if topic == "":
@@ -489,7 +489,7 @@ class XMPPBackend(ErrBot):
         self.callback_room_topic(room)
 
     def user_changed_status(self, event):
-        log.debug("user_changed_status %s" % event)
+        log.debug('user_changed_status %s.', event)
         errstatus = XMPP_TO_ERR_STATUS.get(event['type'], None)
         message = event['status']
         if not errstatus:
@@ -507,7 +507,7 @@ class XMPPBackend(ErrBot):
     def send_message(self, msg):
         super().send_message(msg)
 
-        log.debug("send_message to %s", msg.to)
+        log.debug('send_message to %s', msg.to)
 
         # We need to unescape the unicode characters (not the markup incompatible ones)
         mhtml = xhtmlim.unescape(self.md_xhtml.convert(msg.body)) if self.xhtmlim else None
@@ -518,7 +518,7 @@ class XMPPBackend(ErrBot):
                                       mtype='chat' if msg.is_direct else 'groupchat')
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
-        log.debug("Change bot status to %s, message %s" % (status, message))
+        log.debug('Change bot status to %s, message %s.', status, message)
         self.conn.client.send_presence(pshow=status, pstatus=message)
 
     def serve_forever(self):
@@ -548,7 +548,7 @@ class XMPPBackend(ErrBot):
                         log.debug('This is room occupant ! %s', txtrep)
                         return self._build_room_occupant(txtrep)
         except IqError as iq:
-            log.debug('xep_0030 is probably not implemented on this server. %s' % iq)
+            log.debug('xep_0030 is probably not implemented on this server. %s.', iq)
         log.debug('This is a person ! %s', txtrep)
         return self._build_person(txtrep)
 

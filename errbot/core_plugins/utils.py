@@ -26,16 +26,16 @@ class Utils(BotPlugin):
             frm = msg.frm
         resp = "| key      | value\n"
         resp += "| -------- | --------\n"
-        resp += "| person   | `%s`\n" % frm.person
-        resp += "| nick     | `%s`\n" % frm.nick
-        resp += "| fullname | `%s`\n" % frm.fullname
-        resp += "| client   | `%s`\n\n" % frm.client
+        resp += f"| person   | `{frm.person}`\n"
+        resp += f"| nick     | `{frm.nick}`\n"
+        resp += f"| fullname | `{frm.fullname}`\n"
+        resp += f"| client   | `{frm.client}`\n\n"
 
         #  extra info if it is a MUC
         if hasattr(frm, 'room'):
-            resp += "\n`room` is %s\n" % frm.room
-        resp += "\n\n- string representation is '%s'\n" % frm
-        resp += "- class is '%s'\n" % frm.__class__.__name__
+            resp += f"\n`room` is {frm.room}\n"
+        resp += f"\n\n- string representation is '{frm}'\n"
+        resp += f"- class is '{frm.__class__.__name__}'\n"
 
         return resp
 
@@ -48,7 +48,7 @@ class Utils(BotPlugin):
         length = len(user_cmd_history)
         for i in range(0, length):
             c = user_cmd_history[i]
-            answer.append('%2i:%s%s %s' % (length - i, self._bot.prefix, c[0], c[1]))
+            answer.append(f'{length - i:2d}:{self._bot.prefix}{c[0]} {c[1]}')
         return '\n'.join(answer)
 
     # noinspection PyUnusedLocal

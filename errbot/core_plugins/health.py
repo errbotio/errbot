@@ -69,8 +69,9 @@ class Health(BotPlugin):
     def uptime(self, _, args):
         """ Return the uptime of the bot
         """
-        return "I've been up for %s %s (since %s)" % (args, format_timedelta(datetime.now() - self._bot.startup_time),
-                                                      self._bot.startup_time.strftime('%A, %b %d at %H:%M'))
+        u = format_timedelta(datetime.now() - self._bot.startup_time)
+        since = self._bot.startup_time.strftime('%A, %b %d at %H:%M')
+        return f"I've been up for {args} {u} (since {since})."
 
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)

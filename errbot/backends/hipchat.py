@@ -66,7 +66,7 @@ class HipchatExtension(Extension):
     def extendMarkdown(self, md, md_globals):
         md.registerExtension(self)
         md.treeprocessors.add("hipchat stripper", HipchatTreeprocessor(), '<inline')
-        log.debug("Will apply those treeprocessors:\n%s" % md.treeprocessors)
+        log.debug("Will apply those treeprocessors:\n%s", md.treeprocessors)
 
 
 def hipchat_html():
@@ -502,7 +502,7 @@ class HipchatBackend(XMPPBackend):
             card.to = card.to.room
         if not card.is_group:
             raise ValueError('Private notifications/cards are impossible to send on 1 to 1 messages on hipchat.')
-        log.debug("room id = %s" % card.to)
+        log.debug('room id = %s', card.to)
         room = self.query_room(str(card.to)).room
 
         data = {'message': '-' if not card.body else self.md.convert(card.body),
@@ -512,7 +512,7 @@ class HipchatBackend(XMPPBackend):
         if card.color:
             data['color'] = COLORS[card.color] if card.color in COLORS else card.color
 
-        hcard = {'id': 'FF%0.16X' % card.__hash__()}
+        hcard = {'id': f'FF{card.__hash__():0.16X}'}
 
         # Only title is supported all across the types.
         if card.title:
@@ -567,7 +567,7 @@ class HipchatBackend(XMPPBackend):
 
         stream = Stream(identifier=identifier, fsource=fsource, name=name, size=size, stream_type=stream_type)
         result = self.thread_pool.apply_async(self._hipchat_upload, (stream,))
-        log.debug('Response from server: %s' % result.get(timeout=10))
+        log.debug('Response from server: %s', result.get(timeout=10))
         return stream
 
     def _hipchat_upload(self, stream):
@@ -593,18 +593,18 @@ class HipchatBackend(XMPPBackend):
             boundary = re.search('boundary="([^"]*)"', raw_headers).group(1)
             headers['Content-Type'] = 'multipart/related; boundary="{}"'.format(boundary)
             resp = requests.post(room.url + '/share/file', headers=headers, data=body)
-            log.info('Request ok: %s' % resp.ok)
+            log.info('Request ok: %s.', resp.ok)
 
             if resp.ok:
-                log.info('Request status: %s' % resp.status_code)
+                log.info('Request status: %s.', resp.status_code)
                 stream.success()
             else:
-                log.error('Request status: %s' % resp.status_code)
-                log.error('Request reason: %s' % resp.reason)
-                log.error('Request text: %s' % resp.text)
+                log.error('Request status: %s.', resp.status_code)
+                log.error('Request reason: %s.', resp.reason)
+                log.error('Request text: %s.', resp.text)
                 stream.error()
         except Exception:
-            log.exception("Upload of {0} to {1} failed.".format(stream.name, stream.identifier.channelname))
+            log.exception(f'Upload of {stream.name} to {stream.identifier.channelname} failed.')
 
     @lru_cache(1024)
     def _find_user(self, name, criteria):
@@ -620,7 +620,7 @@ class HipchatBackend(XMPPBackend):
         if not users:
             log.debug('Failed to find user %s', name)
             return None
-        userdetail = self.conn.hypchat.get_user("%s" % users[0]['id'])
+        userdetail = self.conn.hypchat.get_user(users[0]['id'])
         identifier = self.build_identifier(userdetail['xmpp_jid'])
 
         return identifier

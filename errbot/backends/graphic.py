@@ -96,12 +96,12 @@ class CommandBox(QtGui.QPlainTextEdit, object):
         if key == Qt.Key_Up:
             if self.history_index > 0:
                 self.history_index -= 1
-                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
+                self.setPlainText(f'{self.prefix}{" ".join(self.history[self.history_index])}')
                 return
         elif key == Qt.Key_Down:
             if self.history_index < len(self.history) - 1:
                 self.history_index += 1
-                self.setPlainText('%s%s' % (self.prefix, ' '.join(self.history[self.history_index])))
+                self.setPlainText(f'{self.prefix}{" ".join(self.history[self.history_index])}')
                 return
         elif key == QtCore.Qt.Key_Return and (ctrl or alt):
             self.newCommand.emit(self.toPlainText())
@@ -122,7 +122,7 @@ style_path = os.path.join(backends_path, 'styles')
 css_path = os.path.join(style_path, 'style.css')
 demo_css_path = os.path.join(style_path, 'style-demo.css')
 
-TOP = '<html><body style="background-image: url(\'file://%s\');">' % bg_path
+TOP = f'<html><body style="background-image: url(\'file://{bg_path}\');">'
 BOTTOM = '</body></html>'
 
 
@@ -172,11 +172,9 @@ class ChatApplication(QtGui.QApplication):
 
     def new_message(self, text, receiving=True):
         size = 50 if self.demo_mode else 25
-        user = '<img src="file://%s" height=%d />' % (prompt_path, size)
-        bot = '<img src="file://%s" height=%d/>' % (icon_path, size)
-        self.buffer += '<div class="%s">%s<br/>%s</div>' % ('receiving' if receiving else 'sending',
-                                                            bot if receiving else user,
-                                                            text)
+        user = f'<img src="file://{prompt_path}" height={size:d} />'
+        bot = f'<img src="file://{icon_path}" height={size:d}/>'
+        self.buffer += f'<div class="{"receiving" if receiving else "sending"}">{bot if receiving else user}<br/>{text}</div>'
 
         self.update_webpage()
 

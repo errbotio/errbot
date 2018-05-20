@@ -499,11 +499,11 @@ class Presence(object):
     def __str__(self):
         response = ''
         if self._identifier:
-            response += 'identifier: "%s" ' % self._identifier
+            response += f'identifier: "{self._identifier}" '
         if self._status:
-            response += 'status: "%s" ' % self._status
+            response += f'status: "{self._status}" '
         if self._message:
-            response += 'message: "%s" ' % self._message
+            response += f'message: "{self._message}" '
         return response
 
     def __unicode__(self):

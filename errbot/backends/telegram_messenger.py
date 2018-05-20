@@ -283,9 +283,7 @@ class TelegramBackend(ErrBot):
             self.telegram.sendMessage(msg.to.id, body)
         except Exception:
             log.exception(
-                "An exception occurred while trying to send the following message "
-                "to %s: %s" % (msg.to.id, msg.body)
-            )
+                f'An exception occurred while trying to send the following message to {msg.to.id}: {msg.body}')
             raise
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
@@ -296,9 +294,9 @@ class TelegramBackend(ErrBot):
         """
         Convert a textual representation into a :class:`~TelegramPerson` or :class:`~TelegramRoom`.
         """
-        log.debug("building an identifier from %s" % txtrep)
+        log.debug('building an identifier from %s.', txtrep)
         if not self._is_numeric(txtrep):
-            raise ValueError("Telegram identifiers must be numeric")
+            raise ValueError('Telegram identifiers must be numeric.')
         id_ = int(txtrep)
         if id_ > 0:
             return TelegramPerson(id=id_)

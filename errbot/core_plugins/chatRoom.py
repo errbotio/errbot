@@ -15,13 +15,13 @@ class ChatRoom(BotPlugin):
         if not self.connected:
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:
-                self.log.debug('Try to join room %s' % repr(room))
+                self.log.debug('Try to join room %s', repr(room))
                 try:
                     self._join_room(room)
                 except Exception:
                     # Ensure failure to join a room doesn't crash the plugin
                     # as a whole.
-                    self.log.exception("Joining room %s failed", repr(room))
+                    self.log.exception(f'Joining room {repr(room)} failed')
 
     def _join_room(self, room):
         username = self.bot_config.CHATROOM_FN
@@ -226,7 +226,7 @@ class ChatRoom(BotPlugin):
             if msg.is_direct:
                 username = msg.frm.person
                 if username in self.bot_config.CHATROOM_RELAY:
-                    self.log.debug('Message to relay from %s.' % username)
+                    self.log.debug('Message to relay from %s.', username)
                     body = msg.body
                     rooms = self.bot_config.CHATROOM_RELAY[username]
                     for roomstr in rooms:
@@ -236,9 +236,9 @@ class ChatRoom(BotPlugin):
                 chat_room = str(fr.room)
                 if chat_room in self.bot_config.REVERSE_CHATROOM_RELAY:
                     users_to_relay_to = self.bot_config.REVERSE_CHATROOM_RELAY[chat_room]
-                    self.log.debug('Message to relay to %s.' % users_to_relay_to)
-                    body = '[%s] %s' % (fr.person, msg.body)
+                    self.log.debug('Message to relay to %s.', users_to_relay_to)
+                    body = f'[{fr.person}] {msg.body}'
                     for user in users_to_relay_to:
                         self.send(user, body)
         except Exception as e:
-            self.log.exception('crashed in callback_message %s' % e)
+            self.log.exception(f'crashed in callback_message {e}')

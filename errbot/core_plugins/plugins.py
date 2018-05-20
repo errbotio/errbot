@@ -20,29 +20,30 @@ class Plugins(BotPlugin):
         """
         args = args.strip()
         if not args:
-            yield "Please specify a repository listed in '!repos' or " \
-                  "give me the URL to a git repository that I should clone for you."
+            yield 'Please specify a repository listed in "!repos" or ' \
+                  'give me the URL to a git repository that I should clone for you.'
             return
         try:
-            yield "Installing %s..." % args
+            yield f'Installing {args}...'
             local_path = self._bot.repo_manager.install_repo(args)
             errors = self._bot.plugin_manager.update_dynamic_plugins()
             if errors:
-                yield 'Some plugins are generating errors:\n' + '\n'.join(errors.values())
+                v = '\n'.join(errors.values())
+                yield f'Some plugins are generating errors:\n{v}.'
                 # if the load of the plugin failed, uninstall cleanly teh repo
                 for path in errors.keys():
                     if str(path).startswith(local_path):
-                        yield 'Removing %s as it did not load correctly.' % local_path
+                        yield f'Removing {local_path} as it did not load correctly.'
                         shutil.rmtree(local_path)
             else:
-                yield ("A new plugin repository has been installed correctly from "
-                       "%s. Refreshing the plugins commands..." % args)
+                yield f'A new plugin repository has been installed correctly from {args}. ' \
+                      f'Refreshing the plugins commands...'
             loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
             if loading_errors:
                 yield loading_errors
-            yield "Plugins reloaded."
+            yield 'Plugins reloaded.'
         except RepoException as re:
-            yield "Error installing the repo: %s" % re
+            yield f'Error installing the repo: {re}'
 
     @botcmd(admin_only=True)
     def repos_uninstall(self, _, repo_name):
@@ -61,7 +62,7 @@ class Plugins(BotPlugin):
         plugin_path = os.path.join(self._bot.repo_manager.plugin_dir, repo_name)
         self._bot.plugin_manager.remove_plugins_from_path(plugin_path)
         self._bot.repo_manager.uninstall_repo(repo_name)
-        yield 'Repo %s removed.' % repo_name
+        yield f'Repo {repo_name} removed.'
 
     @botcmd(template='repos')
     def repos(self, _, args):
@@ -84,7 +85,7 @@ class Plugins(BotPlugin):
             from_index = self._bot.repo_manager.get_repo_from_index(repo_name)
 
             if from_index is not None:
-                description = '\n'.join(('%s: %s' % (plug.name, plug.documentation) for plug in from_index))
+                description = '\n'.join((f'{plug.name}: {plug.documentation}' for plug in from_index))
             else:
                 description = 'No description.'
 
@@ -120,19 +121,19 @@ class Plugins(BotPlugin):
 
         for d, success, feedback in results:
             if success:
-                yield "Update of %s succeeded...\n\n%s\n\n" % (d, feedback)
+                yield f'Update of {d} succeeded...\n\n{feedback}\n\n'
             else:
-                yield "Update of %s failed...\n\n%s" % (d, feedback)
+                yield f'Update of {d} failed...\n\n{feedback}'
 
             for plugin in self._bot.plugin_manager.getAllPlugins():
                 if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
                     name = plugin.name
-                    yield '/me is reloading plugin %s' % name
+                    yield f'/me is reloading plugin {name}'
                     try:
                         self._bot.plugin_manager.reload_plugin_by_name(plugin.name)
-                        yield "Plugin %s reloaded." % plugin.name
+                        yield f'Plugin {plugin.name} reloaded.'
                     except PluginActivationException as pae:
-                        yield 'Error reactivating plugin %s: %s' % (plugin.name, pae)
+                        yield f'Error reactivating plugin {plugin.name}: {pae}'
         yield "Done."
 
     @botcmd(split_args_with=' ', admin_only=True)
@@ -152,25 +153,22 @@ class Plugins(BotPlugin):
         """
         plugin_name = args[0]
         if self._bot.plugin_manager.is_plugin_blacklisted(plugin_name):
-            return 'Load this plugin first with ' + self._bot.prefix + 'load %s' % plugin_name
+            return f'Load this plugin first with {self._bot.prefix} load {plugin_name}.'
         obj = self._bot.plugin_manager.get_plugin_obj_by_name(plugin_name)
         if obj is None:
-            return 'Unknown plugin or the plugin could not load %s' % plugin_name
+            return f'Unknown plugin or the plugin could not load {plugin_name}.'
         template_obj = obj.get_configuration_template()
         if template_obj is None:
             return 'This plugin is not configurable.'
 
         if len(args) == 1:
-            response = ("Default configuration for this plugin (you can copy and paste "
-                        "this directly as a command):\n\n"
-                        "```\n{prefix}plugin config {plugin_name} \n{config}\n```").format(
-                prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(template_obj))
+            response = f'Default configuration for this plugin (you can copy and paste this directly as a command):' \
+                       f'\n\n```\n{self._bot.prefix}plugin config {plugin_name} \n{pformat(template_obj)}\n```'
 
             current_config = self._bot.plugin_manager.get_plugin_configuration(plugin_name)
             if current_config:
-                response += ("\n\nCurrent configuration:\n\n"
-                             "```\n{prefix}plugin config {plugin_name} \n{config}\n```").format(
-                    prefix=self._bot.prefix, plugin_name=plugin_name, config=pformat(current_config))
+                response += f'\n\nCurrent configuration:\n\n```\n{self._bot.prefix}plugin config {plugin_name}.\n' \
+                            f'{pformat(current_config)}\n```'
             return response
 
         # noinspection PyBroadException
@@ -187,16 +185,16 @@ class Plugins(BotPlugin):
         try:
             self._bot.plugin_manager.deactivate_plugin(plugin_name)
         except PluginActivationException as pae:
-            return 'Error deactivating %s: %s' % (plugin_name, pae)
+            return f'Error deactivating {plugin_name}: {pae}.'
 
         try:
             self._bot.plugin_manager.activate_plugin(plugin_name)
         except PluginConfigurationException as ce:
             self.log.debug('Invalid configuration for the plugin, reverting the plugin to unconfigured.')
             self._bot.plugin_manager.set_plugin_configuration(plugin_name, None)
-            return 'Incorrect plugin configuration: %s' % ce
+            return f'Incorrect plugin configuration: {ce}.'
         except PluginActivationException as pae:
-            return 'Error activating plugin: %s' % pae
+            return f'Error activating plugin: {pae}.'
 
         return 'Plugin configuration done.'
 
@@ -228,15 +226,15 @@ class Plugins(BotPlugin):
             return
 
         if name not in self._bot.plugin_manager.get_all_active_plugin_names():
-            answer = 'Warning: plugin %s is currently not activated. ' % name
-            answer += 'Use `%splugin activate %s` to activate it.' % (self._bot.prefix, name)
+            answer = f'Warning: plugin {name} is currently not activated. '
+            answer += f'Use `{self._bot.prefix}plugin activate {name}` to activate it.'
             yield answer
 
         try:
             self._bot.plugin_manager.reload_plugin_by_name(name)
-            yield 'Plugin %s reloaded.' % name
+            yield f'Plugin {name} reloaded.'
         except PluginActivationException as pae:
-            yield 'Error activating plugin %s: %s' % (name, pae)
+            yield f'Error activating plugin {name}: {pae}.'
 
     @botcmd(admin_only=True)
     def plugin_activate(self, _, args):
@@ -254,8 +252,8 @@ class Plugins(BotPlugin):
         try:
             self._bot.plugin_manager.activate_plugin(args)
         except PluginActivationException as pae:
-            return 'Error activating plugin: %s' % pae
-        return 'Plugin {} activated.'.format(args)
+            return f'Error activating plugin: {pae}'
+        return f'Plugin {args} activated.'
 
     @botcmd(admin_only=True)
     def plugin_deactivate(self, _, args):
@@ -273,8 +271,8 @@ class Plugins(BotPlugin):
         try:
             self._bot.plugin_manager.deactivate_plugin(args)
         except PluginActivationException as pae:
-            return 'Error deactivating %s: %s' % (args, pae)
-        return 'Plugin {} deactivated.'.format(args)
+            return f'Error deactivating {args}: {pae}'
+        return f'Plugin {args} deactivated.'
 
     @botcmd(admin_only=True)
     def plugin_blacklist(self, _, args):
@@ -288,7 +286,7 @@ class Plugins(BotPlugin):
             try:
                 self._bot.plugin_manager.deactivate_plugin(args)
             except PluginActivationException as pae:
-                return 'Error deactivating %s: %s' % (args, pae)
+                return f'Error deactivating {args}: {pae}.'
         return self._bot.plugin_manager.blacklist_plugin(args)
 
     @botcmd(admin_only=True)
@@ -302,6 +300,6 @@ class Plugins(BotPlugin):
             try:
                 self._bot.plugin_manager.activate_plugin(args)
             except PluginActivationException as pae:
-                return 'Error activating plugin: %s' % pae
+                return f'Error activating plugin: {pae}'
 
         return self._bot.plugin_manager.unblacklist_plugin(args)

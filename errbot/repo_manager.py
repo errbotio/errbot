@@ -228,7 +228,7 @@ class BotRepoManager(StoreMixin):
             feedback = p.stdout.read().decode('utf-8')
             error_feedback = p.stderr.read().decode('utf-8')
             if p.wait():
-                raise RepoException("Could not load this plugin: \n\n%s\n\n---\n\n%s" % (feedback, error_feedback))
+                raise RepoException(f'Could not load this plugin: \n\n{feedback}\n\n---\n\n{error_feedback}')
 
         self.add_plugin_repo(human_name, repo_url)
         return os.path.join(self.plugin_dir, human_name)

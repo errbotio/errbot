@@ -13,20 +13,19 @@ class Flows(BotPlugin):
 
     def recurse_node(self, response: io.StringIO, stack, f: FlowNode, flow: Flow = None):
         if f in stack:
-            response.write('%s↺<br>' % ('&emsp;&nbsp;' * (len(stack))))
+            response.write(f'{"&emsp;&nbsp;" * (len(stack))}↺<br>')
             return
         if isinstance(f, FlowRoot):
             doc = f.description if flow else ''
             response.write('Flow [' + f.name + '] ' + doc + ' <br>')
             if flow and flow.current_step == f:
-                response.write('↪&nbsp;&nbsp;Start (_%s_)<br>' % str(flow.requestor))
+                response.write(f'↪&nbsp;&nbsp;Start (_{flow.requestor}_)<br>')
         else:
             cmd = 'END' if f is FLOW_END else self._bot.all_commands[f.command]
-            requestor = '(_%s_)' % str(flow.requestor) if flow and flow.current_step == f else ''
+            requestor = f'(_{str(flow.requestor)}_)' if flow and flow.current_step == f else ''
             doc = cmd.__doc__ if flow and f is not FLOW_END else ''
-            response.write('%s↪&nbsp;&nbsp;**%s** %s %s<br>' % ('&emsp;&nbsp;' * len(stack),
-                                                                f if f is not FLOW_END else 'END', doc if doc else '',
-                                                                requestor))
+            response.write(f'{"&emsp;&nbsp;" * len(stack)}'
+                           f'↪&nbsp;&nbsp;**{f if f is not FLOW_END else "END"}** {doc if doc else ""} {requestor}<br>')
         for _, sf in f.children:
             self.recurse_node(response, stack + [f], sf, flow)
 
@@ -35,11 +34,11 @@ class Flows(BotPlugin):
         """ Shows the structure of a flow.
         """
         if not args:
-            return "You need to specify a flow name."
+            return 'You need to specify a flow name.'
         with io.StringIO() as response:
             flow_node = self._bot.flow_executor.flow_roots.get(args, None)
             if flow_node is None:
-                return "Flow %s doesn't exist." % args
+                return f"Flow {args} doesn't exist."
             self.recurse_node(response, [], flow_node)
             return response.getvalue()
 
@@ -70,9 +69,9 @@ class Flows(BotPlugin):
             try:
                 context = json.loads(json_payload)
             except Exception as e:
-                return 'Cannot parse json %s: %s' % (json_payload, e)
+                return f'Cannot parse json {json_payload}: {e}.'
         self._bot.flow_executor.start_flow(flow_name, msg.frm, context)
-        return 'Flow **%s** started ...' % flow_name
+        return f'Flow **{flow_name}** started ...'
 
     @botcmd()
     def flows_status(self, msg, args):
@@ -84,7 +83,7 @@ class Flows(BotPlugin):
 
             else:
                 if not [flow for flow in self._bot.flow_executor.in_flight if self.check_user(msg, flow)]:
-                    response.write('No Flow started for current user: \n{}\n'.format(get_acl_usr(msg)))
+                    response.write(f'No Flow started for current user: {get_acl_usr(msg)}.\n')
 
                 else:
                     if args:

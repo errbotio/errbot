@@ -130,13 +130,13 @@ class IRCRoomOccupant(IRCPerson, RoomOccupant):
         return self._room
 
     def __unicode__(self):
-        return "%s" % self._nickmask
+        return self._nickmask
 
     def __str__(self):
         return self.__unicode__()
 
     def __repr__(self):
-        return "<{} - {}>".format(self.__unicode__(), super().__repr__())
+        return f'<{self.__unicode__()} - {super().__repr__()}>'
 
 
 class IRCRoom(Room):
@@ -367,12 +367,12 @@ class IRCConnection(SingleServerIRCBot):
         self.connection.connect(*args, connect_factory=connection_factory, **kwargs)
 
     def on_welcome(self, _, e):
-        log.info("IRC welcome %s" % e)
+        log.info("IRC welcome %s", e)
 
         # try to identify with NickServ if there is a NickServ password in the
         # config
         if self.nickserv_password:
-            msg = 'identify %s' % self.nickserv_password
+            msg = f'identify {self.nickserv_password}'
             self.send_private_message('NickServ', msg)
 
         # Must be done in a background thread, otherwise the join room
@@ -386,7 +386,7 @@ class IRCConnection(SingleServerIRCBot):
         msg = Message(e.arguments[0], extras={'notice': notice})
         room_name = e.target
         if room_name[0] != '#' and room_name[0] != '$':
-            raise Exception('[%s] is not a room' % room_name)
+            raise Exception(f'[{room_name}] is not a room')
         room = IRCRoom(room_name, self.bot)
         msg.frm = IRCRoomOccupant(e.source, room)
         msg.to = room
@@ -422,10 +422,10 @@ class IRCConnection(SingleServerIRCBot):
         if not self._reconnect_on_kick:
             log.info("RECONNECT_ON_KICK is 0 or None, won't try to reconnect")
             return
-        log.info("Got kicked out of %s... reconnect in %d seconds... " % (e.target, self._reconnect_on_kick))
+        log.info('Got kicked out of %s... reconnect in %d seconds... ', e.target, self._reconnect_on_kick)
 
         def reconnect_channel(name):
-            log.info("Reconnecting to %s after having beeing kicked" % name)
+            log.info('Reconnecting to %s after having beeing kicked.', name)
             self.bot.query_room(name).join()
         t = threading.Timer(self._reconnect_on_kick, reconnect_channel, [e.target, ])
         t.daemon = True
@@ -467,9 +467,9 @@ class IRCConnection(SingleServerIRCBot):
     def on_dcc_connect(self, dcc, event):
         stream = self.transfers.get(dcc, None)
         if stream is None:
-            log.error("DCC connect on a none registered connection")
+            log.error('DCC connect on a none registered connection')
             return
-        log.debug("Start transfer for %s" % stream.identifier)
+        log.debug('Start transfer for %s.', stream.identifier)
         stream.accept()
         self.send_chunk(stream, dcc)
 
@@ -602,24 +602,24 @@ class IRCConnection(SingleServerIRCBot):
             return
         acked = struct.unpack("!I", event.arguments[0])[0]
         if acked == stream.size:
-            log.info("File %s successfully transfered to %s" % (stream.name, stream.identifier))
+            log.info('File %s successfully transfered to %s', stream.name, stream.identifier)
             dcc.disconnect()
             self.transfers.pop(dcc)
         elif acked == stream.transfered:
-            log.debug("Chunk for file %s successfully transfered to %s (%d/%d)  " %
-                      (stream.name, stream.identifier, stream.transfered, stream.size))
+            log.debug('Chunk for file %s successfully transfered to %s (%d/%d).',
+                      stream.name, stream.identifier, stream.transfered, stream.size)
             self.send_chunk(stream, dcc)
         else:
-            log.debug("Partial chunk for file %s successfully transfered to %s (%d/%d), wait for more" %
-                      (stream.name, stream.identifier, stream.transfered, stream.size))
+            log.debug('Partial chunk for file %s successfully transfered to %s (%d/%d), wait for more',
+                      stream.name, stream.identifier, stream.transfered, stream.size)
 
-    def away(self, message=""):
+    def away(self, message=''):
         """
         Extend the original implementation to support AWAY.
         To set an away message, set message to something.
         To cancel an away message, leave message at empty string.
         """
-        self.connection.send_raw(" ".join(["AWAY", message]).strip())
+        self.connection.send_raw(' '.join(['AWAY', message]).strip())
 
 
 class IRCBackend(ErrBot):
@@ -685,7 +685,7 @@ class IRCBackend(ErrBot):
         if status == ONLINE:
             self.conn.away()  # cancels the away message
         else:
-            self.conn.away('[%s] %s' % (status, message))
+            self.conn.away(f'[{status}] {message}')
 
     def send_stream_request(self, identifier, fsource, name=None, size=None, stream_type=None):
         return self.conn.send_stream_request(identifier, fsource, name, size, stream_type)
@@ -724,7 +724,7 @@ class IRCBackend(ErrBot):
         return super().build_message(text)
 
     def build_identifier(self, txtrep):
-        log.debug("Build identifier from [%s]" % txtrep)
+        log.debug('Build identifier from %s.', txtrep)
         # A textual representation starting with # means that we are talking
         # about an IRC channel -- IRCRoom in internal err-speak.
         if txtrep.startswith('#'):

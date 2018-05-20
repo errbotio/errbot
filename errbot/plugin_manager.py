@@ -153,8 +153,6 @@ def check_errbot_version(plugin_info: PluginInfo):
     Raises IncompatiblePluginException if not.
     """
     name, min_version, max_version = plugin_info.name, plugin_info.errbot_minversion, plugin_info.errbot_maxversion
-    log.info('Activating %s with min_err_version = %s and max_version = %s',
-             name, min_version, max_version)
     current_version = version2tuple(VERSION)
     if min_version and min_version > current_version:
         raise IncompatiblePluginException(
@@ -201,7 +199,6 @@ class BotPluginManager(StoreMixin):
     def attach_bot(self, bot):
         self.bot = bot
 
-
     def check_enabled_core_plugin(self, plugin_info: PluginInfo) -> bool:
         """ Checks if the given plugin is core and if it is, if it is part of the enabled core_plugins_list.
         :param plugin_info: the info from the plugin
@@ -211,7 +208,6 @@ class BotPluginManager(StoreMixin):
 
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         return self.plugins.get(name, None)
-
 
     def reload_plugin_by_name(self, name):
         """
@@ -280,7 +276,6 @@ class BotPluginManager(StoreMixin):
                 modu1e = module_from_spec(spec)
                 spec.loader.exec_module(modu1e)
                 sys.modules[module_name] = modu1e
-
 
                 # introspect the modules to find plugin classes
                 def is_plugin(member):
@@ -421,16 +416,16 @@ class BotPluginManager(StoreMixin):
                 log.exception('Error loading %s', name)
                 errors += 'Error: %s failed to activate: %s\n' % (name, e)
 
-        # log.debug('Activate flow plugins ...')
-        # for flow in self.flows:
-        #     try:
-        #         if not flow.is_activated:
-        #             name = flow.name
-        #             log.info('Activate flow: %s' % name)
-        #             self.activate_flow(name)
-        #     except Exception as e:
-        #         log.exception("Error loading flow %s" % name)
-        #         errors += 'Error: flow %s failed to start: %s\n' % (name, e)
+        log.debug('Activate flow plugins ...')
+        for flow in self.flows:
+            try:
+                if not flow.is_activated:
+                    name = flow.name
+                    log.info('Activate flow: %s' % name)
+                    self.activate_flow(name)
+            except Exception as e:
+                log.exception("Error loading flow %s" % name)
+                errors += 'Error: flow %s failed to start: %s\n' % (name, e)
         return errors
 
     def _activate_plugin(self, plugin: BotPlugin, plugin_info: PluginInfo):
@@ -464,6 +459,21 @@ class BotPluginManager(StoreMixin):
             self.deactivate_plugin(name)
             raise
 
+    def activate_flow(self, name: str):
+        if name not in self.flows:
+            raise PluginActivationException('Could not find the flow named %s.' % name)
+
+        flow = self.flows[name]
+        if flow.is_activated:
+            raise PluginActivationException('Flow %s is already active.' % name)
+        flow.activate()
+
+    def deactivate_flow(self, name: str):
+        flow = self.flows[name]
+        if not flow.is_activated:
+            raise PluginActivationException('Flow %s is already inactive.' % name)
+        flow.deactivate()
+
     def activate_plugin(self, name: str):
         """
         Activate a plugin with its dependencies.
@@ -474,15 +484,14 @@ class BotPluginManager(StoreMixin):
 
             plugin = self.plugins[name]
             if plugin.is_activated:
-                raise PluginActivationException('Plugin already in active list')
+                raise PluginActivationException('Plugin %s already activate.' % name)
 
             plugin_info = self.plugin_infos[name]
 
             if not check_python_plug_section(plugin_info):
                 return None
 
-            if not check_errbot_version(plugin_info):
-                return None
+            check_errbot_version(plugin_info)
 
             dep_track = set()
             depends_on = self._activate_plugin_dependencies(name, dep_track)

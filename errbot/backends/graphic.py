@@ -174,7 +174,8 @@ class ChatApplication(QtGui.QApplication):
         size = 50 if self.demo_mode else 25
         user = f'<img src="file://{prompt_path}" height={size:d} />'
         bot = f'<img src="file://{icon_path}" height={size:d}/>'
-        self.buffer += f'<div class="{"receiving" if receiving else "sending"}">{bot if receiving else user}<br/>{text}</div>'
+        self.buffer += f'<div class="{"receiving" if receiving else "sending"}">{bot if receiving else user}' \
+                       f'<br/>{text}</div>'
 
         self.update_webpage()
 

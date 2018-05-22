@@ -114,14 +114,8 @@ class XMPPRoom(XMPPIdentifier, Room):
         """
         room = str(self)
         self.xep0045.joinMUC(room, username, password=password, wait=True)
-        self._bot.conn.add_event_handler(
-            "muc::{}::got_online".format(room),
-            self._bot.user_joined_chat
-        )
-        self._bot.conn.add_event_handler(
-            "muc::{}::got_offline".format(room),
-            self._bot.user_left_chat
-        )
+        self._bot.conn.add_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
+        self._bot.conn.add_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
         # Room configuration can only be done once a MUC presence stanza
         # has been received from the server. This HAS to take place in a
         # separate thread because of how SleekXMPP processes these stanzas.
@@ -129,7 +123,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         t.setDaemon(True)
         t.start()
         self._bot.callback_room_joined(self)
-        log.info("Joined room {}".format(room))
+        log.info('Joined room %s.', room)
 
     def leave(self, reason=None):
         """
@@ -144,18 +138,12 @@ class XMPPRoom(XMPPIdentifier, Room):
         try:
             self.xep0045.leaveMUC(room=room, nick=self.xep0045.ourNicks[room], msg=reason)
 
-            self._bot.conn.del_event_handler(
-                "muc::{}::got_online".format(room),
-                self._bot.user_joined_chat
-            )
-            self._bot.conn.del_event_handler(
-                "muc::{}::got_offline".format(room),
-                self._bot.user_left_chat
-            )
-            log.info("Left room {}".format(room))
+            self._bot.conn.del_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
+            self._bot.conn.del_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
+            log.info('Left room %s.', room)
             self._bot.callback_room_left(self)
         except KeyError:
-            log.debug("Trying to leave {} while not in this room".format(room))
+            log.debug('Trying to leave %s while not in this room.', room)
 
     def create(self):
         """
@@ -175,7 +163,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         Calling this on a non-existing room is a no-op.
         """
         self.xep0045.destroy(str(self))
-        log.info("Destroyed room {!s}".format(self))
+        log.info('Destroyed room %s.', self)
 
     @property
     def exists(self):
@@ -186,9 +174,7 @@ class XMPPRoom(XMPPIdentifier, Room):
             Returns `True` if the room exists, `False` otherwise.
         """
         logging.warning(
-            "XMPP back-end does not support determining if a room exists. "
-            "Returning the result of joined instead."
-        )
+            'XMPP back-end does not support determining if a room exists. Returning the result of joined instead.')
         return self.joined
 
     @property
@@ -260,7 +246,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         room = str(self)
         for jid in args:
             self.xep0045.invite(room, jid)
-            log.info("Invited {} to {}".format(jid, room))
+            log.info('Invited %s to %s.', jid, room)
 
     def configure(self):
         """
@@ -281,12 +267,11 @@ class XMPPRoom(XMPPIdentifier, Room):
             )
 
         if affiliation == "owner":
-            log.debug("Configuring room {} because we have owner affiliation".format(room))
+            log.debug('Configuring room %s: we have owner affiliation.', room)
             form = self.xep0045.getRoomConfig(room)
             self.xep0045.configureRoom(room, form)
         else:
-            log.debug("Not configuring room {} because we don't have owner affiliation (affiliation={})"
-                      .format(room, affiliation))
+            log.debug("Not configuring room %s: we don't have owner affiliation (affiliation=%s)", room, affiliation)
 
 
 class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
@@ -605,7 +590,7 @@ class XMPPBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '@{0} {1}'.format(identifier.nick, message.body)
+        message.body = f'@{identifier.nick} {message.body}'
 
     def __hash__(self):
         return 0

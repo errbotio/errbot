@@ -108,12 +108,12 @@ class ErrBot(Backend, StoreMixin):
         """
         for plugin in self.plugin_manager.get_all_active_plugin_objects_ordered():
             plugin_name = plugin.name
-            log.debug("Triggering {} on {}".format(method, plugin_name))
+            log.debug('Triggering %s on %s.', method, plugin_name)
             # noinspection PyBroadException
             try:
                 getattr(plugin, method)(*args, **kwargs)
             except Exception:
-                log.exception("{} on {} crashed".format(method, plugin_name))
+                log.exception('%s on %s crashed.', method, plugin_name)
 
     def send(self, identifier, text, in_reply_to=None, groupchat_nick_reply=False):
         """ Sends a simple message to the specified user.
@@ -246,7 +246,7 @@ class ErrBot(Backend, StoreMixin):
                 length = len(prefix)
                 if tomatch.startswith(prefix) and length > longest:
                     longest = length
-            log.debug("Called with alternate prefix '{}'".format(text[:longest]))
+            log.debug('Called with alternate prefix "%s"', text[:longest])
             text = text[longest:]
 
             # Now also remove the separator from the text
@@ -315,13 +315,12 @@ class ErrBot(Backend, StoreMixin):
                 else:
                     match = func._err_command_re_pattern.search(text)
                 if match:
-                    log.debug("Matching '{}' against '{}' produced a match"
-                              .format(text, func._err_command_re_pattern.pattern))
+                    log.debug('Matching "%s" against "%s" produced a match.', text, func._err_command_re_pattern.pattern)
                     matched_on_re_command = True
                     self._process_command(msg, name, text, match)
                 else:
-                    log.debug("Matching '{}' against '{}' produced no match"
-                              .format(text, func._err_command_re_pattern.pattern))
+                    log.debug('Matching "%s" against "%s" produced no match.',
+                              text, func._err_command_re_pattern.pattern)
         if matched_on_re_command:
             return True
 
@@ -393,10 +392,7 @@ class ErrBot(Backend, StoreMixin):
                 else:
                     args = args.split(f._err_command_split_args_with)
             except Exception as e:
-                self.send_simple_reply(
-                    msg,
-                    "Sorry, I couldn't parse your arguments. {}".format(e)
-                )
+                self.send_simple_reply(msg, f"Sorry, I couldn't parse your arguments. {e}")
                 return
 
         if self.bot_config.BOT_ASYNC:
@@ -636,11 +632,9 @@ class ErrBot(Backend, StoreMixin):
     def connect_callback(self):
         log.info('Activate internal commands')
         if self._plugin_errors_during_startup:
-            errors = "Some plugins failed to start during bot startup:\n\n{errors}".format(
-                errors=self._plugin_errors_during_startup
-            )
+            errors = f'Some plugins failed to start during bot startup:\n\n{self._plugin_errors_during_startup}'
         else:
-            errors = ""
+            errors = ''
         errors += self.plugin_manager.activate_non_started_plugins()
         if errors:
             self.warn_admins(errors)
@@ -661,7 +655,7 @@ class ErrBot(Backend, StoreMixin):
         if self.prefix == '!':
             return command.__doc__
         ununderscore_keys = (m.replace('_', ' ') for m in self.all_commands.keys())
-        pat = re.compile(r'!({})'.format('|'.join(ununderscore_keys)))
+        pat = re.compile(fr'!({"|".join(ununderscore_keys)})')
         return re.sub(pat, self.prefix + '\1', command.__doc__)
 
     @staticmethod

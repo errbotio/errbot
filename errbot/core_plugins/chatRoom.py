@@ -28,9 +28,9 @@ class ChatRoom(BotPlugin):
         password = None
         if isinstance(room, (tuple, list)):
             room, password = room  # unpack
-            self.log.info("Joining room {} with username {} and password".format(room, username))
+            self.log.info('Joining room %s with username %s and pass ***.', room, username)
         else:
-            self.log.info("Joining room {} with username {}".format(room, username))
+            self.log.info('Joining room %s with username %s.', room, username)
         self.query_room(room).join(username=self.bot_config.CHATROOM_FN, password=password)
 
     def deactivate(self):
@@ -55,7 +55,7 @@ class ChatRoom(BotPlugin):
             return "Please tell me which chatroom to create."
         room = self.query_room(args[0])
         room.create()
-        return "Created the room {}".format(room)
+        return f'Created the room {room}.'
 
     @botcmd(split_args_with=ShlexArgParser())
     def room_join(self, message, args):
@@ -82,10 +82,10 @@ class ChatRoom(BotPlugin):
         room_name, password = (args[0], None) if arglen == 1 else (args[0], args[1])
         room = self.query_room(room_name)
         if room is None:
-            return 'Cannot find room {}.'.format(room_name)
+            return f'Cannot find room {room_name}.'
 
         room.join(username=self.bot_config.CHATROOM_FN, password=password)
-        return "Joined the room {}".format(room_name)
+        return f'Joined the room {room_name}.'
 
     @botcmd(split_args_with=SeparatorArgParser())
     def room_leave(self, message, args):
@@ -102,9 +102,9 @@ class ChatRoom(BotPlugin):
         !room leave #example-room
         """
         if len(args) < 1:
-            return "Please tell me which chatroom to leave."
+            return 'Please tell me which chatroom to leave.'
         self.query_room(args[0]).leave()
-        return "Left the room {}".format(args[0])
+        return f'Left the room {args[0]}.'
 
     @botcmd(split_args_with=SeparatorArgParser())
     def room_destroy(self, message, args):
@@ -123,7 +123,7 @@ class ChatRoom(BotPlugin):
         if len(args) < 1:
             return "Please tell me which chatroom to destroy."
         self.query_room(args[0]).destroy()
-        return "Destroyed the room {}".format(args[0])
+        return f'Destroyed the room {args[0]}.'
 
     @botcmd(split_args_with=SeparatorArgParser())
     def room_invite(self, message, args):
@@ -140,9 +140,9 @@ class ChatRoom(BotPlugin):
         !room invite #example-room bob
         """
         if len(args) < 2:
-            return "Please tell me which person(s) to invite into which room."
+            return 'Please tell me which person(s) to invite into which room.'
         self.query_room(args[0]).invite(*args[1:])
-        return "Invited {} into the room {}".format(", ".join(args[1:]), args[0])
+        return f'Invited {", ".join(args[1:])} into the room {args[0]}.'
 
     @botcmd
     def room_list(self, message, args):
@@ -157,7 +157,8 @@ class ChatRoom(BotPlugin):
         """
         rooms = [str(room) for room in self.rooms()]
         if len(rooms):
-            return "I'm currently in these rooms:\n\t{}".format("\n\t".join(rooms))
+            rooms_str = '\n\t'.join(rooms)
+            return f"I'm currently in these rooms:\n\t{rooms_str}"
         else:
             return "I'm not currently in any rooms."
 
@@ -181,9 +182,10 @@ class ChatRoom(BotPlugin):
         for room in args:
             try:
                 occupants = [o.person for o in self.query_room(room).occupants]
-                yield "Occupants in {}:\n\t{}".format(room, "\n\t".join(occupants))
+                occupants_str = "\n\t".join(occupants)
+                yield f'Occupants in {room}:\n\t{occupants_str}.'
             except RoomNotJoinedError as e:
-                yield "Cannot list occupants in {}: {}".format(room, e)
+                yield f'Cannot list occupants in {room}: {e}.'
 
     @botcmd(split_args_with=ShlexArgParser())
     def room_topic(self, message, args):
@@ -209,17 +211,17 @@ class ChatRoom(BotPlugin):
             try:
                 topic = self.query_room(args[0]).topic
             except RoomNotJoinedError as e:
-                return "Cannot get the topic for {}: {}".format(args[0], e)
+                return f'Cannot get the topic for {args[0]}: {e}.'
             if topic is None:
-                return "No topic is set for {}".format(args[0])
+                return f'No topic is set for {args[0]}.'
             else:
-                return "Topic for {}: {}".format(args[0], topic)
+                return f'Topic for {args[0]}: {topic}.'
         else:
             try:
                 self.query_room(args[0]).topic = args[1]
             except RoomNotJoinedError as e:
-                return "Cannot set the topic for {}: {}".format(args[0], e)
-            return "Topic for {} set.".format(args[0])
+                return f'Cannot set the topic for {args[0]}: {e}.'
+            return f"Topic for {args[0]} set."
 
     def callback_message(self, msg):
         try:

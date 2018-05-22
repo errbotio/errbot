@@ -95,13 +95,11 @@ class Flows(BotPlugin):
                     else:
                         for flow in self._bot.flow_executor.in_flight:
                             if self.check_user(msg, flow):
-                                next_steps = ['\\*{}\\*'.format(str(step[1].command)) for step in
+                                next_steps = [f'\\*{str(step[1].command)}\\*' for step in
                                               flow._current_step.children if step[1].command]
-                                template = '\\>>> {} is using flow \\*{}\\* on step \\*{}\\*\nNext Step(s): \n{}'
-                                text = template.format(str(flow.requestor),
-                                                       flow.name,
-                                                       str(flow.current_step),
-                                                       '\n'.join(next_steps))
+                                next_steps_str = '\n'.join(next_steps)
+                                text = f'\\>>> {str(flow.requestor)} is using flow \\*{flow.name}\\* on step ' \
+                                       f'\\*{flow.current_step}\\*\nNext Step(s): \n{next_steps_str}'
                                 response.write(text)
             return response.getvalue()
 

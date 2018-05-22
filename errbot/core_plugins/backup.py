@@ -37,4 +37,4 @@ class Backup(BotPlugin):
                         f.write('pobj["' + key + '"] = ' + repr(value) + '\n')
                     f.write('pobj.close_storage()\n')
 
-        return f'The backup file has been written in {filename}.'
+        return f'The backup file has been written in "{filename}".'

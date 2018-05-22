@@ -95,7 +95,7 @@ def main():
                         help='Full path to your config.py (default: config.py in current working directory).')
 
     mode_selection = parser.add_mutually_exclusive_group()
-    mode_selection.add_argument('-v', '--version', action='version', version='Errbot version {}'.format(VERSION))
+    mode_selection.add_argument('-v', '--version', action='version', version=f'Errbot version {VERSION}')
     mode_selection.add_argument('-r', '--restore', nargs='?', default=None, const='default',
                                 help='restore a bot from backup.py (default: backup.py from the bot data directory)')
     mode_selection.add_argument('-l', '--list', action='store_true', help='list all available backends')

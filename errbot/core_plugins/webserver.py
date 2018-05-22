@@ -183,12 +183,12 @@ class Webserver(BotPlugin):
                    "package using for example `pip install pyOpenSSL`, then try again")
             return
 
-        yield ("Generating a new private key and certificate. This could take a "
-               "while if your system is slow or low on entropy")
+        yield ('Generating a new private key and certificate. This could take a '
+               'while if your system is slow or low on entropy')
         key_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_key.pem"))
         cert_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_certificate.pem"))
         make_ssl_certificate(key_path=key_path, cert_path=cert_path)
-        yield "Certificate successfully generated and saved in {}".format(self.bot_config.BOT_DATA_DIR)
+        yield f'Certificate successfully generated and saved in {self.bot_config.BOT_DATA_DIR}.'
 
         suggested_config = self.config
         suggested_config['SSL']['enabled'] = True
@@ -196,6 +196,5 @@ class Webserver(BotPlugin):
         suggested_config['SSL']['port'] = suggested_config['PORT'] + 1
         suggested_config['SSL']['key'] = key_path
         suggested_config['SSL']['certificate'] = cert_path
-        yield ("To enable SSL with this certificate, the following config "
-               "is recommended:")
-        yield "{!r}".format(suggested_config)
+        yield 'To enable SSL with this certificate, the following config is recommended:'
+        yield f'{suggested_config!r}'

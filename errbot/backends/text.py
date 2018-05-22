@@ -352,7 +352,7 @@ class TextBackend(ErrBot):
         self._react('-', msg, reaction)
 
     def _react(self, sign, msg, reaction):
-        self.send(msg.frm, 'reaction {}:{}:'.format(sign, reaction), in_reply_to=msg)
+        self.send(msg.frm, f'reaction {sign}:{reaction}:', in_reply_to=msg)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         log.debug("*** Changed presence to [%s] %s", (status, message))
@@ -394,4 +394,4 @@ class TextBackend(ErrBot):
         return self._rooms
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '{0} {1}'.format(identifier.person, message.body)
+        message.body = f'{identifier.person} {message.body}'

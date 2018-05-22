@@ -113,9 +113,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
                 sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
             logger.addHandler(sentryhandler)
         except ImportError:
-            log.exception(
-                "Unable to import selected SENTRY_TRANSPORT - {transport}".format(transport=config.SENTRY_TRANSPORT)
-            )
+            log.exception(f'Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}')
             exit(-1)
 
     logger.setLevel(config.BOT_LOG_LEVEL)

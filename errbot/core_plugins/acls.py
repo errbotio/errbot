@@ -65,7 +65,7 @@ class ACLS(BotPlugin):
         acl = self.bot_config.ACCESS_CONTROLS_DEFAULT.copy()
         for pattern, acls in self.bot_config.ACCESS_CONTROLS.items():
             if ':' not in pattern:
-                pattern = '*:{command}'.format(command=pattern)
+                pattern = f'*:{pattern}'
             if ciglob(cmd_str, (pattern,)):
                 acl.update(acls)
                 break

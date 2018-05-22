@@ -163,7 +163,7 @@ class IRCRoom(Room):
         return self.__unicode__()
 
     def __repr__(self):
-        return "<{} - {}>".format(self.__unicode__(), super().__repr__())
+        return f"<{self.__unicode__()} - {super().__repr__()}>"
 
     def cb_set_topic(self, current_topic):
         """
@@ -191,7 +191,7 @@ class IRCRoom(Room):
             password = ""  # nosec
 
         self.connection.join(self.room, key=password)
-        log.info("Joined room {}".format(self.room))
+        log.info('Joined room %s.', self.room)
 
     def leave(self, reason=None):
         """
@@ -204,23 +204,20 @@ class IRCRoom(Room):
             reason = ""
 
         self.connection.part(self.room, reason)
-        log.info("Leaving room {} with reason '{}'".format(self.room, reason if reason is not None else ''))
+        log.info('Leaving room %s with reason %s.', self.room, reason if reason is not None else '')
 
     def create(self):
         """
         Not supported on this back-end. Will join the room to ensure it exists, instead.
         """
-        logging.warning(
-            "IRC back-end does not support explicit creation, joining room "
-            "instead to ensure it exists."
-        )
+        logging.warning('IRC back-end does not support explicit creation, joining room instead to ensure it exists.')
         self.join()
 
     def destroy(self):
         """
         Not supported on IRC, will raise :class:`~errbot.backends.base.RoomError`.
         """
-        raise RoomError("IRC back-end does not support destroying rooms.")
+        raise RoomError('IRC back-end does not support destroying rooms.')
 
     @property
     def exists(self):
@@ -230,10 +227,8 @@ class IRCRoom(Room):
         :getter:
             Returns `True` if the room exists, `False` otherwise.
         """
-        logging.warning(
-            "IRC back-end does not support determining if a room exists. "
-            "Returning the result of joined instead."
-        )
+        logging.warning('IRC back-end does not support determining if a room exists. '
+                        'Returning the result of joined instead.')
         return self.joined
 
     @property
@@ -256,7 +251,7 @@ class IRCRoom(Room):
             topic has been set at all.
         """
         if not self.joined:
-            raise RoomNotJoinedError("Must join the room to get the topic")
+            raise RoomNotJoinedError('Must join the room to get the topic.')
         with self._topic_lock:
             return self._topic
 
@@ -269,7 +264,7 @@ class IRCRoom(Room):
             The topic to set.
         """
         if not self.joined:
-            raise RoomNotJoinedError("Must join the room to set the topic")
+            raise RoomNotJoinedError('Must join the room to set the topic.')
         self.connection.topic(self.room, topic)
 
     @property
@@ -287,8 +282,7 @@ class IRCRoom(Room):
             for nick in self._bot.conn.channels[self.room].users():
                 occupants.append(IRCRoomOccupant(nick, room=self.room))
         except KeyError:
-            raise RoomNotJoinedError("Must be in a room in order to \
-                                     see occupants.")
+            raise RoomNotJoinedError('Must be in a room in order to see occupants.')
         return occupants
 
     def invite(self, *args):
@@ -300,11 +294,11 @@ class IRCRoom(Room):
         """
         for nick in args:
             self.connection.invite(nick, self.room)
-            log.info("Invited {} to {}".format(nick, self.room))
+            log.info('Invited %s to %s.', nick, self.room)
 
     def __eq__(self, other):
         if not isinstance(other, IRCRoom):
-            log.warning("This is weird you are comparing an IRCRoom to a %s", type(other))
+            log.warning('This is weird you are comparing an IRCRoom to a %s.', type(other))
             return False
         return self.room == other.room
 
@@ -497,7 +491,7 @@ class IRCConnection(SingleServerIRCBot):
         if self.bot.bot_identifier.nick == leaving_nick:
             with self._rooms_lock:
                 self.bot.callback_room_left(self._rooms[leaving_room])
-            log.info("Left room {}".format(leaving_room))
+            log.info('Left room {}.', leaving_room)
 
     def on_endofnames(self, connection, event):
         """
@@ -769,4 +763,4 @@ class IRCBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '{0}: {1}'.format(identifier.nick, message.body)
+        message.body = f'{identifier.nick}: {message.body}'

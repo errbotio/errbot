@@ -217,12 +217,13 @@ class Plugins(BotPlugin):
         """reload a plugin: reload the code of the plugin leaving the activation status intact."""
         name = args.strip()
         if not name:
-            yield ('Please tell me which of the following plugins to reload:\n'
-                   '{}'.format(self.formatted_plugin_list(active_only=False)))
+            yield (
+                f'Please tell me which of the following plugins to reload:\n'
+                f'{self.formatted_plugin_list(active_only=False)}')
             return
         if name not in self._bot.plugin_manager.get_all_plugin_names():
-            yield ("{} isn't a valid plugin name. The current plugins are:\n"
-                   '{}'.format(name, self.formatted_plugin_list(active_only=False)))
+            yield (f'{name} isn\'t a valid plugin name. '
+                   f'The current plugins are:\n{self.formatted_plugin_list(active_only=False)}')
             return
 
         if name not in self._bot.plugin_manager.get_all_active_plugin_names():
@@ -241,13 +242,13 @@ class Plugins(BotPlugin):
         """activate a plugin. [calls .activate() on the plugin]"""
         args = args.strip()
         if not args:
-            return ("Please tell me which of the following plugins to activate:\n"
-                    "{}".format(self.formatted_plugin_list(active_only=False)))
+            return (f'Please tell me which of the following plugins to activate:\n'
+                    f'{self.formatted_plugin_list(active_only=False)}')
         if args not in self._bot.plugin_manager.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+            return (f"{args} isn't a valid plugin name. The current plugins are:\n"
+                    f"{self.formatted_plugin_list(active_only=False)}")
         if args in self._bot.plugin_manager.get_all_active_plugin_names():
-            return "{} is already activated.".format(args)
+            return f'{args} is already activated.'
 
         try:
             self._bot.plugin_manager.activate_plugin(args)
@@ -260,13 +261,13 @@ class Plugins(BotPlugin):
         """deactivate a plugin. [calls .deactivate on the plugin]"""
         args = args.strip()
         if not args:
-            return ("Please tell me which of the following plugins to deactivate:\n"
-                    "{}".format(self.formatted_plugin_list(active_only=False)))
+            return (f'Please tell me which of the following plugins to deactivate:\n'
+                    f'{self.formatted_plugin_list(active_only=False)}')
         if args not in self._bot.plugin_manager.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+            return (f"{args} isn't a valid plugin name. The current plugins are:\n"
+                    f"{self.formatted_plugin_list(active_only=False)}")
         if args not in self._bot.plugin_manager.get_all_active_plugin_names():
-            return "{} is already deactivated.".format(args)
+            return f'{args} is already deactivated.'
 
         try:
             self._bot.plugin_manager.deactivate_plugin(args)
@@ -279,8 +280,8 @@ class Plugins(BotPlugin):
         """Blacklist a plugin so that it will not be loaded automatically during bot startup.
         If the plugin is currently activated, it will deactiveate it first."""
         if args not in self._bot.plugin_manager.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+            return (f"{args} isn't a valid plugin name. The current plugins are:\n"
+                    f"{self.formatted_plugin_list(active_only=False)}")
 
         if args in self._bot.plugin_manager.get_all_active_plugin_names():
             try:
@@ -293,8 +294,8 @@ class Plugins(BotPlugin):
     def plugin_unblacklist(self, _, args):
         """Remove a plugin from the blacklist"""
         if args not in self._bot.plugin_manager.get_all_plugin_names():
-            return ("{} isn't a valid plugin name. The current plugins are:\n"
-                    "{}".format(args, self.formatted_plugin_list(active_only=False)))
+            return (f"{args} isn't a valid plugin name. The current plugins are:\n"
+                    f"{self.formatted_plugin_list(active_only=False)}")
 
         if args not in self._bot.plugin_manager.get_all_active_plugin_names():
             try:

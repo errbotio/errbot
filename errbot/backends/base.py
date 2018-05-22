@@ -698,23 +698,21 @@ class Backend(ABC):
                 if self.serve_once():
                     break  # Truth-y exit from serve_once means shutdown was requested
             except KeyboardInterrupt:
-                log.info("Interrupt received, shutting down..")
+                log.info('Interrupt received, shutting down..')
                 break
             except Exception:
-                log.exception("Exception occurred in serve_once:")
+                log.exception('Exception occurred in serve_once:')
 
-            log.info(
-                "Reconnecting in {delay} seconds ({count} attempted reconnections so far)".format(
-                    delay=self._reconnection_delay, count=self._reconnection_count)
-            )
+            log.info('Reconnecting in %d seconds (%d attempted reconnections so far).'
+                     , self._reconnection_delay, self._reconnection_count)
             try:
                 self._delay_reconnect()
                 self._reconnection_count += 1
             except KeyboardInterrupt:
-                log.info("Interrupt received, shutting down..")
+                log.info('Interrupt received, shutting down..')
                 break
 
-        log.info("Trigger shutdown")
+        log.info('Trigger shutdown')
         self.shutdown()
 
     def _delay_reconnect(self):

@@ -29,7 +29,7 @@ class Help(BotPlugin):
         """Return information about this Errbot instance and version"""
         git_version = self.is_git_directory()
         if git_version:
-            return {'version': "{} GIT CHECKOUT".format(git_version.decode("utf-8"))}
+            return dict(version=f"{git_version.decode('utf-8')} GIT CHECKOUT")
         else:
             return {'version': VERSION}
 
@@ -114,10 +114,7 @@ class Help(BotPlugin):
                 obj, commands = cls_obj_commands[cls]
                 name = obj.name
                 # shows class and description
-                usage += '\n**{name}**\n\n*{doc}*\n\n'.format(
-                    name=name,
-                    doc=cls.__errdoc__.strip() or '',
-                )
+                usage += f'\n**{name}**\n\n*{cls.__errdoc__.strip() or ""}*\n\n'
 
                 for name, command in sorted(commands):
                     if command._err_command_hidden:
@@ -144,10 +141,7 @@ class Help(BotPlugin):
                     usage += self.MSG_HELP_UNDEFINED_COMMAND
             else:
                 # filter out the commands related to this class
-                description = '\n**{name}**\n\n*{doc}*\n\n'.format(
-                    name=obj.name,
-                    doc=cls.__errdoc__.strip() or '',
-                )
+                description = f'\n**{obj.name}**\n\n*{cls.__errdoc__.strip() or ""}*\n\n'
                 pairs = []
                 for (name, command) in cmds:
                     if self.bot_config.HIDE_RESTRICTED_COMMANDS:
@@ -185,8 +179,8 @@ class Help(BotPlugin):
             cmd_doc = cmd_doc.split('\n')[0]
 
             if len(cmd_doc) > 80:
-                cmd_doc = '{doc}...'.format(doc=cmd_doc[:77])
+                cmd_doc = f'{cmd_doc[:77]}...'
 
-        help_str = '- **{prefix}{name}** - {doc}\n'.format(prefix=prefix, name=name, doc=cmd_doc)
+        help_str = f'- **{prefix}{name}** - {cmd_doc}\n'
 
         return help_str

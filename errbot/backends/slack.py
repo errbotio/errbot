@@ -328,7 +328,8 @@ class SlackBackend(ErrBot):
             response = json.loads(response.decode('utf-8'))
 
         if raise_errors and not response['ok']:
-            raise SlackAPIResponseError(f'Slack API call to {method} failed: {response[\'error\']}', error=response['error'])
+            raise SlackAPIResponseError(f"Slack API call to {method} failed: {response['error']}",
+                                        error=response['error'])
         return response
 
     def update_alternate_prefixes(self):
@@ -346,9 +347,9 @@ class SlackBackend(ErrBot):
         converted_prefixes = []
         for prefix in bot_prefixes:
             try:
-                converted_prefixes.append('<@{0}>'.format(self.username_to_userid(prefix)))
+                converted_prefixes.append(f'<@{self.username_to_userid(prefix)}>')
             except Exception as e:
-                log.error("Failed to look up Slack userid for alternate prefix '%s': %s", prefix, e)
+                log.error('Failed to look up Slack userid for alternate prefix "%s": %s', prefix, e)
 
         self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
         log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
@@ -359,7 +360,7 @@ class SlackBackend(ErrBot):
         else:
             self.sc = SlackClient(self.token, proxies=self.proxies)
 
-        log.info("Verifying authentication token")
+        log.info('Verifying authentication token')
         self.auth = self.api_call("auth.test", raise_errors=False)
         if not self.auth['ok']:
             raise SlackAPIResponseError(error=f"Couldn't authenticate with Slack. Server said: {self.auth['error']}")
@@ -518,11 +519,8 @@ class SlackBackend(ErrBot):
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
             channel_link_name = msg.to.name
 
-        msg.extras['url'] = 'https://{domain}.slack.com/archives/{channelid}/p{ts}'.format(
-            domain=self.sc.server.domain,
-            channelid=channel_link_name,
-            ts=self._ts_for_message(msg).replace('.', '')
-        )
+        msg.extras['url'] = f'https://{self.sc.server.domain}.slack.com/archives/' \
+                            f'{channel_link_name}/p{self._ts_for_message(msg).replace(".", "")}'
 
         self.callback_message(msg)
 
@@ -697,8 +695,8 @@ class SlackBackend(ErrBot):
     def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
         """Starts a file transfer. For Slack, the size and stream_type are unsupported"""
         stream = Stream(identifier, fsource, name, size, stream_type)
-        log.debug("Requesting upload of {0} to {1} (size hint: {2}, stream type: {3})".format(name,
-                  identifier.channelname, size, stream_type))
+        log.debug('Requesting upload of %s to %s (size hint: %d, stream type: %s).',
+                  name, identifier.channelname, size, stream_type)
         self.thread_pool.apply_async(self._slack_upload, (stream,))
         return stream
 
@@ -727,11 +725,11 @@ class SlackBackend(ErrBot):
         limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
         parts = self.prepare_message_body(card.body, limit)
         part_count = len(parts)
-        footer = attachment.get("footer", "")
+        footer = attachment.get('footer', '')
         for i in range(part_count):
             if part_count > 1:
-                attachment["footer"] = "{} [{}/{}]".format(footer, i + 1, part_count)
-            attachment["text"] = parts[i]
+                attachment['footer'] = f'{footer} [{i + 1}/{part_count}]'
+            attachment['text'] = parts[i]
             data = {
                 'text': ' ',
                 'channel': to_channel_id,
@@ -968,7 +966,7 @@ class SlackBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = '@{0}: {1}'.format(identifier.nick, message.body)
+        message.body = f'@{identifier.nick}: {message.body}'
 
     @staticmethod
     def sanitize_uris(text):

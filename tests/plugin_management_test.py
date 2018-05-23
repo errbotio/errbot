@@ -1,8 +1,11 @@
 import os
+import pytest
 import tempfile
 from configparser import ConfigParser
 
 from errbot import plugin_manager
+from errbot.plugin_info import PluginInfo
+from errbot.plugin_manager import IncompatiblePluginException
 from errbot.utils import find_roots, collect_roots
 
 CORE_PLUGINS = plugin_manager.CORE_PLUGINS
@@ -80,44 +83,43 @@ def test_ignore_dotted_directories():
     assert collect_roots((CORE_PLUGINS, root)) == {CORE_PLUGINS, }
 
 
+def dummy_config_parser() -> ConfigParser:
+    cp = ConfigParser()
+    cp.add_section('Core')
+    cp.set('Core', 'Name', 'dummy')
+    cp.set('Core', 'Module', 'dummy')
+    cp.add_section('Errbot')
+    return cp
+
+
 def test_errbot_version_check():
     real_version = plugin_manager.VERSION
 
-    too_high_min_1 = ConfigParser()
-    too_high_min_1.add_section('Errbot')
+    too_high_min_1 = dummy_config_parser()
     too_high_min_1.set('Errbot', 'Min', '1.6.0')
 
-    too_high_min_2 = ConfigParser()
-    too_high_min_2.add_section('Errbot')
+    too_high_min_2 = dummy_config_parser()
     too_high_min_2.set('Errbot', 'Min', '1.6.0')
     too_high_min_2.set('Errbot', 'Max', '2.0.0')
 
-    too_low_max_1 = ConfigParser()
-    too_low_max_1.add_section('Errbot')
+    too_low_max_1 = dummy_config_parser()
     too_low_max_1.set('Errbot', 'Max', '1.0.1-beta')
 
-    too_low_max_2 = ConfigParser()
-    too_low_max_2.add_section('Errbot')
+    too_low_max_2 = dummy_config_parser()
     too_low_max_2.set('Errbot', 'Min', '0.9.0-rc2')
     too_low_max_2.set('Errbot', 'Max', '1.0.1-beta')
 
-    ok1 = ConfigParser()  # no section
+    ok1 = dummy_config_parser()  # empty section
 
-    ok2 = ConfigParser()
-    ok2.add_section('Errbot')  # empty section
+    ok2 = dummy_config_parser()
+    ok2.set('Errbot', 'Min', '1.4.0')
 
-    ok3 = ConfigParser()
-    ok3.add_section('Errbot')
-    ok3.set('Errbot', 'Min', '1.4.0')
+    ok3 = dummy_config_parser()
+    ok3.set('Errbot', 'Max', '1.5.2')
 
-    ok4 = ConfigParser()
-    ok4.add_section('Errbot')
-    ok4.set('Errbot', 'Max', '1.5.2')
-
-    ok5 = ConfigParser()
-    ok5.add_section('Errbot')
-    ok5 .set('Errbot', 'Min', '1.2.1')
-    ok5 .set('Errbot', 'Max', '1.6.1-rc1')
+    ok4 = dummy_config_parser()
+    ok4.set('Errbot', 'Min', '1.2.1')
+    ok4.set('Errbot', 'Max', '1.6.1-rc1')
 
     try:
         plugin_manager.VERSION = '1.5.2'
@@ -125,9 +127,12 @@ def test_errbot_version_check():
                        too_high_min_2,
                        too_low_max_1,
                        too_low_max_2):
-            assert not plugin_manager.check_errbot_plug_section('should_fail', config)
+            pi = PluginInfo.parse(config)
+            with pytest.raises(IncompatiblePluginException):
+                plugin_manager.check_errbot_version(pi)
 
-        for config in (ok1, ok2, ok3, ok4, ok5):
-            assert plugin_manager.check_errbot_plug_section('should_work', config)
+        for config in (ok1, ok2, ok3, ok4):
+            pi = PluginInfo.parse(config)
+            plugin_manager.check_errbot_version(pi)
     finally:
         plugin_manager.VERSION = real_version

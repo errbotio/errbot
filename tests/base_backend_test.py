@@ -1,6 +1,7 @@
 # coding=utf-8
 import sys
 import logging
+from pathlib import Path
 from tempfile import mkdtemp
 from os.path import sep
 
@@ -276,7 +277,7 @@ def dummy_execute_and_send():
     example_message.to = dummy.build_identifier('err')
 
     assets_path = os.path.join(os.path.dirname(__file__), 'assets')
-    templating.template_path.append(templating.make_templates_path(assets_path))
+    templating.template_path.append(str(templating.make_templates_path(Path(assets_path))))
     templating.env = templating.Environment(loader=templating.FileSystemLoader(templating.template_path))
     return dummy, example_message
 

@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
                          ('2.0.0-beta', '2.0.1'),
                          ])
 def test_version_check(v1, v2):
-    assert version2array(v1) < version2array(v2)
+    assert version2tuple(v1) < version2tuple(v2)
 
 
 @pytest.mark.parametrize('version', [
@@ -36,7 +36,7 @@ def test_version_check(v1, v2):
                          ])
 def test_version_check_negative(version):
     with pytest.raises(ValueError):
-        version2array(version)
+        version2tuple(version)
 
 
 def test_formattimedelta():

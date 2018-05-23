@@ -46,7 +46,7 @@ class Health(BotPlugin):
         pm = self._bot.plugin_manager
         all_blacklisted = pm.get_blacklisted_plugin()
         all_loaded = pm.get_all_active_plugin_names()
-        all_attempted = sorted([p.name for p in pm.all_candidates])
+        all_attempted = sorted(pm.plugin_infos.keys())
         plugins_statuses = []
         for name in all_attempted:
             if name in all_blacklisted:

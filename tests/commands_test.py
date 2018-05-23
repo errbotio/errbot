@@ -153,8 +153,7 @@ def test_broken_plugin(testbot):
         tgz = os.path.join(tempd, "borken.tar.gz")
         with tarfile.open(tgz, "w:gz") as tar:
             tar.add(borken_plugin_dir, arcname='borken')
-        assert 'Installing' in testbot.exec_command('!repos install file://' + tgz,
-                                                    timeout=120)
+        assert 'Installing' in testbot.exec_command('!repos install file://' + tgz, timeout=120)
         assert 'import borken  # fails' in testbot.pop_message()
         assert 'as it did not load correctly.' in testbot.pop_message()
         assert 'Plugins reloaded.' in testbot.pop_message()

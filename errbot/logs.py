@@ -11,8 +11,6 @@ def ispydevd():
 
 
 root_logger = logging.getLogger()
-logging.getLogger('yapsy').setLevel(logging.INFO)  # this one is way too verbose in debug
-logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one is way too verbose in debug
 root_logger.setLevel(logging.INFO)
 
 pydev = ispydevd()

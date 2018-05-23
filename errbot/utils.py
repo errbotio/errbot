@@ -77,7 +77,7 @@ def get_class_for_method(meth):
 INVALID_VERSION_EXCEPTION = 'version %s in not in format "x.y.z" or "x.y.z-{beta,alpha,rc1,rc2...}" for example "1.2.2"'
 
 
-def version2array(version):
+def version2tuple(version):
     vsplit = version.split('-')
 
     if len(vsplit) == 2:
@@ -103,7 +103,7 @@ def version2array(version):
     if len(response) != 4:
         raise ValueError(INVALID_VERSION_EXCEPTION % version)
 
-    return response
+    return tuple(response)
 
 
 def unescape_xml(text):

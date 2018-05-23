@@ -76,11 +76,8 @@ Extensive plugin framework
 .. _VK: https://vk.com/
 .. _Zulip: https://zulipchat.com/
 .. _`logged to Sentry`: https://github.com/errbotio/errbot/wiki/Logging-with-Sentry
-.. _bottle: http://bottlepy.org/
 .. _irc: https://pypi.python.org/pypi/irc/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _jinja2: http://jinja.pocoo.org/
-.. _rocket: https://pypi.python.org/pypi/rocket
 .. _six: https://pypi.python.org/pypi/six/
 .. _sleekxmpp: http://sleekxmpp.com/
-.. _yapsy: http://yapsy.sourceforge.net/

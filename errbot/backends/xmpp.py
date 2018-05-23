@@ -2,8 +2,6 @@ import logging
 import sys
 from functools import lru_cache
 
-from sleekxmpp import JID
-from sleekxmpp.exceptions import IqError
 from threading import Thread
 from time import sleep
 
@@ -12,11 +10,14 @@ from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
 from errbot.core import ErrBot
 from errbot.rendering import text, xhtml, xhtmlim
 
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.xmpp')
+log = logging.getLogger(__name__)
 
 try:
     from sleekxmpp import ClientXMPP
+    from sleekxmpp.xmlstream import resolver, cert
+    from sleekxmpp import JID
+    from sleekxmpp.exceptions import IqError
+
 except ImportError:
     log.exception("Could not start the XMPP backend")
     log.fatal("""

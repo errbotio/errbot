@@ -22,6 +22,7 @@ from setuptools import setup, find_packages
 
 py_version = sys.version_info[:2]
 PY35_OR_GREATER = py_version >= (3, 5)
+PY37_OR_GREATER = py_version >= (3, 7)
 
 ON_WINDOWS = system() == 'Windows'
 
@@ -32,13 +33,11 @@ VERSION_FILE = os.path.join('errbot', 'version.py')
 
 deps = ['webtest',
         'setuptools',
-        'bottle',
-        'rocket-errbot',
+        'flask',
         'requests',
         'jinja2',
         'pyOpenSSL',
         'colorlog',
-        'yapsy>=1.11',  # new contract for plugin instantiation
         'markdown',  # rendering stuff
         'ansi',
         'Pygments>=2.0.2',
@@ -49,6 +48,8 @@ deps = ['webtest',
 if not PY35_OR_GREATER:
     deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
 
+if not PY37_OR_GREATER:
+    deps += ['dataclasses']  # backward compatibility for 3.3->3.6 for dataclasses
 
 if not ON_WINDOWS:
     deps += ['daemonize']

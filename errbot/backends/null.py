@@ -5,9 +5,7 @@ from errbot.backends.base import ONLINE
 from errbot.backends.test import TestPerson
 from errbot.core import ErrBot
 
-
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.null')
+log = logging.getLogger(__name__)
 
 
 class ConnectionMock(object):

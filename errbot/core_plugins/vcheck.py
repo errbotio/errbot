@@ -5,12 +5,12 @@ import sys
 import requests
 
 from errbot import BotPlugin
-from errbot.utils import version2array
+from errbot.utils import version2tuple
 from errbot.version import VERSION
 
 HOME = 'http://version.errbot.io/'
 
-installed_version = version2array(VERSION)
+installed_version = version2tuple(VERSION)
 
 PY_VERSION = '.'.join(str(e) for e in sys.version_info[:3])
 
@@ -38,7 +38,7 @@ class VersionChecker(BotPlugin):
         try:
             current_version_txt = requests.get(HOME, params={'errbot': VERSION, 'python': PY_VERSION}).text.strip()
             self.log.debug("Tested current Errbot version and it is " + current_version_txt)
-            current_version = version2array(current_version_txt)
+            current_version = version2tuple(current_version_txt)
             if installed_version < current_version:
                 self.log.debug('A new version %s has been found, notify the admins !' % current_version)
                 self.warn_admins(

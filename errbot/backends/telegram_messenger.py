@@ -6,8 +6,7 @@ from errbot.core import ErrBot
 from errbot.rendering import text
 from errbot.rendering.ansiext import enable_format, TEXT_CHRS
 
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.telegram')
+log = logging.getLogger(__name__)
 
 TELEGRAM_MESSAGE_SIZE_LIMIT = 1024
 UPDATES_OFFSET_KEY = '_telegram_updates_offset'

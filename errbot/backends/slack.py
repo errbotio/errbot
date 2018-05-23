@@ -17,9 +17,7 @@ from errbot.core import ErrBot
 from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
-
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.slack')
+log = logging.getLogger(__name__)
 
 
 try:

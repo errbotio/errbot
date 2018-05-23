@@ -18,9 +18,7 @@ import email.mime.application
 
 import requests
 
-
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.hipchat')
+log = logging.getLogger(__name__)
 
 try:
     import hypchat

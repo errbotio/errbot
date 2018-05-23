@@ -3,7 +3,6 @@ from threading import RLock
 from typing import Mapping, List, Tuple, Union, Callable, Any
 
 from multiprocessing.pool import ThreadPool
-from yapsy.IPlugin import IPlugin
 
 from errbot import Message
 from errbot.backends.base import Identifier, Room, RoomOccupant
@@ -204,7 +203,7 @@ class Flow(object):
         return "%s (%s) with params %s" % (self._root, self.requestor, dict(self.ctx))
 
 
-class BotFlow(IPlugin):
+class BotFlow:
     """
     Defines a Flow plugin ie. a plugin that will define new flows from its methods with the @botflow decorator.
     """

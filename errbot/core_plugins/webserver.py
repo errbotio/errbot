@@ -2,11 +2,13 @@ import sys
 import os
 from json import loads
 from random import randrange
+from threading import Thread
+
 from webtest import TestApp
+from errbot.core_plugins import flask_app
+from werkzeug.serving import ThreadedWSGIServer
 
 from errbot import botcmd, BotPlugin, webhook
-from errbot.core_plugins.wsview import bottle_app
-from rocket import Rocket
 
 from urllib.request import unquote
 
@@ -62,10 +64,10 @@ def make_ssl_certificate(key_path, cert_path):
 class Webserver(BotPlugin):
 
     def __init__(self, *args, **kwargs):
-        self.webserver = None
-        self.webchat_mode = False
+        self.server = None
+        self.server_thread = None
         self.ssl_context = None
-        self.test_app = TestApp(bottle_app)
+        self.test_app = TestApp(flask_app)
         super().__init__(*args, **kwargs)
 
     def get_configuration_template(self):
@@ -74,13 +76,13 @@ class Webserver(BotPlugin):
                 'SSL': {'enabled': False,
                         'host': '0.0.0.0',
                         'port': 3142,
-                        'certificate': "",
-                        'key': ""}}
+                        'certificate': '',
+                        'key': ''}}
 
     def check_configuration(self, configuration):
         # it is a pain, just assume a default config if SSL is absent or set to None
         if configuration.get('SSL', None) is None:
-            configuration['SSL'] = {'enabled': False, 'host': '0.0.0.0', 'port': 3142, 'certificate': "", 'key': ""}
+            configuration['SSL'] = {'enabled': False, 'host': '0.0.0.0', 'port': 3142, 'certificate': '', 'key': ''}
         super().check_configuration(configuration)
 
     def activate(self):
@@ -88,34 +90,46 @@ class Webserver(BotPlugin):
             self.log.info('Webserver is not configured. Forbid activation')
             return
 
-        host = self.config['HOST']
-        port = self.config['PORT']
-        ssl = self.config['SSL']
-        interfaces = [(host, port)]
-        if ssl['enabled']:
-            # noinspection PyTypeChecker
-            interfaces.append((ssl['host'], ssl['port'], ssl['key'], ssl['certificate']))
-        self.log.info('Firing up the Rocket')
-        self.webserver = Rocket(interfaces=interfaces,
-                                app_info={'wsgi_app': bottle_app}, )
-        self.webserver.start(background=True)
-        self.log.debug('Liftoff!')
+        if self.server_thread and self.server_thread.is_alive():
+            raise Exception('Invalid state, you should not have a webserver already running.')
+        self.server_thread = Thread(target=self.run_server, name='Webserver Thread')
+        self.server_thread.start()
+        self.log.debug('Webserver started.')
 
         super().activate()
 
     def deactivate(self):
-        if self.webserver is not None:
-            self.log.debug('Sending signal to stop the webserver')
-            self.webserver.stop()
+        if self.server is not None:
+            self.log.info('Shutting down the internal webserver.')
+            self.server.shutdown()
+            self.log.info('Waiting for the webserver thread to quit.')
+            self.server_thread.join()
+            self.log.info('Webserver shut down correctly.')
         super().deactivate()
 
-    # noinspection PyUnusedLocal
+    def run_server(self):
+        try:
+            host = self.config['HOST']
+            port = self.config['PORT']
+            ssl = self.config['SSL']
+            self.log.info('Starting the webserver on %s:%i' % (host, port))
+            ssl_context = (ssl['certificate'], ssl['key']) if ssl['enabled'] else None
+            self.server = ThreadedWSGIServer(host, ssl['port'] if ssl_context else port, flask_app,
+                                             ssl_context=ssl_context)
+            self.server.serve_forever()
+            self.log.debug('Webserver stopped')
+        except KeyboardInterrupt:
+            self.log.info('Keyboard interrupt, request a global shutdown.')
+            self.server.shutdown()
+        except Exception:
+            self.log.exception('The webserver exploded.')
+
     @botcmd(template='webstatus')
     def webstatus(self, msg, args):
         """
         Gives a quick status of what is mapped in the internal webserver
         """
-        return {'rules': (((route.rule, route.name) for route in bottle_app.routes))}
+        return {'rules': (((rule.rule, rule.endpoint) for rule in flask_app.url_map._rules))}
 
     @webhook
     def echo(self, incoming_request):

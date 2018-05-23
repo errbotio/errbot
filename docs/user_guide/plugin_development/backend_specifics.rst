@@ -25,7 +25,7 @@ For example, with the Telegram backend this would be an instance of :class:`~err
 .. code-block:: python
 
 	>>> type(self._bot)
-	<class 'yapsy_loaded_plugin_Telegram_0.TelegramBackend'>
+	<class 'errbot.backends.TelegramBackend'>
 
 To find out what methods each bot backend has, you can take a look at the documentation of the various backends in the :mod:`errbot.backends` package.
 

@@ -1,6 +1,6 @@
 """ Logic related to plugin loading and lifecycle """
 from configparser import NoSectionError, NoOptionError, ConfigParser
-from importlib import machinery, import_module
+from importlib import machinery
 import logging
 import os
 import subprocess

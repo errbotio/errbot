@@ -2,8 +2,6 @@ import logging
 import sys
 from functools import lru_cache
 
-from sleekxmpp import JID
-from sleekxmpp.exceptions import IqError
 from threading import Thread
 from time import sleep
 
@@ -18,6 +16,10 @@ log = logging.getLogger('errbot.backends.xmpp')
 try:
     from sleekxmpp import ClientXMPP
     from sleekxmpp.xmlstream import resolver, cert
+    from sleekxmpp import JID
+    from sleekxmpp.exceptions import IqError
+
+
 except ImportError:
     log.exception("Could not start the XMPP backend")
     log.fatal("""

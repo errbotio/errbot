@@ -19,7 +19,7 @@ from errbot.plugin_manager import BotPluginManager
 from errbot.rendering import text
 from errbot.core_plugins.acls import ACLS
 from errbot.repo_manager import BotRepoManager
-from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
 
@@ -90,8 +90,8 @@ class DummyBackend(ErrBot):
         self.md = text()  # We just want simple text for testing purposes
 
         # setup a memory based storage
-        spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, None)
-        storage_plugin = spm.get_plugin_by_name('Memory')
+        spm = BackendPluginManager(config, 'errbot.storage', 'Memory', StoragePluginBase, CORE_STORAGE)
+        storage_plugin = spm.load_plugin()
 
         # setup the plugin_manager just internally
         botplugins_dir = os.path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)

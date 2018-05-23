@@ -6,8 +6,7 @@ from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
 from abc import ABC, abstractmethod
 from collections import deque, defaultdict
 
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.base')
+log = logging.getLogger(__name__)
 
 
 class Identifier(ABC):

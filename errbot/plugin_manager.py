@@ -263,8 +263,6 @@ class BotPluginManager(StoreMixin):
                     log.warning('Plugin %s already loaded.', name)
                     continue
 
-                module_name = base_module_name + '.' + plugin_info.module
-
                 # save the plugin_info for ref.
                 dest_info_dict[name] = plugin_info
 
@@ -273,16 +271,7 @@ class BotPluginManager(StoreMixin):
                     log.debug("%s plugin will not be loaded because it's not listed in CORE_PLUGINS", name)
                     continue
 
-                # load the module
-                spec = spec_from_file_location(module_name, plugin_info.location.parent / (plugin_info.module + '.py'))
-                modu1e = module_from_spec(spec)
-                spec.loader.exec_module(modu1e)
-                sys.modules[module_name] = modu1e
-
-                # introspect the modules to find plugin classes
-                def is_plugin(member):
-                    return inspect.isclass(member) and issubclass(member, baseclass) and member != baseclass
-                plugin_classes = inspect.getmembers(modu1e, is_plugin)
+                plugin_classes = plugin_info.load_plugin_classes(base_module_name, baseclass)
                 if not plugin_classes:
                     feedback[path] = 'Did not find any plugin in %s.' % path
                     continue

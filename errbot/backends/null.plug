@@ -3,4 +3,4 @@ Name = Null
 Module = null
 
 [Documentation]
-Description = This is the Null backend for Err.
+Description = This is the Null backend for Errbot.

@@ -38,7 +38,6 @@ deps = ['webtest',
         'jinja2',
         'pyOpenSSL',
         'colorlog',
-        'yapsy>=1.11',  # new contract for plugin instantiation
         'markdown',  # rendering stuff
         'ansi',
         'Pygments>=2.0.2',

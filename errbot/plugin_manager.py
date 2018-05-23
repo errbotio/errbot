@@ -1,6 +1,5 @@
 """ Logic related to plugin loading and lifecycle """
 import inspect
-
 from copy import deepcopy
 from importlib import machinery
 import logging

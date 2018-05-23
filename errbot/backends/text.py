@@ -11,7 +11,6 @@ from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
-from errbot import botcmd, BotPlugin
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Person, Presence, ONLINE, OFFLINE, Room, RoomOccupant

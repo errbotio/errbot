@@ -17,6 +17,7 @@ try:
     from sleekxmpp.xmlstream import resolver, cert
     from sleekxmpp import JID
     from sleekxmpp.exceptions import IqError
+
 except ImportError:
     log.exception("Could not start the XMPP backend")
     log.fatal("""

@@ -12,11 +12,7 @@ from errbot import botcmd, BotPlugin, webhook
 
 from urllib.request import unquote
 
-try:
-    from OpenSSL import crypto
-    has_crypto = True
-except ImportError:
-    has_crypto = False
+from OpenSSL import crypto
 
 TEST_REPORT = """*** Test Report
 URL : %s
@@ -178,11 +174,6 @@ class Webserver(BotPlugin):
         """
         Generate a self-signed SSL certificate for the Webserver
         """
-        if not has_crypto:
-            yield ("It looks like pyOpenSSL isn't installed. Please install this "
-                   "package using for example `pip install pyOpenSSL`, then try again")
-            return
-
         yield ("Generating a new private key and certificate. This could take a "
                "while if your system is slow or low on entropy")
         key_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_key.pem"))

@@ -21,13 +21,12 @@ from platform import system
 from setuptools import setup, find_packages
 
 py_version = sys.version_info[:2]
-PY35_OR_GREATER = py_version >= (3, 5)
 PY37_OR_GREATER = py_version >= (3, 7)
 
 ON_WINDOWS = system() == 'Windows'
 
-if py_version < (3, 4):
-    raise RuntimeError('Errbot requires Python 3.4 or later')
+if py_version < (3, 6):
+    raise RuntimeError('Errbot requires Python 3.6 or later')
 
 VERSION_FILE = os.path.join('errbot', 'version.py')
 
@@ -44,9 +43,6 @@ deps = ['webtest',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
         'dnspython3',
         ]
-
-if not PY35_OR_GREATER:
-    deps += ['typing', ]  # backward compatibility for 3.3 and 3.4
 
 if not PY37_OR_GREATER:
     deps += ['dataclasses']  # backward compatibility for 3.3->3.6 for dataclasses

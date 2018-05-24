@@ -18,11 +18,7 @@ from ansi.color import fg, bg, fx
 
 log = logging.getLogger(__name__)
 
-try:
-    from html import unescape  # py3.5
-except ImportError:
-    from html.parser import HTMLParser  # py3.4
-    unescape = HTMLParser().unescape
+from html import unescape
 
 
 # chr that should not count as a space

@@ -25,11 +25,6 @@ log = logging.getLogger(__name__)
 
 CORE_PLUGINS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'core_plugins')
 
-try:
-    from importlib import reload  # new in python 3.4
-except ImportError:
-    from imp import reload  # noqa
-
 
 class PluginActivationException(Exception):
     pass

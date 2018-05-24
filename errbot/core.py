@@ -315,7 +315,8 @@ class ErrBot(Backend, StoreMixin):
                 else:
                     match = func._err_command_re_pattern.search(text)
                 if match:
-                    log.debug('Matching "%s" against "%s" produced a match.', text, func._err_command_re_pattern.pattern)
+                    log.debug('Matching "%s" against "%s" produced a match.', text,
+                              func._err_command_re_pattern.pattern)
                     matched_on_re_command = True
                     self._process_command(msg, name, text, match)
                 else:

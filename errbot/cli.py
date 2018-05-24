@@ -29,6 +29,7 @@ from errbot.version import VERSION
 
 log = logging.getLogger(__name__)
 
+
 # noinspection PyUnusedLocal
 def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for

@@ -703,8 +703,8 @@ class Backend(ABC):
             except Exception:
                 log.exception('Exception occurred in serve_once:')
 
-            log.info('Reconnecting in %d seconds (%d attempted reconnections so far).'
-                     , self._reconnection_delay, self._reconnection_count)
+            log.info('Reconnecting in %d seconds (%d attempted reconnections so far).', self._reconnection_delay,
+                     self._reconnection_count)
             try:
                 self._delay_reconnect()
                 self._reconnection_count += 1

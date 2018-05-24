@@ -71,7 +71,7 @@ def new_plugin_wizard(directory=None):
             raise
 
     if os.path.exists(plugfile_path) or os.path.exists(pyfile_path):
-        path = os.path.join(directory, f'{module_name}.\{py,plug\}')
+        path = os.path.join(directory, f'{module_name}.{{py,plug}}')
         ask(f'Warning: A plugin with this name was already found at {path}\n'
             f'If you continue, these will be overwritten.\n'
             f'Press Ctrl+C to abort now or type in "overwrite" to confirm overwriting of these files.',

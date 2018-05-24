@@ -15,10 +15,10 @@ from markdown.inlinepatterns import SubstituteTagPattern
 from markdown.extensions.fenced_code import FencedBlockPreprocessor
 
 from ansi.color import fg, bg, fx
+from html import unescape
+
 
 log = logging.getLogger(__name__)
-
-from html import unescape
 
 
 # chr that should not count as a space

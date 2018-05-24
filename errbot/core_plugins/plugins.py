@@ -163,11 +163,11 @@ class Plugins(BotPlugin):
 
         if len(args) == 1:
             response = f'Default configuration for this plugin (you can copy and paste this directly as a command):' \
-                       f'\n\n```\n{self._bot.prefix}plugin config {plugin_name} \n{pformat(template_obj)}\n```'
+                       f'\n\n```\n{self._bot.prefix}plugin config {plugin_name} {pformat(template_obj)}\n```'
 
             current_config = self._bot.plugin_manager.get_plugin_configuration(plugin_name)
             if current_config:
-                response += f'\n\nCurrent configuration:\n\n```\n{self._bot.prefix}plugin config {plugin_name}.\n' \
+                response += f'\n\nCurrent configuration:\n\n```\n{self._bot.prefix}plugin config {plugin_name} ' \
                             f'{pformat(current_config)}\n```'
             return response
 

@@ -25,9 +25,6 @@ log = logging.getLogger(__name__)
 webroute = route  # this allows plugins to expose dynamic webpages on Errbot embedded webserver
 webview = view  # this allows to use the templating system
 
-# TODO: Remove, this is for backend backward compatibility
-sys.modules["errbot.errBot"] = core
-
 # Some clients automatically convert consecutive dashes into a fancy
 # hyphen, which breaks long-form arguments. Undo this conversion to
 # provide a better user experience.

@@ -2,12 +2,10 @@ sudo: false
 language: python
 matrix:
   include:
-    - python: 3.4
-      env: TOXENV=py34
-    - python: 3.5
-      env: TOXENV=py35
     - python: 3.6
       env: TOXENV=py36
+    - python: 3.7-dev
+      env: TOXENV=py37
     - python: 3.6
       env: TOXENV=pypi-lint
     - python: 3.6

@@ -4,9 +4,8 @@ import logging
 import re
 import sys
 from functools import lru_cache
-from multiprocessing.pool import ThreadPool
 
-from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream, Identifier
+from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream
 from errbot.backends.xmpp import XMPPRoomOccupant, XMPPBackend, XMPPConnection, split_identifier
 
 from markdown import Markdown
@@ -19,9 +18,7 @@ import email.mime.application
 
 import requests
 
-
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.hipchat')
+log = logging.getLogger(__name__)
 
 try:
     import hypchat
@@ -68,7 +65,7 @@ class HipchatExtension(Extension):
     def extendMarkdown(self, md, md_globals):
         md.registerExtension(self)
         md.treeprocessors.add("hipchat stripper", HipchatTreeprocessor(), '<inline')
-        log.debug("Will apply those treeprocessors:\n%s" % md.treeprocessors)
+        log.debug("Will apply those treeprocessors:\n%s", md.treeprocessors)
 
 
 def hipchat_html():
@@ -131,10 +128,10 @@ class HipChatRoom(Room):
         Return room information from the HipChat API
         """
         try:
-            log.debug("Querying HipChat API for room {}".format(self.name))
+            log.debug('Querying HipChat API for room %s.', self.name)
             return self.hypchat.get_room(self.name)
         except hypchat.requests.HttpNotFound:
-            raise RoomDoesNotExistError("The given room does not exist.")
+            raise RoomDoesNotExistError('The given room does not exist.')
 
     @property
     def name(self):
@@ -164,7 +161,7 @@ class HipChatRoom(Room):
         return self._bot.build_identifier(self.jid).resource
 
     def __repr__(self):
-        return "<HipChatMUCRoom('{}')>".format(self.name)
+        return f"<HipChatMUCRoom('{self.name}')>"
 
     def __str__(self):
         return self.room['xmpp_jid']
@@ -181,17 +178,11 @@ class HipChatRoom(Room):
 
         room = self.jid
         self.xep0045.joinMUC(room, username, password=password, wait=True)
-        self._bot.conn.add_event_handler(
-            "muc::{}::got_online".format(room),
-            self._bot.user_joined_chat
-        )
-        self._bot.conn.add_event_handler(
-            "muc::{}::got_offline".format(room),
-            self._bot.user_left_chat
-        )
+        self._bot.conn.add_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
+        self._bot.conn.add_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
 
         self._bot.callback_room_joined(self)
-        log.info("Joined room {}".format(self.name))
+        log.info('Joined room %s.', self.name)
 
     def leave(self, reason=None):
         """
@@ -205,20 +196,14 @@ class HipChatRoom(Room):
         room = self.jid
         try:
             self.xep0045.leaveMUC(room=room, nick=self.xep0045.ourNicks[room], msg=reason)
-            self._bot.conn.del_event_handler(
-                "muc::{}::got_online".format(room),
-                self._bot.user_joined_chat
-            )
-            self._bot.conn.del_event_handler(
-                "muc::{}::got_offline".format(room),
-                self._bot.user_left_chat
-            )
-            log.info("Left room {}".format(self))
+            self._bot.conn.del_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
+            self._bot.conn.del_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
+            log.info('Left room %s', self)
             self._bot.callback_room_left(self)
         except KeyError:
-            log.debug("Trying to leave {} while not in this room".format(self))
+            log.debug('Trying to leave %s while not in this room.', self)
 
-    def create(self, privacy="public", guest_access=False):
+    def create(self, privacy='public', guest_access=False):
         """
         Create the room.
 
@@ -231,14 +216,14 @@ class HipChatRoom(Room):
             Whether or not to enable guest access for this room.
         """
         if self.exists:
-            log.debug("Tried to create the room {}, but it has already been created".format(self))
+            log.debug('Tried to create the room %s, but it has already been created', self)
         else:
             self.hypchat.create_room(
                 name=self.name,
                 privacy=privacy,
                 guest_access=guest_access
             )
-            log.info("Created room {}".format(self))
+            log.info('Created room %s.', self)
 
     def destroy(self):
         """
@@ -248,9 +233,9 @@ class HipChatRoom(Room):
         """
         try:
             self.room.delete()
-            log.info("Destroyed room {}".format(self))
+            log.info('Destroyed room %s.', self)
         except RoomDoesNotExistError:
-            log.debug("Can't destroy room {}, it doesn't exist".format(self))
+            log.debug("Can't destroy room %s, it doesn't exist.", self)
 
     @property
     def exists(self):
@@ -296,7 +281,7 @@ class HipChatRoom(Room):
             The topic to set.
         """
         self.room.topic(topic)
-        log.debug("Changed topic of {} to {}".format(self, topic))
+        log.debug('Changed topic of %s to %s', self, topic)
 
     @property
     def occupants(self):
@@ -306,7 +291,7 @@ class HipChatRoom(Room):
         :getter:
             Returns a list of :class:`~HipChatMUCOccupant` instances.
         """
-        participants = self.room.participants(expand="items")['items']
+        participants = self.room.participants(expand='items')['items']
         occupants = []
         for p in participants:
             occupants.append(HipChatRoomOccupant(hipchat_user=p))
@@ -326,18 +311,18 @@ class HipChatRoom(Room):
 
         for person in args:
             try:
-                if person.startswith("@"):
+                if person.startswith('@'):
                     user = [u for u in users if u['mention_name'] == person[1:]][0]
                 else:
                     user = [u for u in users if u['name'] == person][0]
             except IndexError:
-                logging.warning("No user by the name of {} found".format(person))
+                logging.warning('No user by the name of %s found.', person)
             else:
-                if room['privacy'] == "private":
+                if room['privacy'] == 'private':
                     room.members().add(user)
-                    log.info("Added {} to private room {}".format(user['name'], self))
-                room.invite(user, "No reason given.")
-                log.info("Invited {} to {}".format(person, self))
+                    log.info('Added %s to private room %s.', user['name'], self)
+                room.invite(user, 'No reason given.')
+                log.info('Invited %s to %s.', person, self)
 
     def notify(self, message, color=None, notify=False, message_format=None):
         """
@@ -347,12 +332,7 @@ class HipChatRoom(Room):
         `HipChat API documentation <https://www.hipchat.com/docs/apiv2/method/send_room_notification>`_
         for more info.
         """
-        self.room.notification(
-            message=message,
-            color=color,
-            notify=notify,
-            format=message_format
-        )
+        self.room.notification(message=message, color=color, notify=notify, format=message_format)
 
 
 class HipchatClient(XMPPConnection):
@@ -480,8 +460,8 @@ class HipchatBackend(XMPPBackend):
             try:
                 name = [r['name'] for r in rooms if r['xmpp_jid'] == room][0]
             except IndexError:
-                raise RoomDoesNotExistError("No room with JID {} found.".format(room))
-            log.info("Found {} to be the room {}, consider specifying this directly.".format(room, name))
+                raise RoomDoesNotExistError(f'No room with JID {room} found.')
+            log.info('Found %s to be the room %s, consider specifying this directly.', room, name)
         else:
             name = room
 
@@ -504,7 +484,7 @@ class HipchatBackend(XMPPBackend):
             card.to = card.to.room
         if not card.is_group:
             raise ValueError('Private notifications/cards are impossible to send on 1 to 1 messages on hipchat.')
-        log.debug("room id = %s" % card.to)
+        log.debug('room id = %s', card.to)
         room = self.query_room(str(card.to)).room
 
         data = {'message': '-' if not card.body else self.md.convert(card.body),
@@ -514,7 +494,7 @@ class HipchatBackend(XMPPBackend):
         if card.color:
             data['color'] = COLORS[card.color] if card.color in COLORS else card.color
 
-        hcard = {'id': 'FF%0.16X' % card.__hash__()}
+        hcard = {'id': f'FF{card.__hash__():0.16X}'}
 
         # Only title is supported all across the types.
         if card.title:
@@ -569,7 +549,7 @@ class HipchatBackend(XMPPBackend):
 
         stream = Stream(identifier=identifier, fsource=fsource, name=name, size=size, stream_type=stream_type)
         result = self.thread_pool.apply_async(self._hipchat_upload, (stream,))
-        log.debug('Response from server: %s' % result.get(timeout=10))
+        log.debug('Response from server: %s', result.get(timeout=10))
         return stream
 
     def _hipchat_upload(self, stream):
@@ -578,7 +558,7 @@ class HipchatBackend(XMPPBackend):
             stream.accept()
             room = self.query_room(str(stream.identifier)).room
             headers = {
-                'Authorization': 'Bearer {}'.format(self.api_token),
+                'Authorization': f'Bearer {self.api_token}',
                 'Accept-Charset': 'UTF-8',
                 'Content-Type': 'multipart/related',
             }
@@ -592,21 +572,21 @@ class HipchatBackend(XMPPBackend):
             )
             raw_body.attach(img)
             raw_headers, body = raw_body.as_string().split('\n\n', 1)
-            boundary = re.search('boundary="([^"]*)"', raw_headers).group(1)
-            headers['Content-Type'] = 'multipart/related; boundary="{}"'.format(boundary)
+            boundary = re.search('boundary="([^\"]*)"', raw_headers).group(1)
+            headers['Content-Type'] = f'multipart/related; boundary="{boundary}"'
             resp = requests.post(room.url + '/share/file', headers=headers, data=body)
-            log.info('Request ok: %s' % resp.ok)
+            log.info('Request ok: %s.', resp.ok)
 
             if resp.ok:
-                log.info('Request status: %s' % resp.status_code)
+                log.info('Request status: %s.', resp.status_code)
                 stream.success()
             else:
-                log.error('Request status: %s' % resp.status_code)
-                log.error('Request reason: %s' % resp.reason)
-                log.error('Request text: %s' % resp.text)
+                log.error('Request status: %s.', resp.status_code)
+                log.error('Request reason: %s.', resp.reason)
+                log.error('Request text: %s.', resp.text)
                 stream.error()
         except Exception:
-            log.exception("Upload of {0} to {1} failed.".format(stream.name, stream.identifier.channelname))
+            log.exception(f'Upload of {stream.name} to {stream.identifier.channelname} failed.')
 
     @lru_cache(1024)
     def _find_user(self, name, criteria):
@@ -622,13 +602,13 @@ class HipchatBackend(XMPPBackend):
         if not users:
             log.debug('Failed to find user %s', name)
             return None
-        userdetail = self.conn.hypchat.get_user("%s" % users[0]['id'])
+        userdetail = self.conn.hypchat.get_user(users[0]['id'])
         identifier = self.build_identifier(userdetail['xmpp_jid'])
 
         return identifier
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '@{0}: {1}'.format(identifier.nick, message.body)
+        message.body = f'@{identifier.nick}: {message.body}'
 
     def __hash__(self):
         return 0  # it is a singleton anyway

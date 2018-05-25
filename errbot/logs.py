@@ -2,6 +2,10 @@ import inspect
 import logging
 import sys
 
+COLORS = {'DEBUG': 'cyan', 'INFO': 'green', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'red', }
+
+NO_COLORS = {'DEBUG': '', 'INFO': '', 'WARNING': '', 'ERROR': '', 'CRITICAL': '', }
+
 
 def ispydevd():
     for frame in inspect.stack():
@@ -11,8 +15,6 @@ def ispydevd():
 
 
 root_logger = logging.getLogger()
-logging.getLogger('yapsy').setLevel(logging.INFO)  # this one is way too verbose in debug
-logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)  # this one is way too verbose in debug
 root_logger.setLevel(logging.INFO)
 
 pydev = ispydevd()
@@ -28,27 +30,9 @@ def get_log_colors(theme_color=None):
     elif theme_color == 'dark':
         text_color_theme = 'black'
     else:  # Anything else produces nocolor
-        return (
-            "%(name)-25.25s%(reset)s %(message)s%(reset)s",
-            {
-                'DEBUG': '',
-                'INFO': '',
-                'WARNING': '',
-                'ERROR': '',
-                'CRITICAL': '',
-            },
-        )
+        return '%(name)-25.25s%(reset)s %(message)s%(reset)s', NO_COLORS
 
-    return (
-        "%(name)-25.25s%(reset)s %({})s%(message)s%(reset)s".format(text_color_theme),
-        {
-            'DEBUG': 'cyan',
-            'INFO': 'green',
-            'WARNING': 'yellow',
-            'ERROR': 'red',
-            'CRITICAL': 'red',
-        }
-    )
+    return f'%(name)-25.25s%(reset)s %({text_color_theme})s%(message)s%(reset)s', COLORS
 
 
 def format_logs(formatter=None, theme_color=None):

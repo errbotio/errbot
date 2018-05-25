@@ -4,7 +4,7 @@ import pytest
 
 from errbot.backends.test import ShallowConfig
 from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
-from errbot.specific_plugin_manager import SpecificPluginManager
+from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import *
 from errbot.storage import StoreMixin
@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
                          ('2.0.0-beta', '2.0.1'),
                          ])
 def test_version_check(v1, v2):
-    assert version2array(v1) < version2array(v2)
+    assert version2tuple(v1) < version2tuple(v2)
 
 
 @pytest.mark.parametrize('version', [
@@ -36,7 +36,7 @@ def test_version_check(v1, v2):
                          ])
 def test_version_check_negative(version):
     with pytest.raises(ValueError):
-        version2array(version)
+        version2tuple(version)
 
 
 def test_formattimedelta():
@@ -56,8 +56,8 @@ def test_storage():
     config.__dict__.update(sys.modules['errbot.config-template'].__dict__)
     bot_config_defaults(config)
 
-    spm = SpecificPluginManager(config, 'storage', StoragePluginBase, CORE_STORAGE, None)
-    storage_plugin = spm.get_plugin_by_name('Memory')
+    spm = BackendPluginManager(config, 'errbot.storage', 'Memory', StoragePluginBase, CORE_STORAGE)
+    storage_plugin = spm.load_plugin()
 
     persistent_object = StoreMixin()
     persistent_object.open_storage(storage_plugin, 'test')

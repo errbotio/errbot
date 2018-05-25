@@ -3,4 +3,4 @@ Name = IRC
 Module = irc
 
 [Documentation]
-Description = This is the IRC backend for Err.
+Description = This is the IRC backend for Errbot.

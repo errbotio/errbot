@@ -360,14 +360,14 @@ def arg_botcmd(*args,
                     args = shlex.split(args)
                     parsed_args = err_command_parser.parse_args(args)
                 except ArgumentParseError as e:
-                    yield "I'm sorry, I couldn't parse the arguments; %s" % e
+                    yield f"I couldn't parse the arguments; {e}"
                     yield err_command_parser.format_usage()
                     return
                 except HelpRequested:
                     yield err_command_parser.format_help()
                     return
                 except ValueError as ve:
-                    yield "I'm sorry, I couldn't parse this command; %s" % ve
+                    yield f"I couldn't parse this command; {ve}"
                     yield err_command_parser.format_help()
                     return
 
@@ -410,7 +410,7 @@ def arg_botcmd(*args,
 
 
 def _tag_webhook(func, uri_rule, methods, form_param, raw):
-    log.info("webhooks:  Flag to bind %s to %30s" % (uri_rule, getattr(func, '__name__', func)))
+    log.info(f"webhooks:  Flag to bind {uri_rule} to {getattr(func, '__name__', func)}")
     func._err_webhook_uri_rule = uri_rule
     func._err_webhook_methods = methods
     func._err_webhook_form_param = form_param

@@ -25,8 +25,7 @@ def recurse_check_structure(sample, to_check):
     # would make no sense then because it would defeat the whole purpose of having
     # that key in the sample when it could only ever be None.
     if sample is not None and sample_type != to_check_type:
-        raise ValidationException(
-            '%s [%s] is not the same type as %s [%s]' % (sample, sample_type, to_check, to_check_type))
+        raise ValidationException(f'{sample} [{sample_type}] is not the same type as {to_check} [{to_check_type}].')
 
     if sample_type in (list, tuple):
         for element in to_check:
@@ -36,10 +35,10 @@ def recurse_check_structure(sample, to_check):
     if sample_type == dict:
         for key in sample:
             if key not in to_check:
-                raise ValidationException("%s doesn't contain the key %s" % (to_check, key))
+                raise ValidationException(f'{to_check} doesn\'t contain the key {key}.')
         for key in to_check:
             if key not in sample:
-                raise ValidationException("%s contains an unknown key %s" % (to_check, key))
+                raise ValidationException(f'{to_check} contains an unknown key {key}.')
         for key in sample:
             recurse_check_structure(sample[key], to_check[key])
         return
@@ -117,7 +116,7 @@ class BotPluginBase(StoreMixin):
         self.current_timers = []
         self.dependencies = []
         self._dynamic_plugins = {}
-        self.log = logging.getLogger("errbot.plugins.%s" % name)
+        self.log = logging.getLogger(f'errbot.plugins.{name}')
         self.log.debug('Logger for plugin initialized...')
         self._bot = bot
         self.plugin_dir = bot.repo_manager.plugin_dir
@@ -165,7 +164,7 @@ class BotPluginBase(StoreMixin):
         return self._bot.bot_identifier
 
     def init_storage(self) -> None:
-        log.debug('Init storage for %s' % self.name)
+        log.debug(f'Init storage for {self.name}.')
         self.open_storage(self._bot.storage_plugin, self.name)
 
     def activate(self) -> None:
@@ -221,14 +220,14 @@ class BotPluginBase(StoreMixin):
         if not args:
             args = []
 
-        log.debug('Programming the polling of %s every %i seconds with args %s and kwargs %s' % (
-            method.__name__, interval, str(args), str(kwargs)))
+        log.debug(f'Programming the polling of {method.__name__} every {interval} seconds '
+                  f'with args {str(args)} and kwargs {str(kwargs)}')
         # noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
             self.program_next_poll(interval, method, times, args, kwargs)
         except Exception:
-            log.exception('failed')
+            log.exception('Poller programming failed.')
 
     def stop_poller(self,
                     method: Callable[..., None],
@@ -238,7 +237,7 @@ class BotPluginBase(StoreMixin):
             kwargs = {}
         if not args:
             args = []
-        log.debug('Stop polling of %s with args %s and kwargs %s' % (method, args, kwargs))
+        log.debug(f'Stop polling of {method} with args {args} and kwargs {kwargs}')
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self,
@@ -254,7 +253,7 @@ class BotPluginBase(StoreMixin):
                   kwargs={'interval': interval, 'method': method,
                           'times': times, 'args': args, 'kwargs': kwargs})
         self.current_timers.append(t)  # save the timer to be able to kill it
-        t.setName('Poller thread for %s' % type(method.__self__).__name__)
+        t.setName(f'Poller thread for {type(method.__self__).__name__}')
         t.setDaemon(True)  # so it is not locking on exit
         t.start()
 
@@ -327,8 +326,8 @@ class BotPluginBase(StoreMixin):
             raise Exception('Plugin needs to be in activated state to be able to get its dependencies.')
 
         if name not in self.dependencies:
-            raise Exception('Plugin dependency %s needs to be listed in '
-                            'section [Core] key "DependsOn" to be used in get_plugin.' % name)
+            raise Exception(f'Plugin dependency {name} needs to be listed in section [Core] key '
+                            f'"DependsOn" to be used in get_plugin.')
 
         return self._bot.plugin_manager.get_plugin_obj_by_name(name)
 

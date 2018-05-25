@@ -11,7 +11,6 @@ from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
-from errbot import botcmd, BotPlugin
 from errbot.rendering import ansi, text, xhtml, imtext
 from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import Message, Person, Presence, ONLINE, OFFLINE, Room, RoomOccupant
@@ -21,8 +20,7 @@ from errbot.logs import console_hdlr
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
-# Can't use __name__ because of Yapsy
-log = logging.getLogger('errbot.backends.text')
+log = logging.getLogger(__name__)
 
 ENCODING_INPUT = sys.stdin.encoding
 ANSI = hasattr(sys.stderr, 'isatty') and sys.stderr.isatty()
@@ -155,7 +153,7 @@ class TextOccupant(TextPerson, RoomOccupant):
         return self._room
 
     def __str__(self):
-        return '#%s/%s' % (self._room.name, self._person.person)
+        return f'#{self._room.name}/{self._person.person}'
 
     def __eq__(self, other):
         return self.person == other.person and self.room == other.room
@@ -262,10 +260,10 @@ class TextBackend(ErrBot):
                     prompt = '[␍] ' if full_msg else '>>> '
                     if ANSI or self.demo_mode:
                         color = fg.red if self.user.person in self.bot_config.BOT_ADMINS[0] else fg.green
-                        prompt = str(color) + '[%s ➡ %s] ' % (frm, to) + str(fg.cyan) + prompt + str(fx.reset)
+                        prompt = f'{color}[{frm} ➡ {to}] {fg.cyan}{prompt}{fx.reset}'
                         entry = input(prompt)
                     else:
-                        entry = input('[%s ➡ %s] ' % (frm, to) + prompt)
+                        entry = input(f'[{frm} ➡ {to}] {prompt}')
 
                     if not self._multiline:
                         full_msg = entry
@@ -353,7 +351,7 @@ class TextBackend(ErrBot):
         self._react('-', msg, reaction)
 
     def _react(self, sign, msg, reaction):
-        self.send(msg.frm, 'reaction {}:{}:'.format(sign, reaction), in_reply_to=msg)
+        self.send(msg.frm, f'reaction {sign}:{reaction}:', in_reply_to=msg)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         log.debug("*** Changed presence to [%s] %s", (status, message))
@@ -395,4 +393,4 @@ class TextBackend(ErrBot):
         return self._rooms
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = '{0} {1}'.format(identifier.person, message.body)
+        message.body = f'{identifier.person} {message.body}'

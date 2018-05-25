@@ -48,7 +48,7 @@ class TextModeCmds(BotPlugin):
            This puts you in a room with the bot.
         """
         self._bot._inroom = True
-        return 'Joined Room %s.' % self._bot._rooms[0]
+        return f'Joined Room {self._bot._rooms[0]}.'
 
     @botcmd
     def inperson(self, msg, _):
@@ -70,7 +70,7 @@ class TextModeCmds(BotPlugin):
             self._bot.user = self.build_identifier(usr)
         else:
             self._bot.user = self.build_identifier('@luser')
-        return 'You are now: %s' % self._bot.user
+        return f'You are now: {self._bot.user}.'
 
     @botcmd
     def asadmin(self, msg, _):
@@ -78,7 +78,7 @@ class TextModeCmds(BotPlugin):
            This puts you in a 1-1 chat with the bot.
         """
         self._bot.user = self.build_identifier(self.bot_config.BOT_ADMINS[0])
-        return 'You are now an admin: %s' % self._bot.user
+        return f'You are now an admin: {self._bot.user}.'
 
     @botcmd
     def ml(self, msg, _):

@@ -12,11 +12,7 @@ from errbot import botcmd, BotPlugin, webhook
 
 from urllib.request import unquote
 
-try:
-    from OpenSSL import crypto
-    has_crypto = True
-except ImportError:
-    has_crypto = False
+from OpenSSL import crypto
 
 TEST_REPORT = """*** Test Report
 URL : %s
@@ -112,7 +108,7 @@ class Webserver(BotPlugin):
             host = self.config['HOST']
             port = self.config['PORT']
             ssl = self.config['SSL']
-            self.log.info('Starting the webserver on %s:%i' % (host, port))
+            self.log.info('Starting the webserver on %s:%i', host, port)
             ssl_context = (ssl['certificate'], ssl['key']) if ssl['enabled'] else None
             self.server = ThreadedWSGIServer(host, ssl['port'] if ssl_context else port, flask_app,
                                              ssl_context=ssl_context)
@@ -168,7 +164,7 @@ class Webserver(BotPlugin):
             except Exception as _:
                 contenttype = 'text/plain'  # dunno what it is
 
-        self.log.debug('Detected your post as : %s' % contenttype)
+        self.log.debug('Detected your post as : %s.', contenttype)
 
         response = self.test_app.post(url, params=content, content_type=contenttype)
         return TEST_REPORT % (url, contenttype, response.status_code)
@@ -178,17 +174,12 @@ class Webserver(BotPlugin):
         """
         Generate a self-signed SSL certificate for the Webserver
         """
-        if not has_crypto:
-            yield ("It looks like pyOpenSSL isn't installed. Please install this "
-                   "package using for example `pip install pyOpenSSL`, then try again")
-            return
-
-        yield ("Generating a new private key and certificate. This could take a "
-               "while if your system is slow or low on entropy")
+        yield ('Generating a new private key and certificate. This could take a '
+               'while if your system is slow or low on entropy')
         key_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_key.pem"))
         cert_path = os.sep.join((self.bot_config.BOT_DATA_DIR, "webserver_certificate.pem"))
         make_ssl_certificate(key_path=key_path, cert_path=cert_path)
-        yield "Certificate successfully generated and saved in {}".format(self.bot_config.BOT_DATA_DIR)
+        yield f'Certificate successfully generated and saved in {self.bot_config.BOT_DATA_DIR}.'
 
         suggested_config = self.config
         suggested_config['SSL']['enabled'] = True
@@ -196,6 +187,5 @@ class Webserver(BotPlugin):
         suggested_config['SSL']['port'] = suggested_config['PORT'] + 1
         suggested_config['SSL']['key'] = key_path
         suggested_config['SSL']['certificate'] = cert_path
-        yield ("To enable SSL with this certificate, the following config "
-               "is recommended:")
-        yield "{!r}".format(suggested_config)
+        yield 'To enable SSL with this certificate, the following config is recommended:'
+        yield f'{suggested_config!r}'

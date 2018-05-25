@@ -28,14 +28,13 @@ class Backup(BotPlugin):
 
             f.write('log.info("Restoring plugins data.")\n')
             f.write('bot.plugin_manager.update_dynamic_plugins()\n')
-            for plug in self._bot.plugin_manager.getAllPlugins():
-                pobj = plug.plugin_object
-                if pobj._store:
-                    f.write('pobj = bot.plugin_manager.get_plugin_by_name("' + plug.name + '").plugin_object\n')
+            for plugin in self._bot.plugin_manager.plugins.values():
+                if plugin._store:
+                    f.write('pobj = bot.plugin_manager.plugins["' + plugin.name + '"]\n')
                     f.write('pobj.init_storage()\n')
 
-                    for key, value in pobj.items():
+                    for key, value in plugin:
                         f.write('pobj["' + key + '"] = ' + repr(value) + '\n')
                     f.write('pobj.close_storage()\n')
 
-        return "The backup file has been written in '%s'" % filename
+        return f'The backup file has been written in "{filename}".'

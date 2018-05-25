@@ -26,17 +26,18 @@ class deprecated(object):
     def __call__(self, old):
         @wraps(old)
         def wrapper(*args, **kwds):
-            msg = ' {0.filename}:{0.lineno} : '.format(inspect.getframeinfo(inspect.currentframe().f_back))
+            frame = inspect.getframeinfo(inspect.currentframe().f_back)
+            msg = f'{frame.filename}: {frame.lineno}: '
             if len(args):
                 pref = type(args[0]).__name__ + '.'  # TODO might break for individual methods
             else:
                 pref = ''
-            msg += 'call to the deprecated %s%s' % (pref, old.__name__)
+            msg += f'call to the deprecated {pref}{old.__name__}'
             if self.new is not None:
                 if type(self.new) is property:
-                    msg += '... use the property %s%s instead' % (pref, self.new.fget.__name__)
+                    msg += f'... use the property {pref}{self.new.fget.__name__} instead'
                 else:
-                    msg += '... use %s%s instead' % (pref, self.new.__name__)
+                    msg += f'... use {pref}{self.new.__name__} instead'
             msg += '.'
             logging.warning(msg)
 
@@ -57,13 +58,12 @@ def format_timedelta(timedelta):
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     if hours == 0 and minutes == 0:
-        return '%i seconds' % seconds
+        return f'{seconds:d} seconds'
     elif not hours:
-        return '%i minutes' % minutes
+        return f'{minutes:d} minutes'
     elif not minutes:
-        return '%i hours' % hours
-    else:
-        return '%i hours and %i minutes' % (hours, minutes)
+        return f'{hours:d} hours'
+    return f'{hours:d} hours and {minutes:d} minutes'
 
 
 # Introspect to know from which plugin a command is implemented
@@ -77,7 +77,7 @@ def get_class_for_method(meth):
 INVALID_VERSION_EXCEPTION = 'version %s in not in format "x.y.z" or "x.y.z-{beta,alpha,rc1,rc2...}" for example "1.2.2"'
 
 
-def version2array(version):
+def version2tuple(version):
     vsplit = version.split('-')
 
     if len(vsplit) == 2:
@@ -103,7 +103,7 @@ def version2array(version):
     if len(response) != 4:
         raise ValueError(INVALID_VERSION_EXCEPTION % version)
 
-    return response
+    return tuple(response)
 
 
 def unescape_xml(text):
@@ -152,10 +152,10 @@ def rate_limited(min_interval):
 
         def rate_limited_function(*args, **kargs):
             elapsed = time.time() - last_time_called[0]
-            log.debug('Elapsed %f since last call' % elapsed)
+            log.debug('Elapsed %f since last call', elapsed)
             left_to_wait = min_interval - elapsed
             if left_to_wait > 0:
-                log.debug('Wait %f due to rate limiting...' % left_to_wait)
+                log.debug('Wait %f due to rate limiting...', left_to_wait)
                 time.sleep(left_to_wait)
             ret = func(*args, **kargs)
             last_time_called[0] = time.time()
@@ -196,7 +196,7 @@ def find_roots(path, file_sig='*.plug'):
                     continue
                 # if it is an hidden directory or a python temp directory, just ignore it.
                 if subelement.startswith('.') or subelement == '__pycache__':
-                    log.debug("Ignore %s" % dir_to_add)
+                    log.debug('Ignore %s.', dir_to_add)
                     break
             else:
                 roots.add(dir_to_add)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from ast import literal_eval
 from pprint import pformat
 import os

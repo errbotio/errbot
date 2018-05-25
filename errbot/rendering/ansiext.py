@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ts=4:sw=4
-
 from itertools import chain
 from collections import namedtuple
 from functools import partial

@@ -20,6 +20,7 @@ nohup.out
 /data
 /config.py.*
 /.pytest_cache
+/.mypy_cache
 
 # tools
 /tools/Home.md

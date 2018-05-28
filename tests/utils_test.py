@@ -44,10 +44,6 @@ def test_formattimedelta():
     assert '1 hours and 13 minutes' == format_timedelta(td)
 
 
-def unescape_test():
-    assert unescape_xml('&#32;') == ' '
-
-
 def test_storage():
     key = 'test'
 

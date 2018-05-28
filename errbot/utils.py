@@ -7,7 +7,6 @@ import sys
 import time
 from platform import system
 from functools import wraps
-from html import entities
 
 log = logging.getLogger(__name__)
 
@@ -65,14 +64,6 @@ def format_timedelta(timedelta):
     return f'{hours:d} hours and {minutes:d} minutes'
 
 
-# Introspect to know from which plugin a command is implemented
-def get_class_for_method(meth):
-    for cls in inspect.getmro(type(meth.__self__)):
-        if meth.__name__ in cls.__dict__:
-            return cls
-    return None
-
-
 INVALID_VERSION_EXCEPTION = 'version %s in not in format "x.y.z" or "x.y.z-{beta,alpha,rc1,rc2...}" for example "1.2.2"'
 
 
@@ -103,35 +94,6 @@ def version2tuple(version):
         raise ValueError(INVALID_VERSION_EXCEPTION % version)
 
     return tuple(response)
-
-
-def unescape_xml(text):
-    """
-    Removes HTML or XML character references and entities from a text string.
-    @param text The HTML (or XML) source text.
-    @return The plain text, as a Unicode string, if necessary.
-    """
-
-    def fixup(m):
-        txt = m.group(0)
-        if txt[:2] == "&#":
-            # character reference
-            try:
-                if txt[:3] == "&#x":
-                    return chr(int(txt[3:-1], 16))
-                else:
-                    return chr(int(txt[2:-1]))
-            except ValueError:
-                pass
-        else:
-            # named entity
-            try:
-                txt = chr(entities.name2codepoint[txt[1:-1]])
-            except KeyError:
-                pass
-        return txt  # leave as is
-
-    return re.sub(r'&#?\w+;', fixup, text)
 
 
 REMOVE_EOL = re.compile(r'\n')

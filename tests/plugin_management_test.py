@@ -18,23 +18,23 @@ def touch(name):
         os.utime(name, None)
 
 
+assets = Path(__file__).parent / 'assets'
+
+
 def test_check_dependencies():
-    response, deps = errbot.repo_manager.check_dependencies(Path(__file__).parent / 'assets' /
-                                                            'requirements_never_there.txt')
+    response, deps = errbot.repo_manager.check_dependencies(assets / 'requirements_never_there.txt')
     assert 'You need these dependencies for' in response
     assert 'impossible_requirement' in response
     assert ['impossible_requirement'] == deps
 
 
 def test_check_dependencies_no_requirements_file():
-    response, deps = errbot.repo_manager.check_dependencies(Path(__file__).parent / 'assets' /
-                                                            'requirements_non_existent.txt')
+    response, deps = errbot.repo_manager.check_dependencies(assets / 'requirements_non_existent.txt')
     assert response is None
 
 
 def test_check_dependencies_requirements_file_all_installed():
-    response, deps = errbot.repo_manager.check_dependencies(Path(__file__).parent / 'assets' /
-                                                            'requirements_already_there.txt')
+    response, deps = errbot.repo_manager.check_dependencies(assets / 'requirements_already_there.txt')
     assert response is None
 
 

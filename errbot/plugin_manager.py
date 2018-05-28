@@ -181,13 +181,6 @@ class BotPluginManager(StoreMixin):
     def attach_bot(self, bot):
         self.bot = bot
 
-    def check_enabled_core_plugin(self, plugin_info: PluginInfo) -> bool:
-        """ Checks if the given plugin is core and if it is, if it is part of the enabled core_plugins_list.
-        :param plugin_info: the info from the plugin
-        :return: True if it is OK to load this plugin.
-        """
-        return plugin_info.core and plugin_info.name in self.core_plugins
-
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         return self.plugins.get(name, None)
 
@@ -291,7 +284,8 @@ class BotPluginManager(StoreMixin):
         self.plugin_places = [Path(root) for root in all_roots]
         return self._load_plugins()
 
-    def get_all_active_plugin_objects_ordered(self) -> List[BotPlugin]:
+    def get_all_active_plugins(self) -> List[BotPlugin]:
+        """This returns the list of plugins in the callback ordered defined from the config."""
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
         if None not in self.plugins_callback_order:
@@ -310,9 +304,6 @@ class BotPluginManager(StoreMixin):
                 if plugin.is_activated:
                     all_plugins.append(plugin)
         return all_plugins
-
-    def get_all_active_plugin_objects(self):
-        return [plugin for plugin in self.plugins.values() if plugin.is_activated]
 
     def get_all_active_plugin_names(self):
         return [name for name, plugin in self.plugins.items() if plugin.is_activated]

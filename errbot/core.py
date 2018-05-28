@@ -104,7 +104,7 @@ class ErrBot(Backend, StoreMixin):
         :param *args: Passed to the callback function.
         :param **kwargs: Passed to the callback function.
         """
-        for plugin in self.plugin_manager.get_all_active_plugin_objects_ordered():
+        for plugin in self.plugin_manager.get_all_active_plugins():
             plugin_name = plugin.name
             log.debug('Triggering %s on %s.', method, plugin_name)
             # noinspection PyBroadException
@@ -170,7 +170,7 @@ class ErrBot(Backend, StoreMixin):
         :param msg: the message to send.
         :return: None
         """
-        for bot in self.plugin_manager.get_all_active_plugin_objects():
+        for bot in self.plugin_manager.get_all_active_plugins():
             # noinspection PyBroadException
             try:
                 bot.callback_botmessage(msg)
@@ -616,10 +616,10 @@ class ErrBot(Backend, StoreMixin):
 
     def callback_stream(self, stream):
         log.info('Initiated an incoming transfer %s.', stream)
-        Tee(stream, self.plugin_manager.get_all_active_plugin_objects()).start()
+        Tee(stream, self.plugin_manager.get_all_active_plugins()).start()
 
     def signal_connect_to_all_plugins(self):
-        for bot in self.plugin_manager.get_all_active_plugin_objects():
+        for bot in self.plugin_manager.get_all_active_plugins():
             if hasattr(bot, 'callback_connect'):
                 # noinspection PyBroadException
                 try:

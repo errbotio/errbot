@@ -176,7 +176,7 @@ def test_backup(testbot):
     assert 'errbotio/err-helloworld' in open(filename).read()
 
     # Now try to clean the bot and restore
-    for p in testbot.bot.plugin_manager.get_all_active_plugin_objects():
+    for p in testbot.bot.plugin_manager.get_all_active_plugins():
         p.close_storage()
 
     assert 'Plugin HelloWorld deactivated.' in testbot.exec_command('!plugin deactivate HelloWorld')

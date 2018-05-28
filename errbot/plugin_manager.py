@@ -223,11 +223,6 @@ def check_errbot_plug_section(name: str, config: ConfigParser) -> bool:
     return True
 
 
-def global_restart():
-    python = sys.executable
-    os.execl(python, python, *sys.argv)
-
-
 class BotPluginManager(PluginManager, StoreMixin):
     """Customized yapsy PluginManager for ErrBot."""
 

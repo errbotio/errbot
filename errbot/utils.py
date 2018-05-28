@@ -221,3 +221,9 @@ def collect_roots(base_paths, file_sig='*.plug'):
         elif path_or_list is not None:
             result |= find_roots(path_or_list, file_sig)
     return result
+
+
+def global_restart():
+    """Restart the current process."""
+    python = sys.executable
+    os.execl(python, python, *sys.argv)

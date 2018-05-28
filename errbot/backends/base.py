@@ -257,7 +257,7 @@ class Message(object):
             self.ctx = {}
 
     def clone(self):
-        return Message(body=self._body,frm=self._from,to=self._to, parent=self._parent,
+        return Message(body=self._body, frm=self._from, to=self._to, parent=self._parent,
                        delayed=self._delayed, partial=self._partial, extras=self._extras, flow=self._flow)
 
     @property

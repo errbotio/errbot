@@ -332,7 +332,8 @@ class FlowExecutor(object):
         return None, None
 
     @staticmethod
-    def _create_new_flow(flow_root, requestor: Identifier, initial_command) -> Tuple[Optional[Flow], Optional[FlowNode]]:
+    def _create_new_flow(flow_root, requestor: Identifier, initial_command) \
+            -> Tuple[Optional[Flow], Optional[FlowNode]]:
         """
         Helper method to create a new FLow.
         """

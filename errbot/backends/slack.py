@@ -360,10 +360,7 @@ class SlackBackend(ErrBot):
         log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
 
     def serve_once(self):
-        if not self.proxies:
-            self.sc = SlackClient(self.token)
-        else:
-            self.sc = SlackClient(self.token, proxies=self.proxies)
+        self.sc = SlackClient(self.token, proxies=self.proxies)
 
         log.info("Verifying authentication token")
         self.auth = self.api_call("auth.test", raise_errors=False)

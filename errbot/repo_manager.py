@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Sequence
+from typing import Tuple, Union, Sequence, List, Generator, Dict
 
 import json
 import re
@@ -16,6 +16,7 @@ from urllib.request import urlopen
 from urllib.parse import urlparse
 
 from errbot.storage import StoreMixin
+from errbot.storage.base import StoragePluginBase
 from .utils import ON_WINDOWS
 
 log = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ class RepoException(Exception):
     pass
 
 
-def makeEntry(repo_name, plugin_name, json_value):
+def makeEntry(repo_name: str, plugin_name: str, json_value):
     return RepoEntry(entry_name=repo_name,
                      name=plugin_name,
                      python=json_value['python'],
@@ -120,7 +121,7 @@ class BotRepoManager(StoreMixin):
     """
     Manages the repo list, git clones/updates or the repos.
     """
-    def __init__(self, storage_plugin, plugin_dir, plugin_indexes):
+    def __init__(self, storage_plugin: StoragePluginBase, plugin_dir: str, plugin_indexes: Tuple[str, ...]) -> None:
         """
         Make a repo manager.
         :param storage_plugin: where the manager store its state.
@@ -133,10 +134,10 @@ class BotRepoManager(StoreMixin):
         self.plugin_dir = plugin_dir
         self.open_storage(storage_plugin, 'repomgr')
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.close_storage()
 
-    def check_for_index_update(self):
+    def check_for_index_update(self) -> None:
         if REPO_INDEX not in self:
             log.info('No repo index, creating it.')
             self.index_update()
@@ -146,7 +147,7 @@ class BotRepoManager(StoreMixin):
             log.info('Index is too old, update it.')
             self.index_update()
 
-    def index_update(self):
+    def index_update(self) -> None:
         index = {LAST_UPDATE: datetime.now().timestamp()}
         for source in reversed(self.plugin_indexes):
             try:
@@ -168,11 +169,11 @@ class BotRepoManager(StoreMixin):
             self[REPO_INDEX] = index
             log.debug('Stored %d repo entries.', len(index) - 1)
 
-    def get_repo_from_index(self, repo_name):
+    def get_repo_from_index(self, repo_name: str) -> List[RepoEntry]:
         """
         Retrieve the list of plugins for the repo_name from the index.
 
-        :param repo_name: the name of hte repo
+        :param repo_name: the name of the repo
         :return: a list of RepoEntry
         """
         plugins = self[REPO_INDEX].get(repo_name, None)
@@ -183,7 +184,7 @@ class BotRepoManager(StoreMixin):
             result.append(makeEntry(repo_name, name, plugin))
         return result
 
-    def search_repos(self, query):
+    def search_repos(self, query: str) -> Generator[RepoEntry, None, None]:
         """
         A simple search feature, keywords are AND and case insensitive on all the fields.
 
@@ -203,23 +204,22 @@ class BotRepoManager(StoreMixin):
                 if query_work_set.intersection(tokenizeJsonEntry(plugin)):
                     yield makeEntry(repo_name, plugin_name, plugin)
 
-    def get_installed_plugin_repos(self):
+    def get_installed_plugin_repos(self) -> Dict[str, str]:
         return self.get(INSTALLED_REPOS, {})
 
-    def add_plugin_repo(self, name, url):
-        repos = self.get_installed_plugin_repos()
-        repos[name] = url
-        self[INSTALLED_REPOS] = repos
+    def add_plugin_repo(self, name: str, url: str) -> None:
+        with self.mutable(INSTALLED_REPOS, {}) as repos:
+            repos[name] = url
 
-    def set_plugin_repos(self, repos):
+    def set_plugin_repos(self, repos: Dict[str, str]) -> None:
         """ Used externally.
         """
         self[INSTALLED_REPOS] = repos
 
-    def get_all_repos_paths(self):
+    def get_all_repos_paths(self) -> List[str]:
         return [os.path.join(self.plugin_dir, d) for d in self.get(INSTALLED_REPOS, {}).keys()]
 
-    def install_repo(self, repo):
+    def install_repo(self, repo: str) -> str:
         """
         Install the repository from repo
 
@@ -268,7 +268,7 @@ class BotRepoManager(StoreMixin):
         self.add_plugin_repo(human_name, repo_url)
         return os.path.join(self.plugin_dir, human_name)
 
-    def update_repos(self, repos):
+    def update_repos(self, repos) -> Generator[Tuple[str, int, str], None, None]:
         """
         This git pulls the specified repos on disk.
         Yields tuples like (name, success, reason)
@@ -292,10 +292,10 @@ class BotRepoManager(StoreMixin):
                 feedback += dep_err + '\n'
             yield d, not p.wait(), feedback
 
-    def update_all_repos(self):
+    def update_all_repos(self) -> Generator[Tuple[str, int, str], None, None]:
         return self.update_repos(self.get_installed_plugin_repos().keys())
 
-    def uninstall_repo(self, name):
+    def uninstall_repo(self, name: str) -> None:
         repo_path = path.join(self.plugin_dir, name)
         # ignore errors because the DB can be desync'ed from the file tree.
         shutil.rmtree(repo_path, ignore_errors=True)

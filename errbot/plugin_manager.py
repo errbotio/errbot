@@ -141,7 +141,6 @@ class BotPluginManager(StoreMixin):
         """
         Creates a Plugin manager
         :param storage_plugin: the plugin used to store to config for this manager
-        :param repo_manager: the repo manager
         :param extra_plugin_dir: an extra directory to search for plugins
         :param autoinstall_deps: if True, will install also the plugin deps from requirements.txt
         :param core_plugins: the list of core plugin that will be started

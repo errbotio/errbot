@@ -45,8 +45,8 @@ class StoreMixin(MutableMapping):
         return self._store.get(key)
 
     @contextmanager
-    def mutable(self, key):
-        obj = self._store.get(key)
+    def mutable(self, key, default=None):
+        obj = self._store.get(key, default)
         yield obj
         # implements autosave for a plugin persistent entry
         # with self['foo'] as f:

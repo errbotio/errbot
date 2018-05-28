@@ -167,7 +167,11 @@ class BotPluginManager(StoreMixin):
         self.autoinstall_deps = autoinstall_deps
         self.extra = extra
         self.core_plugins = core_plugins
+        # Make sure there is a 'None' entry in the callback order, to include
+        # any plugin not explicitly ordered.
         self.plugins_callback_order = plugins_callback_order
+        if None not in self.plugins_callback_order:
+            self.plugins_callback_order += (None,)
         self.repo_manager = repo_manager
         self.plugin_infos: Dict[str, PluginInfo] = {}
         self.plugins: Dict[str, BotPlugin] = {}
@@ -286,10 +290,6 @@ class BotPluginManager(StoreMixin):
 
     def get_all_active_plugins(self) -> List[BotPlugin]:
         """This returns the list of plugins in the callback ordered defined from the config."""
-        # Make sure there is a 'None' entry in the callback order, to include
-        # any plugin not explicitly ordered.
-        if None not in self.plugins_callback_order:
-            self.plugins_callback_order = self.plugins_callback_order + (None,)
 
         all_plugins = []
         for name in self.plugins_callback_order:

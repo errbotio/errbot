@@ -232,6 +232,7 @@ class BotRepoManager(StoreMixin):
         """
         self.check_for_index_update()
 
+        human_name = None
         # try to find if we have something with that name in our index
         if repo in self[REPO_INDEX]:
             human_name = repo

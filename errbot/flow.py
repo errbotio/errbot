@@ -1,6 +1,6 @@
 import logging
 from threading import RLock
-from typing import Mapping, List, Tuple, Union, Callable, Any
+from typing import Mapping, List, Tuple, Union, Callable, Any, Optional
 
 from multiprocessing.pool import ThreadPool
 
@@ -264,7 +264,7 @@ class FlowExecutor(object):
         with self._lock:
             self.flow_roots[flow.name] = flow
 
-    def trigger(self, cmd: str, requestor: Identifier, extra_context=None) -> Flow:
+    def trigger(self, cmd: str, requestor: Identifier, extra_context=None) -> Optional[Flow]:
         """
         Trigger workflows that may have command cmd as a auto_trigger or an in flight flow waiting for command.
         This assume cmd has been correctly executed.
@@ -296,7 +296,7 @@ class FlowExecutor(object):
                     return True
         return False
 
-    def check_inflight_flow_triggered(self, cmd: str, user: Identifier) -> Tuple[Flow, FlowNode]:
+    def check_inflight_flow_triggered(self, cmd: str, user: Identifier) -> Tuple[Optional[Flow], Optional[FlowNode]]:
         """
         Check if a command from a specific user was expected in one of the running flow.
         :param cmd: the command that has just been executed.
@@ -315,7 +315,7 @@ class FlowExecutor(object):
         log.debug("None matched.")
         return None, None
 
-    def _check_if_new_flow_is_triggered(self, cmd: str, user: Identifier) -> Tuple[Flow, FlowNode]:
+    def _check_if_new_flow_is_triggered(self, cmd: str, user: Identifier) -> Tuple[Optional[Flow], Optional[FlowNode]]:
         """
         Trigger workflows that may have command cmd as a auto_trigger..
         This assume cmd has been correctly executed.
@@ -332,7 +332,7 @@ class FlowExecutor(object):
         return None, None
 
     @staticmethod
-    def _create_new_flow(flow_root, requestor: Identifier, initial_command) -> Tuple[Flow, FlowNode]:
+    def _create_new_flow(flow_root, requestor: Identifier, initial_command) -> Tuple[Optional[Flow], Optional[FlowNode]]:
         """
         Helper method to create a new FLow.
         """
@@ -362,7 +362,7 @@ class FlowExecutor(object):
         self._enqueue_flow(flow)
         return flow
 
-    def stop_flow(self, name: str, requestor: Identifier) -> Flow:
+    def stop_flow(self, name: str, requestor: Identifier) -> Optional[Flow]:
         """
         Stops a specific flow. It is a no op if the flow doesn't exist.
         Returns the stopped flow if found.

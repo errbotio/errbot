@@ -46,7 +46,10 @@ class StoreMixin(MutableMapping):
 
     @contextmanager
     def mutable(self, key, default=None):
-        obj = self._store.get(key, default)
+        try:
+            obj = self._store.get(key)
+        except KeyError:
+            obj = default
         yield obj
         # implements autosave for a plugin persistent entry
         # with self['foo'] as f:

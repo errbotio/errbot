@@ -1,3 +1,7 @@
+from typing import Tuple, Union, Sequence
+
+import json
+import re
 import logging
 import os
 import shutil
@@ -6,15 +10,11 @@ from collections import namedtuple
 from datetime import timedelta, datetime
 from os import path
 import tarfile
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 from urllib.parse import urlparse
 
-import json
-
-import re
-
-from errbot.plugin_manager import check_dependencies
 from errbot.storage import StoreMixin
 from .utils import ON_WINDOWS
 
@@ -80,6 +80,40 @@ def which(program):
                 return exe_file
 
     return None
+
+
+def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]:
+    """ This methods returns a pair of (message, packages missing).
+    Or None, [] if everything is OK.
+    """
+    log.debug('check dependencies of %s', req_path)
+    # noinspection PyBroadException
+    try:
+        from pkg_resources import get_distribution
+        missing_pkg = []
+
+        if not req_path.is_file():
+            log.debug('%s has no requirements.txt file', req_path)
+            return None, missing_pkg
+
+        with req_path.open() as f:
+            for line in f:
+                stripped = line.strip()
+                # skip empty lines.
+                if not stripped:
+                    continue
+
+                # noinspection PyBroadException
+                try:
+                    get_distribution(stripped)
+                except Exception:
+                    missing_pkg.append(stripped)
+        if missing_pkg:
+            return f'You need these dependencies for {req_path}: ' + ','.join(missing_pkg), missing_pkg
+        return None, missing_pkg
+    except Exception:
+        log.exception('Problem checking for dependencies.')
+        return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
 class BotRepoManager(StoreMixin):
@@ -252,7 +286,7 @@ class BotRepoManager(StoreMixin):
             err = p.stderr.read().strip().decode('utf-8')
             if err:
                 feedback += err + '\n' + '-' * 50 + '\n'
-            dep_err, missing_pkgs = check_dependencies(d)
+            dep_err, missing_pkgs = check_dependencies(Path(d) / 'requirements.txt')
             if dep_err:
                 feedback += dep_err + '\n'
             yield d, not p.wait(), feedback

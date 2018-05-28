@@ -8,9 +8,11 @@ import sys
 import traceback
 from pathlib import Path
 
-from typing import Tuple, Sequence, Dict, Union, Any, Type, Set, List
+from typing import Tuple, Dict, Any, Type, Set, List, Optional
 
 from errbot.flow import BotFlow, Flow
+from errbot.repo_manager import BotRepoManager, check_dependencies
+from errbot.storage.base import StoragePluginBase
 from .botplugin import BotPlugin
 from .plugin_info import PluginInfo
 from .utils import version2tuple, collect_roots
@@ -79,40 +81,6 @@ def install_packages(req_path: Path):
         return sys.exc_info()
 
 
-def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]:
-    """ This methods returns a pair of (message, packages missing).
-    Or None, [] if everything is OK.
-    """
-    log.debug('check dependencies of %s', req_path)
-    # noinspection PyBroadException
-    try:
-        from pkg_resources import get_distribution
-        missing_pkg = []
-
-        if not os.path.isfile(req_path):
-            log.debug('%s has no requirements.txt file', req_path)
-            return None, missing_pkg
-
-        with open(req_path) as f:
-            for line in f:
-                stripped = line.strip()
-                # skip empty lines.
-                if not stripped:
-                    continue
-
-                # noinspection PyBroadException
-                try:
-                    get_distribution(stripped)
-                except Exception:
-                    missing_pkg.append(stripped)
-        if missing_pkg:
-            return f'You need these dependencies for {req_path}: ' + ','.join(missing_pkg), missing_pkg
-        return None, missing_pkg
-    except Exception:
-        log.exception('Problem checking for dependencies.')
-        return 'You need to have setuptools installed for the dependency check of the plugins', []
-
-
 def check_python_plug_section(plugin_info: PluginInfo) -> bool:
     """ Checks if we have the correct version to run this plugin.
     Returns true if the plugin is loadable """
@@ -161,11 +129,17 @@ BL_PLUGINS = 'bl_plugins'
 
 class BotPluginManager(StoreMixin):
 
-    def __init__(self, storage_plugin, repo_manager, extra, autoinstall_deps, core_plugins, plugins_callback_order):
+    def __init__(self,
+                 storage_plugin: StoragePluginBase,
+                 repo_manager: BotRepoManager,
+                 extra_plugin_dir: Optional[str],
+                 autoinstall_deps: bool,
+                 core_plugins: Tuple[str, ...],
+                 plugins_callback_order: Tuple[Optional[str], ...]):
         super().__init__()
         self.bot = None
         self.autoinstall_deps = autoinstall_deps
-        self.extra = extra
+        self._extra_plugin_dir = extra_plugin_dir
         self.core_plugins = core_plugins
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
@@ -273,8 +247,8 @@ class BotPluginManager(StoreMixin):
                                        self.flows, self.flow_infos, feedback)
         return feedback
 
-    def _update_plugin_places(self, path_list, extra_plugin_dir) -> Dict[Path, str]:
-        repo_roots = (CORE_PLUGINS, extra_plugin_dir, path_list)
+    def _update_plugin_places(self, path_list) -> Dict[Path, str]:
+        repo_roots = (CORE_PLUGINS, self._extra_plugin_dir, path_list)
 
         all_roots = collect_roots(repo_roots)
 
@@ -356,7 +330,7 @@ class BotPluginManager(StoreMixin):
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
         """ It returns a dictionary of path -> error strings."""
-        return self._update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra)
+        return self._update_plugin_places(self.repo_manager.get_all_repos_paths())
 
     def activate_non_started_plugins(self):
         """

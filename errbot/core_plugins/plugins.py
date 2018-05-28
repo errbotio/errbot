@@ -25,7 +25,7 @@ class Plugins(BotPlugin):
         try:
             yield f'Installing {args}...'
             local_path = self._bot.repo_manager.install_repo(args)
-            errors = self._bot.plugin_manager.update_dynamic_plugins()
+            errors = self._bot.plugin_manager.update_plugin_places(self._bot.repo_manager.get_all_repos_paths())
             if errors:
                 v = '\n'.join(errors.values())
                 yield f'Some plugins are generating errors:\n{v}.'

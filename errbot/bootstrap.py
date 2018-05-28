@@ -141,7 +141,6 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     try:
         bot = backendpm.load_plugin()
         botpm = BotPluginManager(storage_plugin,
-                                 repo_manager,
                                  config.BOT_EXTRA_PLUGIN_DIR,
                                  config.AUTOINSTALL_DEPS,
                                  getattr(config, 'CORE_PLUGINS', None),
@@ -163,7 +162,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             print('Restore complete. You can restart the bot normally')
             sys.exit(0)
 
-        errors = bot.plugin_manager.update_dynamic_plugins()
+        errors = bot.plugin_manager.update_plugin_places(repo_manager.get_all_repos_paths())
         if errors:
             log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
             bot._plugin_errors_during_startup = "\n".join(errors.values())

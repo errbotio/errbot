@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Tuple, Dict, Any, Type, Set, List, Optional, Callable
 
 from errbot.flow import BotFlow, Flow
-from errbot.repo_manager import BotRepoManager, check_dependencies
+from errbot.repo_manager import check_dependencies
 from errbot.storage.base import StoragePluginBase
 from .botplugin import BotPlugin
 from .plugin_info import PluginInfo
@@ -20,6 +20,8 @@ from .templating import remove_plugin_templates_path, add_plugin_templates_path
 from .version import VERSION
 from .core_plugins.wsview import route
 from .storage import StoreMixin
+
+PluginInstanceCallback = Callable[[str, Type[BotPlugin]], BotPlugin]
 
 log = logging.getLogger(__name__)
 
@@ -131,11 +133,10 @@ class BotPluginManager(StoreMixin):
 
     def __init__(self,
                  storage_plugin: StoragePluginBase,
-                 repo_manager: BotRepoManager,
                  extra_plugin_dir: Optional[str],
                  autoinstall_deps: bool,
                  core_plugins: Tuple[str, ...],
-                 plugin_instance_callback: Callable[[str, Type[BotPlugin]], BotPlugin],
+                 plugin_instance_callback: PluginInstanceCallback,
                  plugins_callback_order: Tuple[Optional[str], ...]):
         """
         Creates a Plugin manager
@@ -148,16 +149,15 @@ class BotPluginManager(StoreMixin):
         :param plugins_callback_order: the order on which the plugins will be callbacked
         """
         super().__init__()
-        self.autoinstall_deps = autoinstall_deps
-        self._extra_plugin_dir = extra_plugin_dir
-        self._plugin_instance_callback = plugin_instance_callback
-        self.core_plugins = core_plugins
+        self.autoinstall_deps: bool = autoinstall_deps
+        self._extra_plugin_dir: str = extra_plugin_dir
+        self._plugin_instance_callback: PluginInstanceCallback = plugin_instance_callback
+        self.core_plugins: Tuple[str, ...] = core_plugins
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
         self.plugins_callback_order = plugins_callback_order
         if None not in self.plugins_callback_order:
             self.plugins_callback_order += (None,)
-        self.repo_manager = repo_manager
         self.plugin_infos: Dict[str, PluginInfo] = {}
         self.plugins: Dict[str, BotPlugin] = {}
         self.flow_infos: Dict[str, PluginInfo] = {}
@@ -255,7 +255,12 @@ class BotPluginManager(StoreMixin):
                                        self.flows, self.flow_infos, feedback)
         return feedback
 
-    def _update_plugin_places(self, path_list) -> Dict[Path, str]:
+    def update_plugin_places(self, path_list) -> Dict[Path, str]:
+        """
+        This updates where this manager is trying to find plugins and try to load newly found ones.
+        :param path_list: the path list where to search for plugins.
+        :return: the feedback for any specific path in case of error.
+        """
         repo_roots = (CORE_PLUGINS, self._extra_plugin_dir, path_list)
 
         all_roots = collect_roots(repo_roots)
@@ -334,11 +339,6 @@ class BotPluginManager(StoreMixin):
         configs = self[CONFIGS]
         configs[name] = obj
         self[CONFIGS] = configs
-
-    # this will load the plugins the admin has setup at runtime
-    def update_dynamic_plugins(self):
-        """ It returns a dictionary of path -> error strings."""
-        return self._update_plugin_places(self.repo_manager.get_all_repos_paths())
 
     def activate_non_started_plugins(self):
         """

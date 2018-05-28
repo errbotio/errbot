@@ -27,7 +27,7 @@ class Backup(BotPlugin):
             f.write('    log.error(bot.repo_manager.install_repo(repo))\n')
 
             f.write('log.info("Restoring plugins data.")\n')
-            f.write('bot.plugin_manager.update_dynamic_plugins()\n')
+            f.write('bot.plugin_manager.update_plugin_places(bot.repo_manager.get_all_repos_paths())\n')
             for plugin in self._bot.plugin_manager.plugins.values():
                 if plugin._store:
                     f.write('pobj = bot.plugin_manager.plugins["' + plugin.name + '"]\n')

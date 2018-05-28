@@ -106,7 +106,6 @@ class DummyBackend(ErrBot):
         self.attach_storage_plugin(storage_plugin)
         self.attach_repo_manager(repo_manager)
         self.attach_plugin_manager(BotPluginManager(storage_plugin,
-                                                    repo_manager,
                                                     config.BOT_EXTRA_PLUGIN_DIR,
                                                     config.AUTOINSTALL_DEPS,
                                                     getattr(config, 'CORE_PLUGINS', None),

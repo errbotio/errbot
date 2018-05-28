@@ -8,7 +8,7 @@ import sys
 import traceback
 from pathlib import Path
 
-from typing import Tuple, Dict, Any, Type, Set, List, Optional
+from typing import Tuple, Dict, Any, Type, Set, List, Optional, Callable
 
 from errbot.flow import BotFlow, Flow
 from errbot.repo_manager import BotRepoManager, check_dependencies
@@ -135,11 +135,22 @@ class BotPluginManager(StoreMixin):
                  extra_plugin_dir: Optional[str],
                  autoinstall_deps: bool,
                  core_plugins: Tuple[str, ...],
+                 plugin_instance_callback: Callable[[str, Type[BotPlugin]], BotPlugin],
                  plugins_callback_order: Tuple[Optional[str], ...]):
+        """
+        Creates a Plugin manager
+        :param storage_plugin: the plugin used to store to config for this manager
+        :param repo_manager: the repo manager
+        :param extra_plugin_dir: an extra directory to search for plugins
+        :param autoinstall_deps: if True, will install also the plugin deps from requirements.txt
+        :param core_plugins: the list of core plugin that will be started
+        :param plugin_instance_callback: the callback to instantiate a plugin (to inject the dependency on the bot)
+        :param plugins_callback_order: the order on which the plugins will be callbacked
+        """
         super().__init__()
-        self.bot = None
         self.autoinstall_deps = autoinstall_deps
         self._extra_plugin_dir = extra_plugin_dir
+        self._plugin_instance_callback = plugin_instance_callback
         self.core_plugins = core_plugins
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
@@ -155,9 +166,6 @@ class BotPluginManager(StoreMixin):
         self.open_storage(storage_plugin, 'core')
         if CONFIGS not in self:
             self[CONFIGS] = {}
-
-    def attach_bot(self, bot):
-        self.bot = bot
 
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         return self.plugins.get(name, None)
@@ -233,7 +241,7 @@ class BotPluginManager(StoreMixin):
 
                 # instantiate the plugin object.
                 _, clazz = plugin_classes[0]
-                dest_dict[name] = clazz(self.bot, name)
+                dest_dict[name] = self._plugin_instance_callback(name, clazz)
 
             except Exception:
                 feedback[path] = traceback.format_exc()

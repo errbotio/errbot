@@ -110,6 +110,7 @@ class DummyBackend(ErrBot):
                                                     config.BOT_EXTRA_PLUGIN_DIR,
                                                     config.AUTOINSTALL_DEPS,
                                                     getattr(config, 'CORE_PLUGINS', None),
+                                                    lambda name, clazz: clazz(self, name),
                                                     getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, ))))
         self.inject_commands_from(self)
         self.inject_command_filters_from(ACLS(self))

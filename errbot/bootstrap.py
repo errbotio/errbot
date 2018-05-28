@@ -129,25 +129,24 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     if isinstance(plugin_indexes, str):
         plugin_indexes = (plugin_indexes, )
 
-    repo_manager = BotRepoManager(storage_plugin,
-                                  botplugins_dir,
-                                  plugin_indexes)
-    botpm = BotPluginManager(storage_plugin,
-                             repo_manager,
-                             config.BOT_EXTRA_PLUGIN_DIR,
-                             config.AUTOINSTALL_DEPS,
-                             getattr(config, 'CORE_PLUGINS', None),
-                             getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )))
-
-    # init the backend manager & the bot
-
     backendpm = BackendPluginManager(config, 'errbot.backends', backend_name,
                                      ErrBot, CORE_BACKENDS, getattr(config, 'BOT_EXTRA_BACKEND_DIR', []))
 
     log.info(f'Found Backend plugin: {backendpm.plugin_info.name}')
 
+    repo_manager = BotRepoManager(storage_plugin,
+                                  botplugins_dir,
+                                  plugin_indexes)
+
     try:
         bot = backendpm.load_plugin()
+        botpm = BotPluginManager(storage_plugin,
+                                 repo_manager,
+                                 config.BOT_EXTRA_PLUGIN_DIR,
+                                 config.AUTOINSTALL_DEPS,
+                                 getattr(config, 'CORE_PLUGINS', None),
+                                 lambda name, clazz: clazz(bot, name),
+                                 getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )))
         bot.attach_storage_plugin(storage_plugin)
         bot.attach_repo_manager(repo_manager)
         bot.attach_plugin_manager(botpm)

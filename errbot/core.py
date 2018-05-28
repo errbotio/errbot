@@ -71,7 +71,6 @@ class ErrBot(Backend, StoreMixin):
 
     def attach_plugin_manager(self, plugin_manager):
         self.plugin_manager = plugin_manager
-        plugin_manager.attach_bot(self)
 
     def attach_storage_plugin(self, storage_plugin):
         # the storage_plugin is needed by the plugins

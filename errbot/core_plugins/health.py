@@ -4,8 +4,7 @@ import signal
 
 from datetime import datetime
 from errbot import BotPlugin, botcmd, arg_botcmd
-from errbot.plugin_manager import global_restart
-from errbot.utils import format_timedelta
+from errbot.utils import format_timedelta, global_restart
 
 
 class Health(BotPlugin):

@@ -156,12 +156,6 @@ def check_errbot_version(plugin_info: PluginInfo):
                                           f'while Errbot is version {VERSION}')
 
 
-# TODO: move this out, this has nothing to do with plugins
-def global_restart():
-    python = sys.executable
-    os.execl(python, python, *sys.argv)
-
-
 # Storage names
 CONFIGS = 'configs'
 BL_PLUGINS = 'bl_plugins'

@@ -1,5 +1,4 @@
 """ Logic related to plugin loading and lifecycle """
-import inspect
 from copy import deepcopy
 from importlib import machinery
 import logging
@@ -7,7 +6,6 @@ import os
 import subprocess
 import sys
 import traceback
-from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
 
 from typing import Tuple, Sequence, Dict, Union, Any, Type, Set, List
@@ -108,7 +106,7 @@ def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]
                 except Exception:
                     missing_pkg.append(stripped)
         if missing_pkg:
-            return ((f'You need these dependencies for {req_path}: ') + ','.join(missing_pkg), missing_pkg)
+            return f'You need these dependencies for {req_path}: ' + ','.join(missing_pkg), missing_pkg
         return None, missing_pkg
     except Exception:
         log.exception('Problem checking for dependencies.')
@@ -171,10 +169,10 @@ class BotPluginManager(StoreMixin):
         self.core_plugins = core_plugins
         self.plugins_callback_order = plugins_callback_order
         self.repo_manager = repo_manager
-        self.plugin_infos = {}  # Name ->  PluginInfo
-        self.plugins = {}  # Name ->  BotPlugin
-        self.flow_infos = {}  # Name ->  PluginInfo
-        self.flows = {}  # Name ->  Flow
+        self.plugin_infos: Dict[str, PluginInfo] = {}
+        self.plugins: Dict[str, BotPlugin] = {}
+        self.flow_infos: Dict[str, PluginInfo] = {}
+        self.flows: Dict[str, Flow] = {}
         self.plugin_places = []
         self.open_storage(storage_plugin, 'core')
         if CONFIGS not in self:

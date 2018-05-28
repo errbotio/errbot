@@ -267,15 +267,16 @@ class BotPluginManager(StoreMixin):
             except Exception:
                 feedback[path] = traceback.format_exc()
 
-    def load_plugins(self, feedback: Dict[Path, str]):
+    def _load_plugins(self) -> Dict[Path, str]:
+        feedback = {}
         for path in self.plugin_places:
             self._load_plugins_generic(path, 'plug', 'errbot.plugins', BotPlugin,
                                        self.plugins, self.plugin_infos, feedback)
             self._load_plugins_generic(path, 'flow', 'errbot.flows', BotFlow,
                                        self.flows, self.flow_infos, feedback)
+        return feedback
 
-    def update_plugin_places(self, path_list, extra_plugin_dir):
-        """ It returns a dictionary of path -> error strings."""
+    def _update_plugin_places(self, path_list, extra_plugin_dir) -> Dict[Path, str]:
         repo_roots = (CORE_PLUGINS, extra_plugin_dir, path_list)
 
         all_roots = collect_roots(repo_roots)
@@ -288,12 +289,9 @@ class BotPluginManager(StoreMixin):
         # so plugins can relatively import their repos
         _ensure_sys_path_contains(repo_roots)
         self.plugin_places = [Path(root) for root in all_roots]
-        errors = {}
+        return self._load_plugins()
 
-        self.load_plugins(errors)
-        return errors
-
-    def get_all_active_plugin_objects_ordered(self):
+    def get_all_active_plugin_objects_ordered(self) -> List[BotPlugin]:
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
         if None not in self.plugins_callback_order:
@@ -367,7 +365,7 @@ class BotPluginManager(StoreMixin):
     # this will load the plugins the admin has setup at runtime
     def update_dynamic_plugins(self):
         """ It returns a dictionary of path -> error strings."""
-        return self.update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra)
+        return self._update_plugin_places(self.repo_manager.get_all_repos_paths(), self.extra)
 
     def activate_non_started_plugins(self):
         """

@@ -82,7 +82,7 @@ class Webserver(BotPlugin):
         super().check_configuration(configuration)
 
     def activate(self):
-        if not self.config:
+        if not self.bot_config:
             self.log.info('Webserver is not configured. Forbid activation')
             return
 
@@ -105,13 +105,16 @@ class Webserver(BotPlugin):
 
     def run_server(self):
         try:
-            host = self.config['HOST']
-            port = self.config['PORT']
-            ssl = self.config['SSL']
+            host = self.bot_config.HOST
+            port = int(self.bot_config.PORT)
             self.log.info('Starting the webserver on %s:%i', host, port)
-            ssl_context = (ssl['certificate'], ssl['key']) if ssl['enabled'] else None
-            self.server = ThreadedWSGIServer(host, ssl['port'] if ssl_context else port, flask_app,
-                                             ssl_context=ssl_context)
+            if hasattr(self.bot_config,'SSL') and self.bot_config.SSL['enabled']:
+                ssl = self.bot_config.SSL
+                ssl_context = (os.sep.join((self.bot_config.BOT_DATA_DIR,ssl['certificate'])), os.sep.join((self.bot_config.BOT_DATA_DIR,ssl['key'])))
+                self.log.info('Starting the webserver on with SSL %s',ssl_context )
+                self.server = ThreadedWSGIServer(host, port, flask_app, ssl_context=ssl_context)
+            else:
+                self.server = ThreadedWSGIServer(host, port, flask_app, None)
             self.server.serve_forever()
             self.log.debug('Webserver stopped')
         except KeyboardInterrupt:
@@ -181,11 +184,6 @@ class Webserver(BotPlugin):
         make_ssl_certificate(key_path=key_path, cert_path=cert_path)
         yield f'Certificate successfully generated and saved in {self.bot_config.BOT_DATA_DIR}.'
 
-        suggested_config = self.config
-        suggested_config['SSL']['enabled'] = True
-        suggested_config['SSL']['host'] = suggested_config['HOST']
-        suggested_config['SSL']['port'] = suggested_config['PORT'] + 1
-        suggested_config['SSL']['key'] = key_path
-        suggested_config['SSL']['certificate'] = cert_path
-        yield 'To enable SSL with this certificate, the following config is recommended:'
-        yield f'{suggested_config!r}'
+        suggested_config = dict(enabled=True,key=key_path,certificate=cert_path)
+        yield 'To enable SSL with this certificate, the following config should be added in the config file'
+        yield f'SSL={suggested_config!r}'

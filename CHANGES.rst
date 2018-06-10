@@ -14,6 +14,7 @@ major refactoring:
 - removed cross dependencies between PluginManager & RepoManager
 
 fixes:
+
 - Use sys.executable explicitly instead of just 'pip' (thx Bruno Oliveira)
 - Pycodestyle fixes (thx Nitanshu)
 - Help: don't add bot prefix to non-prefixed re cmds (#1199) (thx Robin Gloster)

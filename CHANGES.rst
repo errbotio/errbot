@@ -1,3 +1,40 @@
+v6.0.0-alpha (2018-06-10)
+-------------------------
+
+major refactoring:
+
+- Removed Yapsy dependency
+- Replaced back Bottle and Rocket by Flask
+- new Pep8 compliance
+- added Python 3.7 support
+- removed Python 3.5 support
+- removed old compatibility cruft
+- ported formats and % str ops to f-strings
+- Started to add field types to improve type visibility across the codebase
+- removed cross dependencies between PluginManager & RepoManager
+
+fixes:
+- Use sys.executable explicitly instead of just 'pip' (thx Bruno Oliveira)
+- Pycodestyle fixes (thx Nitanshu)
+- Help: don't add bot prefix to non-prefixed re cmds (#1199) (thx Robin Gloster)
+- split_string_after: fix empty string handling (thx Robin Gloster)
+- Escaping bug in dynamic plugins
+- botmatch is now visible from the errbot module (fp to Guillaume Binet)
+- flows: hint boolean was not forwarded
+- Fix possible event without bot_id (#1073) (thx Roi Dayan)
+- decorators were working only if kwargs were empty
+- Message.clone was ignoring partial and flows
+
+
+features:
+
+- partial boolean to flag partial mesages (thx Meet Mangukiya)
+- Slack: room joined callback (thx Jeremy Kenyon)
+- XMPP: real_jid to get the jid the users logged in (thx Robin Gloster)
+- The callback order set in the config is not globally respected
+- Added a default parameter to the storage context manager
+
+
 v5.2.0 (2018-04-04)
 -------------------
 

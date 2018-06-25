@@ -120,6 +120,10 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
 
     storage_plugin = get_storage_plugin(config)
 
+    botdata_dir = path.join(config.BOT_DATA_DIR, 'data')
+    if not path.exists(botdata_dir):
+        makedirs(botdata_dir, mode=0o755)
+
     # init the botplugin manager
     botplugins_dir = path.join(config.BOT_DATA_DIR, PLUGINS_SUBDIR)
     if not path.exists(botplugins_dir):

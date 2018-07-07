@@ -37,3 +37,8 @@ class DummyTest(BotPlugin):
     def baz(self, msg, args):
         """Tests mock injection method"""
         return self.helper_method('baz')
+
+    @botcmd
+    def bar(self, msg, args):
+        """This runs bar."""
+        return msg

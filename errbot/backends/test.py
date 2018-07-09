@@ -462,6 +462,25 @@ class TestBot(object):
         self.bot.push_message(command)
         assert 'not found' not in self.bot.pop_message(timeout)
 
+    def inject_mocks(self, plugin_name: str, mock_dict: dict):
+        """Inject mock objects into the plugin
+
+        mock_dict = {
+            'field_1': obj_1,
+            'field_2': obj_2,
+        }
+        testbot.inject_mocks(HelloWorld, mock_dict)
+        assert 'blah' in testbot.exec_command('!hello')
+        """
+        plugin = self.bot.plugin_manager.get_plugin_obj_by_name(plugin_name)
+
+        if plugin is None:
+            raise Exception(f'"{PluginName}" is not loaded.')
+        for field, mock_obj in mock_dict.items():
+            if not hasattr(plugin, field):
+                raise ValueError(f'No property/attribute named "{field}" attached.')
+            setattr(plugin, field, mock_obj)
+
 
 class FullStackTest(unittest.TestCase, TestBot):
     """

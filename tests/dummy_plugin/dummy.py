@@ -29,3 +29,11 @@ class DummyTest(BotPlugin):
     def run_lots_of_subcommands(self, msg, args):
         """Tests multiple subcommands"""
         return args
+
+    def helper_method(self, arg):
+        return arg
+
+    @botcmd
+    def baz(self, msg, args):
+        """Tests mock injection method"""
+        return self.helper_method('baz')

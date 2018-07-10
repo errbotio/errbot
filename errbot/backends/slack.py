@@ -143,6 +143,14 @@ class SlackPerson(Person):
     def domain(self):
         return self._sc.server.domain
 
+    @property
+    def email(self):
+        user = self._sc.server.users.find(self._userid)
+        if user is None:
+            log.error('Cannot find user with ID %s', self._userid)
+            return f'<{self._userid}>'
+        return user.email
+
     # Compatibility with the generic API.
     client = channelid
     nick = username

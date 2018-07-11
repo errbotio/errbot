@@ -474,7 +474,7 @@ class TestBot(object):
         plugin = self.bot.plugin_manager.get_plugin_obj_by_name(plugin_name)
 
         if plugin is None:
-            raise Exception(f'"{PluginName}" is not loaded.')
+            raise Exception(f'"{plugin_name}" is not loaded.')
         for field, mock_obj in mock_dict.items():
             if not hasattr(plugin, field):
                 raise ValueError(f'No property/attribute named "{field}" attached.')

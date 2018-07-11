@@ -176,6 +176,7 @@ class BotPluginBase(StoreMixin):
         self._bot.inject_commands_from(self)
         self._bot.inject_command_filters_from(self)
         self.is_activated = True
+        self._bot.plugin_manager.plugins[self.name] = self
 
     def deactivate(self) -> None:
         """

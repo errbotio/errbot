@@ -364,3 +364,15 @@ def test_mock_injection(testbot):
     mock_dict = {'helper_method': helper_mock}
     testbot.inject_mocks('Dummy', mock_dict)
     assert 'foo' in testbot.exec_command('!baz')
+
+
+def test_multiline_command(testbot):
+    testbot.assertCommand(
+        '''
+        !bar title
+        first line of body
+        second line of body
+        ''',
+        '!bar title\nfirst line of body\nsecond line of body',
+        dedent=True
+    )

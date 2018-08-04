@@ -2,6 +2,7 @@ import importlib
 import logging
 import sys
 import unittest
+import textwrap
 from os.path import sep, abspath
 from queue import Queue
 from tempfile import mkdtemp
@@ -451,8 +452,10 @@ class TestBot(object):
     def zap_queues(self):
         return self.bot.zap_queues()
 
-    def assertCommand(self, command, response, timeout=5):
+    def assertCommand(self, command, response, timeout=5, dedent=False):
         """Assert the given command returns the given response"""
+        if dedent:
+            command = '\n'.join(textwrap.dedent(command).splitlines()[1:])
         self.bot.push_message(command)
         msg = self.bot.pop_message(timeout)
         assert response in msg, "'{}' not in '{}'".format(response, msg)

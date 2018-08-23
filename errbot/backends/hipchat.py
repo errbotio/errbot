@@ -23,7 +23,7 @@ try:
 except ImportError:
     log.exception("Could not start the HipChat backend")
     log.fatal(
-        "You need to install the hipchat support in order to use the HipChat.\n "
+        "You need to install the hipchat support in order to use the HipChat backend.\n "
         "You should be able to install this package using:\n"
         "pip install errbot[hipchat]"
     )

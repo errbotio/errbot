@@ -67,11 +67,11 @@ def test_collect_roots():
     os.mkdir(subtutu)
     touch(os.path.join(subtutu, 'tutu.plug'))
 
-    assert collect_roots((CORE_PLUGINS, None)) == {CORE_PLUGINS, }
-    assert collect_roots((CORE_PLUGINS, toto)) == {CORE_PLUGINS, toto}
-    assert collect_roots((CORE_PLUGINS, [toto, titi])) == {CORE_PLUGINS, toto, titi}
-    assert collect_roots((CORE_PLUGINS, toto, titi, 'nothing')) == {CORE_PLUGINS, toto, titi}
-    assert collect_roots((toto, tutu)) == {toto, subtutu}
+    assert collect_roots((CORE_PLUGINS, None)) == [CORE_PLUGINS, ]
+    assert collect_roots((CORE_PLUGINS, toto)) == [CORE_PLUGINS, toto]
+    assert collect_roots((CORE_PLUGINS, [toto, titi])) == [CORE_PLUGINS, toto, titi]
+    assert collect_roots((CORE_PLUGINS, toto, titi, 'nothing')) == [CORE_PLUGINS, toto, titi]
+    assert collect_roots((toto, tutu)) == [toto, subtutu]
 
 
 def test_ignore_dotted_directories():
@@ -79,7 +79,7 @@ def test_ignore_dotted_directories():
     a = os.path.join(root, '.invisible')
     os.mkdir(a)
     touch(os.path.join(a, 'toto.plug'))
-    assert collect_roots((CORE_PLUGINS, root)) == {CORE_PLUGINS, }
+    assert collect_roots((CORE_PLUGINS, root)) == [CORE_PLUGINS, ]
 
 
 def dummy_config_parser() -> ConfigParser:

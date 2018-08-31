@@ -161,7 +161,7 @@ def find_roots(path, file_sig='*.plug'):
                     log.debug('Ignore %s.', dir_to_add)
                     break
             else:
-                roots.add(dir_to_add)
+                roots.append(dir_to_add)
     return list(collections.OrderedDict.fromkeys(roots))  # you can have several .plug per directory.s
 
 

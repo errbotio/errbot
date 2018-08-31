@@ -1,3 +1,4 @@
+import collections
 import fnmatch
 import inspect
 import logging
@@ -146,7 +147,7 @@ def find_roots(path, file_sig='*.plug'):
             the file pattern to look for
        :return: a set of paths
     """
-    roots = set()  # you can have several .plug per directory.
+    roots = list()
     for root, dirnames, filenames in os.walk(path, followlinks=True):
         for filename in fnmatch.filter(filenames, file_sig):
             dir_to_add = os.path.dirname(os.path.join(root, filename))
@@ -161,7 +162,7 @@ def find_roots(path, file_sig='*.plug'):
                     break
             else:
                 roots.add(dir_to_add)
-    return roots
+    return list(collections.OrderedDict.fromkeys(roots))  # you can have several .plug per directory.s
 
 
 def collect_roots(base_paths, file_sig='*.plug'):
@@ -175,13 +176,13 @@ def collect_roots(base_paths, file_sig='*.plug'):
             the file pattern to look for
        :return: a set of paths
     """
-    result = set()
+    result = list()
     for path_or_list in base_paths:
         if isinstance(path_or_list, (list, tuple)):
-            result |= collect_roots(base_paths=path_or_list, file_sig=file_sig)
+            result.extend(collect_roots(base_paths=path_or_list, file_sig=file_sig))
         elif path_or_list is not None:
-            result |= find_roots(path_or_list, file_sig)
-    return result
+            result.extend(find_roots(path_or_list, file_sig))
+    return list(collections.OrderedDict.fromkeys(result))
 
 
 def global_restart():

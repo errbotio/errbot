@@ -145,7 +145,7 @@ def find_roots(path, file_sig='*.plug'):
             a base path to walk from
        :param file_sig:
             the file pattern to look for
-       :return: a set of paths
+       :return: a list of paths
     """
     roots = list()
     for root, dirnames, filenames in os.walk(path, followlinks=True):
@@ -174,7 +174,7 @@ def collect_roots(base_paths, file_sig='*.plug'):
 
        :param file_sig:
             the file pattern to look for
-       :return: a set of paths
+       :return: a list of paths
     """
     result = list()
     for path_or_list in base_paths:

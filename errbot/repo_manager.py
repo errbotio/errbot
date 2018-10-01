@@ -282,6 +282,9 @@ class BotRepoManager(StoreMixin):
         names = set(self.get_installed_plugin_repos().keys()).intersection(set(repos))
 
         for d in (path.join(self.plugin_dir, name) for name in names):
+            if not path.exists(d):
+                log.debug('Repo marked as installed but is missing install files, attempting to install')
+                self.install_repo(path.relpath(d, self.plugin_dir))
             p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             feedback = p.stdout.read().decode('utf-8') + '\n' + '-' * 50 + '\n'
             err = p.stderr.read().strip().decode('utf-8')

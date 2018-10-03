@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Sequence, List, Generator, Dict
+from typing import Tuple, List, Generator, Dict
 
 import json
 import re
@@ -15,8 +15,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 from urllib.parse import urlparse
 
-from errbot.storage import StoreMixin
 from errbot.storage.base import StoragePluginBase
+from .plugin_manager import BotPluginManager, check_dependencies
 from .utils import ON_WINDOWS
 
 log = logging.getLogger(__name__)
@@ -83,41 +83,7 @@ def which(program):
     return None
 
 
-def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]:
-    """ This methods returns a pair of (message, packages missing).
-    Or None, [] if everything is OK.
-    """
-    log.debug('check dependencies of %s', req_path)
-    # noinspection PyBroadException
-    try:
-        from pkg_resources import get_distribution
-        missing_pkg = []
-
-        if not req_path.is_file():
-            log.debug('%s has no requirements.txt file', req_path)
-            return None, missing_pkg
-
-        with req_path.open() as f:
-            for line in f:
-                stripped = line.strip()
-                # skip empty lines.
-                if not stripped:
-                    continue
-
-                # noinspection PyBroadException
-                try:
-                    get_distribution(stripped)
-                except Exception:
-                    missing_pkg.append(stripped)
-        if missing_pkg:
-            return f'You need these dependencies for {req_path}: ' + ','.join(missing_pkg), missing_pkg
-        return None, missing_pkg
-    except Exception:
-        log.exception('Problem checking for dependencies.')
-        return 'You need to have setuptools installed for the dependency check of the plugins', []
-
-
-class BotRepoManager(StoreMixin):
+class BotRepoManager(BotPluginManager):
     """
     Manages the repo list, git clones/updates or the repos.
     """
@@ -128,7 +94,6 @@ class BotRepoManager(StoreMixin):
         :param plugin_dir: where on disk it will git clone the repos.
         :param plugin_indexes: a list of URL / path to get the json repo index.
         """
-        super().__init__()
         self.plugin_indexes = plugin_indexes
         self.storage_plugin = storage_plugin
         self.plugin_dir = plugin_dir
@@ -283,8 +248,29 @@ class BotRepoManager(StoreMixin):
 
         for d in (path.join(self.plugin_dir, name) for name in names):
             if not path.exists(d):
-                log.debug('Repo marked as installed but is missing install files, attempting to install')
-                self.install_repo(path.relpath(d, self.plugin_dir))
+                missing_plugin = path.relpath(d, self.plugin_dir)
+                log.info('%s repo marked as installed but is missing install files' % (missing_plugin))
+                log.info('Attempting to install')
+                yield (d, False, '%s repo marked as installed but is missing install files, '
+                                 'attempting to install' % (missing_plugin))
+                local_path = self.install_repo(missing_plugin)
+                errors = self.update_plugin_places(self.get_all_repos_paths())
+                if errors:
+                    v = '\n'.join(errors.values())
+                    yield (d, False, 'Some plugins are generating errors:\n%s.' % (v))
+                    # if the load of the plugin failed, uninstall cleanly teh repo
+                    for error_path in errors.keys():
+                        if str(error_path).startswith(local_path):
+                            yield (d, False, 'Removing %s as it did not load correctly.' % (local_path))
+                            shutil.rmtree(local_path)
+                else:
+                    yield (d, True, 'A new plugin repository has been installed correctly from %s. '
+                                    'Refreshing the plugins commands...' % missing_plugin)
+                loading_errors = self.activate_non_started_plugins()
+                if loading_errors:
+                    yield loading_errors
+                yield 'Plugins reloaded.'
+
             p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             feedback = p.stdout.read().decode('utf-8') + '\n' + '-' * 50 + '\n'
             err = p.stderr.read().strip().decode('utf-8')
@@ -303,5 +289,5 @@ class BotRepoManager(StoreMixin):
         # ignore errors because the DB can be desync'ed from the file tree.
         shutil.rmtree(repo_path, ignore_errors=True)
         repos = self.get_installed_plugin_repos()
-        del(repos[name])
+        repos.pop(name, None)
         self.set_plugin_repos(repos)

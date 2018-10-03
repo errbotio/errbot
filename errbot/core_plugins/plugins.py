@@ -121,11 +121,9 @@ class Plugins(BotPlugin):
         for d, success, feedback in results:
             if success:
                 yield f'Update of {d} succeeded...\n\n{feedback}\n\n'
-            else:
-                yield f'Update of {d} failed...\n\n{feedback}'
 
-            for plugin in self._bot.plugin_manager.getAllPlugins():
-                if plugin.path.startswith(d) and hasattr(plugin, 'is_activated') and plugin.is_activated:
+                plugin = self._bot.plugin_manager.get_plugin_by_path(d)
+                if hasattr(plugin, 'is_activated') and plugin.is_activated:
                     name = plugin.name
                     yield f'/me is reloading plugin {name}'
                     try:
@@ -133,6 +131,9 @@ class Plugins(BotPlugin):
                         yield f'Plugin {plugin.name} reloaded.'
                     except PluginActivationException as pae:
                         yield f'Error reactivating plugin {plugin.name}: {pae}'
+            else:
+                yield f'Update of {d} failed...\n\n{feedback}'
+
         yield "Done."
 
     @botcmd(split_args_with=' ', admin_only=True)

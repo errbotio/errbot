@@ -8,10 +8,9 @@ import sys
 import traceback
 from pathlib import Path
 
-from typing import Tuple, Dict, Any, Type, Set, List, Optional, Callable
+from typing import Tuple, Dict, Union, Sequence, Any, Type, Set, List, Optional, Callable
 
 from errbot.flow import BotFlow, Flow
-from errbot.repo_manager import check_dependencies
 from errbot.storage.base import StoragePluginBase
 from .botplugin import BotPlugin
 from .plugin_info import PluginInfo
@@ -122,6 +121,40 @@ def check_errbot_version(plugin_info: PluginInfo):
     if max_version and max_version < current_version:
         raise IncompatiblePluginException(f'The plugin {name} asks for Errbot with a maximum version of {max_version} '
                                           f'while Errbot is version {VERSION}')
+
+
+def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]:
+    """ This methods returns a pair of (message, packages missing).
+    Or None, [] if everything is OK.
+    """
+    log.debug('check dependencies of %s', req_path)
+    # noinspection PyBroadException
+    try:
+        from pkg_resources import get_distribution
+        missing_pkg = []
+
+        if not req_path.is_file():
+            log.debug('%s has no requirements.txt file', req_path)
+            return None, missing_pkg
+
+        with req_path.open() as f:
+            for line in f:
+                stripped = line.strip()
+                # skip empty lines.
+                if not stripped:
+                    continue
+
+                # noinspection PyBroadException
+                try:
+                    get_distribution(stripped)
+                except Exception:
+                    missing_pkg.append(stripped)
+        if missing_pkg:
+            return f'You need these dependencies for {req_path}: ' + ','.join(missing_pkg), missing_pkg
+        return None, missing_pkg
+    except Exception:
+        log.exception('Problem checking for dependencies.')
+        return 'You need to have setuptools installed for the dependency check of the plugins', []
 
 
 # Storage names
@@ -296,6 +329,11 @@ class BotPluginManager(StoreMixin):
 
     def get_all_plugin_names(self):
         return self.plugins.keys()
+
+    def get_plugin_by_path(self, path):
+        for name, pi in self.plugin_infos.items():
+            if str(pi.location.parent) == path:
+                return self.plugins[name]
 
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
@@ -494,7 +532,7 @@ class BotPluginManager(StoreMixin):
         """
         old_plugin_infos = deepcopy(self.plugin_infos)
         for name, pi in old_plugin_infos.items():
-            if str(pi.location).startswith(root):
+            if str(pi.location).startswith(root) and name in self.plugins.keys():
                 self.remove_plugin(self.plugins[name])
 
     def shutdown(self):

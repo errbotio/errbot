@@ -25,7 +25,7 @@ try:
 except ImportError:
     log.exception("Could not start the Slack back-end")
     log.fatal(
-        "You need to install the slackclient support in order to use the Slack.\n"
+        "You need to install the slackclient support in order to use the Slack backend.\n"
         "You can do `pip install errbot[slack]` to install it"
     )
     sys.exit(1)

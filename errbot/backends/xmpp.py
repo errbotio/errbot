@@ -23,7 +23,7 @@ try:
 except ImportError:
     log.exception("Could not start the XMPP backend")
     log.fatal("""
-    If you intend to use the XMPP backend pleas install the support for XMPP with:
+    If you intend to use the XMPP backend please install the support for XMPP with:
     pip install errbot[XMPP]
     """)
     sys.exit(-1)

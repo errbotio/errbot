@@ -307,8 +307,8 @@ class Plugins(BotPlugin):
 
     @botcmd(admin_only=True, template='plugin_info')
     def plugin_info(self, _, args):
-        pm = self._bot.plugin_manager
         """Gives you a more technical information about a specific plugin."""
+        pm = self._bot.plugin_manager
         if args not in pm.get_all_plugin_names():
             return (f"{args} isn't a valid plugin name. The current plugins are:\n"
                     f"{self.formatted_plugin_list(active_only=False)}")

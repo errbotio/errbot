@@ -31,7 +31,7 @@ webview = view  # this allows to use the templating system
 # Same happens with quotations marks, which are required for parsing
 # complex strings in arguments
 # Map of characters to sanitized equivalents
-ARG_BOTCMD_CHARACTER_REPLACEMENTS = {'—': '--', '“': '"', '”': '"'}
+ARG_BOTCMD_CHARACTER_REPLACEMENTS = {'—': '--', '“': '"', '”': '"', '’': '\'', '‘': '\''}
 
 
 class ArgumentParseError(Exception):

@@ -3,6 +3,7 @@ from ast import literal_eval
 from pprint import pformat
 import os
 import shutil
+import logging
 
 from errbot import BotPlugin, botcmd
 from errbot.plugin_manager import PluginConfigurationException, PluginActivationException
@@ -305,3 +306,14 @@ class Plugins(BotPlugin):
                 return 'Error activating plugin: %s' % pae
 
         return self._bot.plugin_manager.unblacklist_plugin(args)
+
+    @botcmd(admin_only=True, template='plugin_info')
+    def plugin_info(self, _, args):
+        """Gives you a more technical information about a specific plugin."""
+        pm = self._bot.plugin_manager
+        if args not in pm.get_all_plugin_names():
+            return (f"{args} isn't a valid plugin name. The current plugins are:\n"
+                    f"{self.formatted_plugin_list(active_only=False)}")
+        return {'plugin_info': pm.plugin_infos[args],
+                'plugin': pm.plugins[args],
+                'logging': logging}

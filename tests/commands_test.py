@@ -376,3 +376,11 @@ def test_multiline_command(testbot):
         '!bar title\nfirst line of body\nsecond line of body',
         dedent=True
     )
+
+
+def test_plugin_info_command(testbot):
+    output = testbot.exec_command('!plugin info Help')
+    assert 'name: Help' in output
+    assert 'module: help' in output
+    assert 'help.py' in output
+    assert 'log level: NOTSET' in output

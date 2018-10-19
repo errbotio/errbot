@@ -484,7 +484,7 @@ class ErrBot(Backend, StoreMixin):
         matches = set(matches)
         if matches:
             alternatives = ('" or "' + self.bot_config.BOT_PREFIX).join(matches)
-            msg += '\n\nDid you mean "{self.bot_config.BOT_PREFIX}{alternatives}" ?'
+            msg += f'\n\nDid you mean "{self.bot_config.BOT_PREFIX}{alternatives}" ?'
         return msg
 
     def inject_commands_from(self, instance_to_inject):

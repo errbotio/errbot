@@ -63,6 +63,10 @@ def install_packages(req_path: Path):
 
         Return an exc_info if it fails otherwise None.
     """
+    def is_docker():
+        with open('/proc/1/cgroup') as d:
+            return 'docker' in d.read()
+
     log.info('Installing packages from "%s".', req_path)
     # use sys.executable explicitly instead of just 'pip' because depending on how the bot is deployed
     # 'pip' might not be available on PATH: for example when installing errbot on a virtualenv and
@@ -74,6 +78,9 @@ def install_packages(req_path: Path):
     try:
         if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and (sys.base_prefix != sys.prefix)):
             # this is a virtualenv, so we can use it directly
+            subprocess.check_call(pip_cmdline + ['install', '--requirement', str(req_path)])
+        elif is_docker():
+            # this is a docker container, so we can use it directly
             subprocess.check_call(pip_cmdline + ['install', '--requirement', str(req_path)])
         else:
             # otherwise only install it as a user package

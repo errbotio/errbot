@@ -28,7 +28,7 @@ webroute = route  # this allows plugins to expose dynamic webpages on Errbot emb
 # Same happens with quotations marks, which are required for parsing
 # complex strings in arguments
 # Map of characters to sanitized equivalents
-ARG_BOTCMD_CHARACTER_REPLACEMENTS = {'—': '--', '“': '"', '”': '"'}
+ARG_BOTCMD_CHARACTER_REPLACEMENTS = {'—': '--', '“': '"', '”': '"', '’': '\'', '‘': '\''}
 
 
 class ArgumentParseError(Exception):

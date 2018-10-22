@@ -7,6 +7,7 @@ import sys
 import time
 from platform import system
 from functools import wraps
+from typing import Union
 
 log = logging.getLogger(__name__)
 
@@ -188,3 +189,32 @@ def global_restart():
     """Restart the current process."""
     python = sys.executable
     os.execl(python, python, *sys.argv)
+
+
+def which(executable: str) -> Union[None, str]:
+    """
+    which returns the pathnames of the files (or links) which would be executed in the current environment, had its
+    argument been given as commands in a strictly POSIX-conformant shell.  It does this by searching the PATH for
+    executable files matching the names of the arguments. It does not canonicalize path names.
+
+    :param executable: (str) executable to return path for
+    :return: Union[str, none] - Either the path to the Executable or none if the executable does not exist or isnt in
+        the path
+    """
+    if ON_WINDOWS:
+        executable += '.exe'
+
+    def is_exe(file_path):
+        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
+
+    fpath, fname = os.path.split(executable)
+    if fpath:
+        if is_exe(executable):
+            return executable
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, executable)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None

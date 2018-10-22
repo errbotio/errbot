@@ -9,6 +9,7 @@ from errbot.repo_manager import BotRepoManager
 from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
+from errbot.utils import which
 from errbot.logs import format_logs
 
 log = logging.getLogger(__name__)
@@ -74,6 +75,12 @@ def bot_config_defaults(config):
 
 
 def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
+    # Check if git is installed on the system and in the path. If not, error out immediately
+    if which("git") is None:
+        log.exception("git is either not installed or not accessible in the path. Please install it or add it to your "
+                      "path")
+        sys.exit(-1)
+
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 

@@ -240,6 +240,11 @@ class BotRepoManager(StoreMixin):
             human_name = human_name or human_name_for_git_url(repo_url)
             p = subprocess.Popen([git_path, 'clone', repo_url, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
+            if p.returncode == 126:
+                raise RepoException(f"'git' command is not executable. Tried to execute {git_path} and got return "
+                                    f"code 126")
+            if p.returncode == 127:
+                raise RepoException(f"'git' command not found. Tried to execute {git_path} and got return code 127")
             feedback = p.stdout.read().decode('utf-8')
             error_feedback = p.stderr.read().decode('utf-8')
             if p.wait():

@@ -10,6 +10,11 @@ from collections import deque, defaultdict
 log = logging.getLogger('errbot.backends.base')
 
 
+class UnsupportedException(Exception):
+    """This method is unsupported by the chosen backend."""
+    pass
+
+
 class Identifier(ABC):
     """This is just use for type hinting representing the Identifier contract,
     NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
@@ -656,9 +661,9 @@ class Backend(ABC):
     def send_message(self, msg: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
-    @abstractmethod
     def delete_message(self, msg: Message) -> None:
         """Delete a message. Should be overridden by backends with a super().delete_message() call if applicable."""
+        raise UnsupportedException("This method is unsupported by the chosen backend.")
 
     @abstractmethod
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:

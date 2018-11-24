@@ -657,6 +657,10 @@ class Backend(ABC):
         """Should be overridden by backends with a super().send_message() call."""
 
     @abstractmethod
+    def update_message(self, msg: Message) -> None:
+        """Update a message. Should be overridden by backends with a super().update_message() call if applicable."""
+
+    @abstractmethod
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
         """Signal a presence change for the bot. Should be overridden by backends with a super().send_message() call."""
 

@@ -656,9 +656,9 @@ class Backend(ABC):
     def send_message(self, msg: Message) -> None:
         """Should be overridden by backends with a super().send_message() call."""
 
-    @abstractmethod
     def update_message(self, msg: Message) -> None:
         """Update a message. Should be overridden by backends with a super().update_message() call if applicable."""
+        raise UnsupportedException("This method is unsupported by the chosen backend.")
 
     @abstractmethod
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:

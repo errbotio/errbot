@@ -688,6 +688,20 @@ class SlackBackend(ErrBot):
                 "to %s: %s" % (to_humanreadable, msg.body)
             )
 
+    def update_message(self, msg: Message, new_text: str, cards: dict = None):
+        """Update a message that already exists"""
+        to_channel_id = self._get_channel_id(msg)
+        data = {
+            'text': new_text,
+            'channel': to_channel_id,
+            'attachments': json.dumps(cards) if cards else "",
+            'link_names': '1',
+            'as_user': 'true',
+            'ts': self._bot._ts_for_message(msg)
+        }
+
+        return self._bot.api_call('chat.update', data=data)
+
     def _slack_upload(self, stream):
         """Perform upload defined in a stream."""
         try:

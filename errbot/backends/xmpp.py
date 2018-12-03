@@ -2,6 +2,7 @@ import logging
 import sys
 from functools import lru_cache
 from time import sleep
+from datetime import datetime
 
 from errbot.backends.base import (
     AWAY,
@@ -495,10 +496,10 @@ class XMPPBackend(ErrBot):
             msg.frm = self._build_person(xmppmsg["from"].full)
             msg.to = self._build_person(xmppmsg["to"].full)
 
-        msg.nick = xmppmsg["mucnick"]
-        msg.delayed = bool(
-            xmppmsg["delay"]._get_attr("stamp")
-        )  # this is a bug in slixmpp it should be ['from']
+        msg.nick = xmppmsg['mucnick']
+        now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        delay = xmppmsg['delay']._get_attr('stamp')  # this is a bug in sleekxmpp it should be ['from']
+        msg.delayed = bool(delay and delay != now)
         self.callback_message(msg)
 
     def _idd_from_event(self, event):

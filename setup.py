@@ -39,7 +39,7 @@ deps = ['webtest',
         'pyOpenSSL',
         'colorlog',
         'yapsy>=1.11',  # new contract for plugin instantiation
-        'markdown>=2.6',  # rendering stuff
+        'markdown==2.6.*',  # rendering stuff
         'ansi',
         'Pygments>=2.0.2',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md

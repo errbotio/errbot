@@ -508,15 +508,10 @@ class AnsiPreprocessor(FencedBlockPreprocessor):
             if m:
                 code = self._escape(m.group('code'))
 
-<<<<<<< HEAD
                 placeholder = self.markdown.htmlStash.store(code, safe=False)
                 text = '%s\n%s\n%s' % (text[:m.start()],
                                        placeholder,
                                        text[m.end():])
-=======
-                placeholder = self.markdown.htmlStash.store(code)
-                text = f'{text[:m.start()]}\n{placeholder}\n{text[m.end():]}'
->>>>>>> 368675c... use colour instead of color which aliases to colour
             else:
                 break
         return text.split("\n")

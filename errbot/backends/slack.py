@@ -406,6 +406,8 @@ class SlackBackend(ErrBot):
             'presence_change': self._presence_change_event_handler,
             'message': self._message_event_handler,
             'member_joined_channel': self._member_joined_channel_event_handler,
+            'reaction_added': self._reaction_event_handler,
+            'reaction_removed': self._reaction_event_handler
         }
 
         event_handler = event_handlers.get(event_type)
@@ -529,6 +531,19 @@ class SlackBackend(ErrBot):
         user = SlackPerson(self.sc, event['user'])
         if user == self.bot_identifier:
             self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
+
+    def _reaction_event_handler(self, event):
+        """Event handler for the 'reaction_added' 
+           and 'reaction_removed' events"""
+
+        event['user'] = SlackPerson(self.sc, event['user'])
+	
+        item_user = event.get('item_user', None)
+        if item_user:
+            event['item_user'] = SlackPerson(self.sc, item_user)
+
+        self.callback_reaction(event)
+
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""

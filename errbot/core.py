@@ -109,6 +109,8 @@ class ErrBot(Backend, StoreMixin):
             # noinspection PyBroadException
             try:
                 getattr(plugin, method)(*args, **kwargs)
+            except AttributeError:
+                log.debug('%s does not exist in %s', method, plugin_name)
             except Exception:
                 log.exception('%s on %s crashed.', method, plugin_name)
 
@@ -616,6 +618,16 @@ class ErrBot(Backend, StoreMixin):
     def callback_stream(self, stream):
         log.info('Initiated an incoming transfer %s.', stream)
         Tee(stream, self.plugin_manager.get_all_active_plugins()).start()
+
+    def callback_reaction(self, reaction):
+        """
+            Triggered when a reaction is added or removed.
+
+            :param reaction:
+                   The reaction event data 
+        """
+        log.debug('A reaction event "%s" has occurred.', reaction['type'])
+        self._dispatch_to_plugins('callback_reaction', reaction)
 
     def signal_connect_to_all_plugins(self):
         for bot in self.plugin_manager.get_all_active_plugins():

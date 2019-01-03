@@ -624,7 +624,7 @@ class ErrBot(Backend, StoreMixin):
             Triggered when a reaction is added or removed.
 
             :param reaction:
-                   The reaction event data 
+                   The reaction event data
         """
         log.debug('A reaction event "%s" has occurred.', reaction['type'])
         self._dispatch_to_plugins('callback_reaction', reaction)

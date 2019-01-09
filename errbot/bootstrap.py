@@ -9,6 +9,7 @@ from errbot.repo_manager import BotRepoManager
 from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
+from errbot.utils import which
 from errbot.logs import format_logs
 
 log = logging.getLogger(__name__)
@@ -18,6 +19,11 @@ CORE_BACKENDS = path.join(HERE, 'backends')
 CORE_STORAGE = path.join(HERE, 'storage')
 
 PLUGIN_DEFAULT_INDEX = 'https://repos.errbot.io/repos.json'
+
+
+# raised in validate_prerequisites
+class PreRequisiteException(Exception):
+    pass
 
 
 def bot_config_defaults(config):
@@ -201,7 +207,7 @@ def get_storage_plugin(config):
     return spm.load_plugin()
 
 
-def bootstrap(bot_class, logger, config, restore=None):
+def bootstrap(bot_class, logger, config, restore=None) -> None:
     """
     Main starting point of Errbot.
 
@@ -210,6 +216,27 @@ def bootstrap(bot_class, logger, config, restore=None):
     :param config: The config.py module.
     :param restore: Start Errbot in restore mode (from a backup).
     """
+    try:
+        validate_prerequisites()
+    except PreRequisiteException as exception:
+        log.error(exception)
+        sys.exit(-1)
     bot = setup_bot(bot_class, logger, config, restore)
     log.debug(f'Start serving commands from the {bot.mode} backend.')
     bot.serve_forever()
+
+
+def validate_prerequisites() -> None:
+    """
+    Runs pre-bootstrap validations of the environment we are starting the bot in
+
+    :return: None
+    :raise PreRequisiteException
+    """
+    # validate git is installed and in the path
+    try:
+        which('git')
+    except FileNotFoundError as error:
+        log.error(error)
+        raise PreRequisiteException("The required 'git' package is either not installed or accessible in your system "
+                                    "path. Please install 'git' or ensure it's added to your system path.")

@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 
 from errbot.storage import StoreMixin
 from errbot.storage.base import StoragePluginBase
-from .utils import ON_WINDOWS
+from .utils import which
 
 log = logging.getLogger(__name__)
 
@@ -61,26 +61,6 @@ def tokenizeJsonEntry(json_dict):
     """
     search = ' '.join((str(word) for word in json_dict.values()))
     return set(FIND_WORDS_RE.findall(search.lower()))
-
-
-def which(program):
-    if ON_WINDOWS:
-        program += '.exe'
-
-    def is_exe(file_path):
-        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
 
 
 def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]:
@@ -273,8 +253,10 @@ class BotRepoManager(StoreMixin):
         This git pulls the specified repos on disk.
         Yields tuples like (name, success, reason)
         """
-        git_path = which('git')
-        if not git_path:
+
+        try:
+            git_path = which('git')
+        except FileNotFoundError:
             yield ('everything', False, 'git command not found: You need to have git installed on '
                                         'your system to be able to install git based plugins.')
 

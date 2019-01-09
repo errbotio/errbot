@@ -6,6 +6,10 @@ Prerequisites
 
 Errbot runs under Python 3.3+ on Linux, Windows and Mac.
 
+Errbot uses the system's `git` package to clone plugin repositories. You must have git installed, in the path, and
+executable by the user that Errbot runs as.
+
+
 Installation
 ------------
 

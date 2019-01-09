@@ -3,6 +3,7 @@ import inspect
 import logging
 import os
 import re
+import stat
 import sys
 import time
 from platform import system
@@ -188,3 +189,45 @@ def global_restart():
     """Restart the current process."""
     python = sys.executable
     os.execl(python, python, *sys.argv)
+
+
+def which(executable: str) -> str:
+    """
+    which returns the pathnames of the files (or links) which would be executed in the current environment, had its
+    argument been given as commands in a strictly POSIX-conformant shell.  It does this by searching the PATH for
+    executable files matching the names of the arguments. It does not canonicalize path names.
+
+    :param executable: (str) executable to return path for
+    :return: (str) - The path to the Executable
+    """
+    def is_executable(path: str) -> bool:
+        """
+        Checks if a path is executable
+        :param path: (str) A path to check
+        :return: True if executable, false otherwise
+        """
+        executable_mode = stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH
+        try:
+            st = os.stat(path)
+        except FileNotFoundError:
+            return False
+        mode = st.st_mode
+        if mode & executable_mode:
+            return True
+        return False
+
+    # on windows, add .exe to our executable
+    if ON_WINDOWS:
+        executable += '.exe'
+
+    # if this is executable as is, its our full path
+    if is_executable(executable):
+        return executable
+
+    # step through each dir in the PATH and see if the executable is there
+    for path in os.environ["PATH"].split(os.pathsep):
+        path_and_executable = os.path.join(path, executable)
+        if is_executable(path_and_executable):
+            return path_and_executable
+
+    raise FileNotFoundError(f'{executable} is not found in your PATH')

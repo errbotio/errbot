@@ -697,13 +697,27 @@ class SlackBackend(ErrBot):
         self.thread_pool.apply_async(self._slack_upload, (stream,))
         return stream
 
-    def send_card(self, card: Card):
+    def send_card(self, card: Card) -> None:
+        """
+        Sends a card via the slack api. Cards are rendered out as attachments
+        https://api.slack.com/docs/message-attachments
+
+        This card is sent with markdown enabled on the pretext and fields. Text (card.body) does not support markdown
+        :param card: (Card) the card to send
+        :return: None
+        """
         if isinstance(card.to, RoomOccupant):
             card.to = card.to.room
         to_humanreadable, to_channel_id = self._prepare_message(card)
-        attachment = {}
+        attachment = dict()
+        # per https://api.slack.com/docs/message-formatting, setting mrkdown_in tells slack there's markdown in these
+        # fields.
+        # since we split text into smaller fields if its too big, this really breaks being able to use markdown there.
+        # so just leave it out. Pretext and fields can use markdown easily
+        attachment['mrkdwn_in'] = ['pretext', 'fields']
+
         if card.summary:
-            attachment['pretext'] = card.summary
+            attachment['pretext'] = self.md.convert(card.summary)
         if card.title:
             attachment['title'] = card.title
         if card.link:
@@ -717,7 +731,8 @@ class SlackBackend(ErrBot):
             attachment['color'] = COLORS[card.color] if card.color in COLORS else card.color
 
         if card.fields:
-            attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
+            attachment['fields'] = [{'title': self.md.convert(key), 'value': self.md.convert(value), 'short': True}
+                                    for key, value in card.fields]
 
         limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
         parts = self.prepare_message_body(card.body, limit)

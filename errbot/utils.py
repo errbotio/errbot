@@ -1,5 +1,4 @@
-from typing import List
-
+import collections
 import fnmatch
 import inspect
 import logging
@@ -9,6 +8,7 @@ import sys
 import time
 from platform import system
 from functools import wraps
+from typing import List
 
 
 from dulwich import porcelain
@@ -142,16 +142,16 @@ def split_string_after(str_, n):
         yield str_[start:start + n]
 
 
-def find_roots(path, file_sig='*.plug'):
+def find_roots(path: str, file_sig: str = '*.plug') -> List:
     """Collects all the paths from path recursively that contains files of type `file_sig`.
 
        :param path:
             a base path to walk from
        :param file_sig:
             the file pattern to look for
-       :return: a set of paths
+       :return: a list of paths
     """
-    roots = set()  # you can have several .plug per directory.
+    roots = list()  # you can have several .plug per directory.
     for root, dirnames, filenames in os.walk(path, followlinks=True):
         for filename in fnmatch.filter(filenames, file_sig):
             dir_to_add = os.path.dirname(os.path.join(root, filename))
@@ -165,11 +165,11 @@ def find_roots(path, file_sig='*.plug'):
                     log.debug('Ignore %s.', dir_to_add)
                     break
             else:
-                roots.add(dir_to_add)
-    return roots
+                roots.append(dir_to_add)
+    return list(collections.OrderedDict.fromkeys(roots))
 
 
-def collect_roots(base_paths, file_sig='*.plug'):
+def collect_roots(base_paths: List, file_sig:str = '*.plug') -> List:
     """Collects all the paths from base_paths recursively that contains files of type `file_sig`.
 
        :param base_paths:
@@ -178,15 +178,15 @@ def collect_roots(base_paths, file_sig='*.plug'):
 
        :param file_sig:
             the file pattern to look for
-       :return: a set of paths
+       :return: a list of paths
     """
-    result = set()
+    result = list()
     for path_or_list in base_paths:
         if isinstance(path_or_list, (list, tuple)):
-            result |= collect_roots(base_paths=path_or_list, file_sig=file_sig)
+            result.extend(collect_roots(base_paths=path_or_list, file_sig=file_sig))
         elif path_or_list is not None:
-            result |= find_roots(path_or_list, file_sig)
-    return result
+            result.extend(find_roots(path_or_list, file_sig))
+    return list(collections.OrderedDict.fromkeys(result))
 
 
 def global_restart():

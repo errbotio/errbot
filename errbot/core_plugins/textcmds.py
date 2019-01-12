@@ -50,7 +50,7 @@ class TextModeCmds(BotPlugin):
         self._bot._inroom = True
         if args:
             room = args
-        if not room:
+        else:
             room = '#testroom'
         self._bot.query_room(room).join()
         return f'Joined Room {room}.'

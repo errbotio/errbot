@@ -1,4 +1,4 @@
-from errbot import BotPlugin, botcmd
+from errbot import BotPlugin, botcmd, arg_botcmd
 
 INROOM, USER, MULTILINE = 'inroom', 'user', 'multiline'
 
@@ -43,12 +43,17 @@ class TextModeCmds(BotPlugin):
         super().deactivate()
 
     @botcmd
-    def inroom(self, msg, _):
+    def inroom(self, msg, args):
         """
            This puts you in a room with the bot.
         """
         self._bot._inroom = True
-        return f'Joined Room {self._bot._rooms[0]}.'
+        if args:
+            room = args
+        if not room:
+            room = '#testroom'
+        self._bot.query_room(room).join()
+        return f'Joined Room {room}.'
 
     @botcmd
     def inperson(self, msg, _):

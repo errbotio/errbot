@@ -1,4 +1,4 @@
-from errbot import BotPlugin, botcmd, arg_botcmd
+from errbot import BotPlugin, botcmd
 
 INROOM, USER, MULTILINE = 'inroom', 'user', 'multiline'
 

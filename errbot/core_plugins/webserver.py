@@ -67,13 +67,13 @@ class Webserver(BotPlugin):
         super().__init__(*args, **kwargs)
 
     def get_configuration_template(self):
-        return {'HOST': '0.0.0.0',
-                'PORT': 3141,
-                'SSL': {'enabled': False,
-                        'host': '0.0.0.0',
-                        'port': 3142,
-                        'certificate': '',
-                        'key': ''}}
+        return {"HOST": "0.0.0.0",
+                "PORT": 3141,
+                "SSL": {"enabled": False,
+                        "host": "0.0.0.0",
+                        "port": 3142,
+                        "certificate": "",
+                        "key": ""}}
 
     def check_configuration(self, configuration):
         # it is a pain, just assume a default config if SSL is absent or set to None

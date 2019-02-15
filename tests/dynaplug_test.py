@@ -16,7 +16,8 @@ def test_arg(testbot):
     assert 'added' in testbot.exec_command('!add_arg')
     assert 'string to echo is string_to_echo' in testbot.exec_command('!echo_to_me string_to_echo')
     assert 'removed' in testbot.exec_command('!remove_arg')
-    assert 'Command "echo_to_me" / "echo_to_me string_to_echo" not found' in testbot.exec_command('!echo_to_me string_to_echo')
+    assert ('Command "echo_to_me" / "echo_to_me string_to_echo" not found'
+            in testbot.exec_command('!echo_to_me string_to_echo'))
 
 
 def test_re(testbot):

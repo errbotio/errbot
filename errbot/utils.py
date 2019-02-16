@@ -169,7 +169,7 @@ def find_roots(path: str, file_sig: str = '*.plug') -> List:
     return list(collections.OrderedDict.fromkeys(roots))
 
 
-def collect_roots(base_paths: List, file_sig:str = '*.plug') -> List:
+def collect_roots(base_paths: List, file_sig: str = '*.plug') -> List:
     """Collects all the paths from base_paths recursively that contains files of type `file_sig`.
 
        :param base_paths:

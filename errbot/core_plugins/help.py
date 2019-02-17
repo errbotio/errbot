@@ -16,13 +16,12 @@ class Help(BotPlugin):
         try:
             tags = git_tag_list(path)
         except dulwich_errors.NotGitRepository:
-            return None
+            tags = None
         except Exception as _:
             # we might want to handle other exceptions another way. For now leaving this general
-            return None
-        if tags is None:
-            return tags
-        return tags.pop(-1)
+            tags = None
+
+        return tags.pop(-1) if tags is not None else None
 
     # noinspection PyUnusedLocal
     @botcmd(template='about')

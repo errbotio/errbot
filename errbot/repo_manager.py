@@ -17,6 +17,8 @@ from urllib.parse import urlparse
 
 from errbot.storage import StoreMixin
 from errbot.storage.base import StoragePluginBase
+from .utils import git_clone
+from .utils import git_pull
 from .utils import ON_WINDOWS
 
 log = logging.getLogger(__name__)
@@ -244,11 +246,6 @@ class BotRepoManager(StoreMixin):
         else:
             repo_url = repo
 
-        git_path = which('git')
-        if not git_path:
-            raise RepoException('git command not found: You need to have git installed on '
-                                'your system to be able to install git based plugins.', )
-
         # TODO: Update download path of plugin.
         if repo_url.endswith('tar.gz'):
             fo = urlopen(repo_url)  # nosec
@@ -258,12 +255,10 @@ class BotRepoManager(StoreMixin):
             human_name = s[:-len('.tar.gz')]
         else:
             human_name = human_name or human_name_for_git_url(repo_url)
-            p = subprocess.Popen([git_path, 'clone', repo_url, human_name], cwd=self.plugin_dir, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            feedback = p.stdout.read().decode('utf-8')
-            error_feedback = p.stderr.read().decode('utf-8')
-            if p.wait():
-                raise RepoException(f'Could not load this plugin: \n\n{feedback}\n\n---\n\n{error_feedback}')
+            try:
+                git_clone(repo_url, os.path.join(self.plugin_dir, human_name))
+            except Exception as exception:  # dulwich errors all base on exceptions.Exception
+                raise RepoException(f'Could not load this plugin: \n\n{repo_url}\n\n---\n\n{exception}')
 
         self.add_plugin_repo(human_name, repo_url)
         return os.path.join(self.plugin_dir, human_name)
@@ -273,24 +268,23 @@ class BotRepoManager(StoreMixin):
         This git pulls the specified repos on disk.
         Yields tuples like (name, success, reason)
         """
-        git_path = which('git')
-        if not git_path:
-            yield ('everything', False, 'git command not found: You need to have git installed on '
-                                        'your system to be able to install git based plugins.')
-
         # protects for update outside of what we know is installed
         names = set(self.get_installed_plugin_repos().keys()).intersection(set(repos))
 
         for d in (path.join(self.plugin_dir, name) for name in names):
-            p = subprocess.Popen([git_path, 'pull'], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            feedback = p.stdout.read().decode('utf-8') + '\n' + '-' * 50 + '\n'
-            err = p.stderr.read().strip().decode('utf-8')
-            if err:
-                feedback += err + '\n' + '-' * 50 + '\n'
+            success = 1
+            try:
+                git_pull(d)
+                feedback = "Pulled remote"
+                success = 0
+            except Exception as exception:
+                feedback = f"Error pulling remote {exception}"
+                pass
+
             dep_err, missing_pkgs = check_dependencies(Path(d) / 'requirements.txt')
             if dep_err:
                 feedback += dep_err + '\n'
-            yield d, not p.wait(), feedback
+            yield d, success, feedback
 
     def update_all_repos(self) -> Generator[Tuple[str, int, str], None, None]:
         return self.update_repos(self.get_installed_plugin_repos().keys())

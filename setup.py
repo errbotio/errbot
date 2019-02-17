@@ -41,6 +41,7 @@ deps = ['webtest',
         'ansi',
         'Pygments>=2.0.2',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
+        'dulwich' # python implementation of git
         ]
 
 if not PY37_OR_GREATER:

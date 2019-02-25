@@ -109,8 +109,6 @@ class ErrBot(Backend, StoreMixin):
             # noinspection PyBroadException
             try:
                 getattr(plugin, method)(*args, **kwargs)
-            except AttributeError:
-                log.debug('%s does not exist in %s', method, plugin_name)
             except Exception:
                 log.exception('%s on %s crashed.', method, plugin_name)
 
@@ -621,12 +619,12 @@ class ErrBot(Backend, StoreMixin):
 
     def callback_reaction(self, reaction):
         """
-            Triggered when a reaction is added or removed.
+            Triggered when a reaction occurs.
 
             :param reaction:
-                   The reaction event data
+                An instance of :class:`~errbot.backends.base.Reaction`
+                representing the reaction event data
         """
-        log.debug('A reaction event "%s" has occurred.', reaction['type'])
         self._dispatch_to_plugins('callback_reaction', reaction)
 
     def signal_connect_to_all_plugins(self):

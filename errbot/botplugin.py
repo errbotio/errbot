@@ -361,7 +361,7 @@ class BotPlugin(BotPluginBase):
         2. in case of an array or tuple, it will assume array members of the
            same type of first element of the template (no mix typed is supported)
 
-        In case of validation error it should raise a errbot.utils.ValidationException
+        In case of validation error it should raise a errbot.ValidationException
 
         :param configuration: the configuration to be checked.
         """

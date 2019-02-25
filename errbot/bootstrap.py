@@ -103,12 +103,12 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
 
         try:
             if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
-                    mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
-                    transport = getattr(mod, config.SENTRY_TRANSPORT[0])
+                mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
+                transport = getattr(mod, config.SENTRY_TRANSPORT[0])
 
-                    sentryhandler = SentryHandler(config.SENTRY_DSN,
-                                                  level=config.SENTRY_LOGLEVEL,
-                                                  transport=transport)
+                sentryhandler = SentryHandler(config.SENTRY_DSN,
+                                              level=config.SENTRY_LOGLEVEL,
+                                              transport=transport)
             else:
                 sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
             logger.addHandler(sentryhandler)

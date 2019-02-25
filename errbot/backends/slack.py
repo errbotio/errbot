@@ -6,6 +6,7 @@ import re
 import sys
 import pprint
 from functools import lru_cache
+from typing import BinaryIO
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
@@ -699,8 +700,12 @@ class SlackBackend(ErrBot):
             log.exception(f'An exception occurred while trying to send the following message '
                           f'to {to_humanreadable}: {msg.body}.')
 
-    def _slack_upload(self, stream):
-        """Perform upload defined in a stream."""
+    def _slack_upload(self, stream: Stream) -> None:
+        """
+        Performs an upload defined in a stream
+        :param stream: Stream object
+        :return: None
+        """
         try:
             stream.accept()
             resp = self.api_call('files.upload', data={
@@ -715,11 +720,26 @@ class SlackBackend(ErrBot):
         except Exception:
             log.exception(f'Upload of {stream.name} to {stream.identifier.channelname} failed.')
 
-    def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
-        """Starts a file transfer. For Slack, the size and stream_type are unsupported"""
-        stream = Stream(identifier, fsource, name, size, stream_type)
+    def send_stream_request(self,
+                            user: Identifier,
+                            fsource: BinaryIO,
+                            name: str = None,
+                            size: int = None,
+                            stream_type: str = None) -> Stream:
+        """
+            Starts a file transfer. For Slack, the size and stream_type are unsupported
+
+            :param user: is the identifier of the person you want to send it to.
+            :param fsource: is a file object you want to send.
+            :param name: is an optional filename for it.
+            :param size: not supported in Slack backend
+            :param stream_type: not supported in Slack backend
+
+            :return Stream: object on which you can monitor the progress of it.
+        """
+        stream = Stream(user, fsource, name, size, stream_type)
         log.debug('Requesting upload of %s to %s (size hint: %d, stream type: %s).',
-                  name, identifier.channelname, size, stream_type)
+                  name, user.channelname, size, stream_type)
         self.thread_pool.apply_async(self._slack_upload, (stream,))
         return stream
 

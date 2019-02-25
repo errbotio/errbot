@@ -11,7 +11,7 @@ from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
-from errbot.backends.base import Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
+from errbot.backends.base import Identifier, Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
     UserDoesNotExistError, RoomOccupant, Person, Card, Stream, Reaction, REACTION_ADDED, REACTION_REMOVED
 from errbot.core import ErrBot
 from errbot.utils import split_string_after

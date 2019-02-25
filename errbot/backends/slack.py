@@ -556,7 +556,6 @@ class SlackBackend(ErrBot):
 
         self.callback_reaction(reaction)
 
-
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""
         user = self.sc.server.users.get(id_)

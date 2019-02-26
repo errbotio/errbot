@@ -32,5 +32,5 @@ If you don't specify any predicate when you build your flow, every single step i
 wait for the user to execute one of the possible commands at every step to advance along the graph.
 
 Predicates can be used to trigger a command automatically. Predicates are simple functions saying to Errbot,
-"this command has enough in the context to be able to executed without any user intervention".
+"this command has enough in the context to be able to execute without any user intervention".
 At any time if a predicate is verified after a step is executed, Errbot will proceed and execute the next step.

@@ -41,8 +41,7 @@ Making a step execute automatically
 In our previous example, if ``msg.ctx['mydata']`` is populated, we can arguably expect that Errbot should not wait for
 the user to enter ``!second`` to execute it and just proceed by itself.
 
-You can do that by defining a **predicate**, this is a simple function that reply ``True`` if the conditions are OK
-to proceed to the next step. The function takes only one parameter, the context, the same one you get from msg.ctx.
+You can do that by defining a **predicate**, which is a simple function that accepts the context (same one you get from `msg.ctx`) as its only parameter and returns a boolean telling Errbot whether it can proceed to the next step.
 
 .. code-block:: python
 

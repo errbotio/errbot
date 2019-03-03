@@ -18,6 +18,7 @@ PLUGINS_SUBDIR = 'plugins'
 # noinspection PyPep8Naming
 class deprecated(object):
     """ deprecated decorator. emits a warning on a call on an old method and call the new method anyway """
+
     def __init__(self, new=None):
         self.new = new
 
@@ -68,10 +69,11 @@ INVALID_VERSION_EXCEPTION = 'version %s in not in format "x.y.z" or "x.y.z-{beta
 
 
 def version2tuple(version):
-    vsplit = version.split('-')
 
-    if len(vsplit) == 2:
-        main, sub = vsplit
+    main, _sep, sub = version.partition('-')
+    sub_int = sys.maxsize
+
+    if sub:
         if sub == 'alpha':
             sub_int = -1
         elif sub == 'beta':
@@ -81,11 +83,9 @@ def version2tuple(version):
         else:
             raise ValueError(INVALID_VERSION_EXCEPTION % version)
 
-    elif len(vsplit) == 1:
-        main = vsplit[0]
-        sub_int = sys.maxsize
-    else:
-        raise ValueError(INVALID_VERSION_EXCEPTION % version)
+    if '.dev' in main:
+        sub_int = -2
+        main, *_ = main.rpartition('.dev')
 
     response = [int(el) for el in main.split('.')]
     response.append(sub_int)
@@ -108,6 +108,7 @@ def rate_limited(min_interval):
     :param min_interval: minimum interval allowed between 2 consecutive calls.
     :return: the decorated function
     """
+
     def decorate(func):
         last_time_called = [0.0]
 

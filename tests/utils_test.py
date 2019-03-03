@@ -22,6 +22,8 @@ log = logging.getLogger(__name__)
                          ('2.0.0-rc2', '2.0.0-rc3'),
                          ('2.0.0-rc2', '2.0.0'),
                          ('2.0.0-beta', '2.0.1'),
+                         ('3.1.1.dev1239+dirty', '3.1.2'),
+                         ('3.1.1.dev5+dirty', '3.2.0'),
                          ])
 def test_version_check(v1, v2):
     assert version2tuple(v1) < version2tuple(v2)

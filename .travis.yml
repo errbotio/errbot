@@ -1,5 +1,9 @@
 sudo: false
 language: python
+
+git:
+  depth: false
+
 matrix:
   include:
     - python: 3.6

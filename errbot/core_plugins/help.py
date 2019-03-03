@@ -27,11 +27,7 @@ class Help(BotPlugin):
     @botcmd(template='about')
     def about(self, msg, args):
         """Return information about this Errbot instance and version"""
-        git_version = self.is_git_directory()
-        if git_version:
-            return dict(version=f"{git_version.decode('utf-8')} GIT CHECKOUT")
-        else:
-            return {'version': VERSION}
+        return {'version': VERSION}
 
     # noinspection PyUnusedLocal
     @botcmd

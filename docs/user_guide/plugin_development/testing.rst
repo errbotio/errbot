@@ -119,7 +119,7 @@ What we need now is get access to the instance of our plugin itself. Fortunately
         result = plugin.mycommand_helper()
         assert result == expected
 
-There we go, we first grab out plugin thanks to a helper method on :mod:`~errbot.plugin_manager` and then simply execute the method and compare what we get with what we expect. You can also access `@classmethod` or `@staticmethod` methods this way, you just don't have to.
+There we go, we first grab our plugin using a helper method on :mod:`~errbot.plugin_manager` and then simply execute the method and compare the result with the expected result. You can also access `@classmethod` or `@staticmethod` methods this way, but you don't have to.
 
 Sometimes a helper method will be making HTTP or API requests which might not be possible to test directly. In that case, we need to mock that particular method and make it return the expected value without actually making the request.
 

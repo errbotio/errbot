@@ -9,7 +9,6 @@ features:
 - Adds ability to go back to a previous room
 - Pass telegram message id to the callback
 
-
 fixes:
 
 - Remove extra spaces in uptime output
@@ -23,7 +22,6 @@ fixes:
 - fix: arg_botcmd decorator now can be used as plain method
 - setup: removing dnspython
 - pin markdown <3.0 because safe is deprecated
-
 
 v6.0.0-alpha (2018-06-10)
 -------------------------

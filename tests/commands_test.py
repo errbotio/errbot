@@ -6,6 +6,7 @@ from os import path, mkdir
 from queue import Empty
 from shutil import rmtree
 from tempfile import mkdtemp
+from mock import MagicMock
 
 import pytest
 import tarfile
@@ -355,3 +356,31 @@ def test_command_not_found_with_space_in_bot_prefix(testbot):
     testbot.bot_config.BOT_PREFIX = '! '
     assert 'Command "blah" not found.' in testbot.exec_command('! blah')
     assert 'Command "blah" / "blah toto" not found.' in testbot.exec_command('! blah toto')
+
+
+def test_mock_injection(testbot):
+    helper_mock = MagicMock()
+    helper_mock.return_value = 'foo'
+    mock_dict = {'helper_method': helper_mock}
+    testbot.inject_mocks('Dummy', mock_dict)
+    assert 'foo' in testbot.exec_command('!baz')
+
+
+def test_multiline_command(testbot):
+    testbot.assertCommand(
+        '''
+        !bar title
+        first line of body
+        second line of body
+        ''',
+        '!bar title\nfirst line of body\nsecond line of body',
+        dedent=True
+    )
+
+
+def test_plugin_info_command(testbot):
+    output = testbot.exec_command('!plugin info Help')
+    assert 'name: Help' in output
+    assert 'module: help' in output
+    assert 'help.py' in output
+    assert 'log level: NOTSET' in output

@@ -37,11 +37,10 @@ deps = ['webtest',
         'jinja2',
         'pyOpenSSL',
         'colorlog',
-        'markdown',  # rendering stuff
+        'markdown<3.0',  # rendering stuff, 3.0+ deprecates 'safe()'
         'ansi',
         'Pygments>=2.0.2',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
-        'dnspython3',
         ]
 
 if not PY37_OR_GREATER:

@@ -383,7 +383,9 @@ class TextBackend(ErrBot):
             raise ValueError('A Room name must start by #.')
         text_room = TextRoom(room[1:], self)
         if text_room not in self._rooms:
-            self._rooms.append(text_room)
+            self._rooms.insert(0, text_room)
+        else:
+            self._rooms.insert(0, self._rooms.pop(self._rooms.index(text_room)))
         return text_room
 
     @property

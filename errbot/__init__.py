@@ -28,7 +28,7 @@ webroute = route  # this allows plugins to expose dynamic webpages on Errbot emb
 # Same happens with quotations marks, which are required for parsing
 # complex strings in arguments
 # Map of characters to sanitized equivalents
-ARG_BOTCMD_CHARACTER_REPLACEMENTS = {'—': '--', '“': '"', '”': '"'}
+ARG_BOTCMD_CHARACTER_REPLACEMENTS = {'—': '--', '“': '"', '”': '"', '’': '\'', '‘': '\''}
 
 
 class ArgumentParseError(Exception):
@@ -335,6 +335,9 @@ def arg_botcmd(*args,
         The `unpack_args=False` only needs to be specified once, on the bottom `@args_botcmd`
         statement.
     """
+    argparse_args = args
+    if len(args) >= 1 and callable(args[0]):
+        argparse_args = args[1:]
 
     def decorator(func):
 
@@ -394,14 +397,14 @@ def arg_botcmd(*args,
             # alias it so we can update it's arguments below
             wrapper = func
 
-        wrapper._err_command_parser.add_argument(*args, **kwargs)
+        wrapper._err_command_parser.add_argument(*argparse_args, **kwargs)
         wrapper.__doc__ = wrapper._err_command_parser.format_help()
         fmt = wrapper._err_command_parser.format_usage()
         wrapper._err_command_syntax = fmt[len('usage: ') + len(wrapper._err_command_parser.prog) + 1:-1]
 
         return wrapper
 
-    return decorator
+    return decorator(args[0]) if callable(args[0]) else decorator
 
 
 def _tag_webhook(func, uri_rule, methods, form_param, raw):

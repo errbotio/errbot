@@ -10,7 +10,7 @@ from markdown.postprocessors import Postprocessor
 from markdown.inlinepatterns import SubstituteTagPattern
 from markdown.extensions.fenced_code import FencedBlockPreprocessor
 
-from ansi.color import fg, bg, fx
+from ansi.colour import fg, bg, fx
 from html import unescape
 
 
@@ -498,7 +498,7 @@ class AnsiPreprocessor(FencedBlockPreprocessor):
             if m:
                 code = self._escape(m.group('code'))
 
-                placeholder = self.markdown.htmlStash.store(code, safe=False)
+                placeholder = self.markdown.htmlStash.store(code)
                 text = f'{text[:m.start()]}\n{placeholder}\n{text[m.end():]}'
             else:
                 break

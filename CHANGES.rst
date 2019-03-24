@@ -1,3 +1,30 @@
+v6.0.0 (2019-03-23)
+-------------------
+
+features:
+
+- TestBot: Implement inject_mocks method (#1235)
+- TestBot: Add multi-line command test support (#1238)
+- Added optional room arg to inroom
+- Adds ability to go back to a previous room
+- Pass telegram message id to the callback
+
+
+fixes:
+
+- Remove extra spaces in uptime output
+- Fix/backend import error messages (#1248)
+- Add docker support for installing package dependencies (#1245)
+- variable name typo (#1244)
+- Fix invalid variable name (#1241)
+- sanitize comma quotation marks too (#1236)
+- Fix missing string formatting in "Command not found" output (#1259)
+- Fix webhook test to not call fixture directly
+- fix: arg_botcmd decorator now can be used as plain method
+- setup: removing dnspython
+- pin markdown <3.0 because safe is deprecated
+
+
 v6.0.0-alpha (2018-06-10)
 -------------------------
 

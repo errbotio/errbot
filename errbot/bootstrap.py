@@ -201,6 +201,20 @@ def get_storage_plugin(config):
     return spm.load_plugin()
 
 
+def get_all_backends(config):
+    """Find all available backends.
+    :param config: the bot configuration.
+    :return: List of backends
+    """
+    backend_name = getattr(config, 'BACKEND', 'Text')
+    backends = BackendPluginManager(config, 'errbot.backends', backend_name, ErrBot, CORE_BACKENDS,
+                                    getattr(config, 'BOT_EXTRA_BACKEND_DIR', []))
+    all_backends = []
+    for backend in backends.list_plugins():
+        all_backends.append(backend.name)
+    return sorted(all_backends)
+
+
 def bootstrap(bot_class, logger, config, restore=None):
     """
     Main starting point of Errbot.

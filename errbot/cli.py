@@ -198,9 +198,9 @@ def main():
 
     config = get_config(config_path)  # will exit if load fails
     if args['list']:
-        from errbot.bootstrap import enumerate_backends
+        from errbot.bootstrap import get_all_backends
         print('Available backends:')
-        for backend_name in enumerate_backends(config):
+        for backend_name in get_all_backends(config):
             print(f'\t\t{backend_name}')
         sys.exit(0)
 

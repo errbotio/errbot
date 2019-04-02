@@ -20,10 +20,6 @@
 
 |
 
-.. image:: https://graphs.waffle.io/errbotio/errbot/throughput.svg
-   :target: https://waffle.io/errbotio/errbot/
-   :alt: 'Throughput Graph'
-
 
 Errbot
 ======

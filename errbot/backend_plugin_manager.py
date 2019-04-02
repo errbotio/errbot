@@ -14,13 +14,13 @@ class PluginNotFoundException(Exception):
     pass
 
 
-def enumerate_backend_plugin_names(all_plugins_paths):
+def enumerate_backend_plugins(all_plugins_paths):
     plugin_places = [Path(root) for root in all_plugins_paths]
     for path in plugin_places:
         plugfiles = path.glob('**/*.plug')
         for plugfile in plugfiles:
             plugin_info = PluginInfo.load(plugfile)
-            yield plugin_info.name
+            yield plugin_info
 
 
 class BackendPluginManager:
@@ -36,8 +36,9 @@ class BackendPluginManager:
         self.plugin_info = None
         all_plugins_paths = collect_roots((base_search_dir, extra_search_dirs))
 
-        for potential_plugin_name in enumerate_backend_plugin_names(all_plugins_paths):
-            if potential_plugin_name == plugin_name:
+        for potential_plugin in enumerate_backend_plugins(all_plugins_paths):
+            if potential_plugin.name == plugin_name:
+                self.plugin_info = potential_plugin
                 return
         raise PluginNotFoundException(f'Could not find the plugin named {plugin_name} in {all_plugins_paths}.')
 

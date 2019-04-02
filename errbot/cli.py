@@ -201,11 +201,11 @@ def main():
     config = get_config(config_path)  # will exit if load fails
 
     if args['list']:
-        from errbot.backend_plugin_manager import enumerate_backend_plugin_names
+        from errbot.backend_plugin_manager import enumerate_backend_plugins
         print('Available backends:')
         roots = [CORE_BACKENDS] + getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
-        for backend_name in enumerate_backend_plugin_names(collect_roots(roots)):
-            print(f'\t\t{backend_name}')
+        for backend in enumerate_backend_plugins(collect_roots(roots)):
+            print(f'\t\t{backend.name}')
         sys.exit(0)
 
     def storage_action(namespace, fn):

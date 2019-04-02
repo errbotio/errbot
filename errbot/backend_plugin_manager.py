@@ -26,8 +26,8 @@ class BackendPluginManager:
 
         self.plugin_info = None
         all_plugins_paths = collect_roots((base_search_dir, extra_search_dirs))
-        plugin_places = [Path(root) for root in all_plugins_paths]
-        for path in plugin_places:
+        self.plugin_places = [Path(root) for root in all_plugins_paths]
+        for path in self.plugin_places:
             plugfiles = path.glob('**/*.plug')
             for plugfile in plugfiles:
                 plugin_info = PluginInfo.load(plugfile)
@@ -46,3 +46,12 @@ class BackendPluginManager:
 
         _, clazz = plugin_classes[0]
         return clazz(self._config)
+
+    def list_plugins(self):
+        all_plugins = []
+        for path in self.plugin_places:
+            plugfiles = path.glob('**/*.plug')
+            for plugfile in plugfiles:
+                plugin_info = PluginInfo.load(plugfile)
+                all_plugins.append(plugin_info)
+        return all_plugins

@@ -892,12 +892,12 @@ class SlackBackend(ErrBot):
     def build_reply(self, msg, text=None, private=False, threaded=False):
         response = self.build_message(text)
 
-        if threaded:
-            response.parent = msg
-
-        elif 'thread_ts' in msg.extras['slack_event']:
+        if 'thread_ts' in msg.extras['slack_event']:
             # If we reply to a threaded message, keep it in the thread.
             response.extras['thread_ts'] = msg.extras['slack_event']['thread_ts']
+        elif threaded:
+            # otherwise check if we should start a new thread
+            response.parent = msg
 
         response.frm = self.bot_identifier
         if private:

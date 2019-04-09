@@ -3,9 +3,10 @@ sphinx>=1.2
 sphinx-autodoc-annotation
 
 -e .
-slixmpp
+gitchangelog
+hypchat
 irc
 pyfire
 python-telegram-bot
 slackclient
-hypchat
+slixmpp

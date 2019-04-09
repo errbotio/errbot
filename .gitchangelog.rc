@@ -1,0 +1,44 @@
+# Reference: https://github.com/vaab/gitchangelog/blob/master/src/gitchangelog/gitchangelog.rc.reference
+
+FILENAME = 'CHANGES.rst'
+
+unreleased_version_label = 'Unreleased (master)'
+include_merge = False
+
+section_regexps = [
+    ('New', [
+        r'^[Nn]ew',
+        r'^[Aa]dd',
+     ]),
+    ('Fixes', [
+        r'^[Ff]ix',
+        r'^[Uu]pdate',
+        r'[Aa]llow',
+     ]),
+    ('Docs', [
+        r'([Dd]ocs|[Dd]ocumentation)',
+        r'[Bb]adges?',
+     ]),
+    ('Other', None ## Match all lines
+     ),
+]
+
+subject_process = (strip | ucfirst | final_dot)
+ignore_regexps = [
+    r'[Pp][Ee][Pp]\-?8',
+    r'[Tt][Yy][Pp][Oo]',
+    r'spelling',
+    #r'[Ff]ormat(ing)?',
+    r'^$',  ## ignore commits with empty messages
+]
+
+body_process = ReSub(r'.*', r'') | strip
+
+revs = ["^4.0.0", "HEAD"]
+
+def write_changelog(lines):
+    """Write changelog to file."""
+    with open(FILENAME, 'wt') as f:
+        f.writelines(lines)
+
+publish = write_changelog

@@ -5,9 +5,10 @@ sphinx>=1.2
 https://github.com/zoni/sphinx-autodoc-annotation/archive/issue-2.zip
 
 -e .
-sleekxmpp
+gitchangelog
+hypchat
 irc
 pyfire
 python-telegram-bot
 slackclient
-hypchat
+sleekxmpp

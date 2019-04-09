@@ -120,6 +120,11 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 def run_apidoc(_):
     subprocess.check_call("sphinx-apidoc --separate -f -o . ../errbot", shell=True)
 
+# -- Changelog -----------------------------------------------------------------
+
+def run_changelog(_):
+    subprocess.check_call("gitchangelog", shell=True)
+
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -315,3 +320,4 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 def setup(app):
     app.connect("autodoc-skip-member", autodoc_skip_member)
     app.connect("builder-inited", run_apidoc)
+    app.connect("builder-inited", run_changelog)

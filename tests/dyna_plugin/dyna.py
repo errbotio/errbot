@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from errbot import BotPlugin, botcmd, Command, botmatch
+from errbot import BotPlugin, botcmd, Command, botmatch, arg_botcmd
 
 
 def say_foo(plugin, msg, args):
@@ -7,7 +7,7 @@ def say_foo(plugin, msg, args):
 
 
 class Dyna(BotPlugin):
-    """Just a test plugin to see if synamic plugin API works.
+    """Just a test plugin to see if dynamic plugin API works.
     """
     @botcmd
     def add_simple(self, _, _1):
@@ -21,6 +21,23 @@ class Dyna(BotPlugin):
     @botcmd
     def remove_simple(self, msg, args):
         self.destroy_dynamic_plugin('simple with special#')
+        return 'removed'
+
+    @botcmd
+    def add_arg(self, _, _1):
+        cmd1_name = 'echo_to_me'
+        cmd1 = Command(lambda plugin, msg, args: 'string to echo is %s' % args.positional_arg,
+                       cmd_type=arg_botcmd, cmd_args=('positional_arg',),
+                       cmd_kwargs={'unpack_args': False, 'name': cmd1_name},
+                       name=cmd1_name)
+
+        self.create_dynamic_plugin('arg', (cmd1,), doc='documented')
+
+        return 'added'
+
+    @botcmd
+    def remove_arg(self, msg, args):
+        self.destroy_dynamic_plugin('arg')
         return 'removed'
 
     @botcmd

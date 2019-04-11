@@ -23,8 +23,10 @@ from os import path, sep, getcwd, access, W_OK
 from platform import system
 import ast
 
+from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
+from errbot.utils import collect_roots
 from errbot.version import VERSION
 
 log = logging.getLogger(__name__)
@@ -197,11 +199,13 @@ def main():
         config_path = execution_dir + sep + 'config.py'
 
     config = get_config(config_path)  # will exit if load fails
+
     if args['list']:
-        from errbot.bootstrap import enumerate_backends
+        from errbot.backend_plugin_manager import enumerate_backend_plugins
         print('Available backends:')
-        for backend_name in enumerate_backends(config):
-            print(f'\t\t{backend_name}')
+        roots = [CORE_BACKENDS] + getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+        for backend in enumerate_backend_plugins(collect_roots(roots)):
+            print(f'\t\t{backend.name}')
         sys.exit(0)
 
     def storage_action(namespace, fn):
@@ -234,7 +238,11 @@ def main():
     if args['storage_merge']:
         def merge(sdm):
             new_dict = _read_dict()
-            sdm.update(new_dict)
+            if list(new_dict.keys()) == ['config']:
+                with sdm.mutable('configs') as conf:
+                    conf.update(new_dict['configs'])
+            else:
+                sdm.update(new_dict)
         err_value = storage_action(args['storage_merge'][0], merge)
         sys.exit(err_value)
 

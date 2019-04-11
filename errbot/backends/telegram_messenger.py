@@ -274,6 +274,7 @@ class TelegramBackend(ErrBot):
                 username=message.from_user.username
             )
             message_instance.to = room
+        message_instance.extras['message_id'] = message.message_id
         self.callback_message(message_instance)
 
     def send_message(self, msg):

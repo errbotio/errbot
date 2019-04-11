@@ -45,12 +45,11 @@ def wait_for_server(port: int):
 
 
 @pytest.fixture
-def webhook_testbot(request):
-    tbot = testbot(request)
-    tbot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': %s, 'SSL': None}" % WEBSERVER_PORT)
-    log.info(tbot.pop_message())
+def webhook_testbot(request, testbot):
+    testbot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': %s, 'SSL': None}" % WEBSERVER_PORT)
+    log.info(testbot.pop_message())
     wait_for_server(WEBSERVER_PORT)
-    return tbot
+    return testbot
 
 
 def test_not_configured_url_returns_404(webhook_testbot):

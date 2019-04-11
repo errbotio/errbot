@@ -20,10 +20,6 @@
 
 |
 
-.. image:: https://graphs.waffle.io/errbotio/errbot/throughput.svg
-   :target: https://waffle.io/errbotio/errbot/
-   :alt: 'Throughput Graph'
-
 
 Errbot
 ======
@@ -59,6 +55,7 @@ Chat servers support
 - `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`__)
 - `Matrix <https://matrix.org/>`_ (See `instructions <https://github.com/SShrike/err-backend-matrix>`__)
 - `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
+- `RocketChat <https://rocket.chat/>`_ (See `instructions <https://github.com/cardoso/errbot-rocketchat>`__)
 - `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)
 - `TOX <https://tox.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`__)
 - `VK <https://vk.com/>`_ (See `instructions <https://github.com/Ax3Effect/errbot-vk>`__)
@@ -215,10 +212,10 @@ As an example, this is all it takes to create a "Hello, world!" plugin for Errbo
 .. code:: python
 
     from errbot import BotPlugin, botcmd
-   
+
     class Hello(BotPlugin):
         """Example 'Hello, world!' plugin for Errbot"""
-   
+
         @botcmd
         def hello(self, msg, args):
             """Return the phrase "Hello, world!" to you"""

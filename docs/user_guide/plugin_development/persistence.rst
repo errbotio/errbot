@@ -7,7 +7,7 @@ if Errbot is restarted.
 How to use it
 -------------
 
-You plugin *is* the store, simply use self as a dictionary.
+Your plugin *is* the store, simply use self as a dictionary.
 
 Here is a simple example storing are retreiving value from the store.
 

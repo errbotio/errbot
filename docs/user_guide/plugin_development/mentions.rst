@@ -7,7 +7,7 @@ With this feature, a plugin can listen to the mentioned users in the chat.
 How to use it
 -------------
 
-Here is an example to listen to every mentions and reports them back on the chat.
+Here is an example to listen to every mention and report them back on the chat.
 
 .. code-block:: python
 
@@ -23,7 +23,7 @@ Here is an example to listen to every mentions and reports them back on the chat
 Identifying if the bot itself has been mentioned
 ------------------------------------------------
 
-Simply test the presence of the bot identifier within the `mentioned_people` :
+Simply test the presence of the bot identifier within the `mentioned_people`:
 
 .. code-block:: python
 

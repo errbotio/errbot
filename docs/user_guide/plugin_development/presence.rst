@@ -25,8 +25,8 @@ when it includes a status message:
             if presence.get_message() is not None:
                 self.log.info(presence)
 
-Change the presence/status of the bot
--------------------------------------
+Change the presence or status of the bot
+----------------------------------------
 
 You can also, depending on the backend you use, change the current status of
 the bot. This allows you to make a moody bot that leaves the room when it is

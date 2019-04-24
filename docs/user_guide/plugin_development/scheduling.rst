@@ -27,7 +27,7 @@ minute when your plugin gets activated:
 
 
 It is also possible to specify the `times` parameter, which denotes how
-many times should the function be called, for instance
+many times the function should be called, for instance:
 
 .. code-block:: python
    :emphasize-lines: 10

@@ -1,7 +1,7 @@
 Flow development
 ================
 
-Flows are a feature in Errbot to enable plugin designers to chain several plugin commands together in a "conversation".
+Flows are a feature in Errbot to enable plugin designers to chain several plugin commands together into a "conversation".
 
 For example, imagine interacting with a bot that needs more that one command, like setting up a poll in a
 chatroom::

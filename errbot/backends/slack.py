@@ -36,8 +36,9 @@ except ImportError:
 # token matching this regex.
 SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
 
-# Empirically determined message size limit.
-SLACK_MESSAGE_LIMIT = 4096
+# https://api.slack.com/changelog/2018-04-truncating-really-long-messages
+# On August 12, 2018 we started truncating messages containing more than 40,000 characters.
+SLACK_MESSAGE_LIMIT = 40000
 
 USER_IS_BOT_HELPTEXT = (
     "Connected to Slack using a bot account, which cannot manage "

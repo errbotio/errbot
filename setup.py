@@ -41,7 +41,7 @@ deps = ['webtest',
         'ansi',
         'Pygments>=2.0.2',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
-        'dulwich' # python implementation of git
+        'dulwich'  # python implementation of git
         ]
 
 if not PY37_OR_GREATER:
@@ -114,10 +114,10 @@ if __name__ == "__main__":
                        ],
         },
         extras_require={
-            'graphic':  ['PySide', ],
+            'graphic': ['PySide', ],
             'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
             'IRC': ['irc', ],
-            'slack': ['slackclient>=1.0.5', ],
+            'slack': ['slackclient>=1.0.5,<2.0', ],
             'telegram': ['python-telegram-bot', ],
             'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
         },

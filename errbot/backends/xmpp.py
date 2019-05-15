@@ -214,11 +214,11 @@ class XMPPRoom(XMPPIdentifier, Room):
         :param topic:
             The topic to set.
         """
-        self._bot.conn.client.send_message(mto = str(self),
-                                           mbody = topic,
-                                           msubject = topic,
-                                           mhtml = None,
-                                           mtype = 'groupchat')
+        self._bot.conn.client.send_message(mto=str(self),
+                                           mbody=topic,
+                                           msubject=topic,
+                                           mhtml=None,
+                                           mtype='groupchat')
 
     @property
     def occupants(self):

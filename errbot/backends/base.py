@@ -263,7 +263,7 @@ class Message(object):
     def clone(self):
         return Message(body=self._body, frm=self._from, to=self._to, parent=self._parent,
                        delayed=self._delayed, partial=self._partial, extras=self._extras, flow=self._flow,
-                       msubject = self._msubject)
+                       msubject=self._msubject)
 
     @property
     def to(self) -> Identifier:

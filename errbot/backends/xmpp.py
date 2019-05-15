@@ -214,8 +214,11 @@ class XMPPRoom(XMPPIdentifier, Room):
         :param topic:
             The topic to set.
         """
-        # Not supported by SleekXMPP at the moment :(
-        raise NotImplementedError("Setting the topic is not supported on this back-end.")
+        self._bot.conn.client.send_message(mto = str(self),
+                                           mbody = topic,
+                                           msubject = topic,
+                                           mhtml = None,
+                                           mtype = 'groupchat')
 
     @property
     def occupants(self):
@@ -493,7 +496,10 @@ class XMPPBackend(ErrBot):
     def send_message(self, msg):
         super().send_message(msg)
 
-        log.debug('send_message to %s', msg.to)
+        log.debug("send_message to %s", msg.to)
+
+        if msg.msubject and msg.is_direct:
+            raise ValueError("Topic updates must be sent to groupchats")
 
         # We need to unescape the unicode characters (not the markup incompatible ones)
         mhtml = xhtmlim.unescape(self.md_xhtml.convert(msg.body)) if self.xhtmlim else None
@@ -501,6 +507,7 @@ class XMPPBackend(ErrBot):
         self.conn.client.send_message(mto=str(msg.to),
                                       mbody=self.md_text.convert(msg.body),
                                       mhtml=mhtml,
+                                      msubject=msg.msubject,
                                       mtype='chat' if msg.is_direct else 'groupchat')
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:

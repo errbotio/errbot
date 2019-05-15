@@ -227,7 +227,8 @@ class Message(object):
                  delayed: bool = False,
                  partial: bool = False,
                  extras: Mapping = None,
-                 flow=None):
+                 flow=None,
+                 msubject: str = None):
         """
         :param body:
             The markdown body of the message.
@@ -240,6 +241,8 @@ class Message(object):
         :param partial:
             Indicates whether the message was obtained by breaking down the message to fit
             the ``MESSAGE_SIZE_LIMIT``.
+        :param msubject:
+            New topic for XMPP groupchat
         """
         self._body = body
         self._from = frm
@@ -249,6 +252,7 @@ class Message(object):
         self._extras = extras or dict()
         self._flow = flow
         self._partial = partial
+        self._msubject = msubject
 
         # Convenience shortcut to the flow context
         if flow:
@@ -258,7 +262,8 @@ class Message(object):
 
     def clone(self):
         return Message(body=self._body, frm=self._from, to=self._to, parent=self._parent,
-                       delayed=self._delayed, partial=self._partial, extras=self._extras, flow=self._flow)
+                       delayed=self._delayed, partial=self._partial, extras=self._extras, flow=self._flow,
+                       msubject = self._msubject)
 
     @property
     def to(self) -> Identifier:
@@ -344,6 +349,20 @@ class Message(object):
             A :class:`~errbot.Flow`
         """
         return self._from
+
+    @property
+    def msubject(self) -> str:
+        """
+        Get the plaintext body of the message.
+
+        :returns:
+            The body as a string.
+        """
+        return self._msubject
+
+    @msubject.setter
+    def msubject(self, msubject: str):
+        self._msubject = msubject
 
     def __str__(self):
         return self._body

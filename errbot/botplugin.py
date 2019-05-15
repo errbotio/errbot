@@ -512,7 +512,8 @@ class BotPlugin(BotPluginBase):
              identifier: Identifier,
              text: str,
              in_reply_to: Message = None,
-             groupchat_nick_reply: bool = False) -> None:
+             groupchat_nick_reply: bool = False,
+             msubject: bool=False) -> None:
         """
             Send a message to a room or a user.
 
@@ -522,10 +523,11 @@ class BotPlugin(BotPluginBase):
             :param text: markdown formatted text to send to the user.
             :param identifier: An Identifier representing the user or room to message.
                                Identifiers may be created with :func:`build_identifier`.
+            :param msubject: Whether or not this is a message to update topic for XMPP
         """
         if not isinstance(identifier, Identifier):
             raise ValueError("identifier needs to be of type Identifier, the old string behavior is not supported")
-        return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply)
+        return self._bot.send(identifier, text, in_reply_to, groupchat_nick_reply, msubject)
 
     def send_card(self,
                   body: str = '',

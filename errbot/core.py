@@ -112,7 +112,7 @@ class ErrBot(Backend, StoreMixin):
             except Exception:
                 log.exception('%s on %s crashed.', method, plugin_name)
 
-    def send(self, identifier, text, in_reply_to=None, groupchat_nick_reply=False):
+    def send(self, identifier, text, in_reply_to=None, groupchat_nick_reply=False, msubject=False):
         """ Sends a simple message to the specified user.
 
             :param identifier:
@@ -123,6 +123,8 @@ class ErrBot(Backend, StoreMixin):
                 the markdown text you want to send
             :param groupchat_nick_reply:
                 authorized the prefixing with the nick form the user
+            :param msubject:
+                Whether or not this is a message to update topic for XMPP
         """
         # protect a little bit the backends here
         if not isinstance(identifier, Identifier):
@@ -132,6 +134,7 @@ class ErrBot(Backend, StoreMixin):
         msg.to = identifier
         msg.frm = in_reply_to.to if in_reply_to else self.bot_identifier
         msg.parent = in_reply_to
+        msg.msubject = text if msubject else None
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
         if isinstance(identifier, Room) and in_reply_to and (nick_reply or groupchat_nick_reply):

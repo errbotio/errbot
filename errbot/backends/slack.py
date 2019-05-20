@@ -36,9 +36,8 @@ except ImportError:
 # token matching this regex.
 SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
 
-# https://api.slack.com/changelog/2018-04-truncating-really-long-messages
-# On August 12, 2018 we started truncating messages containing more than 40,000 characters.
-SLACK_MESSAGE_LIMIT = 40000
+# Slack supports upto 40000 characters per message, Errbot maintains 4096 by default.
+SLACK_MESSAGE_LIMIT = 4096
 
 USER_IS_BOT_HELPTEXT = (
     "Connected to Slack using a bot account, which cannot manage "
@@ -650,7 +649,10 @@ class SlackBackend(ErrBot):
             body = self.md.convert(msg.body)
             log.debug('Message size: %d.', len(body))
 
-            limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
+            if isinstance(self.bot_config.MESSAGE_SIZE_LIMIT, int):
+                limit = self.bot_config.MESSAGE_SIZE_LIMIT
+            else:
+                limit = SLACK_MESSAGE_LIMIT
             parts = self.prepare_message_body(body, limit)
 
             timestamps = []
@@ -740,7 +742,10 @@ class SlackBackend(ErrBot):
         if card.fields:
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
-        limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
+        if isinstance(self.bot_config.MESSAGE_SIZE_LIMIT, int):
+            limit = self.bot_config.MESSAGE_SIZE_LIMIT
+        else:
+            limit = SLACK_MESSAGE_LIMIT
         parts = self.prepare_message_body(card.body, limit)
         part_count = len(parts)
         footer = attachment.get('footer', '')

@@ -21,6 +21,19 @@ from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 log = logging.getLogger(__name__)
 
 
+# check for incompatible slackclient 2.0 version
+try:
+    import slack
+
+    log.fatal(
+        "It looks like you have slackclient>=2.0 installed.\n"
+        "Version 2.0 is not supported yet."
+        "Try installing 1.3.1 instead: `pip install slackclient==1.3.1`."
+    )
+    sys.exit(1)
+except ImportError:
+    pass
+
 try:
     from slackclient import SlackClient
 except ImportError:

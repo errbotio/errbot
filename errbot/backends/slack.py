@@ -1,4 +1,5 @@
-import collections
+from time import sleep
+
 import copyreg
 import json
 import logging
@@ -22,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 try:
-    from slackclient import SlackClient
+    from slack import RTMClient
 except ImportError:
     log.exception("Could not start the Slack back-end")
     log.fatal(
@@ -302,37 +303,6 @@ class SlackBackend(ErrBot):
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
 
-    def api_call(self, method, data=None, raise_errors=True):
-        """
-        Make an API call to the Slack API and return response data.
-
-        This is a thin wrapper around `SlackClient.server.api_call`.
-
-        :param method:
-            The API method to invoke (see https://api.slack.com/methods/).
-        :param raise_errors:
-            Whether to raise :class:`~SlackAPIResponseError` if the API
-            returns an error
-        :param data:
-            A dictionary with data to pass along in the API request.
-        :returns:
-            A dictionary containing the (JSON-decoded) API response
-        :raises:
-            :class:`~SlackAPIResponseError` if raise_errors is True and the
-            API responds with `{"ok": false}`
-        """
-        if data is None:
-            data = {}
-        response = self.sc.api_call(method, **data)
-        if not isinstance(response, collections.Mapping):
-            # Compatibility with SlackClient < 1.0.0
-            response = json.loads(response.decode('utf-8'))
-
-        if raise_errors and not response['ok']:
-            raise SlackAPIResponseError(f"Slack API call to {method} failed: {response['error']}",
-                                        error=response['error'])
-        return response
-
     def update_alternate_prefixes(self):
         """Converts BOT_ALT_PREFIXES to use the slack ID instead of name
 
@@ -355,70 +325,60 @@ class SlackBackend(ErrBot):
         self.bot_alt_prefixes = tuple(x.lower() for x in self.bot_config.BOT_ALT_PREFIXES)
         log.debug('Converted bot_alt_prefixes: %s', self.bot_config.BOT_ALT_PREFIXES)
 
-    def serve_once(self):
-        self.sc = SlackClient(self.token, proxies=self.proxies)
+    def _setup_slack_callbacks(self):
+        @RTMClient.run_on(event='message')
+        def serve_messages(**payload):
+            self.webclient = payload['web_client']
+            self._message_event_handler(payload['data'])
 
-        log.info('Verifying authentication token')
-        self.auth = self.api_call("auth.test", raise_errors=False)
-        if not self.auth['ok']:
-            raise SlackAPIResponseError(error=f"Couldn't authenticate with Slack. Server said: {self.auth['error']}")
-        log.debug("Token accepted")
-        self.bot_identifier = SlackPerson(self.sc, self.auth["user_id"])
+        @RTMClient.run_on(event='member_joined_channel')
+        def serve_joins(**payload):
+            self.webclient = payload['web_client']
+            self._member_joined_channel_event_handler(payload['data'])
+
+        @RTMClient.run_on(event='hello')
+        def serve_hellos(**payload):
+            self.webclient = payload['web_client']
+            self._hello_event_handler(payload['data'])
+
+        @RTMClient.run_on(event='presence_change')
+        def serve_presences(**payload):
+            self.webclient = payload['web_client']
+            self._presence_change_event_handler(payload['data'])
+
+    def serve_forever(self):
+        self.sc = RTMClient(token=self.token, proxy=self.proxies)
+
+        @RTMClient.run_on(event='open')
+        def get_bot_identity(**payload):
+            self.webclient = payload['web_client']
+            self.bot_identifier = SlackPerson(self.sc, payload['data']['self']['id'])
+            # only hook up the message callback once we have our identity set.
+            self._setup_slack_callbacks()
+
+        # log.info('Verifying authentication token')
+        # self.auth = self.api_call("auth.test", raise_errors=False)
+        # if not self.auth['ok']:
+        #     raise SlackAPIResponseError(error=f"Couldn't authenticate with Slack. Server said: {self.auth['error']}")
+        # log.debug("Token accepted")
 
         log.info("Connecting to Slack real-time-messaging API")
-        if self.sc.rtm_connect():
-            log.info("Connected")
-            # Block on reads instead of using the busy loop suggested in slackclient docs
-            # https://github.com/slackapi/python-slackclient/issues/46#issuecomment-165674808
-            self.sc.server.websocket.sock.setblocking(True)
-            self.reset_reconnection_count()
+        self.sc.start()
+        # Inject bot identity to alternative prefixes
+        self.update_alternate_prefixes()
 
-            # Inject bot identity to alternative prefixes
-            self.update_alternate_prefixes()
-
-            try:
-                while True:
-                    for message in self.sc.rtm_read():
-                        self._dispatch_slack_message(message)
-            except KeyboardInterrupt:
-                log.info("Interrupt received, shutting down..")
-                return True
-            except Exception:
-                log.exception("Error reading from RTM stream:")
-            finally:
-                log.debug("Triggering disconnect callback")
-                self.disconnect_callback()
-        else:
-            raise Exception('Connection failed, invalid token ?')
-
-    def _dispatch_slack_message(self, message):
-        """
-        Process an incoming message from slack.
-
-        """
-        if 'type' not in message:
-            log.debug("Ignoring non-event message: %s.", message)
-            return
-
-        event_type = message['type']
-
-        event_handlers = {
-            'hello': self._hello_event_handler,
-            'presence_change': self._presence_change_event_handler,
-            'message': self._message_event_handler,
-            'member_joined_channel': self._member_joined_channel_event_handler,
-        }
-
-        event_handler = event_handlers.get(event_type)
-
-        if event_handler is None:
-            log.debug('No event handler available for %s, ignoring this event', event_type)
-            return
         try:
-            log.debug('Processing slack event: %s', message)
-            event_handler(message)
+            while True:
+                sleep(1)
+        except KeyboardInterrupt:
+            log.info("Interrupt received, shutting down..")
+            return True
         except Exception:
-            log.exception(f'{event_type} event handler raised an exception')
+            log.exception("Error reading from RTM stream:")
+        finally:
+            log.debug("Triggering disconnect callback")
+            self.disconnect_callback()
+
 
     def _hello_event_handler(self, event):
         """Event handler for the 'hello' event"""
@@ -468,13 +428,7 @@ class SlackBackend(ErrBot):
                 "by Slack auto-expanding a link"
             )
             return
-
-        if 'message' in event:
-            text = event['message'].get('text', '')
-            user = event['message'].get('user', event.get('bot_id'))
-        else:
-            text = event.get('text', '')
-            user = event.get('user', event.get('bot_id'))
+        text = event['text']
 
         text, mentioned = self.process_mentions(text)
 
@@ -499,8 +453,8 @@ class SlackBackend(ErrBot):
                     bot_username=event.get('username', '')
                 )
             else:
-                msg.frm = SlackPerson(self.sc, user, event['channel'])
-            msg.to = SlackPerson(self.sc, self.username_to_userid(self.sc.server.username),
+                msg.frm = SlackPerson(self.sc, event['user'], event['channel'])
+            msg.to = SlackPerson(self.sc, self.bot_identifier.userid,
                                  event['channel'])
             channel_link_name = event['channel']
         else:
@@ -513,12 +467,12 @@ class SlackBackend(ErrBot):
                     bot=self
                 )
             else:
-                msg.frm = SlackRoomOccupant(self.sc, user, event['channel'], bot=self)
+                msg.frm = SlackRoomOccupant(self.sc, event['user'], event['channel'], bot=self)
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
             channel_link_name = msg.to.name
 
-        msg.extras['url'] = f'https://{self.sc.server.domain}.slack.com/archives/' \
-                            f'{channel_link_name}/p{self._ts_for_message(msg).replace(".", "")}'
+        #msg.extras['url'] = f'https://{self.sc.server.domain}.slack.com/archives/' \
+        #                    f'{channel_link_name}/p{self._ts_for_message(msg).replace(".", "")}'
 
         self.callback_message(msg)
 
@@ -577,11 +531,11 @@ class SlackBackend(ErrBot):
           * https://api.slack.com/methods/channels.list
           * https://api.slack.com/methods/groups.list
         """
-        response = self.api_call('channels.list', data={'exclude_archived': exclude_archived})
+        response = self.webclient.channels_list(exclude_archived=exclude_archived)
         channels = [channel for channel in response['channels']
                     if channel['is_member'] or not joined_only]
 
-        response = self.api_call('groups.list', data={'exclude_archived': exclude_archived})
+        response = self.webclient.groups_list(exclude_archived=exclude_archived)
         # No need to filter for 'is_member' in this next call (it doesn't
         # (even exist) because leaving a group means you have to get invited
         # back again by somebody else.
@@ -593,7 +547,7 @@ class SlackBackend(ErrBot):
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
         try:
-            response = self.api_call('im.open', data={'user': id_})
+            response = self.webclient.im_open(user=id_)
             return response['channel']['id']
         except SlackAPIResponseError as e:
             if e.error == "cannot_dm_bot":
@@ -666,7 +620,7 @@ class SlackBackend(ErrBot):
                 if 'thread_ts' in msg.extras:
                     data['thread_ts'] = msg.extras['thread_ts']
 
-                result = self.api_call('chat.postMessage', data=data)
+                result = self.webclient.api_call.chat_postMessage(**data)
                 timestamps.append(result['ts'])
 
             msg.extras['ts'] = timestamps
@@ -682,11 +636,9 @@ class SlackBackend(ErrBot):
         """
         try:
             stream.accept()
-            resp = self.api_call('files.upload', data={
-                'channels': stream.identifier.channelid,
-                'filename': stream.name,
-                'file': stream
-            })
+            resp = self.webclient.files_upload(channels=stream.identifier.channelid,
+                                               filename=stream.name,
+                                               file=stream)
             if 'ok' in resp and resp['ok']:
                 stream.success()
             else:
@@ -755,7 +707,7 @@ class SlackBackend(ErrBot):
             }
             try:
                 log.debug('Sending data:\n%s', data)
-                self.api_call('chat.postMessage', data=data)
+                self.webclient.chat_postMessage(**data)
             except Exception:
                 log.exception(f'An exception occurred while trying to send a card to {to_humanreadable}.[{card}]')
 
@@ -763,7 +715,7 @@ class SlackBackend(ErrBot):
         return 0  # this is a singleton anyway
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
-        self.api_call('users.setPresence', data={'presence': 'auto' if status == ONLINE else 'away'})
+        self.webclient.users_setPresence(presence='auto' if status == ONLINE else 'away')
 
     @staticmethod
     def prepare_message_body(body, size_limit):
@@ -1071,9 +1023,9 @@ class SlackRoom(Room):
           * https://api.slack.com/methods/groups.list
         """
         if self.private:
-            return self._bot.api_call('groups.info', data={'channel': self.id})["group"]
+            return self._bot.webclient.groups_info(channel=self.id)["group"]
         else:
-            return self._bot.api_call('channels.info', data={'channel': self.id})["channel"]
+            return self._bot.webclient.channels_info(channel=self.id)["channel"]
 
     @property
     def private(self):
@@ -1097,7 +1049,7 @@ class SlackRoom(Room):
     def join(self, username=None, password=None):
         log.info("Joining channel %s", str(self))
         try:
-            self._bot.api_call('channels.join', data={'name': self.name})
+            self._bot.webclient.channels_join(channel=self.name)
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to join channel. {USER_IS_BOT_HELPTEXT}')
@@ -1108,10 +1060,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith('C'):
                 log.info('Leaving channel %s (%s)', self, self.id)
-                self._bot.api_call('channels.leave', data={'channel': self.id})
+                self._bot.webclient.channels_leave(channel=self.id)
             else:
                 log.info('Leaving group %s (%s)', self, self.id)
-                self._bot.api_call('groups.leave', data={'channel': self.id})
+                self._bot.webclient.groups_leave(channel=self.id)
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to leave channel. {USER_IS_BOT_HELPTEXT}')
@@ -1123,10 +1075,10 @@ class SlackRoom(Room):
         try:
             if private:
                 log.info('Creating group %s.', self)
-                self._bot.api_call('groups.create', data={'name': self.name})
+                self._bot.webclient.groups_create(name=self.name)
             else:
                 log.info('Creating channel %s.', self)
-                self._bot.api_call('channels.create', data={'name': self.name})
+                self._bot.webclient.channels_create(name=self.name)
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f"Unable to create channel. {USER_IS_BOT_HELPTEXT}")

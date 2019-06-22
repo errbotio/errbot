@@ -17,13 +17,9 @@
 import os
 import sys
 
-from platform import system
 from setuptools import setup, find_packages
 
 py_version = sys.version_info[:2]
-PY37_OR_GREATER = py_version >= (3, 7)
-
-ON_WINDOWS = system() == 'Windows'
 
 if py_version < (3, 6):
     raise RuntimeError('Errbot requires Python 3.6 or later')
@@ -43,12 +39,6 @@ deps = ['webtest',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
         'dulwich'  # python implementation of git
         ]
-
-if not PY37_OR_GREATER:
-    deps += ['dataclasses']  # backward compatibility for 3.3->3.6 for dataclasses
-
-if not ON_WINDOWS:
-    deps += ['daemonize']
 
 src_root = os.curdir
 
@@ -120,6 +110,8 @@ if __name__ == "__main__":
             'slack': ['slackclient>=1.0.5,<2.0', ],
             'telegram': ['python-telegram-bot', ],
             'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
+            ':python_version<"3.7"': ['dataclasses'],  # backward compatibility for 3.3->3.6 for dataclasses
+            ':sys_platform!="win32"': ['daemonize'],
         },
 
         author="errbot.io",

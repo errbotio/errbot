@@ -1,3 +1,10 @@
+v6.1.1 (2019-06-22)
+-------------------
+
+fixes:
+
+- Installation using wheel distribution on python 3.6 or older
+
 v6.1.0 (2019-06-16)
 -------------------
 

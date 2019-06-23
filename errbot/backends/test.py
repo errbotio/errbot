@@ -15,6 +15,7 @@ from errbot.backends.base import Message, Room, Person, RoomOccupant, ONLINE
 from errbot.core_plugins.wsview import reset_app
 from errbot.core import ErrBot
 from errbot.bootstrap import setup_bot
+from errbot.utils import deprecated
 
 log = logging.getLogger(__name__)
 
@@ -451,13 +452,18 @@ class TestBot(object):
     def zap_queues(self):
         return self.bot.zap_queues()
 
-    def assertCommand(self, command, response, timeout=5, dedent=False):
+    def assertInCommand(self, command, response, timeout=5, dedent=False):
         """Assert the given command returns the given response"""
         if dedent:
             command = '\n'.join(textwrap.dedent(command).splitlines()[1:])
         self.bot.push_message(command)
         msg = self.bot.pop_message(timeout)
         assert response in msg, f'{response} not in {msg}.'
+
+    @deprecated(assertInCommand)
+    def assertCommand(self, command, response, timeout=5, dedent=False):
+        """Assert the given command returns the given response"""
+        pass
 
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command exists"""

@@ -5,7 +5,6 @@ import pytest
 import logging
 import os
 
-
 from errbot.backends.text import TextBackend
 from errbot.bootstrap import bot_config_defaults
 
@@ -36,4 +35,3 @@ def test_change_presence(text_backend, caplog):
     assert len(caplog.messages) == 1
     a_message = caplog.messages[0]
     assert a_message.startswith('*** Changed presence')
-

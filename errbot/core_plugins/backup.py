@@ -33,7 +33,7 @@ class Backup(BotPlugin):
                     f.write('pobj = bot.plugin_manager.plugins["' + plugin.name + '"]\n')
                     f.write('pobj.init_storage()\n')
 
-                    for key, value in plugin:
+                    for key, value in plugin.items():
                         f.write('pobj["' + key + '"] = ' + repr(value) + '\n')
                     f.write('pobj.close_storage()\n')
 

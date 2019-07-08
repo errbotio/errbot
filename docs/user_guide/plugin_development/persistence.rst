@@ -7,9 +7,9 @@ if Errbot is restarted.
 How to use it
 -------------
 
-You plugin *is* the store, simply use self as a dictionary.
+Your plugin *is* the store, simply use self as a dictionary.
 
-Here is a simple example storing are retreiving value from the store.
+Here is a simple example for storing and retreiving a value from the store.
 
 .. code-block:: python
 
@@ -27,7 +27,7 @@ Here is a simple example storing are retreiving value from the store.
 Caveats
 -------
 
-The storing occurs when you *assign the key*. So for example:
+The storing occurs when you *assign the key*:
 
 .. code-block:: python
 
@@ -36,7 +36,7 @@ The storing occurs when you *assign the key*. So for example:
     self['FOO'] = d
     d['subkey'] = 'NONONONONONO'
 
-You need to do that instead:
+What you need to do instead:
 (manual method)
 
 .. code-block:: python

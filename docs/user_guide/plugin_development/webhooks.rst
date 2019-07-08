@@ -104,7 +104,7 @@ you might wish to have more power and have access to the actual
 request itself. By setting the `raw` parameter of the
 :func:`~errbot.decorators.webhook` decorator to `True`, you will
 be able to get the
-`bottle.BaseRequest <http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest>`_
+`flask.Request <http://flask.pocoo.org/docs/1.0/api/#flask.Request>`_
 which contains all the details about the actual request:
 
 .. code-block:: python
@@ -114,7 +114,7 @@ which contains all the details about the actual request:
     class PluginExample(BotPlugin):
         @webhook(raw=True)
         def test(self, request):
-            user_agent = request.get_header("user-agent", "Unknown")
+            user_agent = request.headers.get("user-agent", "Unknown")
             return "Your user-agent is {}".format(user_agent)
 
 

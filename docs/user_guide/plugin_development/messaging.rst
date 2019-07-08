@@ -11,8 +11,8 @@ progressing. Instead of using a single `return` statement you can
 use `yield` statements for every line of output you wish to send to
 the user.
 
-For example, in the following example, the output will be "Going to
-sleep", followed by a 10 second wait, followed by "Waking up".
+In the following example, the output will be "Going to
+sleep", followed by a 10 second wait period and "Waking up" in the end.
 
 .. code-block:: python
 

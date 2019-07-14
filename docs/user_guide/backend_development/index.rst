@@ -82,7 +82,7 @@ Identifier for a person in a chatroom
 -------------------------------------
 
 This is simply an Identifier with an added property: room.
-The string representation of room should give a charoom identifier (see below).
+The string representation of room should give a chatroom identifier (see below).
 
 See for example :class:`~errbot.backends.slack.SlackMUCIdentifier`
 

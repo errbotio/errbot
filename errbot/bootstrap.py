@@ -145,7 +145,8 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
                                  config.AUTOINSTALL_DEPS,
                                  getattr(config, 'CORE_PLUGINS', None),
                                  lambda name, clazz: clazz(bot, name),
-                                 getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )))
+                                 getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )),
+                                 getattr(config, 'PLUGIN_CONFIG', None))
         bot.attach_storage_plugin(storage_plugin)
         bot.attach_repo_manager(repo_manager)
         bot.attach_plugin_manager(botpm)

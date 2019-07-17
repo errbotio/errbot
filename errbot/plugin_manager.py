@@ -144,7 +144,8 @@ class BotPluginManager(StoreMixin):
                  autoinstall_deps: bool,
                  core_plugins: Tuple[str, ...],
                  plugin_instance_callback: PluginInstanceCallback,
-                 plugins_callback_order: Tuple[Optional[str], ...]):
+                 plugins_callback_order: Tuple[Optional[str], ...],
+                 plugin_config: Dict):
         """
         Creates a Plugin manager
         :param storage_plugin: the plugin used to store to config for this manager
@@ -171,7 +172,7 @@ class BotPluginManager(StoreMixin):
         self.plugin_places = []
         self.open_storage(storage_plugin, 'core')
         if CONFIGS not in self:
-            self[CONFIGS] = {}
+            self[CONFIGS] = {} if plugin_config is None else plugin_config
 
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         return self.plugins.get(name, None)

@@ -78,7 +78,7 @@ You may also discover plugins from the community on our `plugin list`_ that we u
 Community
 ---------
 
-Errbot has a `Google plus community`_, which is the best place to discuss anything
+Errbot has a `Gitter community` which is the best place to discuss anything
 related to Errbot as well as promote your own creations !
 This is also the place where you will find announcements of new versions and other
 news related to the project.

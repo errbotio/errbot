@@ -37,7 +37,7 @@ except ImportError:
 # The Slack client automatically turns a channel name into a clickable
 # link if you prefix it with a #. Other clients receive this link as a
 # token matching this regex.
-SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
+SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>([CG])[0-9A-Z]+)>$')
 
 # Empirically determined message size limit.
 SLACK_MESSAGE_LIMIT = 4096
@@ -115,6 +115,7 @@ class SlackPerson(Person):
         self._channelid = channelid
         self._webclient = webclient
         self._username = None  # cache
+        self._fullname = None
         self._channelname = None
 
     @property
@@ -173,12 +174,19 @@ class SlackPerson(Person):
 
     @property
     def fullname(self):
-        """Convert a Slack user ID to their user name"""
-        user = self._sc.server.users.find(self._userid)
+        """Convert a Slack user ID to their full name"""
+        if self._fullname:
+            return self._fullname
+
+        user = self._webclient.users_info(user=self._userid)['user']
         if user is None:
             log.error('Cannot find user with ID %s', self._userid)
             return f'<{self._userid}>'
-        return user.real_name
+
+        if not self._fullname:
+            self._fullname = user['real_name']
+
+        return self._fullname
 
     def __unicode__(self):
         return f'@{self.username}'
@@ -206,8 +214,8 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
     """
     This class represents a person inside a MUC.
     """
-    def __init__(self, sc, userid, channelid, bot):
-        super().__init__(sc, userid, channelid)
+    def __init__(self, webclient: WebClient, userid, channelid, bot):
+        super().__init__(webclient, userid, channelid)
         self._room = SlackRoom(channelid=channelid, bot=bot)
 
     @property
@@ -221,7 +229,7 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
         return self.__unicode__()
 
     def __eq__(self, other):
-        if not isinstance(other, RoomOccupant):
+        if not isinstance(other, SlackRoomOccupant):
             log.warning('tried to compare a SlackRoomOccupant with a SlackPerson %s vs %s', self, other)
             return False
         return other.room.id == self.room.id and other.userid == self.userid
@@ -273,7 +281,7 @@ class SlackRoomBot(RoomOccupant, SlackBot):
         return self.__unicode__()
 
     def __eq__(self, other):
-        if not isinstance(other, RoomOccupant):
+        if not isinstance(other, SlackRoomOccupant):
             log.warning('tried to compare a SlackRoomBotOccupant with a SlackPerson %s vs %s', self, other)
             return False
         return other.room.id == self.room.id and other.userid == self.userid
@@ -315,6 +323,7 @@ class SlackBackend(ErrBot):
             sys.exit(1)
         self.sc = None  # Will be initialized in serve_once
         self.webclient = None
+        self.bot_identifier = None
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
@@ -334,7 +343,7 @@ class SlackBackend(ErrBot):
         converted_prefixes = []
         for prefix in bot_prefixes:
             try:
-                converted_prefixes.append(f'<@{self.username_to_userid(prefix)}>')
+                converted_prefixes.append(f'<@{self.username_to_userid(self.webclient, prefix)}>')
             except Exception as e:
                 log.error('Failed to look up Slack userid for alternate prefix "%s": %s', prefix, e)
 
@@ -482,8 +491,9 @@ class SlackBackend(ErrBot):
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
             channel_link_name = msg.to.name
 
-        #msg.extras['url'] = f'https://{self.sc.server.domain}.slack.com/archives/' \
-        #                    f'{channel_link_name}/p{self._ts_for_message(msg).replace(".", "")}'
+        # TODO: port to slackclient2
+        # msg.extras['url'] = f'https://{self.sc.server.domain}.slack.com/archives/' \
+        #                     f'{channel_link_name}/p{self._ts_for_message(msg).replace(".", "")}'
 
         self.callback_message(msg)
 
@@ -496,27 +506,29 @@ class SlackBackend(ErrBot):
         if user == self.bot_identifier:
             self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
 
-    def userid_to_username(self, webclient: WebClient, id_: str):
+    @staticmethod
+    def userid_to_username(webclient: WebClient, id_: str):
         """Convert a Slack user ID to their user name"""
-        user = webclient.users_info(user=id_)
+        user = webclient.users_info(user=id_)['user']
         if user is None:
             raise UserDoesNotExistError(f'Cannot find user with ID {id_}.')
-        return user.name
+        return user['name']
 
-    def username_to_userid(self, webclient: WebClient, name: str):
+    @staticmethod
+    def username_to_userid(webclient: WebClient, name: str):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-        user = [user for user in self.webclient.users_list() if user.name == name]
+        user = [user for user in webclient.users_list()['users'] if user['name'] == name]
         if user is None:
             raise UserDoesNotExistError(f'Cannot find user {name}.')
-        return user.id
+        return user['id']
 
     def channelid_to_channelname(self, webclient: WebClient, id_: str):
         """Convert a Slack channel ID to its channel name"""
-        channel = self.webclient.channels_info(channel=id_)
+        channel = webclient.channels_info(channel=id_)['channel']
         if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {id_} exists.')
-        return channel[0].name
+        return channel['name']
 
     def channelname_to_channelid(self, webclient: WebClient, name: str):
         """Convert a Slack channel name to its channel ID"""

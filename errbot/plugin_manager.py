@@ -182,16 +182,14 @@ class BotPluginManager(StoreMixin):
         :throws PluginActivationException: needs to be taken care of by the callers.
         """
         plugin = self.plugins[name]
+        plugin_info = self.plugin_infos[name]
 
         if plugin.is_activated:
             self.deactivate_plugin(name)
 
-        module_alias = plugin.__module__
-        module_old = __import__(module_alias)
-        f = module_old.__file__
-        module_new = machinery.SourceFileLoader(module_alias, f).load_module(module_alias)
-        class_name = type(plugin).__name__
-        new_class = getattr(module_new, class_name)
+        base_name = '.'.join(plugin.__module__.split('.')[:-1])
+        classes = plugin_info.load_plugin_classes(base_name, BotPlugin)
+        _, new_class = classes[0]
         plugin.__class__ = new_class
 
         self.activate_plugin(name)

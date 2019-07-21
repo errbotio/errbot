@@ -4,7 +4,7 @@ import sys
 import unittest
 import textwrap
 from os.path import sep, abspath
-from queue import Queue
+from queue import Queue, Empty
 from tempfile import mkdtemp
 from threading import Thread
 
@@ -240,9 +240,9 @@ class TestBackend(ErrBot):
         self.connect_callback()  # notify that the connection occured
         try:
             while True:
-                print('waiting on queue')
+                log.debug('waiting on queue')
                 stanza_type, entry = self.incoming_stanza_queue.get()
-                print('message received')
+                log.debug('message received')
                 if entry == QUIT_MESSAGE:
                     log.info("Stop magic message received, quitting...")
                     break
@@ -402,11 +402,16 @@ class TestBot(object):
         self.bot.push_message("!echo ready")
 
         # Ensure bot is fully started and plugins are loaded before returning
-        for i in range(60):
-            #  Gobble initial error messages...
-            if self.bot.pop_message(timeout=1) == "ready":
-                break
-        else:
+        try:
+            for i in range(60):
+                #  Gobble initial error messages...
+                msg = self.bot.pop_message(timeout=1)
+                if msg == "ready":
+                    break
+                log.warning("Queue was not empty, the non-consumed message is:")
+                log.warning(msg)
+                log.warning("Check the previous test and remove spurrious messages.")
+        except Empty:
             raise AssertionError('The "ready" message has not been received (timeout).')
 
     @property

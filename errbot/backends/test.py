@@ -405,7 +405,7 @@ class TestBot(object):
         try:
             for i in range(60):
                 #  Gobble initial error messages...
-                msg = self.bot.pop_message(timeout=1)
+                msg = self.bot.pop_message(timeout=2)
                 if msg == "ready":
                     break
                 log.warning("Queue was not empty, the non-consumed message is:")

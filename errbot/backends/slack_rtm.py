@@ -7,6 +7,7 @@ import re
 import sys
 import pprint
 from functools import lru_cache
+from slack.errors import BotUserAccessError
 from typing import BinaryIO
 
 from markdown import Markdown
@@ -24,6 +25,7 @@ log = logging.getLogger(__name__)
 
 try:
     from slack import RTMClient
+    from slack import WebClient
 except ImportError:
     log.exception("Could not start the Slack back-end")
     log.fatal(
@@ -102,7 +104,7 @@ class SlackPerson(Person):
     This class describes a person on Slack's network.
     """
 
-    def __init__(self, sc, userid=None, channelid=None):
+    def __init__(self, webclient: WebClient, userid=None, channelid=None):
         if userid is not None and userid[0] not in ('U', 'B', 'W'):
             raise Exception(f'This is not a Slack user or bot id: {userid} (should start with U, B or W)')
 
@@ -111,7 +113,9 @@ class SlackPerson(Person):
 
         self._userid = userid
         self._channelid = channelid
-        self._sc = sc
+        self._webclient = webclient
+        self._username = None  # cache
+        self._channelname = None
 
     @property
     def userid(self):
@@ -120,11 +124,17 @@ class SlackPerson(Person):
     @property
     def username(self):
         """Convert a Slack user ID to their user name"""
-        user = self._sc.server.users.find(self._userid)
+        if self._username:
+            return self._username
+
+        user = self._webclient.users_info(user=self._userid)['user']
         if user is None:
             log.error('Cannot find user with ID %s', self._userid)
             return f'<{self._userid}>'
-        return user.name
+
+        if not self._username:
+            self._username = user['name']
+        return self._username
 
     @property
     def channelid(self):
@@ -136,14 +146,19 @@ class SlackPerson(Person):
         if self._channelid is None:
             return None
 
-        channel = self._sc.server.channels.find(self._channelid)
+        if self._channelname:
+            return self._channelname
+
+        channel = [channel for channel in self._webclient.channels_list() if channel['id'] == self._channelid][0]
         if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {self._channelid} exists.')
-        return channel.name
+        if not self._channelname:
+            self._channelname = channel['name']
+        return self._channelname
 
     @property
     def domain(self):
-        return self._sc.server.domain
+        raise NotImplemented()
 
     # Compatibility with the generic API.
     client = channelid
@@ -216,10 +231,10 @@ class SlackBot(SlackPerson):
     """
     This class describes a bot on Slack's network.
     """
-    def __init__(self, sc, bot_id, bot_username):
+    def __init__(self, webclient: WebClient, bot_id, bot_username):
         self._bot_id = bot_id
         self._bot_username = bot_username
-        super().__init__(sc=sc, userid=bot_id)
+        super().__init__(webclient, userid=bot_id)
 
     @property
     def username(self):
@@ -299,6 +314,7 @@ class SlackBackend(ErrBot):
             )
             sys.exit(1)
         self.sc = None  # Will be initialized in serve_once
+        self.webclient = None
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
@@ -328,31 +344,26 @@ class SlackBackend(ErrBot):
     def _setup_slack_callbacks(self):
         @RTMClient.run_on(event='message')
         def serve_messages(**payload):
-            self.webclient = payload['web_client']
-            self._message_event_handler(payload['data'])
+            self._message_event_handler(payload['web_client'], payload['data'])
 
         @RTMClient.run_on(event='member_joined_channel')
         def serve_joins(**payload):
-            self.webclient = payload['web_client']
-            self._member_joined_channel_event_handler(payload['data'])
+            self._member_joined_channel_event_handler(payload['web_client'], payload['data'])
 
         @RTMClient.run_on(event='hello')
         def serve_hellos(**payload):
-            self.webclient = payload['web_client']
-            self._hello_event_handler(payload['data'])
+            self._hello_event_handler(payload['web_client'], payload['data'])
 
         @RTMClient.run_on(event='presence_change')
         def serve_presences(**payload):
-            self.webclient = payload['web_client']
-            self._presence_change_event_handler(payload['data'])
+            self._presence_change_event_handler(payload['web_client'], payload['data'])
 
     def serve_forever(self):
         self.sc = RTMClient(token=self.token, proxy=self.proxies)
 
         @RTMClient.run_on(event='open')
         def get_bot_identity(**payload):
-            self.webclient = payload['web_client']
-            self.bot_identifier = SlackPerson(self.sc, payload['data']['self']['id'])
+            self.bot_identifier = SlackPerson(payload['web_client'], payload['data']['self']['id'])
             # only hook up the message callback once we have our identity set.
             self._setup_slack_callbacks()
 
@@ -379,16 +390,16 @@ class SlackBackend(ErrBot):
             log.debug("Triggering disconnect callback")
             self.disconnect_callback()
 
-
-    def _hello_event_handler(self, event):
+    def _hello_event_handler(self, webclient: WebClient, event):
         """Event handler for the 'hello' event"""
+        self.webclient = webclient
         self.connect_callback()
         self.callback_presence(Presence(identifier=self.bot_identifier, status=ONLINE))
 
-    def _presence_change_event_handler(self, event):
+    def _presence_change_event_handler(self, webclient: WebClient, event):
         """Event handler for the 'presence_change' event"""
 
-        idd = SlackPerson(self.sc, event['user'])
+        idd = SlackPerson(webclient, event['user'])
         presence = event['presence']
         # According to https://api.slack.com/docs/presence, presence can
         # only be one of 'active' and 'away'
@@ -401,7 +412,7 @@ class SlackBackend(ErrBot):
             status = ONLINE
         self.callback_presence(Presence(identifier=idd, status=status))
 
-    def _message_event_handler(self, event):
+    def _message_event_handler(self, webclient: WebClient, event):
         """Event handler for the 'message' event"""
         channel = event['channel']
         if channel[0] not in 'CGD':
@@ -448,26 +459,26 @@ class SlackBackend(ErrBot):
         if channel.startswith('D'):
             if subtype == "bot_message":
                 msg.frm = SlackBot(
-                    self.sc,
+                    webclient,
                     bot_id=event.get('bot_id'),
                     bot_username=event.get('username', '')
                 )
             else:
-                msg.frm = SlackPerson(self.sc, event['user'], event['channel'])
-            msg.to = SlackPerson(self.sc, self.bot_identifier.userid,
+                msg.frm = SlackPerson(webclient, event['user'], event['channel'])
+            msg.to = SlackPerson(webclient, self.bot_identifier.userid,
                                  event['channel'])
             channel_link_name = event['channel']
         else:
             if subtype == "bot_message":
                 msg.frm = SlackRoomBot(
-                    self.sc,
+                    webclient,
                     bot_id=event.get('bot_id'),
                     bot_username=event.get('username', ''),
                     channelid=event['channel'],
                     bot=self
                 )
             else:
-                msg.frm = SlackRoomOccupant(self.sc, event['user'], event['channel'], bot=self)
+                msg.frm = SlackRoomOccupant(webclient, event['user'], event['channel'], bot=self)
             msg.to = SlackRoom(channelid=event['channel'], bot=self)
             channel_link_name = msg.to.name
 
@@ -479,38 +490,38 @@ class SlackBackend(ErrBot):
         if mentioned:
             self.callback_mention(msg, mentioned)
 
-    def _member_joined_channel_event_handler(self, event):
+    def _member_joined_channel_event_handler(self, webclient: WebClient, event):
         """Event handler for the 'member_joined_channel' event"""
-        user = SlackPerson(self.sc, event['user'])
+        user = SlackPerson(self.webclient, event['user'])
         if user == self.bot_identifier:
             self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
 
-    def userid_to_username(self, id_):
+    def userid_to_username(self, webclient: WebClient, id_: str):
         """Convert a Slack user ID to their user name"""
-        user = self.sc.server.users.get(id_)
+        user = webclient.users_info(user=id_)
         if user is None:
             raise UserDoesNotExistError(f'Cannot find user with ID {id_}.')
         return user.name
 
-    def username_to_userid(self, name):
+    def username_to_userid(self, webclient: WebClient, name: str):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-        user = self.sc.server.users.find(name)
+        user = [user for user in self.webclient.users_list() if user.name == name]
         if user is None:
             raise UserDoesNotExistError(f'Cannot find user {name}.')
         return user.id
 
-    def channelid_to_channelname(self, id_):
+    def channelid_to_channelname(self, webclient: WebClient, id_: str):
         """Convert a Slack channel ID to its channel name"""
-        channel = [channel for channel in self.sc.server.channels if channel.id == id_]
-        if not channel:
+        channel = self.webclient.channels_info(channel=id_)
+        if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {id_} exists.')
         return channel[0].name
 
-    def channelname_to_channelid(self, name):
+    def channelname_to_channelid(self, webclient: WebClient, name: str):
         """Convert a Slack channel name to its channel ID"""
         name = name.lstrip('#')
-        channel = [channel for channel in self.sc.server.channels if channel.name == name]
+        channel = [channel for channel in self.webclient.channels_list() if channel.name == name]
         if not channel:
             raise RoomDoesNotExistError(f'No channel named {name} exists')
         return channel[0].id
@@ -620,7 +631,7 @@ class SlackBackend(ErrBot):
                 if 'thread_ts' in msg.extras:
                     data['thread_ts'] = msg.extras['thread_ts']
 
-                result = self.webclient.api_call.chat_postMessage(**data)
+                result = self.webclient.chat_postMessage(**data)
                 timestamps.append(result['ts'])
 
             msg.extras['ts'] = timestamps
@@ -826,9 +837,9 @@ class SlackBackend(ErrBot):
         if channelid is None and channelname is not None:
             channelid = self.channelname_to_channelid(channelname)
         if userid is not None and channelid is not None:
-            return SlackRoomOccupant(self.sc, userid, channelid, bot=self)
+            return SlackRoomOccupant(self.webclient, userid, channelid, bot=self)
         if userid is not None:
-            return SlackPerson(self.sc, userid, self.get_im_channel(userid))
+            return SlackPerson(self.webclient, userid, self.get_im_channel(userid))
         if channelid is not None:
             return SlackRoom(channelid=channelid, bot=self)
 
@@ -994,7 +1005,6 @@ class SlackRoom(Room):
 
         self._id = None
         self._bot = bot
-        self.sc = bot.sc
 
     def __str__(self):
         return f'#{self.name}'
@@ -1049,12 +1059,9 @@ class SlackRoom(Room):
     def join(self, username=None, password=None):
         log.info("Joining channel %s", str(self))
         try:
-            self._bot.webclient.channels_join(channel=self.name)
-        except SlackAPIResponseError as e:
-            if e.error == 'user_is_bot':
-                raise RoomError(f'Unable to join channel. {USER_IS_BOT_HELPTEXT}')
-            else:
-                raise RoomError(e)
+            self._bot.webclient.channels_join(name=self.name)
+        except BotUserAccessError as e:
+            raise RoomError(f'Unable to join channel. {USER_IS_BOT_HELPTEXT}')
 
     def leave(self, reason=None):
         try:

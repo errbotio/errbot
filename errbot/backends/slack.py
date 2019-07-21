@@ -748,7 +748,6 @@ class SlackBackend(ErrBot):
                 attachment['footer'] = f'{footer} [{i + 1}/{part_count}]'
             attachment['text'] = parts[i]
             data = {
-                'text': ' ',
                 'channel': to_channel_id,
                 'attachments': json.dumps([attachment]),
                 'link_names': '1',

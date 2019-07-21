@@ -78,7 +78,62 @@ You may also discover plugins from the community on our `plugin list`_ that we u
 Community
 ---------
 
-Errbot has a `Google plus community`_, which is the best place to discuss anything
+Errbot has a `
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+plus community`_, which is the best place to discuss anything
 related to Errbot as well as promote your own creations !
 This is also the place where you will find announcements of new versions and other
 news related to the project.
@@ -139,7 +194,7 @@ License
 Errbot is free software, available under the GPL-3 license. Please refer to the
 :download:`full license text <gpl-3.0.txt>` for more details.
 
-.. _`Google plus community`: https://plus.google.com/communities/117050256560830486288
+..  `Gitter community`: https://gitter.im/errbotio/errbot
 .. _`GitHub page`: http://github.com/errbotio/errbot/
 .. _`plugin list`: https://github.com/errbotio/errbot/wiki
 .. _`open an issue`: https://github.com/errbotio/errbot/issues

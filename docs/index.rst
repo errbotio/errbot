@@ -4,12 +4,12 @@ Errbot
 *Errbot is a chatbot, a daemon that connects to your favorite chat service and brings
 your tools into the conversation.*
 
-The goal of the project is to make it easy for you to write your own plugins so you 
+The goal of the project is to make it easy for you to write your own plugins so you
 can make it do whatever you want: a deployment, retrieving some information online,
 trigger a tool via an API, troll a co-worker,...
 
 Errbot is being used in a lot of different contexts: chatops (tools for devops),
-online gaming chatrooms like EVE, video streaming chatrooms like `livecoding.tv <http://livecoding.tv>`_, 
+online gaming chatrooms like EVE, video streaming chatrooms like `livecoding.tv <http://livecoding.tv>`_,
 home security, etc.
 
 Screenshots
@@ -33,7 +33,7 @@ Simple to build upon
 --------------------
 
 Extending Errbot and adding your own commands can be done by creating a plugin, which
-is simply a class derived from :class:`~errbot.botplugin.BotPlugin`. 
+is simply a class derived from :class:`~errbot.botplugin.BotPlugin`.
 The docstrings will be automatically reused by the :ref:`\!help <builtin_help_function>`
 command::
 

@@ -78,13 +78,8 @@ You may also discover plugins from the community on our `plugin list`_ that we u
 Community
 ---------
 
-Errbot has a `Google plus community`_, which is the best place to discuss anything
-related to Errbot as well as promote your own creations !
-This is also the place where you will find announcements of new versions and other
-news related to the project.
-
-You can also interact directly with the community online from the "Open Chat"
-button at the bottom of this page. Don't be shy and feel free to ask any question 
+You can interact directly with the community online from the "Open Chat"
+button at the bottom of this page. Don't be shy and feel free to ask any question
 there, we are more than happy to help you.
 
 If you think you hit a bug or the documentation is not clear enough,

@@ -95,7 +95,7 @@ class ACLS(BotPlugin):
                 dry_run
             )
 
-        self.log.info('Check if %s is admin only command.', cmd)
+        self.log.debug('Check if %s is admin only command.', cmd)
         if f._err_command_admin_only:
             if not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
                 return self.access_denied(msg, 'This command requires bot-admin privileges', dry_run)

@@ -569,6 +569,7 @@ class ErrBot(Backend, StoreMixin):
         """
         for admin in self._admins_to_notify():
             self.send(self.build_identifier(admin), warning)
+        log.warning(warning)
 
     def callback_message(self, msg):
         """Processes for commands and dispatches the message to all the plugins."""

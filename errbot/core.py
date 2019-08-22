@@ -637,7 +637,7 @@ class ErrBot(Backend, StoreMixin):
         errors += self.plugin_manager.activate_non_started_plugins()
         if errors:
             self.warn_admins(errors)
-        log.info(errors)
+            log.info(errors)
         log.info('Notifying connection to all the plugins...')
         self.signal_connect_to_all_plugins()
         log.info('Plugin activation done.')

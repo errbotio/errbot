@@ -78,9 +78,9 @@ command.
 
 .. note::
     The method name must comply with the usual Python naming
-    conventions for `identifiers <https://docs.python.org/release/2.7.8/reference/lexical_analysis.html#identifiers>`_ 
+    conventions for `identifiers <https://docs.python.org/3/reference/lexical_analysis.html?highlight=identifiers%20keywords#identifiers>`_
     , that is, they may not begin with a digit (like ``911`` but only with a letter or underscore, so ``_911`` would work)
-    and cannot be any of the `reserved keywords <https://docs.python.org/release/2.7.8/reference/lexical_analysis.html#keywords>`_
+    and cannot be any of the `reserved keywords <https://docs.python.org/3/reference/lexical_analysis.html?highlight=identifiers%20keywords#keywords>`_
     such as ``pass`` (instead use ``password``) etc.
 
 .. note::
@@ -165,7 +165,7 @@ Wrapping up
 
 If you've followed along so far, you should now have a working
 *Hello, world!* plugin for Errbot. If you start your bot, it should load
-your plugin automatically. 
+your plugin automatically.
 
 You can verify this by giving the `!status` command, which should
 respond with something like the following::

@@ -263,8 +263,8 @@ In order to do that you'll need a `.travis.yml` similar to this:
     language: python
     python:
       - 2.7
-      - 3.3
-      - 3.4
+      - 3.6
+      - 3.7
     install:
       - pip install -q errbot pytest pytest-pep8 --use-wheel
       - pip install -q coverage coveralls --use-wheel

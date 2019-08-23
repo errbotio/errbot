@@ -112,7 +112,7 @@ PLUGINS_CALLBACK_ORDER = (None, )
 # To use your own custom log formatter, uncomment and set BOT_LOG_FORMATTER
 # to your formatter instance (inherits from logging.Formatter)
 #   For information on how to create a logging formatter and what it can do, see
-#   https://docs.python.org/3.5/library/logging.html#formatter-objects
+#   https://docs.python.org/3/library/logging.html#formatter-objects
 # BOT_LOG_FORMATTER =
 
 # The location of the log file. If you set this to None, then logging will
@@ -280,7 +280,7 @@ BOT_ADMINS = ('gbin@localhost',)
 #
 # Please note that the first command match found will be used so if you have
 # overlapping patterns you must used an OrderedDict instead of a regular dict:
-# https://docs.python.org/3.4/library/collections.html#collections.OrderedDict
+# https://docs.python.org/3/library/collections.html#collections.OrderedDict
 #
 # Example:
 #

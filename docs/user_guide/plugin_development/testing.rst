@@ -262,7 +262,6 @@ In order to do that you'll need a `.travis.yml` similar to this:
 
     language: python
     python:
-      - 2.7
       - 3.6
       - 3.7
     install:

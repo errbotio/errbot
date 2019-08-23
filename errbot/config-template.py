@@ -373,6 +373,12 @@ REVERSE_CHATROOM_RELAY = {}
 # Switch it to True to enable XHTML-IM formatting.
 # XMPP_XHTML_IM = False
 
+# XMPP may require a specific ssl protocol version when making connections.
+# This option allows the option to change that behavior.
+# It uses python's built-in ssl module.
+# import ssl
+# XMPP_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
+
 # Message rate limiting for the IRC backend. This will delay subsequent
 # messages by this many seconds (floats are supported). Setting these
 # to a value of 0 effectively disables rate limiting.

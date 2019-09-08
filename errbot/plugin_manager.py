@@ -64,6 +64,8 @@ def install_packages(req_path: Path):
         Return an exc_info if it fails otherwise None.
     """
     def is_docker():
+        if not os.path.exists('/proc/1/cgroup'):
+            return false
         with open('/proc/1/cgroup') as d:
             return 'docker' in d.read()
 

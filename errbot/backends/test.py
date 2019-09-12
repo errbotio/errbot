@@ -385,12 +385,13 @@ class TestBot(object):
         config.BOT_LOG_LEVEL = loglevel
         self.bot_config = config
 
-    def start(self):
+    def start(self, timeout=2):
         """
         Start the bot
 
         Calling this method when the bot has already started will result
         in an Exception being raised.
+        :param timeout: Timeout for the ready message pop. pop will be done 60 times so the total timeout is 60*timeout
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
@@ -405,7 +406,7 @@ class TestBot(object):
         try:
             for i in range(60):
                 #  Gobble initial error messages...
-                msg = self.bot.pop_message(timeout=2)
+                msg = self.bot.pop_message(timeout=timeout)
                 if msg == "ready":
                     break
                 log.warning("Queue was not empty, the non-consumed message is:")

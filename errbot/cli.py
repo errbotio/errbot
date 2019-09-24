@@ -200,10 +200,15 @@ def main():
 
     config = get_config(config_path)  # will exit if load fails
 
+    # Extra backend is expected to be a list type, convert string to list.
+    extra_backend = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+    if isinstance(extra_backend, str):
+        extra_backend = [extra_backend]
+
     if args['list']:
         from errbot.backend_plugin_manager import enumerate_backend_plugins
         print('Available backends:')
-        roots = [CORE_BACKENDS] + getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+        roots = [CORE_BACKENDS] + extra_backend
         for backend in enumerate_backend_plugins(collect_roots(roots)):
             print(f'\t\t{backend.name}')
         sys.exit(0)

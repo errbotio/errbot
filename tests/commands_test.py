@@ -67,8 +67,8 @@ def test_config_cycle(testbot):
     assert 'Default configuration for this plugin (you can copy and paste this directly as a command)' in m
     assert 'Current configuration' not in m
 
-    testbot.assertCommand("!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}",
-                          'Plugin configuration done.')
+    testbot.assertInCommand("!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}",
+                            'Plugin configuration done.')
 
     assert 'Current configuration' in testbot.exec_command('!plugin config Webserver')
     assert 'localhost' in testbot.exec_command('!plugin config Webserver')
@@ -106,7 +106,7 @@ def test_plugin_cycle(testbot):
     ]
 
     for plugin in plugins:
-        testbot.assertCommand(
+        testbot.assertInCommand(
             '!repos install {0}'.format(plugin),
             'Installing {0}...'.format(plugin)
         ),
@@ -205,7 +205,7 @@ def test_encoding_preservation(testbot):
 def test_webserver_webhook_test(testbot):
     testbot.push_message("!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}")
     assert 'Plugin configuration done.' in testbot.pop_message()
-    testbot.assertCommand("!webhook test /echo toto", 'Status code : 200')
+    testbot.assertInCommand("!webhook test /echo toto", 'Status code : 200')
 
 
 def test_activate_reload_and_deactivate(testbot):
@@ -367,7 +367,7 @@ def test_mock_injection(testbot):
 
 
 def test_multiline_command(testbot):
-    testbot.assertCommand(
+    testbot.assertInCommand(
         '''
         !bar title
         first line of body

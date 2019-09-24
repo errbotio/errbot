@@ -45,7 +45,8 @@ class BackendPluginManager:
     def load_plugin(self) -> Any:
         plugin_path = self.plugin_info.location.parent
         if plugin_path not in sys.path:
-            sys.path.append(plugin_path)
+            # Cast pathlib.Path objects to string type for compatibility with sys.path
+            sys.path.append(str(plugin_path))
         plugin_classes = self.plugin_info.load_plugin_classes(self._base_module, self._base_class)
         if len(plugin_classes) != 1:
             raise PluginNotFoundException(f'Found more that one plugin for {self._base_class}.')

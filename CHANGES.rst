@@ -1,3 +1,26 @@
+v6.1.1 (2019-06-22)
+-------------------
+
+fixes:
+
+- Installation using wheel distribution on python 3.6 or older
+
+v6.1.0 (2019-06-16)
+-------------------
+
+features:
+
+- Use python git instead of system git binary (#1296)
+
+fixes:
+
+- `errbot -l` cli error (#1315)
+- Slack backend by pinning slackclient to supported version (#1343)
+- Make --storage-merge merge configs (#1311)
+- Exporting values in backup command (#1328)
+- Rename Spark to Webex Teams (#1323)
+- Various documentation fixes (#1310, #1327, #1331)
+
 v6.0.0 (2019-03-23)
 -------------------
 

@@ -129,8 +129,17 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     if isinstance(plugin_indexes, str):
         plugin_indexes = (plugin_indexes, )
 
-    backendpm = BackendPluginManager(config, 'errbot.backends', backend_name,
-                                     ErrBot, CORE_BACKENDS, getattr(config, 'BOT_EXTRA_BACKEND_DIR', []))
+    # Extra backend is expected to be a list type, convert string to list.
+    extra_backend = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+    if isinstance(extra_backend, str):
+        extra_backend = [extra_backend]
+
+    backendpm = BackendPluginManager(config,
+                                     'errbot.backends',
+                                     backend_name,
+                                     ErrBot,
+                                     CORE_BACKENDS,
+                                     extra_backend)
 
     log.info(f'Found Backend plugin: {backendpm.plugin_info.name}')
 
@@ -175,8 +184,8 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
 def restore_bot_from_backup(backup_filename, *, bot, log):
     """Restores the given bot by executing the 'backup' script.
 
-    The backup file is a python script which manually execute a series of commands on the bot to restore it
-    to its previous state.
+    The backup file is a python script which manually execute a series of commands on the bot
+    to restore it to its previous state.
 
     :param backup_filename: the full path to the backup script.
     :param bot: the bot instance to restore

@@ -129,8 +129,10 @@ BOT_LOG_FILE = BOT_DATA_DIR + '/err.log'
 BOT_LOG_LEVEL = logging.INFO
 
 # Enable logging to sentry (find out more about sentry at www.getsentry.com).
+# You can also separate Flask exceptions by enabling it. This will give more information in sentry
 # This is optional and disabled by default.
 BOT_LOG_SENTRY = False
+BOT_LOG_SENTRY_FLASK = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 SENTRY_EVENTLEVEL = BOT_LOG_LEVEL

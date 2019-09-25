@@ -111,6 +111,19 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
 
         sentry_integrations.append(sentry_logging)
 
+        if hasattr(config, 'BOT_LOG_SENTRY_FLASK') and config.BOT_LOG_SENTRY_FLASK:
+            try:
+                from sentry_sdk.integrations.flask import FlaskIntegration
+            except ImportError:
+                log.exception(
+                    "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
+                    "needed for Sentry integration. Did you install sentry-sdk? "
+                    "(See https://docs.sentry.io/platforms/python/flask for installation instructions)"
+                )
+                exit(-1)
+
+            sentry_integrations.append(FlaskIntegration())
+
         try:
             if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
                 mod = importlib.import_module(config.SENTRY_TRANSPORT[1])

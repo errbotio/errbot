@@ -90,28 +90,42 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             logger.addHandler(hdlr)
 
     if hasattr(config, 'BOT_LOG_SENTRY') and config.BOT_LOG_SENTRY:
+        sentry_integrations = []
+
         try:
-            from raven.handlers.logging import SentryHandler
+            import sentry_sdk
+            from sentry_sdk.integrations.logging import LoggingIntegration
+
         except ImportError:
             log.exception(
                 "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
-                "needed for Sentry integration. Did you install raven? "
-                "(See http://raven.readthedocs.org/en/latest/install/index.html "
-                "for installation instructions)"
+                "needed for Sentry integration. Did you install sentry-sdk? "
+                "(See https://docs.sentry.io/platforms/python for installation instructions)"
             )
             exit(-1)
+
+        sentry_logging = LoggingIntegration(
+            level=config.SENTRY_LOGLEVEL,
+            event_level=config.SENTRY_EVENTLEVEL
+        )
+
+        sentry_integrations.append(sentry_logging)
 
         try:
             if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
                 mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
                 transport = getattr(mod, config.SENTRY_TRANSPORT[0])
 
-                sentryhandler = SentryHandler(config.SENTRY_DSN,
-                                              level=config.SENTRY_LOGLEVEL,
-                                              transport=transport)
+                sentry_sdk.init(
+                    dsn=config.SENTRY_DSN,
+                    integrations=sentry_integrations,
+                    transport=transport
+                )
             else:
-                sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
-            logger.addHandler(sentryhandler)
+                sentry_sdk.init(
+                    dsn=config.SENTRY_DSN,
+                    integrations=sentry_integrations
+                )
         except ImportError:
             log.exception(f'Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}')
             exit(-1)

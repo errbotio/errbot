@@ -133,9 +133,10 @@ BOT_LOG_LEVEL = logging.INFO
 BOT_LOG_SENTRY = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
+SENTRY_EVENTLEVEL = BOT_LOG_LEVEL
 
 # Set an optional Sentry transport other than the default Threaded.
-# For more info, see https://docs.sentry.io/clients/python/transports/
+# For more info, see https://docs.sentry.io/error-reporting/configuration/?platform=python#transport-options
 # SENTRY_TRANSPORT = ('RequestsHTTPTransport', 'raven.transport.requests')
 
 # Execute commands in asynchronous mode. In this mode, Errbot will spawn 10

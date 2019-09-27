@@ -8,7 +8,6 @@ from errbot.rendering.ansiext import enable_format, TEXT_CHRS
 
 log = logging.getLogger(__name__)
 
-TELEGRAM_MESSAGE_SIZE_LIMIT = 1024
 UPDATES_OFFSET_KEY = '_telegram_updates_offset'
 
 try:
@@ -176,7 +175,6 @@ class TelegramMUCOccupant(TelegramPerson, RoomOccupant):
 class TelegramBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
-        config.MESSAGE_SIZE_LIMIT = TELEGRAM_MESSAGE_SIZE_LIMIT
         logging.getLogger('telegram.bot').addFilter(TelegramBotFilter())
 
         identity = config.BOT_IDENTITY
@@ -193,6 +191,12 @@ class TelegramBackend(ErrBot):
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         enable_format('text', TEXT_CHRS, borders=not compact)
         self.md_converter = text()
+
+    def set_message_size_limit(self, limit=1024, hard_limit=1024):
+        """
+        Telegram message size limit
+        """
+        super().set_message_size_limit(limit, hard_limit)
 
     def serve_once(self):
         log.info("Initializing connection")

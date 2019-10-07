@@ -117,7 +117,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             except ImportError:
                 log.exception(
                     "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
-                    "needed for Sentry integration. Did you install sentry-sdk? "
+                    "needed for Sentry integration. Did you install sentry-sdk[flask]? "
                     "(See https://docs.sentry.io/platforms/python/flask for installation instructions)"
                 )
                 exit(-1)

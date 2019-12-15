@@ -19,7 +19,7 @@ import traceback
 from datetime import datetime
 from threading import RLock
 
-import collections
+from collections.abc import Mapping
 from multiprocessing.pool import ThreadPool
 
 from errbot import CommandError
@@ -412,7 +412,7 @@ class ErrBot(Backend, StoreMixin):
         # integrated templating
         # The template needs to be set and the answer from the user command needs to be a mapping
         # If not just convert the answer to string.
-        if template_name and isinstance(template_parameters, collections.Mapping):
+        if template_name and isinstance(template_parameters, Mapping):
             return tenv().get_template(template_name + '.md').render(**template_parameters)
 
         # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)

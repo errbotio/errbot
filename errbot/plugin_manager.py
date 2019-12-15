@@ -64,6 +64,8 @@ def install_packages(req_path: Path):
         Return an exc_info if it fails otherwise None.
     """
     def is_docker():
+        if not os.path.exists('/proc/1/cgroup'):
+            return false
         with open('/proc/1/cgroup') as d:
             return 'docker' in d.read()
 
@@ -356,7 +358,7 @@ class BotPluginManager(StoreMixin):
             try:
                 if self.is_plugin_blacklisted(name):
                     errors += f'Notice: {plugin.name} is blacklisted, ' \
-                              f'use {self.bot.prefix}plugin unblacklist {name} to unblacklist it.\n'
+                              f'use "{self.plugins["Help"]._bot.prefix}plugin unblacklist {name}" to unblacklist it.\n'
                     continue
                 if not plugin.is_activated:
                     log.info('Activate plugin: %s.', name)

@@ -112,7 +112,7 @@ PLUGINS_CALLBACK_ORDER = (None, )
 # To use your own custom log formatter, uncomment and set BOT_LOG_FORMATTER
 # to your formatter instance (inherits from logging.Formatter)
 #   For information on how to create a logging formatter and what it can do, see
-#   https://docs.python.org/3.5/library/logging.html#formatter-objects
+#   https://docs.python.org/3/library/logging.html#formatter-objects
 # BOT_LOG_FORMATTER =
 
 # The location of the log file. If you set this to None, then logging will
@@ -129,13 +129,16 @@ BOT_LOG_FILE = BOT_DATA_DIR + '/err.log'
 BOT_LOG_LEVEL = logging.INFO
 
 # Enable logging to sentry (find out more about sentry at www.getsentry.com).
+# You can also separate Flask exceptions by enabling it. This will give more information in sentry
 # This is optional and disabled by default.
 BOT_LOG_SENTRY = False
+BOT_LOG_SENTRY_FLASK = False
 SENTRY_DSN = ''
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
+SENTRY_EVENTLEVEL = BOT_LOG_LEVEL
 
 # Set an optional Sentry transport other than the default Threaded.
-# For more info, see https://docs.sentry.io/clients/python/transports/
+# For more info, see https://docs.sentry.io/error-reporting/configuration/?platform=python#transport-options
 # SENTRY_TRANSPORT = ('RequestsHTTPTransport', 'raven.transport.requests')
 
 # Execute commands in asynchronous mode. In this mode, Errbot will spawn 10
@@ -280,7 +283,7 @@ BOT_ADMINS = ('gbin@localhost',)
 #
 # Please note that the first command match found will be used so if you have
 # overlapping patterns you must used an OrderedDict instead of a regular dict:
-# https://docs.python.org/3.4/library/collections.html#collections.OrderedDict
+# https://docs.python.org/3/library/collections.html#collections.OrderedDict
 #
 # Example:
 #
@@ -372,6 +375,12 @@ REVERSE_CHATROOM_RELAY = {}
 # It is disabled by default because XMPP clients support has been found to be spotty.
 # Switch it to True to enable XHTML-IM formatting.
 # XMPP_XHTML_IM = False
+
+# XMPP may require a specific ssl protocol version when making connections.
+# This option allows the option to change that behavior.
+# It uses python's built-in ssl module.
+# import ssl
+# XMPP_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
 
 # Message rate limiting for the IRC backend. This will delay subsequent
 # messages by this many seconds (floats are supported). Setting these

@@ -3,12 +3,13 @@ import threading
 import sys
 
 import requests
+from requests.exceptions import ConnectionError
 
 from errbot import BotPlugin
 from errbot.utils import version2tuple
 from errbot.version import VERSION
 
-HOME = 'http://version.errbot.io/'
+HOME = 'https://errbot-1127.appspot.com/'
 
 installed_version = version2tuple(VERSION)
 
@@ -44,7 +45,7 @@ class VersionChecker(BotPlugin):
                 self.warn_admins(f'Version {current_version_txt} of Errbot is available. '
                                  f'http://pypi.python.org/pypi/errbot/{current_version_txt}. '
                                  f'To disable this check do: {self._bot.prefix}plugin blacklist VersionChecker')
-        except (HTTPError, URLError):
+        except (HTTPError, URLError, ConnectionError):
             self.log.info('Could not establish connection to retrieve latest version.')
 
     def version_check(self):

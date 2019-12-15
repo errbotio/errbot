@@ -302,7 +302,8 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, use_ipv6=None, bot=None):
+    def __init__(self, jid, password, feature=None, keepalive=None,
+                 ca_cert=None, server=None, use_ipv6=None, bot=None):
         if feature is None:
             feature = {}
         self._bot = bot

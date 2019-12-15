@@ -352,7 +352,7 @@ class TextBackend(ErrBot):
         self.send(msg.frm, f'reaction {sign}:{reaction}:', in_reply_to=msg)
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
-        log.debug("*** Changed presence to [%s] %s", (status, message))
+        log.debug("*** Changed presence to [%s] %s", status, message)
 
     def build_identifier(self, text_representation):
         if text_representation.startswith('#'):

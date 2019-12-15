@@ -428,11 +428,11 @@ def webhook(*args,
     Decorator for webhooks
 
     :param uri_rule:
-        The URL to use for this webhook, as per Bottle request routing syntax.
+        The URL to use for this webhook, as per Flask request routing syntax.
         For more information, see:
 
-        * http://bottlepy.org/docs/dev/tutorial.html#request-routing
-        * http://bottlepy.org/docs/dev/routing.html
+        * http://flask.pocoo.org/docs/1.0/quickstart/#routing
+        * http://flask.pocoo.org/docs/1.0/api/#flask.Flask.route
     :param methods:
         A tuple of allowed HTTP methods. By default, only GET and POST
         are allowed.
@@ -443,8 +443,8 @@ def webhook(*args,
     :param raw:
         When set to true, this overrides the request decoding (including form_param) and
         passes the raw http request to your method's `payload` parameter.
-        The value of payload will be a Bottle
-        `BaseRequest <http://bottlepy.org/docs/dev/api.html#bottle.BaseRequest>`_.
+        The value of payload will be a Flask
+        `Request <http://flask.pocoo.org/docs/1.0/api/#flask.Request>`_.
 
     This decorator should be applied to methods of :class:`~errbot.botplugin.BotPlugin`
     classes to turn them into webhooks which can be reached on Err's built-in webserver.

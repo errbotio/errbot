@@ -63,7 +63,7 @@ Extensive plugin framework
 
 .. _Bot Framework: https://botframework.com/
 .. _Campfire: https://campfirenow.com/
-.. _Cisco Spark: https://www.ciscospark.com/
+.. _Cisco Webex Teams: https://www.webex.com/
 .. _Discord: https://www.discordapp.com/
 .. _Gitter: http://gitter.im/
 .. _Hipchat: https://www.hipchat.com/

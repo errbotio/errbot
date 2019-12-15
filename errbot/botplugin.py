@@ -102,6 +102,13 @@ class Command(object):
             function.__doc__ = doc
         self.definition = cmd_type(*((function,) + cmd_args), **cmd_kwargs)
 
+    def append_args(self, args, kwargs):
+        from errbot import update_wrapper, arg_botcmd
+        if hasattr(self.definition, "_err_command_parser"):
+            update_wrapper(self.definition, args, kwargs)
+        else:
+            log.warning("Attempting to append arguments to {} isn't supported.".format(self.definition))
+
 
 # noinspection PyAbstractClass
 class BotPluginBase(StoreMixin):

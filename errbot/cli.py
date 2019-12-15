@@ -20,6 +20,7 @@ import logging
 import os
 import sys
 from os import path, sep, getcwd, access, W_OK
+from pathlib import Path
 from platform import system
 import ast
 
@@ -140,7 +141,7 @@ def main():
             import jinja2
             import shutil
             import pathlib
-            base_dir = pathlib.Path.cwd() if args['init'] == '.' else args['init']
+            base_dir = pathlib.Path.cwd() if args['init'] == '.' else Path(args['init'])
 
             if not base_dir.exists():
                 print(f'Target directory {base_dir} must exist. Please create it.')
@@ -150,25 +151,23 @@ def main():
             example_plugin_dir = base_dir / extra_plugin_dir / 'err-example'
             log_path = base_dir / 'errbot.log'
 
-            templates_dir = os.path.join(os.path.dirname(__file__), 'templates', 'initdir')
-            env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir), autoescape=True)
+            templates_dir = Path(os.path.dirname(__file__)) / 'templates' / 'initdir'
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(templates_dir)), autoescape=True)
             config_template = env.get_template('config.py.tmpl')
 
             data_dir.mkdir(exist_ok=True)
             extra_plugin_dir.mkdir(exist_ok=True)
             example_plugin_dir.mkdir(exist_ok=True)
 
-            with open(os.path.join(base_dir, 'config.py'), 'w') as f:
-                f.write(config_template.render(data_dir=data_dir,
-                                               extra_plugin_dir=extra_plugin_dir,
-                                               log_path=log_path))
+            with open(base_dir / 'config.py', 'w') as f:
+                f.write(config_template.render(data_dir=str(data_dir),
+                                               extra_plugin_dir=str(extra_plugin_dir),
+                                               log_path=str(log_path)))
 
-            # shutil.copytree(src=templates_dir, dst=example_plugin_dir, ignore='initdir')
-            shutil.copyfile(os.path.join(templates_dir, 'example.plug'),
-                            os.path.join(example_plugin_dir, 'example.plug'))
-            shutil.copyfile(os.path.join(templates_dir, 'example.py'), os.path.join(example_plugin_dir, 'example.py'))
+            shutil.copyfile(templates_dir / 'example.plug', example_plugin_dir / 'example.plug')
+            shutil.copyfile(templates_dir / 'example.py', example_plugin_dir / 'example.py')
             print('Your Errbot directory has been correctly initialized!')
-            if base_dir == os.getcwd():
+            if base_dir == pathlib.Path.cwd():
                 print('Just do "errbot" and it should start in text/development mode.')
             else:
                 print(f'Just do "cd {args["init"]}" then "errbot" and it should start in text/development mode.')

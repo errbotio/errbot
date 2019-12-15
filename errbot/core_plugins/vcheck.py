@@ -8,7 +8,7 @@ from errbot import BotPlugin
 from errbot.utils import version2tuple
 from errbot.version import VERSION
 
-HOME = 'http://version.errbot.io/'
+HOME = 'https://errbot-1127.appspot.com/'
 
 installed_version = version2tuple(VERSION)
 

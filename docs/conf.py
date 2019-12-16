@@ -172,6 +172,8 @@ html_show_sourcelink = True
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Errdoc'
 
+html_extra_path = ['html_extras']
+
 
 # -- Options for LaTeX output --------------------------------------------------
 

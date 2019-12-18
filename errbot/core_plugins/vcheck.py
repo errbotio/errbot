@@ -1,10 +1,10 @@
-from urllib.error import HTTPError, URLError
-import threading
 import sys
+import threading
+from json import JSONDecodeError
+from urllib.error import HTTPError, URLError
 
 import requests
 from requests.exceptions import ConnectionError
-from json import JSONDecodeError
 
 from errbot import BotPlugin
 from errbot.utils import version2tuple

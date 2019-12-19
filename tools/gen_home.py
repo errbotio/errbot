@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from jinja2 import Template
 import json
+
+from jinja2 import Template
 
 template = Template(open('plugins.md').read())
 

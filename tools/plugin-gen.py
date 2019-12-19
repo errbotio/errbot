@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
+import configparser
+import json
+import logging
+import sys
+import time
 from datetime import datetime
 
 import requests
-import sys
 from requests.auth import HTTPBasicAuth
-from datetime import datetime
-import logging
-import time
-import configparser
-import json
+
 logging.basicConfig()
 
 log = logging.getLogger(__name__)
@@ -26,7 +26,6 @@ except ValueError:
     log.fatal("Token file cannot be properly read, should be of the form username:token")
 except:
     log.exception("auth execption:")
-# sys.exit(-1)
 
 user_cache = {}
 
@@ -35,8 +34,7 @@ try:
         user_cache = eval(f.read())
 except FileNotFoundError:
     # File doesn't exist, so we continue on
-    log.info("No user cache existing, will be generating it for the " +
-             "first time.")
+    log.info("No user cache existing, will be generating it for the first time.")
 
 
 def add_blacklisted(repo):
@@ -44,15 +42,14 @@ def add_blacklisted(repo):
         f.write(repo)
         f.write('\n')
 
+
 plugins = {}
 
 
 def save_plugins():
     with open('repos.json', 'w') as f:
-        json.dump(plugins,
-                  f,
-                  indent=2,
-                  separators=(',', ': '))
+        json.dump(plugins, f, indent=2, separators=(',', ': '))
+
 
 BLACKLISTED = []
 try:
@@ -100,7 +97,7 @@ def rate_limit(resp):
     time.sleep(delay)
 
 
-def parse_date(gh_date: str)-> datetime:
+def parse_date(gh_date: str) -> datetime:
     return datetime.strptime(gh_date, "%Y-%m-%dT%H:%M:%SZ")
 
 
@@ -183,9 +180,8 @@ def find_plugins(query):
         if repo_json.get('message', None) == 'Bad credentials':
             log.error('Invalid credentials, check your token file, see README.')
             sys.exit(-1)
-        log.debug("Repo reqs before ratelimit %s/%s" % (
-            repo_resp.headers['X-RateLimit-Remaining'],
-            repo_resp.headers['X-RateLimit-Limit']))
+        log.debug("Repo reqs before ratelimit %s/%s" % (repo_resp.headers['X-RateLimit-Remaining'],
+                                                        repo_resp.headers['X-RateLimit-Limit']))
         if 'message' in repo_json and repo_json['message'].startswith('API rate limit exceeded for'):
             log.error('API rate limit hit anyway ... wait for 30s')
             time.sleep(30)
@@ -226,6 +222,7 @@ def main():
             else:
                 check_repo(repo)
             rate_limit(repo_resp)
+
 
 if __name__ == "__main__":
     main()

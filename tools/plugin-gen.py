@@ -188,7 +188,7 @@ def find_plugins(query):
             continue
         items = repo_json['items']
 
-        for i, repo in enumerate(items):
+        for repo in items:
             if repo['full_name'] in BLACKLISTED:
                 log.debug('Skipping %s.', repo)
                 continue

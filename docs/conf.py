@@ -120,6 +120,15 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 def run_apidoc(_):
     subprocess.check_call("sphinx-apidoc --separate -f -o . ../errbot", shell=True)
 
+
+def run_repos_builder(*_):
+    last_dir = os.getcwd()
+    os.chdir('../tools/')
+    subprocess.check_call("python plugin-gen.py", shell=True, env=os.environ)
+    subprocess.check_call("pwd; cp repos.json ../docs/html_extras/", shell=True)
+    os.chdir(last_dir)
+
+
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -314,6 +323,8 @@ epub_copyright = '2013, Guillaume Binet, Tali Davidovich Petrover and Nick Groen
 
 intersphinx_mapping = {'http://docs.python.org/': None}
 
+
 def setup(app):
     app.connect("autodoc-skip-member", autodoc_skip_member)
     app.connect("builder-inited", run_apidoc)
+    app.connect("html-page-context", run_repos_builder)

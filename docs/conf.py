@@ -110,12 +110,15 @@ exclude_patterns = [
 
 # -- Autodoc configuration -----------------------------------------------------
 
+
 def autodoc_skip_member(app, what, name, obj, skip, options):
     if name == "__init__":
         return False
     return skip
 
+
 # -- Apidoc --------------------------------------------------------------------
+
 
 def run_apidoc(_):
     subprocess.check_call("sphinx-apidoc --separate -f -o . ../errbot", shell=True)
@@ -183,25 +186,23 @@ htmlhelp_basename = 'Errdoc'
 
 html_extra_path = ['html_extras']
 
-
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    #'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    #'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Err.tex', 'Err Documentation',
-   'Guillaume Binet, Tali Davidovich Petrover and Nick Groenen', 'manual'),
+    ('index', 'Err.tex', 'Err Documentation', 'Guillaume Binet, Tali Davidovich Petrover and Nick Groenen', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -224,19 +225,14 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output --------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'err', 'Err Documentation',
-     ['Guillaume Binet, Tali Davidovich Petrover and Nick Groenen'], 1)
-]
+man_pages = [('index', 'err', 'Err Documentation', ['Guillaume Binet, Tali Davidovich Petrover and Nick Groenen'], 1)]
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output ------------------------------------------------
 
@@ -244,9 +240,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Err', 'Err Documentation',
-   'Guillaume Binet, Tali Davidovich Petrover and Nick Groenen', 'Err', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'Err', 'Err Documentation', 'Guillaume Binet, Tali Davidovich Petrover and Nick Groenen', 'Err',
+     'One line description of project.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -260,7 +255,6 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-
 
 # -- Options for Epub output ---------------------------------------------------
 

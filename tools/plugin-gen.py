@@ -2,6 +2,8 @@
 import configparser
 import json
 import logging
+import os
+import pathlib
 import sys
 import time
 from datetime import datetime
@@ -16,17 +18,6 @@ log.setLevel(logging.DEBUG)
 
 DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png'
 
-try:
-    user, token = open('token', 'r').read().strip().split(':')
-    # token is generated from the personal tokens in github.
-    AUTH = HTTPBasicAuth(user, token)
-except FileNotFoundError:
-    log.fatal("No token found, cannot access the GitHub API")
-except ValueError:
-    log.fatal("Token file cannot be properly read, should be of the form username:token")
-except:
-    log.exception("auth execption:")
-
 user_cache = {}
 
 try:
@@ -35,6 +26,41 @@ try:
 except FileNotFoundError:
     # File doesn't exist, so we continue on
     log.info("No user cache existing, will be generating it for the first time.")
+
+
+def get_auth():
+    """Get auth creds from Github Token
+
+    token is generated from the personal tokens in github
+    """
+    token_file = pathlib.Path('token')
+    token_env = os.getenv('ERRBOT_REPOS_TOKEN')
+
+    if token_file.is_file():
+        try:
+            token_info = open('token', 'r').read()
+        except ValueError:
+            log.fatal("Token file cannot be properly read, should be of the form username:token")
+            sys.exit(-1)
+    elif token_env:
+        token_info = token_env
+    else:
+        msg = "No 'token' file or environment variable 'ERROBOT_REPOS_TOKEN' found."
+        log.fatal(msg)
+        sys.exit(-1)
+
+    try:
+        user, token = token_info.strip().split(':')
+    except ValueError:
+        msg = "Token file cannot be properly read, should be of the form username:token"
+        log.fatal(msg)
+        sys.exit(-1)
+
+    auth = HTTPBasicAuth(user, token)
+    return auth
+
+
+AUTH = get_auth()
 
 
 def add_blacklisted(repo):

@@ -321,4 +321,4 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 def setup(app):
     app.connect("autodoc-skip-member", autodoc_skip_member)
     app.connect("builder-inited", run_apidoc)
-    app.connect("html-page-context", run_repos_builder)
+    #app.connect("html-page-context", run_repos_builder)

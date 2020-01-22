@@ -8,6 +8,8 @@ matrix:
       dist: xenial
       sudo: true
       env: TOXENV=py37
+    - python: 3.8
+      env: TOXENV=py38
     - python: 3.7
       dist: xenial
       sudo: true

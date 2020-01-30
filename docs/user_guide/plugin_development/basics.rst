@@ -160,6 +160,33 @@ The `[Documentation]` section will be explained in more detail
 further on in this guide, but you should make sure to at least have
 the `Description` item here with a short description of your plugin.
 
+Python Submodules
+-----------------
+
+In cases where the plugin code base is large and complex, it may be desirable to break the code
+into submodules to be imported by the plugin.  The following directory tree shows a commonly used
+layout for submodules:
+
+.. codeblock::
+
+    plugins
+    ├── LICENSE
+    ├── helloworld.plug
+    ├── helloworld.py
+    ├── README.md
+    ├── requirements.txt
+    ├── lib
+    │   ├── __init__.py
+    │   ├── moduleA.py
+    │   ├── moduleB.py
+    │   ├── moduleC.py
+
+The presence of `__init__.py` indicates `lib` is a Python regular package.  Assuming `moduleA` has
+the function `InvertString`, the `helloworld` plugin can import it using the following syntax:
+
+.. code-block:: python
+    from lib.moduleA import InvertString
+
 Wrapping up
 -----------
 

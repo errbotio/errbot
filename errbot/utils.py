@@ -201,7 +201,12 @@ def git_clone(url: str, path: str) -> None:
     """
     if not os.path.exists(path):
         os.makedirs(path)
-    porcelain.clone(url, path)
+
+    repo = porcelain.clone(url, path)
+    config = repo.get_config()
+    config.set(('branch', 'master'), 'remote', 'origin')
+    config.set(('branch', 'master'), 'merge', 'refs/heads/master')
+    config.write_to_path()
 
 
 def git_pull(repo_path: str) -> None:

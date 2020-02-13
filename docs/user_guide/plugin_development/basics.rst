@@ -167,7 +167,7 @@ In cases where the plugin code base is large and complex, it may be desirable to
 into submodules to be imported by the plugin.  The following directory tree shows a commonly used
 layout for submodules:
 
-.. codeblock::
+.. code-block:: bash
 
     plugins
     ├── LICENSE
@@ -182,10 +182,20 @@ layout for submodules:
     │   ├── moduleC.py
 
 The presence of `__init__.py` indicates `lib` is a Python regular package.  Assuming `moduleA` has
-the function `InvertString`, the `helloworld` plugin can import it using the following syntax:
+the function `InvertString`, the `helloworld` plugin can import it and use it with the following syntax:
 
 .. code-block:: python
+
     from lib.moduleA import InvertString
+    from errbot import BotPlugin, botcmd
+
+    class HelloWorld(BotPlugin):
+        """Example 'Hello, world!' plugin for Errbot"""
+
+        @botcmd
+        def hello(self, msg, args):
+            """Say hello to the world"""
+            return InvertString("Hello, world!")
 
 Wrapping up
 -----------

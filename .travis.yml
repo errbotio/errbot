@@ -5,17 +5,15 @@ matrix:
     - python: 3.6
       env: TOXENV=py36
     - python: 3.7
-      dist: xenial
-      sudo: true
       env: TOXENV=py37
+    - python: 3.8
+      env: TOXENV=py38
     - python: 3.7
-      dist: xenial
-      sudo: true
       env: TOXENV=pypi-lint
     - python: 3.7
-      dist: xenial
-      sudo: true
       env: TOXENV=codestyle
+    - python: 3.7
+      env: TOXENV=security
 
 install: pip install tox
 before_script: cp tests/config-travisci.py config.py

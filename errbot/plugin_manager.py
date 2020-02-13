@@ -304,6 +304,11 @@ class BotPluginManager(StoreMixin):
     def get_all_plugin_names(self):
         return self.plugins.keys()
 
+    def get_plugin_by_path(self, path):
+        for name, pi in self.plugin_infos.items():
+            if str(pi.location.parent) == path:
+                return self.plugins[name]
+
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
             self.deactivate_plugin(name)

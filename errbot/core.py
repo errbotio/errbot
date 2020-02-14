@@ -67,6 +67,10 @@ class ErrBot(Backend, StoreMixin):
         self._gbl = RLock()  # this protects internal structures of this class
         self.set_message_size_limit()
 
+    @property
+    def message_size_limit(self):
+        return self.bot_config.MESSAGE_SIZE_LIMIT
+
     def set_message_size_limit(self, limit: int = 10000, hard_limit: int = 10000):
         """
         Set backends message size limit and its maximum supported message size.  The
@@ -175,7 +179,7 @@ class ErrBot(Backend, StoreMixin):
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, msg):
-        for part in split_string_after(msg.body, self.bot_config.MESSAGE_SIZE_LIMIT):
+        for part in split_string_after(msg.body, self.message_size_limit):
             partial_message = msg.clone()
             partial_message.body = part
             partial_message.partial = True

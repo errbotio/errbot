@@ -653,7 +653,7 @@ class SlackBackend(ErrBot):
             body = self.md.convert(msg.body)
             log.debug('Message size: %d.', len(body))
 
-            parts = self.prepare_message_body(body, self.bot_config.MESSAGE_SIZE_LIMIT)
+            parts = self.prepare_message_body(body, self.message_size_limit)
 
             timestamps = []
             for part in parts:
@@ -742,7 +742,7 @@ class SlackBackend(ErrBot):
         if card.fields:
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
-        parts = self.prepare_message_body(card.body, self.bot_config.MESSAGE_SIZE_LIMIT)
+        parts = self.prepare_message_body(card.body, self.message_size_limit)
         part_count = len(parts)
         footer = attachment.get('footer', '')
         for i in range(part_count):

@@ -83,6 +83,8 @@ Message size limit
 
 As of the 12th August 2018 the Slack API has a message limit size of 40,000 characters.  Messages 
 larger than 40,000 will be truncated by Slack's API.  Errbot includes the functionality to split 
-messages larger than 40,000 characters into multiple parts.  To reduce the message limit size, set the 
-`MESSAGE_SIZE_LIMIT` variable in the configuration file.  Errbot will use the smallest value between 
-the default 40,000 and `MESSAGE_SIZE_LIMIT`.
+messages larger than 40,000 characters into multiple parts.  To change the message limit size, set the 
+`MESSAGE_SIZE_LIMIT` variable in the configuration file.  It will take precedence over the Slack backend
+default values.
+
+    MESSAGE_SIZE_LIMIT = 4096

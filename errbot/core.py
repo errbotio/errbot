@@ -77,6 +77,7 @@ class ErrBot(Backend, StoreMixin):
             self.bot_config.MESSAGE_SIZE_LIMIT = int(self.bot_config.MESSAGE_SIZE_LIMIT)  # catch non-int values early.
         else:
             self.bot_config.MESSAGE_SIZE_LIMIT = limit
+
         if self.bot_config.MESSAGE_SIZE_LIMIT > hard_limit:
             log.warning(
                 f"Message size limit of {self.bot_config.MESSAGE_SIZE_LIMIT} exceeds "

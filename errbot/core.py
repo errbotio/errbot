@@ -73,7 +73,7 @@ class ErrBot(Backend, StoreMixin):
         MESSAGE_SIZE_LIMIT can be overridden by setting it in the configuration file.
         A historical value of 10000 is used by default.
         """
-        if self.bot_config.MESSAGE_SIZE_LIMIT is not None:
+        if self.bot_config.MESSAGE_SIZE_LIMIT:
             self.bot_config.MESSAGE_SIZE_LIMIT = int(self.bot_config.MESSAGE_SIZE_LIMIT)  # catch non-int values early.
         else:
             self.bot_config.MESSAGE_SIZE_LIMIT = limit

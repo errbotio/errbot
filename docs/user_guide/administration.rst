@@ -147,3 +147,11 @@ so they can serve as a good :mod:`example <errbot.core_plugins.acls>` (be sure t
 You can add command filters to your bot by including them as part of any regular errbot plugin,
 it will find and register them automatically when your plugin is loaded.
 Any method in your plugin which is decorated by :func:`~errbot.cmdfilter` will then act as a command filter.
+
+
+Over-riding CommandNotFoundFilter
+--------------------------------
+
+In some cases, it may be necessary to run other filters before the CommandNotFoundFilter.  Since the CommandNotFoundFilter is part of the core plugin lists loaded by errbot it can not be directly overridden from another plugin.
+Instead, to prevent CommandNotFoundFilter being called before other filters the current way to change this behaviour is to exclude the CommandNotFoundFilter plugin from the CORE_PLUGINS setting in `config.py`
+and explicitly call the CommandNotFoundFilter function from the filter that is to over-ride it.

@@ -149,9 +149,8 @@ it will find and register them automatically when your plugin is loaded.
 Any method in your plugin which is decorated by :func:`~errbot.cmdfilter` will then act as a command filter.
 
 
-Over-riding CommandNotFoundFilter
+Overriding CommandNotFoundFilter
 --------------------------------
 
-In some cases, it may be necessary to run other filters before the CommandNotFoundFilter.  Since the CommandNotFoundFilter is part of the core plugin lists loaded by errbot it can not be directly overridden from another plugin.
-Instead, to prevent CommandNotFoundFilter being called before other filters the current way to change this behaviour is to exclude the CommandNotFoundFilter plugin from the CORE_PLUGINS setting in `config.py`
-and explicitly call the CommandNotFoundFilter function from the filter that is to over-ride it.
+In some cases, it may be necessary to run other filters before the `CommandNotFoundFilter`.  Since the `CommandNotFoundFilter` is part of the core plugin list loaded by errbot, it can not be directly overridden from another plugin.
+Instead, to prevent `CommandNotFoundFilter` from being called before other filters, exclude the `CommandNotFoundFilter` plugin in the `CORE_PLUGINS` setting in `config.py` and explicitly call the `CommandNotFoundFilter` function from the overriding filter.

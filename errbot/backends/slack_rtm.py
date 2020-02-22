@@ -7,7 +7,6 @@ import re
 import sys
 import pprint
 from functools import lru_cache
-from slack.errors import BotUserAccessError
 from typing import BinaryIO
 
 from markdown import Markdown
@@ -26,11 +25,12 @@ log = logging.getLogger(__name__)
 try:
     from slack import RTMClient
     from slack import WebClient
+    from slack.errors import BotUserAccessError
 except ImportError:
-    log.exception("Could not start the Slack back-end")
+    log.exception("Could not start the SlackRTM backend")
     log.fatal(
-        "You need to install the slackclient support in order to use the Slack backend.\n"
-        "You can do `pip install errbot[slack]` to install it"
+        "You need to install slackclient in order to use the Slack backend.\n"
+        "You can do `pip install errbot[slack-rtm]` to install it."
     )
     sys.exit(1)
 
@@ -287,15 +287,15 @@ class SlackRoomBot(RoomOccupant, SlackBot):
         return other.room.id == self.room.id and other.userid == self.userid
 
 
-class SlackBackend(ErrBot):
+class SlackRTMBackend(ErrBot):
 
     @staticmethod
     def _unpickle_identifier(identifier_str):
-        return SlackBackend.__build_identifier(identifier_str)
+        return SlackRTMBackend.__build_identifier(identifier_str)
 
     @staticmethod
     def _pickle_identifier(identifier):
-        return SlackBackend._unpickle_identifier, (str(identifier),)
+        return SlackRTMBackend._unpickle_identifier, (str(identifier),)
 
     def _register_identifiers_pickling(self):
         """
@@ -305,9 +305,9 @@ class SlackBackend(ErrBot):
         But for the unpickling to work we need to use bot.build_identifier, hence the bot parameter here.
         But then we also need bot for the unpickling so we save it here at module level.
         """
-        SlackBackend.__build_identifier = self.build_identifier
+        SlackRTMBackend.__build_identifier = self.build_identifier
         for cls in (SlackPerson, SlackRoomOccupant, SlackRoom):
-            copyreg.pickle(cls, SlackBackend._pickle_identifier, SlackBackend._unpickle_identifier)
+            copyreg.pickle(cls, SlackRTMBackend._pickle_identifier, SlackRTMBackend._unpickle_identifier)
 
     def __init__(self, config):
         super().__init__(config)

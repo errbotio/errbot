@@ -195,7 +195,7 @@ the function `invert_string()`, the `helloworld` plugin can import it and use it
         @botcmd
         def hello(self, msg, args):
             """Say hello to the world"""
-            return InvertString("Hello, world!")
+            return invert_string("Hello, world!")
 
 Wrapping up
 -----------

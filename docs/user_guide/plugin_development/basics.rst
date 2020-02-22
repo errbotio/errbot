@@ -182,7 +182,7 @@ layout for submodules:
     │   ├── moduleC.py
 
 The presence of `__init__.py` indicates `lib` is a Python regular package.  Assuming `moduleA` has
-the function `InvertString`, the `helloworld` plugin can import it and use it with the following syntax:
+the function `invert_string()`, the `helloworld` plugin can import it and use it with the following syntax:
 
 .. code-block:: python
 

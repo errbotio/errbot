@@ -498,7 +498,7 @@ class AnsiPreprocessor(FencedBlockPreprocessor):
             if m:
                 code = self._escape(m.group('code'))
 
-                placeholder = self.markdown.htmlStash.store(code)
+                placeholder = self.md.htmlStash.store(code)
                 text = f'{text[:m.start()]}\n{placeholder}\n{text[m.end():]}'
             else:
                 break
@@ -516,17 +516,11 @@ class AnsiPreprocessor(FencedBlockPreprocessor):
 class AnsiExtension(Extension):
     """(kinda hackish) This is just a private extension to postprocess the html text to ansi text"""
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         md.registerExtension(self)
-        md.postprocessors.add(
-            "unescape_html", AnsiPostprocessor(), ">unescape"
-        )
-        md.preprocessors.add(
-            "ansi_fenced_codeblock", AnsiPreprocessor(md), "<fenced_code_block"
-        )
-        md.inlinePatterns.add(
-            # Leave <br/> tags as is for proper table multiline cell processing
-            "br", SubstituteTagPattern(r'<br/>', "br"), "<html"
-        )
-        del(md.preprocessors['fenced_code_block'])  # remove the old fenced block
-        del(md.treeprocessors['prettify'])  # remove prettify treeprocessor since it adds extra new lines
+        md.postprocessors.register(AnsiPostprocessor(), "unescape_html", 10)
+        md.preprocessors.register(AnsiPreprocessor(md), "ansi_fenced_codeblock", 15)
+        # Leave <br/> tags as is for proper table multiline cell processing
+        md.inlinePatterns.register(SubstituteTagPattern(r'<br/>', "br"), "br", 20)
+        md.preprocessors.deregister('fenced_code_block')  # remove the old fenced block
+        md.treeprocessors.deregister('prettify')  # remove prettify treeprocessor since it adds extra new lines

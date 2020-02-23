@@ -186,7 +186,7 @@ the function `invert_string()`, the `helloworld` plugin can import it and use it
 
 .. code-block:: python
 
-    from lib.moduleA import InvertString
+    from lib.moduleA import invert_string
     from errbot import BotPlugin, botcmd
 
     class HelloWorld(BotPlugin):

@@ -160,6 +160,43 @@ The `[Documentation]` section will be explained in more detail
 further on in this guide, but you should make sure to at least have
 the `Description` item here with a short description of your plugin.
 
+Python Submodules
+-----------------
+
+In cases where the plugin code base is large and complex, it may be desirable to break the code
+into submodules to be imported by the plugin.  The following directory tree shows a commonly used
+layout for submodules:
+
+.. code-block:: bash
+
+    plugins
+    ├── LICENSE
+    ├── helloworld.plug
+    ├── helloworld.py
+    ├── README.md
+    ├── requirements.txt
+    ├── lib
+    │   ├── __init__.py
+    │   ├── moduleA.py
+    │   ├── moduleB.py
+    │   ├── moduleC.py
+
+The presence of `__init__.py` indicates `lib` is a Python regular package.  Assuming `moduleA` has
+the function `invert_string()`, the `helloworld` plugin can import it and use it with the following syntax:
+
+.. code-block:: python
+
+    from lib.moduleA import invert_string
+    from errbot import BotPlugin, botcmd
+
+    class HelloWorld(BotPlugin):
+        """Example 'Hello, world!' plugin for Errbot"""
+
+        @botcmd
+        def hello(self, msg, args):
+            """Say hello to the world"""
+            return invert_string("Hello, world!")
+
 Wrapping up
 -----------
 

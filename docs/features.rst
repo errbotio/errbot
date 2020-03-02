@@ -12,7 +12,7 @@ Currently, the following networks are supported:
   * Telegram_
   * `Bot Framework`_ (maintained `separately <https://github.com/vasilcovsky/errbot-backend-botframework>`__)
   * CampFire_ (maintained `separately <https://github.com/errbotio/err-backend-campfire>`__)
-  * `Cisco Spark`_ (maintained `separately <https://github.com/marksull/err-backend-cisco-spark>`__)
+  * `Cisco Webex Teams`_ (maintained `separately <https://github.com/marksull/err-backend-cisco-webex-teams>`__)
   * Discord_ (maintained `separately <https://github.com/gbin/err-backend-discord>`__)
   * Gitter_ (maintained `separately <https://github.com/errbotio/err-backend-gitter>`__)
   * Matrix_ (maintained `separately <https://github.com/SShrike/err-backend-matrix>`__)
@@ -63,7 +63,7 @@ Extensive plugin framework
 
 .. _Bot Framework: https://botframework.com/
 .. _Campfire: https://campfirenow.com/
-.. _Cisco Spark: https://www.ciscospark.com/
+.. _Cisco Webex Teams: https://www.webex.com/
 .. _Discord: https://www.discordapp.com/
 .. _Gitter: http://gitter.im/
 .. _Hipchat: https://www.hipchat.com/

@@ -49,7 +49,7 @@ It is important to note that for some backends you can infer what
 a person is from what a person in a chatroom is, but for privacy
 reason you cannot on some backends ie. you can send a private
 message to a person in a chatroom but if the person leaves the room
-you have no way of knowing how to contect her/him personally.
+you have no way of knowing how to contact her/him personally.
 
 Backends must implement a specific Identifier class that matches
 their way of identifying those.
@@ -82,7 +82,7 @@ Identifier for a person in a chatroom
 -------------------------------------
 
 This is simply an Identifier with an added property: room.
-The string representation of room should give a charoom identifier (see below).
+The string representation of room should give a chatroom identifier (see below).
 
 See for example :class:`~errbot.backends.slack.SlackMUCIdentifier`
 

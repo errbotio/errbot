@@ -102,7 +102,8 @@ instead of the command name in that case.
     def example(self, flow: FlowRoot):
         first_step = flow.connect('first')
         second_step = first_step.connect('second')
-        third_step = second_step.connect(first_step, predicate=...)
+        third_step = second_step.connect('third')
+        third_step.connect(first_step, predicate=...)
         final_step = third_step.connect('final', predicate=...)
 
 You can represent this flow like this:

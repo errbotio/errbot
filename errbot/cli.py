@@ -20,11 +20,14 @@ import logging
 import os
 import sys
 from os import path, sep, getcwd, access, W_OK
+from pathlib import Path
 from platform import system
 import ast
 
+from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
+from errbot.utils import collect_roots
 from errbot.version import VERSION
 
 log = logging.getLogger(__name__)
@@ -137,33 +140,34 @@ def main():
         try:
             import jinja2
             import shutil
-            base_dir = os.getcwd() if args['init'] == '.' else args['init']
+            import pathlib
+            base_dir = pathlib.Path.cwd() if args['init'] == '.' else Path(args['init'])
 
-            if not os.path.isdir(base_dir):
+            if not base_dir.exists():
                 print(f'Target directory {base_dir} must exist. Please create it.')
 
-            base_dir = os.path.abspath(base_dir)
-            data_dir = os.path.join(base_dir, 'data')
-            extra_plugin_dir = os.path.join(base_dir, 'plugins')
-            example_plugin_dir = os.path.join(extra_plugin_dir, 'err-example')
-            log_path = os.path.join(base_dir, 'errbot.log')
-            templates_dir = os.path.join(os.path.dirname(__file__), 'templates', 'initdir')
-            env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir), autoescape=True)
+            data_dir = base_dir / 'data'
+            extra_plugin_dir = base_dir / 'plugins'
+            example_plugin_dir = base_dir / extra_plugin_dir / 'err-example'
+            log_path = base_dir / 'errbot.log'
+
+            templates_dir = Path(os.path.dirname(__file__)) / 'templates' / 'initdir'
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(templates_dir)), autoescape=True)
             config_template = env.get_template('config.py.tmpl')
 
-            os.mkdir(data_dir)
-            os.mkdir(extra_plugin_dir)
-            os.mkdir(example_plugin_dir)
+            data_dir.mkdir(exist_ok=True)
+            extra_plugin_dir.mkdir(exist_ok=True)
+            example_plugin_dir.mkdir(exist_ok=True)
 
-            with open(os.path.join(base_dir, 'config.py'), 'w') as f:
-                f.write(config_template.render(data_dir=data_dir,
-                                               extra_plugin_dir=extra_plugin_dir,
-                                               log_path=log_path))
-            shutil.copyfile(os.path.join(templates_dir, 'example.plug'),
-                            os.path.join(example_plugin_dir, 'example.plug'))
-            shutil.copyfile(os.path.join(templates_dir, 'example.py'), os.path.join(example_plugin_dir, 'example.py'))
-            print('Your Errbot directory has been correctly initialized !')
-            if base_dir == os.getcwd():
+            with open(base_dir / 'config.py', 'w') as f:
+                f.write(config_template.render(data_dir=str(data_dir),
+                                               extra_plugin_dir=str(extra_plugin_dir),
+                                               log_path=str(log_path)))
+
+            shutil.copyfile(templates_dir / 'example.plug', example_plugin_dir / 'example.plug')
+            shutil.copyfile(templates_dir / 'example.py', example_plugin_dir / 'example.py')
+            print('Your Errbot directory has been correctly initialized!')
+            if base_dir == pathlib.Path.cwd():
                 print('Just do "errbot" and it should start in text/development mode.')
             else:
                 print(f'Just do "cd {args["init"]}" then "errbot" and it should start in text/development mode.')
@@ -197,11 +201,18 @@ def main():
         config_path = execution_dir + sep + 'config.py'
 
     config = get_config(config_path)  # will exit if load fails
+
+    # Extra backend is expected to be a list type, convert string to list.
+    extra_backend = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+    if isinstance(extra_backend, str):
+        extra_backend = [extra_backend]
+
     if args['list']:
-        from errbot.bootstrap import enumerate_backends
+        from errbot.backend_plugin_manager import enumerate_backend_plugins
         print('Available backends:')
-        for backend_name in enumerate_backends(config):
-            print(f'\t\t{backend_name}')
+        roots = [CORE_BACKENDS] + extra_backend
+        for backend in enumerate_backend_plugins(collect_roots(roots)):
+            print(f'\t\t{backend.name}')
         sys.exit(0)
 
     def storage_action(namespace, fn):
@@ -234,7 +245,11 @@ def main():
     if args['storage_merge']:
         def merge(sdm):
             new_dict = _read_dict()
-            sdm.update(new_dict)
+            if list(new_dict.keys()) == ['config']:
+                with sdm.mutable('configs') as conf:
+                    conf.update(new_dict['configs'])
+            else:
+                sdm.update(new_dict)
         err_value = storage_action(args['storage_merge'][0], merge)
         sys.exit(err_value)
 

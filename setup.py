@@ -17,13 +17,9 @@
 import os
 import sys
 
-from platform import system
 from setuptools import setup, find_packages
 
 py_version = sys.version_info[:2]
-PY37_OR_GREATER = py_version >= (3, 7)
-
-ON_WINDOWS = system() == 'Windows'
 
 if py_version < (3, 6):
     raise RuntimeError('Errbot requires Python 3.6 or later')
@@ -37,17 +33,12 @@ deps = ['webtest',
         'jinja2',
         'pyOpenSSL',
         'colorlog',
-        'markdown',  # rendering stuff
+        'markdown<3.0',  # rendering stuff, 3.0+ deprecates 'safe()'
         'ansi',
         'Pygments>=2.0.2',
         'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
+        'dulwich'  # python implementation of git
         ]
-
-if not PY37_OR_GREATER:
-    deps += ['dataclasses']  # backward compatibility for 3.3->3.6 for dataclasses
-
-if not ON_WINDOWS:
-    deps += ['daemonize']
 
 src_root = os.curdir
 
@@ -113,12 +104,14 @@ if __name__ == "__main__":
                        ],
         },
         extras_require={
-            'graphic':  ['PySide', ],
+            'graphic': ['PySide', ],
             'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
             'IRC': ['irc', ],
-            'slack': ['slackclient>=1.0.5', ],
+            'slack': ['slackclient>=1.0.5,<2.0', ],
             'telegram': ['python-telegram-bot', ],
             'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
+            ':python_version<"3.7"': ['dataclasses'],  # backward compatibility for 3.3->3.6 for dataclasses
+            ':sys_platform!="win32"': ['daemonize'],
         },
 
         author="errbot.io",
@@ -135,9 +128,8 @@ if __name__ == "__main__":
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.4",
-            "Programming Language :: Python :: 3.5",
             "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
         ],
         src_root=src_root,
         platforms='any',

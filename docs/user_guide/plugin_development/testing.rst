@@ -58,7 +58,7 @@ Then we set `extra_plugin_dir` to `.`, the current directory so that the test bo
 
 After that we define our first `test_` method which simply sends a command to the bot using :func:`~errbot.backends.test.TestBot.push_message` and then asserts that the response we expect, *"This is my awesome command"* is in the message we receive from the bot which we get by calling :func:`~errbot.backends.test.TestBot.pop_message`.
 
-You can assert the response of a command using the method assertCommand of the testbot. `testbot.assertCommand('!mycommand', 'This is my awesome command')` to achieve the equivalent of pushing message and asserting the response in the popped message.`
+You can assert the response of a command using the method assertInCommand of the testbot. `testbot.assertInCommand('!mycommand', 'This is my awesome command')` to achieve the equivalent of pushing message and asserting the response in the popped message.`
 
 Helper methods
 --------------
@@ -119,7 +119,7 @@ What we need now is get access to the instance of our plugin itself. Fortunately
         result = plugin.mycommand_helper()
         assert result == expected
 
-There we go, we first grab out plugin thanks to a helper method on :mod:`~errbot.plugin_manager` and then simply execute the method and compare what we get with what we expect. You can also access `@classmethod` or `@staticmethod` methods this way, you just don't have to.
+There we go, we first grab our plugin using a helper method on :mod:`~errbot.plugin_manager` and then simply execute the method and compare the result with the expected result. You can also access `@classmethod` or `@staticmethod` methods this way, but you don't have to.
 
 Sometimes a helper method will be making HTTP or API requests which might not be possible to test directly. In that case, we need to mock that particular method and make it return the expected value without actually making the request.
 
@@ -262,9 +262,8 @@ In order to do that you'll need a `.travis.yml` similar to this:
 
     language: python
     python:
-      - 2.7
-      - 3.3
-      - 3.4
+      - 3.6
+      - 3.7
     install:
       - pip install -q errbot pytest pytest-pep8 --use-wheel
       - pip install -q coverage coveralls --use-wheel

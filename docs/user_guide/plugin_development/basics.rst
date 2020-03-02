@@ -78,9 +78,9 @@ command.
 
 .. note::
     The method name must comply with the usual Python naming
-    conventions for `identifiers <https://docs.python.org/release/2.7.8/reference/lexical_analysis.html#identifiers>`_ 
+    conventions for `identifiers <https://docs.python.org/3/reference/lexical_analysis.html?highlight=identifiers%20keywords#identifiers>`_
     , that is, they may not begin with a digit (like ``911`` but only with a letter or underscore, so ``_911`` would work)
-    and cannot be any of the `reserved keywords <https://docs.python.org/release/2.7.8/reference/lexical_analysis.html#keywords>`_
+    and cannot be any of the `reserved keywords <https://docs.python.org/3/reference/lexical_analysis.html?highlight=identifiers%20keywords#keywords>`_
     such as ``pass`` (instead use ``password``) etc.
 
 .. note::
@@ -160,12 +160,49 @@ The `[Documentation]` section will be explained in more detail
 further on in this guide, but you should make sure to at least have
 the `Description` item here with a short description of your plugin.
 
+Python Submodules
+-----------------
+
+In cases where the plugin code base is large and complex, it may be desirable to break the code
+into submodules to be imported by the plugin.  The following directory tree shows a commonly used
+layout for submodules:
+
+.. code-block:: bash
+
+    plugins
+    ├── LICENSE
+    ├── helloworld.plug
+    ├── helloworld.py
+    ├── README.md
+    ├── requirements.txt
+    ├── lib
+    │   ├── __init__.py
+    │   ├── moduleA.py
+    │   ├── moduleB.py
+    │   ├── moduleC.py
+
+The presence of `__init__.py` indicates `lib` is a Python regular package.  Assuming `moduleA` has
+the function `invert_string()`, the `helloworld` plugin can import it and use it with the following syntax:
+
+.. code-block:: python
+
+    from lib.moduleA import invert_string
+    from errbot import BotPlugin, botcmd
+
+    class HelloWorld(BotPlugin):
+        """Example 'Hello, world!' plugin for Errbot"""
+
+        @botcmd
+        def hello(self, msg, args):
+            """Say hello to the world"""
+            return invert_string("Hello, world!")
+
 Wrapping up
 -----------
 
 If you've followed along so far, you should now have a working
 *Hello, world!* plugin for Errbot. If you start your bot, it should load
-your plugin automatically. 
+your plugin automatically.
 
 You can verify this by giving the `!status` command, which should
 respond with something like the following::

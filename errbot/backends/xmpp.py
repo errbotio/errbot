@@ -302,7 +302,8 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, use_ipv6=None, bot=None):
+    def __init__(self, jid, password, feature=None, keepalive=None,
+                 ca_cert=None, server=None, use_ipv6=None, bot=None):
         if feature is None:
             feature = {}
         self._bot = bot
@@ -321,6 +322,9 @@ class XMPPConnection(object):
 
         if use_ipv6 is not None:
             self.client.use_ipv6 = use_ipv6
+
+        if ssl_version:
+            self.client.ssl_version = ssl_version
 
         self.client.ca_certs = ca_cert  # Used for TLS certificate validation
 
@@ -386,6 +390,7 @@ class XMPPBackend(ErrBot):
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
         self.xhtmlim = config.__dict__.get('XMPP_XHTML_IM', False)
         self.use_ipv6 = config.__dict__.get('XMPP_USE_IPV6', None)
+        self.ssl_version = config.__dict__.get('XMPP_SSL_VERSION', None)
 
         # generic backend compatibility
         self.bot_identifier = self._build_person(self.jid)
@@ -413,7 +418,8 @@ class XMPPBackend(ErrBot):
             ca_cert=self.ca_cert,
             server=self.server,
             use_ipv6=self.use_ipv6,
-            bot=self
+            bot=self,
+            ssl_version=self.ssl_version,
         )
 
     def _build_room_occupant(self, txtrep):

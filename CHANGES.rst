@@ -1,3 +1,81 @@
+v6.1.2 (2019-12-15)
+-------------------
+
+fixes:
+
+-  Add ability to re-run --init safely (#1390)
+-  fix #1375 by managing errors on lack of version endpoint.
+-  Fixed a deprecation warning for 3.9 on Mapping.
+-  removing the intermediate domain requiring a certificate.
+-  Fix package name for sentry-sdk flask integration
+-  Add support to sentry FlaskIntegration
+-  Migrate from raven (deprecated) to new sentry-sdk
+-  fix: Log errors when present
+-  Make chatroom log more descriptive
+-  Set admin check log as debug
+-  Add admin warnings to log
+-  Fix: Advanced loop graph does not reflect the image
+-  make the TestBot start timeout parameterized
+-  errbot/plugin_manager: only check for /proc/1/cgroup if path exists to fix warning
+-  removed (c) Apple asset we completely missed.
+-  fix double threading in slack backend if DIVERT_TO_THREAD is used
+-  pop up the timeout for travis
+-  Makes the timeout feedback better on tests. (#1366)
+-  Move all tox environments to use py37 (#1342)
+-  Remove empty "text" body on Slack send_card (#1336)
+-  Load class source in reloading plugins (#1347)
+-  test: Rename assertCommand -> assertInCommand (#1351)
+-  Enforce BOT_EXTRA_BACKEND_DIR is a list type. (#1358)
+-  Fix #1360 Cast pathlib.Path objects to strings for use with sys.path (#1361)
+
+v6.1.1 (2019-06-22)
+-------------------
+
+fixes:
+
+- Installation using wheel distribution on python 3.6 or older
+
+v6.1.0 (2019-06-16)
+-------------------
+
+features:
+
+- Use python git instead of system git binary (#1296)
+
+fixes:
+
+- `errbot -l` cli error (#1315)
+- Slack backend by pinning slackclient to supported version (#1343)
+- Make --storage-merge merge configs (#1311)
+- Exporting values in backup command (#1328)
+- Rename Spark to Webex Teams (#1323)
+- Various documentation fixes (#1310, #1327, #1331)
+
+v6.0.0 (2019-03-23)
+-------------------
+
+features:
+
+- TestBot: Implement inject_mocks method (#1235)
+- TestBot: Add multi-line command test support (#1238)
+- Added optional room arg to inroom
+- Adds ability to go back to a previous room
+- Pass telegram message id to the callback
+
+fixes:
+
+- Remove extra spaces in uptime output
+- Fix/backend import error messages (#1248)
+- Add docker support for installing package dependencies (#1245)
+- variable name typo (#1244)
+- Fix invalid variable name (#1241)
+- sanitize comma quotation marks too (#1236)
+- Fix missing string formatting in "Command not found" output (#1259)
+- Fix webhook test to not call fixture directly
+- fix: arg_botcmd decorator now can be used as plain method
+- setup: removing dnspython
+- pin markdown <3.0 because safe is deprecated
+
 v6.0.0-alpha (2018-06-10)
 -------------------------
 

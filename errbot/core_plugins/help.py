@@ -1,7 +1,9 @@
 import textwrap
 import subprocess
 
+from dulwich import errors as dulwich_errors
 from errbot import BotPlugin, botcmd
+from errbot.utils import git_tag_list
 from errbot.version import VERSION
 
 
@@ -12,16 +14,14 @@ class Help(BotPlugin):
 
     def is_git_directory(self, path='.'):
         try:
-            git_call = subprocess.Popen(["git", "tag"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+            tags = git_tag_list(path)
+        except dulwich_errors.NotGitRepository:
+            tags = None
         except Exception as _:
-            return None
-        tags, _ = git_call.communicate()
-        return_code = git_call.returncode
-        if return_code != 0:
-            return None
-        else:
-            tags = tags.rstrip(b"\n")
-            return tags.split(b"\n").pop(-1)
+            # we might want to handle other exceptions another way. For now leaving this general
+            tags = None
+
+        return tags.pop(-1) if tags is not None else None
 
     # noinspection PyUnusedLocal
     @botcmd(template='about')

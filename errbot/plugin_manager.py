@@ -64,6 +64,8 @@ def install_packages(req_path: Path):
         Return an exc_info if it fails otherwise None.
     """
     def is_docker():
+        if not os.path.exists('/proc/1/cgroup'):
+            return false
         with open('/proc/1/cgroup') as d:
             return 'docker' in d.read()
 
@@ -182,16 +184,14 @@ class BotPluginManager(StoreMixin):
         :throws PluginActivationException: needs to be taken care of by the callers.
         """
         plugin = self.plugins[name]
+        plugin_info = self.plugin_infos[name]
 
         if plugin.is_activated:
             self.deactivate_plugin(name)
 
-        module_alias = plugin.__module__
-        module_old = __import__(module_alias)
-        f = module_old.__file__
-        module_new = machinery.SourceFileLoader(module_alias, f).load_module(module_alias)
-        class_name = type(plugin).__name__
-        new_class = getattr(module_new, class_name)
+        base_name = '.'.join(plugin.__module__.split('.')[:-1])
+        classes = plugin_info.load_plugin_classes(base_name, BotPlugin)
+        _, new_class = classes[0]
         plugin.__class__ = new_class
 
         self.activate_plugin(name)
@@ -304,6 +304,11 @@ class BotPluginManager(StoreMixin):
     def get_all_plugin_names(self):
         return self.plugins.keys()
 
+    def get_plugin_by_path(self, path):
+        for name, pi in self.plugin_infos.items():
+            if str(pi.location.parent) == path:
+                return self.plugins[name]
+
     def deactivate_all_plugins(self):
         for name in self.get_all_active_plugin_names():
             self.deactivate_plugin(name)
@@ -358,7 +363,7 @@ class BotPluginManager(StoreMixin):
             try:
                 if self.is_plugin_blacklisted(name):
                     errors += f'Notice: {plugin.name} is blacklisted, ' \
-                              f'use {self.bot.prefix}plugin unblacklist {name} to unblacklist it.\n'
+                              f'use "{self.plugins["Help"]._bot.prefix}plugin unblacklist {name}" to unblacklist it.\n'
                     continue
                 if not plugin.is_activated:
                     log.info('Activate plugin: %s.', name)

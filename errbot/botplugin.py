@@ -454,7 +454,7 @@ class BotPlugin(BotPluginBase):
     def callback_stream(self, stream: Stream) -> None:
         """
             Triggered asynchronously (in a different thread context) on every incoming stream
-            request or file transfert requests.
+            request or file transfer request.
             You can block this call until you are done with the stream.
             To signal that you accept / reject the file, simply call stream.accept()
             or stream.reject() and return.

@@ -519,8 +519,8 @@ class AnsiExtension(Extension):
     def extendMarkdown(self, md):
         md.registerExtension(self)
         md.postprocessors.register(AnsiPostprocessor(), "unescape_html", 10)
-        md.preprocessors.register(AnsiPreprocessor(md), "ansi_fenced_codeblock", 15)
+        md.preprocessors.register(AnsiPreprocessor(md), "ansi_fenced_codeblock", 10)
         # Leave <br/> tags as is for proper table multiline cell processing
-        md.inlinePatterns.register(SubstituteTagPattern(r'<br/>', "br"), "br", 20)
+        md.inlinePatterns.register(SubstituteTagPattern(r'<br/>', "br"), "br", 101)
         md.preprocessors.deregister('fenced_code_block')  # remove the old fenced block
         md.treeprocessors.deregister('prettify')  # remove prettify treeprocessor since it adds extra new lines

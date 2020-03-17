@@ -25,6 +25,8 @@ def bot_config_defaults(config):
         config.ACCESS_CONTROLS_DEFAULT = {}
     if not hasattr(config, 'ACCESS_CONTROLS'):
         config.ACCESS_CONTROLS = {}
+    if not hasattr(config, 'ACCESS_CONTROLS_USE_SLACK_USERID'):
+        config.ACCESS_CONTROLS_USE_SLACK_USERID = False
     if not hasattr(config, 'HIDE_RESTRICTED_COMMANDS'):
         config.HIDE_RESTRICTED_COMMANDS = False
     if not hasattr(config, 'HIDE_RESTRICTED_ACCESS'):

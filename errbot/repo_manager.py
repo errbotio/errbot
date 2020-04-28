@@ -154,13 +154,8 @@ class BotRepoManager(StoreMixin):
         for source in reversed(self.plugin_indexes):
             try:
                 if urlparse(source).scheme in ('http', 'https'):
-                    with urlopen(
-                        Request(
-                            source,
-                            headers={'User-Agent': 'Errbot'}
-                        ),
-                        timeout=10
-                    ) as request:  # nosec
+                    req = Request(source, headers={'User-Agent': 'Errbot'})
+                    with urlopen(url=req, timeout=10) as request:  # nosec
                         log.debug('Update from remote source %s...', source)
                         encoding = request.headers.get_content_charset()
                         content = request.read().decode(encoding if encoding else 'utf-8')

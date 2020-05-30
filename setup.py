@@ -105,12 +105,12 @@ if __name__ == "__main__":
         },
         extras_require={
             'graphic': ['PySide', ],
-            'hipchat': ['hypchat', 'sleekxmpp', 'pyasn1', 'pyasn1-modules'],
+            'hipchat': ['hypchat', 'slixmpp', 'pyasn1', 'pyasn1-modules'],
             'IRC': ['irc', ],
             'slack': ['slackclient>=1.0.5,<2.0', ],
             'slack-rtm': ['slackclient>=2.0', ],
             'telegram': ['python-telegram-bot', ],
-            'XMPP': ['sleekxmpp', 'pyasn1', 'pyasn1-modules'],
+            'XMPP': ['slixmpp', 'pyasn1', 'pyasn1-modules'],
             ':python_version<"3.7"': ['dataclasses'],  # backward compatibility for 3.3->3.6 for dataclasses
             ':sys_platform!="win32"': ['daemonize'],
         },

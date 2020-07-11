@@ -11,7 +11,7 @@ Extra Dependencies
 
 You need to install this dependency before using Errbot with Hipchat::
 
-    pip install sleekxmpp pyasn1 pyasn1-modules hypchat
+    pip install slixmpp pyasn1 pyasn1-modules hypchat
 
 
 Account setup

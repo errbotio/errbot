@@ -3,7 +3,7 @@ sphinx>=1.2
 sphinx-autodoc-annotation
 
 -e .
-sleekxmpp
+slixmpp
 irc
 pyfire
 python-telegram-bot

@@ -82,15 +82,15 @@ The following table lists these attributes for the official backends, along with
 ============================================  =========================  ================================================
 Backend                                       Library                    Attribute(s)
 ============================================  =========================  ================================================
-:class:`~errbot.backends.hipchat`             `sleekxmpp`_ + `hypchat`_  ``self._bot.conn`` ``self._bot.conn.hypchat``
+:class:`~errbot.backends.hipchat`             `slixmpp`_ + `hypchat`_    ``self._bot.conn`` ``self._bot.conn.hypchat``
 :class:`~errbot.backends.irc`                 `irc`_                     ``self._bot.conn`` ``self._bot.conn.connection``
 :class:`~errbot.backends.slack`               `slackclient`_             ``self._bot.sc``
 :class:`~errbot.backends.telegram_messenger`  `telegram-python-bot`_     ``self._bot.telegram``
-:class:`~errbot.backends.xmpp`                `sleekxmpp`_               ``self._bot.conn``
+:class:`~errbot.backends.xmpp`                `slixmpp`_                 ``self._bot.conn``
 ============================================  =========================  ================================================
 
 .. _hypchat: https://pypi.python.org/pypi/hypchat/
 .. _irc: https://pypi.python.org/pypi/irc/
 .. _`telegram-python-bot`: https://pypi.python.org/pypi/python-telegram-bot
 .. _slackclient: https://pypi.python.org/pypi/slackclient/
-.. _sleekxmpp: https://pypi.python.org/pypi/sleekxmpp
+.. _slixmpp: https://pypi.python.org/pypi/slixmpp

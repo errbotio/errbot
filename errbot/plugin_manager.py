@@ -145,6 +145,7 @@ class BotPluginManager(StoreMixin):
                  extra_plugin_dir: Optional[str],
                  autoinstall_deps: bool,
                  core_plugins: Tuple[str, ...],
+                 disable_core_plugins: Tuple[str, ...],
                  plugin_instance_callback: PluginInstanceCallback,
                  plugins_callback_order: Tuple[Optional[str], ...]):
         """
@@ -153,6 +154,7 @@ class BotPluginManager(StoreMixin):
         :param extra_plugin_dir: an extra directory to search for plugins
         :param autoinstall_deps: if True, will install also the plugin deps from requirements.txt
         :param core_plugins: the list of core plugin that will be started
+        :param disable_core_plugins: the list of core plugin that will be disabled
         :param plugin_instance_callback: the callback to instantiate a plugin (to inject the dependency on the bot)
         :param plugins_callback_order: the order on which the plugins will be callbacked
         """
@@ -161,6 +163,7 @@ class BotPluginManager(StoreMixin):
         self._extra_plugin_dir: str = extra_plugin_dir
         self._plugin_instance_callback: PluginInstanceCallback = plugin_instance_callback
         self.core_plugins: Tuple[str, ...] = core_plugins
+        self.disable_core_plugins: Tuple[str, ...] = disable_core_plugins
         # Make sure there is a 'None' entry in the callback order, to include
         # any plugin not explicitly ordered.
         self.plugins_callback_order = plugins_callback_order
@@ -235,6 +238,11 @@ class BotPluginManager(StoreMixin):
                 # Skip the core plugins not listed in CORE_PLUGINS if CORE_PLUGINS is defined.
                 if self.core_plugins and plugin_info.core and (plugin_info.name not in self.core_plugins):
                     log.debug("%s plugin will not be loaded because it's not listed in CORE_PLUGINS", name)
+                    continue
+
+                # Skip the core plugins listed in DISABLE_CORE_PLUGINS if DISABLE_CORE_PLUGINS is defined.
+                if self.disable_core_plugins and plugin_info.core and (plugin_info.name in self.disable_core_plugins):
+                    log.debug("%s plugin will not be loaded because it's listed in DISABLE_CORE_PLUGINS", name)
                     continue
 
                 plugin_classes = plugin_info.load_plugin_classes(base_module_name, baseclass)

@@ -160,6 +160,7 @@ def test_generate_certificate_creates_usable_cert(webhook_testbot):
 
     wait_for_server(WEBSERVER_SSL_PORT)
 
+    requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
     assert requests.post(
         'https://localhost:{}/webhook1'.format(WEBSERVER_SSL_PORT),
         JSONOBJECT,

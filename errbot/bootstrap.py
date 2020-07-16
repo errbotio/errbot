@@ -17,7 +17,7 @@ HERE = path.dirname(path.abspath(__file__))
 CORE_BACKENDS = path.join(HERE, 'backends')
 CORE_STORAGE = path.join(HERE, 'storage')
 
-PLUGIN_DEFAULT_INDEX = 'https://repos.errbot.io/repos.json'
+PLUGIN_DEFAULT_INDEX = 'https://errbot.io/repos.json'
 
 
 def bot_config_defaults(config):
@@ -90,28 +90,55 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             logger.addHandler(hdlr)
 
     if hasattr(config, 'BOT_LOG_SENTRY') and config.BOT_LOG_SENTRY:
+        sentry_integrations = []
+
         try:
-            from raven.handlers.logging import SentryHandler
+            import sentry_sdk
+            from sentry_sdk.integrations.logging import LoggingIntegration
+
         except ImportError:
             log.exception(
                 "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
-                "needed for Sentry integration. Did you install raven? "
-                "(See http://raven.readthedocs.org/en/latest/install/index.html "
-                "for installation instructions)"
+                "needed for Sentry integration. Did you install sentry-sdk? "
+                "(See https://docs.sentry.io/platforms/python for installation instructions)"
             )
             exit(-1)
+
+        sentry_logging = LoggingIntegration(
+            level=config.SENTRY_LOGLEVEL,
+            event_level=config.SENTRY_EVENTLEVEL
+        )
+
+        sentry_integrations.append(sentry_logging)
+
+        if hasattr(config, 'BOT_LOG_SENTRY_FLASK') and config.BOT_LOG_SENTRY_FLASK:
+            try:
+                from sentry_sdk.integrations.flask import FlaskIntegration
+            except ImportError:
+                log.exception(
+                    "You have BOT_LOG_SENTRY enabled, but I couldn't import modules "
+                    "needed for Sentry integration. Did you install sentry-sdk[flask]? "
+                    "(See https://docs.sentry.io/platforms/python/flask for installation instructions)"
+                )
+                exit(-1)
+
+            sentry_integrations.append(FlaskIntegration())
 
         try:
             if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
                 mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
                 transport = getattr(mod, config.SENTRY_TRANSPORT[0])
 
-                sentryhandler = SentryHandler(config.SENTRY_DSN,
-                                              level=config.SENTRY_LOGLEVEL,
-                                              transport=transport)
+                sentry_sdk.init(
+                    dsn=config.SENTRY_DSN,
+                    integrations=sentry_integrations,
+                    transport=transport
+                )
             else:
-                sentryhandler = SentryHandler(config.SENTRY_DSN, level=config.SENTRY_LOGLEVEL)
-            logger.addHandler(sentryhandler)
+                sentry_sdk.init(
+                    dsn=config.SENTRY_DSN,
+                    integrations=sentry_integrations
+                )
         except ImportError:
             log.exception(f'Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}')
             exit(-1)
@@ -129,8 +156,17 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     if isinstance(plugin_indexes, str):
         plugin_indexes = (plugin_indexes, )
 
-    backendpm = BackendPluginManager(config, 'errbot.backends', backend_name,
-                                     ErrBot, CORE_BACKENDS, getattr(config, 'BOT_EXTRA_BACKEND_DIR', []))
+    # Extra backend is expected to be a list type, convert string to list.
+    extra_backend = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+    if isinstance(extra_backend, str):
+        extra_backend = [extra_backend]
+
+    backendpm = BackendPluginManager(config,
+                                     'errbot.backends',
+                                     backend_name,
+                                     ErrBot,
+                                     CORE_BACKENDS,
+                                     extra_backend)
 
     log.info(f'Found Backend plugin: {backendpm.plugin_info.name}')
 
@@ -144,6 +180,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
                                  config.BOT_EXTRA_PLUGIN_DIR,
                                  config.AUTOINSTALL_DEPS,
                                  getattr(config, 'CORE_PLUGINS', None),
+                                 getattr(config, 'DISABLE_CORE_PLUGINS', None),
                                  lambda name, clazz: clazz(bot, name),
                                  getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )),
                                  getattr(config, 'PLUGIN_CONFIG', None))
@@ -176,8 +213,8 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
 def restore_bot_from_backup(backup_filename, *, bot, log):
     """Restores the given bot by executing the 'backup' script.
 
-    The backup file is a python script which manually execute a series of commands on the bot to restore it
-    to its previous state.
+    The backup file is a python script which manually execute a series of commands on the bot
+    to restore it to its previous state.
 
     :param backup_filename: the full path to the backup script.
     :param bot: the bot instance to restore

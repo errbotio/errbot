@@ -11,7 +11,7 @@ class ChatRoom(BotPlugin):
     connected = False
 
     def callback_connect(self):
-        self.log.info('Callback_connect')
+        self.log.info('Connecting bot chatrooms')
         if not self.connected:
             self.connected = True
             for room in self.bot_config.CHATROOM_PRESENCE:

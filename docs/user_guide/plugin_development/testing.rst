@@ -58,7 +58,7 @@ Then we set `extra_plugin_dir` to `.`, the current directory so that the test bo
 
 After that we define our first `test_` method which simply sends a command to the bot using :func:`~errbot.backends.test.TestBot.push_message` and then asserts that the response we expect, *"This is my awesome command"* is in the message we receive from the bot which we get by calling :func:`~errbot.backends.test.TestBot.pop_message`.
 
-You can assert the response of a command using the method assertCommand of the testbot. `testbot.assertCommand('!mycommand', 'This is my awesome command')` to achieve the equivalent of pushing message and asserting the response in the popped message.`
+You can assert the response of a command using the method assertInCommand of the testbot. `testbot.assertInCommand('!mycommand', 'This is my awesome command')` to achieve the equivalent of pushing message and asserting the response in the popped message.`
 
 Helper methods
 --------------
@@ -262,9 +262,8 @@ In order to do that you'll need a `.travis.yml` similar to this:
 
     language: python
     python:
-      - 2.7
-      - 3.3
-      - 3.4
+      - 3.6
+      - 3.7
     install:
       - pip install -q errbot pytest pytest-pep8 --use-wheel
       - pip install -q coverage coveralls --use-wheel

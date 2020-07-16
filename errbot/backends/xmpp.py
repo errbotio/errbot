@@ -2,7 +2,6 @@ import logging
 import sys
 from functools import lru_cache
 
-from threading import Thread
 from time import sleep
 
 from errbot.backends.base import Message, Room, Presence, RoomNotJoinedError, Identifier, RoomOccupant, Person
@@ -13,10 +12,10 @@ from errbot.rendering import text, xhtml, xhtmlim
 log = logging.getLogger(__name__)
 
 try:
-    from sleekxmpp import ClientXMPP
-    from sleekxmpp.xmlstream import resolver, cert
-    from sleekxmpp import JID
-    from sleekxmpp.exceptions import IqError
+    from slixmpp import ClientXMPP
+    from slixmpp.xmlstream import resolver, cert
+    from slixmpp import JID
+    from slixmpp.exceptions import IqError
 
 except ImportError:
     log.exception("Could not start the XMPP backend")
@@ -114,15 +113,10 @@ class XMPPRoom(XMPPIdentifier, Room):
         :meth:`create` on it first.
         """
         room = str(self)
-        self.xep0045.joinMUC(room, username, password=password, wait=True)
+        self.xep0045.join_muc(room, username, password=password, wait=True)
         self._bot.conn.add_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
         self._bot.conn.add_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
-        # Room configuration can only be done once a MUC presence stanza
-        # has been received from the server. This HAS to take place in a
-        # separate thread because of how SleekXMPP processes these stanzas.
-        t = Thread(target=self.configure)
-        t.setDaemon(True)
-        t.start()
+        self.configure()
         self._bot.callback_room_joined(self)
         log.info('Joined room %s.', room)
 
@@ -137,7 +131,7 @@ class XMPPRoom(XMPPIdentifier, Room):
             reason = ""
         room = str(self)
         try:
-            self.xep0045.leaveMUC(room=room, nick=self.xep0045.ourNicks[room], msg=reason)
+            self.xep0045.leave_muc(room=room, nick=self.xep0045.ourNicks[room], msg=reason)
 
             self._bot.conn.del_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
             self._bot.conn.del_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
@@ -148,7 +142,7 @@ class XMPPRoom(XMPPIdentifier, Room):
 
     def create(self):
         """
-        Not supported on this back-end (SleekXMPP doesn't support it).
+        Not supported on this back-end (Slixmpp doesn't support it).
         Will join the room to ensure it exists, instead.
         """
         logging.warning(
@@ -186,7 +180,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         :getter:
             Returns `True` if the room has been joined, `False` otherwise.
         """
-        return str(self) in self.xep0045.getJoinedRooms()
+        return str(self) in self.xep0045.get_joined_rooms()
 
     @property
     def topic(self):
@@ -214,7 +208,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         :param topic:
             The topic to set.
         """
-        # Not supported by SleekXMPP at the moment :(
+        # Not supported by Slixmpp at the moment :(
         raise NotImplementedError("Setting the topic is not supported on this back-end.")
 
     @property
@@ -261,16 +255,16 @@ class XMPPRoom(XMPPIdentifier, Room):
         affiliation = None
         while affiliation is None:
             sleep(0.5)
-            affiliation = self.xep0045.getJidProperty(
+            affiliation = self.xep0045.get_jid_property(
                 room=room,
-                nick=self.xep0045.ourNicks[room],
-                jidProperty='affiliation'
+                nick=self.xep0045.our_nicks[room],
+                jid_property='affiliation'
             )
 
         if affiliation == "owner":
             log.debug('Configuring room %s: we have owner affiliation.', room)
-            form = self.xep0045.getRoomConfig(room)
-            self.xep0045.configureRoom(room, form)
+            form = yield from self.xep0045.get_room_config(room)
+            self.xep0045.configure_room(room, form)
         else:
             log.debug("Not configuring room %s: we don't have owner affiliation (affiliation=%s)", room, affiliation)
 
@@ -291,7 +285,7 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
         Will only work if the errbot is moderator in the MUC or it is not anonymous.
         """
         room_jid = self._node + '@' + self._domain
-        jid = JID(self._room.xep0045.getJidProperty(room_jid, self.resource, 'jid'))
+        jid = JID(self._room.xep0045.get_jid_property(room_jid, self.resource, 'jid'))
         return jid.bare
 
     @property
@@ -302,7 +296,9 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
 
 
 class XMPPConnection(object):
-    def __init__(self, jid, password, feature=None, keepalive=None, ca_cert=None, server=None, use_ipv6=None, bot=None):
+    def __init__(self, jid, password, feature=None, keepalive=None,
+                 ca_cert=None, server=None, use_ipv6=None, bot=None,
+                 ssl_version=None):
         if feature is None:
             feature = {}
         self._bot = bot
@@ -316,11 +312,14 @@ class XMPPConnection(object):
         self.client.register_plugin('xep_0249')  # XMPP direct MUC invites
 
         if keepalive is not None:
-            self.client.whitespace_keepalive = True  # Just in case SleekXMPP's default changes to False in the future
+            self.client.whitespace_keepalive = True  # Just in case Slixmpp's default changes to False in the future
             self.client.whitespace_keepalive_interval = keepalive
 
         if use_ipv6 is not None:
             self.client.use_ipv6 = use_ipv6
+
+        if ssl_version:
+            self.client.ssl_version = ssl_version
 
         self.client.ca_certs = ca_cert  # Used for TLS certificate validation
 
@@ -344,7 +343,7 @@ class XMPPConnection(object):
         self.connected = False
 
     def serve_forever(self):
-        self.client.process(block=True)
+        self.client.process()
 
     def add_event_handler(self, name, cb):
         self.client.add_event_handler(name, cb)
@@ -386,6 +385,7 @@ class XMPPBackend(ErrBot):
         self.ca_cert = config.__dict__.get('XMPP_CA_CERT_FILE', '/etc/ssl/certs/ca-certificates.crt')
         self.xhtmlim = config.__dict__.get('XMPP_XHTML_IM', False)
         self.use_ipv6 = config.__dict__.get('XMPP_USE_IPV6', None)
+        self.ssl_version = config.__dict__.get('XMPP_SSL_VERSION', None)
 
         # generic backend compatibility
         self.bot_identifier = self._build_person(self.jid)
@@ -413,7 +413,8 @@ class XMPPBackend(ErrBot):
             ca_cert=self.ca_cert,
             server=self.server,
             use_ipv6=self.use_ipv6,
-            bot=self
+            bot=self,
+            ssl_version=self.ssl_version,
         )
 
     def _build_room_occupant(self, txtrep):
@@ -441,7 +442,7 @@ class XMPPBackend(ErrBot):
             msg.to = self._build_person(xmppmsg['to'].full)
 
         msg.nick = xmppmsg['mucnick']
-        msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in sleekxmpp it should be ['from']
+        msg.delayed = bool(xmppmsg['delay']._get_attr('stamp'))  # this is a bug in slixmpp it should be ['from']
         self.callback_message(msg)
 
     def _idd_from_event(self, event):
@@ -576,7 +577,7 @@ class XMPPBackend(ErrBot):
             A list of :class:`~errbot.backends.base.XMPPMUCRoom` instances.
         """
         xep0045 = self.conn.client.plugin['xep_0045']
-        return [XMPPRoom(room, self) for room in xep0045.getJoinedRooms()]
+        return [XMPPRoom(room, self) for room in xep0045.get_joined_rooms()]
 
     def query_room(self, room):
         """

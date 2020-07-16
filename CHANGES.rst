@@ -1,3 +1,60 @@
+v6.1.4 (2020-05-15)
+-------------------
+
+fixes:
+
+- 403 error when fetching plugin repos index (#1425)
+
+v6.1.3 (2020-04-19)
+-------------------
+
+features:
+
+- Add security linter (#1314)
+- Serve version.json on errbot.io and update version checker plugin (#1400)
+- Serve repos.json on errbot.io (#1403, #1406)
+- Include SlackRTM backend (beta) (#1416)
+
+fixes:
+
+- Make plugin name clashes deterministic (#1282)
+- Fix error with Flows missing descriptions (#1405)
+- Fix `!repos update` object attribute error (#1410)
+- Fix updating remove repos using `!repos update` (#1413)
+- Fix deprecation warning (#1423)
+- Varios documentation fixes (#1404, #1411, #1415)
+
+
+v6.1.2 (2019-12-15)
+-------------------
+
+fixes:
+
+-  Add ability to re-run --init safely (#1390)
+-  fix #1375 by managing errors on lack of version endpoint.
+-  Fixed a deprecation warning for 3.9 on Mapping.
+-  removing the intermediate domain requiring a certificate.
+-  Fix package name for sentry-sdk flask integration
+-  Add support to sentry FlaskIntegration
+-  Migrate from raven (deprecated) to new sentry-sdk
+-  fix: Log errors when present
+-  Make chatroom log more descriptive
+-  Set admin check log as debug
+-  Add admin warnings to log
+-  Fix: Advanced loop graph does not reflect the image
+-  make the TestBot start timeout parameterized
+-  errbot/plugin_manager: only check for /proc/1/cgroup if path exists to fix warning
+-  removed (c) Apple asset we completely missed.
+-  fix double threading in slack backend if DIVERT_TO_THREAD is used
+-  pop up the timeout for travis
+-  Makes the timeout feedback better on tests. (#1366)
+-  Move all tox environments to use py37 (#1342)
+-  Remove empty "text" body on Slack send_card (#1336)
+-  Load class source in reloading plugins (#1347)
+-  test: Rename assertCommand -> assertInCommand (#1351)
+-  Enforce BOT_EXTRA_BACKEND_DIR is a list type. (#1358)
+-  Fix #1360 Cast pathlib.Path objects to strings for use with sys.path (#1361)
+
 v6.1.1 (2019-06-22)
 -------------------
 

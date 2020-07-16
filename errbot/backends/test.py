@@ -4,7 +4,7 @@ import sys
 import unittest
 import textwrap
 from os.path import sep, abspath
-from queue import Queue
+from queue import Queue, Empty
 from tempfile import mkdtemp
 from threading import Thread
 
@@ -15,6 +15,7 @@ from errbot.backends.base import Message, Room, Person, RoomOccupant, ONLINE
 from errbot.core_plugins.wsview import reset_app
 from errbot.core import ErrBot
 from errbot.bootstrap import setup_bot
+from errbot.utils import deprecated
 
 log = logging.getLogger(__name__)
 
@@ -239,9 +240,9 @@ class TestBackend(ErrBot):
         self.connect_callback()  # notify that the connection occured
         try:
             while True:
-                print('waiting on queue')
+                log.debug('waiting on queue')
                 stanza_type, entry = self.incoming_stanza_queue.get()
-                print('message received')
+                log.debug('message received')
                 if entry == QUIT_MESSAGE:
                     log.info("Stop magic message received, quitting...")
                     break
@@ -384,12 +385,13 @@ class TestBot(object):
         config.BOT_LOG_LEVEL = loglevel
         self.bot_config = config
 
-    def start(self):
+    def start(self, timeout=2):
         """
         Start the bot
 
         Calling this method when the bot has already started will result
         in an Exception being raised.
+        :param timeout: Timeout for the ready message pop. pop will be done 60 times so the total timeout is 60*timeout
         """
         if self.bot_thread is not None:
             raise Exception("Bot has already been started")
@@ -401,11 +403,16 @@ class TestBot(object):
         self.bot.push_message("!echo ready")
 
         # Ensure bot is fully started and plugins are loaded before returning
-        for i in range(60):
-            #  Gobble initial error messages...
-            if self.bot.pop_message(timeout=1) == "ready":
-                break
-        else:
+        try:
+            for i in range(60):
+                #  Gobble initial error messages...
+                msg = self.bot.pop_message(timeout=timeout)
+                if msg == "ready":
+                    break
+                log.warning("Queue was not empty, the non-consumed message is:")
+                log.warning(msg)
+                log.warning("Check the previous test and remove spurrious messages.")
+        except Empty:
             raise AssertionError('The "ready" message has not been received (timeout).')
 
     @property
@@ -451,13 +458,18 @@ class TestBot(object):
     def zap_queues(self):
         return self.bot.zap_queues()
 
-    def assertCommand(self, command, response, timeout=5, dedent=False):
+    def assertInCommand(self, command, response, timeout=5, dedent=False):
         """Assert the given command returns the given response"""
         if dedent:
             command = '\n'.join(textwrap.dedent(command).splitlines()[1:])
         self.bot.push_message(command)
         msg = self.bot.pop_message(timeout)
         assert response in msg, f'{response} not in {msg}.'
+
+    @deprecated(assertInCommand)
+    def assertCommand(self, command, response, timeout=5, dedent=False):
+        """Assert the given command returns the given response"""
+        pass
 
     def assertCommandFound(self, command, timeout=5):
         """Assert the given command exists"""

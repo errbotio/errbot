@@ -574,20 +574,21 @@ class SlackBackend(ErrBot):
             and group (https://api.slack.com/types/group) types.
 
         See also:
-          * https://api.slack.com/methods/channels.list
-          * https://api.slack.com/methods/groups.list
+          * https://api.slack.com/methods/conversations.list
         """
-        response = self.api_call('channels.list', data={'exclude_archived': exclude_archived})
+        response = self.api_call('conversations.list', data={'exclude_archived': exclude_archived})
         channels = [channel for channel in response['channels']
                     if channel['is_member'] or not joined_only]
 
-        response = self.api_call('groups.list', data={'exclude_archived': exclude_archived})
+        # There is no need to list groups anymore.  Groups are now identified as 'private_channel'
+        # type using the conversations.list api method.
+        # response = self.api_call('groups.list', data={'exclude_archived': exclude_archived})
         # No need to filter for 'is_member' in this next call (it doesn't
         # (even exist) because leaving a group means you have to get invited
         # back again by somebody else.
-        groups = [group for group in response['groups']]
+        # groups = [group for group in response['groups']]
 
-        return channels + groups
+        return channels
 
     @lru_cache(1024)
     def get_im_channel(self, id_):
@@ -1067,13 +1068,13 @@ class SlackRoom(Room):
         Channel info as returned by the Slack API.
 
         See also:
-          * https://api.slack.com/methods/channels.list
+          * https://api.slack.com/methods/conversations.list
           * https://api.slack.com/methods/groups.list
         """
         if self.private:
-            return self._bot.api_call('groups.info', data={'channel': self.id})["group"]
+            return self._bot.api_call('groups.info', data={'channel': self.id})["group"]  # Leaving in for now
         else:
-            return self._bot.api_call('channels.info', data={'channel': self.id})["channel"]
+            return self._bot.api_call('conversations.info', data={'channel': self.id})["channel"]
 
     @property
     def private(self):
@@ -1097,7 +1098,7 @@ class SlackRoom(Room):
     def join(self, username=None, password=None):
         log.info("Joining channel %s", str(self))
         try:
-            self._bot.api_call('channels.join', data={'name': self.name})
+            self._bot.api_call('conversations.join', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to join channel. {USER_IS_BOT_HELPTEXT}')
@@ -1108,10 +1109,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith('C'):
                 log.info('Leaving channel %s (%s)', self, self.id)
-                self._bot.api_call('channels.leave', data={'channel': self.id})
+                self._bot.api_call('conversations.leave', data={'channel': self.id})
             else:
                 log.info('Leaving group %s (%s)', self, self.id)
-                self._bot.api_call('groups.leave', data={'channel': self.id})
+                self._bot.api_call('conversations.leave', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to leave channel. {USER_IS_BOT_HELPTEXT}')
@@ -1122,11 +1123,11 @@ class SlackRoom(Room):
     def create(self, private=False):
         try:
             if private:
-                log.info('Creating group %s.', self)
-                self._bot.api_call('groups.create', data={'name': self.name})
+                log.info('Creating private channel %s.', self)
+                self._bot.api_call('conversations.create', data={'name': self.name, 'is_private': True})
             else:
                 log.info('Creating channel %s.', self)
-                self._bot.api_call('channels.create', data={'name': self.name})
+                self._bot.api_call('conversations.create', data={'name': self.name})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f"Unable to create channel. {USER_IS_BOT_HELPTEXT}")
@@ -1137,10 +1138,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith('C'):
                 log.info('Archiving channel %s (%s)', self, self.id)
-                self._bot.api_call('channels.archive', data={'channel': self.id})
+                self._bot.api_call('conversations.archive', data={'channel': self.id})
             else:
                 log.info('Archiving group %s (%s)', self, self.id)
-                self._bot.api_call('groups.archive', data={'channel': self.id})
+                self._bot.api_call('conversations.archive', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to archive channel. {USER_IS_BOT_HELPTEXT}')
@@ -1167,12 +1168,10 @@ class SlackRoom(Room):
 
     @topic.setter
     def topic(self, topic):
-        if self.private:
-            log.info('Setting topic of %s (%s) to %s.', self, self.id, topic)
-            self._bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
-        else:
-            log.info('Setting topic of %s (%s) to %s.', self, self.id, topic)
-            self._bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
+        # No need to separate groups from channels here anymore.
+
+        log.info('Setting topic of %s (%s) to %s.', self, self.id, topic)
+        self._bot.api_call('conversations.setTopic', data={'channel': self.id, 'topic': topic})
 
     @property
     def purpose(self):
@@ -1183,12 +1182,10 @@ class SlackRoom(Room):
 
     @purpose.setter
     def purpose(self, purpose):
-        if self.private:
-            log.info('Setting purpose of %s (%s) to %s.', self, self.id, purpose)
-            self._bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
-        else:
-            log.info('Setting purpose of %s (%s) to %s.', str(self), self.id, purpose)
-            self._bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
+        # No need to separate groups from channels here anymore.
+
+        log.info('Setting purpose of %s (%s) to %s.', str(self), self.id, purpose)
+        self._bot.api_call('conversations.setPurpose', data={'channel': self.id, 'purpose': purpose})
 
     @property
     def occupants(self):
@@ -1201,7 +1198,7 @@ class SlackRoom(Room):
             if user not in users:
                 raise UserDoesNotExistError(f'User "{user}" not found.')
             log.info('Inviting %s into %s (%s)', user, self, self.id)
-            method = 'groups.invite' if self.private else 'channels.invite'
+            method = 'conversations.invite'
             response = self._bot.api_call(
                 method,
                 data={'channel': self.id, 'user': users[user]},

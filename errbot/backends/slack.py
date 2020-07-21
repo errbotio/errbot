@@ -1084,7 +1084,7 @@ class SlackRoom(Room):
         See also:
             * https://api.slack.com/methods/conversations.members
         """
-        return self._bot.api_call('conversations.members', data={'channel': self.id})["members"]
+        return self._bot.api_call('conversations.members', data={'channel': self.id})
 
     @property
     def private(self):
@@ -1199,7 +1199,7 @@ class SlackRoom(Room):
 
     @property
     def occupants(self):
-        members = self._channel_members['members'][0]
+        members = self._channel_members['members']
         return [SlackRoomOccupant(self.sc, m, self.id, self._bot) for m in members]
 
     def invite(self, *args):

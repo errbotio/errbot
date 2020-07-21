@@ -1200,8 +1200,7 @@ class SlackRoom(Room):
     @property
     def occupants(self):
         members = self._channel_members['members']
-        for m in members:
-            return [SlackRoomOccupant(self.sc, m, self.id, self._bot)]
+        return [m[SlackRoomOccupant(self.sc, m, self.id, self._bot)] for m in members]
 
     def invite(self, *args):
         users = {user['name']: user['id'] for user in self._bot.api_call('users.list')['members']}

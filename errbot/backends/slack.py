@@ -1077,6 +1077,16 @@ class SlackRoom(Room):
             return self._bot.api_call('conversations.info', data={'channel': self.id})["channel"]
 
     @property
+    def _channel_members(self):
+        """
+        Channel members info as returned by the Slack API.
+
+        See also:
+            * https://api.slack.com/methods/conversations.members
+        """
+        return self._bot.api_call('conversations.members', data={'channel': self.id})["members"]
+
+    @property
     def private(self):
         """Return True if the room is a private group"""
         return self._channel.id.startswith('G')
@@ -1189,7 +1199,7 @@ class SlackRoom(Room):
 
     @property
     def occupants(self):
-        members = self._channel_info['members']
+        members = self._channel_members['members']
         return [SlackRoomOccupant(self.sc, m, self.id, self._bot) for m in members]
 
     def invite(self, *args):

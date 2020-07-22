@@ -1069,12 +1069,10 @@ class SlackRoom(Room):
 
         See also:
           * https://api.slack.com/methods/conversations.list
-          * https://api.slack.com/methods/groups.list
+            Removed the groups.info call.  Conversations.info covers it all
         """
-        if self.private:
-            return self._bot.api_call('groups.info', data={'channel': self.id})["group"]  # Leaving in for now
-        else:
-            return self._bot.api_call('conversations.info', data={'channel': self.id})["channel"]
+
+        return self._bot.api_call('conversations.info', data={'channel': self.id})["channel"]
 
     @property
     def _channel_members(self):

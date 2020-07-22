@@ -182,8 +182,9 @@ class ChatRoom(BotPlugin):
         for room in args:
             try:
                 occupants = [o.person for o in self.query_room(room).occupants]
-                #occupants_str = "\n\t".join(occupants)
-                yield f'Occupants in {room}:\n\t{occupants}.'
+                a = str(occupants).split(',')[0]
+                #  occupants_str = "\n\t".join(occupants)
+                yield f'Occupants in {room}:\n\t{a}.'
             except RoomNotJoinedError as e:
                 yield f'Cannot list occupants in {room}: {e}.'
 

@@ -20,7 +20,6 @@ from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
 log = logging.getLogger(__name__)
 
-
 try:
     from slackclient import SlackClient
 except ImportError:
@@ -58,7 +57,6 @@ COLORS = {
     'cyan': '#00FFFF'
 }  # Slack doesn't know its colors
 
-
 MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>[^\]]+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
 
@@ -78,6 +76,7 @@ class LinkPreProcessor(Preprocessor):
     This preprocessor converts markdown URL notation into Slack URL notation
     as described at https://api.slack.com/docs/formatting, section "Linking to URLs".
     """
+
     def run(self, lines):
         for i, line in enumerate(lines):
             lines[i] = MARKDOWN_LINK_REGEX.sub(r'&lt;\2|\1&gt;', line)
@@ -190,6 +189,7 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
     """
     This class represents a person inside a MUC.
     """
+
     def __init__(self, sc, userid, channelid, bot):
         super().__init__(sc, userid, channelid)
         self._room = SlackRoom(channelid=channelid, bot=bot)
@@ -215,6 +215,7 @@ class SlackBot(SlackPerson):
     """
     This class describes a bot on Slack's network.
     """
+
     def __init__(self, sc, bot_id, bot_username):
         self._bot_id = bot_id
         self._bot_username = bot_username
@@ -242,6 +243,7 @@ class SlackRoomBot(RoomOccupant, SlackBot):
     """
     This class represents a bot inside a MUC.
     """
+
     def __init__(self, sc, bot_id, bot_username, channelid, bot):
         super().__init__(sc, bot_id, bot_username)
         self._room = SlackRoom(channelid=channelid, bot=bot)
@@ -264,6 +266,8 @@ class SlackRoomBot(RoomOccupant, SlackBot):
 
 
 class SlackBackend(ErrBot):
+
+    room_types = 'public_channel,private_channel'
 
     @staticmethod
     def _unpickle_identifier(identifier_str):
@@ -561,7 +565,7 @@ class SlackBackend(ErrBot):
             raise RoomDoesNotExistError(f'No channel named {name} exists')
         return channel[0].id
 
-    def channels(self, exclude_archived=True, joined_only=False):
+    def channels(self, exclude_archived=True, joined_only=False, types=room_types):
         """
         Get all channels and groups and return information about them.
 
@@ -576,7 +580,7 @@ class SlackBackend(ErrBot):
         See also:
           * https://api.slack.com/methods/conversations.list
         """
-        response = self.api_call('conversations.list', data={'exclude_archived': exclude_archived})
+        response = self.api_call('conversations.list', data={'exclude_archived': exclude_archived, 'types': types})
         channels = [channel for channel in response['channels']
                     if channel['is_member'] or not joined_only]
 
@@ -978,7 +982,7 @@ class SlackBackend(ErrBot):
         :returns:
             A list of :class:`~SlackRoom` instances.
         """
-        channels = self.channels(joined_only=True, exclude_archived=True)
+        channels = self.channels(joined_only=True, exclude_archived=True,)
         return [SlackRoom(channelid=channel['id'], bot=self) for channel in channels]
 
     def prefix_groupchat_reply(self, message, identifier):

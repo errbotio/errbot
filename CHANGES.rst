@@ -1,3 +1,30 @@
+v6.1.4 (2020-05-15)
+-------------------
+
+fixes:
+
+- 403 error when fetching plugin repos index (#1425)
+
+v6.1.3 (2020-04-19)
+-------------------
+
+features:
+
+- Add security linter (#1314)
+- Serve version.json on errbot.io and update version checker plugin (#1400)
+- Serve repos.json on errbot.io (#1403, #1406)
+- Include SlackRTM backend (beta) (#1416)
+
+fixes:
+
+- Make plugin name clashes deterministic (#1282)
+- Fix error with Flows missing descriptions (#1405)
+- Fix `!repos update` object attribute error (#1410)
+- Fix updating remove repos using `!repos update` (#1413)
+- Fix deprecation warning (#1423)
+- Varios documentation fixes (#1404, #1411, #1415)
+
+
 v6.1.2 (2019-12-15)
 -------------------
 

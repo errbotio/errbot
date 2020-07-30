@@ -1,0 +1,6 @@
+[Core]
+Name = SlackRTM
+Module = slack_rtm
+
+[Documentation]
+Description = This is the Slack RTM backend for Errbot.

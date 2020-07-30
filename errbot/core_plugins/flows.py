@@ -48,7 +48,10 @@ class Flows(BotPlugin):
         """
         with io.StringIO() as response:
             for name, flow_node in self._bot.flow_executor.flow_roots.items():
-                response.write("- **" + name + "** " + flow_node.description + "\n")
+                if flow_node.description:
+                    response.write("- **" + name + "** " + flow_node.description + "\n")
+                else:
+                    response.write("- **" + name + "** " + "No description" + "\n")
             return response.getvalue()
 
     @botcmd(split_args_with=' ', syntax='<name> [initial_payload]')

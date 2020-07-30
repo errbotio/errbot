@@ -593,7 +593,7 @@ class SlackBackend(ErrBot):
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
         try:
-            response = self.api_call('im.open', data={'user': id_})
+            response = self.api_call('conversations.open', data={'users': id_})
             return response['channel']['id']
         except SlackAPIResponseError as e:
             if e.error == "cannot_dm_bot":

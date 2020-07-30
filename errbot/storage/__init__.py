@@ -1,5 +1,5 @@
 import types
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from contextlib import contextmanager
 import logging
 log = logging.getLogger(__name__)

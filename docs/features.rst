@@ -80,4 +80,4 @@ Extensive plugin framework
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _jinja2: http://jinja.pocoo.org/
 .. _six: https://pypi.python.org/pypi/six/
-.. _sleekxmpp: http://sleekxmpp.com/
+.. _slixmpp: https://slixmpp.readthedocs.io/

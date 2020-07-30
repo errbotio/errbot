@@ -12,7 +12,7 @@ from os import path
 import tarfile
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 from urllib.parse import urlparse
 
 from errbot.storage import StoreMixin
@@ -154,7 +154,8 @@ class BotRepoManager(StoreMixin):
         for source in reversed(self.plugin_indexes):
             try:
                 if urlparse(source).scheme in ('http', 'https'):
-                    with urlopen(url=source, timeout=10) as request:  # nosec
+                    req = Request(source, headers={'User-Agent': 'Errbot'})
+                    with urlopen(url=req, timeout=10) as request:  # nosec
                         log.debug('Update from remote source %s...', source)
                         encoding = request.headers.get_content_charset()
                         content = request.read().decode(encoding if encoding else 'utf-8')

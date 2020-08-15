@@ -50,7 +50,13 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           end_inline_code='')
 
 IRC_NICK_REGEX = r'[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+'
-IRC_MESSAGE_SIZE_LIMIT = 510
+# According to the RFC the IRC message size can be at most 512 bytes
+# Out of these 2 bytes are necessary for '\r\n'.
+# At least 10 bytes for 'PRIVMSG <to> :'
+# (note that <to> is being taken care of in split_and_send_message
+#  using MESSAGE_SIZE_LIMIT_INCLUDES_ADDRESEE)
+# And one more byte for b'\x03' -- EXT - End Of Text
+IRC_MESSAGE_SIZE_LIMIT = 499
 
 try:
     import irc.connection
@@ -661,6 +667,7 @@ class IRCBackend(ErrBot):
                                   )
         self.md = irc_md()
         config.MESSAGE_SIZE_LIMIT = IRC_MESSAGE_SIZE_LIMIT
+        config.MESSAGE_SIZE_LIMIT_INCLUDES_ADDRESEE = True
 
     def send_message(self, msg):
         super().send_message(msg)

@@ -44,7 +44,10 @@ def bot_config_defaults(config):
     if not hasattr(config, 'DIVERT_TO_THREAD'):
         config.DIVERT_TO_THREAD = ()
     if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
-        config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
+        # Corresponds with what HipChat accepts
+        config.MESSAGE_SIZE_LIMIT = 10000
+    if not hasattr(config, 'MESSAGE_SIZE_LIMIT_INCLUDES_ADDRESEE'):
+        config.MESSAGE_SIZE_LIMIT_INCLUDES_ADDRESEE = False
     if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):
         config.GROUPCHAT_NICK_PREFIXED = False
     if not hasattr(config, 'AUTOINSTALL_DEPS'):

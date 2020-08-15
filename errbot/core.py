@@ -156,7 +156,14 @@ class ErrBot(Backend, StoreMixin):
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, msg):
-        for part in split_string_after(msg.body, self.bot_config.MESSAGE_SIZE_LIMIT):
+        size_limit = self.bot_config.MESSAGE_SIZE_LIMIT
+
+        # If MESSAGE_SIZE_LIMIT_INCLUDES_ADDRESEE is set to True, lower the
+        # size_limit by the size of the string representation of the addressee
+        if self.bot_config.MESSAGE_SIZE_LIMIT_INCLUDES_ADDRESEE:
+            size_limit -= len(str(msg.to))
+
+        for part in split_string_after(msg.body, size_limit):
             partial_message = msg.clone()
             partial_message.body = part
             partial_message.partial = True

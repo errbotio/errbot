@@ -65,6 +65,29 @@ class ErrBot(Backend, StoreMixin):
         self._plugin_errors_during_startup = None
         self.flow_executor = FlowExecutor(self)
         self._gbl = RLock()  # this protects internal structures of this class
+        self.set_message_size_limit()
+
+    @property
+    def message_size_limit(self):
+        return self.bot_config.MESSAGE_SIZE_LIMIT
+
+    def set_message_size_limit(self, limit: int = 10000, hard_limit: int = 10000):
+        """
+        Set backends message size limit and its maximum supported message size.  The
+        MESSAGE_SIZE_LIMIT can be overridden by setting it in the configuration file.
+        A historical value of 10000 is used by default.
+        """
+        if self.bot_config.MESSAGE_SIZE_LIMIT:
+            self.bot_config.MESSAGE_SIZE_LIMIT = int(self.bot_config.MESSAGE_SIZE_LIMIT)  # raise for non-int values.
+        else:
+            self.bot_config.MESSAGE_SIZE_LIMIT = limit
+
+        if self.bot_config.MESSAGE_SIZE_LIMIT > hard_limit:
+            log.warning(
+                f"Message size limit of {self.bot_config.MESSAGE_SIZE_LIMIT} exceeds "
+                f"backends maximum message size {hard_limit}."
+                "  You might experience message delivery issues."
+            )
 
     def attach_repo_manager(self, repo_manager):
         self.repo_manager = repo_manager
@@ -156,7 +179,7 @@ class ErrBot(Backend, StoreMixin):
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, msg):
-        for part in split_string_after(msg.body, self.bot_config.MESSAGE_SIZE_LIMIT):
+        for part in split_string_after(msg.body, self.message_size_limit):
             partial_message = msg.clone()
             partial_message.body = part
             partial_message.partial = True

@@ -641,6 +641,16 @@ class ErrBot(Backend, StoreMixin):
         log.info('Initiated an incoming transfer %s.', stream)
         Tee(stream, self.plugin_manager.get_all_active_plugins()).start()
 
+    def callback_reaction(self, reaction):
+        """
+            Triggered when a reaction occurs.
+
+            :param reaction:
+                An instance of :class:`~errbot.backends.base.Reaction`
+                representing the reaction event data
+        """
+        self._dispatch_to_plugins('callback_reaction', reaction)
+
     def signal_connect_to_all_plugins(self):
         for bot in self.plugin_manager.get_all_active_plugins():
             if hasattr(bot, 'callback_connect'):

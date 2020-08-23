@@ -13,7 +13,7 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
 from errbot.backends.base import Identifier, Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError, RoomOccupant, Person, Card, Stream
+    UserDoesNotExistError, RoomOccupant, Person, Card, Stream, Reaction, REACTION_ADDED, REACTION_REMOVED
 from errbot.core import ErrBot
 from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
@@ -415,6 +415,8 @@ class SlackBackend(ErrBot):
             'presence_change': self._presence_change_event_handler,
             'message': self._message_event_handler,
             'member_joined_channel': self._member_joined_channel_event_handler,
+            'reaction_added': self._reaction_event_handler,
+            'reaction_removed': self._reaction_event_handler
         }
 
         event_handler = event_handlers.get(event_type)
@@ -538,6 +540,29 @@ class SlackBackend(ErrBot):
         user = SlackPerson(self.sc, event['user'])
         if user == self.bot_identifier:
             self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
+
+    def _reaction_event_handler(self, event):
+        """Event handler for the 'reaction_added'
+           and 'reaction_removed' events"""
+
+        user = SlackPerson(self.sc, event['user'])
+        item_user = None
+        if event['item_user']:
+            item_user = SlackPerson(self.sc, event['item_user'])
+
+        action = REACTION_ADDED
+        if event['type'] == 'reaction_removed':
+            action = REACTION_REMOVED
+
+        reaction = Reaction(reactor=user,
+                            reacted_to_owner=item_user,
+                            action=action,
+                            timestamp=event['event_ts'],
+                            reaction_name=event['reaction'],
+                            reacted_to=event['item']
+                            )
+
+        self.callback_reaction(reaction)
 
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""

@@ -7,7 +7,7 @@ from io import IOBase
 import re
 
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
+from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card, Reaction
 
 log = logging.getLogger(__name__)
 
@@ -438,6 +438,16 @@ class BotPlugin(BotPluginBase):
             :param presence:
                 An instance of :class:`~errbot.backends.base.Presence`
                 representing the new presence state that was received.
+        """
+        pass
+
+    def callback_reaction(self, reaction: Reaction) -> None:
+        """
+            Triggered on every reaction event.
+
+            :param reaction:
+                An instance of :class:`~errbot.backends.base.Reaction`
+                representing the new reaction event that was received.
         """
         pass
 

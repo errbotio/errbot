@@ -120,6 +120,12 @@ class HipChatRoom(Room):
         self.xep0045 = bot.conn.client.plugin['xep_0045']
         self._bot = bot
 
+    def set_message_size_limit(self, limit=10000, hard_limit=10000):
+        """
+        HipChat message size limit
+        """
+        super().set_message_size_limit(limit, hard_limit)
+
     @property
     def room(self):
         """

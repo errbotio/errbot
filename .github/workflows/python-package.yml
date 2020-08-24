@@ -54,3 +54,7 @@ jobs:
     - name: Test - Project
       run: |
         tox
+
+    - name: Debug
+      run: |
+        printenv

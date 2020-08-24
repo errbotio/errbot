@@ -65,7 +65,7 @@ def install_packages(req_path: Path):
     """
     def is_docker():
         if not os.path.exists('/proc/1/cgroup'):
-            return false
+            return False
         with open('/proc/1/cgroup') as d:
             return 'docker' in d.read()
 

@@ -48,6 +48,6 @@ jobs:
       run: |
         tox -e pypi-lint
 
-    - name: Test with pytest
+    - name: Test - Project
       run: |
-        pytest
+        tox -e py36,py37,py38

@@ -46,7 +46,7 @@ jobs:
 
     - name: Test - Lint
       run: |
-        python setup.py check --restructured --strict --metadata
+        tox -e pypi-lint
 
     - name: Test with pytest
       run: |

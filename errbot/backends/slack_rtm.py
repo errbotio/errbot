@@ -502,7 +502,7 @@ class SlackRTMBackend(ErrBot):
 
     def _member_joined_channel_event_handler(self, webclient: WebClient, event):
         """Event handler for the 'member_joined_channel' event"""
-        user = SlackPerson(self.webclient, event['user'])
+        user = SlackPerson(webclient, event['user'])
         if user == self.bot_identifier:
             self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
 
@@ -523,14 +523,14 @@ class SlackRTMBackend(ErrBot):
             raise UserDoesNotExistError(f'Cannot find user {name}.')
         return user['id']
 
-    def channelid_to_channelname(self, webclient: WebClient, id_: str):
+    def channelid_to_channelname(self, id_: str):
         """Convert a Slack channel ID to its channel name"""
-        channel = webclient.channels_info(channel=id_)['channel']
+        channel = self.webclient.channels_info(channel=id_)['channel']
         if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {id_} exists.')
         return channel['name']
 
-    def channelname_to_channelid(self, webclient: WebClient, name: str):
+    def channelname_to_channelid(self, name: str):
         """Convert a Slack channel name to its channel ID"""
         name = name.lstrip('#')
         channel = [channel for channel in self.webclient.channels_list() if channel.name == name]

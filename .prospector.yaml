@@ -1,0 +1,12 @@
+strictness: veryhigh
+
+ignore-paths:
+  - docs
+
+pep8:
+  options:
+    max-line-length: 120
+
+pylint:
+  disable:
+    - too-few-public-methods

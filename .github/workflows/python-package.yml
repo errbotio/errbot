@@ -43,6 +43,21 @@ jobs:
       run: |
         tox
 
+    - name: Check - Codestyle
+      if: ${{ matrix.python-version }}" == '3.8'
+      run: |
+        tox -e codestyle
+
+    - name: Check - Lint
+      if: ${{ matrix.python-version }}" == '3.8'
+      run: |
+        tox -e pypi-lint
+
+    - name: Check - Security
+      if: ${{ matrix.python-version }}" == '3.8'
+      run: |
+        tox -e security
+
     - name: Debug
       run: |
         printenv

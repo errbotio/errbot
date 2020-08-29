@@ -1,3 +1,13 @@
 [tool.isort]
 profile = "black"
 src_paths = ["errbot", "tools"]
+
+[tool.pylint.messages_control]
+disable = [
+    "too-few-public-methods",
+    # "format",  # handled by black
+]
+
+[tool.pylint.format]
+max-line-length = 120
+# max-module-lines=2000

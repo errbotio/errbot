@@ -2,6 +2,7 @@ strictness: veryhigh
 
 ignore-paths:
   - docs
+  - build
 
 pep8:
   options:
@@ -10,3 +11,5 @@ pep8:
 pylint:
   disable:
     - too-few-public-methods
+  options:
+    max-line-length: 120

@@ -1,10 +1,11 @@
 
-import os
 import io
-from itertools import starmap, repeat
-from threading import Thread
-from .backends.base import STREAM_WAITING_TO_START, STREAM_TRANSFER_IN_PROGRESS
 import logging
+import os
+from itertools import repeat, starmap
+from threading import Thread
+
+from .backends.base import STREAM_TRANSFER_IN_PROGRESS, STREAM_WAITING_TO_START
 
 CHUNK_SIZE = 4096
 

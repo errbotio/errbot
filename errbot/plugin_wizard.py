@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import errno
-import jinja2
 import os
 import re
 import sys
 from configparser import ConfigParser
+
+import jinja2
 
 from errbot.version import VERSION
 

@@ -1,4 +1,5 @@
 import fnmatch
+
 from errbot import BotPlugin, cmdfilter
 from errbot.backends.base import RoomOccupant
 

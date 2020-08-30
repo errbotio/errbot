@@ -1,20 +1,20 @@
 import importlib
 import logging
 import sys
-import unittest
 import textwrap
-from os.path import sep, abspath
-from queue import Queue, Empty
+import unittest
+from os.path import abspath, sep
+from queue import Empty, Queue
 from tempfile import mkdtemp
 from threading import Thread
 
 import pytest
 
-from errbot.rendering import text
-from errbot.backends.base import Message, Room, Person, RoomOccupant, ONLINE
-from errbot.core_plugins.wsview import reset_app
-from errbot.core import ErrBot
+from errbot.backends.base import ONLINE, Message, Person, Room, RoomOccupant
 from errbot.bootstrap import setup_bot
+from errbot.core import ErrBot
+from errbot.core_plugins.wsview import reset_app
+from errbot.rendering import text
 from errbot.utils import deprecated
 
 log = logging.getLogger(__name__)

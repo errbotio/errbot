@@ -1,25 +1,25 @@
 """ Logic related to plugin loading and lifecycle """
-from copy import deepcopy
-from importlib import machinery
 import logging
 import os
 import subprocess
 import sys
 import traceback
+from copy import deepcopy
+from importlib import machinery
 from pathlib import Path
-
-from typing import Tuple, Dict, Any, Type, Set, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type
 
 from errbot.flow import BotFlow, Flow
 from errbot.repo_manager import check_dependencies
 from errbot.storage.base import StoragePluginBase
+
 from .botplugin import BotPlugin
-from .plugin_info import PluginInfo
-from .utils import version2tuple, collect_roots
-from .templating import remove_plugin_templates_path, add_plugin_templates_path
-from .version import VERSION
 from .core_plugins.wsview import route
+from .plugin_info import PluginInfo
 from .storage import StoreMixin
+from .templating import add_plugin_templates_path, remove_plugin_templates_path
+from .utils import collect_roots, version2tuple
+from .version import VERSION
 
 PluginInstanceCallback = Callable[[str, Type[BotPlugin]], BotPlugin]
 

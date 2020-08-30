@@ -1,15 +1,14 @@
-import sys
-
 import inspect
+import sys
 from configparser import ConfigParser
+from configparser import Error as ConfigParserError
 from dataclasses import dataclass
 from importlib._bootstrap import module_from_spec
 from importlib._bootstrap_external import spec_from_file_location
+from pathlib import Path
+from typing import List, Tuple, Type
 
 from errbot.utils import version2tuple
-from pathlib import Path
-from typing import Tuple, List, Type
-from configparser import Error as ConfigParserError
 
 VersionType = Tuple[int, int, int]
 

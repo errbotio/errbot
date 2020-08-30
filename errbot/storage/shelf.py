@@ -1,9 +1,8 @@
 import logging
-from typing import Any
-import shelve
 import os
-
+import shelve
 import shutil
+from typing import Any
 
 from errbot.storage.base import StorageBase, StoragePluginBase
 

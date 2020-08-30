@@ -16,15 +16,15 @@ import inspect
 import logging
 import re
 import traceback
-from datetime import datetime
-from threading import RLock
-
 from collections.abc import Mapping
+from datetime import datetime
 from multiprocessing.pool import ThreadPool
+from threading import RLock
 
 from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
-from .backends.base import Backend, Room, Identifier, Message
+
+from .backends.base import Backend, Identifier, Message, Room
 from .storage import StoreMixin
 from .streaming import Tee
 from .templating import tenv

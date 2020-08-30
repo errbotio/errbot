@@ -1,21 +1,30 @@
 import logging
 import sys
 from functools import lru_cache
-
 from time import sleep
 
-from errbot.backends.base import Message, Room, Presence, RoomNotJoinedError, Identifier, RoomOccupant, Person
-from errbot.backends.base import ONLINE, OFFLINE, AWAY, DND
+from errbot.backends.base import (
+    AWAY,
+    DND,
+    OFFLINE,
+    ONLINE,
+    Identifier,
+    Message,
+    Person,
+    Presence,
+    Room,
+    RoomNotJoinedError,
+    RoomOccupant,
+)
 from errbot.core import ErrBot
 from errbot.rendering import text, xhtml, xhtmlim
 
 log = logging.getLogger(__name__)
 
 try:
-    from slixmpp import ClientXMPP
-    from slixmpp.xmlstream import resolver, cert
-    from slixmpp import JID
+    from slixmpp import JID, ClientXMPP
     from slixmpp.exceptions import IqError
+    from slixmpp.xmlstream import cert, resolver
 
 except ImportError:
     log.exception("Could not start the XMPP backend")

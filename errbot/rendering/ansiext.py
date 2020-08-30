@@ -1,18 +1,16 @@
-from itertools import chain
-from collections import namedtuple
-from functools import partial
 import io
 import logging
+from collections import namedtuple
+from functools import partial
+from html import unescape
+from itertools import chain
 
+from ansi.colour import bg, fg, fx
 from markdown import Markdown
 from markdown.extensions import Extension
-from markdown.postprocessors import Postprocessor
-from markdown.inlinepatterns import SubstituteTagPattern
 from markdown.extensions.fenced_code import FencedBlockPreprocessor
-
-from ansi.colour import fg, bg, fx
-from html import unescape
-
+from markdown.inlinepatterns import SubstituteTagPattern
+from markdown.postprocessors import Postprocessor
 
 log = logging.getLogger(__name__)
 

@@ -2,11 +2,14 @@ import logging
 import os
 import re
 import sys
+
 from jinja2 import Environment, FileSystemLoader
 
 import errbot
-from errbot.backends.base import Message, ONLINE
-from errbot.backends.text import TextBackend   # we use that as we emulate MUC there already
+from errbot.backends.base import ONLINE, Message
+from errbot.backends.text import (
+    TextBackend,  # we use that as we emulate MUC there already
+)
 from errbot.rendering import xhtml
 
 CARD_TMPL = Environment(loader=FileSystemLoader(os.path.dirname(__file__)),
@@ -16,8 +19,8 @@ log = logging.getLogger(__name__)
 
 try:
     from PySide import QtCore, QtGui, QtWebKit
-    from PySide.QtGui import QCompleter
     from PySide.QtCore import Qt
+    from PySide.QtGui import QCompleter
 except ImportError:
     log.exception("Could not start the graphical backend")
     log.fatal(""" To install graphic support use:

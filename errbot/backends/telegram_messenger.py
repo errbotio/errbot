@@ -1,10 +1,18 @@
 import logging
 import sys
 
-from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
+from errbot.backends.base import (
+    ONLINE,
+    Identifier,
+    Person,
+    Room,
+    RoomError,
+    RoomOccupant,
+    Stream,
+)
 from errbot.core import ErrBot
 from errbot.rendering import text
-from errbot.rendering.ansiext import enable_format, TEXT_CHRS
+from errbot.rendering.ansiext import TEXT_CHRS, enable_format
 
 log = logging.getLogger(__name__)
 

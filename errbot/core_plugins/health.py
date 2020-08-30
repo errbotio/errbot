@@ -1,9 +1,9 @@
 import gc
 import os
 import signal
-
 from datetime import datetime
-from errbot import BotPlugin, botcmd, arg_botcmd
+
+from errbot import BotPlugin, arg_botcmd, botcmd
 from errbot.utils import format_timedelta, global_restart
 
 

@@ -1,10 +1,10 @@
 import logging
 import sys
-
 from pathlib import Path
 from typing import Any, Type
 
 from errbot.plugin_info import PluginInfo
+
 from .utils import collect_roots
 
 log = logging.getLogger(__name__)

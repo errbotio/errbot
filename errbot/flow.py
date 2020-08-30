@@ -1,8 +1,7 @@
 import logging
-from threading import RLock
-from typing import Mapping, List, Tuple, Union, Callable, Any, Optional
-
 from multiprocessing.pool import ThreadPool
+from threading import RLock
+from typing import Any, Callable, List, Mapping, Optional, Tuple, Union
 
 from errbot import Message
 from errbot.backends.base import Identifier, Room, RoomOccupant

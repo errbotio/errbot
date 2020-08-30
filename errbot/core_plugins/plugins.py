@@ -1,11 +1,14 @@
-from ast import literal_eval
-from pprint import pformat
+import logging
 import os
 import shutil
-import logging
+from ast import literal_eval
+from pprint import pformat
 
 from errbot import BotPlugin, botcmd
-from errbot.plugin_manager import PluginConfigurationException, PluginActivationException
+from errbot.plugin_manager import (
+    PluginActivationException,
+    PluginConfigurationException,
+)
 from errbot.repo_manager import RepoException
 
 

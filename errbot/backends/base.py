@@ -2,9 +2,9 @@ import io
 import logging
 import random
 import time
-from typing import Any, Mapping, BinaryIO, List, Sequence, Tuple
 from abc import ABC, abstractmethod
-from collections import deque, defaultdict
+from collections import defaultdict, deque
+from typing import Any, BinaryIO, List, Mapping, Sequence, Tuple
 
 log = logging.getLogger(__name__)
 

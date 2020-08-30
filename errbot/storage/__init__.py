@@ -1,5 +1,4 @@
 import logging
-import types
 from collections.abc import MutableMapping
 from contextlib import contextmanager
 

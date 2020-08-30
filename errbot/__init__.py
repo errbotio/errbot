@@ -18,7 +18,6 @@ from .botplugin import (  # noqa
 )
 from .core_plugins.wsview import WebView, route
 from .flow import FLOW_END, BotFlow, Flow, FlowRoot
-from . import core
 
 __all__ = [
     'BotPlugin',

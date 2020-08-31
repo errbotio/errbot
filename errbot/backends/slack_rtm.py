@@ -428,7 +428,7 @@ class SlackRTMBackend(ErrBot):
         elif presence == 'away':
             status = AWAY
         else:
-            log.error(f'It appears the Slack API changed, I received an unknown presence type {presence}.')
+            log.error('It appears the Slack API changed, I received an unknown presence type %s.', presence)
             status = ONLINE
         self.callback_presence(Presence(identifier=idd, status=status))
 
@@ -659,8 +659,8 @@ class SlackRTMBackend(ErrBot):
 
             msg.extras['ts'] = timestamps
         except Exception:
-            log.exception(f'An exception occurred while trying to send the following message '
-                          f'to {to_humanreadable}: {msg.body}.')
+            log.exception('An exception occurred while trying to send the following message '
+                          'to %s: %s.', to_humanreadable, msg.body)
 
     def _slack_upload(self, stream: Stream) -> None:
         """
@@ -678,7 +678,7 @@ class SlackRTMBackend(ErrBot):
             else:
                 stream.error()
         except Exception:
-            log.exception(f'Upload of {stream.name} to {stream.identifier.channelname} failed.')
+            log.exception('Upload of %s to %s failed.', stream.name, stream.identifier.channelname)
 
     def send_stream_request(self,
                             user: Identifier,
@@ -743,7 +743,7 @@ class SlackRTMBackend(ErrBot):
                 log.debug('Sending data:\n%s', data)
                 self.webclient.chat_postMessage(**data)
             except Exception:
-                log.exception(f'An exception occurred while trying to send a card to {to_humanreadable}.[{card}]')
+                log.exception('An exception occurred while trying to send a card to %s. [%s]', to_humanreadable, card)
 
     def __hash__(self):
         return 0  # this is a singleton anyway

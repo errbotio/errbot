@@ -84,9 +84,9 @@ class ErrBot(Backend, StoreMixin):
 
         if self.bot_config.MESSAGE_SIZE_LIMIT > hard_limit:
             log.warning(
-                f"Message size limit of {self.bot_config.MESSAGE_SIZE_LIMIT} exceeds "
-                f"backends maximum message size {hard_limit}."
-                "  You might experience message delivery issues."
+                "Message size limit of %s exceeds "
+                "backends maximum message size %s."
+                "  You might experience message delivery issues.", self.bot_config.MESSAGE_SIZE_LIMIT, hard_limit
             )
 
     def attach_repo_manager(self, repo_manager):
@@ -384,7 +384,7 @@ class ErrBot(Backend, StoreMixin):
         username = frm.person
         user_cmd_history = self.cmd_history[username]
 
-        log.info(f'Processing command "{cmd}" with parameters "{args}" from {frm}')
+        log.info('Processing command "%s" with parameters "%s" from %s', cmd, args, frm)
 
         if (cmd, args) in user_cmd_history:
             user_cmd_history.remove((cmd, args))  # Avoids duplicate history items
@@ -489,7 +489,7 @@ class ErrBot(Backend, StoreMixin):
 
         except Exception as e:
             tb = traceback.format_exc()
-            log.exception(f'An error happened while processing a message ("{msg.body}"): {tb}"')
+            log.exception('An error happened while processing a message ("%s"): %s"', msg.body, tb)
             self.send_simple_reply(msg, self.MSG_ERROR_OCCURRED + f':\n{e}', private, threaded)
 
     def unknown_command(self, _, cmd, args):
@@ -659,7 +659,7 @@ class ErrBot(Backend, StoreMixin):
                     log.debug('Trigger callback_connect on %s.', bot.__class__.__name__)
                     bot.callback_connect()
                 except Exception:
-                    log.exception(f'callback_connect failed for {bot}.')
+                    log.exception('callback_connect failed for %s.', bot)
 
     def connect_callback(self):
         log.info('Activate internal commands')

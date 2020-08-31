@@ -62,10 +62,10 @@ if not ON_WINDOWS:
 def get_config(config_path):
     config_fullpath = config_path
     if not path.exists(config_fullpath):
-        log.error(f'I cannot find the config file {config_path}.')
+        log.error('I cannot find the config file %s.', config_path)
         log.error('You can change this path with the -c parameter see --help')
-        log.info(f'You can use the template {os.path.realpath(os.path.join(__file__, os.pardir, "config-template.py"))}'
-                 f' as a base and copy it to {config_path}.')
+        log.info('You can use the template %s'
+                 ' as a base and copy it to %s.', os.path.realpath(os.path.join(__file__, os.pardir, "config-template.py")), config_path)
         log.info('You can then customize it.')
         exit(-1)
 
@@ -74,7 +74,7 @@ def get_config(config_path):
         log.info('Config check passed...')
         return config
     except Exception:
-        log.exception(f'I could not import your config from {config_fullpath}, please check the error below...')
+        log.exception('I could not import your config from %s, please check the error below...', config_fullpath)
         exit(-1)
 
 
@@ -265,12 +265,12 @@ def main():
     else:
         backend = args['backend']
 
-    log.info(f'Selected backend {backend}.')
+    log.info('Selected backend %s.', backend)
 
     # Check if at least we can start to log something before trying to start
     # the bot (esp. daemonize it).
 
-    log.info(f'Checking for {config.BOT_DATA_DIR}...')
+    log.info('Checking for %s...', config.BOT_DATA_DIR)
     if not path.exists(config.BOT_DATA_DIR):
         raise Exception(f'The data directory "{config.BOT_DATA_DIR}" for the bot does not exist.')
     if not access(config.BOT_DATA_DIR, W_OK):

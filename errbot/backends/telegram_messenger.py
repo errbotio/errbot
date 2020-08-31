@@ -296,7 +296,7 @@ class TelegramBackend(ErrBot):
             self.telegram.sendMessage(msg.to.id, body)
         except Exception:
             log.exception(
-                f'An exception occurred while trying to send the following message to {msg.to.id}: {msg.body}')
+                'An exception occurred while trying to send the following message to %s: %s', msg.to.id, msg.body)
             raise
 
     def change_presence(self, status: str = ONLINE, message: str = '') -> None:
@@ -392,7 +392,7 @@ class TelegramBackend(ErrBot):
                                                  msg_type=stream.stream_type,
                                                  **kwargs)
         except Exception:
-            log.exception(f'Upload of {stream.name} to {stream.identifier} failed.')
+            log.exception('Upload of %s to %s failed.', stream.name, stream.identifier)
         else:
             if msg is None:
                 stream.error()

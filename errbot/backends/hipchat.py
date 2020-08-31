@@ -546,7 +546,7 @@ class HipchatBackend(XMPPBackend):
 
         data['card'] = hcard
 
-        log.debug("Sending request:" + str(data))
+        log.debug("Sending request: %s", str(data))
         room._requests.post(room.url + '/notification', data=data)  # noqa
 
     def send_stream_request(self, identifier, fsource, name='file.txt', size=None, stream_type=None):
@@ -593,7 +593,7 @@ class HipchatBackend(XMPPBackend):
                 log.error('Request text: %s.', resp.text)
                 stream.error()
         except Exception:
-            log.exception(f'Upload of {stream.name} to {stream.identifier.channelname} failed.')
+            log.exception('Upload of %s to %s failed.', stream.name, stream.identifier.channelname)
 
     @lru_cache(1024)
     def _find_user(self, name, criteria):

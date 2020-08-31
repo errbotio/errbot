@@ -130,7 +130,7 @@ class Webserver(BotPlugin):
         """
         A simple test webhook
         """
-        self.log.debug("Your incoming request is :" + str(incoming_request))
+        self.log.debug("Your incoming request is: %s", str(incoming_request))
         return str(incoming_request)
 
     @botcmd(split_args_with=' ')

@@ -379,7 +379,7 @@ class BotPluginManager(StoreMixin):
                     log.info('Activate flow: %s', name)
                     self.activate_flow(name)
             except Exception as e:
-                log.exception(f'Error loading flow {name}.')
+                log.exception('Error loading flow %s.', name)
                 errors += f'Error: flow {name} failed to start: {e}.\n'
         return errors
 
@@ -456,7 +456,7 @@ class BotPluginManager(StoreMixin):
         except PluginActivationException:
             raise
         except Exception as e:
-            log.exception(f'Error loading {name}.')
+            log.exception('Error loading %s.', name)
             raise PluginActivationException(f'{name} failed to start : {e}.')
 
     def _activate_plugin_dependencies(self, name: str, dep_track: Set[str]) -> List[str]:

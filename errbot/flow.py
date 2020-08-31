@@ -370,7 +370,7 @@ class FlowExecutor(object):
         with self._lock:
             for flow in self.in_flight:
                 if flow.name == name and flow.check_identifier(requestor):
-                    log.debug(f'Removing flow {str(flow)}.')
+                    log.debug('Removing flow %s.', str(flow))
                     self.in_flight.remove(flow)
                     return flow
         return None

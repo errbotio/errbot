@@ -140,7 +140,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
                     integrations=sentry_integrations
                 )
         except ImportError:
-            log.exception(f'Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}')
+            log.exception('Unable to import selected SENTRY_TRANSPORT - %s', config.SENTRY_TRANSPORT)
             exit(-1)
 
     logger.setLevel(config.BOT_LOG_LEVEL)
@@ -168,7 +168,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
                                      CORE_BACKENDS,
                                      extra_backend)
 
-    log.info(f'Found Backend plugin: {backendpm.plugin_info.name}')
+    log.info('Found Backend plugin: %s', backendpm.plugin_info.name)
 
     repo_manager = BotRepoManager(storage_plugin,
                                   botplugins_dir,
@@ -193,14 +193,14 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             if 'repos' in bot:
                 log.fatal('You cannot restore onto a non empty bot.')
                 sys.exit(-1)
-            log.info(f'**** RESTORING the bot from {restore}')
+            log.info('**** RESTORING the bot from %s', restore)
             restore_bot_from_backup(restore, bot=bot, log=log)
             print('Restore complete. You can restart the bot normally')
             sys.exit(0)
 
         errors = bot.plugin_manager.update_plugin_places(repo_manager.get_all_repos_paths())
         if errors:
-            log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
+            log.error('Some plugins failed to load:\n %s', '\n'.join(errors.values()))
             bot._plugin_errors_during_startup = "\n".join(errors.values())
         return bot
     except Exception:
@@ -233,7 +233,7 @@ def get_storage_plugin(config):
     extra_storage_plugins_dir = getattr(config, 'BOT_EXTRA_STORAGE_PLUGINS_DIR', None)
     spm = BackendPluginManager(config, 'errbot.storage', storage_name, StoragePluginBase,
                                CORE_STORAGE, extra_storage_plugins_dir)
-    log.info(f'Found Storage plugin: {spm.plugin_info.name}.')
+    log.info('Found Storage plugin: %s.', spm.plugin_info.name)
     return spm.load_plugin()
 
 
@@ -247,5 +247,5 @@ def bootstrap(bot_class, logger, config, restore=None):
     :param restore: Start Errbot in restore mode (from a backup).
     """
     bot = setup_bot(bot_class, logger, config, restore)
-    log.debug(f'Start serving commands from the {bot.mode} backend.')
+    log.debug('Start serving commands from the %s backend.', bot.mode)
     bot.serve_forever()

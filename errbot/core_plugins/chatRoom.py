@@ -21,7 +21,7 @@ class ChatRoom(BotPlugin):
                 except Exception:
                     # Ensure failure to join a room doesn't crash the plugin
                     # as a whole.
-                    self.log.exception(f'Joining room {repr(room)} failed')
+                    self.log.exception('Joining room %s failed', repr(room))
 
     def _join_room(self, room):
         username = self.bot_config.CHATROOM_FN
@@ -243,4 +243,4 @@ class ChatRoom(BotPlugin):
                     for user in users_to_relay_to:
                         self.send(user, body)
         except Exception as e:
-            self.log.exception(f'crashed in callback_message {e}')
+            self.log.exception('crashed in callback_message %s', e)

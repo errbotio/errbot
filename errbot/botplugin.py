@@ -176,7 +176,7 @@ class BotPluginBase(StoreMixin):
         return self._bot.bot_identifier
 
     def init_storage(self) -> None:
-        log.debug(f'Init storage for {self.name}.')
+        log.debug('Init storage for %s.', self.name)
         self.open_storage(self._bot.storage_plugin, self.name)
 
     def activate(self) -> None:
@@ -232,8 +232,8 @@ class BotPluginBase(StoreMixin):
         if not args:
             args = []
 
-        log.debug(f'Programming the polling of {method.__name__} every {interval} seconds '
-                  f'with args {str(args)} and kwargs {str(kwargs)}')
+        log.debug('Programming the polling of %s every %s seconds '
+                  'with args %s and kwargs %s', method.__name__, interval, str(args), str(kwargs))
         # noinspection PyBroadException
         try:
             self.current_pollers.append((method, args, kwargs))
@@ -249,7 +249,7 @@ class BotPluginBase(StoreMixin):
             kwargs = {}
         if not args:
             args = []
-        log.debug(f'Stop polling of {method} with args {args} and kwargs {kwargs}')
+        log.debug('Stop polling of %s with args %s and kwargs %s', method, args, kwargs)
         self.current_pollers.remove((method, args, kwargs))
 
     def program_next_poll(self,

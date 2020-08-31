@@ -57,7 +57,7 @@ def imtext():
     return md
 
 
-class Mde2mdConverter(object):
+class Mde2mdConverter:
     def convert(self, mde):
         while True:
             m = ATTR_RE.search(mde)

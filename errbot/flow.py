@@ -13,7 +13,7 @@ Predicate = Callable[[Mapping[str, Any]], bool]
 EXECUTOR_THREADS = 5  # the maximum number of simultaneous flows in automatic mode at the same time.
 
 
-class FlowNode(object):
+class FlowNode:
     """
     This is a step in a Flow/conversation. It is linked to a specific botcmd and also a "predicate".
 
@@ -123,7 +123,7 @@ class InvalidState(Exception):
     pass
 
 
-class Flow(object):
+class Flow:
     """
     This is a live Flow. It keeps context of the conversation (requestor and context).
     Context is just a python dictionary representing the state of the conversation.
@@ -244,7 +244,7 @@ class BotFlow:
         self._bot.all_commands.get(command_name, None)
 
 
-class FlowExecutor(object):
+class FlowExecutor:
     """
     This is a instance that can monitor and execute flow instances.
     """

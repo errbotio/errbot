@@ -26,7 +26,7 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
     return starmap(func, repeat(args, times))
 
 
-class Tee(object):
+class Tee:
     """ Tee implements a multi reader / single writer """
     def __init__(self, incoming_stream, clients):
         """ clients is a list of objects implementing callback_stream """

@@ -29,7 +29,7 @@ except ImportError:
     sys.exit(-1)
 
 
-class CommandBox(QtGui.QPlainTextEdit, object):
+class CommandBox(QtGui.QPlainTextEdit):
     newCommand = QtCore.Signal(str)
 
     def reset_history(self):

@@ -211,7 +211,7 @@ class UserDoesNotExistError(Exception):
     on a user that doesn't exist"""
 
 
-class Message(object):
+class Message:
     """
     A chat message.
 
@@ -452,7 +452,7 @@ AWAY = 'away'
 DND = 'dnd'
 
 
-class Presence(object):
+class Presence:
     """
        This class represents a presence change for a user or a user in a chatroom.
 
@@ -515,7 +515,7 @@ REACTION_ADDED = 'added'
 REACTION_REMOVED = 'removed'
 
 
-class Reaction(object):
+class Reaction:
     """
        This class represents a reaction event, either an added or removed reaction,
        to some message or object.

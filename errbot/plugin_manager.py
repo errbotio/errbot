@@ -5,7 +5,6 @@ import subprocess
 import sys
 import traceback
 from copy import deepcopy
-from importlib import machinery
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type
 

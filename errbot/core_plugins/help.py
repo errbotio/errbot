@@ -1,4 +1,3 @@
-import subprocess
 import textwrap
 
 from dulwich import errors as dulwich_errors

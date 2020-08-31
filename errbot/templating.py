@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader

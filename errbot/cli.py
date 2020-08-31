@@ -16,7 +16,6 @@
 
 import argparse
 import ast
-import locale
 import logging
 import os
 import sys

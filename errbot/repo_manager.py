@@ -3,7 +3,6 @@ import logging
 import os
 import re
 import shutil
-import subprocess
 import tarfile
 from collections import namedtuple
 from datetime import datetime, timedelta

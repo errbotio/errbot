@@ -24,8 +24,6 @@ log = logging.getLogger(__name__)
 try:
     from slixmpp import JID, ClientXMPP
     from slixmpp.exceptions import IqError
-    from slixmpp.xmlstream import cert, resolver
-
 except ImportError:
     log.exception("Could not start the XMPP backend")
     log.fatal("""

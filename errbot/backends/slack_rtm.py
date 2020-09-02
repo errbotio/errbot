@@ -216,7 +216,7 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
     """
     def __init__(self, webclient: WebClient, userid, channelid, bot):
         super().__init__(webclient, userid, channelid)
-        self._room = SlackRoom(channelid=channelid, bot=bot)
+        self._room = SlackRoom(webclient=webclient, channelid=channelid, bot=bot)
 
     @property
     def room(self):
@@ -268,7 +268,7 @@ class SlackRoomBot(RoomOccupant, SlackBot):
     """
     def __init__(self, sc, bot_id, bot_username, channelid, bot):
         super().__init__(sc, bot_id, bot_username)
-        self._room = SlackRoom(channelid=channelid, bot=bot)
+        self._room = SlackRoom(webclient=sc, channelid=channelid, bot=bot)
 
     @property
     def room(self):
@@ -488,7 +488,7 @@ class SlackRTMBackend(ErrBot):
                 )
             else:
                 msg.frm = SlackRoomOccupant(webclient, event['user'], event['channel'], bot=self)
-            msg.to = SlackRoom(channelid=event['channel'], bot=self)
+            msg.to = SlackRoom(webclient=webclient, channelid=event['channel'], bot=self)
             channel_link_name = msg.to.name
 
         # TODO: port to slackclient2
@@ -504,7 +504,7 @@ class SlackRTMBackend(ErrBot):
         """Event handler for the 'member_joined_channel' event"""
         user = SlackPerson(webclient, event['user'])
         if user == self.bot_identifier:
-            self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
+            self.callback_room_joined(SlackRoom(webclient=webclient, channelid=event['channel'], bot=self))
 
     @staticmethod
     def userid_to_username(webclient: WebClient, id_: str):
@@ -525,7 +525,7 @@ class SlackRTMBackend(ErrBot):
 
     def channelid_to_channelname(self, id_: str):
         """Convert a Slack channel ID to its channel name"""
-        channel = self.webclient.channels_info(channel=id_)['channel']
+        channel = self.webclient.conversations_info(channel=id_)['channel']
         if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {id_} exists.')
         return channel['name']
@@ -853,7 +853,7 @@ class SlackRTMBackend(ErrBot):
         if userid is not None:
             return SlackPerson(self.webclient, userid, self.get_im_channel(userid))
         if channelid is not None:
-            return SlackRoom(channelid=channelid, bot=self)
+            return SlackRoom(webclient=self.webclient, channelid=channelid, bot=self)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "
@@ -937,13 +937,13 @@ class SlackRTMBackend(ErrBot):
     def query_room(self, room):
         """ Room can either be a name or a channelid """
         if room.startswith('C') or room.startswith('G'):
-            return SlackRoom(channelid=room, bot=self)
+            return SlackRoom(webclient=self.webclient, channelid=room, bot=self)
 
         m = SLACK_CLIENT_CHANNEL_HYPERLINK.match(room)
         if m is not None:
-            return SlackRoom(channelid=m.groupdict()['id'], bot=self)
+            return SlackRoom(webclient=self.webclient, channelid=m.groupdict()['id'], bot=self)
 
-        return SlackRoom(name=room, bot=self)
+        return SlackRoom(webclient=self.webclient, name=room, bot=self)
 
     def rooms(self):
         """
@@ -953,7 +953,7 @@ class SlackRTMBackend(ErrBot):
             A list of :class:`~SlackRoom` instances.
         """
         channels = self.channels(joined_only=True, exclude_archived=True)
-        return [SlackRoom(channelid=channel['id'], bot=self) for channel in channels]
+        return [SlackRoom(webclient=self.webclient, channelid=channel['id'], bot=self) for channel in channels]
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
@@ -1003,7 +1003,7 @@ class SlackRTMBackend(ErrBot):
 
 
 class SlackRoom(Room):
-    def __init__(self, name=None, channelid=None, bot=None):
+    def __init__(self, webclient=None, name=None, channelid=None, bot=None):
         if channelid is not None and name is not None:
             raise ValueError("channelid and name are mutually exclusive")
 
@@ -1017,6 +1017,7 @@ class SlackRoom(Room):
 
         self._id = None
         self._bot = bot
+        self.webclient = webclient
 
     def __str__(self):
         return f'#{self.name}'
@@ -1045,9 +1046,9 @@ class SlackRoom(Room):
           * https://api.slack.com/methods/groups.list
         """
         if self.private:
-            return self._bot.webclient.groups_info(channel=self.id)["group"]
+            return self._bot.webclient.conversations_info(channel=self.id)["group"]
         else:
-            return self._bot.webclient.channels_info(channel=self.id)["channel"]
+            return self._bot.webclient.conversations_info(channel=self.id)["channel"]
 
     @property
     def private(self):

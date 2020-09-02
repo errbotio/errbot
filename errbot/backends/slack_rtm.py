@@ -1031,10 +1031,14 @@ class SlackRoom(Room):
         """
         The channel object exposed by SlackClient
         """
-        id_ = self.sc.server.channels.find(self.name)
-        if id_ is None:
+        _id = None
+        for channel in self.webclient.conversations_list()['channels']:
+            if channel['name'] == self.name:
+                _id = channel['id']
+                break
+        else:
             raise RoomDoesNotExistError(f"{str(self)} does not exist (or is a private group you don't have access to)")
-        return id_
+        return _id
 
     @property
     def _channel_info(self):
@@ -1059,10 +1063,8 @@ class SlackRoom(Room):
     def id(self):
         """Return the ID of this room"""
         if self._id is None:
-            self._id = self._channel.id
+            self._id = self._channel
         return self._id
-
-    channelid = id
 
     @property
     def name(self):

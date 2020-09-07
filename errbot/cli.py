@@ -244,12 +244,11 @@ def main():
 
     if args['storage_merge']:
         def merge(sdm):
+            from deepmerge import always_merger
             new_dict = _read_dict()
-            if list(new_dict.keys()) == ['config']:
-                with sdm.mutable('configs') as conf:
-                    conf.update(new_dict['configs'])
-            else:
-                sdm.update(new_dict)
+            for key in new_dict.keys():
+                with sdm.mutable(key) as conf:
+                    always_merger.merge(conf, new_dict[key])
         err_value = storage_action(args['storage_merge'][0], merge)
         sys.exit(err_value)
 

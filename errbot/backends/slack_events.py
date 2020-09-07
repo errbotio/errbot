@@ -138,8 +138,6 @@ class SlackEventsBackend(ErrBot):
 
         self.bot_identifier = SlackPerson(self.sc, self.auth['user_id'])
 
-        #FIXME: remove when we get the user.read permission
-        self.bot_identifier._username = 'proe_bot'
         log.debug(self.bot_identifier)
 
         # Inject bot identity to alternative prefixes

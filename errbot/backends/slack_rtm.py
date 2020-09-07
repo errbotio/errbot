@@ -128,11 +128,7 @@ class SlackPerson(Person):
         if self._username:
             return self._username
 
-        # FIXME Uncomment this when user.read permission is whitelisted
-        #user = self._webclient.users_info(user=self._userid)['user']
-        self._username = 'rrodriquez'
-        user = True
-        ################################
+        user = self._webclient.users_info(user=self._userid)['user']
 
         if user is None:
             log.error('Cannot find user with ID %s', self._userid)

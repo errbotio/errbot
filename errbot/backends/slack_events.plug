@@ -1,0 +1,6 @@
+[Core]
+Name = SlackEVENTS
+Module = slack_events
+
+[Documentation]
+Description = This is the Slack events api backend for Errbot.

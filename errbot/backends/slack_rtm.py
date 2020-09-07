@@ -128,7 +128,12 @@ class SlackPerson(Person):
         if self._username:
             return self._username
 
-        user = self._webclient.users_info(user=self._userid)['user']
+        # FIXME Uncomment this when user.read permission is whitelisted
+        #user = self._webclient.users_info(user=self._userid)['user']
+        self._username = 'rrodriquez'
+        user = True
+        ################################
+
         if user is None:
             log.error('Cannot find user with ID %s', self._userid)
             return f'<{self._userid}>'
@@ -1015,7 +1020,7 @@ class SlackRoom(Room):
         else:
             self._name = bot.channelid_to_channelname(channelid)
 
-        self._id = None
+        self._id = channelid
         self._bot = bot
         self.webclient = webclient
 
@@ -1032,12 +1037,20 @@ class SlackRoom(Room):
         The channel object exposed by SlackClient
         """
         _id = None
-        for channel in self.webclient.conversations_list()['channels']:
-            if channel['name'] == self.name:
-                _id = channel['id']
-                break
-        else:
-            raise RoomDoesNotExistError(f"{str(self)} does not exist (or is a private group you don't have access to)")
+        # Cursors
+        cursor = ''
+        while cursor != None:
+            conversations_list = self.webclient.conversations_list(cursor=cursor)
+            cursor = None
+            for channel in conversations_list['channels']:
+                if channel['name'] == self.name:
+                    _id = channel['id']
+                    break
+            else:
+                if conversations_list['response_metadata']['next_cursor'] != None:
+                    cursor = conversations_list['response_metadata']['next_cursor']
+                else:
+                    raise RoomDoesNotExistError(f"{str(self)} does not exist (or is a private group you don't have access to)")
         return _id
 
     @property

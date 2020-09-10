@@ -53,7 +53,7 @@ containing the actual code of your plugin
 Errbot can automatically generate these files for you
 so that you do not have to write boilerplate code by hand.
 
-To create a new plugin, run `errbot --new-plugin`
+To create a new plugin, run :option:`errbot --new-plugin`
 (optionally specifying a directory where to create the new plugin -
 it will use the current directory by default).
 It will ask you a few questions such as the name for your plugin,

@@ -47,10 +47,26 @@ you can set the proxies with the token config.
 Bot admins
 ----------
 
-You can set `BOT_ADMINS` to configure which Slack users are bot administrators.
-Make sure to include the `@` sign::
+You can set `BOT_ADMINS` to configure which Slack users are bot administrators,
+using either Slack user IDs, or usernames.
+
+User IDs are strongly encouraged as they are immutable and unique per user. You
+can find a given user's user ID by opening their profile, and then clicking on
+"More" and then "Copy member ID." User IDs always begin with the letter 'U'::
+
+    BOT_ADMINS = ('U01AKS5RT1T', 'U01A872QUQP')
+
+Alternatively, you can use usernames for convenience. Be aware that Slack users
+can change their usernames, and it's even possible for multiple users to have
+the same username, making them less secure then user IDs. Make sure to include
+the `@` sign::
 
     BOT_ADMINS = ('@gbin', '@zoni')
+
+Note that you cannot mix user IDs and usernames. They must all be of the same
+type as determined by the first admin user::
+
+    BOT_ADMINS = ('U01AKS5RT1T', '@gbin') # Throws exception
 
 
 Bot mentions using @

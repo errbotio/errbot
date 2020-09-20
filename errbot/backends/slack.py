@@ -305,9 +305,21 @@ class SlackBackend(ErrBot):
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
         # Detect if slack user IDs should be used rather than @usernames based on first BOT_ADMIN
-        if len(config.BOT_ADMINS) > 0 and config.BOT_ADMINS[0].startswith("U"):
-            global userid_as_acl
+        global userid_as_acl
+        admins_by_userid = [admin for admin in config.BOT_ADMINS if admin.startswith('U')]
+        admins_by_username = [admin for admin in config.BOT_ADMINS if admin.startswith('@')]
+        if len(admins_by_userid) == len(config.BOT_ADMINS):
             userid_as_acl = True
+        elif len(admins_by_username) == len(config.BOT_ADMINS):
+            userid_as_acl = False
+        else:
+            log.fatal(
+                'Combination of usernames and user IDs found in the BOT_ADMIN setting in '
+                'your configuration. All BOT_ADMIN entries must be of the same type: either '
+                'user IDs beginning with "U" or usernames beginning with "@".'
+            )
+            sys.exit(1)
+
 
     def api_call(self, method, data=None, raise_errors=True):
         """

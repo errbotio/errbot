@@ -19,6 +19,7 @@ from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
 log = logging.getLogger(__name__)
+userid_as_acl = False
 
 
 try:
@@ -153,6 +154,8 @@ class SlackPerson(Person):
     def aclattr(self):
         # Note: Don't use str(self) here because that will return
         # an incorrect format from SlackMUCOccupant.
+        if userid_as_acl:
+            return self._userid
         return f'@{self.username}'
 
     @property
@@ -229,7 +232,7 @@ class SlackBot(SlackPerson):
 
     @property
     def aclattr(self):
-        # Make ACLs match against integration ID rather than human-readable
+        # Always make ACLs match against integration ID rather than human-readable
         # nicknames to avoid webhooks impersonating other people.
         return f'<{self._bot_id}>'
 
@@ -301,6 +304,10 @@ class SlackBackend(ErrBot):
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
+        # Detect if slack user IDs should be used rather than @usernames based on first BOT_ADMIN
+        if len(config.BOT_ADMINS) > 0 and config.BOT_ADMINS[0].startswith("U"):
+            global userid_as_acl
+            userid_as_acl = True
 
     def api_call(self, method, data=None, raise_errors=True):
         """

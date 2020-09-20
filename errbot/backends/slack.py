@@ -153,8 +153,6 @@ class SlackPerson(Person):
     def aclattr(self):
         # Note: Don't use str(self) here because that will return
         # an incorrect format from SlackMUCOccupant.
-        if self.bot_config.ACCESS_CONTROLS_USE_SLACK_USERID:
-            return self.userid
         return f'@{self.username}'
 
     @property

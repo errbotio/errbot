@@ -69,6 +69,16 @@ class Person(Identifier):
         """
         pass
 
+    @property
+    @abstractmethod
+    def email(self) -> str:
+        """
+        Some backends have the email of a user.
+
+        :return: the email of this user if available.
+        """
+        pass
+
 
 class RoomOccupant(Identifier):
     @property

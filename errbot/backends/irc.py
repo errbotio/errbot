@@ -74,6 +74,7 @@ class IRCPerson(Person):
 
     def __init__(self, mask):
         self._nickmask = NickMask(mask)
+        self._email = ''
 
     @property
     def nick(self):
@@ -98,6 +99,10 @@ class IRCPerson(Person):
     def fullname(self):
         # TODO: this should be possible to get
         return None
+
+    @property
+    def email(self):
+        return self._email
 
     @property
     def aclattr(self):

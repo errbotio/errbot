@@ -43,6 +43,7 @@ class XMPPIdentifier(Identifier):
         self._node = node
         self._domain = domain
         self._resource = resource
+        self._email = ''
 
     @property
     def node(self):
@@ -67,6 +68,10 @@ class XMPPIdentifier(Identifier):
     @property
     def fullname(self):
         return None  # Not supported by default on XMPP.
+
+    @property
+    def email(self):
+        return self._email
 
     @property
     def client(self):

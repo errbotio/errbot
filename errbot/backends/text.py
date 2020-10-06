@@ -49,6 +49,7 @@ class TextPerson(Person):
         self._client = client
         self._nick = nick
         self._fullname = fullname
+        self._email = ''
 
     @property
     def person(self):
@@ -65,6 +66,10 @@ class TextPerson(Person):
     @property
     def fullname(self):
         return self._fullname
+
+    @property
+    def email(self):
+        return self._email
 
     @property
     def aclattr(self):

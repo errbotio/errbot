@@ -25,20 +25,22 @@ log = logging.getLogger(__name__)
 
 def human_name_for_git_url(url):
     # try to humanize the last part of the git url as much as we can
-    s = url.split(':')[-1].split('/')[-2:]
-    if s[-1].endswith('.git'):
+    s = url.split(":")[-1].split("/")[-2:]
+    if s[-1].endswith(".git"):
         s[-1] = s[-1][:-4]
-    return str('/'.join(s))
+    return str("/".join(s))
 
 
-INSTALLED_REPOS = 'installed_repos'
+INSTALLED_REPOS = "installed_repos"
 
 REPO_INDEXES_CHECK_INTERVAL = timedelta(hours=1)
 
-REPO_INDEX = 'repo_index'
-LAST_UPDATE = 'last_update'
+REPO_INDEX = "repo_index"
+LAST_UPDATE = "last_update"
 
-RepoEntry = namedtuple('RepoEntry', 'entry_name, name, python, repo, path, avatar_url, documentation')
+RepoEntry = namedtuple(
+    "RepoEntry", "entry_name, name, python, repo, path, avatar_url, documentation"
+)
 FIND_WORDS_RE = re.compile(r"(\w[\w']*\w|\w)")
 
 
@@ -47,26 +49,28 @@ class RepoException(Exception):
 
 
 def makeEntry(repo_name: str, plugin_name: str, json_value):
-    return RepoEntry(entry_name=repo_name,
-                     name=plugin_name,
-                     python=json_value['python'],
-                     repo=json_value['repo'],
-                     path=json_value['path'],
-                     avatar_url=json_value['avatar_url'],
-                     documentation=json_value['documentation'])
+    return RepoEntry(
+        entry_name=repo_name,
+        name=plugin_name,
+        python=json_value["python"],
+        repo=json_value["repo"],
+        path=json_value["path"],
+        avatar_url=json_value["avatar_url"],
+        documentation=json_value["documentation"],
+    )
 
 
 def tokenizeJsonEntry(json_dict):
     """
     Returns all the words in a repo entry.
     """
-    search = ' '.join((str(word) for word in json_dict.values()))
+    search = " ".join((str(word) for word in json_dict.values()))
     return set(FIND_WORDS_RE.findall(search.lower()))
 
 
 def which(program):
     if ON_WINDOWS:
-        program += '.exe'
+        program += ".exe"
 
     def is_exe(file_path):
         return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
@@ -85,17 +89,18 @@ def which(program):
 
 
 def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]:
-    """ This methods returns a pair of (message, packages missing).
+    """This methods returns a pair of (message, packages missing).
     Or None, [] if everything is OK.
     """
-    log.debug('check dependencies of %s', req_path)
+    log.debug("check dependencies of %s", req_path)
     # noinspection PyBroadException
     try:
         from pkg_resources import get_distribution
+
         missing_pkg = []
 
         if not req_path.is_file():
-            log.debug('%s has no requirements.txt file', req_path)
+            log.debug("%s has no requirements.txt file", req_path)
             return None, missing_pkg
 
         with req_path.open() as f:
@@ -111,18 +116,30 @@ def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]
                 except Exception:
                     missing_pkg.append(stripped)
         if missing_pkg:
-            return f'You need these dependencies for {req_path}: ' + ','.join(missing_pkg), missing_pkg
+            return (
+                f"You need these dependencies for {req_path}: " + ",".join(missing_pkg),
+                missing_pkg,
+            )
         return None, missing_pkg
     except Exception:
-        log.exception('Problem checking for dependencies.')
-        return 'You need to have setuptools installed for the dependency check of the plugins', []
+        log.exception("Problem checking for dependencies.")
+        return (
+            "You need to have setuptools installed for the dependency check of the plugins",
+            [],
+        )
 
 
 class BotRepoManager(StoreMixin):
     """
     Manages the repo list, git clones/updates or the repos.
     """
-    def __init__(self, storage_plugin: StoragePluginBase, plugin_dir: str, plugin_indexes: Tuple[str, ...]) -> None:
+
+    def __init__(
+        self,
+        storage_plugin: StoragePluginBase,
+        plugin_dir: str,
+        plugin_indexes: Tuple[str, ...],
+    ) -> None:
         """
         Make a repo manager.
         :param storage_plugin: where the manager store its state.
@@ -133,43 +150,50 @@ class BotRepoManager(StoreMixin):
         self.plugin_indexes = plugin_indexes
         self.storage_plugin = storage_plugin
         self.plugin_dir = plugin_dir
-        self.open_storage(storage_plugin, 'repomgr')
+        self.open_storage(storage_plugin, "repomgr")
 
     def shutdown(self) -> None:
         self.close_storage()
 
     def check_for_index_update(self) -> None:
         if REPO_INDEX not in self:
-            log.info('No repo index, creating it.')
+            log.info("No repo index, creating it.")
             self.index_update()
             return
 
-        if datetime.fromtimestamp(self[REPO_INDEX][LAST_UPDATE]) < datetime.now() - REPO_INDEXES_CHECK_INTERVAL:
-            log.info('Index is too old, update it.')
+        if (
+            datetime.fromtimestamp(self[REPO_INDEX][LAST_UPDATE])
+            < datetime.now() - REPO_INDEXES_CHECK_INTERVAL
+        ):
+            log.info("Index is too old, update it.")
             self.index_update()
 
     def index_update(self) -> None:
         index = {LAST_UPDATE: datetime.now().timestamp()}
         for source in reversed(self.plugin_indexes):
             try:
-                if urlparse(source).scheme in ('http', 'https'):
-                    req = Request(source, headers={'User-Agent': 'Errbot'})
+                if urlparse(source).scheme in ("http", "https"):
+                    req = Request(source, headers={"User-Agent": "Errbot"})
                     with urlopen(url=req, timeout=10) as request:  # nosec
-                        log.debug('Update from remote source %s...', source)
+                        log.debug("Update from remote source %s...", source)
                         encoding = request.headers.get_content_charset()
-                        content = request.read().decode(encoding if encoding else 'utf-8')
+                        content = request.read().decode(
+                            encoding if encoding else "utf-8"
+                        )
                 else:
-                    with open(source, encoding='utf-8', mode='r') as src_file:
-                        log.debug('Update from local source %s...', source)
+                    with open(source, encoding="utf-8", mode="r") as src_file:
+                        log.debug("Update from local source %s...", source)
                         content = src_file.read()
                 index.update(json.loads(content))
             except (HTTPError, URLError, IOError):
-                log.exception('Could not update from source %s, keep the index as it is.', source)
+                log.exception(
+                    "Could not update from source %s, keep the index as it is.", source
+                )
                 break
         else:
             # nothing failed so ok, we can store the index.
             self[REPO_INDEX] = index
-            log.debug('Stored %d repo entries.', len(index) - 1)
+            log.debug("Stored %d repo entries.", len(index) - 1)
 
     def get_repo_from_index(self, repo_name: str) -> List[RepoEntry]:
         """
@@ -196,7 +220,7 @@ class BotRepoManager(StoreMixin):
         # first see if we are up to date.
         self.check_for_index_update()
         if REPO_INDEX not in self:
-            log.error('No index.')
+            log.error("No index.")
             return
         query_work_set = set(FIND_WORDS_RE.findall(query.lower()))
         for repo_name, plugins in self[REPO_INDEX].items():
@@ -214,12 +238,14 @@ class BotRepoManager(StoreMixin):
             repos[name] = url
 
     def set_plugin_repos(self, repos: Dict[str, str]) -> None:
-        """ Used externally.
-        """
+        """Used externally."""
         self[INSTALLED_REPOS] = repos
 
     def get_all_repos_paths(self) -> List[str]:
-        return [os.path.join(self.plugin_dir, d) for d in self.get(INSTALLED_REPOS, {}).keys()]
+        return [
+            os.path.join(self.plugin_dir, d)
+            for d in self.get(INSTALLED_REPOS, {}).keys()
+        ]
 
     def install_repo(self, repo: str) -> str:
         """
@@ -238,8 +264,8 @@ class BotRepoManager(StoreMixin):
         # try to find if we have something with that name in our index
         if repo in self[REPO_INDEX]:
             human_name = repo
-            repo_url = next(iter(self[REPO_INDEX][repo].values()))['repo']
-        elif not repo.endswith('tar.gz'):
+            repo_url = next(iter(self[REPO_INDEX][repo].values()))["repo"]
+        elif not repo.endswith("tar.gz"):
             # This is a repo url, make up a plugin definition for it
             human_name = human_name_for_git_url(repo)
             repo_url = repo
@@ -247,18 +273,20 @@ class BotRepoManager(StoreMixin):
             repo_url = repo
 
         # TODO: Update download path of plugin.
-        if repo_url.endswith('tar.gz'):
+        if repo_url.endswith("tar.gz"):
             fo = urlopen(repo_url)  # nosec
-            tar = tarfile.open(fileobj=fo, mode='r:gz')
+            tar = tarfile.open(fileobj=fo, mode="r:gz")
             tar.extractall(path=self.plugin_dir)
-            s = repo_url.split(':')[-1].split('/')[-1]
-            human_name = s[:-len('.tar.gz')]
+            s = repo_url.split(":")[-1].split("/")[-1]
+            human_name = s[: -len(".tar.gz")]
         else:
             human_name = human_name or human_name_for_git_url(repo_url)
             try:
                 git_clone(repo_url, os.path.join(self.plugin_dir, human_name))
             except Exception as exception:  # dulwich errors all base on exceptions.Exception
-                raise RepoException(f'Could not load this plugin: \n\n{repo_url}\n\n---\n\n{exception}')
+                raise RepoException(
+                    f"Could not load this plugin: \n\n{repo_url}\n\n---\n\n{exception}"
+                )
 
         self.add_plugin_repo(human_name, repo_url)
         return os.path.join(self.plugin_dir, human_name)
@@ -281,9 +309,9 @@ class BotRepoManager(StoreMixin):
                 feedback = f"Error pulling remote {exception}"
                 pass
 
-            dep_err, missing_pkgs = check_dependencies(Path(d) / 'requirements.txt')
+            dep_err, missing_pkgs = check_dependencies(Path(d) / "requirements.txt")
             if dep_err:
-                feedback += dep_err + '\n'
+                feedback += dep_err + "\n"
             yield d, success, feedback
 
     def update_all_repos(self) -> Generator[Tuple[str, int, str], None, None]:
@@ -294,5 +322,5 @@ class BotRepoManager(StoreMixin):
         # ignore errors because the DB can be desync'ed from the file tree.
         shutil.rmtree(repo_path, ignore_errors=True)
         repos = self.get_installed_plugin_repos()
-        del(repos[name])
+        del repos[name]
         self.set_plugin_repos(repos)

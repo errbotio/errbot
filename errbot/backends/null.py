@@ -22,7 +22,7 @@ class NullBackend(ErrBot):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.bot_identifier = self.build_identifier('Err')  # whatever
+        self.bot_identifier = self.build_identifier("Err")  # whatever
 
     def serve_forever(self):
         self.connect()  # be sure we are "connected" before the first command
@@ -54,7 +54,7 @@ class NullBackend(ErrBot):
             self.running = False
             super().shutdown()  # only once (hackish)
 
-    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         pass
 
     def build_reply(self, msg, text=None, private=False, threaded=False):
@@ -71,4 +71,4 @@ class NullBackend(ErrBot):
 
     @property
     def mode(self):
-        return 'null'
+        return "null"

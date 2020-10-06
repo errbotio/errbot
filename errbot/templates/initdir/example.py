@@ -15,4 +15,4 @@ class Example(BotPlugin):
         Feel free to tweak me to experiment with Errbot.
         You can find me in your init directory in the subdirectory plugins.
         """
-        return 'It *works* !'  # This string format is markdown.
+        return "It *works* !"  # This string format is markdown.

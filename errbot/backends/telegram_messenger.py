@@ -1,14 +1,22 @@
 import logging
 import sys
 
-from errbot.backends.base import RoomError, Identifier, Person, RoomOccupant, Stream, ONLINE, Room
+from errbot.backends.base import (
+    RoomError,
+    Identifier,
+    Person,
+    RoomOccupant,
+    Stream,
+    ONLINE,
+    Room,
+)
 from errbot.core import ErrBot
 from errbot.rendering import text
 from errbot.rendering.ansiext import enable_format, TEXT_CHRS
 
 log = logging.getLogger(__name__)
 
-UPDATES_OFFSET_KEY = '_telegram_updates_offset'
+UPDATES_OFFSET_KEY = "_telegram_updates_offset"
 
 try:
     import telegram
@@ -160,7 +168,9 @@ class TelegramMUCOccupant(TelegramPerson, RoomOccupant):
     """
 
     def __init__(self, id, room, first_name=None, last_name=None, username=None):
-        super().__init__(id=id, first_name=first_name, last_name=last_name, username=username)
+        super().__init__(
+            id=id, first_name=first_name, last_name=last_name, username=username
+        )
         self._room = room
 
     @property
@@ -175,10 +185,10 @@ class TelegramMUCOccupant(TelegramPerson, RoomOccupant):
 class TelegramBackend(ErrBot):
     def __init__(self, config):
         super().__init__(config)
-        logging.getLogger('telegram.bot').addFilter(TelegramBotFilter())
+        logging.getLogger("telegram.bot").addFilter(TelegramBotFilter())
 
         identity = config.BOT_IDENTITY
-        self.token = identity.get('token', None)
+        self.token = identity.get("token", None)
         if not self.token:
             log.fatal(
                 "You need to supply a token for me to use. You can obtain "
@@ -188,8 +198,8 @@ class TelegramBackend(ErrBot):
         self.telegram = None  # Will be initialized in serve_once
         self.bot_instance = None  # Will be set in serve_once
 
-        compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
-        enable_format('text', TEXT_CHRS, borders=not compact)
+        compact = config.COMPACT_OUTPUT if hasattr(config, "COMPACT_OUTPUT") else False
+        enable_format("text", TEXT_CHRS, borders=not compact)
         self.md_converter = text()
 
     def set_message_size_limit(self, limit=1024, hard_limit=1024):
@@ -211,7 +221,7 @@ class TelegramBackend(ErrBot):
             id=me.id,
             first_name=me.first_name,
             last_name=me.last_name,
-            username=me.username
+            username=me.username,
         )
 
         log.info("Connected")
@@ -230,7 +240,7 @@ class TelegramBackend(ErrBot):
                     offset = update.update_id + 1
                     self[UPDATES_OFFSET_KEY] = offset
                     log.debug("Processing update: %s", update)
-                    if not hasattr(update, 'message'):
+                    if not hasattr(update, "message"):
                         log.warning("Unknown update type (no message present)")
                         continue
                     try:
@@ -260,12 +270,12 @@ class TelegramBackend(ErrBot):
             return
 
         message_instance = self.build_message(message.text)
-        if message.chat['type'] == 'private':
+        if message.chat["type"] == "private":
             message_instance.frm = TelegramPerson(
                 id=message.from_user.id,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
-                username=message.from_user.username
+                username=message.from_user.username,
             )
             message_instance.to = self.bot_identifier
         else:
@@ -275,10 +285,10 @@ class TelegramBackend(ErrBot):
                 room=room,
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
-                username=message.from_user.username
+                username=message.from_user.username,
             )
             message_instance.to = room
-        message_instance.extras['message_id'] = message.message_id
+        message_instance.extras["message_id"] = message.message_id
         self.callback_message(message_instance)
 
     def send_message(self, msg):
@@ -288,10 +298,11 @@ class TelegramBackend(ErrBot):
             self.telegram.sendMessage(msg.to.id, body)
         except Exception:
             log.exception(
-                f'An exception occurred while trying to send the following message to {msg.to.id}: {msg.body}')
+                f"An exception occurred while trying to send the following message to {msg.to.id}: {msg.body}"
+            )
             raise
 
-    def change_presence(self, status: str = ONLINE, message: str = '') -> None:
+    def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         # It looks like telegram doesn't supports online presence for privacy reason.
         pass
 
@@ -299,9 +310,9 @@ class TelegramBackend(ErrBot):
         """
         Convert a textual representation into a :class:`~TelegramPerson` or :class:`~TelegramRoom`.
         """
-        log.debug('building an identifier from %s.', txtrep)
+        log.debug("building an identifier from %s.", txtrep)
         if not self._is_numeric(txtrep):
-            raise ValueError('Telegram identifiers must be numeric.')
+            raise ValueError("Telegram identifiers must be numeric.")
         id_ = int(txtrep)
         if id_ > 0:
             return TelegramPerson(id=id_)
@@ -319,7 +330,7 @@ class TelegramBackend(ErrBot):
 
     @property
     def mode(self):
-        return 'telegram'
+        return "telegram"
 
     def query_room(self, room):
         """
@@ -339,39 +350,35 @@ class TelegramBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         super().prefix_groupchat_reply(message, identifier)
-        message.body = f'@{identifier.nick}: {message.body}'
+        message.body = f"@{identifier.nick}: {message.body}"
 
     def _telegram_special_message(self, chat_id, content, msg_type, **kwargs):
         """Send special message."""
-        if msg_type == 'document':
-            msg = self.telegram.sendDocument(chat_id=chat_id,
-                                             document=content,
-                                             **kwargs)
-        elif msg_type == 'photo':
-            msg = self.telegram.sendPhoto(chat_id=chat_id,
-                                          photo=content,
-                                          **kwargs)
+        if msg_type == "document":
+            msg = self.telegram.sendDocument(
+                chat_id=chat_id, document=content, **kwargs
+            )
+        elif msg_type == "photo":
+            msg = self.telegram.sendPhoto(chat_id=chat_id, photo=content, **kwargs)
 
-        elif msg_type == 'audio':
-            msg = self.telegram.sendAudio(chat_id=chat_id,
-                                          audio=content,
-                                          **kwargs)
+        elif msg_type == "audio":
+            msg = self.telegram.sendAudio(chat_id=chat_id, audio=content, **kwargs)
 
-        elif msg_type == 'video':
-            msg = self.telegram.sendVideo(chat_id=chat_id,
-                                          video=content,
-                                          **kwargs)
-        elif msg_type == 'sticker':
-            msg = self.telegram.sendSticker(chat_id=chat_id,
-                                            sticker=content,
-                                            **kwargs)
-        elif msg_type == 'location':
-            msg = self.telegram.sendLocation(chat_id=chat_id,
-                                             latitude=kwargs.pop('latitude', ''),
-                                             longitude=kwargs.pop('longitude', ''),
-                                             **kwargs)
+        elif msg_type == "video":
+            msg = self.telegram.sendVideo(chat_id=chat_id, video=content, **kwargs)
+        elif msg_type == "sticker":
+            msg = self.telegram.sendSticker(chat_id=chat_id, sticker=content, **kwargs)
+        elif msg_type == "location":
+            msg = self.telegram.sendLocation(
+                chat_id=chat_id,
+                latitude=kwargs.pop("latitude", ""),
+                longitude=kwargs.pop("longitude", ""),
+                **kwargs,
+            )
         else:
-            raise ValueError(f'Expected a valid choice for `msg_type`, got: {msg_type}.')
+            raise ValueError(
+                f"Expected a valid choice for `msg_type`, got: {msg_type}."
+            )
         return msg
 
     def _telegram_upload_stream(self, stream, **kwargs):
@@ -379,19 +386,23 @@ class TelegramBackend(ErrBot):
         msg = None
         try:
             stream.accept()
-            msg = self._telegram_special_message(chat_id=stream.identifier.id,
-                                                 content=stream.raw,
-                                                 msg_type=stream.stream_type,
-                                                 **kwargs)
+            msg = self._telegram_special_message(
+                chat_id=stream.identifier.id,
+                content=stream.raw,
+                msg_type=stream.stream_type,
+                **kwargs,
+            )
         except Exception:
-            log.exception(f'Upload of {stream.name} to {stream.identifier} failed.')
+            log.exception(f"Upload of {stream.name} to {stream.identifier} failed.")
         else:
             if msg is None:
                 stream.error()
             else:
                 stream.success()
 
-    def send_stream_request(self, identifier, fsource, name='file', size=None, stream_type=None):
+    def send_stream_request(
+        self, identifier, fsource, name="file", size=None, stream_type=None
+    ):
         """Starts a file transfer.
 
         :param identifier: TelegramPerson or TelegramMUCOccupant
@@ -425,7 +436,7 @@ class TelegramBackend(ErrBot):
 
         def _telegram_metadata(fsource):
             if isinstance(fsource, dict):
-                return fsource.pop('content'), fsource
+                return fsource.pop("content"), fsource
             else:
                 return fsource, None
 
@@ -440,20 +451,29 @@ class TelegramBackend(ErrBot):
         content, meta = _telegram_metadata(fsource)
         if isinstance(content, str):
             if not _is_valid_url(content):
-                raise ValueError(f'Not valid URL: {content}')
+                raise ValueError(f"Not valid URL: {content}")
 
-            self._telegram_special_message(chat_id=identifier.id,
-                                           content=content,
-                                           msg_type=stream_type,
-                                           **meta)
-            log.debug('Requesting upload of %s to %s (size hint: %d, stream type: %s).',
-                      name, identifier.username, size, stream_type)
+            self._telegram_special_message(
+                chat_id=identifier.id, content=content, msg_type=stream_type, **meta
+            )
+            log.debug(
+                "Requesting upload of %s to %s (size hint: %d, stream type: %s).",
+                name,
+                identifier.username,
+                size,
+                stream_type,
+            )
 
             stream = content
         else:
             stream = Stream(identifier, content, name, size, stream_type)
-            log.debug('Requesting upload of %s to %s (size hint: %d, stream type: %s)',
-                      name, identifier, size, stream_type)
+            log.debug(
+                "Requesting upload of %s to %s (size hint: %d, stream type: %s)",
+                name,
+                identifier,
+                size,
+                stream_type,
+            )
             self.thread_pool.apply_async(self._telegram_upload_stream, (stream,))
 
         return stream

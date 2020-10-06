@@ -10,7 +10,7 @@ class StreamingClient(object):
 
 
 def test_streaming():
-    canary = b'this is my test' * 1000
+    canary = b"this is my test" * 1000
     source = Stream(TestPerson("gbin@gootz.net"), BytesIO(canary))
     clients = [StreamingClient() for _ in range(50)]
     Tee(source, clients).run()

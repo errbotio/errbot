@@ -9,18 +9,41 @@ from typing import Callable, Any, Tuple
 
 from .core_plugins.wsview import WebView
 from .backends.base import Message, ONLINE, OFFLINE, AWAY, DND  # noqa
-from .botplugin import BotPlugin, SeparatorArgParser, ShlexArgParser, CommandError, Command, ValidationException  # noqa
+from .botplugin import (
+    BotPlugin,
+    SeparatorArgParser,
+    ShlexArgParser,
+    CommandError,
+    Command,
+    ValidationException,
+)  # noqa
 from .flow import FlowRoot, BotFlow, Flow, FLOW_END
 from .core_plugins.wsview import route
 from . import core
 
-__all__ = ['BotPlugin', 'CommandError', 'Command', 'webhook', 'webroute', 'cmdfilter',
-           'botcmd', 're_botcmd', 'arg_botcmd', 'botflow', 'botmatch', 'BotFlow', 'FlowRoot', 'Flow', 'FLOW_END',
-           ]
+__all__ = [
+    "BotPlugin",
+    "CommandError",
+    "Command",
+    "webhook",
+    "webroute",
+    "cmdfilter",
+    "botcmd",
+    "re_botcmd",
+    "arg_botcmd",
+    "botflow",
+    "botmatch",
+    "BotFlow",
+    "FlowRoot",
+    "Flow",
+    "FLOW_END",
+]
 
 log = logging.getLogger(__name__)
 
-webroute = route  # this allows plugins to expose dynamic webpages on Errbot embedded webserver
+webroute = (
+    route  # this allows plugins to expose dynamic webpages on Errbot embedded webserver
+)
 
 # Some clients automatically convert consecutive dashes into a fancy
 # hyphen, which breaks long-form arguments. Undo this conversion to
@@ -28,7 +51,7 @@ webroute = route  # this allows plugins to expose dynamic webpages on Errbot emb
 # Same happens with quotations marks, which are required for parsing
 # complex strings in arguments
 # Map of characters to sanitized equivalents
-ARG_BOTCMD_CHARACTER_REPLACEMENTS = {'—': '--', '“': '"', '”': '"', '’': '\'', '‘': '\''}
+ARG_BOTCMD_CHARACTER_REPLACEMENTS = {"—": "--", "“": '"', "”": '"', "’": "'", "‘": "'"}
 
 
 class ArgumentParseError(Exception):
@@ -55,27 +78,29 @@ class ArgumentParser(argparse.ArgumentParser):
         raise HelpRequested()
 
 
-def _tag_botcmd(func,
-                hidden=None,
-                name=None,
-                split_args_with='',
-                admin_only=False,
-                historize=True,
-                template=None,
-                flow_only=False,
-                _re=False,
-                syntax=None,  # botcmd_only
-                pattern=None,  # re_cmd only
-                flags=0,  # re_cmd only
-                matchall=False,  # re_cmd_only
-                prefixed=True,  # re_cmd_only
-                _arg=False,
-                command_parser=None,  # arg_cmd only
-                re_cmd_name_help=None):  # re_cmd_only
+def _tag_botcmd(
+    func,
+    hidden=None,
+    name=None,
+    split_args_with="",
+    admin_only=False,
+    historize=True,
+    template=None,
+    flow_only=False,
+    _re=False,
+    syntax=None,  # botcmd_only
+    pattern=None,  # re_cmd only
+    flags=0,  # re_cmd only
+    matchall=False,  # re_cmd_only
+    prefixed=True,  # re_cmd_only
+    _arg=False,
+    command_parser=None,  # arg_cmd only
+    re_cmd_name_help=None,
+):  # re_cmd_only
     """
     Mark a method as a bot command.
     """
-    if not hasattr(func, '_err_command'):  # don't override generated functions
+    if not hasattr(func, "_err_command"):  # don't override generated functions
         func._err_command = True
         func._err_command_name = name or func.__name__
         func._err_command_split_args_with = split_args_with
@@ -103,15 +128,17 @@ def _tag_botcmd(func,
     return func
 
 
-def botcmd(*args,
-           hidden: bool = None,
-           name: str = None,
-           split_args_with: str = '',
-           admin_only: bool = False,
-           historize: bool = True,
-           template: str = None,
-           flow_only: bool = False,
-           syntax: str = None) -> Callable[[BotPlugin, Message, Any], Any]:
+def botcmd(
+    *args,
+    hidden: bool = None,
+    name: str = None,
+    split_args_with: str = "",
+    admin_only: bool = False,
+    historize: bool = True,
+    template: str = None,
+    flow_only: bool = False,
+    syntax: str = None,
+) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for bot command functions
 
@@ -142,33 +169,37 @@ def botcmd(*args,
     """
 
     def decorator(func):
-        return _tag_botcmd(func,
-                           _re=False,
-                           _arg=False,
-                           hidden=hidden,
-                           name=name or func.__name__,
-                           split_args_with=split_args_with,
-                           admin_only=admin_only,
-                           historize=historize,
-                           template=template,
-                           syntax=syntax,
-                           flow_only=flow_only)
+        return _tag_botcmd(
+            func,
+            _re=False,
+            _arg=False,
+            hidden=hidden,
+            name=name or func.__name__,
+            split_args_with=split_args_with,
+            admin_only=admin_only,
+            historize=historize,
+            template=template,
+            syntax=syntax,
+            flow_only=flow_only,
+        )
 
     return decorator(args[0]) if args else decorator
 
 
-def re_botcmd(*args,
-              hidden: bool = None,
-              name: str = None,
-              admin_only: bool = False,
-              historize: bool = True,
-              template: str = None,
-              pattern: str = None,
-              flags: int = 0,
-              matchall: bool = False,
-              prefixed: bool = True,
-              flow_only: bool = False,
-              re_cmd_name_help: str = None) -> Callable[[BotPlugin, Message, Any], Any]:
+def re_botcmd(
+    *args,
+    hidden: bool = None,
+    name: str = None,
+    admin_only: bool = False,
+    historize: bool = True,
+    template: str = None,
+    pattern: str = None,
+    flags: int = 0,
+    matchall: bool = False,
+    prefixed: bool = True,
+    flow_only: bool = False,
+    re_cmd_name_help: str = None,
+) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for regex-based bot command functions
 
@@ -206,20 +237,22 @@ def re_botcmd(*args,
     """
 
     def decorator(func):
-        return _tag_botcmd(func,
-                           _re=True,
-                           _arg=False,
-                           hidden=hidden,
-                           name=name or func.__name__,
-                           admin_only=admin_only,
-                           historize=historize,
-                           template=template,
-                           pattern=pattern,
-                           flags=flags,
-                           matchall=matchall,
-                           prefixed=prefixed,
-                           flow_only=flow_only,
-                           re_cmd_name_help=re_cmd_name_help)
+        return _tag_botcmd(
+            func,
+            _re=True,
+            _arg=False,
+            hidden=hidden,
+            name=name or func.__name__,
+            admin_only=admin_only,
+            historize=historize,
+            template=template,
+            pattern=pattern,
+            flags=flags,
+            matchall=matchall,
+            prefixed=prefixed,
+            flow_only=flow_only,
+            re_cmd_name_help=re_cmd_name_help,
+        )
 
     return decorator(args[0]) if args else decorator
 
@@ -253,36 +286,42 @@ def botmatch(*args, **kwargs):
     """
 
     def decorator(func, pattern):
-        return _tag_botcmd(func,
-                           _re=True,
-                           _arg=False,
-                           prefixed=False,
-                           hidden=kwargs.get('hidden', None),
-                           name=kwargs.get('name', func.__name__),
-                           admin_only=kwargs.get('admin_only', False),
-                           flow_only=kwargs.get('flow_only', False),
-                           historize=kwargs.get('historize', True),
-                           template=kwargs.get('template', None),
-                           pattern=pattern,
-                           flags=kwargs.get('flags', 0),
-                           matchall=kwargs.get('matchall', False))
+        return _tag_botcmd(
+            func,
+            _re=True,
+            _arg=False,
+            prefixed=False,
+            hidden=kwargs.get("hidden", None),
+            name=kwargs.get("name", func.__name__),
+            admin_only=kwargs.get("admin_only", False),
+            flow_only=kwargs.get("flow_only", False),
+            historize=kwargs.get("historize", True),
+            template=kwargs.get("template", None),
+            pattern=pattern,
+            flags=kwargs.get("flags", 0),
+            matchall=kwargs.get("matchall", False),
+        )
 
     if len(args) == 2:
         return decorator(*args)
     if len(args) == 1:
         return lambda f: decorator(f, args[0])
-    raise ValueError("botmatch: You need to pass the pattern as parameter to the decorator.")
+    raise ValueError(
+        "botmatch: You need to pass the pattern as parameter to the decorator."
+    )
 
 
-def arg_botcmd(*args,
-               hidden: bool = None,
-               name: str = None,
-               admin_only: bool = False,
-               historize: bool = True,
-               template: str = None,
-               flow_only: bool = False,
-               unpack_args: bool = True,
-               **kwargs) -> Callable[[BotPlugin, Message, Any], Any]:
+def arg_botcmd(
+    *args,
+    hidden: bool = None,
+    name: str = None,
+    admin_only: bool = False,
+    historize: bool = True,
+    template: str = None,
+    flow_only: bool = False,
+    unpack_args: bool = True,
+    **kwargs,
+) -> Callable[[BotPlugin, Message, Any], Any]:
     """
     Decorator for argparse-based bot command functions
 
@@ -341,7 +380,7 @@ def arg_botcmd(*args,
 
     def decorator(func):
 
-        if not hasattr(func, '_err_command'):
+        if not hasattr(func, "_err_command"):
 
             err_command_parser = ArgumentParser(
                 prog=name or func.__name__,
@@ -353,8 +392,14 @@ def arg_botcmd(*args,
 
                 # Attempt to sanitize arguments of bad characters
                 try:
-                    sanitizer_re = re.compile('|'.join(re.escape(ii) for ii in ARG_BOTCMD_CHARACTER_REPLACEMENTS))
-                    args = sanitizer_re.sub(lambda mm: ARG_BOTCMD_CHARACTER_REPLACEMENTS[mm.group()], args)
+                    sanitizer_re = re.compile(
+                        "|".join(
+                            re.escape(ii) for ii in ARG_BOTCMD_CHARACTER_REPLACEMENTS
+                        )
+                    )
+                    args = sanitizer_re.sub(
+                        lambda mm: ARG_BOTCMD_CHARACTER_REPLACEMENTS[mm.group()], args
+                    )
                     args = shlex.split(args)
                     parsed_args = err_command_parser.parse_args(args)
                 except ArgumentParseError as e:
@@ -382,16 +427,18 @@ def arg_botcmd(*args,
                 else:
                     yield func(self, msg, *func_args, **func_kwargs)
 
-            _tag_botcmd(wrapper,
-                        _re=False,
-                        _arg=True,
-                        hidden=hidden,
-                        name=name or wrapper.__name__,
-                        admin_only=admin_only,
-                        historize=historize,
-                        template=template,
-                        flow_only=flow_only,
-                        command_parser=err_command_parser)
+            _tag_botcmd(
+                wrapper,
+                _re=False,
+                _arg=True,
+                hidden=hidden,
+                name=name or wrapper.__name__,
+                admin_only=admin_only,
+                historize=historize,
+                template=template,
+                flow_only=flow_only,
+                command_parser=err_command_parser,
+            )
         else:
             # the function has already been wrapped
             # alias it so we can update it's arguments below
@@ -400,7 +447,9 @@ def arg_botcmd(*args,
         wrapper._err_command_parser.add_argument(*argparse_args, **kwargs)
         wrapper.__doc__ = wrapper._err_command_parser.format_help()
         fmt = wrapper._err_command_parser.format_usage()
-        wrapper._err_command_syntax = fmt[len('usage: ') + len(wrapper._err_command_parser.prog) + 1:-1]
+        wrapper._err_command_syntax = fmt[
+            len("usage: ") + len(wrapper._err_command_parser.prog) + 1 : -1
+        ]
 
         return wrapper
 
@@ -417,13 +466,15 @@ def _tag_webhook(func, uri_rule, methods, form_param, raw):
 
 
 def _uri_from_func(func):
-    return r'/' + func.__name__
+    return r"/" + func.__name__
 
 
-def webhook(*args,
-            methods: Tuple[str] = ('POST', 'GET'),
-            form_param: str = None,
-            raw: bool = False) -> Callable[[BotPlugin, Any], str]:
+def webhook(
+    *args,
+    methods: Tuple[str] = ("POST", "GET"),
+    form_param: str = None,
+    raw: bool = False,
+) -> Callable[[BotPlugin, Any], str]:
     """
     Decorator for webhooks
 
@@ -458,24 +509,27 @@ def webhook(*args,
     """
 
     if not args:  # default uri_rule but with kwargs.
-        return lambda func: _tag_webhook(func,
-                                         _uri_from_func(func),
-                                         methods=methods,
-                                         form_param=form_param,
-                                         raw=raw)
+        return lambda func: _tag_webhook(
+            func, _uri_from_func(func), methods=methods, form_param=form_param, raw=raw
+        )
 
     if isinstance(args[0], str):  # first param is uri_rule.
-        return lambda func: _tag_webhook(func,
-                                         args[0] if args[0] == '/'
-                                         else args[0].rstrip('/'),  # trailing / is also be stripped on incoming.
-                                         methods=methods,
-                                         form_param=form_param,
-                                         raw=raw)
-    return _tag_webhook(args[0],  # naked decorator so the first parameter is a function.
-                        _uri_from_func(args[0]),
-                        methods=methods,
-                        form_param=form_param,
-                        raw=raw)
+        return lambda func: _tag_webhook(
+            func,
+            args[0]
+            if args[0] == "/"
+            else args[0].rstrip("/"),  # trailing / is also be stripped on incoming.
+            methods=methods,
+            form_param=form_param,
+            raw=raw,
+        )
+    return _tag_webhook(
+        args[0],  # naked decorator so the first parameter is a function.
+        _uri_from_func(args[0]),
+        methods=methods,
+        form_param=form_param,
+        raw=raw,
+    )
 
 
 def cmdfilter(*args, **kwargs):
@@ -514,9 +568,11 @@ def cmdfilter(*args, **kwargs):
     """
 
     def decorate(func):
-        if not hasattr(func, '_err_command_filter'):  # don't override generated functions
+        if not hasattr(
+            func, "_err_command_filter"
+        ):  # don't override generated functions
             func._err_command_filter = True
-        func.catch_unprocessed = kwargs.get('catch_unprocessed', False)
+        func.catch_unprocessed = kwargs.get("catch_unprocessed", False)
         return func
 
     if len(args):
@@ -532,7 +588,7 @@ def botflow(*args, **kwargs):
     """
 
     def decorate(func):
-        if not hasattr(func, '_err_flow'):  # don't override generated functions
+        if not hasattr(func, "_err_flow"):  # don't override generated functions
             func._err_flow = True
         return func
 

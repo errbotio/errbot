@@ -24,6 +24,6 @@ def test_mde2md():
 
 def test_escaping():
     mdc = rendering.text()
-    original = '#not a title\n*not italic*\n`not code`\ntoto{not annotation}'
+    original = "#not a title\n*not italic*\n`not code`\ntoto{not annotation}"
     escaped = rendering.md_escape(original)
     assert original == mdc.convert(escaped)

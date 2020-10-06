@@ -3,22 +3,22 @@ from errbot import BotPlugin, botcmd, re_botcmd, botmatch
 
 
 class DummyTest(BotPlugin):
-    """Just a test plugin to see if it is picked up.
-    """
+    """Just a test plugin to see if it is picked up."""
+
     @botcmd
     def foo(self, msg, args):
         """This runs foo."""
-        return 'bar'
+        return "bar"
 
     @re_botcmd(pattern=r"plz dont match this")
     def re_foo(self, msg, match):
         """This runs re_foo."""
-        return 'bar'
+        return "bar"
 
     @botmatch(r"match this")
     def re_bar(self, msg, match):
         """This runs re_foo."""
-        return 'bar'
+        return "bar"
 
     @botcmd
     def run_subcommands(self, msg, args):
@@ -36,7 +36,7 @@ class DummyTest(BotPlugin):
     @botcmd
     def baz(self, msg, args):
         """Tests mock injection method"""
-        return self.helper_method('baz')
+        return self.helper_method("baz")
 
     @botcmd
     def bar(self, msg, args):

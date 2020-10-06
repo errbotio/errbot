@@ -10,16 +10,16 @@ log = logging.getLogger(__name__)
 
 def test_node():
     root = FlowRoot("test", "This is my flowroot")
-    node = root.connect("a", lambda ctx: ctx['toto'] == 'titui')
+    node = root.connect("a", lambda ctx: ctx["toto"] == "titui")
 
-    assert root.predicate_for_node(node)({'toto': 'titui'})
-    assert not root.predicate_for_node(node)({'toto': 'blah'})
+    assert root.predicate_for_node(node)({"toto": "titui"})
+    assert not root.predicate_for_node(node)({"toto": "blah"})
 
 
 def test_flow_predicate():
     root = FlowRoot("test", "This is my flowroot")
-    node = root.connect("a", lambda ctx: 'toto' in ctx and ctx['toto'] == 'titui')
-    somebody = TestPerson('me')
+    node = root.connect("a", lambda ctx: "toto" in ctx and ctx["toto"] == "titui")
+    somebody = TestPerson("me")
 
     # Non-matching predicate
     flow = Flow(root, somebody, {})
@@ -32,7 +32,7 @@ def test_flow_predicate():
     assert flow._current_step == node
 
     # Matching predicate
-    flow = Flow(root, somebody, {'toto': 'titui'})
+    flow = Flow(root, somebody, {"toto": "titui"})
     assert node in flow.next_steps()
     assert node in flow.next_autosteps()
     flow.advance(node)
@@ -41,5 +41,7 @@ def test_flow_predicate():
 
 def test_autotrigger():
     root = FlowRoot("test", "This is my flowroot")
-    node = root.connect("a", lambda ctx: 'toto' in ctx and ctx['toto'] == 'titui', auto_trigger=True)
+    node = root.connect(
+        "a", lambda ctx: "toto" in ctx and ctx["toto"] == "titui", auto_trigger=True
+    )
     assert node.command in root.auto_triggers

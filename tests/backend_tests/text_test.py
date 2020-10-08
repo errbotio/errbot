@@ -1,9 +1,9 @@
+import logging
+import os
 import sys
 from tempfile import mkdtemp
 
 import pytest
-import logging
-import os
 
 from errbot.backends.text import TextBackend
 from errbot.bootstrap import bot_config_defaults

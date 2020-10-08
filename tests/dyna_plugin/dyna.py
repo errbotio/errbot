@@ -1,5 +1,6 @@
 from __future__ import absolute_import
-from errbot import BotPlugin, botcmd, Command, botmatch, arg_botcmd
+
+from errbot import BotPlugin, Command, arg_botcmd, botcmd, botmatch
 
 
 def say_foo(plugin, msg, args):

@@ -1,24 +1,22 @@
-from typing import Tuple, Union, Sequence, List, Generator, Dict
-
 import json
-import re
 import logging
 import os
+import re
 import shutil
-from collections import namedtuple
-from datetime import timedelta, datetime
-from os import path
 import tarfile
+from collections import namedtuple
+from datetime import datetime, timedelta
+from os import path
 from pathlib import Path
+from typing import Dict, Generator, List, Sequence, Tuple, Union
 from urllib.error import HTTPError, URLError
-from urllib.request import urlopen, Request
 from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 from errbot.storage import StoreMixin
 from errbot.storage.base import StoragePluginBase
-from .utils import git_clone
-from .utils import git_pull
-from .utils import ON_WINDOWS
+
+from .utils import ON_WINDOWS, git_clone, git_pull
 
 log = logging.getLogger(__name__)
 

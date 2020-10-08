@@ -1,12 +1,11 @@
-from time import sleep
-
 import copyreg
 import json
 import logging
+import pprint
 import re
 import sys
-import pprint
 from functools import lru_cache
+from time import sleep
 from typing import BinaryIO
 
 from markdown import Markdown
@@ -30,15 +29,14 @@ from errbot.backends.base import (
     UserNotUniqueError,
 )
 from errbot.core import ErrBot
+from errbot.rendering.ansiext import IMTEXT_CHRS, AnsiExtension, enable_format
 from errbot.utils import split_string_after
-from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
 log = logging.getLogger(__name__)
 
 
 try:
-    from slack import RTMClient
-    from slack import WebClient
+    from slack import RTMClient, WebClient
     from slack.errors import BotUserAccessError
 except ImportError:
     log.exception("Could not start the SlackRTM backend")

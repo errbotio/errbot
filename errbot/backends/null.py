@@ -1,7 +1,7 @@
 import logging
 from time import sleep
-from errbot.backends.base import ONLINE
 
+from errbot.backends.base import ONLINE
 from errbot.backends.test import TestPerson
 from errbot.core import ErrBot
 

@@ -1,8 +1,9 @@
 import sys
-
-import pytest
 from io import StringIO
 from pathlib import Path
+
+import pytest
+
 from errbot.plugin_info import PluginInfo
 
 plugfile_base = Path(__file__).absolute().parent / "config_plugin"

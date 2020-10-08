@@ -1,18 +1,16 @@
-import sys
 import os
+import sys
 from json import loads
 from random import randrange
 from threading import Thread
-
-from webtest import TestApp
-from errbot.core_plugins import flask_app
-from werkzeug.serving import ThreadedWSGIServer
-
-from errbot import botcmd, BotPlugin, webhook
-
 from urllib.request import unquote
 
 from OpenSSL import crypto
+from webtest import TestApp
+from werkzeug.serving import ThreadedWSGIServer
+
+from errbot import BotPlugin, botcmd, webhook
+from errbot.core_plugins import flask_app
 
 TEST_REPORT = """*** Test Report
 URL : %s

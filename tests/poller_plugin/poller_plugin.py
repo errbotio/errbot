@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 from errbot import BotPlugin, botcmd
 
 

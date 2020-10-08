@@ -1,25 +1,23 @@
+import email.mime.application
 import logging
 import re
 import sys
+from email.mime.multipart import MIMEMultipart
 from functools import lru_cache
+
+import requests
+from markdown import Markdown
+from markdown.extensions import Extension
+from markdown.extensions.extra import ExtraExtension
+from markdown.treeprocessors import Treeprocessor
 
 from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream
 from errbot.backends.xmpp import (
-    XMPPRoomOccupant,
     XMPPBackend,
     XMPPConnection,
+    XMPPRoomOccupant,
     split_identifier,
 )
-
-from markdown import Markdown
-from markdown.extensions.extra import ExtraExtension
-from markdown.extensions import Extension
-from markdown.treeprocessors import Treeprocessor
-
-from email.mime.multipart import MIMEMultipart
-import email.mime.application
-
-import requests
 
 log = logging.getLogger(__name__)
 

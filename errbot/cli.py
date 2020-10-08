@@ -15,13 +15,13 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import argparse
+import ast
 import logging
 import os
 import sys
-from os import path, sep, getcwd, access, W_OK
+from os import W_OK, access, getcwd, path, sep
 from pathlib import Path
 from platform import system
-import ast
 
 from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger
@@ -49,10 +49,11 @@ def debug(sig, frame):
 ON_WINDOWS = system() == "Windows"
 
 if not ON_WINDOWS:
-    from daemonize import Daemonize
     import code
-    import traceback
     import signal
+    import traceback
+
+    from daemonize import Daemonize
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
@@ -199,9 +200,10 @@ def main():
 
     if args["init"]:
         try:
-            import jinja2
-            import shutil
             import pathlib
+            import shutil
+
+            import jinja2
 
             base_dir = pathlib.Path.cwd() if args["init"] == "." else Path(args["init"])
 

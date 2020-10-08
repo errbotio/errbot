@@ -1,9 +1,10 @@
 import logging
 
 import pytest
-from errbot.core import ErrBot
-from errbot.bootstrap import CORE_BACKENDS
+
 from errbot.backend_plugin_manager import BackendPluginManager
+from errbot.bootstrap import CORE_BACKENDS
+from errbot.core import ErrBot
 
 logging.basicConfig(level=logging.DEBUG)
 

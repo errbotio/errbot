@@ -1,7 +1,9 @@
 import logging
-from errbot.plugin_info import PluginInfo
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader
+
+from errbot.plugin_info import PluginInfo
 
 log = logging.getLogger(__name__)
 

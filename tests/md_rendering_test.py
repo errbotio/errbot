@@ -1,5 +1,6 @@
 # vim: ts=4:sw=4
 import logging
+
 from errbot import rendering
 
 log = logging.getLogger(__name__)

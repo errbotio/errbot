@@ -1,8 +1,9 @@
-import sys
-import unittest
 import logging
 import os
+import sys
+import unittest
 from tempfile import mkdtemp
+
 from mock import MagicMock
 
 from errbot.bootstrap import bot_config_defaults

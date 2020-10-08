@@ -1,25 +1,26 @@
 # coding=utf-8
-import sys
 import logging
-from pathlib import Path
-from tempfile import mkdtemp
-from os.path import sep
-
-import pytest
 import os  # noqa
 import re  # noqa
+import sys
 from collections import OrderedDict
-from queue import Queue, Empty  # noqa
-from errbot.core import ErrBot
-from errbot.backends.base import Message, Room, Identifier, ONLINE
-from errbot.backends.test import TestPerson, TestOccupant, TestRoom, ShallowConfig
-from errbot import botcmd, re_botcmd, arg_botcmd, templating  # noqa
+from os.path import sep
+from pathlib import Path
+from queue import Empty, Queue  # noqa
+from tempfile import mkdtemp
+
+import pytest
+
+from errbot import arg_botcmd, botcmd, re_botcmd, templating  # noqa
+from errbot.backend_plugin_manager import BackendPluginManager
+from errbot.backends.base import ONLINE, Identifier, Message, Room
+from errbot.backends.test import ShallowConfig, TestOccupant, TestPerson, TestRoom
 from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
+from errbot.core import ErrBot
+from errbot.core_plugins.acls import ACLS
 from errbot.plugin_manager import BotPluginManager
 from errbot.rendering import text
-from errbot.core_plugins.acls import ACLS
 from errbot.repo_manager import BotRepoManager
-from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
 

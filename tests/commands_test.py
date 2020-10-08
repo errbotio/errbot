@@ -1,15 +1,15 @@
 # coding=utf-8
+import logging
 import os
 import re
-import logging
-from os import path, mkdir
+import tarfile
+from os import mkdir, path
 from queue import Empty
 from shutil import rmtree
 from tempfile import mkdtemp
-from mock import MagicMock
 
 import pytest
-import tarfile
+from mock import MagicMock
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), "dummy_plugin")
 

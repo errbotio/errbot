@@ -1,9 +1,9 @@
 import io
 import json
 
-from errbot import BotPlugin, botcmd, arg_botcmd
-from errbot.flow import FlowNode, FlowRoot, Flow, FLOW_END
-from errbot.core_plugins.acls import glob, get_acl_usr
+from errbot import BotPlugin, arg_botcmd, botcmd
+from errbot.core_plugins.acls import get_acl_usr, glob
+from errbot.flow import FLOW_END, Flow, FlowNode, FlowRoot
 
 
 class Flows(BotPlugin):

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
-from errbot import BotPlugin, botcmd, re_botcmd, botmatch
+
+from errbot import BotPlugin, botcmd, botmatch, re_botcmd
 
 
 class DummyTest(BotPlugin):

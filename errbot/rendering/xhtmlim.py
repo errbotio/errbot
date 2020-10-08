@@ -1,5 +1,5 @@
-from html.entities import entitydefs
 import re
+from html.entities import entitydefs
 
 # Helpers for xhtml-im
 

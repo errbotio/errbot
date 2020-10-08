@@ -1,7 +1,6 @@
 """Test _admins_to_notify wrapper functionality"""
 import pytest
 
-
 extra_config = {"BOT_ADMINS_NOTIFICATIONS": "zoni@localdomain"}
 
 

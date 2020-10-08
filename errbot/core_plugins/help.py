@@ -1,6 +1,7 @@
 import textwrap
 
 from dulwich import errors as dulwich_errors
+
 from errbot import BotPlugin, botcmd
 from errbot.utils import git_tag_list
 from errbot.version import VERSION

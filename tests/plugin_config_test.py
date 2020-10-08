@@ -1,6 +1,8 @@
 from os import path
-from errbot.botplugin import recurse_check_structure, ValidationException
+
 import pytest
+
+from errbot.botplugin import ValidationException, recurse_check_structure
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), "config_plugin")
 

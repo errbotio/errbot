@@ -1,12 +1,13 @@
 import json
 import logging
 import os
+import socket
+from time import sleep
 
 import pytest
 import requests
-import socket
+
 from errbot.backends.test import FullStackTest, testbot
-from time import sleep
 
 log = logging.getLogger(__name__)
 

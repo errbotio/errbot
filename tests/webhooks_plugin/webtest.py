@@ -1,7 +1,9 @@
 import logging
+
+from flask import abort, after_this_request
+
 from errbot import BotPlugin
 from errbot.core_plugins.webserver import webhook
-from flask import abort, after_this_request
 
 log = logging.getLogger(__name__)
 

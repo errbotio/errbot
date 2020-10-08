@@ -2,9 +2,9 @@ import collections
 import copyreg
 import json
 import logging
+import pprint
 import re
 import sys
-import pprint
 from functools import lru_cache
 from typing import BinaryIO
 
@@ -13,26 +13,26 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
 from errbot.backends.base import (
-    Identifier,
-    Message,
-    Presence,
-    ONLINE,
     AWAY,
-    Room,
-    RoomError,
-    RoomDoesNotExistError,
-    UserDoesNotExistError,
-    RoomOccupant,
-    Person,
-    Card,
-    Stream,
-    Reaction,
+    ONLINE,
     REACTION_ADDED,
     REACTION_REMOVED,
+    Card,
+    Identifier,
+    Message,
+    Person,
+    Presence,
+    Reaction,
+    Room,
+    RoomDoesNotExistError,
+    RoomError,
+    RoomOccupant,
+    Stream,
+    UserDoesNotExistError,
 )
 from errbot.core import ErrBot
+from errbot.rendering.ansiext import IMTEXT_CHRS, AnsiExtension, enable_format
 from errbot.utils import split_string_after
-from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
 log = logging.getLogger(__name__)
 

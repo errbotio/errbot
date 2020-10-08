@@ -1,7 +1,8 @@
 from io import BytesIO
+
+from errbot.backends.base import Stream
 from errbot.backends.test import TestPerson
 from errbot.streaming import Tee
-from errbot.backends.base import Stream
 
 
 class StreamingClient(object):

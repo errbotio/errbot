@@ -1,5 +1,5 @@
-from os import path
 import time
+from os import path
 
 CURRENT_FILE_DIR = path.dirname(path.realpath(__file__))
 extra_plugin_dir = path.join(CURRENT_FILE_DIR, "poller_plugin")

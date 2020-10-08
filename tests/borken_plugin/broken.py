@@ -1,6 +1,6 @@
-from errbot import BotPlugin, botcmd
-
 import borken  # fails on purpose
+
+from errbot import BotPlugin, botcmd
 
 
 class Broken(BotPlugin):

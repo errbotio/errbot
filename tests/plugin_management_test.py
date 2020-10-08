@@ -1,14 +1,15 @@
 import os
-import pytest
 import tempfile
 from configparser import ConfigParser
 from pathlib import Path
+
+import pytest
 
 import errbot.repo_manager
 from errbot import plugin_manager
 from errbot.plugin_info import PluginInfo
 from errbot.plugin_manager import IncompatiblePluginException
-from errbot.utils import find_roots, collect_roots
+from errbot.utils import collect_roots, find_roots
 
 CORE_PLUGINS = plugin_manager.CORE_PLUGINS
 

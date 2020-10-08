@@ -1,13 +1,14 @@
 # coding=utf-8
 from datetime import timedelta
+
 import pytest
 
+from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.backends.test import ShallowConfig
 from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
-from errbot.backend_plugin_manager import BackendPluginManager
+from errbot.storage import StoreMixin
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import *
-from errbot.storage import StoreMixin
 
 log = logging.getLogger(__name__)
 

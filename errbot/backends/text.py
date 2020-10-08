@@ -1,30 +1,29 @@
+import copyreg
 import logging
+import re
 import sys
 from time import sleep
-import re
 
-import copyreg
 from ansi.color import fg, fx
+from markdown import Markdown
+from markdown.extensions.extra import ExtraExtension
 from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
 
-from errbot.rendering import ansi, text, xhtml, imtext
-from errbot.rendering.ansiext import enable_format, ANSI_CHRS, AnsiExtension
 from errbot.backends.base import (
+    OFFLINE,
+    ONLINE,
     Message,
     Person,
     Presence,
-    ONLINE,
-    OFFLINE,
     Room,
     RoomOccupant,
 )
 from errbot.core import ErrBot
 from errbot.logs import console_hdlr
-
-from markdown import Markdown
-from markdown.extensions.extra import ExtraExtension
+from errbot.rendering import ansi, imtext, text, xhtml
+from errbot.rendering.ansiext import ANSI_CHRS, AnsiExtension, enable_format
 
 log = logging.getLogger(__name__)
 

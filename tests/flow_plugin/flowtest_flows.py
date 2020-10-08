@@ -1,5 +1,6 @@
 from __future__ import absolute_import
-from errbot import botflow, FlowRoot, BotFlow
+
+from errbot import BotFlow, FlowRoot, botflow
 
 
 class FlowDefinitions(BotFlow):

@@ -1,27 +1,28 @@
 from __future__ import absolute_import
+
 import logging
+import re
+import struct
+import subprocess
 import sys
 import threading
-import subprocess
-import struct
-import re
 
 from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
 from errbot.backends.base import (
+    ONLINE,
     Message,
+    Person,
     Room,
     RoomError,
     RoomNotJoinedError,
-    Stream,
     RoomOccupant,
-    ONLINE,
-    Person,
+    Stream,
 )
 from errbot.core import ErrBot
+from errbot.rendering.ansiext import NSC, AnsiExtension, CharacterTable, enable_format
 from errbot.utils import rate_limited
-from errbot.rendering.ansiext import AnsiExtension, enable_format, CharacterTable, NSC
 
 log = logging.getLogger(__name__)
 
@@ -61,8 +62,8 @@ IRC_NICK_REGEX = r"[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+"
 
 try:
     import irc.connection
-    from irc.client import ServerNotConnectedError, NickMask
     from irc.bot import SingleServerIRCBot
+    from irc.client import NickMask, ServerNotConnectedError
 except ImportError:
     log.fatal(
         """You need the IRC support to use IRC, you can install it with:

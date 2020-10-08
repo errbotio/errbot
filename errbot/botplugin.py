@@ -1,22 +1,23 @@
 import logging
+import re
 import shlex
+from io import IOBase
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Tuple, Callable, Mapping, Sequence
-from io import IOBase
-import re
+from typing import Callable, Mapping, Sequence, Tuple
 
-from .storage import StoreMixin, StoreNotOpenError
 from errbot.backends.base import (
-    Message,
-    Presence,
-    Stream,
-    Room,
-    Identifier,
     ONLINE,
     Card,
+    Identifier,
+    Message,
+    Presence,
     Reaction,
+    Room,
+    Stream,
 )
+
+from .storage import StoreMixin, StoreNotOpenError
 
 log = logging.getLogger(__name__)
 
@@ -105,9 +106,9 @@ class Command:
             defaults to the doc of the given function if it is a first class function. It can be set for a lambda or
             overridden for a function with this."""
         if cmd_type is None:
-            from errbot import (
+            from errbot import (  # TODO refactor this out of __init__ so it can be reusable.
                 botcmd,
-            )  # TODO refactor this out of __init__ so it can be reusable.
+            )
 
             cmd_type = botcmd
         if name is None:

@@ -1,15 +1,15 @@
-from os import path, makedirs
 import importlib
 import logging
 import sys
+from os import makedirs, path
 
+from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.core import ErrBot
+from errbot.logs import format_logs
 from errbot.plugin_manager import BotPluginManager
 from errbot.repo_manager import BotRepoManager
-from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
-from errbot.logs import format_logs
 
 log = logging.getLogger(__name__)
 

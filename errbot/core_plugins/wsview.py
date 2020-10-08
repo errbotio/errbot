@@ -1,10 +1,11 @@
+import logging
 from inspect import getmembers, ismethod
 from json import loads
-import logging
 
+from flask import request
 from flask.app import Flask
 from flask.views import View
-from flask import request
+
 import errbot.core_plugins
 
 log = logging.getLogger(__name__)

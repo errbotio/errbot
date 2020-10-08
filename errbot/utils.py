@@ -6,10 +6,9 @@ import os
 import re
 import sys
 import time
-from platform import system
 from functools import wraps
+from platform import system
 from typing import List
-
 
 from dulwich import porcelain
 

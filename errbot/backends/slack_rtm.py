@@ -355,7 +355,7 @@ class SlackRTMBackend(ErrBot):
         converted_prefixes = []
         for prefix in bot_prefixes:
             try:
-                converted_prefixes.append(f'<@{self.username_to_userid(self.webclient, prefix)}>')
+                converted_prefixes.append(f'<@{self.username_to_userid(prefix)}>')
             except Exception as e:
                 log.error('Failed to look up Slack userid for alternate prefix "%s": %s', prefix, e)
 
@@ -527,10 +527,10 @@ class SlackRTMBackend(ErrBot):
         return user['name']
 
     @staticmethod
-    def username_to_userid(webclient: WebClient, name: str):
+    def username_to_userid(name: str):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-        user = [user for user in webclient.users_list()['users'] if user['name'] == name]
+        user = [user for user in self.webclient.users_list()['users'] if user['name'] == name]
         if user is None:
             raise UserDoesNotExistError(f'Cannot find user {name}.')
         return user['id']

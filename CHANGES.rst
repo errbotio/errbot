@@ -1,3 +1,23 @@
+v6.1.5 (2020-10-10)
+-------------------
+
+features:
+
+- XMPP: Replace sleekxmpp with slixmpp (#1430)
+- New callback for reaction events (#1292)
+- Added email property foriPerson object on all backends (#1186, #1456)
+- chore: Add github actions (#1455)
+
+fixes:
+
+- Slack: Deprecated method calls (#1432, #1438)
+- Slack: Increase message size limit. (#1333)
+- docs: Remove Matrix backend link (#1445)
+- SlackRTM: Missing 'id_' in argument (#1443)
+- docs: fixed rendering with double hyphens (#1452)
+- cli: merging configs via `--storage-merge` option (#1450)
+
+
 v6.1.4 (2020-05-15)
 -------------------
 

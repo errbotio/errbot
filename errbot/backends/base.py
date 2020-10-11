@@ -69,6 +69,16 @@ class Person(Identifier):
         """
         pass
 
+    @property
+    @abstractmethod
+    def email(self) -> str:
+        """
+        Some backends have the email of a user.
+
+        :return: the email of this user if available.
+        """
+        pass
+
 
 class RoomOccupant(Identifier):
     @property
@@ -509,6 +519,105 @@ class Presence(object):
 
     def __unicode__(self):
         return str(self.__str__())
+
+
+REACTION_ADDED = 'added'
+REACTION_REMOVED = 'removed'
+
+
+class Reaction(object):
+    """
+       This class represents a reaction event, either an added or removed reaction,
+       to some message or object.
+
+       Instances of this class are passed to :meth:`~errbot.botplugin.BotPlugin.callback_reaction`
+       when the reaction event is received.
+
+       Note:  Reactions, at the time of implementation, are only provided by the
+       Slack backend. This class is largely based on the Slack reaction event data.
+    """
+
+    def __init__(self,
+                 reactor: Identifier = None,
+                 reacted_to_owner: Identifier = None,
+                 action: str = None,
+                 timestamp: str = None,
+                 reaction_name: str = None,
+                 reacted_to: Mapping = None):
+
+        if reactor is None:
+            raise ValueError('Reaction: reactor is None')
+        if reaction_name is None:
+            raise ValueError('Reaction: reaction_name is None')
+
+        self._reactor = reactor
+        self._reacted_to_owner = reacted_to_owner
+        self._action = action
+        self._timestamp = timestamp
+        self._reaction_name = reaction_name
+        self._reacted_to = reacted_to
+
+    @property
+    def reactor(self) -> Identifier:
+        """
+        Identifier of the reacting individual. It can be a RoomOccupant or a Person.
+        :return: the person or roomOccupant
+        """
+        return self._reactor
+
+    @property
+    def reacted_to_owner(self) -> Identifier:
+        """
+        Identifier of the owner, if any, of the item that was reacted to.
+        It can be a RoomOccupant or a Person.
+        :return: the person or roomOccupant
+        """
+        return self._reacted_to_owner
+
+    @property
+    def action(self) -> str:
+        """ Returns the action performed
+            It can be one of the constants REACTION_ADDED or REACTION_REMOVED
+            It can also be backend specific
+        """
+        return self._action
+
+    @property
+    def timestamp(self) -> str:
+        """ Returns the timestamp string in which the event occurred
+            Format of the timestamp string is backend specific
+        """
+        return self._timestamp
+
+    @property
+    def reaction_name(self) -> str:
+        """ Returns the reaction that was added or removed
+            Format of the reaction is backend specific
+        """
+        return self._reaction_name
+
+    @property
+    def reacted_to(self) -> Mapping:
+        """ Returns the item that was reacted to
+            Structure of the reacted to item is backend specific
+        """
+        return self._reacted_to
+
+    def __str__(self):
+        response = ''
+        if self._reactor:
+            response += f'reactor: "{self._reactor}" '
+        if self._reaction:
+            response += f'reaction_name: "{self._reaction_name}" '
+        if self._action:
+            response += f'action: "{self._action}" '
+        if self._timestamp:
+            response += f'timestamp: "{self._timestamp}" '
+        if self._reacted_to_owner:
+            response += f'reacted_to_owner: "{self._reacted_to_owner}" '
+        if self._reacted_to:
+            response += f'reacted_to: "{self._reacted_to}" '
+        return response
 
 
 STREAM_WAITING_TO_START = 'pending'

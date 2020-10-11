@@ -50,7 +50,6 @@ IRC_CHRS = CharacterTable(fg_black=NSC('\x0301'),
                           end_inline_code='')
 
 IRC_NICK_REGEX = r'[a-zA-Z\[\]\\`_\^\{\|\}][a-zA-Z0-9\[\]\\`_\^\{\|\}-]+'
-IRC_MESSAGE_SIZE_LIMIT = 510
 
 try:
     import irc.connection
@@ -75,6 +74,7 @@ class IRCPerson(Person):
 
     def __init__(self, mask):
         self._nickmask = NickMask(mask)
+        self._email = ''
 
     @property
     def nick(self):
@@ -99,6 +99,10 @@ class IRCPerson(Person):
     def fullname(self):
         # TODO: this should be possible to get
         return None
+
+    @property
+    def email(self):
+        return self._email
 
     @property
     def aclattr(self):
@@ -660,7 +664,12 @@ class IRCBackend(ErrBot):
                                   reconnect_on_disconnect=reconnect_on_disconnect,
                                   )
         self.md = irc_md()
-        config.MESSAGE_SIZE_LIMIT = IRC_MESSAGE_SIZE_LIMIT
+
+    def set_message_size_limit(self, limit=510, hard_limit=510):
+        """
+        IRC message size limit
+        """
+        super().set_message_size_limit(limit, hard_limit)
 
     def send_message(self, msg):
         super().send_message(msg)

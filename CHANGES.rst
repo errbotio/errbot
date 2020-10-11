@@ -1,3 +1,50 @@
+v6.1.5 (2020-10-10)
+-------------------
+
+features:
+
+- XMPP: Replace sleekxmpp with slixmpp (#1430)
+- New callback for reaction events (#1292)
+- Added email property foriPerson object on all backends (#1186, #1456)
+- chore: Add github actions (#1455)
+
+fixes:
+
+- Slack: Deprecated method calls (#1432, #1438)
+- Slack: Increase message size limit. (#1333)
+- docs: Remove Matrix backend link (#1445)
+- SlackRTM: Missing 'id_' in argument (#1443)
+- docs: fixed rendering with double hyphens (#1452)
+- cli: merging configs via `--storage-merge` option (#1450)
+
+
+v6.1.4 (2020-05-15)
+-------------------
+
+fixes:
+
+- 403 error when fetching plugin repos index (#1425)
+
+v6.1.3 (2020-04-19)
+-------------------
+
+features:
+
+- Add security linter (#1314)
+- Serve version.json on errbot.io and update version checker plugin (#1400)
+- Serve repos.json on errbot.io (#1403, #1406)
+- Include SlackRTM backend (beta) (#1416)
+
+fixes:
+
+- Make plugin name clashes deterministic (#1282)
+- Fix error with Flows missing descriptions (#1405)
+- Fix `!repos update` object attribute error (#1410)
+- Fix updating remove repos using `!repos update` (#1413)
+- Fix deprecation warning (#1423)
+- Varios documentation fixes (#1404, #1411, #1415)
+
+
 v6.1.2 (2019-12-15)
 -------------------
 

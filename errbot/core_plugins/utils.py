@@ -29,7 +29,8 @@ class Utils(BotPlugin):
         resp += f"| person   | `{frm.person}`\n"
         resp += f"| nick     | `{frm.nick}`\n"
         resp += f"| fullname | `{frm.fullname}`\n"
-        resp += f"| client   | `{frm.client}`\n\n"
+        resp += f"| client   | `{frm.client}`\n"
+        resp += f"| email    | `{frm.email}`\n"
 
         #  extra info if it is a MUC
         if hasattr(frm, 'room'):

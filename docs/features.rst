@@ -15,7 +15,6 @@ Currently, the following networks are supported:
   * `Cisco Webex Teams`_ (maintained `separately <https://github.com/marksull/err-backend-cisco-webex-teams>`__)
   * Discord_ (maintained `separately <https://github.com/gbin/err-backend-discord>`__)
   * Gitter_ (maintained `separately <https://github.com/errbotio/err-backend-gitter>`__)
-  * Matrix_ (maintained `separately <https://github.com/SShrike/err-backend-matrix>`__)
   * Mattermost_ (maintained `separately <https://github.com/Vaelor/errbot-mattermost-backend>`__)
   * Skype_ (maintained `separately <https://github.com/errbotio/errbot-backend-skype>`__)
   * Tox_ (maintained `separately <https://github.com/errbotio/err-backend-tox>`__)
@@ -80,4 +79,4 @@ Extensive plugin framework
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _jinja2: http://jinja.pocoo.org/
 .. _six: https://pypi.python.org/pypi/six/
-.. _sleekxmpp: http://sleekxmpp.com/
+.. _slixmpp: https://slixmpp.readthedocs.io/

@@ -323,9 +323,9 @@ class SlackBackend(ErrBot):
         admins_by_userid = [admin for admin in BOT_ADMIN_LIST if admin.startswith('U')]
         admins_by_username = [admin for admin in BOT_ADMIN_LIST if admin.startswith('@')]
         admins_by_either = [item for item in BOT_ADMIN_LIST if item.startswith('U') or item.startswith('@')]
-        if len(admins_by_userid) == len(admins_either):
+        if len(admins_by_userid) == len(admins_by_either):
             userid_as_acl = True
-        elif len(admins_by_username) == len(admins_either):
+        elif len(admins_by_username) == len(admins_by_either):
             userid_as_acl = False
         else:
             log.fatal(

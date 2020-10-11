@@ -20,6 +20,7 @@ from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
 log = logging.getLogger(__name__)
+userid_as_acl = False
 
 
 try:
@@ -171,6 +172,8 @@ class SlackPerson(Person):
     def aclattr(self):
         # Note: Don't use str(self) here because that will return
         # an incorrect format from SlackMUCOccupant.
+        if userid_as_acl:
+            return self._userid
         return f'@{self.username}'
 
     @property
@@ -265,7 +268,7 @@ class SlackBot(SlackPerson):
 
     @property
     def aclattr(self):
-        # Make ACLs match against integration ID rather than human-readable
+        # Always make ACLs match against integration ID rather than human-readable
         # nicknames to avoid webhooks impersonating other people.
         return f'<{self._bot_id}>'
 
@@ -339,6 +342,24 @@ class SlackRTMBackend(ErrBot):
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
+        # Detect if slack user IDs should be used rather than @usernames based on first BOT_ADMIN
+        BOT_ADMIN_LIST = config.BOT_ADMINS
+        if isinstance(BOT_ADMIN_LIST, str):
+            BOT_ADMIN_LIST = [BOT_ADMIN_LIST]
+        global userid_as_acl
+        admins_by_userid = [admin for admin in BOT_ADMIN_LIST if admin.startswith('U')]
+        admins_by_username = [admin for admin in BOT_ADMIN_LIST if admin.startswith('@')]
+        if len(admins_by_userid) == len(BOT_ADMIN_LIST):
+            userid_as_acl = True
+        elif len(admins_by_username) == len(BOT_ADMIN_LIST):
+            userid_as_acl = False
+        else:
+            log.fatal(
+                'Combination of usernames and user IDs found in the BOT_ADMIN setting in '
+                'your configuration. All BOT_ADMIN entries must be of the same type: either '
+                'user IDs beginning with "U" or usernames beginning with "@".'
+            )
+            sys.exit(1)
 
     def update_alternate_prefixes(self):
         """Converts BOT_ALT_PREFIXES to use the slack ID instead of name

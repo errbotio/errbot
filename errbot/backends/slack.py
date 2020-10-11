@@ -316,12 +316,15 @@ class SlackBackend(ErrBot):
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
         # Detect if slack user IDs should be used rather than @usernames based on first BOT_ADMIN
+        BOT_ADMIN_LIST = config.BOT_ADMINS
+        if isinstance(BOT_ADMIN_LIST, str):
+            BOT_ADMIN_LIST = [BOT_ADMIN_LIST]
         global userid_as_acl
-        admins_by_userid = [admin for admin in config.BOT_ADMINS if admin.startswith('U')]
-        admins_by_username = [admin for admin in config.BOT_ADMINS if admin.startswith('@')]
-        if len(admins_by_userid) == len(config.BOT_ADMINS):
+        admins_by_userid = [admin for admin in BOT_ADMIN_LIST if admin.startswith('U')]
+        admins_by_username = [admin for admin in BOT_ADMIN_LIST if admin.startswith('@')]
+        if len(admins_by_userid) == len(BOT_ADMIN_LIST):
             userid_as_acl = True
-        elif len(admins_by_username) == len(config.BOT_ADMINS):
+        elif len(admins_by_username) == len(BOT_ADMIN_LIST):
             userid_as_acl = False
         else:
             log.fatal(

@@ -335,7 +335,6 @@ class SlackBackend(ErrBot):
             )
             sys.exit(1)
 
-
     def set_message_size_limit(self, limit=4096, hard_limit=40000):
         """
         Slack supports upto 40000 characters per message, Errbot maintains 4096 by default.

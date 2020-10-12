@@ -379,6 +379,10 @@ class SlackRTMBackend(ErrBot):
         def serve_presences(**payload):
             self._presence_change_event_handler(payload['web_client'], payload['data'])
 
+        @RTMClient.run_on(event="goodbye")
+        def serve_goodbye(**paylaod):
+            self._handle_goodbye(payload["web_client"], payload["data"])
+
     def serve_forever(self):
         self.sc = RTMClient(token=self.token, proxy=self.proxies)
 
@@ -410,6 +414,26 @@ class SlackRTMBackend(ErrBot):
         finally:
             log.debug("Triggering disconnect callback")
             self.disconnect_callback()
+
+    def _handle_goodbye(self, webclient: WebClient, event):
+        """
+        The goodbye event may be sent by a server that expects it will close the connection
+        after an unspecified amount of time. A well formed client should reconnect to avoid data
+        loss.
+        """
+        self.webclient = webclient
+        # pre-emptively shutdown plugins.
+        self.disconnect_callback()
+
+
+    def connect_callback(self)
+        super().connect_callback()
+        log.debug("Connection callback called ... but did nothing.")
+
+    def disconnect_callback(self):
+        super().disconnect_callback()
+        log.debug("Closing SlackRTM connection.")
+        self.sc.close()
 
     def _hello_event_handler(self, webclient: WebClient, event):
         """Event handler for the 'hello' event"""

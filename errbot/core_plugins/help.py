@@ -114,7 +114,7 @@ class Help(BotPlugin):
                 obj, commands = cls_obj_commands[cls]
                 name = obj.name
                 # shows class and description
-                usage += f'\n**{name}**\n\n*{cls.__errdoc__.strip() or ""}*\n\n'
+                usage += f'\n**{name}**\n\n*{cls.__errdoc__.strip() if getattr(cls.__errdoc__, "strip", None) is not None else cls.__errdoc__ or ""}*\n\n'
 
                 for name, command in sorted(commands):
                     if command._err_command_hidden:
@@ -141,7 +141,7 @@ class Help(BotPlugin):
                     usage += self.MSG_HELP_UNDEFINED_COMMAND
             else:
                 # filter out the commands related to this class
-                description = f'\n**{obj.name}**\n\n*{cls.__errdoc__.strip() or ""}*\n\n'
+                description = f'\n**{obj.name}**\n\n*{cls.__errdoc__.strip() if getattr(cls.__errdoc__, "strip", None) is not None else cls.__errdoc__ or ""}*\n\n'
                 pairs = []
                 for (name, command) in cmds:
                     if self.bot_config.HIDE_RESTRICTED_COMMANDS:

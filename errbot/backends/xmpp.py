@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 
 try:
     from slixmpp import ClientXMPP
-    from slixmpp.xmlstream import resolver, cert
     from slixmpp import JID
     from slixmpp.exceptions import IqError
 

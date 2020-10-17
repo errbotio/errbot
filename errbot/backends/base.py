@@ -220,6 +220,12 @@ class UserDoesNotExistError(Exception):
     on a user that doesn't exist"""
 
 
+class UserNotUniqueError(Exception):
+    """
+    Exception raised to report a user has not been uniquely identified on the chat service.
+    """
+
+
 class Message(object):
     """
     A chat message.

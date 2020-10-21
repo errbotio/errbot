@@ -114,7 +114,11 @@ class Help(BotPlugin):
                 obj, commands = cls_obj_commands[cls]
                 name = obj.name
                 # shows class and description
-                usage += f'\n**{name}**\n\n*{cls.__errdoc__.strip() if getattr(cls.__errdoc__, "strip", None) is not None else cls.__errdoc__ or ""}*\n\n'
+                usage += f'\n**{name}**\n\n'
+                if getattr(cls.__errdoc__, "strip", None):
+                    usage += f'{cls.__errdoc__.strip()}\n\n'
+                else:
+                    usage += cls.__errdoc__ or "\n\n"
 
                 for name, command in sorted(commands):
                     if command._err_command_hidden:

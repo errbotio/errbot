@@ -145,7 +145,12 @@ class Help(BotPlugin):
                     usage += self.MSG_HELP_UNDEFINED_COMMAND
             else:
                 # filter out the commands related to this class
-                description = f'\n**{obj.name}**\n\n*{cls.__errdoc__.strip() if getattr(cls.__errdoc__, "strip", None) is not None else cls.__errdoc__ or ""}*\n\n'
+                description = ''
+                description += f'\n**{obj.name}**\n\n'
+                if getattr(cls.__errdoc__, "strip", None):
+                    description += f'{cls.__errdoc__.strip()}\n\n'
+                else:
+                    description += cls.__errdoc__ or "\n\n"
                 pairs = []
                 for (name, command) in cmds:
                     if self.bot_config.HIDE_RESTRICTED_COMMANDS:

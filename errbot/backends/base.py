@@ -70,14 +70,13 @@ class Person(Identifier):
         pass
 
     @property
-    @abstractmethod
     def email(self) -> str:
         """
         Some backends have the email of a user.
 
         :return: the email of this user if available.
         """
-        pass
+        return ''
 
 
 class RoomOccupant(Identifier):
@@ -219,6 +218,12 @@ class RoomDoesNotExistError(RoomError):
 class UserDoesNotExistError(Exception):
     """Exception that is raised when performing an operation
     on a user that doesn't exist"""
+
+
+class UserNotUniqueError(Exception):
+    """
+    Exception raised to report a user has not been uniquely identified on the chat service.
+    """
 
 
 class Message(object):

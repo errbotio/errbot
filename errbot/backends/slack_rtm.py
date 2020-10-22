@@ -428,7 +428,7 @@ class SlackRTMBackend(ErrBot):
         # pre-emptively shutdown plugins.
         self.disconnect_callback()
 
-    def connect_callback(self)
+    def connect_callback(self):
         super().connect_callback()
         log.debug("Slack RTM connected.")
 

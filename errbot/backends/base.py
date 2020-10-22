@@ -612,7 +612,7 @@ class Reaction(object):
         response = ''
         if self._reactor:
             response += f'reactor: "{self._reactor}" '
-        if self._reaction:
+        if self._reaction_name:
             response += f'reaction_name: "{self._reaction_name}" '
         if self._action:
             response += f'action: "{self._action}" '

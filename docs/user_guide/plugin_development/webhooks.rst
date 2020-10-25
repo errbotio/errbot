@@ -126,7 +126,7 @@ different status code can all be done by manipulating the
 `flask response <http://flask.pocoo.org/docs/1.0/patterns/deferredcallbacks/>`_
 object. The Flask docs on `the response object
 <http://flask.pocoo.org/docs/1.0/api/#response-objects>`_
-explain this in more detail. Here's an example of setting a 
+explain this in more detail. Here's an example of setting a
 custom header:
 
 .. code-block:: python
@@ -161,8 +161,9 @@ Testing a webhook through chat
 ------------------------------
 
 You can use the `!webhook` command to test webhooks without making
-an actual HTTP request, using the following format: `!webhook test
-/[endpoint] [post_content]`
+an actual HTTP request, using the following format::
+
+    !webhook test /[endpoint] [post_content]
 
 For example::
 

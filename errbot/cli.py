@@ -246,9 +246,10 @@ def main():
         def merge(sdm):
             from deepmerge import always_merger
             new_dict = _read_dict()
-            for key in new_dict.keys():
-                with sdm.mutable(key) as conf:
-                    always_merger.merge(conf, new_dict[key])
+            for key, value in new_dict.items():
+                with sdm.mutable(key, {}) as conf:
+                    always_merger.merge(conf, value)
+
         err_value = storage_action(args['storage_merge'][0], merge)
         sys.exit(err_value)
 

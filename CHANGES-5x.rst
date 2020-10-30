@@ -63,7 +63,7 @@ fixes:
 
 -  allow webhook receivers on / (tx Robin Gloster)
 -  force utf-8 to release changes (thx Robert Krambovitis)
--  don’t generate an errbot section if no version is specified in plugin
+-  don't generate an errbot section if no version is specified in plugin
    gen (thx Meet Mangukiya)
 -  callback on all unknown commands filters
 -  user friendly message when a room is not found
@@ -117,7 +117,7 @@ features:
 -  IRC: Added Notice support (bot can listen to them)
 -  Slack: Original slack event message is attached to Message (Thx Bryan
    Shelton)
--  Slack: Added reaction support and Message.extras[‘url’] (Thx Tomer
+-  Slack: Added reaction support and Message.extras['url'] (Thx Tomer
    Chachamu)
 -  Text backend: readline support (thx Robert Coup)
 -  Test backend: stream requests support (thx Thomas Lee)
@@ -129,7 +129,7 @@ fixes:
 -  Slack: no more crash if a message only contains attachments
 -  Slack: fix for some corner case links (Thx Tomer Chachamu)
 -  Slack: fixed LRU for better performance on large teams
--  Slack: fix for undefined key ‘username’ when the bot doesn’t have one
+-  Slack: fix for undefined key 'username' when the bot doesn't have one
    (thx Octavio Antonelli)
 
 other:

@@ -238,7 +238,7 @@ v4.1 features ~~~~~~~~~~~~~
    ``the flows documentation <http://errbot.io/en/master/user_guide/flow_development/index.html>``\ \_
    for more information.
 
--  Cards API: Various backends have a “canned” type of formatted
+-  Cards API: Various backends have a "canned" type of formatted
    response. We now support that for a better native integration with
    Slack and Hipchat.
 
@@ -380,7 +380,7 @@ v4.0 fixed ~~~~~~~~~~
 
 -  Corrected room joining on IRC (Ezequiel Hector Brizuela).
 
--  Fixed *“team_join event handler raised an exception”* on Slack.
+-  Fixed *"team_join event handler raised an exception"* on Slack.
 
 -  Fixed ``DIVERT_TO_PRIVATE`` on HipChat.
 

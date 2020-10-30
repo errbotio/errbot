@@ -13,7 +13,7 @@ fixes:
 -  Slack: Deprecated method calls (#1432, #1438)
 -  Slack: Increase message size limit. (#1333)
 -  docs: Remove Matrix backend link (#1445)
--  SlackRTM: Missing ‘id\_’ in argument (#1443)
+-  SlackRTM: Missing 'id\_' in argument (#1443)
 -  docs: fixed rendering with double hyphens (#1452)
 -  cli: merging configs via ``--storage-merge`` option (#1450)
 
@@ -69,7 +69,7 @@ fixes:
 -  pop up the timeout for travis
 -  Makes the timeout feedback better on tests. (#1366)
 -  Move all tox environments to use py37 (#1342)
--  Remove empty “text” body on Slack send_card (#1336)
+-  Remove empty "text" body on Slack send_card (#1336)
 -  Load class source in reloading plugins (#1347)
 -  test: Rename assertCommand -> assertInCommand (#1351)
 -  Enforce BOT_EXTRA_BACKEND_DIR is a list type. (#1358)
@@ -118,7 +118,7 @@ fixes:
 -  variable name typo (#1244)
 -  Fix invalid variable name (#1241)
 -  sanitize comma quotation marks too (#1236)
--  Fix missing string formatting in “Command not found” output (#1259)
+-  Fix missing string formatting in "Command not found" output (#1259)
 -  Fix webhook test to not call fixture directly
 -  fix: arg_botcmd decorator now can be used as plain method
 -  setup: removing dnspython
@@ -142,10 +142,10 @@ major refactoring:
 
 fixes:
 
--  Use sys.executable explicitly instead of just ‘pip’ (thx Bruno
+-  Use sys.executable explicitly instead of just 'pip' (thx Bruno
    Oliveira)
 -  Pycodestyle fixes (thx Nitanshu)
--  Help: don’t add bot prefix to non-prefixed re cmds (#1199) (thx Robin
+-  Help: don't add bot prefix to non-prefixed re cmds (#1199) (thx Robin
    Gloster)
 -  split_string_after: fix empty string handling (thx Robin Gloster)
 -  Escaping bug in dynamic plugins
@@ -164,4 +164,4 @@ features:
 -  The callback order set in the config is not globally respected
 -  Added a default parameter to the storage context manager
 
-.. v9.9.9 (leave that there so master doesn’t complain)
+.. v9.9.9 (leave that there so master doesn't complain)

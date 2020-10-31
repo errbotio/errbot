@@ -79,7 +79,8 @@ fixes:
 v4.3.0 (2016-08-10)
 -------------------
 
-v4.3 features ~~~~~~~~~~~~~
+v4.3 features
+~~~~~~~~~~~~~
 
 -  ``DependsOn:`` entry in .plug and ``self.get_plugin(...)`` allowing
    you to make a plugin dependent from another.
@@ -91,7 +92,8 @@ v4.3 features ~~~~~~~~~~~~~
    that allows you to change by side effect value without bothering to
    save value back.
 
-v4.3 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~
+v4.3 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  This version work only on Python 3.4+ (see 4.2 announcement)
 -  Presence.nick is deprecated, simply use presence.identifier.nick
@@ -102,7 +104,8 @@ v4.3 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~
 -  Moved testing to Tox. We used to use a custom script, this improves a
    lot the local testing setup etc. (Thx Pedro Rodrigues)
 
-v4.3 fixes ~~~~~~~~~~
+v4.3 fixes
+~~~~~~~~~~
 
 -  IRC: fixed IRC_ACL_PATTERN
 -  Slack: Mention callback improvements (Thx Ash Caire)
@@ -131,7 +134,8 @@ Hotfix
 v4.2.0 (2016-06-10)
 -------------------
 
-v4.2 Announcement ~~~~~~~~~~~~~~~~~
+v4.2 Announcement
+~~~~~~~~~~~~~~~~~
 
 -  Bye bye Python 2 ! This 4.2 branch will be the last to support Python
    2. We will maintain bug fixes on it for at least the end of 2016 so
@@ -154,7 +158,8 @@ v4.2 Announcement ~~~~~~~~~~~~~~~~~
    licence exception makes sure it isn’t. Big big thanks for the amazing
    turnout on this one !
 
-v4.2 New features ~~~~~~~~~~~~~~~~~
+v4.2 New features
+~~~~~~~~~~~~~~~~~
 
 -  Errbot initial installation. The initial installation has been
    drastically simplified::
@@ -174,7 +179,8 @@ v4.2 New features ~~~~~~~~~~~~~~~~~
 
 -  Hipchat: mentions are now supported.
 
-v4.2 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~
+v4.2 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Documentation improvements
 -  Reorganization and rename of the startup files. Those were
@@ -187,7 +193,8 @@ v4.2 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~
    (everything about the commands, and dispatching etc…).
 -  setup.py cleanup. The hacks in there were incorrect.
 
-v4.2 fixes ~~~~~~~~~~
+v4.2 fixes
+~~~~~~~~~~
 
 -  core: excpetion formatting was failing on some plugin load failures.
 -  core: When replacing the prefix ``!`` from the doctrings only real
@@ -230,7 +237,8 @@ fixes:
 v4.1.0 (2016-05-09)
 -------------------
 
-v4.1 features ~~~~~~~~~~~~~
+v4.1 features
+~~~~~~~~~~~~~
 
 -  Conversation flows: Errbot can now keep track of conversations with
    its users and automate part of the interactions in a state machine
@@ -251,7 +259,8 @@ v4.1 features ~~~~~~~~~~~~~
    to automate end to end the deployment of your chatbot. see
    ``provisioning doc <http://errbot.io/en/master/user_guide/provisioning.html>``\ \_
 
-v4.1 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~
+v4.1 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Now if no [python] section is set in the .plug file, we assume Python
    3 instead of Python 2.
@@ -268,7 +277,8 @@ v4.1 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~
 -  Unit Tests are now all pure py.test instead of a mix of (py.test,
    nose and unittest)
 
-v4.1 fixed ~~~~~~~~~~
+v4.1 fixed
+~~~~~~~~~~
 
 -  Better resillience on concurrent modifications of the commands
    structures.
@@ -312,7 +322,8 @@ v4.0.0 (2016-03-13)
 This is the next major release of errbot with significant changes under
 the hood.
 
-v4.0 New features ~~~~~~~~~~~~~~~~~
+v4.0 New features
+~~~~~~~~~~~~~~~~~
 
 -  Storage is now implemented as a plugin as well, similar to command
    plugins and backends. This means you can now select different storage
@@ -368,7 +379,8 @@ The following storage backends are currently available:
    thanks to Sijis Aviles for the initial proof-of-concept
    implementation).
 
-v4.0 fixed ~~~~~~~~~~
+v4.0 fixed
+~~~~~~~~~~
 
 -  IRC backend no longer crashes on invalid UTF-8 characters but instead
    replaces them (mr. Shu).
@@ -407,7 +419,8 @@ v4.0 fixed ~~~~~~~~~~
 -  Plugins which fail to install no longer remain behind, obstructing a
    new installation attempt
 
-v4.0 Breaking changes ~~~~~~~~~~~~~~~~~~~~~
+v4.0 Breaking changes
+~~~~~~~~~~~~~~~~~~~~~
 
 -  The underlying implementation of Identifiers has been drastically
    refactored to be more clear and correct. This makes it a lot easier
@@ -429,7 +442,8 @@ removed. These include:
    options from ``errbot`` (set a proper ``BACKEND`` in ``config.py``
    instead).
 
-v 4.0 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+v 4.0 Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Version information is now specified in plugin ``.plug`` files
    instead of in the Python class of the plugin.
@@ -457,7 +471,8 @@ v 4.0 Miscellaneous changes ~~~~~~~~~~~~~~~~~~~~~~~~~~~
    docstrings internally as well as the user guide on the website at
    http://errbot.io.
 
-Further info on identifier changes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Further info on identifier changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Person, RoomOccupant and Room are now all equal and can be used as-is
    to send a message to a person, a person in a Room or a Room itself.

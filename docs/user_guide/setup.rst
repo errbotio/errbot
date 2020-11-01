@@ -18,10 +18,10 @@ that the version packaged with your distribution may be a few versions behind.
 
 Example of packaged versions of Errbot:
 
-Gentoo: https://gpo.zugaina.org/net-im/errbot
-Arch: https://aur.archlinux.org/packages/python-err/
-Docker: https://hub.docker.com/r/rroemhild/errbot/
-Juju: https://jujucharms.com/u/onlineservices-charmers/errbot
+* Gentoo: https://gpo.zugaina.org/net-im/errbot
+* Arch: https://aur.archlinux.org/packages/python-err/
+* Docker: https://hub.docker.com/r/rroemhild/errbot/
+* Juju: https://jujucharms.com/u/onlineservices-charmers/errbot
 
 
 Option 2: Installing Errbot in a virtualenv (preferred)
@@ -81,7 +81,7 @@ This will create a minimally working errbot in text (development) mode. You can 
 Configuration
 -------------
 
-Once you have installed errbot and did `errbot --init`, you will have to tweak the generated `config.py` to connect
+Once you have installed errbot and did :code:`errbot --init`, you will have to tweak the generated `config.py` to connect
 to your desired chat network.
 
 You can use :download:`config-template.py` as a base for your `config.py`.
@@ -96,7 +96,7 @@ This is the directory where the bot will store configuration data.
 The first setting to check or change `BOT_LOG_FILE` to be sure it point to a writeable directory on your system.
 
 The final configuration we absolutely must do is setting up a correct `BACKEND` which is set to `Text` by
-`errbot --init` but you can change to the name of the chat system you want to connect to (see the template above
+:code:`errbot --init` but you can change to the name of the chat system you want to connect to (see the template above
 for valid values).
 
 You absolutely need a `BOT_IDENTITY` entry to set the credentials Errbot will use to connect to the chat system.

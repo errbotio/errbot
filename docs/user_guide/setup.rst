@@ -18,10 +18,10 @@ that the version packaged with your distribution may be a few versions behind.
 
 Example of packaged versions of Errbot:
 
-Gentoo: https://gpo.zugaina.org/net-im/errbot
-Arch: https://aur.archlinux.org/packages/python-err/
-Docker: https://hub.docker.com/r/rroemhild/errbot/
-Juju: https://jujucharms.com/u/onlineservices-charmers/errbot
+* Gentoo: https://gpo.zugaina.org/net-im/errbot
+* Arch: https://aur.archlinux.org/packages/python-err/
+* Docker: https://hub.docker.com/r/rroemhild/errbot/
+* Juju: https://jujucharms.com/u/onlineservices-charmers/errbot
 
 
 Option 2: Installing Errbot in a virtualenv (preferred)

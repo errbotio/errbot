@@ -64,7 +64,7 @@ def slack_markdown_converter(compact_output=False):
     """
     enable_format('imtext', IMTEXT_CHRS, borders=not compact_output)
     md = Markdown(output_format='imtext', extensions=[ExtraExtension(), AnsiExtension()])
-    md.preprocessors['LinkPreProcessor'] = LinkPreProcessor(md)
+    md.preprocessors.register(LinkPreProcessor(md), 'LinkPreProcessor', 30)
     md.stripTopLevelTags = False
     return md
 

@@ -60,7 +60,7 @@ class HipchatTreeprocessor(Treeprocessor):
 class HipchatExtension(Extension):
     """Removes the unsupported html tags from hipchat"""
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         md.registerExtension(self)
         md.treeprocessors.add("hipchat stripper", HipchatTreeprocessor(), '<inline')
         log.debug("Will apply those treeprocessors:\n%s", md.treeprocessors)

@@ -30,8 +30,7 @@ v6.1.3 (2020-04-19)
 features:
 
 -  Add security linter (#1314)
--  Serve version.json on errbot.io and update version checker plugin
-   (#1400)
+-  Serve version.json on errbot.io and update version checker plugin (#1400)
 -  Serve repos.json on errbot.io (#1403, #1406)
 -  Include SlackRTM backend (beta) (#1416)
 
@@ -62,8 +61,7 @@ fixes:
 -  Add admin warnings to log
 -  Fix: Advanced loop graph does not reflect the image
 -  make the TestBot start timeout parameterized
--  errbot/plugin_manager: only check for /proc/1/cgroup if path exists
-   to fix warning
+-  errbot/plugin_manager: only check for /proc/1/cgroup if path exists to fix warning
 -  removed (c) Apple asset we completely missed.
 -  fix double threading in slack backend if DIVERT_TO_THREAD is used
 -  pop up the timeout for travis
@@ -136,21 +134,17 @@ major refactoring:
 -  removed Python 3.5 support
 -  removed old compatibility cruft
 -  ported formats and % str ops to f-strings
--  Started to add field types to improve type visibility across the
-   codebase
+-  Started to add field types to improve type visibility across the codebase
 -  removed cross dependencies between PluginManager & RepoManager
 
 fixes:
 
--  Use sys.executable explicitly instead of just 'pip' (thx Bruno
-   Oliveira)
+-  Use sys.executable explicitly instead of just 'pip' (thx Bruno Oliveira)
 -  Pycodestyle fixes (thx Nitanshu)
--  Help: don't add bot prefix to non-prefixed re cmds (#1199) (thx Robin
-   Gloster)
+-  Help: don't add bot prefix to non-prefixed re cmds (#1199) (thx Robin Gloster)
 -  split_string_after: fix empty string handling (thx Robin Gloster)
 -  Escaping bug in dynamic plugins
--  botmatch is now visible from the errbot module (fp to Guillaume
-   Binet)
+-  botmatch is now visible from the errbot module (fp to Guillaume Binet)
 -  flows: hint boolean was not forwarded
 -  Fix possible event without bot_id (#1073) (thx Roi Dayan)
 -  decorators were working only if kwargs were empty

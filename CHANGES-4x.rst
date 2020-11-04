@@ -19,8 +19,7 @@ v4.3.5 (2016-12-21)
 fixes:
 
 -  slack: compatibility with slackclient > 1.0.2
--  slack: block on reads on RTM (better response time) (Thx Tomer
-   Chachamu)
+-  slack: block on reads on RTM (better response time) (Thx Tomer Chachamu)
 -  slack: fix link names (")
 -  slack: ignore channel_topic messages (thx Mikhail Sobolev)
 -  slack: Match ACLs for bots on integration ID
@@ -96,8 +95,7 @@ v4.3 Miscellaneous changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  This version work only on Python 3.4+ (see 4.2 announcement)
--  Presence.nick is deprecated, simply use presence.identifier.nick
-   instead.
+-  Presence.nick is deprecated, simply use presence.identifier.nick instead.
 -  Slack: Bot identity is automatically added to BOT_ALT_PREFIXES
 -  The version checker now reports your Python version to be sure to not
    upgrade Python 2 users to 4.3
@@ -199,16 +197,14 @@ v4.2 fixes
 -  core: excpetion formatting was failing on some plugin load failures.
 -  core: When replacing the prefix ``!`` from the doctrings only real
    commands get replaced (thx Raphael Boidol)
--  core: empty lines on plugins requirements.txt does crash errbot
-   anymore
+-  core: empty lines on plugins requirements.txt does crash errbot anymore
 -  core: Better error message in case of malformed .plug file
 -  Text: fix on build_identifier (thx Pawet Adamcak)
 -  Slack: several fixes for identifiers parsing, the backend is fully
    compliant with Errbot’s contract now (thx Raphael Boidol and Samuel
    Loretan)
 -  Hipchat: fix on room occupants (thx Roman Forkosh)
--  Hipchat: fix for organizations with more than 100 rooms. (thx Naman
-   Bharadwaj)
+-  Hipchat: fix for organizations with more than 100 rooms. (thx Naman Bharadwaj)
 -  Hipchat: fixed a crash on build_identifier
 
 v4.1.3 (2016-05-10)
@@ -217,8 +213,7 @@ v4.1.3 (2016-05-10)
 hotfixes:
 
 -  Slack: regression on build_identifier
--  Hipchat: regression on build_identifier (query for room is not
-   supported)
+-  Hipchat: regression on build_identifier (query for room is not supported)
 
 v4.1.2 (2016-05-10)
 -------------------
@@ -283,8 +278,7 @@ v4.1 fixed
 -  Better resillience on concurrent modifications of the commands
    structures.
 -  Allow multiline table cells. Thx Ilya Figotin.
--  Plugin template was incorrectly showing how to check config. Thx
-   Christian Weiske.
+-  Plugin template was incorrectly showing how to check config. Thx Christian Weiske.
 -  Slack: DIVERT_TO_PRIVATE fix.
 -  Plugin Activate was not reporting correctly some errors.
 -  tar.gz packaged plugins are working again.

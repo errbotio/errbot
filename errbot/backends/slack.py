@@ -64,7 +64,7 @@ def slack_markdown_converter(compact_output=False):
     """
     enable_format('imtext', IMTEXT_CHRS, borders=not compact_output)
     md = Markdown(output_format='imtext', extensions=[ExtraExtension(), AnsiExtension()])
-    md.preprocessors['LinkPreProcessor'] = LinkPreProcessor(md)
+    md.preprocessors.register(LinkPreProcessor(md), 'LinkPreProcessor', 30)
     md.stripTopLevelTags = False
     return md
 
@@ -151,6 +151,15 @@ class SlackPerson(Person):
         # Note: Don't use str(self) here because that will return
         # an incorrect format from SlackMUCOccupant.
         return f'@{self.username}'
+
+    @property
+    def email(self):
+        """Convert a Slack user ID to their user email"""
+        user = self._sc.server.users.find(self._userid)
+        if user is None:
+            log.error("Cannot find user with ID %s" % self._userid)
+            return "<%s>" % self._userid
+        return user.email
 
     @property
     def fullname(self):

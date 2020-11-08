@@ -69,6 +69,15 @@ class Person(Identifier):
         """
         pass
 
+    @property
+    def email(self) -> str:
+        """
+        Some backends have the email of a user.
+
+        :return: the email of this user if available.
+        """
+        return ''
+
 
 class RoomOccupant(Identifier):
     @property
@@ -209,6 +218,12 @@ class RoomDoesNotExistError(RoomError):
 class UserDoesNotExistError(Exception):
     """Exception that is raised when performing an operation
     on a user that doesn't exist"""
+
+
+class UserNotUniqueError(Exception):
+    """
+    Exception raised to report a user has not been uniquely identified on the chat service.
+    """
 
 
 class Message(object):
@@ -597,7 +612,7 @@ class Reaction(object):
         response = ''
         if self._reactor:
             response += f'reactor: "{self._reactor}" '
-        if self._reaction:
+        if self._reaction_name:
             response += f'reaction_name: "{self._reaction_name}" '
         if self._action:
             response += f'action: "{self._action}" '

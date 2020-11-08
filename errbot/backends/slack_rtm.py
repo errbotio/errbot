@@ -13,8 +13,10 @@ from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
-from errbot.backends.base import Identifier, Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError, RoomOccupant, Person, Card, Stream
+from errbot.backends.base import (
+    Identifier, Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError,
+    UserDoesNotExistError, UserNotUniqueError, RoomOccupant, Person, Card, Stream
+)
 from errbot.core import ErrBot
 from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
@@ -117,6 +119,7 @@ class SlackPerson(Person):
         self._username = None  # cache
         self._fullname = None
         self._channelname = None
+        self._email = None
 
     @property
     def userid(self):
@@ -192,6 +195,17 @@ class SlackPerson(Person):
             self._fullname = user['real_name']
 
         return self._fullname
+
+    @property
+    def email(self):
+        """Convert a Slack user ID to their user email"""
+        user = self._webclient.users_info(user=self._userid)['user']
+        if user is None:
+            log.error("Cannot find user with ID %s" % self._userid)
+            return "<%s>" % self._userid
+
+        email = user["profile"]["email"]
+        return email
 
     def __unicode__(self):
         return f'@{self.username}'
@@ -329,7 +343,7 @@ class SlackBackendBase():
         converted_prefixes = []
         for prefix in bot_prefixes:
             try:
-                converted_prefixes.append(f'<@{self.username_to_userid(self.webclient, prefix)}>')
+                converted_prefixes.append(f'<@{self.username_to_userid(prefix)}>')
             except Exception as e:
                 log.error('Failed to look up Slack userid for alternate prefix "%s": %s', prefix, e)
 
@@ -502,22 +516,28 @@ class SlackBackendBase():
         if user == self.bot_identifier:
             self.callback_room_joined(SlackRoom(webclient=webclient, channelid=event['channel'], bot=self))
 
-    @staticmethod
-    def userid_to_username(webclient: WebClient, id_: str):
+    def userid_to_username(self, id_: str):
         """Convert a Slack user ID to their user name"""
-        user = webclient.users_info(user=id_)['user']
+        user = self.webclient.users_info(user=id_)['user']
         if user is None:
             raise UserDoesNotExistError(f'Cannot find user with ID {id_}.')
         return user['name']
 
-    @staticmethod
-    def username_to_userid(webclient: WebClient, name: str):
+    def username_to_userid(self, name: str):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip('@')
-        user = [user for user in webclient.users_list()['users'] if user['name'] == name]
-        if user is None:
+        user = [user for user in self.webclient.users_list()['members'] if user['name'] == name]
+        if user == []:
             raise UserDoesNotExistError(f'Cannot find user {name}.')
-        return user['id']
+        if len(user) > 1:
+            log.error(
+                "Failed to uniquely identify '{}'.  Errbot found the following users: {}".format(
+                    name,
+                    " ".join(["{}={}".format(u['name'], u['id']) for u in user])
+                )
+            )
+            raise UserNotUniqueError(f"Failed to uniquely identify {name}.")
+        return user[0]['id']
 
     def channelid_to_channelname(self, id_: str):
         """Convert a Slack channel ID to its channel name"""

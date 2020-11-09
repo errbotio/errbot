@@ -154,7 +154,7 @@ class SlackPerson(Person):
         if self._channelname:
             return self._channelname
 
-        channel = [channel for channel in self._webclient.channels_list() if channel['id'] == self._channelid][0]
+        channel = [channel for channel in self._webclient.conversations_list()['channels'] if channel['id'] == self._channelid][0]
         if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {self._channelid} exists.')
         if not self._channelname:
@@ -545,10 +545,10 @@ class SlackBackendBase():
     def channelname_to_channelid(self, name: str):
         """Convert a Slack channel name to its channel ID"""
         name = name.lstrip('#')
-        channel = [channel for channel in self.webclient.channels_list() if channel.name == name]
+        channel = [channel for channel in self.webclient.conversations_list()['channels'] if channel['name'] == name]
         if not channel:
             raise RoomDoesNotExistError(f'No channel named {name} exists')
-        return channel[0].id
+        return channel[0]['id']
 
     def channels(self, exclude_archived=True, joined_only=False):
         """
@@ -566,7 +566,7 @@ class SlackBackendBase():
           * https://api.slack.com/methods/channels.list
           * https://api.slack.com/methods/groups.list
         """
-        response = self.webclient.channels_list(exclude_archived=exclude_archived)
+        response = self.webclient.conversations_list(exclude_archived=exclude_archived)
         channels = [channel for channel in response['channels']
                     if channel['is_member'] or not joined_only]
 
@@ -582,7 +582,7 @@ class SlackBackendBase():
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
         try:
-            response = self.webclient.im_open(user=id_)
+            response = self.webclient.conversations_open(user=id_)
             return response['channel']['id']
         except SlackAPIResponseError as e:
             if e.error == "cannot_dm_bot":

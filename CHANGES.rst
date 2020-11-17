@@ -1,3 +1,22 @@
+v6.1.6 (2020-11-16)
+-------------------
+
+features:
+
+- core: Update code to support markdown 3 (#1473)
+
+fixes:
+
+- backends: Set email property as non-abstract (#1461)
+- SlackRTM: username to userid method signature (#1458)
+- backends: AttributeError in callback_reaction (#1467)
+- docs: webhook examples (#1471)
+- cli: merging configs with unknown keys (#1470)
+- plugins: Fix error when plugin plug file is missing description (#1462)
+- docs: typographical issues in setup guide (#1475)
+- refactor: Split changelog by major versions (#1474)
+
+
 v6.1.5 (2020-10-10)
 -------------------
 

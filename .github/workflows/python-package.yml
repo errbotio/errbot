@@ -31,7 +31,7 @@ jobs:
         pip install \
           pytest \
           tox
-        cp tests/config-travisci.py config.py
+        cp tests/config-ci.py config.py
 
     - name: Test on ${{ matrix.python-version }}
       run: |

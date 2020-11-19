@@ -1,3 +1,11 @@
+v6.1.7 (unreleased)
+-------------------
+
+features:
+
+- core: Add support for python3.9 (#1477)
+
+
 v6.1.6 (2020-11-16)
 -------------------
 

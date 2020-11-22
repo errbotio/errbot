@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 # chr that should not count as a space
-class NSC(object):
+class NSC:
     def __init__(self, s):
         self.s = s
 
@@ -157,7 +157,7 @@ IMTEXT_CHRS = CharacterTable(fg_black='',
 NEXT_ROW = "&NEXT_ROW;"
 
 
-class Table(object):
+class Table:
 
     def __init__(self, chr_table):
         self.headers = []
@@ -267,7 +267,7 @@ class Table(object):
         return str(self.ct.fixed_width) + output.getvalue() + str(self.ct.end_fixed_width)
 
 
-class BorderlessTable(object):
+class BorderlessTable:
 
     def __init__(self, chr_table):
         self.headers = []

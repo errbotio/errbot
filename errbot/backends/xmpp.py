@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 
 try:
     from slixmpp import ClientXMPP
-    from slixmpp.xmlstream import resolver, cert
     from slixmpp import JID
     from slixmpp.exceptions import IqError
 
@@ -300,7 +299,7 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
     nick = XMPPPerson.resource
 
 
-class XMPPConnection(object):
+class XMPPConnection:
     def __init__(self, jid, password, feature=None, keepalive=None,
                  ca_cert=None, server=None, use_ipv6=None, bot=None,
                  ssl_version=None):

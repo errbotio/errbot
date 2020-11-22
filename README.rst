@@ -3,8 +3,9 @@
 
 |
 
-.. image:: https://img.shields.io/travis/errbotio/errbot/master.svg
-   :target: https://travis-ci.org/errbotio/errbot/
+.. image:: https://github.com/errbotio/errbot/workflows/Python%20package/badge.svg
+   :target: https://github.com/errbotio/errbot/actions
+
 
 .. image:: https://img.shields.io/pypi/v/errbot.svg
    :target: https://pypi.python.org/pypi/errbot

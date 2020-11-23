@@ -14,10 +14,10 @@ try:
     from slack.errors import BotUserAccessError
     from slack import WebClient
 except ImportError:
-    log.exception("Could not start the SlackRTM backend")
+    log.exception("Could not start the SlackSDK backend")
     log.fatal(
-        "You need to install slackclient in order to use the Slack backend.\n"
-        "You can do `pip install errbot[slack-events]` to install it."
+        "You need to install python modules in order to use the Slack backend.\n"
+        "You can do `pip install errbot[slack-sdk]` to install them."
     )
     sys.exit(1)
 

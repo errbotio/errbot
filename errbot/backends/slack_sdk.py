@@ -331,7 +331,7 @@ class SlackRoomBot(RoomOccupant, SlackBot):
         return other.room.id == self.room.id and other.userid == self.userid
 
 
-class SlackBackendBase:
+class SlackBackendBase(ErrBot):
     @staticmethod
     def _unpickle_identifier(identifier_str):
         return SlackRTMBackend.__build_identifier(identifier_str)
@@ -1077,27 +1077,6 @@ class SlackBackendBase:
         return text, mentioned
 
 
-class SlackRTMBackend(SlackBackendBase, ErrBot):
-    def __init__(self, config):
-        super().__init__(config)
-        identity = config.BOT_IDENTITY
-        self.token = identity.get("token", None)
-        self.proxies = identity.get("proxies", None)
-        if not self.token:
-            log.fatal(
-                'You need to set your token (found under "Bot Integration" on Slack) in '
-                "the BOT_IDENTITY setting in your configuration. Without this token I "
-                "cannot connect to Slack."
-            )
-            sys.exit(1)
-        self.sc = None  # Will be initialized in serve_once
-        self.webclient = None
-        self.bot_identifier = None
-        compact = config.COMPACT_OUTPUT if hasattr(config, "COMPACT_OUTPUT") else False
-        self.md = slack_markdown_converter(compact)
-        self._register_identifiers_pickling()
-
-
 class SlackRoom(Room):
     def __init__(self, webclient=None, name=None, channelid=None, bot=None):
         if channelid is not None and name is not None:
@@ -1300,11 +1279,14 @@ class SlackRoom(Room):
         return self.id == other.id
 
 
-class SlackEventsBackend(SlackBackendBase, ErrBot):
+class SlackBackend(SlackBackendBase):
     def __init__(self, config):
         super().__init__(config)
         identity = config.BOT_IDENTITY
         self.token = identity.get("token", None)
+
+        # Force RTM API during MVP development
+        slack_api = "rtm"
 
         if not self.token:
             log.fatal(
@@ -1313,15 +1295,19 @@ class SlackEventsBackend(SlackBackendBase, ErrBot):
                 "cannot connect to Slack."
             )
             sys.exit(1)
-        self.signing_secret = identity.get("signing_secret", None)
-        if not self.signing_secret:
-            log.fatal(
-                'You need to set your signing_secret (found under "Bot Integration" on Slack) in '
-                "the BOT_IDENTITY setting in your configuration. Without this secret I "
-                "cannot receive events from Slack."
-            )
-            sys.exit(1)
-        self.proxies = identity.get("proxies", None)
+
+        # Handle extra variables when using Events API.
+        if slack_api == "events":
+            self.signing_secret = identity.get("signing_secret", None)
+            if not self.signing_secret:
+                log.fatal(
+                    'You need to set your signing_secret (found under "Bot Integration" on Slack) in '
+                    "the BOT_IDENTITY setting in your configuration. Without this secret I "
+                    "cannot receive events from Slack."
+                )
+                sys.exit(1)
+            self.proxies = identity.get("proxies", None)
+
         self.sc = None  # Will be initialized in serve_once
         self.slack_events_adapter = None  # Will be initialized in serve_once
         self.webclient = None

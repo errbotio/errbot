@@ -337,6 +337,7 @@ class SlackBackend(ErrBot):
         super().__init__(config)
         identity = config.BOT_IDENTITY
         self.token = identity.get("token", None)
+        self.proxies = identity.get("proxies", None)
 
         # Force RTM API during MVP development
         slack_api = "rtm"
@@ -359,7 +360,6 @@ class SlackBackend(ErrBot):
                     "cannot receive events from Slack."
                 )
                 sys.exit(1)
-            self.proxies = identity.get("proxies", None)
 
         self.sc = None  # Will be initialized in serve_once
         self.slack_events_adapter = None  # Will be initialized in serve_once
@@ -387,9 +387,7 @@ class SlackBackend(ErrBot):
         """
         SlackBackend.__build_identifier = self.build_identifier
         for cls in (SlackPerson, SlackRoomOccupant, SlackRoom):
-            copyreg.pickle(
-                cls, SlackBackend._pickle_identifier, SlackBackend._unpickle_identifier
-            )
+            copyreg.pickle(cls, SlackBackend._pickle_identifier, SlackBackend._unpickle_identifier)
 
     def update_alternate_prefixes(self):
         """Converts BOT_ALT_PREFIXES to use the slack ID instead of name
@@ -430,11 +428,16 @@ class SlackBackend(ErrBot):
         def serve_presences(**payload):
             self._presence_change_event_handler(payload["web_client"], payload["data"])
 
-    def server_forever(self):
+    def serve_once(self):
+        self.debug("Fake establishing connection to Slack. Stop after 1 second.")
+        sleep(1)
+
+    def serve_forever(self):
+        slack_api = "rtm"
         if slack_api == "rtm":
-            self.server_forever_rtm
+            self.serve_forever_rtm()
         else:
-            self.server_forever_events
+            self.serve_forever_events()
 
     def _setup_event_callbacks(self):
         # List of events obtained from https://api.slack.com/events
@@ -1182,7 +1185,7 @@ class SlackBackend(ErrBot):
 
     @property
     def mode(self):
-        return "slack"
+        return "slack_sdk"
 
     def query_room(self, room):
         """ Room can either be a name or a channelid """

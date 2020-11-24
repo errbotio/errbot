@@ -369,6 +369,12 @@ class SlackBackend(ErrBot):
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
 
+    def set_message_size_limit(self, limit=4096, hard_limit=40000):
+        """
+        Slack supports upto 40000 characters per message, Errbot maintains 4096 by default.
+        """
+        super().set_message_size_limit(limit, hard_limit)
+
     @staticmethod
     def _unpickle_identifier(identifier_str):
         return SlackBackend.__build_identifier(identifier_str)
@@ -826,6 +832,7 @@ class SlackBackend(ErrBot):
                 to_channel_id = self.get_im_channel(self.username_to_userid(msg.to.username))
         return to_humanreadable, to_channel_id
 
+
     def send_message(self, msg):
         super().send_message(msg)
 
@@ -864,8 +871,7 @@ class SlackBackend(ErrBot):
             body = self.md.convert(msg.body)
             log.debug("Message size: %d.", len(body))
 
-            limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
-            parts = self.prepare_message_body(body, limit)
+            parts = self.prepare_message_body(body, self.message_size_limit)
 
             timestamps = []
             for part in parts:
@@ -963,8 +969,7 @@ class SlackBackend(ErrBot):
                 {"title": key, "value": value, "short": True} for key, value in card.fields
             ]
 
-        limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
-        parts = self.prepare_message_body(card.body, limit)
+        parts = self.prepare_message_body(card.body, self.message_size_limit)
         part_count = len(parts)
         footer = attachment.get("footer", "")
         for i in range(part_count):

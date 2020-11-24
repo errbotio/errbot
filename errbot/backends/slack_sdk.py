@@ -14,6 +14,7 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
 from errbot.core import ErrBot
+from errbot.utils import split_string_after
 from errbot.core_plugins import flask_app
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 from errbot.backends.base import (

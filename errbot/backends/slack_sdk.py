@@ -371,11 +371,11 @@ class SlackBackend(ErrBot):
 
     @staticmethod
     def _unpickle_identifier(identifier_str):
-        return SlackRTMBackend.__build_identifier(identifier_str)
+        return SlackBackend.__build_identifier(identifier_str)
 
     @staticmethod
     def _pickle_identifier(identifier):
-        return SlackRTMBackend._unpickle_identifier, (str(identifier),)
+        return SlackBackend._unpickle_identifier, (str(identifier),)
 
     def _register_identifiers_pickling(self):
         """
@@ -385,10 +385,10 @@ class SlackBackend(ErrBot):
         But for the unpickling to work we need to use bot.build_identifier, hence the bot parameter here.
         But then we also need bot for the unpickling so we save it here at module level.
         """
-        SlackRTMBackend.__build_identifier = self.build_identifier
+        SlackBackend.__build_identifier = self.build_identifier
         for cls in (SlackPerson, SlackRoomOccupant, SlackRoom):
             copyreg.pickle(
-                cls, SlackRTMBackend._pickle_identifier, SlackRTMBackend._unpickle_identifier
+                cls, SlackBackend._pickle_identifier, SlackBackend._unpickle_identifier
             )
 
     def update_alternate_prefixes(self):

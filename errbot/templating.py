@@ -1,5 +1,4 @@
 import logging
-import os
 from errbot.plugin_info import PluginInfo
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path

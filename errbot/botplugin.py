@@ -62,7 +62,7 @@ class CommandError(Exception):
         return str(self.reason)
 
 
-class Command(object):
+class Command:
     """
     This is a dynamic definition of an errbot command.
     """
@@ -698,7 +698,7 @@ class BotPlugin(BotPluginBase):
         super().stop_poller(method, args, kwargs)
 
 
-class ArgParserBase(object):
+class ArgParserBase:
     """
     The `ArgSplitterBase` class defines the API which is used for argument
     splitting (used by the `split_args_with` parameter on

@@ -338,11 +338,11 @@ class TestBackend(ErrBot):
         self._rooms = []
 
 
-class ShallowConfig(object):
+class ShallowConfig:
     pass
 
 
-class TestBot(object):
+class TestBot:
     """
     A minimal bot utilizing the TestBackend, for use with unit testing.
 
@@ -566,7 +566,7 @@ def testbot(request) -> TestBot:
 
         extra_plugin_dir = '/foo/bar'
 
-        class Tests(object):
+        class Tests:
             # Wins over `extra_plugin_dir = '/foo/bar'` above
             extra_plugin_dir = '/foo/baz'
 

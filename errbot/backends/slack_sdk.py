@@ -363,10 +363,11 @@ class SlackBackend(ErrBot):
                 )
                 sys.exit(1)
 
-        self.sc = None  # Will be initialized in serve_once
-        self.slack_events_adapter = None  # Will be initialized in serve_once
-        self.webclient = None
+        self.slack_web = None  # Will be initialized in serve_once
+        self.slack_rtm = None
+        self.slack_events = None  # Will be initialized in serve_once
         self.bot_identifier = None
+
         compact = config.COMPACT_OUTPUT if hasattr(config, "COMPACT_OUTPUT") else False
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
@@ -533,19 +534,18 @@ class SlackBackend(ErrBot):
             "workflow_step_execute",
         ]
         for t in slack_event_types:
-            self.slack_events_adapter.on(t, self._generic_wrapper)
+            self.slack_events.on(t, self._generic_wrapper)
 
         self.connect_callback()
 
     def serve_forever_events(self):
-        self.sc = WebClient(token=self.token, proxy=self.proxies)
-        self.webclient = self.sc
-        self.slack_events_adapter = SlackEventAdapter(
+        self.slack_web = WebClient(token=self.token, proxy=self.proxies)
+        self.slack_events = SlackEventAdapter(
             self.signing_secret, "/slack/events", flask_app
         )
 
         log.info("Verifying authentication token")
-        self.auth = self.sc.auth_test()
+        self.auth = self.slack_web.auth_test()
         log.debug(f"Auth response: {self.auth}")
         if not self.auth["ok"]:
             raise SlackAPIResponseError(
@@ -554,7 +554,7 @@ class SlackBackend(ErrBot):
         log.debug("Token accepted")
         self._setup_event_callbacks()
 
-        self.bot_identifier = SlackPerson(self.sc, self.auth["user_id"])
+        self.bot_identifier = SlackPerson(self.slack_web, self.auth["user_id"])
 
         log.debug(self.bot_identifier)
 
@@ -582,12 +582,13 @@ class SlackBackend(ErrBot):
 
         try:
             event_handler = getattr(self, f"_{event_type}_event_handler")
-            return event_handler(self.sc, event)
+            return event_handler(self.slack_web, event)
         except AttributeError:
             log.info(f"Event type {event_type} not supported")
 
     def serve_forever_rtm(self):
-        self.sc = RTMClient(token=self.token, proxy=self.proxies)
+        self.slack_web = WebClient(token=self.token, proxy=self.proxies)
+        self.slack_rtm = RTMClient(token=self.token, proxy=self.proxies, auto_reconnect=True)
 
         @RTMClient.run_on(event="open")
         def get_bot_identity(**payload):
@@ -602,7 +603,7 @@ class SlackBackend(ErrBot):
         # log.debug("Token accepted")
 
         log.info("Connecting to Slack real-time-messaging API")
-        self.sc.start()
+        self.slack_rtm.start()
         # Inject bot identity to alternative prefixes
         self.update_alternate_prefixes()
 
@@ -620,7 +621,7 @@ class SlackBackend(ErrBot):
 
     def _hello_event_handler(self, webclient: WebClient, event):
         """Event handler for the 'hello' event"""
-        self.webclient = webclient
+        self.slack_web = webclient
         self.connect_callback()
         self.callback_presence(Presence(identifier=self.bot_identifier, status=ONLINE))
 
@@ -720,7 +721,7 @@ class SlackBackend(ErrBot):
             channel_link_name = msg.to.name
 
         # TODO: port to slackclient2
-        # msg.extras['url'] = f'https://{self.sc.server.domain}.slack.com/archives/' \
+        # msg.extras['url'] = f'https://{self.slack_web.server.domain}.slack.com/archives/' \
         #                     f'{channel_link_name}/p{self._ts_for_message(msg).replace(".", "")}'
 
         self.callback_message(msg)
@@ -738,7 +739,7 @@ class SlackBackend(ErrBot):
 
     def userid_to_username(self, id_: str):
         """Convert a Slack user ID to their user name"""
-        user = self.webclient.users_info(user=id_)["user"]
+        user = self.slack_web.users_info(user=id_)["user"]
         if user is None:
             raise UserDoesNotExistError(f"Cannot find user with ID {id_}.")
         return user["name"]
@@ -746,7 +747,7 @@ class SlackBackend(ErrBot):
     def username_to_userid(self, name: str):
         """Convert a Slack user name to their user ID"""
         name = name.lstrip("@")
-        user = [user for user in self.webclient.users_list()["members"] if user["name"] == name]
+        user = [user for user in self.slack_web.users_list()["members"] if user["name"] == name]
         if user == []:
             raise UserDoesNotExistError(f"Cannot find user {name}.")
         if len(user) > 1:
@@ -760,7 +761,7 @@ class SlackBackend(ErrBot):
 
     def channelid_to_channelname(self, id_: str):
         """Convert a Slack channel ID to its channel name"""
-        channel = self.webclient.conversations_info(channel=id_)["channel"]
+        channel = self.slack_web.conversations_info(channel=id_)["channel"]
         if channel is None:
             raise RoomDoesNotExistError(f"No channel with ID {id_} exists.")
         return channel["name"]
@@ -770,7 +771,7 @@ class SlackBackend(ErrBot):
         name = name.lstrip("#")
         channel = [
             channel
-            for channel in self.webclient.conversations_list()["channels"]
+            for channel in self.slack_web.conversations_list()["channels"]
             if channel["name"] == name
         ]
         if not channel:
@@ -793,12 +794,12 @@ class SlackBackend(ErrBot):
           * https://api.slack.com/methods/channels.list
           * https://api.slack.com/methods/groups.list
         """
-        response = self.webclient.conversations_list(exclude_archived=exclude_archived)
+        response = self.slack_web.conversations_list(exclude_archived=exclude_archived)
         channels = [
             channel for channel in response["channels"] if channel["is_member"] or not joined_only
         ]
 
-        response = self.webclient.groups_list(exclude_archived=exclude_archived)
+        response = self.slack_web.groups_list(exclude_archived=exclude_archived)
         # No need to filter for 'is_member' in this next call (it doesn't
         # (even exist) because leaving a group means you have to get invited
         # back again by somebody else.
@@ -810,7 +811,7 @@ class SlackBackend(ErrBot):
     def get_im_channel(self, id_):
         """Open a direct message channel to a user"""
         try:
-            response = self.webclient.conversations_open(user=id_)
+            response = self.slack_web.conversations_open(user=id_)
             return response["channel"]["id"]
         except SlackAPIResponseError as e:
             if e.error == "cannot_dm_bot":
@@ -837,7 +838,6 @@ class SlackBackend(ErrBot):
                 log.debug("This is a divert to private message, sending it directly to the user.")
                 to_channel_id = self.get_im_channel(self.username_to_userid(msg.to.username))
         return to_humanreadable, to_channel_id
-
 
     def send_message(self, msg):
         super().send_message(msg)
@@ -893,7 +893,7 @@ class SlackBackend(ErrBot):
                 if "thread_ts" in msg.extras:
                     data["thread_ts"] = msg.extras["thread_ts"]
 
-                result = self.webclient.chat_postMessage(**data)
+                result = self.slack_web.chat_postMessage(**data)
                 timestamps.append(result["ts"])
 
             msg.extras["ts"] = timestamps
@@ -911,7 +911,7 @@ class SlackBackend(ErrBot):
         """
         try:
             stream.accept()
-            resp = self.webclient.files_upload(
+            resp = self.slack_web.files_upload(
                 channels=stream.identifier.channelid, filename=stream.name, file=stream
             )
             if "ok" in resp and resp["ok"]:
@@ -990,7 +990,7 @@ class SlackBackend(ErrBot):
             }
             try:
                 log.debug("Sending data:\n%s", data)
-                self.webclient.chat_postMessage(**data)
+                self.slack_web.chat_postMessage(**data)
             except Exception:
                 log.exception(
                     f"An exception occurred while trying to send a card to {to_humanreadable}.[{card}]"
@@ -1000,7 +1000,7 @@ class SlackBackend(ErrBot):
         return 0  # this is a singleton anyway
 
     def change_presence(self, status: str = ONLINE, message: str = "") -> None:
-        self.webclient.users_setPresence(presence="auto" if status == ONLINE else "away")
+        self.slack_web.users_setPresence(presence="auto" if status == ONLINE else "away")
 
     @staticmethod
     def prepare_message_body(body, size_limit):
@@ -1113,11 +1113,11 @@ class SlackBackend(ErrBot):
         if channelid is None and channelname is not None:
             channelid = self.channelname_to_channelid(channelname)
         if userid is not None and channelid is not None:
-            return SlackRoomOccupant(self.webclient, userid, channelid, bot=self)
+            return SlackRoomOccupant(self.slack_web, userid, channelid, bot=self)
         if userid is not None:
-            return SlackPerson(self.webclient, userid, self.get_im_channel(userid))
+            return SlackPerson(self.slack_web, userid, self.get_im_channel(userid))
         if channelid is not None:
-            return SlackRoom(webclient=self.webclient, channelid=channelid, bot=self)
+            return SlackRoom(webclient=self.slack_web, channelid=channelid, bot=self)
 
         raise Exception(
             "You found a bug. I expected at least one of userid, channelid, username or channelname "
@@ -1201,13 +1201,13 @@ class SlackBackend(ErrBot):
     def query_room(self, room):
         """ Room can either be a name or a channelid """
         if room.startswith("C") or room.startswith("G"):
-            return SlackRoom(webclient=self.webclient, channelid=room, bot=self)
+            return SlackRoom(webclient=self.slack_web, channelid=room, bot=self)
 
         m = SLACK_CLIENT_CHANNEL_HYPERLINK.match(room)
         if m is not None:
-            return SlackRoom(webclient=self.webclient, channelid=m.groupdict()["id"], bot=self)
+            return SlackRoom(webclient=self.slack_web, channelid=m.groupdict()["id"], bot=self)
 
-        return SlackRoom(webclient=self.webclient, name=room, bot=self)
+        return SlackRoom(webclient=self.slack_web, name=room, bot=self)
 
     def rooms(self):
         """
@@ -1218,7 +1218,7 @@ class SlackBackend(ErrBot):
         """
         channels = self.channels(joined_only=True, exclude_archived=True)
         return [
-            SlackRoom(webclient=self.webclient, channelid=channel["id"], bot=self)
+            SlackRoom(webclient=self.slack_web, channelid=channel["id"], bot=self)
             for channel in channels
         ]
 
@@ -1284,7 +1284,7 @@ class SlackRoom(Room):
 
         self._id = channelid
         self._bot = bot
-        self.webclient = webclient
+        self.slack_web = webclient
 
     def __str__(self):
         return f"#{self.name}"
@@ -1302,7 +1302,7 @@ class SlackRoom(Room):
         # Cursors
         cursor = ""
         while cursor != None:
-            conversations_list = self.webclient.conversations_list(cursor=cursor)
+            conversations_list = self.slack_web.conversations_list(cursor=cursor)
             cursor = None
             for channel in conversations_list["channels"]:
                 if channel["name"] == self.name:
@@ -1327,9 +1327,9 @@ class SlackRoom(Room):
           * https://api.slack.com/methods/groups.list
         """
         if self.private:
-            return self._bot.webclient.conversations_info(channel=self.id)["group"]
+            return self._bot.slack_web.conversations_info(channel=self.id)["group"]
         else:
-            return self._bot.webclient.conversations_info(channel=self.id)["channel"]
+            return self._bot.slack_web.conversations_info(channel=self.id)["channel"]
 
     @property
     def private(self):
@@ -1351,7 +1351,7 @@ class SlackRoom(Room):
     def join(self, username=None, password=None):
         log.info("Joining channel %s", str(self))
         try:
-            self._bot.webclient.channels_join(name=self.name)
+            self._bot.slack_web.channels_join(name=self.name)
         except BotUserAccessError as e:
             raise RoomError(f"Unable to join channel. {USER_IS_BOT_HELPTEXT}")
 
@@ -1359,10 +1359,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith("C"):
                 log.info("Leaving channel %s (%s)", self, self.id)
-                self._bot.webclient.channels_leave(channel=self.id)
+                self._bot.slack_web.channels_leave(channel=self.id)
             else:
                 log.info("Leaving group %s (%s)", self, self.id)
-                self._bot.webclient.groups_leave(channel=self.id)
+                self._bot.slack_web.groups_leave(channel=self.id)
         except SlackAPIResponseError as e:
             if e.error == "user_is_bot":
                 raise RoomError(f"Unable to leave channel. {USER_IS_BOT_HELPTEXT}")
@@ -1374,10 +1374,10 @@ class SlackRoom(Room):
         try:
             if private:
                 log.info("Creating group %s.", self)
-                self._bot.webclient.groups_create(name=self.name)
+                self._bot.slack_web.groups_create(name=self.name)
             else:
                 log.info("Creating channel %s.", self)
-                self._bot.webclient.channels_create(name=self.name)
+                self._bot.slack_web.channels_create(name=self.name)
         except SlackAPIResponseError as e:
             if e.error == "user_is_bot":
                 raise RoomError(f"Unable to create channel. {USER_IS_BOT_HELPTEXT}")
@@ -1444,7 +1444,7 @@ class SlackRoom(Room):
     @property
     def occupants(self):
         members = self._channel_info["members"]
-        return [SlackRoomOccupant(self.sc, m, self.id, self._bot) for m in members]
+        return [SlackRoomOccupant(self.slack_web, m, self.id, self._bot) for m in members]
 
     def invite(self, *args):
         users = {user["name"]: user["id"] for user in self._bot.api_call("users.list")["members"]}

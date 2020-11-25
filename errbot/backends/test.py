@@ -40,11 +40,12 @@ class TestPerson(Person):
     methods exposed by this class.
     """
 
-    def __init__(self, person, client=None, nick=None, fullname=None):
+    def __init__(self, person, client=None, nick=None, fullname=None, email=None):
         self._person = person
         self._client = client
         self._nick = nick
         self._fullname = fullname
+        self._email = email
 
     @property
     def person(self):
@@ -69,6 +70,12 @@ class TestPerson(Person):
         """This needs to return a long display name for this identifier e.g. Guillaume Binet.
         Returns None is unspecified"""
         return self._fullname
+
+    @property
+    def email(self):
+        """This needs to return an email for this identifier e.g. Guillaume.Binet@gmail.com.
+        Returns None is unspecified"""
+        return self._email
 
     aclattr = person
 
@@ -331,11 +338,11 @@ class TestBackend(ErrBot):
         self._rooms = []
 
 
-class ShallowConfig(object):
+class ShallowConfig:
     pass
 
 
-class TestBot(object):
+class TestBot:
     """
     A minimal bot utilizing the TestBackend, for use with unit testing.
 
@@ -559,7 +566,7 @@ def testbot(request) -> TestBot:
 
         extra_plugin_dir = '/foo/bar'
 
-        class Tests(object):
+        class Tests:
             # Wins over `extra_plugin_dir = '/foo/bar'` above
             extra_plugin_dir = '/foo/baz'
 

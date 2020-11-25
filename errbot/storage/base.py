@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Any, Iterable
 
 
-class StorageBase(object):
+class StorageBase:
     """
     Contract to implemement a storage.
     """
@@ -63,7 +63,7 @@ class StorageBase(object):
         pass
 
 
-class StoragePluginBase(object):
+class StoragePluginBase:
     """
     Base to implement a storage plugin.
     This is a factory for the namespaces.

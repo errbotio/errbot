@@ -5,7 +5,6 @@ import re
 import logging
 import os
 import shutil
-import subprocess
 from collections import namedtuple
 from datetime import timedelta, datetime
 from os import path

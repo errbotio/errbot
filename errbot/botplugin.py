@@ -7,7 +7,7 @@ from io import IOBase
 import re
 
 from .storage import StoreMixin, StoreNotOpenError
-from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card
+from errbot.backends.base import Message, Presence, Stream, Room, Identifier, ONLINE, Card, Reaction
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ class CommandError(Exception):
         return str(self.reason)
 
 
-class Command(object):
+class Command:
     """
     This is a dynamic definition of an errbot command.
     """
@@ -448,6 +448,16 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
+    def callback_reaction(self, reaction: Reaction) -> None:
+        """
+            Triggered on every reaction event.
+
+            :param reaction:
+                An instance of :class:`~errbot.backends.base.Reaction`
+                representing the new reaction event that was received.
+        """
+        pass
+
     def callback_stream(self, stream: Stream) -> None:
         """
             Triggered asynchronously (in a different thread context) on every incoming stream
@@ -695,7 +705,7 @@ class BotPlugin(BotPluginBase):
         super().stop_poller(method, args, kwargs)
 
 
-class ArgParserBase(object):
+class ArgParserBase:
     """
     The `ArgSplitterBase` class defines the API which is used for argument
     splitting (used by the `split_args_with` parameter on

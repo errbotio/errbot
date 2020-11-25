@@ -15,7 +15,6 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import argparse
-import locale
 import logging
 import os
 import sys
@@ -244,12 +243,12 @@ def main():
 
     if args['storage_merge']:
         def merge(sdm):
+            from deepmerge import always_merger
             new_dict = _read_dict()
-            if list(new_dict.keys()) == ['config']:
-                with sdm.mutable('configs') as conf:
-                    conf.update(new_dict['configs'])
-            else:
-                sdm.update(new_dict)
+            for key, value in new_dict.items():
+                with sdm.mutable(key, {}) as conf:
+                    always_merger.merge(conf, value)
+
         err_value = storage_action(args['storage_merge'][0], merge)
         sys.exit(err_value)
 

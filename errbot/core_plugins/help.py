@@ -1,5 +1,4 @@
 import textwrap
-import subprocess
 
 from dulwich import errors as dulwich_errors
 from errbot import BotPlugin, botcmd
@@ -114,7 +113,11 @@ class Help(BotPlugin):
                 obj, commands = cls_obj_commands[cls]
                 name = obj.name
                 # shows class and description
-                usage += f'\n**{name}**\n\n*{cls.__errdoc__.strip() or ""}*\n\n'
+                usage += f'\n**{name}**\n\n'
+                if getattr(cls.__errdoc__, "strip", None):
+                    usage += f'{cls.__errdoc__.strip()}\n\n'
+                else:
+                    usage += cls.__errdoc__ or "\n\n"
 
                 for name, command in sorted(commands):
                     if command._err_command_hidden:
@@ -141,7 +144,12 @@ class Help(BotPlugin):
                     usage += self.MSG_HELP_UNDEFINED_COMMAND
             else:
                 # filter out the commands related to this class
-                description = f'\n**{obj.name}**\n\n*{cls.__errdoc__.strip() or ""}*\n\n'
+                description = ''
+                description += f'\n**{obj.name}**\n\n'
+                if getattr(cls.__errdoc__, "strip", None):
+                    description += f'{cls.__errdoc__.strip()}\n\n'
+                else:
+                    description += cls.__errdoc__ or "\n\n"
                 pairs = []
                 for (name, command) in cmds:
                     if self.bot_config.HIDE_RESTRICTED_COMMANDS:

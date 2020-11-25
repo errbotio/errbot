@@ -60,7 +60,7 @@ class HipchatTreeprocessor(Treeprocessor):
 class HipchatExtension(Extension):
     """Removes the unsupported html tags from hipchat"""
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         md.registerExtension(self)
         md.treeprocessors.add("hipchat stripper", HipchatTreeprocessor(), '<inline')
         log.debug("Will apply those treeprocessors:\n%s", md.treeprocessors)
@@ -119,6 +119,12 @@ class HipChatRoom(Room):
         self.hypchat = bot.conn.hypchat
         self.xep0045 = bot.conn.client.plugin['xep_0045']
         self._bot = bot
+
+    def set_message_size_limit(self, limit=10000, hard_limit=10000):
+        """
+        HipChat message size limit
+        """
+        super().set_message_size_limit(limit, hard_limit)
 
     @property
     def room(self):
@@ -537,7 +543,7 @@ class HipchatBackend(XMPPBackend):
 
         data['card'] = hcard
 
-        log.debug("Sending request:" + str(data))
+        log.debug("Sending request: %s", data)
         room._requests.post(room.url + '/notification', data=data)  # noqa
 
     def send_stream_request(self, identifier, fsource, name='file.txt', size=None, stream_type=None):
@@ -584,7 +590,7 @@ class HipchatBackend(XMPPBackend):
                 log.error('Request text: %s.', resp.text)
                 stream.error()
         except Exception:
-            log.exception(f'Upload of {stream.name} to {stream.identifier.channelname} failed.')
+            log.exception("Upload of %s to %s failed.", stream.name, stream.identifier.channelname)
 
     @lru_cache(1024)
     def _find_user(self, name, criteria):

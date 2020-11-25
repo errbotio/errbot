@@ -13,13 +13,12 @@ from markdown.extensions.extra import ExtraExtension
 from markdown.preprocessors import Preprocessor
 
 from errbot.backends.base import Identifier, Message, Presence, ONLINE, AWAY, Room, RoomError, RoomDoesNotExistError, \
-    UserDoesNotExistError, RoomOccupant, Person, Card, Stream
+    UserDoesNotExistError, RoomOccupant, Person, Card, Stream, Reaction, REACTION_ADDED, REACTION_REMOVED
 from errbot.core import ErrBot
 from errbot.utils import split_string_after
 from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 
 log = logging.getLogger(__name__)
-
 
 try:
     from slackclient import SlackClient
@@ -36,8 +35,6 @@ except ImportError:
 # token matching this regex.
 SLACK_CLIENT_CHANNEL_HYPERLINK = re.compile(r'^<#(?P<id>(C|G)[0-9A-Z]+)>$')
 
-# Empirically determined message size limit.
-SLACK_MESSAGE_LIMIT = 4096
 
 USER_IS_BOT_HELPTEXT = (
     "Connected to Slack using a bot account, which cannot manage "
@@ -58,7 +55,6 @@ COLORS = {
     'cyan': '#00FFFF'
 }  # Slack doesn't know its colors
 
-
 MARKDOWN_LINK_REGEX = re.compile(r'(?<!!)\[(?P<text>[^\]]+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)')
 
 
@@ -68,7 +64,7 @@ def slack_markdown_converter(compact_output=False):
     """
     enable_format('imtext', IMTEXT_CHRS, borders=not compact_output)
     md = Markdown(output_format='imtext', extensions=[ExtraExtension(), AnsiExtension()])
-    md.preprocessors['LinkPreProcessor'] = LinkPreProcessor(md)
+    md.preprocessors.register(LinkPreProcessor(md), 'LinkPreProcessor', 30)
     md.stripTopLevelTags = False
     return md
 
@@ -78,6 +74,7 @@ class LinkPreProcessor(Preprocessor):
     This preprocessor converts markdown URL notation into Slack URL notation
     as described at https://api.slack.com/docs/formatting, section "Linking to URLs".
     """
+
     def run(self, lines):
         for i, line in enumerate(lines):
             lines[i] = MARKDOWN_LINK_REGEX.sub(r'&lt;\2|\1&gt;', line)
@@ -156,6 +153,15 @@ class SlackPerson(Person):
         return f'@{self.username}'
 
     @property
+    def email(self):
+        """Convert a Slack user ID to their user email"""
+        user = self._sc.server.users.find(self._userid)
+        if user is None:
+            log.error("Cannot find user with ID %s", self._userid)
+            return "<%s>" % self._userid
+        return user.email
+
+    @property
     def fullname(self):
         """Convert a Slack user ID to their user name"""
         user = self._sc.server.users.find(self._userid)
@@ -190,6 +196,7 @@ class SlackRoomOccupant(RoomOccupant, SlackPerson):
     """
     This class represents a person inside a MUC.
     """
+
     def __init__(self, sc, userid, channelid, bot):
         super().__init__(sc, userid, channelid)
         self._room = SlackRoom(channelid=channelid, bot=bot)
@@ -215,6 +222,7 @@ class SlackBot(SlackPerson):
     """
     This class describes a bot on Slack's network.
     """
+
     def __init__(self, sc, bot_id, bot_username):
         self._bot_id = bot_id
         self._bot_username = bot_username
@@ -242,6 +250,7 @@ class SlackRoomBot(RoomOccupant, SlackBot):
     """
     This class represents a bot inside a MUC.
     """
+
     def __init__(self, sc, bot_id, bot_username, channelid, bot):
         super().__init__(sc, bot_id, bot_username)
         self._room = SlackRoom(channelid=channelid, bot=bot)
@@ -264,6 +273,8 @@ class SlackRoomBot(RoomOccupant, SlackBot):
 
 
 class SlackBackend(ErrBot):
+
+    room_types = 'public_channel,private_channel'
 
     @staticmethod
     def _unpickle_identifier(identifier_str):
@@ -301,6 +312,12 @@ class SlackBackend(ErrBot):
         compact = config.COMPACT_OUTPUT if hasattr(config, 'COMPACT_OUTPUT') else False
         self.md = slack_markdown_converter(compact)
         self._register_identifiers_pickling()
+
+    def set_message_size_limit(self, limit=4096, hard_limit=40000):
+        """
+        Slack supports upto 40000 characters per message, Errbot maintains 4096 by default.
+        """
+        super().set_message_size_limit(limit, hard_limit)
 
     def api_call(self, method, data=None, raise_errors=True):
         """
@@ -407,6 +424,8 @@ class SlackBackend(ErrBot):
             'presence_change': self._presence_change_event_handler,
             'message': self._message_event_handler,
             'member_joined_channel': self._member_joined_channel_event_handler,
+            'reaction_added': self._reaction_event_handler,
+            'reaction_removed': self._reaction_event_handler
         }
 
         event_handler = event_handlers.get(event_type)
@@ -531,6 +550,29 @@ class SlackBackend(ErrBot):
         if user == self.bot_identifier:
             self.callback_room_joined(SlackRoom(channelid=event['channel'], bot=self))
 
+    def _reaction_event_handler(self, event):
+        """Event handler for the 'reaction_added'
+           and 'reaction_removed' events"""
+
+        user = SlackPerson(self.sc, event['user'])
+        item_user = None
+        if event['item_user']:
+            item_user = SlackPerson(self.sc, event['item_user'])
+
+        action = REACTION_ADDED
+        if event['type'] == 'reaction_removed':
+            action = REACTION_REMOVED
+
+        reaction = Reaction(reactor=user,
+                            reacted_to_owner=item_user,
+                            action=action,
+                            timestamp=event['event_ts'],
+                            reaction_name=event['reaction'],
+                            reacted_to=event['item']
+                            )
+
+        self.callback_reaction(reaction)
+
     def userid_to_username(self, id_):
         """Convert a Slack user ID to their user name"""
         user = self.sc.server.users.get(id_)
@@ -561,7 +603,7 @@ class SlackBackend(ErrBot):
             raise RoomDoesNotExistError(f'No channel named {name} exists')
         return channel[0].id
 
-    def channels(self, exclude_archived=True, joined_only=False):
+    def channels(self, exclude_archived=True, joined_only=False, types=room_types):
         """
         Get all channels and groups and return information about them.
 
@@ -574,20 +616,21 @@ class SlackBackend(ErrBot):
             and group (https://api.slack.com/types/group) types.
 
         See also:
-          * https://api.slack.com/methods/channels.list
-          * https://api.slack.com/methods/groups.list
+          * https://api.slack.com/methods/conversations.list
         """
-        response = self.api_call('channels.list', data={'exclude_archived': exclude_archived})
+        response = self.api_call('conversations.list', data={'exclude_archived': exclude_archived, 'types': types})
         channels = [channel for channel in response['channels']
                     if channel['is_member'] or not joined_only]
 
-        response = self.api_call('groups.list', data={'exclude_archived': exclude_archived})
+        # There is no need to list groups anymore.  Groups are now identified as 'private_channel'
+        # type using the conversations.list api method.
+        # response = self.api_call('groups.list', data={'exclude_archived': exclude_archived})
         # No need to filter for 'is_member' in this next call (it doesn't
         # (even exist) because leaving a group means you have to get invited
         # back again by somebody else.
-        groups = [group for group in response['groups']]
+        # groups = [group for group in response['groups']]
 
-        return channels + groups
+        return channels
 
     @lru_cache(1024)
     def get_im_channel(self, id_):
@@ -649,8 +692,7 @@ class SlackBackend(ErrBot):
             body = self.md.convert(msg.body)
             log.debug('Message size: %d.', len(body))
 
-            limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
-            parts = self.prepare_message_body(body, limit)
+            parts = self.prepare_message_body(body, self.message_size_limit)
 
             timestamps = []
             for part in parts:
@@ -739,8 +781,7 @@ class SlackBackend(ErrBot):
         if card.fields:
             attachment['fields'] = [{'title': key, 'value': value, 'short': True} for key, value in card.fields]
 
-        limit = min(self.bot_config.MESSAGE_SIZE_LIMIT, SLACK_MESSAGE_LIMIT)
-        parts = self.prepare_message_body(card.body, limit)
+        parts = self.prepare_message_body(card.body, self.message_size_limit)
         part_count = len(parts)
         footer = attachment.get('footer', '')
         for i in range(part_count):
@@ -977,7 +1018,7 @@ class SlackBackend(ErrBot):
         :returns:
             A list of :class:`~SlackRoom` instances.
         """
-        channels = self.channels(joined_only=True, exclude_archived=True)
+        channels = self.channels(joined_only=True, exclude_archived=True,)
         return [SlackRoom(channelid=channel['id'], bot=self) for channel in channels]
 
     def prefix_groupchat_reply(self, message, identifier):
@@ -1067,13 +1108,21 @@ class SlackRoom(Room):
         Channel info as returned by the Slack API.
 
         See also:
-          * https://api.slack.com/methods/channels.list
-          * https://api.slack.com/methods/groups.list
+          * https://api.slack.com/methods/conversations.list
+            Removed the groups.info call.  Conversations.info covers it all
         """
-        if self.private:
-            return self._bot.api_call('groups.info', data={'channel': self.id})["group"]
-        else:
-            return self._bot.api_call('channels.info', data={'channel': self.id})["channel"]
+
+        return self._bot.api_call('conversations.info', data={'channel': self.id})["channel"]
+
+    @property
+    def _channel_members(self):
+        """
+        Channel members info as returned by the Slack API.
+
+        See also:
+            * https://api.slack.com/methods/conversations.members
+        """
+        return self._bot.api_call('conversations.members', data={'channel': self.id})
 
     @property
     def private(self):
@@ -1097,7 +1146,7 @@ class SlackRoom(Room):
     def join(self, username=None, password=None):
         log.info("Joining channel %s", str(self))
         try:
-            self._bot.api_call('channels.join', data={'name': self.name})
+            self._bot.api_call('conversations.join', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to join channel. {USER_IS_BOT_HELPTEXT}')
@@ -1108,10 +1157,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith('C'):
                 log.info('Leaving channel %s (%s)', self, self.id)
-                self._bot.api_call('channels.leave', data={'channel': self.id})
+                self._bot.api_call('conversations.leave', data={'channel': self.id})
             else:
                 log.info('Leaving group %s (%s)', self, self.id)
-                self._bot.api_call('groups.leave', data={'channel': self.id})
+                self._bot.api_call('conversations.leave', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to leave channel. {USER_IS_BOT_HELPTEXT}')
@@ -1122,11 +1171,11 @@ class SlackRoom(Room):
     def create(self, private=False):
         try:
             if private:
-                log.info('Creating group %s.', self)
-                self._bot.api_call('groups.create', data={'name': self.name})
+                log.info('Creating private channel %s.', self)
+                self._bot.api_call('conversations.create', data={'name': self.name, 'is_private': True})
             else:
                 log.info('Creating channel %s.', self)
-                self._bot.api_call('channels.create', data={'name': self.name})
+                self._bot.api_call('conversations.create', data={'name': self.name})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f"Unable to create channel. {USER_IS_BOT_HELPTEXT}")
@@ -1137,10 +1186,10 @@ class SlackRoom(Room):
         try:
             if self.id.startswith('C'):
                 log.info('Archiving channel %s (%s)', self, self.id)
-                self._bot.api_call('channels.archive', data={'channel': self.id})
+                self._bot.api_call('conversations.archive', data={'channel': self.id})
             else:
                 log.info('Archiving group %s (%s)', self, self.id)
-                self._bot.api_call('groups.archive', data={'channel': self.id})
+                self._bot.api_call('conversations.archive', data={'channel': self.id})
         except SlackAPIResponseError as e:
             if e.error == 'user_is_bot':
                 raise RoomError(f'Unable to archive channel. {USER_IS_BOT_HELPTEXT}')
@@ -1167,12 +1216,10 @@ class SlackRoom(Room):
 
     @topic.setter
     def topic(self, topic):
-        if self.private:
-            log.info('Setting topic of %s (%s) to %s.', self, self.id, topic)
-            self._bot.api_call('groups.setTopic', data={'channel': self.id, 'topic': topic})
-        else:
-            log.info('Setting topic of %s (%s) to %s.', self, self.id, topic)
-            self._bot.api_call('channels.setTopic', data={'channel': self.id, 'topic': topic})
+        # No need to separate groups from channels here anymore.
+
+        log.info('Setting topic of %s (%s) to %s.', self, self.id, topic)
+        self._bot.api_call('conversations.setTopic', data={'channel': self.id, 'topic': topic})
 
     @property
     def purpose(self):
@@ -1183,16 +1230,14 @@ class SlackRoom(Room):
 
     @purpose.setter
     def purpose(self, purpose):
-        if self.private:
-            log.info('Setting purpose of %s (%s) to %s.', self, self.id, purpose)
-            self._bot.api_call('groups.setPurpose', data={'channel': self.id, 'purpose': purpose})
-        else:
-            log.info('Setting purpose of %s (%s) to %s.', str(self), self.id, purpose)
-            self._bot.api_call('channels.setPurpose', data={'channel': self.id, 'purpose': purpose})
+        # No need to separate groups from channels here anymore.
+
+        log.info('Setting purpose of %s (%s) to %s.', str(self), self.id, purpose)
+        self._bot.api_call('conversations.setPurpose', data={'channel': self.id, 'purpose': purpose})
 
     @property
     def occupants(self):
-        members = self._channel_info['members']
+        members = self._channel_members['members']
         return [SlackRoomOccupant(self.sc, m, self.id, self._bot) for m in members]
 
     def invite(self, *args):
@@ -1201,7 +1246,7 @@ class SlackRoom(Room):
             if user not in users:
                 raise UserDoesNotExistError(f'User "{user}" not found.')
             log.info('Inviting %s into %s (%s)', user, self, self.id)
-            method = 'groups.invite' if self.private else 'channels.invite'
+            method = 'conversations.invite'
             response = self._bot.api_call(
                 method,
                 data={'channel': self.id, 'user': users[user]},

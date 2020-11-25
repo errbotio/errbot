@@ -44,7 +44,7 @@ def bot_config_defaults(config):
     if not hasattr(config, 'DIVERT_TO_THREAD'):
         config.DIVERT_TO_THREAD = ()
     if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
-        config.MESSAGE_SIZE_LIMIT = 10000  # Corresponds with what HipChat accepts
+        config.MESSAGE_SIZE_LIMIT = None  # No user limit declared.
     if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):
         config.GROUPCHAT_NICK_PREFIXED = False
     if not hasattr(config, 'AUTOINSTALL_DEPS'):
@@ -200,8 +200,9 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
 
         errors = bot.plugin_manager.update_plugin_places(repo_manager.get_all_repos_paths())
         if errors:
-            log.error('Some plugins failed to load:\n' + '\n'.join(errors.values()))
-            bot._plugin_errors_during_startup = "\n".join(errors.values())
+            startup_errors = "\n".join(errors.values())
+            log.error("Some plugins failed to load:\n%s", startup_errors)
+            bot._plugin_errors_during_startup = startup_errors
         return bot
     except Exception:
         log.exception("Unable to load or configure the backend.")

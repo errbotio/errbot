@@ -340,8 +340,9 @@ class SlackBackend(ErrBot):
         self.token = identity.get("token", None)
         self.proxies = identity.get("proxies", None)
 
-        # Force RTM API during MVP development
-        slack_api = "rtm"
+        # Select which Slack API model to use.  Default to Real-Time Messaging API to remain
+        # backward compatiable with the original errbot slack backend.
+        self.slack_api = identity.get("api", "rtm")
 
         if not self.token:
             log.fatal(
@@ -352,12 +353,12 @@ class SlackBackend(ErrBot):
             sys.exit(1)
 
         # Handle extra variables when using Events API.
-        if slack_api == "events":
+        if self.slack_api == "events":
             self.signing_secret = identity.get("signing_secret", None)
             if not self.signing_secret:
                 log.fatal(
-                    'You need to set your signing_secret (found under "Bot Integration" on Slack) in '
-                    "the BOT_IDENTITY setting in your configuration. Without this secret I "
+                    'You need to set your signing_secret (found under "Bot Integration" on Slack)'
+                    " in the BOT_IDENTITY setting in your configuration. Without this secret I "
                     "cannot receive events from Slack."
                 )
                 sys.exit(1)
@@ -375,6 +376,10 @@ class SlackBackend(ErrBot):
         Slack supports upto 40000 characters per message, Errbot maintains 4096 by default.
         """
         super().set_message_size_limit(limit, hard_limit)
+
+    # Listen for oauthv2 challenge-response
+    def oauth_challenge_response(self):
+        raise NotImplementedError
 
     @staticmethod
     def _unpickle_identifier(identifier_str):
@@ -436,12 +441,12 @@ class SlackBackend(ErrBot):
             self._presence_change_event_handler(payload["web_client"], payload["data"])
 
     def serve_once(self):
-        self.debug("Fake establishing connection to Slack. Stop after 1 second.")
+        self.debug("Serve once isn't supported. Stopping after 1 second.")
         sleep(1)
 
     def serve_forever(self):
-        slack_api = "rtm"
-        if slack_api == "rtm":
+        if self.slack_api == "rtm":
+            log.debug("Running RTM ")
             self.serve_forever_rtm()
         else:
             self.serve_forever_events()

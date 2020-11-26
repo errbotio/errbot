@@ -1192,6 +1192,8 @@ class SlackBackend(ErrBot):
             return msg.extras["slack_event"]["ts"]
 
     def shutdown(self):
+        if self.slack_rtm:
+            self.slack_rtm.stop()
         super().shutdown()
 
     @property

@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -31,7 +31,7 @@ jobs:
         pip install \
           pytest \
           tox
-        cp tests/config-travisci.py config.py
+        cp tests/config-ci.py config.py
 
     - name: Test on ${{ matrix.python-version }}
       run: |

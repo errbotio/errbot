@@ -21,7 +21,7 @@ PLUGINS_SUBDIR = 'plugins'
 
 
 # noinspection PyPep8Naming
-class deprecated(object):
+class deprecated:
     """ deprecated decorator. emits a warning on a call on an old method and call the new method anyway """
     def __init__(self, new=None):
         self.new = new

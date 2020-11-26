@@ -189,7 +189,7 @@ def check_repo(repo):
             plugins[repo_name] = repo_entry
             log.debug('Catalog added plugin %s.', plugin['name'])
         except:
-            log.error('Invalid syntax in %s, skipping... ' % plug['path'])
+            log.error("Invalid syntax in %s, skipping...", plug['path'])
             continue
 
         rate_limit(plugfile_resp)
@@ -206,8 +206,8 @@ def find_plugins(query):
         if repo_json.get('message', None) == 'Bad credentials':
             log.error('Invalid credentials, check your token file, see README.')
             sys.exit(-1)
-        log.debug("Repo reqs before ratelimit %s/%s" % (repo_resp.headers['X-RateLimit-Remaining'],
-                                                        repo_resp.headers['X-RateLimit-Limit']))
+        log.debug("Repo reqs before ratelimit %s/%s", repo_resp.headers['X-RateLimit-Remaining'],
+                                                      repo_resp.headers['X-RateLimit-Limit'])
         if 'message' in repo_json and repo_json['message'].startswith('API rate limit exceeded for'):
             log.error('API rate limit hit anyway ... wait for 30s')
             time.sleep(30)

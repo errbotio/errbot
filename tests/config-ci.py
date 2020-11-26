@@ -1,4 +1,4 @@
-# config for travisci
+# config for continus integration testing.
 # Don't use this for sensible defaults
 import logging
 BOT_DATA_DIR = '/tmp'

@@ -197,7 +197,7 @@ class SlackPerson(Person):
         """Convert a Slack user ID to their user email"""
         user = self._webclient.users_info(user=self._userid)['user']
         if user is None:
-            log.error("Cannot find user with ID %s" % self._userid)
+            log.error("Cannot find user with ID %s", self._userid)
             return "<%s>" % self._userid
 
         email = user["profile"]["email"]

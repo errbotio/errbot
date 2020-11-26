@@ -8,7 +8,7 @@ from errbot.core import ErrBot
 log = logging.getLogger(__name__)
 
 
-class ConnectionMock(object):
+class ConnectionMock:
     def send(self, msg):
         pass
 

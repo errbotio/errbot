@@ -1,5 +1,4 @@
 import textwrap
-import subprocess
 
 from dulwich import errors as dulwich_errors
 from errbot import BotPlugin, botcmd

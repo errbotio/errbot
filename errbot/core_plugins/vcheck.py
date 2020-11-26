@@ -44,14 +44,14 @@ class VersionChecker(BotPlugin):
         try:
             possible_versions = requests.get(HOME).json()
             version = possible_versions.get('python{}'.format(major_py_version), VERSION)
-            self.log.debug("Latest Errbot version is: " + version)
+            self.log.debug("Latest Errbot version is: %s", version)
         except (HTTPError, URLError, ConnectionError, JSONDecodeError):
             self.log.info('Could not establish connection to retrieve latest version.')
         return version
 
     def _async_vcheck(self):
         current_version_txt = self._get_version()
-        self.log.debug("Installed Errbot version is: " + current_version_txt)
+        self.log.debug("Installed Errbot version is: %s", current_version_txt)
         current_version = version2tuple(current_version_txt)
         if installed_version < current_version:
             self.log.debug('A new version %s has been found, notify the admins!', current_version_txt)

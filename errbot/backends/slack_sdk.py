@@ -1303,7 +1303,7 @@ class SlackRoom(Room):
         _id = None
         # Cursors
         cursor = ""
-        while cursor != None:
+        while cursor is not None:
             conversations_list = self.slack_web.conversations_list(cursor=cursor)
             cursor = None
             for channel in conversations_list["channels"]:
@@ -1311,7 +1311,7 @@ class SlackRoom(Room):
                     _id = channel["id"]
                     break
             else:
-                if conversations_list["response_metadata"]["next_cursor"] != None:
+                if conversations_list["response_metadata"]["next_cursor"] is not None:
                     cursor = conversations_list["response_metadata"]["next_cursor"]
                 else:
                     raise RoomDoesNotExistError(

@@ -154,7 +154,10 @@ class SlackPerson(Person):
         if self._channelname:
             return self._channelname
 
-        channel = [channel for channel in self._webclient.conversations_list()['channels'] if channel['id'] == self._channelid][0]
+        channel = [
+            channel for channel in self._webclient.conversations_list()['channels']
+                if channel['id'] == self._channelid
+        ][0]
         if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {self._channelid} exists.')
         if not self._channelname:
@@ -1068,7 +1071,7 @@ class SlackRoom(Room):
         _id = None
         # Cursors
         cursor = ''
-        while cursor != None:
+        while cursor is not None:
             conversations_list = self.webclient.conversations_list(cursor=cursor)
             cursor = None
             for channel in conversations_list['channels']:
@@ -1076,10 +1079,12 @@ class SlackRoom(Room):
                     _id = channel['id']
                     break
             else:
-                if conversations_list['response_metadata']['next_cursor'] != None:
+                if conversations_list['response_metadata']['next_cursor'] is not None:
                     cursor = conversations_list['response_metadata']['next_cursor']
                 else:
-                    raise RoomDoesNotExistError(f"{str(self)} does not exist (or is a private group you don't have access to)")
+                    raise RoomDoesNotExistError(
+                        f"{str(self)} does not exist (or is a private group you don't have access to)"
+                    )
         return _id
 
     @property

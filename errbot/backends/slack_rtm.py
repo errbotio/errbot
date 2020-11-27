@@ -156,7 +156,7 @@ class SlackPerson(Person):
 
         channel = [
             channel for channel in self._webclient.conversations_list()['channels']
-                if channel['id'] == self._channelid
+            if channel['id'] == self._channelid
         ][0]
         if channel is None:
             raise RoomDoesNotExistError(f'No channel with ID {self._channelid} exists.')

@@ -49,3 +49,7 @@ class SlackPersonTests(unittest.TestCase):
         self.webClient.conversations_list.return_value = {'channels': []}
         with self.assertRaises(RoomDoesNotExistError) as e:
             self.p.channelname
+
+    def test_domain(self):
+        with self.assertRaises(NotImplementedError) as e:
+            self.p.domain

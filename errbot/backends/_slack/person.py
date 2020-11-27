@@ -80,7 +80,7 @@ class SlackPerson(Person):
 
     @property
     def domain(self):
-        raise NotImplemented()
+        raise NotImplementedError
 
     # Compatibility with the generic API.
     client = channelid

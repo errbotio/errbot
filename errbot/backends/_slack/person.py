@@ -1,6 +1,9 @@
 
 import logging
-from errbot.backends.base import Person
+from errbot.backends.base import (
+    Person,
+    RoomDoesNotExistError
+)
 from slack_sdk.web import WebClient
 
 log = logging.getLogger(__name__)
@@ -66,11 +69,13 @@ class SlackPerson(Person):
             channel
             for channel in self._webclient.conversations_list()["channels"]
             if channel["id"] == self._channelid
-        ][0]
-        if channel is None:
+        ]
+
+        if not channel:
             raise RoomDoesNotExistError(f"No channel with ID {self._channelid} exists.")
+
         if not self._channelname:
-            self._channelname = channel["name"]
+            self._channelname = channel[0]["name"]
         return self._channelname
 
     @property

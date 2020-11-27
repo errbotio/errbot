@@ -9,14 +9,9 @@ import pprint
 from functools import lru_cache
 from typing import BinaryIO
 
-from markdown import Markdown
-from markdown.extensions.extra import ExtraExtension
-from markdown.preprocessors import Preprocessor
-
 from errbot.core import ErrBot
 from errbot.utils import split_string_after
 from errbot.core_plugins import flask_app
-from errbot.rendering.ansiext import AnsiExtension, enable_format, IMTEXT_CHRS
 from errbot.backends.base import (
     Identifier,
     Message,
@@ -35,6 +30,8 @@ from errbot.backends.base import (
     REACTION_ADDED,
     REACTION_REMOVED,
 )
+
+from ._slack.markdown import slack_markdown_converter
 
 log = logging.getLogger(__name__)
 
@@ -78,30 +75,7 @@ COLORS = {
     "cyan": "#00FFFF",
 }  # Slack doesn't know its colors
 
-MARKDOWN_LINK_REGEX = re.compile(r"(?<!!)\[(?P<text>[^\]]+?)\]\((?P<uri>[a-zA-Z0-9]+?:\S+?)\)")
 
-
-def slack_markdown_converter(compact_output=False):
-    """
-    This is a Markdown converter for use with Slack.
-    """
-    enable_format("imtext", IMTEXT_CHRS, borders=not compact_output)
-    md = Markdown(output_format="imtext", extensions=[ExtraExtension(), AnsiExtension()])
-    md.preprocessors.register(LinkPreProcessor(md), "LinkPreProcessor", 30)
-    md.stripTopLevelTags = False
-    return md
-
-
-class LinkPreProcessor(Preprocessor):
-    """
-    This preprocessor converts markdown URL notation into Slack URL notation
-    as described at https://api.slack.com/docs/formatting, section "Linking to URLs".
-    """
-
-    def run(self, lines):
-        for i, line in enumerate(lines):
-            lines[i] = MARKDOWN_LINK_REGEX.sub(r"&lt;\2|\1&gt;", line)
-        return lines
 
 
 # FIXME This class might be able to be replaced by SlackApiError.

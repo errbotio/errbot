@@ -16,7 +16,8 @@ class SlackPersonTests(unittest.TestCase):
     def setUp(self):
         self.webClient = MagicMock()
         self.userid = 'Utest_user_id'
-        self.p = SlackPerson(self.webClient, userid=self.userid)
+        self.channelid= 'Ctest_channel_id'
+        self.p = SlackPerson(self.webClient, userid=self.userid, channelid=self.channelid)
 
     def test_username(self):
         self.webClient.users_info.return_value = {'user': {'name': 'test_username'}}

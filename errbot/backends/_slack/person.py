@@ -30,6 +30,7 @@ class SlackPerson(Person):
         self._webclient = webclient
         self._username = None  # cache
         self._fullname = None
+        self._email = None
         self._channelname = None
         self._email = None
 
@@ -42,15 +43,42 @@ class SlackPerson(Person):
         """Convert a Slack user ID to their user name"""
         if self._username:
             return self._username
+        self._get_user_info()
+        if self._username is None:
+            return f"<{self._userid}>"
+        return self._username
 
+    @property
+    def fullname(self):
+        """Convert a Slack user ID to their full name"""
+        if self._fullname:
+            return self._fullname
+        self._get_user_info()
+        if self._fullname is None:
+            return f"<{self._userid}>"
+        return self._fullname
+
+    @property
+    def email(self):
+        """Convert a Slack user ID to their user email"""
+        if self._email:
+            return self._email
+        self._get_user_info()
+        if self._email is None:
+            return "<%s>" % self._userid
+        return self._email
+
+    def _get_user_info(self):
+        """Cache all user info"""
         user = self._webclient.users_info(user=self._userid)["user"]
 
         if user is None:
-            log.error("Cannot find user with ID %s", self._userid)
-            return f"<{self._userid}>"
+            log.error("Cannot find user with ID %s" % self._userid)
+            return
 
+        self._email = user["profile"]["email"]
+        self._fullname = user["real_name"]
         self._username = user["name"]
-        return self._username
 
     @property
     def channelid(self):
@@ -94,31 +122,10 @@ class SlackPerson(Person):
         return f"@{self.username}"
 
     @property
-    def fullname(self):
-        """Convert a Slack user ID to their full name"""
-        if self._fullname:
-            return self._fullname
-
-        user = self._webclient.users_info(user=self._userid)["user"]
-        if user is None:
-            log.error("Cannot find user with ID %s", self._userid)
-            return f"<{self._userid}>"
-
-        if not self._fullname:
-            self._fullname = user["real_name"]
-
-        return self._fullname
-
-    @property
-    def email(self):
-        """Convert a Slack user ID to their user email"""
-        user = self._webclient.users_info(user=self._userid)["user"]
-        if user is None:
-            log.error("Cannot find user with ID %s" % self._userid)
-            return "<%s>" % self._userid
-
-        email = user["profile"]["email"]
-        return email
+    def person(self):
+        # Don't use str(self) here because we want SlackRoomOccupant
+        # to return just our @username too.
+        return f"@{self.username}"
 
     def __unicode__(self):
         return f"@{self.username}"
@@ -134,9 +141,3 @@ class SlackPerson(Person):
 
     def __hash__(self):
         return self.userid.__hash__()
-
-    @property
-    def person(self):
-        # Don't use str(self) here because we want SlackRoomOccupant
-        # to return just our @username too.
-        return f"@{self.username}"

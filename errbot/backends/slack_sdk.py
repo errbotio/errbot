@@ -30,11 +30,6 @@ from errbot.backends.base import (
     REACTION_REMOVED,
 )
 
-from ._slack.markdown import slack_markdown_converter
-from ._slack.person import SlackPerson
-
-log = logging.getLogger(__name__)
-
 try:
     from slackeventsapi import SlackEventAdapter
     from slack_sdk.errors import BotUserAccessError, SlackApiError
@@ -50,6 +45,12 @@ except ImportError:
         "You can do `pip install errbot[slack-sdk]` to install them."
     )
     sys.exit(1)
+
+from ._slack.markdown import slack_markdown_converter
+from ._slack.person import SlackPerson
+
+log = logging.getLogger(__name__)
+
 
 # The Slack client automatically turns a channel name into a clickable
 # link if you prefix it with a #. Other clients receive this link as a
@@ -74,8 +75,6 @@ COLORS = {
     "white": "#FFFFFF",
     "cyan": "#00FFFF",
 }  # Slack doesn't know its colors
-
-
 
 
 # FIXME This class might be able to be replaced by SlackApiError.

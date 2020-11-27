@@ -10,6 +10,7 @@ from errbot.backends._slack.markdown import *
 
 log = logging.getLogger(__name__)
 
+
 class SlackMarkdownTests(unittest.TestCase):
 
     def testSlackMarkdownConverter(self):

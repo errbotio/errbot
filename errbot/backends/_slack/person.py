@@ -121,11 +121,7 @@ class SlackPerson(Person):
         # an incorrect format from SlackMUCOccupant.
         return f"@{self.username}"
 
-    @property
-    def person(self):
-        # Don't use str(self) here because we want SlackRoomOccupant
-        # to return just our @username too.
-        return f"@{self.username}"
+    person = aclattr
 
     def __unicode__(self):
         return f"@{self.username}"

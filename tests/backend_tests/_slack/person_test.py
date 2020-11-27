@@ -89,3 +89,11 @@ class SlackPersonTests(unittest.TestCase):
     def test_domain(self):
         with self.assertRaises(NotImplementedError) as e:
             self.p.domain
+
+    def test_aclattr(self):
+        self.p._username = 'aclusername'
+        self.assertEqual(self.p.aclattr, '@aclusername')
+
+    def test_person(self):
+        self.p._username = 'personusername'
+        self.assertEqual(self.p.person, '@personusername')

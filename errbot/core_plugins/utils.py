@@ -22,7 +22,12 @@ class Utils(BotPlugin):
             frm = self.build_identifier(str(args).strip('"'))
         else:
             frm = msg.frm
-        resp = "| key      | value\n"
+
+        resp = ""
+        if self.bot_config.GROUPCHAT_NICK_PREFIXED:
+            resp += "\n\n"
+
+        resp += "| key      | value\n"
         resp += "| -------- | --------\n"
         resp += f"| person   | `{frm.person}`\n"
         resp += f"| nick     | `{frm.nick}`\n"

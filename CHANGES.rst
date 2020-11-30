@@ -6,6 +6,11 @@ features:
 - core: Add support for python3.9 (#1477)
 - chore: Allow dependabot to check GitHub actions weekly (#1464)
 
+fixes:
+
+- chore: Remove travis configuration (#1478)
+- chore: minor code cleanup (#1465)
+
 
 v6.1.6 (2020-11-16)
 -------------------

@@ -8,6 +8,7 @@ features:
 
 fixes:
 
+- core: AttributeError on Blacklisted plugins (#1369)
 - chore: Remove travis configuration (#1478)
 - chore: minor code cleanup (#1465)
 

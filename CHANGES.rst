@@ -4,6 +4,7 @@ v6.1.7 (unreleased)
 features:
 
 - core: Add support for python3.9 (#1477)
+- chore: Allow dependabot to check GitHub actions weekly (#1464)
 
 
 v6.1.6 (2020-11-16)

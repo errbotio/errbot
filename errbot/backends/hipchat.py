@@ -658,7 +658,7 @@ class HipchatBackend(XMPPBackend):
                 stream.error()
         except Exception:
             log.exception(
-                "Upload of %s to %s failed.", stream.name, stream.identifier.channelname
+                f"Upload of {stream.name} to {stream.identifier.channelname} failed."
             )
 
     @lru_cache(1024)

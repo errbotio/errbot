@@ -11,6 +11,7 @@ fixes:
 - core: AttributeError on Blacklisted plugins (#1369)
 - chore: Remove travis configuration (#1478)
 - chore: minor code cleanup (#1465)
+- chore: Use black codestyle (#1457)
 
 
 v6.1.6 (2020-11-16)

@@ -16,5 +16,6 @@ RUN apt update && \
 RUN useradd -m errbot
 USER errbot
 EXPOSE 3141 3142
+VOLUME /home/errbot
 WORKDIR /home/errbot
 ENTRYPOINT [ "/usr/local/bin/errbot" ]

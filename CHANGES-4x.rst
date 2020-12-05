@@ -473,10 +473,8 @@ Further info on identifier changes
 
 The relationship is as follow:
 
-.. image::
-https://raw.githubusercontent.com/errbotio/errbot/master/docs/_static/arch/identifiers.png
-:target:
-https://github.com/errbotio/errbot/blob/master/errbot/backends/base.py
+.. image:: https://raw.githubusercontent.com/errbotio/errbot/master/docs/_static/arch/identifiers.png
+   :target: https://github.com/errbotio/errbot/blob/master/errbot/backends/base.py
 
 For example: A Message sent from a room will have a RoomOccupant as frm
 and a Room as to.

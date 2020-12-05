@@ -162,8 +162,10 @@ v4.2 New features
 -  Errbot initial installation. The initial installation has been
    drastically simplified::
 
-   $ pip install errbot $ mkdir errbot; cd errbot $ errbot –init $
-   errbot -T >>> <- You are game !!
+   $ pip install errbot
+   $ mkdir errbot; cd errbot
+   $ errbot –init
+   $ errbot -T >>> <- You are game !!
 
    Not only that but it also install a development directory in there so
    it now takes only seconds to have an Errbot development environment.

@@ -63,7 +63,7 @@ import logging
 
 # The location where all of Err's data should be stored. Make sure to set
 # this to a directory that is writable by the user running the bot.
-BOT_DATA_DIR = '/var/lib/err'
+BOT_DATA_DIR = "/var/lib/err"
 
 ### Repos and plugins config.
 
@@ -97,7 +97,7 @@ BOT_EXTRA_PLUGIN_DIR = None
 # pre- or post-processing on messages.
 # The 'None' tuple entry represents all the plugins that aren't to be explicitly ordered. For example, if
 # you want 'A' to run first, then everything else but 'B', then 'B', you would use ('A', None, 'B').
-PLUGINS_CALLBACK_ORDER = (None, )
+PLUGINS_CALLBACK_ORDER = (None,)
 
 # Should plugin dependencies be installed automatically? If this is true
 # then Errbot will use pip to install any missing dependencies automatically.
@@ -107,7 +107,7 @@ PLUGINS_CALLBACK_ORDER = (None, )
 # If no virtualenv is detected, the equivalent of `pip install --user -r
 # requirements.txt` is used to ensure the package(s) is/are only installed for
 # the user running Err.
-#AUTOINSTALL_DEPS = True
+# AUTOINSTALL_DEPS = True
 
 # To use your own custom log formatter, uncomment and set BOT_LOG_FORMATTER
 # to your formatter instance (inherits from logging.Formatter)
@@ -117,7 +117,7 @@ PLUGINS_CALLBACK_ORDER = (None, )
 
 # The location of the log file. If you set this to None, then logging will
 # happen to console only.
-BOT_LOG_FILE = BOT_DATA_DIR + '/err.log'
+BOT_LOG_FILE = BOT_DATA_DIR + "/err.log"
 
 # The verbosity level of logging that is done to the above logfile, and to
 # the console. This takes the standard Python logging levels, DEBUG, INFO,
@@ -133,7 +133,7 @@ BOT_LOG_LEVEL = logging.INFO
 # This is optional and disabled by default.
 BOT_LOG_SENTRY = False
 BOT_LOG_SENTRY_FLASK = False
-SENTRY_DSN = ''
+SENTRY_DSN = ""
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 SENTRY_EVENTLEVEL = BOT_LOG_LEVEL
 
@@ -156,10 +156,9 @@ SENTRY_EVENTLEVEL = BOT_LOG_LEVEL
 # The identity, or credentials, used to connect to a server
 BOT_IDENTITY = {
     # XMPP (Jabber) mode
-    'username': 'err@localhost',  # The JID of the user you have created for the bot
-    'password': 'changeme',       # The corresponding password for this user
+    "username": "err@localhost",  # The JID of the user you have created for the bot
+    "password": "changeme",  # The corresponding password for this user
     # 'server': ('host.domain.tld',5222), # server override
-
     ## HipChat mode (Comment the above if using this mode)
     # 'username': '12345_123456@chat.hipchat.com',
     # 'password': 'changeme',
@@ -170,15 +169,12 @@ BOT_IDENTITY = {
     ## the endpoint below. If you don't use HipChat server but use the hosted version
     ## of HipChat then you may leave this commented out.
     # 'endpoint': 'https://api.hipchat.com'
-
     ## Slack mode (comment the others above if using this mode)
     # 'token': 'xoxb-4426949411-aEM7...',
     ## you can also include the proxy for the SlackClient connection
     # 'proxies': {'http': 'some-http-proxy', 'https': 'some-https-proxy'}
-
     ## Telegram mode (comment the others above if using this mode)
     # 'token': '103419016:AAbcd1234...',
-
     ## IRC mode (Comment the others above if using this mode)
     # 'nickname': 'err-chatbot',
     # 'username': 'err-chatbot',    # optional, defaults to nickname if omitted
@@ -200,10 +196,10 @@ BOT_IDENTITY = {
 #
 # Unix-style glob patterns are supported, so 'gbin@localhost'
 # would be considered an admin if setting '*@localhost'.
-BOT_ADMINS = ('gbin@localhost',)
+BOT_ADMINS = ("gbin@localhost",)
 
 # Set of admins that wish to receive administrative bot notifications.
-#BOT_ADMINS_NOTIFICATIONS = ()
+# BOT_ADMINS_NOTIFICATIONS = ()
 
 # Chatrooms your bot should join on startup. For the IRC backend you
 # should include the # sign here. For XMPP rooms that are password
@@ -234,13 +230,13 @@ BOT_ADMINS = ('gbin@localhost',)
 # Uncomment the following and set it to True if you want the prefix to be
 # optional for normal chat.
 # (Meaning messages sent directly to the bot as opposed to within a MUC)
-#BOT_PREFIX_OPTIONAL_ON_CHAT = False
+# BOT_PREFIX_OPTIONAL_ON_CHAT = False
 
 # You might wish to have your bot respond by being called with certain
 # names, rather than the BOT_PREFIX above. This option allows you to
 # specify alternative prefixes the bot will respond to in addition to
 # the prefix above.
-#BOT_ALT_PREFIXES = ('Err',)
+# BOT_ALT_PREFIXES = ('Err',)
 
 # If you use alternative prefixes, you might want to allow users to insert
 # separators like , and ; between the prefix and the command itself. This
@@ -250,12 +246,12 @@ BOT_ADMINS = ('gbin@localhost',)
 #
 # Note: There's no need to add spaces to the separators here
 #
-#BOT_ALT_PREFIX_SEPARATORS = (':', ',', ';')
+# BOT_ALT_PREFIX_SEPARATORS = (':', ',', ';')
 
 # Continuing on this theme, you might want to permit your users to be
 # lazy and not require correct capitalization, so they can do 'Err',
 # 'err' or even 'ERR'.
-#BOT_ALT_PREFIX_CASEINSENSITIVE = True
+# BOT_ALT_PREFIX_CASEINSENSITIVE = True
 
 ##########################################################################
 # Access controls and message diversion                                  #
@@ -287,8 +283,8 @@ BOT_ADMINS = ('gbin@localhost',)
 #
 # Example:
 #
-#ACCESS_CONTROLS_DEFAULT = {} # Allow everyone access by default
-#ACCESS_CONTROLS = {'status': {'allowrooms': ('someroom@conference.localhost',)},
+# ACCESS_CONTROLS_DEFAULT = {} # Allow everyone access by default
+# ACCESS_CONTROLS = {'status': {'allowrooms': ('someroom@conference.localhost',)},
 #                   'about': {'denyusers': ('*@evilhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
 #                   'uptime': {'allowusers': BOT_ADMINS},
 #                   'help': {'allowmuc': False},
@@ -298,11 +294,11 @@ BOT_ADMINS = ('gbin@localhost',)
 
 # Uncomment and set this to True to hide the restricted commands from
 # the help output.
-#HIDE_RESTRICTED_COMMANDS = False
+# HIDE_RESTRICTED_COMMANDS = False
 
 # Uncomment and set this to True to ignore commands from users that have no
 # access for these instead of replying with error message.
-#HIDE_RESTRICTED_ACCESS = False
+# HIDE_RESTRICTED_ACCESS = False
 
 # A list of commands which should be responded to in private, even if
 # the command was given in a MUC. For example:
@@ -334,7 +330,7 @@ REVERSE_CHATROOM_RELAY = {}
 # Define the maximum length a single message may be. If a plugin tries to
 # send a message longer than this length, it will be broken up into multiple
 # shorter messages that do fit.
-#MESSAGE_SIZE_LIMIT = 10000
+# MESSAGE_SIZE_LIMIT = 10000
 
 # XMPP TLS certificate verification. In order to validate offered certificates,
 # you must supply a path to a file containing certificate authorities. By
@@ -343,16 +339,16 @@ REVERSE_CHATROOM_RELAY = {}
 # change this depending on your environment. Setting this to None disables
 # certificate validation, which can be useful if you have a self-signed
 # certificate for example.
-#XMPP_CA_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"
+# XMPP_CA_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"
 
 # Influence the security methods used on connection with XMPP-based
 # backends. You can use this to work around authentication issues with
 # some buggy XMPP servers.
 #
 # The default is to try anything:
-#XMPP_FEATURE_MECHANISMS = {}
+# XMPP_FEATURE_MECHANISMS = {}
 # To use only unencrypted plain auth:
-#XMPP_FEATURE_MECHANISMS = {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
+# XMPP_FEATURE_MECHANISMS = {'use_mech': 'PLAIN', 'unencrypted_plain': True, 'encrypted_plain': False}
 
 # Modify the default keep-alive interval. By default, Errbot will send
 # some whitespace to the XMPP server every 300 seconds to keep the TCP
@@ -365,11 +361,11 @@ REVERSE_CHATROOM_RELAY = {}
 #
 # If you're having issues with your bot getting constantly disconnected,
 # try to gradually lower this value until it no longer happens.
-#XMPP_KEEPALIVE_INTERVAL = 300
+# XMPP_KEEPALIVE_INTERVAL = 300
 
 # Modify default settings for IPv6 usage. This key affect both
 # XMPP and HipChat backend.
-#XMPP_USE_IPV6 = False
+# XMPP_USE_IPV6 = False
 
 # XMPP supports some formatting with XEP-0071 (http://www.xmpp.org/extensions/xep-0071.html).
 # It is disabled by default because XMPP clients support has been found to be spotty.
@@ -385,12 +381,12 @@ REVERSE_CHATROOM_RELAY = {}
 # Message rate limiting for the IRC backend. This will delay subsequent
 # messages by this many seconds (floats are supported). Setting these
 # to a value of 0 effectively disables rate limiting.
-#IRC_CHANNEL_RATE = 1  # Regular channel messages
-#IRC_PRIVATE_RATE = 1  # Private messages
-#IRC_RECONNECT_ON_KICK = 5  # Reconnect back to a channel after a kick (in seconds)
-                            # Put it at None if you don't want the chat to
-                            # reconnect
-#IRC_RECONNECT_ON_DISCONNECT = 5  # Reconnect back to a channel after a disconnection (in seconds)
+# IRC_CHANNEL_RATE = 1  # Regular channel messages
+# IRC_PRIVATE_RATE = 1  # Private messages
+# IRC_RECONNECT_ON_KICK = 5  # Reconnect back to a channel after a kick (in seconds)
+# Put it at None if you don't want the chat to
+# reconnect
+# IRC_RECONNECT_ON_DISCONNECT = 5  # Reconnect back to a channel after a disconnection (in seconds)
 
 # The pattern to build a user representation from for ACL matches.
 # The default is "{nick}!{user}@{host}" which results in "zoni!zoni@ams1.groenen.me"
@@ -399,10 +395,10 @@ REVERSE_CHATROOM_RELAY = {}
 #   {nick}  ->  The nickname of the user
 #   {user}  ->  The username of the user
 #   {host}  ->  The hostname the user is connecting from
-#IRC_ACL_PATTERN = "{nick}!{user}@{host}"
+# IRC_ACL_PATTERN = "{nick}!{user}@{host}"
 
 # Allow messages sent in a chatroom to be directed at requester.
-#GROUPCHAT_NICK_PREFIXED = False
+# GROUPCHAT_NICK_PREFIXED = False
 
 # Disable table borders, making output more compact (supported only on IRC, Slack and Telegram currently).
 # COMPACT_OUTPUT = True

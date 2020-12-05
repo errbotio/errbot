@@ -6,7 +6,6 @@ ROOTS = {}  # make a little bit of an emulated persistence.
 
 
 class MemoryStorage(StorageBase):
-
     def __init__(self, namespace):
         self.namespace = namespace
         self.root = ROOTS.get(namespace, {})
@@ -35,6 +34,5 @@ class MemoryStorage(StorageBase):
 
 
 class MemoryStoragePlugin(StoragePluginBase):
-
     def open(self, namespace: str) -> StorageBase:
         return MemoryStorage(namespace)

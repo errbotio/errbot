@@ -1,75 +1,75 @@
-from os import path, makedirs
 import importlib
 import logging
 import sys
+from os import makedirs, path
 
+from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.core import ErrBot
+from errbot.logs import format_logs
 from errbot.plugin_manager import BotPluginManager
 from errbot.repo_manager import BotRepoManager
-from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.storage.base import StoragePluginBase
 from errbot.utils import PLUGINS_SUBDIR
-from errbot.logs import format_logs
 
 log = logging.getLogger(__name__)
 
 HERE = path.dirname(path.abspath(__file__))
-CORE_BACKENDS = path.join(HERE, 'backends')
-CORE_STORAGE = path.join(HERE, 'storage')
+CORE_BACKENDS = path.join(HERE, "backends")
+CORE_STORAGE = path.join(HERE, "storage")
 
-PLUGIN_DEFAULT_INDEX = 'https://errbot.io/repos.json'
+PLUGIN_DEFAULT_INDEX = "https://errbot.io/repos.json"
 
 
 def bot_config_defaults(config):
-    if not hasattr(config, 'ACCESS_CONTROLS_DEFAULT'):
+    if not hasattr(config, "ACCESS_CONTROLS_DEFAULT"):
         config.ACCESS_CONTROLS_DEFAULT = {}
-    if not hasattr(config, 'ACCESS_CONTROLS'):
+    if not hasattr(config, "ACCESS_CONTROLS"):
         config.ACCESS_CONTROLS = {}
-    if not hasattr(config, 'HIDE_RESTRICTED_COMMANDS'):
+    if not hasattr(config, "HIDE_RESTRICTED_COMMANDS"):
         config.HIDE_RESTRICTED_COMMANDS = False
-    if not hasattr(config, 'HIDE_RESTRICTED_ACCESS'):
+    if not hasattr(config, "HIDE_RESTRICTED_ACCESS"):
         config.HIDE_RESTRICTED_ACCESS = False
-    if not hasattr(config, 'BOT_PREFIX_OPTIONAL_ON_CHAT'):
+    if not hasattr(config, "BOT_PREFIX_OPTIONAL_ON_CHAT"):
         config.BOT_PREFIX_OPTIONAL_ON_CHAT = False
-    if not hasattr(config, 'BOT_PREFIX'):
-        config.BOT_PREFIX = '!'
-    if not hasattr(config, 'BOT_ALT_PREFIXES'):
+    if not hasattr(config, "BOT_PREFIX"):
+        config.BOT_PREFIX = "!"
+    if not hasattr(config, "BOT_ALT_PREFIXES"):
         config.BOT_ALT_PREFIXES = ()
-    if not hasattr(config, 'BOT_ALT_PREFIX_SEPARATORS'):
+    if not hasattr(config, "BOT_ALT_PREFIX_SEPARATORS"):
         config.BOT_ALT_PREFIX_SEPARATORS = ()
-    if not hasattr(config, 'BOT_ALT_PREFIX_CASEINSENSITIVE'):
+    if not hasattr(config, "BOT_ALT_PREFIX_CASEINSENSITIVE"):
         config.BOT_ALT_PREFIX_CASEINSENSITIVE = False
-    if not hasattr(config, 'DIVERT_TO_PRIVATE'):
+    if not hasattr(config, "DIVERT_TO_PRIVATE"):
         config.DIVERT_TO_PRIVATE = ()
-    if not hasattr(config, 'DIVERT_TO_THREAD'):
+    if not hasattr(config, "DIVERT_TO_THREAD"):
         config.DIVERT_TO_THREAD = ()
-    if not hasattr(config, 'MESSAGE_SIZE_LIMIT'):
+    if not hasattr(config, "MESSAGE_SIZE_LIMIT"):
         config.MESSAGE_SIZE_LIMIT = None  # No user limit declared.
-    if not hasattr(config, 'GROUPCHAT_NICK_PREFIXED'):
+    if not hasattr(config, "GROUPCHAT_NICK_PREFIXED"):
         config.GROUPCHAT_NICK_PREFIXED = False
-    if not hasattr(config, 'AUTOINSTALL_DEPS'):
+    if not hasattr(config, "AUTOINSTALL_DEPS"):
         config.AUTOINSTALL_DEPS = True
-    if not hasattr(config, 'SUPPRESS_CMD_NOT_FOUND'):
+    if not hasattr(config, "SUPPRESS_CMD_NOT_FOUND"):
         config.SUPPRESS_CMD_NOT_FOUND = False
-    if not hasattr(config, 'BOT_ASYNC'):
+    if not hasattr(config, "BOT_ASYNC"):
         config.BOT_ASYNC = True
-    if not hasattr(config, 'BOT_ASYNC_POOLSIZE'):
+    if not hasattr(config, "BOT_ASYNC_POOLSIZE"):
         config.BOT_ASYNC_POOLSIZE = 10
-    if not hasattr(config, 'CHATROOM_PRESENCE'):
+    if not hasattr(config, "CHATROOM_PRESENCE"):
         config.CHATROOM_PRESENCE = ()
-    if not hasattr(config, 'CHATROOM_RELAY'):
+    if not hasattr(config, "CHATROOM_RELAY"):
         config.CHATROOM_RELAY = ()
-    if not hasattr(config, 'REVERSE_CHATROOM_RELAY'):
+    if not hasattr(config, "REVERSE_CHATROOM_RELAY"):
         config.REVERSE_CHATROOM_RELAY = ()
-    if not hasattr(config, 'CHATROOM_FN'):
-        config.CHATROOM_FN = 'Errbot'
-    if not hasattr(config, 'TEXT_DEMO_MODE'):
+    if not hasattr(config, "CHATROOM_FN"):
+        config.CHATROOM_FN = "Errbot"
+    if not hasattr(config, "TEXT_DEMO_MODE"):
         config.TEXT_DEMO_MODE = True
-    if not hasattr(config, 'BOT_ADMINS'):
-        raise ValueError('BOT_ADMINS missing from config.py.')
-    if not hasattr(config, 'TEXT_COLOR_THEME'):
-        config.TEXT_COLOR_THEME = 'light'
-    if not hasattr(config, 'BOT_ADMINS_NOTIFICATIONS'):
+    if not hasattr(config, "BOT_ADMINS"):
+        raise ValueError("BOT_ADMINS missing from config.py.")
+    if not hasattr(config, "TEXT_COLOR_THEME"):
+        config.TEXT_COLOR_THEME = "light"
+    if not hasattr(config, "BOT_ADMINS_NOTIFICATIONS"):
         config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
 
 
@@ -79,17 +79,19 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
 
     bot_config_defaults(config)
 
-    if hasattr(config, 'BOT_LOG_FORMATTER'):
+    if hasattr(config, "BOT_LOG_FORMATTER"):
         format_logs(formatter=config.BOT_LOG_FORMATTER)
     else:
         format_logs(theme_color=config.TEXT_COLOR_THEME)
 
         if config.BOT_LOG_FILE:
             hdlr = logging.FileHandler(config.BOT_LOG_FILE)
-            hdlr.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s"))
+            hdlr.setFormatter(
+                logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s")
+            )
             logger.addHandler(hdlr)
 
-    if hasattr(config, 'BOT_LOG_SENTRY') and config.BOT_LOG_SENTRY:
+    if hasattr(config, "BOT_LOG_SENTRY") and config.BOT_LOG_SENTRY:
         sentry_integrations = []
 
         try:
@@ -105,13 +107,12 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             exit(-1)
 
         sentry_logging = LoggingIntegration(
-            level=config.SENTRY_LOGLEVEL,
-            event_level=config.SENTRY_EVENTLEVEL
+            level=config.SENTRY_LOGLEVEL, event_level=config.SENTRY_EVENTLEVEL
         )
 
         sentry_integrations.append(sentry_logging)
 
-        if hasattr(config, 'BOT_LOG_SENTRY_FLASK') and config.BOT_LOG_SENTRY_FLASK:
+        if hasattr(config, "BOT_LOG_SENTRY_FLASK") and config.BOT_LOG_SENTRY_FLASK:
             try:
                 from sentry_sdk.integrations.flask import FlaskIntegration
             except ImportError:
@@ -125,22 +126,23 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
             sentry_integrations.append(FlaskIntegration())
 
         try:
-            if hasattr(config, 'SENTRY_TRANSPORT') and isinstance(config.SENTRY_TRANSPORT, tuple):
+            if hasattr(config, "SENTRY_TRANSPORT") and isinstance(
+                config.SENTRY_TRANSPORT, tuple
+            ):
                 mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
                 transport = getattr(mod, config.SENTRY_TRANSPORT[0])
 
                 sentry_sdk.init(
                     dsn=config.SENTRY_DSN,
                     integrations=sentry_integrations,
-                    transport=transport
+                    transport=transport,
                 )
             else:
-                sentry_sdk.init(
-                    dsn=config.SENTRY_DSN,
-                    integrations=sentry_integrations
-                )
+                sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=sentry_integrations)
         except ImportError:
-            log.exception(f'Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}')
+            log.exception(
+                f"Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}"
+            )
             exit(-1)
 
     logger.setLevel(config.BOT_LOG_LEVEL)
@@ -152,36 +154,33 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     if not path.exists(botplugins_dir):
         makedirs(botplugins_dir, mode=0o755)
 
-    plugin_indexes = getattr(config, 'BOT_PLUGIN_INDEXES', (PLUGIN_DEFAULT_INDEX,))
+    plugin_indexes = getattr(config, "BOT_PLUGIN_INDEXES", (PLUGIN_DEFAULT_INDEX,))
     if isinstance(plugin_indexes, str):
-        plugin_indexes = (plugin_indexes, )
+        plugin_indexes = (plugin_indexes,)
 
     # Extra backend is expected to be a list type, convert string to list.
-    extra_backend = getattr(config, 'BOT_EXTRA_BACKEND_DIR', [])
+    extra_backend = getattr(config, "BOT_EXTRA_BACKEND_DIR", [])
     if isinstance(extra_backend, str):
         extra_backend = [extra_backend]
 
-    backendpm = BackendPluginManager(config,
-                                     'errbot.backends',
-                                     backend_name,
-                                     ErrBot,
-                                     CORE_BACKENDS,
-                                     extra_backend)
+    backendpm = BackendPluginManager(
+        config, "errbot.backends", backend_name, ErrBot, CORE_BACKENDS, extra_backend
+    )
 
-    log.info(f'Found Backend plugin: {backendpm.plugin_info.name}')
+    log.info(f"Found Backend plugin: {backendpm.plugin_info.name}")
 
-    repo_manager = BotRepoManager(storage_plugin,
-                                  botplugins_dir,
-                                  plugin_indexes)
+    repo_manager = BotRepoManager(storage_plugin, botplugins_dir, plugin_indexes)
 
     try:
         bot = backendpm.load_plugin()
-        botpm = BotPluginManager(storage_plugin,
-                                 config.BOT_EXTRA_PLUGIN_DIR,
-                                 config.AUTOINSTALL_DEPS,
-                                 getattr(config, 'CORE_PLUGINS', None),
-                                 lambda name, clazz: clazz(bot, name),
-                                 getattr(config, 'PLUGINS_CALLBACK_ORDER', (None, )))
+        botpm = BotPluginManager(
+            storage_plugin,
+            config.BOT_EXTRA_PLUGIN_DIR,
+            config.AUTOINSTALL_DEPS,
+            getattr(config, "CORE_PLUGINS", None),
+            lambda name, clazz: clazz(bot, name),
+            getattr(config, "PLUGINS_CALLBACK_ORDER", (None,)),
+        )
         bot.attach_storage_plugin(storage_plugin)
         bot.attach_repo_manager(repo_manager)
         bot.attach_plugin_manager(botpm)
@@ -190,15 +189,17 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
         # restore the bot from the restore script
         if restore:
             # Prepare the context for the restore script
-            if 'repos' in bot:
-                log.fatal('You cannot restore onto a non empty bot.')
+            if "repos" in bot:
+                log.fatal("You cannot restore onto a non empty bot.")
                 sys.exit(-1)
-            log.info(f'**** RESTORING the bot from {restore}')
+            log.info(f"**** RESTORING the bot from {restore}")
             restore_bot_from_backup(restore, bot=bot, log=log)
-            print('Restore complete. You can restart the bot normally')
+            print("Restore complete. You can restart the bot normally")
             sys.exit(0)
 
-        errors = bot.plugin_manager.update_plugin_places(repo_manager.get_all_repos_paths())
+        errors = bot.plugin_manager.update_plugin_places(
+            repo_manager.get_all_repos_paths()
+        )
         if errors:
             startup_errors = "\n".join(errors.values())
             log.error("Some plugins failed to load:\n%s", startup_errors)
@@ -220,7 +221,7 @@ def restore_bot_from_backup(backup_filename, *, bot, log):
     :param log: logger to use during the restoration process
     """
     with open(backup_filename) as f:
-        exec(f.read(), {'log': log, 'bot': bot})
+        exec(f.read(), {"log": log, "bot": bot})
     bot.close_storage()
 
 
@@ -230,11 +231,17 @@ def get_storage_plugin(config):
     :param config: the bot configuration.
     :return: the storage plugin
     """
-    storage_name = getattr(config, 'STORAGE', 'Shelf')
-    extra_storage_plugins_dir = getattr(config, 'BOT_EXTRA_STORAGE_PLUGINS_DIR', None)
-    spm = BackendPluginManager(config, 'errbot.storage', storage_name, StoragePluginBase,
-                               CORE_STORAGE, extra_storage_plugins_dir)
-    log.info(f'Found Storage plugin: {spm.plugin_info.name}.')
+    storage_name = getattr(config, "STORAGE", "Shelf")
+    extra_storage_plugins_dir = getattr(config, "BOT_EXTRA_STORAGE_PLUGINS_DIR", None)
+    spm = BackendPluginManager(
+        config,
+        "errbot.storage",
+        storage_name,
+        StoragePluginBase,
+        CORE_STORAGE,
+        extra_storage_plugins_dir,
+    )
+    log.info(f"Found Storage plugin: {spm.plugin_info.name}.")
     return spm.load_plugin()
 
 
@@ -248,5 +255,5 @@ def bootstrap(bot_class, logger, config, restore=None):
     :param restore: Start Errbot in restore mode (from a backup).
     """
     bot = setup_bot(bot_class, logger, config, restore)
-    log.debug(f'Start serving commands from the {bot.mode} backend.')
+    log.debug(f"Start serving commands from the {bot.mode} backend.")
     bot.serve_forever()

@@ -1,4 +1,4 @@
-from errbot.backends.test import TestPerson, TestOccupant
+from errbot.backends.test import TestOccupant, TestPerson
 
 
 def test_identifier_eq():

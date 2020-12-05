@@ -6,4 +6,6 @@ class MentionTestPlugin(BotPlugin):
         if self.bot_identifier in people:
             self.send(msg.frm, "Somebody mentioned me!", msg)
             return
-        self.send(msg.frm, "Somebody mentioned %s!" % ','.join(p.person for p in people), msg)
+        self.send(
+            msg.frm, "Somebody mentioned %s!" % ",".join(p.person for p in people), msg
+        )

@@ -1,1 +1,1 @@
-pytest_plugins = ['errbot.backends.test']
+pytest_plugins = ["errbot.backends.test"]

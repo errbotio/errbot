@@ -16,15 +16,15 @@ import inspect
 import logging
 import re
 import traceback
-from datetime import datetime
-from threading import RLock
-
 from collections.abc import Mapping
+from datetime import datetime
 from multiprocessing.pool import ThreadPool
+from threading import RLock
 
 from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
-from .backends.base import Backend, Room, Identifier, Message
+
+from .backends.base import Backend, Identifier, Message, Room
 from .storage import StoreMixin
 from .streaming import Tee
 from .templating import tenv
@@ -35,10 +35,10 @@ log = logging.getLogger(__name__)
 
 # noinspection PyAbstractClass
 class ErrBot(Backend, StoreMixin):
-    """ ErrBot is the layer taking care of commands management and dispatching.
-    """
+    """ErrBot is the layer taking care of commands management and dispatching."""
+
     __errdoc__ = """ Commands related to the bot administration """
-    MSG_ERROR_OCCURRED = 'Computer says nooo. See logs for details'
+    MSG_ERROR_OCCURRED = "Computer says nooo. See logs for details"
     MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". '
     startup_time = datetime.now()
 
@@ -49,14 +49,24 @@ class ErrBot(Backend, StoreMixin):
         self.prefix = bot_config.BOT_PREFIX
         if bot_config.BOT_ASYNC:
             self.thread_pool = ThreadPool(bot_config.BOT_ASYNC_POOLSIZE)
-            log.debug('created a thread pool of size %d.', bot_config.BOT_ASYNC_POOLSIZE)
-        self.commands = {}  # the dynamically populated list of commands available on the bot
-        self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
+            log.debug(
+                "created a thread pool of size %d.", bot_config.BOT_ASYNC_POOLSIZE
+            )
+        self.commands = (
+            {}
+        )  # the dynamically populated list of commands available on the bot
+        self.re_commands = (
+            {}
+        )  # the dynamically populated list of regex-based commands available on the bot
         self.command_filters = []  # the dynamically populated list of filters
-        self.MSG_UNKNOWN_COMMAND = 'Unknown command: "%(command)s". ' \
-                                   'Type "' + bot_config.BOT_PREFIX + 'help" for available commands.'
+        self.MSG_UNKNOWN_COMMAND = (
+            'Unknown command: "%(command)s". '
+            'Type "' + bot_config.BOT_PREFIX + 'help" for available commands.'
+        )
         if bot_config.BOT_ALT_PREFIX_CASEINSENSITIVE:
-            self.bot_alt_prefixes = tuple(prefix.lower() for prefix in bot_config.BOT_ALT_PREFIXES)
+            self.bot_alt_prefixes = tuple(
+                prefix.lower() for prefix in bot_config.BOT_ALT_PREFIXES
+            )
         else:
             self.bot_alt_prefixes = bot_config.BOT_ALT_PREFIXES
         self.repo_manager = None
@@ -78,7 +88,9 @@ class ErrBot(Backend, StoreMixin):
         A historical value of 10000 is used by default.
         """
         if self.bot_config.MESSAGE_SIZE_LIMIT:
-            self.bot_config.MESSAGE_SIZE_LIMIT = int(self.bot_config.MESSAGE_SIZE_LIMIT)  # raise for non-int values.
+            self.bot_config.MESSAGE_SIZE_LIMIT = int(
+                self.bot_config.MESSAGE_SIZE_LIMIT
+            )  # raise for non-int values.
         else:
             self.bot_config.MESSAGE_SIZE_LIMIT = limit
 
@@ -106,7 +118,7 @@ class ErrBot(Backend, StoreMixin):
         log.debug("Initializing backend storage")
         assert self.plugin_manager is not None
         assert self.storage_plugin is not None
-        self.open_storage(self.storage_plugin, f'{self.mode}_backend')
+        self.open_storage(self.storage_plugin, f"{self.mode}_backend")
 
     @property
     def all_commands(self):
@@ -128,24 +140,24 @@ class ErrBot(Backend, StoreMixin):
         """
         for plugin in self.plugin_manager.get_all_active_plugins():
             plugin_name = plugin.name
-            log.debug('Triggering %s on %s.', method, plugin_name)
+            log.debug("Triggering %s on %s.", method, plugin_name)
             # noinspection PyBroadException
             try:
                 getattr(plugin, method)(*args, **kwargs)
             except Exception:
-                log.exception('%s on %s crashed.', method, plugin_name)
+                log.exception("%s on %s crashed.", method, plugin_name)
 
     def send(self, identifier, text, in_reply_to=None, groupchat_nick_reply=False):
-        """ Sends a simple message to the specified user.
+        """Sends a simple message to the specified user.
 
-            :param identifier:
-                an identifier from build_identifier or from an incoming message
-            :param in_reply_to:
-                the original message the bot is answering from
-            :param text:
-                the markdown text you want to send
-            :param groupchat_nick_reply:
-                authorized the prefixing with the nick form the user
+        :param identifier:
+            an identifier from build_identifier or from an incoming message
+        :param in_reply_to:
+            the original message the bot is answering from
+        :param text:
+            the markdown text you want to send
+        :param groupchat_nick_reply:
+            authorized the prefixing with the nick form the user
         """
         # protect a little bit the backends here
         if not isinstance(identifier, Identifier):
@@ -157,23 +169,33 @@ class ErrBot(Backend, StoreMixin):
         msg.parent = in_reply_to
 
         nick_reply = self.bot_config.GROUPCHAT_NICK_PREFIXED
-        if isinstance(identifier, Room) and in_reply_to and (nick_reply or groupchat_nick_reply):
+        if (
+            isinstance(identifier, Room)
+            and in_reply_to
+            and (nick_reply or groupchat_nick_reply)
+        ):
             self.prefix_groupchat_reply(msg, in_reply_to.frm)
 
         self.split_and_send_message(msg)
 
-    def send_templated(self, identifier, template_name, template_parameters, in_reply_to=None,
-                       groupchat_nick_reply=False):
-        """ Sends a simple message to the specified user using a template.
+    def send_templated(
+        self,
+        identifier,
+        template_name,
+        template_parameters,
+        in_reply_to=None,
+        groupchat_nick_reply=False,
+    ):
+        """Sends a simple message to the specified user using a template.
 
-            :param template_parameters: the parameters for the template.
-            :param template_name: the template name you want to use.
-            :param identifier:
-                an identifier from build_identifier or from an incoming message, a room etc.
-            :param in_reply_to:
-                the original message the bot is answering from
-            :param groupchat_nick_reply:
-                authorized the prefixing with the nick form the user
+        :param template_parameters: the parameters for the template.
+        :param template_name: the template name you want to use.
+        :param identifier:
+            an identifier from build_identifier or from an incoming message, a room etc.
+        :param in_reply_to:
+            the original message the bot is answering from
+        :param groupchat_nick_reply:
+            authorized the prefixing with the nick form the user
         """
         text = self.process_template(template_name, template_parameters)
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
@@ -206,7 +228,7 @@ class ErrBot(Backend, StoreMixin):
         :param card: the card to send.
         :return: None
         """
-        self.send_templated(card.to, 'card', {'card': card})
+        self.send_templated(card.to, "card", {"card": card})
 
     def send_simple_reply(self, msg, text, private=False, threaded=False):
         """Send a simple response to a given incoming message
@@ -231,31 +253,39 @@ class ErrBot(Backend, StoreMixin):
 
         frm = msg.frm
         text = msg.body
-        if not hasattr(msg.frm, 'person'):
-            raise Exception(f'msg.frm not an Identifier as it misses the "person" property.'
-                            f' Class of frm : {msg.frm.__class__}.')
+        if not hasattr(msg.frm, "person"):
+            raise Exception(
+                f'msg.frm not an Identifier as it misses the "person" property.'
+                f" Class of frm : {msg.frm.__class__}."
+            )
 
         username = msg.frm.person
         user_cmd_history = self.cmd_history[username]
 
         if msg.delayed:
-            log.debug('Message from history, ignore it.')
+            log.debug("Message from history, ignore it.")
             return False
 
         if self.is_from_self(msg):
             log.debug("Ignoring message from self.")
             return False
 
-        log.debug('*** frm = %s', frm)
-        log.debug('*** username = %s', username)
-        log.debug('*** text = %s', text)
+        log.debug("*** frm = %s", frm)
+        log.debug("*** username = %s", username)
+        log.debug("*** text = %s", text)
 
         suppress_cmd_not_found = self.bot_config.SUPPRESS_CMD_NOT_FOUND
 
         prefixed = False  # Keeps track whether text was prefixed with a bot prefix
-        only_check_re_command = False  # Becomes true if text is determed to not be a regular command
-        tomatch = text.lower() if self.bot_config.BOT_ALT_PREFIX_CASEINSENSITIVE else text
-        if len(self.bot_config.BOT_ALT_PREFIXES) > 0 and tomatch.startswith(self.bot_alt_prefixes):
+        only_check_re_command = (
+            False  # Becomes true if text is determed to not be a regular command
+        )
+        tomatch = (
+            text.lower() if self.bot_config.BOT_ALT_PREFIX_CASEINSENSITIVE else text
+        )
+        if len(self.bot_config.BOT_ALT_PREFIXES) > 0 and tomatch.startswith(
+            self.bot_alt_prefixes
+        ):
             # Yay! We were called by one of our alternate prefixes. Now we just have to find out
             # which one... (And find the longest matching, in case you have 'err' and 'errbot' and
             # someone uses 'errbot', which also matches 'err' but would leave 'bot' to be taken as
@@ -277,7 +307,10 @@ class ErrBot(Backend, StoreMixin):
                 if text[:length] == sep:
                     text = text[length:]
         elif msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT:
-            log.debug('Assuming "%s" to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True', text)
+            log.debug(
+                'Assuming "%s" to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True',
+                text,
+            )
             # In order to keep noise down we surpress messages about the command
             # not being found, because it's possible a plugin will trigger on what
             # was said with trigger_message.
@@ -285,29 +318,31 @@ class ErrBot(Backend, StoreMixin):
         elif not text.startswith(self.bot_config.BOT_PREFIX):
             only_check_re_command = True
         if text.startswith(self.bot_config.BOT_PREFIX):
-            text = text[len(self.bot_config.BOT_PREFIX):]
+            text = text[len(self.bot_config.BOT_PREFIX) :]
             prefixed = True
 
         text = text.strip()
-        text_split = text.split(' ')
+        text_split = text.split(" ")
         cmd = None
         command = None
-        args = ''
+        args = ""
         if not only_check_re_command:
             i = len(text_split)
             while cmd is None:
-                command = '_'.join(text_split[:i])
+                command = "_".join(text_split[:i])
 
                 with self._gbl:
                     if command in self.commands:
                         cmd = command
-                        args = ' '.join(text_split[i:])
+                        args = " ".join(text_split[i:])
                     else:
                         i -= 1
                 if i == 0:
                     break
 
-            if command == self.bot_config.BOT_PREFIX:  # we did "!!" so recall the last command
+            if (
+                command == self.bot_config.BOT_PREFIX
+            ):  # we did "!!" so recall the last command
                 if len(user_cmd_history):
                     cmd, args = user_cmd_history[-1]
                 else:
@@ -323,11 +358,16 @@ class ErrBot(Backend, StoreMixin):
         matched_on_re_command = False
         if not cmd:
             with self._gbl:
-                if prefixed or (msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT):
+                if prefixed or (
+                    msg.is_direct and self.bot_config.BOT_PREFIX_OPTIONAL_ON_CHAT
+                ):
                     commands = dict(self.re_commands)
                 else:
-                    commands = {k: self.re_commands[k] for k in self.re_commands
-                                if not self.re_commands[k]._err_command_prefix_required}
+                    commands = {
+                        k: self.re_commands[k]
+                        for k in self.re_commands
+                        if not self.re_commands[k]._err_command_prefix_required
+                    }
 
             for name, func in commands.items():
                 if func._err_command_matchall:
@@ -335,13 +375,19 @@ class ErrBot(Backend, StoreMixin):
                 else:
                     match = func._err_command_re_pattern.search(text)
                 if match:
-                    log.debug('Matching "%s" against "%s" produced a match.', text,
-                              func._err_command_re_pattern.pattern)
+                    log.debug(
+                        'Matching "%s" against "%s" produced a match.',
+                        text,
+                        func._err_command_re_pattern.pattern,
+                    )
                     matched_on_re_command = True
                     self._process_command(msg, name, text, match)
                 else:
-                    log.debug('Matching "%s" against "%s" produced no match.',
-                              text, func._err_command_re_pattern.pattern)
+                    log.debug(
+                        'Matching "%s" against "%s" produced no match.',
+                        text,
+                        func._err_command_re_pattern.pattern,
+                    )
         if matched_on_re_command:
             return True
 
@@ -350,7 +396,7 @@ class ErrBot(Backend, StoreMixin):
         elif not only_check_re_command:
             log.debug("Command not found")
             for cmd_filter in self.command_filters:
-                if getattr(cmd_filter, 'catch_unprocessed', False):
+                if getattr(cmd_filter, "catch_unprocessed", False):
                     try:
                         reply = cmd_filter(msg, cmd, args, False, emptycmd=True)
                         if reply:
@@ -368,7 +414,9 @@ class ErrBot(Backend, StoreMixin):
                     return None, None, None
             return msg, cmd, args
         except Exception:
-            log.exception("Exception in a filter command, blocking the command in doubt")
+            log.exception(
+                "Exception in a filter command, blocking the command in doubt"
+            )
             return None, None, None
 
     def _process_command(self, msg, cmd, args, match):
@@ -377,7 +425,7 @@ class ErrBot(Backend, StoreMixin):
         # first it must go through the command filters
         msg, cmd, args = self._process_command_filters(msg, cmd, args, False)
         if msg is None:
-            log.info('Command %s blocked or deferred.', cmd)
+            log.info("Command %s blocked or deferred.", cmd)
             return
 
         frm = msg.frm
@@ -400,11 +448,13 @@ class ErrBot(Backend, StoreMixin):
             self.thread_pool = ThreadPool(self.bot_config.BOT_ASYNC_POOLSIZE)
 
         if f._err_command_historize:
-            user_cmd_history.append((cmd, args))  # add it to the history only if it is authorized to be so
+            user_cmd_history.append(
+                (cmd, args)
+            )  # add it to the history only if it is authorized to be so
 
         # Don't check for None here as None can be a valid argument to str.split.
         # '' was chosen as default argument because this isn't a valid argument to str.split()
-        if not match and f._err_command_split_args_with != '':
+        if not match and f._err_command_split_args_with != "":
             try:
                 if hasattr(f._err_command_split_args_with, "parse_args"):
                     args = f._err_command_split_args_with.parse_args(args)
@@ -413,22 +463,35 @@ class ErrBot(Backend, StoreMixin):
                 else:
                     args = args.split(f._err_command_split_args_with)
             except Exception as e:
-                self.send_simple_reply(msg, f"Sorry, I couldn't parse your arguments. {e}")
+                self.send_simple_reply(
+                    msg, f"Sorry, I couldn't parse your arguments. {e}"
+                )
                 return
 
         if self.bot_config.BOT_ASYNC:
             result = self.thread_pool.apply_async(
                 self._execute_and_send,
                 [],
-                {'cmd': cmd, 'args': args, 'match': match, 'msg': msg, 'template_name': f._err_command_template}
+                {
+                    "cmd": cmd,
+                    "args": args,
+                    "match": match,
+                    "msg": msg,
+                    "template_name": f._err_command_template,
+                },
             )
             if f._err_command_admin_only:
                 # Again, if it is an admin command, wait until the queue is completely
                 # depleted so we don't have strange concurrency issues.
                 result.wait()
         else:
-            self._execute_and_send(cmd=cmd, args=args, match=match, msg=msg,
-                                   template_name=f._err_command_template)
+            self._execute_and_send(
+                cmd=cmd,
+                args=args,
+                match=match,
+                msg=msg,
+                template_name=f._err_command_template,
+            )
 
     @staticmethod
     def process_template(template_name, template_parameters):
@@ -436,7 +499,9 @@ class ErrBot(Backend, StoreMixin):
         # The template needs to be set and the answer from the user command needs to be a mapping
         # If not just convert the answer to string.
         if template_name and isinstance(template_parameters, Mapping):
-            return tenv().get_template(template_name + '.md').render(**template_parameters)
+            return (
+                tenv().get_template(template_name + ".md").render(**template_parameters)
+            )
 
         # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)
         return str(template_parameters)
@@ -461,22 +526,37 @@ class ErrBot(Backend, StoreMixin):
             # first check if we need to reattach a flow context
             flow, _ = self.flow_executor.check_inflight_flow_triggered(cmd, msg.frm)
             if flow:
-                log.debug("Reattach context from flow %s to the message", flow._root.name)
+                log.debug(
+                    "Reattach context from flow %s to the message", flow._root.name
+                )
                 msg.ctx = flow.ctx
             elif method._err_command_flow_only:
                 # check if it is a flow_only command but we are not in a flow.
-                log.debug("%s is tagged flow_only and we are not in a flow. Ignores the command.", cmd)
+                log.debug(
+                    "%s is tagged flow_only and we are not in a flow. Ignores the command.",
+                    cmd,
+                )
                 return
 
             if inspect.isgeneratorfunction(method):
                 replies = method(msg, match) if match else method(msg, args)
                 for reply in replies:
                     if reply:
-                        self.send_simple_reply(msg, self.process_template(template_name, reply), private, threaded)
+                        self.send_simple_reply(
+                            msg,
+                            self.process_template(template_name, reply),
+                            private,
+                            threaded,
+                        )
             else:
                 reply = method(msg, match) if match else method(msg, args)
                 if reply:
-                    self.send_simple_reply(msg, self.process_template(template_name, reply), private, threaded)
+                    self.send_simple_reply(
+                        msg,
+                        self.process_template(template_name, reply),
+                        private,
+                        threaded,
+                    )
 
             # The command is a success, check if this has not made a flow progressed
             self.flow_executor.trigger(cmd, msg.frm, msg.ctx)
@@ -489,18 +569,21 @@ class ErrBot(Backend, StoreMixin):
 
         except Exception as e:
             tb = traceback.format_exc()
-            log.exception(f'An error happened while processing a message ("{msg.body}"): {tb}"')
-            self.send_simple_reply(msg, self.MSG_ERROR_OCCURRED + f':\n{e}', private, threaded)
+            log.exception(
+                f'An error happened while processing a message ("{msg.body}"): {tb}"'
+            )
+            self.send_simple_reply(
+                msg, self.MSG_ERROR_OCCURRED + f":\n{e}", private, threaded
+            )
 
     def unknown_command(self, _, cmd, args):
-        """ Override the default unknown command behavior
-        """
-        full_cmd = cmd + ' ' + args.split(' ')[0] if args else None
+        """Override the default unknown command behavior"""
+        full_cmd = cmd + " " + args.split(" ")[0] if args else None
         if full_cmd:
             msg = f'Command "{cmd}" / "{full_cmd}" not found.'
         else:
             msg = f'Command "{cmd}" not found.'
-        ununderscore_keys = [m.replace('_', ' ') for m in self.commands.keys()]
+        ununderscore_keys = [m.replace("_", " ") for m in self.commands.keys()]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:
             matches.extend(difflib.get_close_matches(full_cmd, ununderscore_keys))
@@ -514,31 +597,41 @@ class ErrBot(Backend, StoreMixin):
         with self._gbl:
             plugin_name = instance_to_inject.name
             for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-                if getattr(value, '_err_command', False):
-                    commands = self.re_commands if getattr(value, '_err_re_command') else self.commands
-                    name = getattr(value, '_err_command_name')
+                if getattr(value, "_err_command", False):
+                    commands = (
+                        self.re_commands
+                        if getattr(value, "_err_re_command")
+                        else self.commands
+                    )
+                    name = getattr(value, "_err_command_name")
 
                     if name in commands:
                         f = commands[name]
-                        new_name = (plugin_name + '-' + name).lower()
-                        self.warn_admins(f'{plugin_name}.{name} clashes with {type(f.__self__).__name__}.{f.__name__} '
-                                         f'so it has been renamed {new_name}')
+                        new_name = (plugin_name + "-" + name).lower()
+                        self.warn_admins(
+                            f"{plugin_name}.{name} clashes with {type(f.__self__).__name__}.{f.__name__} "
+                            f"so it has been renamed {new_name}"
+                        )
                         name = new_name
-                        value.__func__._err_command_name = new_name  # To keep track of the renaming.
+                        value.__func__._err_command_name = (
+                            new_name  # To keep track of the renaming.
+                        )
                     commands[name] = value
 
-                    if getattr(value, '_err_re_command'):
-                        log.debug('Adding regex command : %s -> %s.', name, value.__name__)
+                    if getattr(value, "_err_re_command"):
+                        log.debug(
+                            "Adding regex command : %s -> %s.", name, value.__name__
+                        )
                         self.re_commands = commands
                     else:
-                        log.debug('Adding command : %s -> %s.', name, value.__name__)
+                        log.debug("Adding command : %s -> %s.", name, value.__name__)
                         self.commands = commands
 
     def inject_flows_from(self, instance_to_inject):
         classname = instance_to_inject.__class__.__name__
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(method, '_err_flow', False):
-                log.debug('Found new flow %s: %s', classname, name)
+            if getattr(method, "_err_flow", False):
+                log.debug("Found new flow %s: %s", classname, name)
                 flow = FlowRoot(name, method.__doc__)
                 try:
                     method(flow)
@@ -549,32 +642,38 @@ class ErrBot(Backend, StoreMixin):
 
     def inject_command_filters_from(self, instance_to_inject):
         with self._gbl:
-            for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
-                if getattr(method, '_err_command_filter', False):
-                    log.debug('Adding command filter: %s', name)
+            for name, method in inspect.getmembers(
+                instance_to_inject, inspect.ismethod
+            ):
+                if getattr(method, "_err_command_filter", False):
+                    log.debug("Adding command filter: %s", name)
                     self.command_filters.append(method)
 
     def remove_flows_from(self, instance_to_inject):
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-            if getattr(value, '_err_flow', False):
-                log.debug('Remove flow %s', name)
+            if getattr(value, "_err_flow", False):
+                log.debug("Remove flow %s", name)
                 # TODO(gbin)
 
     def remove_commands_from(self, instance_to_inject):
         with self._gbl:
             for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
-                if getattr(value, '_err_command', False):
-                    name = getattr(value, '_err_command_name')
-                    if getattr(value, '_err_re_command') and name in self.re_commands:
+                if getattr(value, "_err_command", False):
+                    name = getattr(value, "_err_command_name")
+                    if getattr(value, "_err_re_command") and name in self.re_commands:
                         del self.re_commands[name]
-                    elif not getattr(value, '_err_re_command') and name in self.commands:
+                    elif (
+                        not getattr(value, "_err_re_command") and name in self.commands
+                    ):
                         del self.commands[name]
 
     def remove_command_filters_from(self, instance_to_inject):
         with self._gbl:
-            for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
-                if getattr(method, '_err_command_filter', False):
-                    log.debug('Removing command filter: %s', name)
+            for name, method in inspect.getmembers(
+                instance_to_inject, inspect.ismethod
+            ):
+                if getattr(method, "_err_command_filter", False):
+                    log.debug("Removing command filter: %s", name)
                     self.command_filters.remove(method)
 
     def _admins_to_notify(self):
@@ -598,97 +697,96 @@ class ErrBot(Backend, StoreMixin):
         """Processes for commands and dispatches the message to all the plugins."""
         if self.process_message(msg):
             # Act only in the backend tells us that this message is OK to broadcast
-            self._dispatch_to_plugins('callback_message', msg)
+            self._dispatch_to_plugins("callback_message", msg)
 
     def callback_mention(self, msg, people):
-        log.debug("%s has/have been mentioned", ', '.join(str(p) for p in people))
-        self._dispatch_to_plugins('callback_mention', msg, people)
+        log.debug("%s has/have been mentioned", ", ".join(str(p) for p in people))
+        self._dispatch_to_plugins("callback_mention", msg, people)
 
     def callback_presence(self, pres):
-        self._dispatch_to_plugins('callback_presence', pres)
+        self._dispatch_to_plugins("callback_presence", pres)
 
     def callback_room_joined(self, room):
         """
-            Triggered when the bot has joined a MUC.
+        Triggered when the bot has joined a MUC.
 
-            :param room:
-                An instance of :class:`~errbot.backends.base.MUCRoom`
-                representing the room that was joined.
+        :param room:
+            An instance of :class:`~errbot.backends.base.MUCRoom`
+            representing the room that was joined.
         """
-        self._dispatch_to_plugins('callback_room_joined', room)
+        self._dispatch_to_plugins("callback_room_joined", room)
 
     def callback_room_left(self, room):
         """
-            Triggered when the bot has left a MUC.
+        Triggered when the bot has left a MUC.
 
-            :param room:
-                An instance of :class:`~errbot.backends.base.MUCRoom`
-                representing the room that was left.
+        :param room:
+            An instance of :class:`~errbot.backends.base.MUCRoom`
+            representing the room that was left.
         """
-        self._dispatch_to_plugins('callback_room_left', room)
+        self._dispatch_to_plugins("callback_room_left", room)
 
     def callback_room_topic(self, room):
         """
-            Triggered when the topic in a MUC changes.
+        Triggered when the topic in a MUC changes.
 
-            :param room:
-                An instance of :class:`~errbot.backends.base.MUCRoom`
-                representing the room for which the topic changed.
+        :param room:
+            An instance of :class:`~errbot.backends.base.MUCRoom`
+            representing the room for which the topic changed.
         """
-        self._dispatch_to_plugins('callback_room_topic', room)
+        self._dispatch_to_plugins("callback_room_topic", room)
 
     def callback_stream(self, stream):
-        log.info('Initiated an incoming transfer %s.', stream)
+        log.info("Initiated an incoming transfer %s.", stream)
         Tee(stream, self.plugin_manager.get_all_active_plugins()).start()
 
     def callback_reaction(self, reaction):
         """
-            Triggered when a reaction occurs.
+        Triggered when a reaction occurs.
 
-            :param reaction:
-                An instance of :class:`~errbot.backends.base.Reaction`
-                representing the reaction event data
+        :param reaction:
+            An instance of :class:`~errbot.backends.base.Reaction`
+            representing the reaction event data
         """
-        self._dispatch_to_plugins('callback_reaction', reaction)
+        self._dispatch_to_plugins("callback_reaction", reaction)
 
     def signal_connect_to_all_plugins(self):
         for bot in self.plugin_manager.get_all_active_plugins():
-            if hasattr(bot, 'callback_connect'):
+            if hasattr(bot, "callback_connect"):
                 # noinspection PyBroadException
                 try:
-                    log.debug('Trigger callback_connect on %s.', bot.__class__.__name__)
+                    log.debug("Trigger callback_connect on %s.", bot.__class__.__name__)
                     bot.callback_connect()
                 except Exception:
-                    log.exception(f'callback_connect failed for {bot}.')
+                    log.exception(f"callback_connect failed for {bot}.")
 
     def connect_callback(self):
-        log.info('Activate internal commands')
+        log.info("Activate internal commands")
         if self._plugin_errors_during_startup:
-            errors = f'Some plugins failed to start during bot startup:\n\n{self._plugin_errors_during_startup}'
+            errors = f"Some plugins failed to start during bot startup:\n\n{self._plugin_errors_during_startup}"
         else:
-            errors = ''
+            errors = ""
         errors += self.plugin_manager.activate_non_started_plugins()
         if errors:
             self.warn_admins(errors)
             log.info(errors)
-        log.info('Notifying connection to all the plugins...')
+        log.info("Notifying connection to all the plugins...")
         self.signal_connect_to_all_plugins()
-        log.info('Plugin activation done.')
+        log.info("Plugin activation done.")
 
     def disconnect_callback(self):
-        log.info('Disconnect callback, deactivating all the plugins.')
+        log.info("Disconnect callback, deactivating all the plugins.")
         self.plugin_manager.deactivate_all_plugins()
 
     def get_doc(self, command):
-        """Get command documentation
-        """
+        """Get command documentation"""
         if not command.__doc__:
-            return '(undocumented)'
-        if self.prefix == '!':
+            return "(undocumented)"
+        if self.prefix == "!":
             return command.__doc__
-        ununderscore_keys = (m.replace('_', ' ') for m in self.all_commands.keys())
+        ununderscore_keys = (m.replace("_", " ") for m in self.all_commands.keys())
         pat = re.compile(fr'!({"|".join(ununderscore_keys)})')
-        return re.sub(pat, self.prefix + '\1', command.__doc__)
+        return re.sub(pat, self.prefix + "\1", command.__doc__)
 
     @staticmethod
     def get_plugin_class_from_method(meth):
@@ -698,8 +796,10 @@ class ErrBot(Backend, StoreMixin):
         return None
 
     def get_command_classes(self):
-        return (self.get_plugin_class_from_method(command)
-                for command in self.all_commands.values())
+        return (
+            self.get_plugin_class_from_method(command)
+            for command in self.all_commands.values()
+        )
 
     def shutdown(self):
         self.close_storage()
@@ -707,7 +807,7 @@ class ErrBot(Backend, StoreMixin):
         self.repo_manager.shutdown()
 
     def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
-        if message.body.startswith('#'):
+        if message.body.startswith("#"):
             # Markdown heading, insert an extra newline to ensure the
             # markdown rendering doesn't break.
             message.body = "\n" + message.body

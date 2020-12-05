@@ -5,9 +5,30 @@ from markdown import Markdown
 from markdown.extensions.extra import ExtraExtension
 
 # Attribute regexp looks for extendend syntax: {: ... }
-ATTR_RE = re.compile(r'{:([^}]*)}')
-MD_ESCAPE_RE = re.compile('|'.join(re.escape(c) for c in ('\\', '`', '*', '_', '{', '}', '[', ']',
-                                                          '(', ')', '>', '#', '+', '-', '.', '!')))
+ATTR_RE = re.compile(r"{:([^}]*)}")
+MD_ESCAPE_RE = re.compile(
+    "|".join(
+        re.escape(c)
+        for c in (
+            "\\",
+            "`",
+            "*",
+            "_",
+            "{",
+            "}",
+            "[",
+            "]",
+            "(",
+            ")",
+            ">",
+            "#",
+            "+",
+            "-",
+            ".",
+            "!",
+        )
+    )
+)
 
 # Here are few helpers to simplify the conversion from markdown to various
 # backend formats.
@@ -22,7 +43,8 @@ def ansi():
     ansi_txt = md_converter.convert(md_txt)
     """
     from .ansiext import AnsiExtension
-    md = Markdown(output_format='ansi', extensions=[ExtraExtension(), AnsiExtension()])
+
+    md = Markdown(output_format="ansi", extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
 
@@ -36,7 +58,8 @@ def text():
     pure_text = md_converter.convert(md_txt)
     """
     from .ansiext import AnsiExtension
-    md = Markdown(output_format='text', extensions=[ExtraExtension(), AnsiExtension()])
+
+    md = Markdown(output_format="text", extensions=[ExtraExtension(), AnsiExtension()])
     md.stripTopLevelTags = False
     return md
 
@@ -52,7 +75,10 @@ def imtext():
     im_text = md_converter.convert(md_txt)
     """
     from .ansiext import AnsiExtension
-    md = Markdown(output_format='imtext', extensions=[ExtraExtension(), AnsiExtension()])
+
+    md = Markdown(
+        output_format="imtext", extensions=[ExtraExtension(), AnsiExtension()]
+    )
     md.stripTopLevelTags = False
     return md
 
@@ -69,8 +95,7 @@ class Mde2mdConverter:
 
 
 def md():
-    """This makes a converter from markdown-extra to markdown, stripping the attributes from extra.
-    """
+    """This makes a converter from markdown-extra to markdown, stripping the attributes from extra."""
     return Mde2mdConverter()
 
 
@@ -82,11 +107,11 @@ def xhtml():
 
     html = md_converter.convert(md_txt)
     """
-    return Markdown(output_format='xhtml', extensions=[ExtraExtension()])
+    return Markdown(output_format="xhtml", extensions=[ExtraExtension()])
 
 
 def md_escape(txt):
-    """ Call this if you want to be sure your text won't be interpreted as markdown
+    """Call this if you want to be sure your text won't be interpreted as markdown
     :param txt: bare text to escape.
     """
-    return MD_ESCAPE_RE.sub(lambda match: '\\' + match.group(0), txt)
+    return MD_ESCAPE_RE.sub(lambda match: "\\" + match.group(0), txt)

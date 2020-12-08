@@ -599,7 +599,7 @@ class BotPlugin(BotPluginBase):
         text: str,
         in_reply_to: Message = None,
         groupchat_nick_reply: bool = False,
-    ) -> None:
+    ) -> Message:
         """
         Send a message to a room or a user.
 
@@ -628,7 +628,7 @@ class BotPlugin(BotPluginBase):
         thumbnail: str = None,
         color: str = "green",
         fields: Tuple[Tuple[str, str], ...] = (),
-    ) -> None:
+    ) -> Message:
         """
         Sends a card.
 
@@ -651,7 +651,7 @@ class BotPlugin(BotPluginBase):
             if in_reply_to is None:
                 raise ValueError("Either to or in_reply_to needs to be set.")
             to = in_reply_to.frm
-        self._bot.send_card(
+        return self._bot.send_card(
             Card(
                 body,
                 frm,
@@ -684,7 +684,7 @@ class BotPlugin(BotPluginBase):
         template_parameters: Mapping,
         in_reply_to: Message = None,
         groupchat_nick_reply: bool = False,
-    ) -> None:
+    ) -> Message:
         """
         Sends asynchronously a message to a room or a user.
 

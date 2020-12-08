@@ -908,6 +908,7 @@ class SlackBackend(ErrBot):
                 log.exception(
                     f"An exception occurred while trying to send a card to {to_humanreadable}.[{card}]"
                 )
+        return None
 
     def __hash__(self):
         return 0  # this is a singleton anyway

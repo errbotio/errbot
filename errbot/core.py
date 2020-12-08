@@ -160,6 +160,7 @@ class ErrBot(Backend, StoreMixin):
             the markdown text you want to send
         :param groupchat_nick_reply:
             authorized the prefixing with the nick form the user
+        :returns The message object which was created and sent
         """
         # protect a little bit the backends here
         if not isinstance(identifier, Identifier):
@@ -178,7 +179,7 @@ class ErrBot(Backend, StoreMixin):
         ):
             self.prefix_groupchat_reply(msg, in_reply_to.frm)
 
-        self.split_and_send_message(msg)
+        return self.split_and_send_message(msg)
 
     def send_templated(
         self,
@@ -203,11 +204,15 @@ class ErrBot(Backend, StoreMixin):
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, msg):
+        first_msg = None
         for part in split_string_after(msg.body, self.message_size_limit):
             partial_message = msg.clone()
             partial_message.body = part
             partial_message.partial = True
             self.send_message(partial_message)
+            if first_msg is None:
+                first_msg = partial_message
+        return first_msg
 
     def send_message(self, msg):
         """
@@ -228,9 +233,10 @@ class ErrBot(Backend, StoreMixin):
         Sends a card, this can be overriden by the backends *without* a super() call.
 
         :param card: the card to send.
-        :return: None
+        :return: the message that was sent or None if the backend does not send regular messages for cards
+                the returned message object can be used as a parent for responses
         """
-        self.send_templated(card.to, "card", {"card": card})
+        return self.send_templated(card.to, "card", {"card": card})
 
     def send_simple_reply(self, msg, text, private=False, threaded=False):
         """Send a simple response to a given incoming message
@@ -239,11 +245,12 @@ class ErrBot(Backend, StoreMixin):
         :param threaded: if True and if the backend supports it, sends the response in a threaded message.
         :param text: the markdown text of the message.
         :param msg: the message you are replying to.
+        :returns the message that was sent
         """
         reply = self.build_reply(msg, text, private=private, threaded=threaded)
         if isinstance(reply.to, Room) and self.bot_config.GROUPCHAT_NICK_PREFIXED:
             self.prefix_groupchat_reply(reply, msg.frm)
-        self.split_and_send_message(reply)
+        return self.split_and_send_message(reply)
 
     def process_message(self, msg):
         """Check if the given message is a command for the bot and act on it.

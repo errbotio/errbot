@@ -5,6 +5,7 @@ features:
 
 - core: Add support for python3.9 (#1477)
 - chore: Allow dependabot to check GitHub actions weekly (#1464)
+- chore: Add Dockerfile (#1482)
 
 fixes:
 

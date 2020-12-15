@@ -258,13 +258,13 @@ class TestBackend(ErrBot):
         try:
             while True:
                 log.debug("waiting on queue")
-                stanza_type, entry = self.incoming_stanza_queue.get()
+                stanza_type, entry, extras = self.incoming_stanza_queue.get()
                 log.debug("message received")
                 if entry == QUIT_MESSAGE:
                     log.info("Stop magic message received, quitting...")
                     break
                 if stanza_type is STZ_MSG:
-                    msg = Message(entry)
+                    msg = Message(entry, extras=extras)
                     msg.frm = self.sender
                     msg.to = self.bot_identifier  # To me only
 
@@ -330,8 +330,8 @@ class TestBackend(ErrBot):
     def pop_message(self, timeout=5, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
 
-    def push_message(self, msg):
-        self.incoming_stanza_queue.put((STZ_MSG, msg), timeout=5)
+    def push_message(self, msg, extras):
+        self.incoming_stanza_queue.put((STZ_MSG, msg, extras), timeout=5)
 
     def push_presence(self, presence):
         """presence must at least duck type base.Presence"""
@@ -470,8 +470,8 @@ class TestBot:
     def pop_message(self, timeout=5, block=True):
         return self.bot.pop_message(timeout, block)
 
-    def push_message(self, msg):
-        return self.bot.push_message(msg)
+    def push_message(self, msg, extras=''):
+        return self.bot.push_message(msg, extras)
 
     def push_presence(self, presence):
         """presence must at least duck type base.Presence"""

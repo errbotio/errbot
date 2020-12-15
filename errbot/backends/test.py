@@ -330,7 +330,7 @@ class TestBackend(ErrBot):
     def pop_message(self, timeout=5, block=True):
         return self.outgoing_message_queue.get(timeout=timeout, block=block)
 
-    def push_message(self, msg, extras=''):
+    def push_message(self, msg, extras=""):
         self.incoming_stanza_queue.put((STZ_MSG, msg, extras), timeout=5)
 
     def push_presence(self, presence):
@@ -470,7 +470,7 @@ class TestBot:
     def pop_message(self, timeout=5, block=True):
         return self.bot.pop_message(timeout, block)
 
-    def push_message(self, msg, extras=''):
+    def push_message(self, msg, extras=""):
         return self.bot.push_message(msg, extras=extras)
 
     def push_presence(self, presence):

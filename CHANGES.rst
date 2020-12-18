@@ -14,6 +14,7 @@ fixes:
 - chore: minor code cleanup (#1465)
 - chore: Use black codestyle (#1457, #1485)
 - chore: Use twine to check dist (#1485)
+- chore: remove codeclimate and eslint configs (#1490)
 
 v6.1.6 (2020-11-16)
 -------------------

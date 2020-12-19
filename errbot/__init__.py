@@ -441,18 +441,9 @@ def arg_botcmd(
             # the function has already been wrapped
             # alias it so we can update it's arguments below
             wrapper = func
-<<<<<<< HEAD
+
         update_wrapper(wrapper, argparse_args, kwargs)
-=======
 
-        wrapper._err_command_parser.add_argument(*argparse_args, **kwargs)
-        wrapper.__doc__ = wrapper._err_command_parser.format_help()
-        fmt = wrapper._err_command_parser.format_usage()
-        wrapper._err_command_syntax = fmt[
-            len("usage: ") + len(wrapper._err_command_parser.prog) + 1 : -1
-        ]
-
->>>>>>> master
         return wrapper
 
     return decorator(args[0]) if callable(args[0]) else decorator
@@ -462,7 +453,9 @@ def update_wrapper(wrapper, argparse_args, kwargs):
     wrapper._err_command_parser.add_argument(*argparse_args, **kwargs)
     wrapper.__doc__ = wrapper._err_command_parser.format_help()
     fmt = wrapper._err_command_parser.format_usage()
-    wrapper._err_command_syntax = fmt[len('usage: ') + len(wrapper._err_command_parser.prog) + 1:-1]
+    wrapper._err_command_syntax = fmt[
+        len("usage: ") + len(wrapper._err_command_parser.prog) + 1 : -1
+    ]
 
 
 def _tag_webhook(func, uri_rule, methods, form_param, raw):

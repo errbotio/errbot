@@ -17,29 +17,30 @@
 import os
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 py_version = sys.version_info[:2]
 
 if py_version < (3, 6):
-    raise RuntimeError('Errbot requires Python 3.6 or later')
+    raise RuntimeError("Errbot requires Python 3.6 or later")
 
-VERSION_FILE = os.path.join('errbot', 'version.py')
+VERSION_FILE = os.path.join("errbot", "version.py")
 
-deps = ['webtest',
-        'setuptools',
-        'flask',
-        'requests',
-        'jinja2',
-        'pyOpenSSL',
-        'colorlog',
-        'markdown>=3.3',
-        'ansi',
-        'Pygments>=2.0.2',
-        'pygments-markdown-lexer>=0.1.0.dev39',  # sytax coloring to debug md
-        'dulwich>=0.19.16',  # python implementation of git
-        'deepmerge>=0.1.0',
-        ]
+deps = [
+    "webtest",
+    "setuptools",
+    "flask",
+    "requests",
+    "jinja2",
+    "pyOpenSSL",
+    "colorlog",
+    'markdown>=3.3',
+    "ansi",
+    "Pygments>=2.0.2",
+    "pygments-markdown-lexer>=0.1.0.dev39",  # sytax coloring to debug md
+    "dulwich>=0.19.16",  # python implementation of git
+    "deepmerge>=0.1.0",
+]
 
 src_root = os.curdir
 
@@ -52,12 +53,14 @@ def read_version():
 
     variables = {}
     with open(VERSION_FILE) as f:
-        exec(compile(f.read(), 'version.py', 'exec'), variables)
-    return variables['VERSION']
+        exec(compile(f.read(), "version.py", "exec"), variables)
+    return variables["VERSION"]
 
 
-def read(fname, encoding='ascii'):
-    return open(os.path.join(os.path.dirname(__file__), fname), 'r', encoding=encoding).read()
+def read(fname, encoding="ascii"):
+    return open(
+        os.path.join(os.path.dirname(__file__), fname), "r", encoding=encoding
+    ).read()
 
 
 if __name__ == "__main__":
@@ -66,61 +69,72 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes = read('CHANGES.rst', 'utf8')
+    changes = read("CHANGES.rst", "utf8")
 
     if changes.find(VERSION) == -1:
-        raise Exception('You forgot to put a release note in CHANGES.rst ?!')
+        raise Exception("You forgot to put a release note in CHANGES.rst ?!")
 
-    if args & {'bdist', 'bdist_dumb', 'bdist_rpm', 'bdist_wininst', 'bdist_msi'}:
+    if args & {"bdist", "bdist_dumb", "bdist_rpm", "bdist_wininst", "bdist_msi"}:
         raise Exception("err doesn't support binary distributions")
 
-    packages = find_packages(src_root, include=['errbot', 'errbot.*'])
+    packages = find_packages(src_root, include=["errbot", "errbot.*"])
 
     setup(
         name="errbot",
         version=VERSION,
         packages=packages,
         entry_points={
-            'console_scripts': [
-                'errbot = errbot.cli:main',
+            "console_scripts": [
+                "errbot = errbot.cli:main",
             ]
         },
-
         install_requires=deps,
-        tests_require=['nose', 'webtest', 'requests'],
+        tests_require=["nose", "webtest", "requests"],
         package_data={
-            'errbot': ['backends/*.plug',
-                       'backends/*.html',
-                       'backends/styles/*.css',
-                       'backends/images/*.svg',
-                       'core_plugins/*.plug',
-                       'core_plugins/*.md',
-                       'core_plugins/templates/*.md',
-                       'storage/*.plug',
-                       'templates/initdir/example.py',
-                       'templates/initdir/example.plug',
-                       'templates/initdir/config.py.tmpl',
-                       'templates/*.md',
-                       'templates/new_plugin.py.tmpl',
-                       ],
+            "errbot": [
+                "backends/*.plug",
+                "backends/*.html",
+                "backends/styles/*.css",
+                "backends/images/*.svg",
+                "core_plugins/*.plug",
+                "core_plugins/*.md",
+                "core_plugins/templates/*.md",
+                "storage/*.plug",
+                "templates/initdir/example.py",
+                "templates/initdir/example.plug",
+                "templates/initdir/config.py.tmpl",
+                "templates/*.md",
+                "templates/new_plugin.py.tmpl",
+            ],
         },
         extras_require={
-            'graphic': ['PySide', ],
-            'hipchat': ['hypchat', 'slixmpp', 'pyasn1', 'pyasn1-modules'],
-            'IRC': ['irc', ],
-            'slack': ['slackclient>=1.0.5,<2.0', ],
-            'slack-rtm': ['slackclient>=2.0', ],
-            'telegram': ['python-telegram-bot', ],
-            'XMPP': ['slixmpp', 'pyasn1', 'pyasn1-modules'],
-            ':python_version<"3.7"': ['dataclasses'],  # backward compatibility for 3.3->3.6 for dataclasses
-            ':sys_platform!="win32"': ['daemonize'],
+            "graphic": [
+                "PySide",
+            ],
+            "hipchat": ["hypchat", "slixmpp", "pyasn1", "pyasn1-modules"],
+            "IRC": [
+                "irc",
+            ],
+            "slack": [
+                "slackclient>=1.0.5,<2.0",
+            ],
+            "slack-rtm": [
+                "slackclient>=2.0",
+            ],
+            "telegram": [
+                "python-telegram-bot",
+            ],
+            "XMPP": ["slixmpp", "pyasn1", "pyasn1-modules"],
+            ':python_version<"3.7"': [
+                "dataclasses"
+            ],  # backward compatibility for 3.3->3.6 for dataclasses
+            ':sys_platform!="win32"': ["daemonize"],
         },
-
         author="errbot.io",
         author_email="info@errbot.io",
         description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description_content_type="text/x-rst",
-        long_description=''.join([read('README.rst'), '\n\n', changes]),
+        long_description="".join([read("README.rst"), "\n\n", changes]),
         license="GPL",
         keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
         url="http://errbot.io/",
@@ -137,5 +151,5 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.9",
         ],
         src_root=src_root,
-        platforms='any',
+        platforms="any",
     )

@@ -162,8 +162,10 @@ v4.2 New features
 -  Errbot initial installation. The initial installation has been
    drastically simplified::
 
-   $ pip install errbot $ mkdir errbot; cd errbot $ errbot –init $
-   errbot -T >>> <- You are game !!
+   $ pip install errbot
+   $ mkdir errbot; cd errbot
+   $ errbot –init
+   $ errbot -T >>> <- You are game !!
 
    Not only that but it also install a development directory in there so
    it now takes only seconds to have an Errbot development environment.
@@ -473,10 +475,8 @@ Further info on identifier changes
 
 The relationship is as follow:
 
-.. image::
-https://raw.githubusercontent.com/errbotio/errbot/master/docs/_static/arch/identifiers.png
-:target:
-https://github.com/errbotio/errbot/blob/master/errbot/backends/base.py
+.. image:: https://raw.githubusercontent.com/errbotio/errbot/master/docs/_static/arch/identifiers.png
+   :target: https://github.com/errbotio/errbot/blob/master/errbot/backends/base.py
 
 For example: A Message sent from a room will have a RoomOccupant as frm
 and a Room as to.

@@ -1,11 +1,12 @@
-from errbot import BotPlugin
-from queue import Queue
 import logging
+from queue import Queue
+
+from errbot import BotPlugin
+
 log = logging.getLogger(__name__)
 
 
 class RoomTest(BotPlugin):
-
     def activate(self):
         super().activate()
         self.purge()

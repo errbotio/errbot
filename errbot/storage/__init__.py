@@ -1,7 +1,8 @@
+import logging
 import types
 from collections.abc import MutableMapping
 from contextlib import contextmanager
-import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -19,7 +20,7 @@ class StoreNotOpenError(StoreException):
 
 class StoreMixin(MutableMapping):
     """
-     This class handle the basic needs of bot plugins and core like loading, unloading and creating a storage
+    This class handle the basic needs of bot plugins and core like loading, unloading and creating a storage
     """
 
     def __init__(self):
@@ -27,14 +28,14 @@ class StoreMixin(MutableMapping):
         self.namespace = None
 
     def open_storage(self, storage_plugin, namespace):
-        if hasattr(self, 'store') and self._store is not None:
+        if hasattr(self, "store") and self._store is not None:
             raise StoreAlreadyOpenError("Storage appears to be opened already")
         log.debug("Opening storage '%s'", namespace)
         self._store = storage_plugin.open(namespace)
         self.namespace = namespace
 
     def close_storage(self):
-        if not hasattr(self, '_store') or self._store is None:
+        if not hasattr(self, "_store") or self._store is None:
             raise StoreNotOpenError("Storage does not appear to have been opened yet")
         self._store.close()
         self._store = None

@@ -6,6 +6,7 @@ class StorageBase:
     """
     Contract to implemement a storage.
     """
+
     @abstractmethod
     def set(self, key: str, value: Any) -> None:
         """
@@ -68,8 +69,9 @@ class StoragePluginBase:
     Base to implement a storage plugin.
     This is a factory for the namespaces.
     """
+
     def __init__(self, bot_config):
-        self._storage_config = getattr(bot_config, 'STORAGE_CONFIG', {})
+        self._storage_config = getattr(bot_config, "STORAGE_CONFIG", {})
 
     @abstractmethod
     def open(self, namespace: str) -> StorageBase:

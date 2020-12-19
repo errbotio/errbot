@@ -1,10 +1,10 @@
-
-import os
 import io
-from itertools import starmap, repeat
-from threading import Thread
-from .backends.base import STREAM_WAITING_TO_START, STREAM_TRANSFER_IN_PROGRESS
 import logging
+import os
+from itertools import repeat, starmap
+from threading import Thread
+
+from .backends.base import STREAM_TRANSFER_IN_PROGRESS, STREAM_WAITING_TO_START
 
 CHUNK_SIZE = 4096
 
@@ -27,6 +27,7 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
 
 class Tee:
     """ Tee implements a multi reader / single writer """
+
     def __init__(self, incoming_stream, clients):
         """ clients is a list of objects implementing callback_stream """
         self.incoming_stream = incoming_stream
@@ -41,7 +42,10 @@ class Tee:
     def run(self):
         """ streams to all the clients synchronously """
         nb_clients = len(self.clients)
-        pipes = [(io.open(r, 'rb'), io.open(w, 'wb')) for r, w in repeatfunc(os.pipe, nb_clients)]
+        pipes = [
+            (io.open(r, "rb"), io.open(w, "wb"))
+            for r, w in repeatfunc(os.pipe, nb_clients)
+        ]
         streams = [self.incoming_stream.clone(pipe[0]) for pipe in pipes]
 
         def streamer(index):
@@ -50,8 +54,11 @@ class Tee:
                 if streams[index].status == STREAM_WAITING_TO_START:
                     streams[index].reject()
                     plugin = self.clients[index].name
-                    logging.warning('%s did not accept nor reject the incoming file transfer', plugin)
-                    logging.warning('I reject it as a fallback.')
+                    logging.warning(
+                        "%s did not accept nor reject the incoming file transfer",
+                        plugin,
+                    )
+                    logging.warning("I reject it as a fallback.")
             except Exception as _:
                 # internal error, mark the error.
                 streams[index].error()

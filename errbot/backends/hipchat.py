@@ -1,20 +1,23 @@
+import email.mime.application
 import logging
 import re
 import sys
+from email.mime.multipart import MIMEMultipart
 from functools import lru_cache
 
-from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream
-from errbot.backends.xmpp import XMPPRoomOccupant, XMPPBackend, XMPPConnection, split_identifier
-
+import requests
 from markdown import Markdown
-from markdown.extensions.extra import ExtraExtension
 from markdown.extensions import Extension
+from markdown.extensions.extra import ExtraExtension
 from markdown.treeprocessors import Treeprocessor
 
-from email.mime.multipart import MIMEMultipart
-import email.mime.application
-
-import requests
+from errbot.backends.base import Room, RoomDoesNotExistError, RoomOccupant, Stream
+from errbot.backends.xmpp import (
+    XMPPBackend,
+    XMPPConnection,
+    XMPPRoomOccupant,
+    split_identifier,
+)
 
 log = logging.getLogger(__name__)
 
@@ -30,9 +33,9 @@ except ImportError:
     sys.exit(1)
 
 COLORS = {
-    'blue': 'purple',
-    'white': 'gray',
-    'black': 'gray',
+    "blue": "purple",
+    "white": "gray",
+    "black": "gray",
 }  # best effort to map errbot colors to hipchat ones,
 
 
@@ -41,19 +44,20 @@ class HipchatTreeprocessor(Treeprocessor):
     def run(self, root):
         def recurse_patch(element):
             t = element.tag
-            if t == 'h1':
-                element.tag = 'strong'
+            if t == "h1":
+                element.tag = "strong"
                 element.text = element.text.upper()
-            elif t == 'h2':
-                element.tag = 'em'
-            elif t in ('h3', 'h4', 'h5', 'h6'):
-                element.tag = 'p'
-            elif t == 'hr':
-                element.tag = 'p'
-                element.text = '─' * 80
+            elif t == "h2":
+                element.tag = "em"
+            elif t in ("h3", "h4", "h5", "h6"):
+                element.tag = "p"
+            elif t == "hr":
+                element.tag = "p"
+                element.text = "─" * 80
 
             for elems in element:
                 recurse_patch(elems)
+
         recurse_patch(root)
 
 
@@ -62,12 +66,14 @@ class HipchatExtension(Extension):
 
     def extendMarkdown(self, md):
         md.registerExtension(self)
-        md.treeprocessors.add("hipchat stripper", HipchatTreeprocessor(), '<inline')
+        md.treeprocessors.add("hipchat stripper", HipchatTreeprocessor(), "<inline")
         log.debug("Will apply those treeprocessors:\n%s", md.treeprocessors)
 
 
 def hipchat_html():
-    return Markdown(output_format='xhtml', extensions=[ExtraExtension(), HipchatExtension()])
+    return Markdown(
+        output_format="xhtml", extensions=[ExtraExtension(), HipchatExtension()]
+    )
 
 
 class HipChatRoomOccupant(XMPPRoomOccupant):
@@ -78,7 +84,16 @@ class HipChatRoomOccupant(XMPPRoomOccupant):
     https://www.hipchat.com/docs/apiv2/method/get_all_participants
     with the link to self expanded.
     """
-    def __init__(self, node=None, domain=None, resource=None, room=None, hipchat_user=None, aclattr=None):
+
+    def __init__(
+        self,
+        node=None,
+        domain=None,
+        resource=None,
+        room=None,
+        hipchat_user=None,
+        aclattr=None,
+    ):
         """
         :param hipchat_user:
             A user object as returned by
@@ -89,12 +104,12 @@ class HipChatRoomOccupant(XMPPRoomOccupant):
             for k, v in hipchat_user.items():
                 setattr(self, k, v)
             # Quick fix to be able to all the parent.
-            if '/' in hipchat_user['xmpp_jid']:
-                node_domain, resource = hipchat_user['xmpp_jid'].split('/')
+            if "/" in hipchat_user["xmpp_jid"]:
+                node_domain, resource = hipchat_user["xmpp_jid"].split("/")
             else:
-                node_domain = hipchat_user['xmpp_jid']
-                resource = hipchat_user['name']
-            node, domain = node_domain.split('@')
+                node_domain = hipchat_user["xmpp_jid"]
+                resource = hipchat_user["name"]
+            node, domain = node_domain.split("@")
 
         self._aclattr = aclattr
 
@@ -117,7 +132,7 @@ class HipChatRoom(Room):
         """
         self.name = name
         self.hypchat = bot.conn.hypchat
-        self.xep0045 = bot.conn.client.plugin['xep_0045']
+        self.xep0045 = bot.conn.client.plugin["xep_0045"]
         self._bot = bot
 
     def set_message_size_limit(self, limit=10000, hard_limit=10000):
@@ -132,10 +147,10 @@ class HipChatRoom(Room):
         Return room information from the HipChat API
         """
         try:
-            log.debug('Querying HipChat API for room %s.', self.name)
+            log.debug("Querying HipChat API for room %s.", self.name)
             return self.hypchat.get_room(self.name)
         except hypchat.requests.HttpNotFound:
-            raise RoomDoesNotExistError('The given room does not exist.')
+            raise RoomDoesNotExistError("The given room does not exist.")
 
     @property
     def name(self):
@@ -150,7 +165,7 @@ class HipChatRoom(Room):
 
     @property
     def jid(self):
-        return self.room['xmpp_jid']
+        return self.room["xmpp_jid"]
 
     @property
     def node(self):
@@ -168,7 +183,7 @@ class HipChatRoom(Room):
         return f"<HipChatMUCRoom('{self.name}')>"
 
     def __str__(self):
-        return self.room['xmpp_jid']
+        return self.room["xmpp_jid"]
 
     def join(self, username=None, password=None):
         """
@@ -182,11 +197,15 @@ class HipChatRoom(Room):
 
         room = self.jid
         self.xep0045.joinMUC(room, username, password=password, wait=True)
-        self._bot.conn.add_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
-        self._bot.conn.add_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
+        self._bot.conn.add_event_handler(
+            f"muc::{room}::got_online", self._bot.user_joined_chat
+        )
+        self._bot.conn.add_event_handler(
+            f"muc::{room}::got_offline", self._bot.user_left_chat
+        )
 
         self._bot.callback_room_joined(self)
-        log.info('Joined room %s.', self.name)
+        log.info("Joined room %s.", self.name)
 
     def leave(self, reason=None):
         """
@@ -199,15 +218,21 @@ class HipChatRoom(Room):
             reason = ""
         room = self.jid
         try:
-            self.xep0045.leaveMUC(room=room, nick=self.xep0045.ourNicks[room], msg=reason)
-            self._bot.conn.del_event_handler(f'muc::{room}::got_online', self._bot.user_joined_chat)
-            self._bot.conn.del_event_handler(f'muc::{room}::got_offline', self._bot.user_left_chat)
-            log.info('Left room %s', self)
+            self.xep0045.leaveMUC(
+                room=room, nick=self.xep0045.ourNicks[room], msg=reason
+            )
+            self._bot.conn.del_event_handler(
+                f"muc::{room}::got_online", self._bot.user_joined_chat
+            )
+            self._bot.conn.del_event_handler(
+                f"muc::{room}::got_offline", self._bot.user_left_chat
+            )
+            log.info("Left room %s", self)
             self._bot.callback_room_left(self)
         except KeyError:
-            log.debug('Trying to leave %s while not in this room.', self)
+            log.debug("Trying to leave %s while not in this room.", self)
 
-    def create(self, privacy='public', guest_access=False):
+    def create(self, privacy="public", guest_access=False):
         """
         Create the room.
 
@@ -220,14 +245,14 @@ class HipChatRoom(Room):
             Whether or not to enable guest access for this room.
         """
         if self.exists:
-            log.debug('Tried to create the room %s, but it has already been created', self)
+            log.debug(
+                "Tried to create the room %s, but it has already been created", self
+            )
         else:
             self.hypchat.create_room(
-                name=self.name,
-                privacy=privacy,
-                guest_access=guest_access
+                name=self.name, privacy=privacy, guest_access=guest_access
             )
-            log.info('Created room %s.', self)
+            log.info("Created room %s.", self)
 
     def destroy(self):
         """
@@ -237,7 +262,7 @@ class HipChatRoom(Room):
         """
         try:
             self.room.delete()
-            log.info('Destroyed room %s.', self)
+            log.info("Destroyed room %s.", self)
         except RoomDoesNotExistError:
             log.debug("Can't destroy room %s, it doesn't exist.", self)
 
@@ -274,7 +299,7 @@ class HipChatRoom(Room):
             Returns the topic (a string) if one is set, `None` if no
             topic has been set at all.
         """
-        return self.room['topic']
+        return self.room["topic"]
 
     @topic.setter
     def topic(self, topic):
@@ -285,7 +310,7 @@ class HipChatRoom(Room):
             The topic to set.
         """
         self.room.topic(topic)
-        log.debug('Changed topic of %s to %s', self, topic)
+        log.debug("Changed topic of %s to %s", self, topic)
 
     @property
     def occupants(self):
@@ -295,7 +320,7 @@ class HipChatRoom(Room):
         :getter:
             Returns a list of :class:`~HipChatMUCOccupant` instances.
         """
-        participants = self.room.participants(expand='items')['items']
+        participants = self.room.participants(expand="items")["items"]
         occupants = []
         for p in participants:
             occupants.append(HipChatRoomOccupant(hipchat_user=p))
@@ -315,18 +340,18 @@ class HipChatRoom(Room):
 
         for person in args:
             try:
-                if person.startswith('@'):
-                    user = [u for u in users if u['mention_name'] == person[1:]][0]
+                if person.startswith("@"):
+                    user = [u for u in users if u["mention_name"] == person[1:]][0]
                 else:
-                    user = [u for u in users if u['name'] == person][0]
+                    user = [u for u in users if u["name"] == person][0]
             except IndexError:
-                logging.warning('No user by the name of %s found.', person)
+                logging.warning("No user by the name of %s found.", person)
             else:
-                if room['privacy'] == 'private':
+                if room["privacy"] == "private":
                     room.members().add(user)
-                    log.info('Added %s to private room %s.', user['name'], self)
-                room.invite(user, 'No reason given.')
-                log.info('Invited %s to %s.', person, self)
+                    log.info("Added %s to private room %s.", user["name"], self)
+                room.invite(user, "No reason given.")
+                log.info("Invited %s to %s.", person, self)
 
     def notify(self, message, color=None, notify=False, message_format=None):
         """
@@ -336,15 +361,17 @@ class HipChatRoom(Room):
         `HipChat API documentation <https://www.hipchat.com/docs/apiv2/method/send_room_notification>`_
         for more info.
         """
-        self.room.notification(message=message, color=color, notify=notify, format=message_format)
+        self.room.notification(
+            message=message, color=color, notify=notify, format=message_format
+        )
 
 
 class HipchatClient(XMPPConnection):
     def __init__(self, *args, **kwargs):
-        self.token = kwargs.pop('token')
-        self.endpoint = kwargs.pop('endpoint')
+        self.token = kwargs.pop("token")
+        self.endpoint = kwargs.pop("endpoint")
         self._cached_users = None
-        verify = kwargs.pop('verify')
+        verify = kwargs.pop("verify")
         if verify is None:
             verify = True
         if self.endpoint is None:
@@ -352,7 +379,9 @@ class HipchatClient(XMPPConnection):
         else:
             # We could always pass in the endpoint, with a default value if it's
             # None, but this way we support hypchat<0.18
-            self.hypchat = hypchat.HypChat(self.token, endpoint=self.endpoint, verify=verify)
+            self.hypchat = hypchat.HypChat(
+                self.token, endpoint=self.endpoint, verify=verify
+            )
         super().__init__(*args, **kwargs)
 
     @property
@@ -365,12 +394,12 @@ class HipchatClient(XMPPConnection):
 
         if not self._cached_users:
             result = self.hypchat.users(guests=True)
-            users = result['items']
-            next_link = 'next' in result['links']
+            users = result["items"]
+            next_link = "next" in result["links"]
             while next_link:
                 result = result.next()
-                users += result['items']
-                next_link = 'next' in result['links']
+                users += result["items"]
+                next_link = "next" in result["links"]
             self._cached_users = users
         return self._cached_users
 
@@ -380,9 +409,9 @@ class HipchatBackend(XMPPBackend):
     roomoccupant_factory = HipChatRoomOccupant
 
     def __init__(self, config):
-        self.api_token = config.BOT_IDENTITY['token']
-        self.api_endpoint = config.BOT_IDENTITY.get('endpoint', None)
-        self.api_verify = config.BOT_IDENTITY.get('verify', True)
+        self.api_token = config.BOT_IDENTITY["token"]
+        self.api_endpoint = config.BOT_IDENTITY.get("endpoint", None)
+        self.api_verify = config.BOT_IDENTITY.get("verify", True)
         self.md = hipchat_html()
         super().__init__(config)
 
@@ -407,17 +436,25 @@ class HipchatBackend(XMPPBackend):
 
     def _build_room_occupant(self, txtrep):
         node, domain, resource = split_identifier(txtrep)
-        return self.roomoccupant_factory(node,
-                                         domain,
-                                         resource,
-                                         self.query_room(node + '@' + domain),
-                                         aclattr=self._find_user(resource, 'name'))
+        return self.roomoccupant_factory(
+            node,
+            domain,
+            resource,
+            self.query_room(node + "@" + domain),
+            aclattr=self._find_user(resource, "name"),
+        )
 
     def callback_message(self, msg):
         super().callback_message(msg)
-        possible_mentions = re.findall(r'@\w+', msg.body)
+        possible_mentions = re.findall(r"@\w+", msg.body)
         people = list(
-            filter(None.__ne__, [self._find_user(mention[1:], 'mention_name') for mention in possible_mentions])
+            filter(
+                None.__ne__,
+                [
+                    self._find_user(mention[1:], "mention_name")
+                    for mention in possible_mentions
+                ],
+            )
         )
 
         if people:
@@ -425,7 +462,7 @@ class HipchatBackend(XMPPBackend):
 
     @property
     def mode(self):
-        return 'hipchat'
+        return "hipchat"
 
     def rooms(self):
         """
@@ -434,11 +471,11 @@ class HipchatBackend(XMPPBackend):
         :returns:
             A list of :class:`~HipChatRoom` instances.
         """
-        xep0045 = self.conn.client.plugin['xep_0045']
+        xep0045 = self.conn.client.plugin["xep_0045"]
         rooms = {}
         # Build a mapping of xmpp_jid->name for easy reference
-        for room in self.conn.hypchat.rooms(expand='items').contents():
-            rooms[room['xmpp_jid']] = room['name']
+        for room in self.conn.hypchat.rooms(expand="items").contents():
+            rooms[room["xmpp_jid"]] = room["name"]
 
         joined_rooms = []
         for room in xep0045.getJoinedRooms():
@@ -458,21 +495,27 @@ class HipchatBackend(XMPPBackend):
         :returns:
             An instance of :class:`~HipChatRoom`.
         """
-        if room.endswith('@conf.hipchat.com') or room.endswith('@conf.btf.hipchat.com'):
+        if room.endswith("@conf.hipchat.com") or room.endswith("@conf.btf.hipchat.com"):
             log.debug("Room specified by JID, looking up room name")
-            rooms = self.conn.hypchat.rooms(expand='items').contents()
+            rooms = self.conn.hypchat.rooms(expand="items").contents()
             try:
-                name = [r['name'] for r in rooms if r['xmpp_jid'] == room][0]
+                name = [r["name"] for r in rooms if r["xmpp_jid"] == room][0]
             except IndexError:
-                raise RoomDoesNotExistError(f'No room with JID {room} found.')
-            log.info('Found %s to be the room %s, consider specifying this directly.', room, name)
+                raise RoomDoesNotExistError(f"No room with JID {room} found.")
+            log.info(
+                "Found %s to be the room %s, consider specifying this directly.",
+                room,
+                name,
+            )
         else:
             name = room
 
         return HipChatRoom(name, self)
 
     def build_reply(self, msg, text=None, private=False, threaded=False):
-        response = super().build_reply(msg=msg, text=text, private=private, threaded=threaded)
+        response = super().build_reply(
+            msg=msg, text=text, private=private, threaded=threaded
+        )
         if msg.is_group and msg.frm == response.to:
             # HipChat violates the XMPP spec :( This results in a valid XMPP JID
             # but HipChat mangles them into stuff like
@@ -480,80 +523,107 @@ class HipchatBackend(XMPPBackend):
             # so we request the user's proper JID through their API and use that here
             # so that private responses originating from a room (IE, DIVERT_TO_PRIVATE)
             # work correctly.
-            response.to = self._find_user(response.to.client, 'name')
+            response.to = self._find_user(response.to.client, "name")
         return response
 
     def send_card(self, card):
         if isinstance(card.to, RoomOccupant):
             card.to = card.to.room
         if not card.is_group:
-            raise ValueError('Private notifications/cards are impossible to send on 1 to 1 messages on hipchat.')
-        log.debug('room id = %s', card.to)
+            raise ValueError(
+                "Private notifications/cards are impossible to send on 1 to 1 messages on hipchat."
+            )
+        log.debug("room id = %s", card.to)
         room = self.query_room(str(card.to)).room
 
-        data = {'message': '-' if not card.body else self.md.convert(card.body),
-                'notify': False,
-                'message_format': 'html'}
+        data = {
+            "message": "-" if not card.body else self.md.convert(card.body),
+            "notify": False,
+            "message_format": "html",
+        }
 
         if card.color:
-            data['color'] = COLORS[card.color] if card.color in COLORS else card.color
+            data["color"] = COLORS[card.color] if card.color in COLORS else card.color
 
-        hcard = {'id': f'FF{card.__hash__():0.16X}'}
+        hcard = {"id": f"FF{card.__hash__():0.16X}"}
 
         # Only title is supported all across the types.
         if card.title:
-            hcard['title'] = card.title
+            hcard["title"] = card.title
         else:
-            hcard['title'] = ' '  # title is mandatory, more that 1 chr.
+            hcard["title"] = " "  # title is mandatory, more that 1 chr.
 
         # Go from the most restrictive type to the less resctrictive to find the most appropriate.
         if card.image and not card.summary and not card.fields and not card.link:
-            hcard['style'] = 'image'
-            hcard['thumbnail'] = {'url': card.image if not card.thumbnail else card.thumbnail}
-            hcard['url'] = card.image
+            hcard["style"] = "image"
+            hcard["thumbnail"] = {
+                "url": card.image if not card.thumbnail else card.thumbnail
+            }
+            hcard["url"] = card.image
             if card.body:
-                data['message'] = card.body  # We don't have a card body field so retrofit it to the main body.
+                data[
+                    "message"
+                ] = (
+                    card.body
+                )  # We don't have a card body field so retrofit it to the main body.
         elif card.link and not card.summary and not card.fields:
-            hcard['style'] = 'link'
-            hcard['url'] = card.link
+            hcard["style"] = "link"
+            hcard["url"] = card.link
             if card.thumbnail:
-                hcard['icon'] = {'url': card.thumbnail}
+                hcard["icon"] = {"url": card.thumbnail}
             if card.image:
-                hcard['thumbnail'] = {'url': card.image}
+                hcard["thumbnail"] = {"url": card.image}
             if card.body:
-                hcard['description'] = card.body
+                hcard["description"] = card.body
         else:
-            hcard['style'] = 'application'
-            hcard['format'] = 'medium'
+            hcard["style"] = "application"
+            hcard["format"] = "medium"
             if card.image and card.thumbnail:
-                log.warning('Hipchat cannot display this card with an image.'
-                            'Remove summary, fields and/or possibly link to fallback to an hichat link or '
-                            'an image style card.')
+                log.warning(
+                    "Hipchat cannot display this card with an image."
+                    "Remove summary, fields and/or possibly link to fallback to an hichat link or "
+                    "an image style card."
+                )
             if card.image or card.thumbnail:
-                hcard['icon'] = {'url': card.thumbnail if card.thumbnail else card.image}
+                hcard["icon"] = {
+                    "url": card.thumbnail if card.thumbnail else card.image
+                }
             if card.body:
-                hcard['description'] = card.body
+                hcard["description"] = card.body
             if card.summary:
-                hcard['activity'] = {'html': card.summary}
+                hcard["activity"] = {"html": card.summary}
             if card.fields:
-                hcard['attributes'] = [{'label': key, 'value': {'label': value, 'style': 'lozenge-complete'}}
-                                       for key, value in card.fields]
+                hcard["attributes"] = [
+                    {
+                        "label": key,
+                        "value": {"label": value, "style": "lozenge-complete"},
+                    }
+                    for key, value in card.fields
+                ]
             if card.link:
-                hcard['url'] = card.link
+                hcard["url"] = card.link
 
-        data['card'] = hcard
+        data["card"] = hcard
 
         log.debug("Sending request: %s", data)
-        room._requests.post(room.url + '/notification', data=data)  # noqa
+        room._requests.post(room.url + "/notification", data=data)  # noqa
 
-    def send_stream_request(self, identifier, fsource, name='file.txt', size=None, stream_type=None):
+    def send_stream_request(
+        self, identifier, fsource, name="file.txt", size=None, stream_type=None
+    ):
         """Starts a file transfer.
-            note, fsource used to make the stream needs to be in open/rb state
+        note, fsource used to make the stream needs to be in open/rb state
         """
 
-        stream = Stream(identifier=identifier, fsource=fsource, name=name, size=size, stream_type=stream_type)
+        stream = Stream(
+            identifier=identifier,
+            fsource=fsource,
+            name=name,
+            size=size,
+            stream_type=stream_type,
+        )
         result = self.thread_pool.apply_async(self._hipchat_upload, (stream,))
-        log.debug('Response from server: %s', result.get(timeout=10))
+        log.debug("Response from server: %s", result.get(timeout=10))
         return stream
 
     def _hipchat_upload(self, stream):
@@ -562,35 +632,34 @@ class HipchatBackend(XMPPBackend):
             stream.accept()
             room = self.query_room(str(stream.identifier)).room
             headers = {
-                'Authorization': f'Bearer {self.api_token}',
-                'Accept-Charset': 'UTF-8',
-                'Content-Type': 'multipart/related',
+                "Authorization": f"Bearer {self.api_token}",
+                "Accept-Charset": "UTF-8",
+                "Content-Type": "multipart/related",
             }
-            raw_body = MIMEMultipart('related')
+            raw_body = MIMEMultipart("related")
             img = email.mime.application.MIMEApplication(stream.read())
             img.add_header(
-                'Content-Disposition',
-                'attachment',
-                name='file',
-                filename=stream.name
+                "Content-Disposition", "attachment", name="file", filename=stream.name
             )
             raw_body.attach(img)
-            raw_headers, body = raw_body.as_string().split('\n\n', 1)
-            boundary = re.search('boundary="([^\"]*)"', raw_headers).group(1)
-            headers['Content-Type'] = f'multipart/related; boundary="{boundary}"'
-            resp = requests.post(room.url + '/share/file', headers=headers, data=body)
-            log.info('Request ok: %s.', resp.ok)
+            raw_headers, body = raw_body.as_string().split("\n\n", 1)
+            boundary = re.search('boundary="([^"]*)"', raw_headers).group(1)
+            headers["Content-Type"] = f'multipart/related; boundary="{boundary}"'
+            resp = requests.post(room.url + "/share/file", headers=headers, data=body)
+            log.info("Request ok: %s.", resp.ok)
 
             if resp.ok:
-                log.info('Request status: %s.', resp.status_code)
+                log.info("Request status: %s.", resp.status_code)
                 stream.success()
             else:
-                log.error('Request status: %s.', resp.status_code)
-                log.error('Request reason: %s.', resp.reason)
-                log.error('Request text: %s.', resp.text)
+                log.error("Request status: %s.", resp.status_code)
+                log.error("Request reason: %s.", resp.reason)
+                log.error("Request text: %s.", resp.text)
                 stream.error()
         except Exception:
-            log.exception("Upload of %s to %s failed.", stream.name, stream.identifier.channelname)
+            log.exception(
+                f"Upload of {stream.name} to {stream.identifier.channelname} failed."
+            )
 
     @lru_cache(1024)
     def _find_user(self, name, criteria):
@@ -604,15 +673,15 @@ class HipchatBackend(XMPPBackend):
         """
         users = [u for u in self.conn.users if u[criteria] == name]
         if not users:
-            log.debug('Failed to find user %s', name)
+            log.debug("Failed to find user %s", name)
             return None
-        userdetail = self.conn.hypchat.get_user(users[0]['id'])
-        identifier = self.build_identifier(userdetail['xmpp_jid'])
+        userdetail = self.conn.hypchat.get_user(users[0]["id"])
+        identifier = self.build_identifier(userdetail["xmpp_jid"])
 
         return identifier
 
     def prefix_groupchat_reply(self, message, identifier):
-        message.body = f'@{identifier.nick}: {message.body}'
+        message.body = f"@{identifier.nick}: {message.body}"
 
     def __hash__(self):
         return 0  # it is a singleton anyway

@@ -37,15 +37,20 @@ jobs:
       run: |
         tox -e py
 
-    - name: Lint
+    - name: Check Distribution
       if: ${{ matrix.python-version == '3.8' }}
       run: |
-        tox -e pypi-lint
+        tox -e dist-check
 
     - name: Codestyle
       if: ${{ matrix.python-version == '3.8' }}
       run: |
         tox -e codestyle
+
+    - name: Lint - sort
+      if: ${{ matrix.python-version == '3.8' }}
+      run: |
+        tox -e sort
 
     - name: Security
       if: ${{ matrix.python-version == '3.8' }}

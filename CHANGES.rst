@@ -1,10 +1,20 @@
-v6.1.7 (unreleased)
+v6.1.7 (2020-12-18)
 -------------------
 
 features:
 
 - core: Add support for python3.9 (#1477)
+- chore: Allow dependabot to check GitHub actions weekly (#1464)
+- chore: Add Dockerfile (#1482)
 
+fixes:
+
+- core: AttributeError on Blacklisted plugins (#1369)
+- chore: Remove travis configuration (#1478)
+- chore: minor code cleanup (#1465)
+- chore: Use black codestyle (#1457, #1485)
+- chore: Use twine to check dist (#1485)
+- chore: remove codeclimate and eslint configs (#1490)
 
 v6.1.6 (2020-11-16)
 -------------------
@@ -23,7 +33,6 @@ fixes:
 - plugins: Fix error when plugin plug file is missing description (#1462)
 - docs: typographical issues in setup guide (#1475)
 - refactor: Split changelog by major versions (#1474)
-
 
 v6.1.5 (2020-10-10)
 -------------------

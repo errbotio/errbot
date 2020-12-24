@@ -172,14 +172,6 @@ def main():
         const="Text",
         help="force local text backend",
     )
-    mode_selection.add_argument(
-        "-G",
-        "--graphic",
-        dest="backend",
-        action="store_const",
-        const="Graphic",
-        help="force local graphical backend",
-    )
 
     if not ON_WINDOWS:
         option_group = parser.add_argument_group("optional daemonization arguments")

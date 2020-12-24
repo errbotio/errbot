@@ -108,9 +108,6 @@ if __name__ == "__main__":
             ],
         },
         extras_require={
-            "graphic": [
-                "PySide",
-            ],
             "hipchat": ["hypchat", "slixmpp", "pyasn1", "pyasn1-modules"],
             "IRC": [
                 "irc",

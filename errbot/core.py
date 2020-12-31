@@ -11,6 +11,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+import atexit
 import difflib
 import inspect
 import logging
@@ -49,6 +50,7 @@ class ErrBot(Backend, StoreMixin):
         self.prefix = bot_config.BOT_PREFIX
         if bot_config.BOT_ASYNC:
             self.thread_pool = ThreadPool(bot_config.BOT_ASYNC_POOLSIZE)
+            atexit.register(self.thread_pool.close)
             log.debug(
                 "created a thread pool of size %d.", bot_config.BOT_ASYNC_POOLSIZE
             )
@@ -446,6 +448,7 @@ class ErrBot(Backend, StoreMixin):
             self.thread_pool.close()
             self.thread_pool.join()
             self.thread_pool = ThreadPool(self.bot_config.BOT_ASYNC_POOLSIZE)
+            atexit.register(self.thread_pool.close)
 
         if f._err_command_historize:
             user_cmd_history.append(

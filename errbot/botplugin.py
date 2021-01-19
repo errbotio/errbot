@@ -4,7 +4,7 @@ import shlex
 from io import IOBase
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Callable, Mapping, Sequence, Tuple
+from typing import Callable, Mapping, Sequence, Tuple, Optional
 
 from errbot.backends.base import (
     ONLINE,
@@ -541,23 +541,31 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_joined(self, room: Room):
+    def callback_room_joined(self, room: Room,
+                             identifier: Identifier,
+                             invited_by: Optional[Identifier] = None):
         """
-        Triggered when the bot has joined a MUC.
+        Triggered when a user has joined a MUC.
 
         :param room:
             An instance of :class:`~errbot.backends.base.MUCRoom`
             representing the room that was joined.
+        :param identifier: An instance of Identifier (Person). Defaults to bot
+        :param invited_by: An instance of Identifier (Person). Defaults to None
         """
         pass
 
-    def callback_room_left(self, room: Room):
+    def callback_room_left(self, room: Room,
+                           identifier: Identifier,
+                           kicked_by: Optional[Identifier] = None):
         """
-        Triggered when the bot has left a MUC.
+        Triggered when a user has left a MUC.
 
         :param room:
             An instance of :class:`~errbot.backends.base.MUCRoom`
             representing the room that was left.
+        :param identifier: An instance of Identifier (Person). Defaults to bot
+        :param kicked_by: An instance of Identifier (Person). Defaults to None
         """
         pass
 

@@ -572,9 +572,11 @@ class SlackRTMBackend(ErrBot):
         """Event handler for the 'member_joined_channel' event"""
         user = SlackPerson(webclient, event["user"])
         if user == self.bot_identifier:
-            self.callback_room_joined(
-                SlackRoom(webclient=webclient, channelid=event["channel"], bot=self)
-            )
+            user = self.bot_identifier
+        self.callback_room_joined(
+            SlackRoom(webclient=webclient, channelid=event["channel"], bot=self),
+            user
+        )
 
     def userid_to_username(self, id_: str):
         """Convert a Slack user ID to their user name"""

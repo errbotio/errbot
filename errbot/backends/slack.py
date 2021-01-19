@@ -601,7 +601,8 @@ class SlackBackend(ErrBot):
         """Event handler for the 'member_joined_channel' event"""
         user = SlackPerson(self.sc, event["user"])
         if user == self.bot_identifier:
-            self.callback_room_joined(SlackRoom(channelid=event["channel"], bot=self))
+            user = self.bot_identifier
+        self.callback_room_joined(SlackRoom(channelid=event["channel"], bot=self), user)
 
     def _reaction_event_handler(self, event):
         """Event handler for the 'reaction_added'

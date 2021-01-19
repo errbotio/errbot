@@ -709,25 +709,35 @@ class ErrBot(Backend, StoreMixin):
     def callback_presence(self, pres):
         self._dispatch_to_plugins("callback_presence", pres)
 
-    def callback_room_joined(self, room):
+    def callback_room_joined(self, room: Room,
+                             identifier=None, invited_by=None):
         """
-        Triggered when the bot has joined a MUC.
+        Triggered when a user has joined a MUC.
 
         :param room:
             An instance of :class:`~errbot.backends.base.MUCRoom`
             representing the room that was joined.
+        :param identifier: An instance of Identifier (Person). Defaults to bot
+        :param invited_by: An instance of Identifier (Person). Defaults to None
         """
-        self._dispatch_to_plugins("callback_room_joined", room)
+        if identifier is None:
+            identifier = self.bot_identifier
+        self._dispatch_to_plugins("callback_room_joined", room, identifier, invited_by)
 
-    def callback_room_left(self, room):
+    def callback_room_left(self, room: Room,
+                           identifier=None, kicked_by=None):
         """
-        Triggered when the bot has left a MUC.
+        Triggered when a user has left a MUC.
 
         :param room:
             An instance of :class:`~errbot.backends.base.MUCRoom`
             representing the room that was left.
+        :param identifier: An instance of Identifier (Person). Defaults to bot
+        :param kicked_by: An instance of Identifier (Person). Defaults to None
         """
-        self._dispatch_to_plugins("callback_room_left", room)
+        if identifier is None:
+            identifier = self.bot_identifier
+        self._dispatch_to_plugins("callback_room_left", room, identifier, kicked_by)
 
     def callback_room_topic(self, room):
         """

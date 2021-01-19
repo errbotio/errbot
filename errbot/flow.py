@@ -1,3 +1,4 @@
+import atexit
 import logging
 from multiprocessing.pool import ThreadPool
 from threading import RLock
@@ -274,6 +275,7 @@ class FlowExecutor:
         self.flow_roots = {}
         self.in_flight = []
         self._pool = ThreadPool(EXECUTOR_THREADS)
+        atexit.register(self._pool.close)
         self._bot = bot
 
     def add_flow(self, flow: FlowRoot):

@@ -60,9 +60,15 @@ class ACLS(BotPlugin):
         :param args: Arguments passed to the command.
         :param dry_run: True when this is a dry-run.
         """
-        self.log.debug("Check %s for ACLs.", cmd)
+        self.log.debug(f"ACL message: '{msg}'")
+        self.log.debug(f"ACL Command: '{cmd}'")
+        self.log.debug(f"ACL Command arguments: '{args}'")
         f = self._bot.all_commands[cmd]
-        cmd_str = f"{f.__self__.name}:{cmd}"
+
+        str_type = cmd
+        if args and args is not None:
+            str_type = args
+        cmd_str = f"{f.__self__.name}:{str_type}"
 
         usr = get_acl_usr(msg)
         acl = self.bot_config.ACCESS_CONTROLS_DEFAULT.copy()

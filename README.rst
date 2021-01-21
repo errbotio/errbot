@@ -54,7 +54,6 @@ Chat servers support
 - `Cisco Spark <https://www.ciscospark.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-spark>`__)
 - `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/gbin/err-backend-discord>`__)
 - `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`__)
-- `Matrix <https://matrix.org/>`_ (See `instructions <https://github.com/SShrike/err-backend-matrix>`__)
 - `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
 - `RocketChat <https://rocket.chat/>`_ (See `instructions <https://github.com/cardoso/errbot-rocketchat>`__)
 - `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)

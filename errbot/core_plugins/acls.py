@@ -66,7 +66,7 @@ class ACLS(BotPlugin):
         f = self._bot.all_commands[cmd]
 
         str_type = cmd
-        if args and args is not None:
+        if args:
             str_type = args
         cmd_str = f"{f.__self__.name}:{str_type}"
 

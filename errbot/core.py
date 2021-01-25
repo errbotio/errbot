@@ -324,7 +324,7 @@ class ErrBot(Backend, StoreMixin):
             prefixed = True
 
         text = text.strip()
-        text_split = text.split(" ")
+        text_split = text.split()
         cmd = None
         command = None
         args = ""

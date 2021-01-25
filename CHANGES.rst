@@ -4,6 +4,7 @@
 fixes:
 
 - close threadpool on exit (#1486)
+- docs: remove matrix link (#1502)
 
 v6.1.7 (2020-12-18)
 -------------------

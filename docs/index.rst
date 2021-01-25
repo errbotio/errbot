@@ -18,14 +18,14 @@ Screenshots
 .. raw:: html
 
     <div class="screenshots">
-        <a href="_static/screenshots/help.png" class="fancybox" title="Showing output of the built-in help command">
-            <img src="_static/screenshots/thumb_help.png" width="155" height="150" alt="Showing output of the built-in help command" />
+        <a href="_static/screenshots/slack.png" class="fancybox" title="Showing output of the built-in help command in Slack">
+            <img src="_static/screenshots/thumb_slack.png" width="170" height="150" alt="Showing output of the built-in help command in Slack" />
         </a>
         <a href="_static/screenshots/quota.png" class="fancybox" title="Errbot running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts">
             <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Errbot running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts" />
         </a>
-        <a href="_static/screenshots/basecamp.png" class="fancybox" title="An older version of Errbot, running on Basecamp">
-            <img src="_static/screenshots/thumb_basecamp.png" width="181" height= "150" alt="An older version of Err, running on Basecamp" />
+        <a href="_static/screenshots/telegram.png" class="fancybox" title="Errbot running on Telegram showing the !help command">
+            <img src="_static/screenshots/thumb_telegram.png" width="180" height= "150" alt="Errbot running on Telegram showing the !help command" />
         </a>
     </div>
 

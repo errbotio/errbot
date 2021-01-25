@@ -99,7 +99,6 @@ If you have:
 - a plugin development question please use `Stackoverflow <http://stackoverflow.com/questions/tagged/errbot>`_ with the tags `errbot` and `python`.
 - a bug to report or a feature request, please use our `GitHub project page <https://github.com/errbotio/errbot/issues>`_.
 
-For more general discussion and announcements, you can join us on `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_.
 You can also ping us on Twitter with the hashtag ``#errbot``.
 
 

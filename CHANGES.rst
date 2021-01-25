@@ -7,6 +7,7 @@ fixes:
 - docs: remove matrix link (#1502)
 - docs: Update backend screenshots (#1499)
 - docs: Remove Google+ references (#1497)
+- core: Split messages using `split()` instead of whitespace (#1496)
 
 v6.1.7 (2020-12-18)
 -------------------

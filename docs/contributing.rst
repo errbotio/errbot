@@ -50,10 +50,10 @@ as a generator for our (API) documentation. The code for it is in the same repos
 as Errbot itself, inside the docs_ folder. To make changes to the documentation or the
 website, you can build the HTML locally as follows::
 
-    # Change directory into the docs folder
+    # Install the required extra dependencies from the root of the repository.
+    pip install -r docs/requirements.txt
+    # Go into the docs directory
     cd docs/
-    # Install the required extra dependencies
-    pip install -r requirements.txt
     # Generate the static HTML
     make html
     # Then, open the generated _build/html/index.html in a browser

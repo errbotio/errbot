@@ -421,7 +421,7 @@ class BotPluginManager(StoreMixin):
         """
         Activates all plugins that are not activated, respecting its dependencies.
 
-        :return: Empty string if no problem occured or a string explaining what went wrong.
+        :return: Empty string if no problem occurred or a string explaining what went wrong.
         """
         log.info("Activate bot plugins...")
         errors = ""

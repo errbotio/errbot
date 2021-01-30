@@ -42,6 +42,9 @@ deps = [
     "deepmerge==1.0.1",
 ]
 
+if py_version < (3, 9):
+    deps.append("graphlib-backport")
+
 src_root = os.curdir
 
 

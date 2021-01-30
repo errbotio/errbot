@@ -5,7 +5,8 @@ import subprocess
 import sys
 import traceback
 from copy import deepcopy
-from importlib import machinery
+from graphlib import CycleError
+from graphlib import TopologicalSorter as BaseTopologicalSorter
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type
 
@@ -163,6 +164,12 @@ def check_errbot_version(plugin_info: PluginInfo):
 # Storage names
 CONFIGS = "configs"
 BL_PLUGINS = "bl_plugins"
+
+
+class TopologicalSorter(BaseTopologicalSorter):
+    def find_cycle(self):
+        """Wraps private method as public one."""
+        return self._find_cycle()
 
 
 class BotPluginManager(StoreMixin):
@@ -425,7 +432,8 @@ class BotPluginManager(StoreMixin):
         """
         log.info("Activate bot plugins...")
         errors = ""
-        for name, plugin in self.plugins.items():
+        for name in self.get_plugins_activation_order():
+            plugin = self.plugins.get(name)
             try:
                 if self.is_plugin_blacklisted(name):
                     errors += (
@@ -450,6 +458,29 @@ class BotPluginManager(StoreMixin):
                 log.exception(f"Error loading flow {name}.")
                 errors += f"Error: flow {name} failed to start: {e}.\n"
         return errors
+
+    def get_plugins_activation_order(self) -> List[str]:
+        """
+        Calculate plugin activation order, based on their dependencies.
+
+        :return: list of plugin names, in the best order to start them.
+        """
+        plugins_graph = {
+            name: set(info.dependencies) for name, info in self.plugin_infos.items()
+        }
+        plugins_in_cycle = set()
+        while 1:
+            plugins_sorter = TopologicalSorter(plugins_graph)
+            try:
+                # Return plugins which are part of a circular dependency at the end,
+                # the rest of the code expects to have all plugins returned
+                return list(plugins_sorter.static_order()) + list(plugins_in_cycle)
+            except CycleError:
+                # Remove cycle from the graph, and
+                cycle = set(plugins_sorter.find_cycle())
+                plugins_in_cycle.update(cycle)
+                for plugin_name in cycle:
+                    plugins_graph.pop(plugin_name)
 
     def _activate_plugin(self, plugin: BotPlugin, plugin_info: PluginInfo) -> None:
         """

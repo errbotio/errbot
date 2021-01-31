@@ -3,6 +3,7 @@ v6.1.8 (unreleased)
 
 fixes:
 
+- docs: update broken readme link to plugin development docs (#1504)
 - close threadpool on exit (#1486)
 - docs: remove matrix link (#1502)
 - docs: Update backend screenshots (#1499)

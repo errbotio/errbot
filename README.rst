@@ -221,7 +221,7 @@ As an example, this is all it takes to create a "Hello, world!" plugin for Errbo
 
 This plugin will create the command "!hello" which, when issued, returns "Hello, world!"
 to you. For more info on everything you can do with plugins, see the
-`plugin development guide <https://errbot.readthedocs.io/en/latest/user_guide/plugin_development/index.html/>`_.
+`plugin development guide <https://errbot.io/en/latest/user_guide/plugin_development/>`_.
 
 Contribution to Errbot itself
 -----------------------------

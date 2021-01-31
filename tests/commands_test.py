@@ -169,6 +169,10 @@ def test_broken_plugin(testbot):
         )
         assert "import borken  # fails" in testbot.pop_message()
         assert "as it did not load correctly." in testbot.pop_message()
+        assert (
+            "Error: Broken failed to activate: "
+            "'NoneType' object has no attribute 'is_activated'"
+        ) in testbot.pop_message()
         assert "Plugins reloaded." in testbot.pop_message()
     finally:
         rmtree(tempd)

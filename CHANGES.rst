@@ -1,9 +1,15 @@
-6.1.8 (unreleased)
-------------------
+v6.1.8 (unreleased)
+-------------------
 
 fixes:
 
+- docs: update broken readme link to plugin development docs (#1504)
 - close threadpool on exit (#1486)
+- docs: remove matrix link (#1502)
+- docs: Update backend screenshots (#1499)
+- docs: Remove Google+ references (#1497)
+- core: Split messages using `split()` instead of whitespace (#1496)
+- chore/plugin: whoami formatting (#1459)
 
 v6.1.7 (2020-12-18)
 -------------------

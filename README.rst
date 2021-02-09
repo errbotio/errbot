@@ -54,7 +54,6 @@ Chat servers support
 - `Cisco Spark <https://www.ciscospark.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-spark>`__)
 - `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/gbin/err-backend-discord>`__)
 - `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`__)
-- `Matrix <https://matrix.org/>`_ (See `instructions <https://github.com/SShrike/err-backend-matrix>`__)
 - `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
 - `RocketChat <https://rocket.chat/>`_ (See `instructions <https://github.com/cardoso/errbot-rocketchat>`__)
 - `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)
@@ -100,7 +99,6 @@ If you have:
 - a plugin development question please use `Stackoverflow <http://stackoverflow.com/questions/tagged/errbot>`_ with the tags `errbot` and `python`.
 - a bug to report or a feature request, please use our `GitHub project page <https://github.com/errbotio/errbot/issues>`_.
 
-For more general discussion and announcements, you can join us on `google plus community <https://plus.google.com/b/101905029512356212669/communities/117050256560830486288>`_.
 You can also ping us on Twitter with the hashtag ``#errbot``.
 
 
@@ -223,7 +221,7 @@ As an example, this is all it takes to create a "Hello, world!" plugin for Errbo
 
 This plugin will create the command "!hello" which, when issued, returns "Hello, world!"
 to you. For more info on everything you can do with plugins, see the
-`plugin development guide <http://errbot.io/user_guide/plugin_development/>`_.
+`plugin development guide <https://errbot.io/en/latest/user_guide/plugin_development/>`_.
 
 Contribution to Errbot itself
 -----------------------------

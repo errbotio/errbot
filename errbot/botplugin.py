@@ -4,7 +4,7 @@ import shlex
 from io import IOBase
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Callable, Mapping, Sequence, Tuple, Optional
+from typing import Callable, Mapping, Optional, Sequence, Tuple
 
 from errbot.backends.base import (
     ONLINE,

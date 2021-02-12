@@ -709,8 +709,7 @@ class ErrBot(Backend, StoreMixin):
     def callback_presence(self, pres):
         self._dispatch_to_plugins("callback_presence", pres)
 
-    def callback_room_joined(self, room: Room,
-                             identifier=None, invited_by=None):
+    def callback_room_joined(self, room: Room, identifier=None, invited_by=None):
         """
         Triggered when a user has joined a MUC.
 
@@ -724,8 +723,7 @@ class ErrBot(Backend, StoreMixin):
             identifier = self.bot_identifier
         self._dispatch_to_plugins("callback_room_joined", room, identifier, invited_by)
 
-    def callback_room_left(self, room: Room,
-                           identifier=None, kicked_by=None):
+    def callback_room_left(self, room: Room, identifier=None, kicked_by=None):
         """
         Triggered when a user has left a MUC.
 

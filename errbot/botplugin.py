@@ -541,9 +541,12 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_joined(self, room: Room,
-                             identifier: Identifier,
-                             invited_by: Optional[Identifier] = None):
+    def callback_room_joined(
+        self,
+        room: Room,
+        identifier: Identifier,
+        invited_by: Optional[Identifier] = None,
+    ):
         """
         Triggered when a user has joined a MUC.
 
@@ -555,9 +558,9 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_left(self, room: Room,
-                           identifier: Identifier,
-                           kicked_by: Optional[Identifier] = None):
+    def callback_room_left(
+        self, room: Room, identifier: Identifier, kicked_by: Optional[Identifier] = None
+    ):
         """
         Triggered when a user has left a MUC.
 

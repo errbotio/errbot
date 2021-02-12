@@ -574,8 +574,7 @@ class SlackRTMBackend(ErrBot):
         if user == self.bot_identifier:
             user = self.bot_identifier
         self.callback_room_joined(
-            SlackRoom(webclient=webclient, channelid=event["channel"], bot=self),
-            user
+            SlackRoom(webclient=webclient, channelid=event["channel"], bot=self), user
         )
 
     def userid_to_username(self, id_: str):

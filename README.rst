@@ -83,7 +83,7 @@ Developer features
 - Webhook callbacks support
 - supports `markdown extras <https://pythonhosted.org/Markdown/extensions/extra.html>`_ formatting with tables, embedded images, links etc.
 - configuration helper to allow your plugin to be configured by chat
-- Graphical and text development/debug consoles
+- Text development/debug consoles
 - Self-documenting: your docstrings become help automatically
 - subcommands and various arg parsing options are available (re, command line type)
 - polling support: your can setup a plugin to periodically do something
@@ -147,8 +147,8 @@ by `errbot --init`.
 
 To help you, we have a documented template available here: `config-template.py <https://raw.githubusercontent.com/errbotio/errbot/master/errbot/config-template.py>`_.
 
-Note: even if you changed the BACKEND from the configuration, you can still use `errbot -T` and `errbot -G` to test
-out your instance locally (in text and graphic mode respectively).
+Note: even if you changed the BACKEND from the configuration, you can still use `errbot -T` to test
+out your instance locally in text mode.
 
 Starting Errbot as a daemon
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

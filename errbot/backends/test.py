@@ -167,7 +167,7 @@ class TestRoom(Room):
         room = self.find_croom()
         room._occupants.append(self._bot_mucid)
         log.info("Joined room %s.", self)
-        self._bot.callback_room_joined(room)
+        self._bot.callback_room_joined(room, self._bot_mucid)
 
     def leave(self, reason=None):
         if not self.joined:
@@ -177,7 +177,7 @@ class TestRoom(Room):
         room = self.find_croom()
         room._occupants.remove(self._bot_mucid)
         log.info("Left room %s.", self)
-        self._bot.callback_room_left(room)
+        self._bot.callback_room_left(room, self._bot_mucid)
 
     @property
     def exists(self):

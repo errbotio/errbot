@@ -141,7 +141,7 @@ class XMPPRoom(XMPPIdentifier, Room):
             f"muc::{room}::got_offline", self._bot.user_left_chat
         )
         self.configure()
-        self._bot.callback_room_joined(self)
+        self._bot.callback_room_joined(self, self._bot.bot_identifier)
         log.info("Joined room %s.", room)
 
     def leave(self, reason=None):
@@ -166,7 +166,7 @@ class XMPPRoom(XMPPIdentifier, Room):
                 f"muc::{room}::got_offline", self._bot.user_left_chat
             )
             log.info("Left room %s.", room)
-            self._bot.callback_room_left(self)
+            self._bot.callback_room_left(self, self._bot.bot_identifier)
         except KeyError:
             log.debug("Trying to leave %s while not in this room.", room)
 

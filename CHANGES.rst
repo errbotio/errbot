@@ -5,6 +5,7 @@ features:
 
 - core/plugin: method to append argparse options to Command object (#1394)
 - backends: Add identifier for room join and room leave callbacks (#1500)
+- backends/test: allow attachments to pytest messages as extras (#1489)
 
 fixes:
 

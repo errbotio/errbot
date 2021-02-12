@@ -51,7 +51,7 @@ Extensive plugin framework
 * Hooks and callbacks for various types of events, such as
   :func:`~errbot.botplugin.BotPlugin.callback_connect` for when the bot has connected
   or :func:`~errbot.botplugin.BotPlugin.callback_message` for when a message is received.
-* Local text and graphical consoles for easy testing and development
+* Local text consoles for easy testing and development
 * Plugins get out of the box support for subcommands
 * We provide an automatic persistence store per plugin
 * There's really simple webhooks integration

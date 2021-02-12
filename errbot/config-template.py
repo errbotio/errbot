@@ -29,7 +29,6 @@ import logging
 
 # Debug backends to test your plugins manually:
 # 'Text'     - on the text console
-# 'Graphic'  - in a GUI window
 
 # Commercial backends:
 # 'Campfire' - see https://campfirenow.com/ (follow instructions from https://github.com/errbotio/err-backend-campfire)

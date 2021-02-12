@@ -205,6 +205,7 @@ class IRCRoom(Room):
             password = ""  # nosec
 
         self.connection.join(self.room, key=password)
+        self._bot.callback_room_joined(self, self._bot.bot_identifier)
         log.info("Joined room %s.", self.room)
 
     def leave(self, reason=None):
@@ -218,6 +219,7 @@ class IRCRoom(Room):
             reason = ""
 
         self.connection.part(self.room, reason)
+        self._bot.callback_room_left(self, self._bot.bot_identifier)
         log.info(
             "Leaving room %s with reason %s.",
             self.room,

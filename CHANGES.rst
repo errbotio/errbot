@@ -1,6 +1,10 @@
 v6.1.8 (unreleased)
 -------------------
 
+features:
+
+- core/plugin: method to append argparse options to Command object (#1394)
+
 fixes:
 
 - docs: update broken readme link to plugin development docs (#1504)

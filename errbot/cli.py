@@ -204,7 +204,7 @@ def main():
 
             data_dir = base_dir / "data"
             extra_plugin_dir = base_dir / "plugins"
-            example_plugin_dir = base_dir / extra_plugin_dir / "err-example"
+            example_plugin_dir = extra_plugin_dir / "err-example"
             log_path = base_dir / "errbot.log"
 
             templates_dir = Path(os.path.dirname(__file__)) / "templates" / "initdir"

@@ -133,7 +133,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         :meth:`create` on it first.
         """
         room = str(self)
-        self.xep0045.join_muc(room, username, password=password, wait=True)
+        self.xep0045.join_muc(room, username, password=password)
         self._bot.conn.add_event_handler(
             f"muc::{room}::got_online", self._bot.user_joined_chat
         )

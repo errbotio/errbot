@@ -9,6 +9,7 @@ features:
 
 fixes:
 
+- backend/xmpp: "unexpected keyword argument 'wait'" when connecting (#1507)
 - docs: update broken readme link to plugin development docs (#1504)
 - close threadpool on exit (#1486)
 - docs: remove matrix link (#1502)

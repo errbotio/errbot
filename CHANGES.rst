@@ -9,6 +9,7 @@ features:
 
 fixes:
 
+- core/cli: failure when passing relative directory during --init (#1511)
 - backend/xmpp: include message delayed for send/recieved messages (#1270)
 - backend/xmpp: "unexpected keyword argument 'wait'" when connecting (#1507)
 - docs: update broken readme link to plugin development docs (#1504)

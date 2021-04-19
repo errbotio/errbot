@@ -197,14 +197,18 @@ def main():
 
             import jinja2
 
-            base_dir = pathlib.Path.cwd() if args["init"] == "." else Path(args["init"])
+            base_dir = (
+                pathlib.Path.cwd()
+                if args["init"] == "."
+                else Path(args["init"]).resolve()
+            )
 
             if not base_dir.exists():
                 print(f"Target directory {base_dir} must exist. Please create it.")
 
             data_dir = base_dir / "data"
             extra_plugin_dir = base_dir / "plugins"
-            example_plugin_dir = base_dir / extra_plugin_dir / "err-example"
+            example_plugin_dir = extra_plugin_dir / "err-example"
             log_path = base_dir / "errbot.log"
 
             templates_dir = Path(os.path.dirname(__file__)) / "templates" / "initdir"

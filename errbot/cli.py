@@ -197,7 +197,7 @@ def main():
 
             import jinja2
 
-            base_dir = pathlib.Path.cwd() if args["init"] == "." else Path(args["init"])
+            base_dir = pathlib.Path.cwd() if args["init"] == "." else Path(args["init"]).resolve()
 
             if not base_dir.exists():
                 print(f"Target directory {base_dir} must exist. Please create it.")

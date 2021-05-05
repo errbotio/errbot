@@ -84,7 +84,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
     else:
         format_logs(theme_color=config.TEXT_COLOR_THEME)
 
-    if config.BOT_LOG_FILE:
+    if hasattr(config, "BOT_LOG_FILE") and config.BOT_LOG_FILE:
         hdlr = logging.FileHandler(config.BOT_LOG_FILE)
         hdlr.setFormatter(
             logging.Formatter("%(asctime)s %(levelname)-8s %(name)-25s %(message)s")

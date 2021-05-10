@@ -610,7 +610,7 @@ class SlackBackend(ErrBot):
 
         user = SlackPerson(self.sc, event["user"])
         item_user = None
-        if event["item_user"]:
+        if "item_user" in event:  # item_user doesn't always exist in events
             item_user = SlackPerson(self.sc, event["item_user"])
 
         action = REACTION_ADDED

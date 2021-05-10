@@ -66,6 +66,19 @@ class SlackTests(unittest.TestCase):
 
         self.slack = TestSlackBackend(config)
 
+        self.reaction_event = {
+            "type": "reaction_added",
+            "user": "U024BE7LH",
+            "reaction": "thumbsup",
+            "item": {
+                "type": "message",
+                "channel": "C0G9QF9GZ",
+                "ts": "1360782400.498405"
+            },
+            "event_ts": "1360782804.083113"
+        }
+        self.slack.callback_reaction = MagicMock(side_effect=self.callback_reaction_mock)
+
     def testBotMessageWithAttachments(self):
         attachment = {
             "title": "sometitle",
@@ -92,6 +105,24 @@ class SlackTests(unittest.TestCase):
         msg = self.slack.test_msgs.pop()
 
         self.assertEqual(msg.extras["attachments"], [attachment])
+
+    def callback_reaction_mock(self, reaction):
+        """Mock of callback_reaction method for testing the reaction event handler
+           If the object is created properly, we've successfully handled the event
+        """
+        self.assertEqual(reaction.reaction_name, "thumbsup")
+
+    def testReactionHandlerNoItemUser(self):
+        """test to make sure an event with no "item_user" works as expected
+        """
+        self.slack._reaction_event_handler(self.reaction_event)
+
+    def testReactionHandlerHasItemUser(self):
+        """test to make sure an event that has an "item_user" works as expected
+           Add an "item_user" value to the event before handling it
+        """
+        self.reaction_event["item_user"] = "Ufoo"
+        self.slack._reaction_event_handler(self.reaction_event)
 
     def testSlackEventObjectAddedToExtras(self):
         bot_id = "B04HMXXXX"

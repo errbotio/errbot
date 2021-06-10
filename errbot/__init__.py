@@ -49,7 +49,7 @@ webroute = (
 # Same happens with quotations marks, which are required for parsing
 # complex strings in arguments
 # Map of characters to sanitized equivalents
-ARG_BOTCMD_CHARACTER_REPLACEMENTS = {"—": "--", "“": '"', "”": '"', "’": "'", "‘": "'"}
+ARG_BOTCMD_CHARACTER_REPLACEMENTS = {"—": "--", "“": '"', "”": '"', "’": "'", "‘": "'", "\xa0": "\x20"}
 
 
 class ArgumentParseError(Exception):

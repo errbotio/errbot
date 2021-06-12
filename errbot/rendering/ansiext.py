@@ -507,7 +507,7 @@ class AnsiPostprocessor(Postprocessor):
 # This is an adapted FencedBlockPreprocessor that doesn't insert <code><pre>
 class AnsiPreprocessor(FencedBlockPreprocessor):
     def run(self, lines):
-        """ Match and store Fenced Code Blocks in the HtmlStash. """
+        """Match and store Fenced Code Blocks in the HtmlStash."""
         text = "\n".join(lines)
         while 1:
             m = self.FENCED_BLOCK_RE.search(text)
@@ -521,7 +521,7 @@ class AnsiPreprocessor(FencedBlockPreprocessor):
         return text.split("\n")
 
     def _escape(self, txt):
-        """ basic html escaping """
+        """basic html escaping"""
         txt = txt.replace("&", "&amp;")
         txt = txt.replace("<", "&lt;")
         txt = txt.replace(">", "&gt;")

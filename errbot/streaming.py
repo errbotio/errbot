@@ -26,21 +26,21 @@ def repeatfunc(func, times=None, *args):  # from the itertools receipes
 
 
 class Tee:
-    """ Tee implements a multi reader / single writer """
+    """Tee implements a multi reader / single writer"""
 
     def __init__(self, incoming_stream, clients):
-        """ clients is a list of objects implementing callback_stream """
+        """clients is a list of objects implementing callback_stream"""
         self.incoming_stream = incoming_stream
         self.clients = clients
 
     def start(self):
-        """ starts the transfer asynchronously """
+        """starts the transfer asynchronously"""
         t = Thread(target=self.run)
         t.start()
         return t
 
     def run(self):
-        """ streams to all the clients synchronously """
+        """streams to all the clients synchronously"""
         nb_clients = len(self.clients)
         pipes = [
             (io.open(r, "rb"), io.open(w, "wb"))

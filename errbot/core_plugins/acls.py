@@ -74,8 +74,20 @@ class ACLS(BotPlugin):
                 break
 
         self.log.info(
-            "Matching ACL %s against username %s for command %s.", acl, usr, cmd_str
+            f"Matching ACL {acl} against username {usr} for command {cmd_str}."
         )
+        if "allowargs" in acl and not glob(args, acl["allowargs"]):
+            return self.access_denied(
+                msg,
+                "You're not allowed to access this command using the provided arguments",
+                dry_run,
+            )
+        if "denyargs" in acl and glob(args, acl["denyargs"]):
+            return self.access_denied(
+                msg,
+                "You're not allowed to access this command using the provided arguments",
+                dry_run,
+            )
 
         if "allowusers" in acl and not glob(usr, acl["allowusers"]):
             return self.access_denied(
@@ -118,7 +130,7 @@ class ACLS(BotPlugin):
                 dry_run,
             )
 
-        self.log.debug("Check if %s is admin only command.", cmd)
+        self.log.debug(f"Check if {cmd} is admin only command.")
         if f._err_command_admin_only:
             if not glob(get_acl_usr(msg), self.bot_config.BOT_ADMINS):
                 return self.access_denied(

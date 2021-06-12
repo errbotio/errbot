@@ -627,7 +627,7 @@ class HipchatBackend(XMPPBackend):
         return stream
 
     def _hipchat_upload(self, stream):
-        """ Uploads file in a stream  """
+        """Uploads file in a stream"""
         try:
             stream.accept()
             room = self.query_room(str(stream.identifier)).room

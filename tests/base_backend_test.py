@@ -890,6 +890,26 @@ def test_access_controls(dummy_backend):
             acl={"command": {"denyusers": ("*err",)}},
             expected_response="You're not allowed to access this command from this user",
         ),
+        dict(
+            message=makemessage(dummy_backend, "!command echo"),
+            acl={"command": {"allowargs": ("echo",)}},
+            expected_response="Regular command",
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command notallowed"),
+            acl={"command": {"allowargs": ("echo",)}},
+            expected_response="You're not allowed to access this command using the provided arguments",
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command echodeny"),
+            acl={"command": {"denyargs": ("echodeny",)}},
+            expected_response="You're not allowed to access this command using the provided arguments",
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command echo"),
+            acl={"command": {"denyargs": ("echodeny",)}},
+            expected_response="Regular command",
+        ),
         # ACCESS_CONTROLS scenarios WITH wildcards (>=4.0 format)
         dict(
             message=makemessage(dummy_backend, "!command"),
@@ -905,6 +925,21 @@ def test_access_controls(dummy_backend):
             message=makemessage(dummy_backend, "!command"),
             acl={"DummyBackendRealName:*": {"denyusers": ("noterr",)}},
             expected_response="You're not allowed to access this command from this user",
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command echo"),
+            acl={"command": {"allowargs": ("ec*",)}},
+            expected_response="Regular command",
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command notallowed"),
+            acl={"command": {"allowargs": ("e*",)}},
+            expected_response="You're not allowed to access this command using the provided arguments",
+        ),
+        dict(
+            message=makemessage(dummy_backend, "!command denied"),
+            acl={"command": {"denyargs": ("den*",)}},
+            expected_response="You're not allowed to access this command using the provided arguments",
         ),
         # Overlapping globs should use first match
         dict(

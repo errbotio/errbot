@@ -262,13 +262,15 @@ BOT_ADMINS = ("gbin@localhost",)
 #   denyusers: Deny command from these users
 #   allowrooms: Allow command only in these rooms (and direct messages)
 #   denyrooms: Deny command in these rooms
+#   allowargs: Allow a command's argument from these users only
+#   denyargs: Deny a command's argument from these users
 #   allowprivate: Allow command from direct messages to the bot
 #   allowmuc: Allow command inside rooms
 # Rules listed in ACCESS_CONTROLS_DEFAULT are applied by default and merged
 # with any commands found in ACCESS_CONTROLS.
 #
-# The options allowusers, denyusers, allowrooms and denyrooms support
-# unix-style globbing similar to BOT_ADMINS.
+# The options allowusers, denyusers, allowrooms and denyrooms, allowargs,
+# denyargs support unix-style globbing similar to BOT_ADMINS.
 #
 # Command names also support unix-style globs and can optionally be restricted
 # to a specific plugin by prefixing the command with the name of a plugin,

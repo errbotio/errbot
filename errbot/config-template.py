@@ -289,7 +289,6 @@ BOT_ADMINS = ("gbin@localhost",)
 #                   'about': {'denyusers': ('*@evilhost',), 'allowrooms': ('room1@conference.localhost', 'room2@conference.localhost')},
 #                   'uptime': {'allowusers': BOT_ADMINS},
 #                   'help': {'allowmuc': False},
-#                   'help': {'allowmuc': False},
 #                   'ChatRoom:*': {'allowusers': BOT_ADMINS},
 #                  }
 

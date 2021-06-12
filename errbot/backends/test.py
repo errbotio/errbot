@@ -140,7 +140,7 @@ class TestRoom(Room):
         return self._occupants
 
     def find_croom(self):
-        """ find back the canonical room from a this room"""
+        """find back the canonical room from a this room"""
         for croom in self._bot._rooms:
             if croom == self:
                 return croom

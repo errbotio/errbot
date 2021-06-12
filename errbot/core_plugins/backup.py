@@ -4,7 +4,7 @@ from errbot import BotPlugin, botcmd
 
 
 class Backup(BotPlugin):
-    """ Backup related commands. """
+    """Backup related commands."""
 
     @botcmd(admin_only=True)
     def backup(self, msg, args):

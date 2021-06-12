@@ -778,7 +778,7 @@ class Stream(io.BufferedReader):
         )
 
     def ack_data(self, length: int) -> None:
-        """ Acknowledge data has been transfered. """
+        """Acknowledge data has been transfered."""
         self._transfered = length
 
 
@@ -824,26 +824,26 @@ class Backend(ABC):
         private: bool = False,
         threaded: bool = False,
     ):
-        """ Should be implemented by the backend """
+        """Should be implemented by the backend"""
 
     @abstractmethod
     def callback_presence(self, presence: Presence) -> None:
-        """ Implemented by errBot. """
+        """Implemented by errBot."""
         pass
 
     @abstractmethod
     def callback_room_joined(self, room: Room) -> None:
-        """ See :class:`~errbot.errBot.ErrBot` """
+        """See :class:`~errbot.errBot.ErrBot`"""
         pass
 
     @abstractmethod
     def callback_room_left(self, room: Room) -> None:
-        """ See :class:`~errbot.errBot.ErrBot` """
+        """See :class:`~errbot.errBot.ErrBot`"""
         pass
 
     @abstractmethod
     def callback_room_topic(self, room: Room) -> None:
-        """ See :class:`~errbot.errBot.ErrBot` """
+        """See :class:`~errbot.errBot.ErrBot`"""
         pass
 
     def serve_forever(self) -> None:
@@ -899,7 +899,7 @@ class Backend(ABC):
         self._reconnection_delay = 1
 
     def build_message(self, text: str) -> Message:
-        """ You might want to override this one depending on your backend """
+        """You might want to override this one depending on your backend"""
         return Message(body=text)
 
     # ##### HERE ARE THE SPECIFICS TO IMPLEMENT PER BACKEND
@@ -946,7 +946,7 @@ class Backend(ABC):
         )
 
     def connect(self) -> Any:
-        """Connects the bot to server or returns current connection """
+        """Connects the bot to server or returns current connection"""
 
     @abstractmethod
     def query_room(self, room: str) -> Room:

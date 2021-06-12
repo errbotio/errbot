@@ -1072,7 +1072,7 @@ class SlackRTMBackend(ErrBot):
         return "slack"
 
     def query_room(self, room):
-        """ Room can either be a name or a channelid """
+        """Room can either be a name or a channelid"""
         if room.startswith("C") or room.startswith("G"):
             return SlackRoom(webclient=self.webclient, channelid=room, bot=self)
 

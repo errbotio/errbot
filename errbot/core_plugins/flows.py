@@ -144,7 +144,7 @@ class Flows(BotPlugin):
     @arg_botcmd("flow_name", type=str)
     @arg_botcmd("user", type=str)
     def flows_kill(self, _, user, flow_name):
-        """ Admin command to kill a specific flow."""
+        """Admin command to kill a specific flow."""
         flow = self._bot.flow_executor.stop_flow(flow_name, self.build_identifier(user))
         if flow:
             return flow.name + " killed."

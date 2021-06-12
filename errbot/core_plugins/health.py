@@ -76,7 +76,7 @@ class Health(BotPlugin):
     # noinspection PyUnusedLocal
     @botcmd(admin_only=True)
     def restart(self, msg, args):
-        """ Restart the bot. """
+        """Restart the bot."""
         self.send(msg.frm, "Deactivating all the plugins...")
         self._bot.plugin_manager.deactivate_all_plugins()
         self.send(msg.frm, "Restarting")

@@ -8,6 +8,7 @@ features:
 - backends/test: allow attachments to pytest messages as extras (#1489)
 - core/acl: Add allowargs / denyargs filters to ACL (#1509)
 - core/bootstrap: Small logging fixes to BOT_LOG_FILE and FORMATTER (#1513)
+- core/plugin: Support room names with spaces (#1262)
 
 fixes:
 

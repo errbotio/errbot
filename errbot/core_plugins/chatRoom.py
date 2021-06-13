@@ -41,7 +41,7 @@ class ChatRoom(BotPlugin):
         self.connected = False
         super().deactivate()
 
-    @botcmd(split_args_with=SeparatorArgParser())
+    @botcmd(split_args_with=ShlexArgParser())
     def room_create(self, message, args):
         """
         Create a chatroom.
@@ -91,7 +91,7 @@ class ChatRoom(BotPlugin):
         room.join(username=self.bot_config.CHATROOM_FN, password=password)
         return f"Joined the room {room_name}."
 
-    @botcmd(split_args_with=SeparatorArgParser())
+    @botcmd(split_args_with=ShlexArgParser())
     def room_leave(self, message, args):
         """
         Leave a chatroom.
@@ -110,7 +110,7 @@ class ChatRoom(BotPlugin):
         self.query_room(args[0]).leave()
         return f"Left the room {args[0]}."
 
-    @botcmd(split_args_with=SeparatorArgParser())
+    @botcmd(split_args_with=ShlexArgParser())
     def room_destroy(self, message, args):
         """
         Destroy a chatroom.
@@ -129,7 +129,7 @@ class ChatRoom(BotPlugin):
         self.query_room(args[0]).destroy()
         return f"Destroyed the room {args[0]}."
 
-    @botcmd(split_args_with=SeparatorArgParser())
+    @botcmd(split_args_with=ShlexArgParser())
     def room_invite(self, message, args):
         """
         Invite one or more people into a chatroom.

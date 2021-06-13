@@ -123,6 +123,24 @@ def test_botcommands(testbot):  # noqa
     assert room.joined
     assert room in rooms
 
+    assert "Created the room testroom with spaces" in testbot.exec_command(
+        "!room create 'testroom with spaces'"
+    )
+    rooms = testbot.bot.rooms()
+    room = testbot.bot.query_room("testroom with spaces")
+    assert room.exists
+    assert room not in rooms
+    assert not room.joined
+
+    assert "Joined the room testroom with spaces" in testbot.exec_command(
+        "!room join 'testroom with spaces'"
+    )
+    rooms = testbot.bot.rooms()
+    room = testbot.bot.query_room("testroom with spaces")
+    assert room.exists
+    assert room.joined
+    assert room in rooms
+
     assert "testroom" in testbot.exec_command("!room list")
     assert "err" in testbot.exec_command("!room occupants testroom")
     assert "No topic is set for testroom" in testbot.exec_command(

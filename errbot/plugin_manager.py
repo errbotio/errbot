@@ -552,7 +552,8 @@ class BotPluginManager(StoreMixin):
                     dep_name,
                     dep_name,
                 )
-                self._activate_plugin_dependencies(dep_name, dep_track)
+                sub_depends_on = self._activate_plugin_dependencies(dep_name, dep_track)
+                dep_plugin.dependencies = sub_depends_on
                 self._activate_plugin(dep_plugin, dep_plugin_info)
         return depends_on
 

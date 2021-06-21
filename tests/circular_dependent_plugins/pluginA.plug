@@ -1,0 +1,4 @@
+[Core]
+Name = PluginA
+Module = pluginA
+DependsOn = PluginB, PluginC

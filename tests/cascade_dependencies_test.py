@@ -12,10 +12,10 @@ orig_path_glob = pathlib.Path.glob
 
 def reordered_plugin_files(self, pattern):
     if self.name == 'cascade_dependent_plugins':
-        yield pathlib.Path(extra_plugin_dir + '/Parent2.plug')
-        yield pathlib.Path(extra_plugin_dir + '/Child1.plug')
-        yield pathlib.Path(extra_plugin_dir + '/Child2.plug')
-        yield pathlib.Path(extra_plugin_dir + '/Parent1.plug')
+        yield pathlib.Path(extra_plugin_dir + '/parent2.plug')
+        yield pathlib.Path(extra_plugin_dir + '/child1.plug')
+        yield pathlib.Path(extra_plugin_dir + '/child2.plug')
+        yield pathlib.Path(extra_plugin_dir + '/parent1.plug')
         return
     yield from orig_path_glob(self, pattern)
 

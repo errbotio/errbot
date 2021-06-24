@@ -1,5 +1,6 @@
 import os
 import pathlib
+
 import mock
 import pytest
 
@@ -11,18 +12,18 @@ orig_path_glob = pathlib.Path.glob
 
 
 def reordered_plugin_files(self, pattern):
-    if self.name == 'cascade_dependent_plugins':
-        yield pathlib.Path(extra_plugin_dir + '/parent2.plug')
-        yield pathlib.Path(extra_plugin_dir + '/child1.plug')
-        yield pathlib.Path(extra_plugin_dir + '/child2.plug')
-        yield pathlib.Path(extra_plugin_dir + '/parent1.plug')
+    if self.name == "cascade_dependent_plugins":
+        yield pathlib.Path(extra_plugin_dir + "/parent2.plug")
+        yield pathlib.Path(extra_plugin_dir + "/child1.plug")
+        yield pathlib.Path(extra_plugin_dir + "/child2.plug")
+        yield pathlib.Path(extra_plugin_dir + "/parent1.plug")
         return
     yield from orig_path_glob(self, pattern)
 
 
 @pytest.fixture
 def mock_before_bot_load():
-    patcher = mock.patch.object(pathlib.Path, 'glob', reordered_plugin_files)
+    patcher = mock.patch.object(pathlib.Path, "glob", reordered_plugin_files)
     patcher.start()
     yield
     patcher.stop()

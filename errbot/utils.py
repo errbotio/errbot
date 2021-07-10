@@ -4,13 +4,15 @@ import inspect
 import logging
 import os
 import re
+import shutil
 import sys
 import time
 from functools import wraps
 from platform import system
-from typing import List
+from typing import Generator, List
 
 from dulwich import porcelain
+from dulwich.repo import Repo
 
 log = logging.getLogger(__name__)
 
@@ -200,6 +202,70 @@ def global_restart():
     """Restart the current process."""
     python = sys.executable
     os.execl(python, python, *sys.argv)
+
+
+def git_checkout(repo_path: str, branch: str) -> Generator[str, None, None]:
+    """Checkout a different repository branch"""
+    local_prefix = b"refs/heads/"
+    remote_prefix = b"refs/remotes/origin/"
+
+    branch_b = branch.encode()
+
+    repo = Repo(repo_path)
+    refnames, sha = repo.refs.follow(b"HEAD")
+    if len(refnames) != 2:
+        yield "Local HEAD appears to be detached"
+        return
+
+    assert refnames[1].startswith(local_prefix)
+    current_branch = refnames[1][len(local_prefix) :]
+    if current_branch == branch_b:
+        yield f"Already on {branch}"
+        return
+
+    # Ensure there are no outstanding changes
+    status = porcelain.status(repo)
+    if any([x for x in status.staged.values()] + status.unstaged + status.untracked):
+        yield "HEAD is not clean"
+        return
+
+    yield "Fetching remote..."
+    porcelain.fetch(repo, prune=True, prune_tags=True)
+
+    refs = repo.get_refs()
+    local_ref = local_prefix + branch_b
+    remote_ref = remote_prefix + branch_b
+    if local_ref not in refs:
+        if remote_ref not in refs:
+            yield f"Branch {branch!r} not found"
+            return
+        yield f"Creating local branch {branch!r}..."
+        porcelain.branch_create(repo, name=branch, objectish=remote_ref.decode())
+
+    # Clear the directory contents
+    for filename in os.listdir(repo_path):
+        if filename == ".git":
+            continue
+        path = os.path.join(repo_path, filename)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.unlink(path)
+
+    # Change branch
+    repo.refs.set_symbolic_ref(b"HEAD", local_ref)
+    repo.reset_index(repo[local_ref].tree)
+
+    # This action clears any pending changes
+    unstaged = porcelain.status(repo).unstaged
+    if unstaged:
+        repo.stage(unstaged)
+
+    if refs.get(local_ref) != refs.get(remote_ref):
+        yield f"Pulling {branch!r} updates..."
+        porcelain.pull(repo, refspecs=branch)
+
+    yield f"Checked out {branch!r}"
 
 
 def git_clone(url: str, path: str) -> None:

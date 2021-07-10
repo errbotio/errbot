@@ -16,7 +16,7 @@ from urllib.request import Request, urlopen
 from errbot.storage import StoreMixin
 from errbot.storage.base import StoragePluginBase
 
-from .utils import ON_WINDOWS, git_clone, git_pull
+from .utils import ON_WINDOWS, git_checkout, git_clone, git_pull
 
 log = logging.getLogger(__name__)
 
@@ -288,6 +288,13 @@ class BotRepoManager(StoreMixin):
 
         self.add_plugin_repo(human_name, repo_url)
         return os.path.join(self.plugin_dir, human_name)
+
+    def checkout_branch(self, *, branch, repo) -> Generator[str, None, None]:
+        if repo not in self.get_installed_plugin_repos():
+            yield f"{repo!r} is not installed."
+            return
+
+        yield from git_checkout(path.join(self.plugin_dir, repo), branch)
 
     def update_repos(self, repos) -> Generator[Tuple[str, int, str], None, None]:
         """

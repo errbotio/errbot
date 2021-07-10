@@ -4,7 +4,7 @@ import shutil
 from ast import literal_eval
 from pprint import pformat
 
-from errbot import BotPlugin, botcmd
+from errbot import BotPlugin, arg_botcmd, botcmd
 from errbot.plugin_manager import (
     PluginActivationException,
     PluginConfigurationException,
@@ -97,6 +97,14 @@ class Plugins(BotPlugin):
             )
 
         return repos
+
+    @arg_botcmd("branch", type=str)
+    @arg_botcmd("repo", admin_only=True, type=str)
+    def repos_branch(self, message, repo, branch):
+        """Change the branch of a given repository.
+        for example a git url : !repos branch gbin/plugin branch1
+        """
+        yield from self._bot.repo_manager.checkout_branch(branch=branch, repo=repo)
 
     @botcmd(template="repos2")
     def repos_search(self, _, args):

@@ -1,3 +1,10 @@
+v6.1.9 (unreleased)
+-------------------
+
+fixes:
+
+- core: success handling for update_repos (#1520)
+
 v6.1.8 (2021-06-21)
 -------------------
 

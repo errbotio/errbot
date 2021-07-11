@@ -298,11 +298,11 @@ class BotRepoManager(StoreMixin):
         names = set(self.get_installed_plugin_repos().keys()).intersection(set(repos))
 
         for d in (path.join(self.plugin_dir, name) for name in names):
-            success = 1
+            success = False
             try:
                 git_pull(d)
                 feedback = "Pulled remote"
-                success = 0
+                success = True
             except Exception as exception:
                 feedback = f"Error pulling remote {exception}"
                 pass

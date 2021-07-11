@@ -1,6 +1,9 @@
 v6.1.9 (unreleased)
 -------------------
 
+features:
+- core: set default backend to Text (#1522)
+
 fixes:
 
 - core: success handling for update_repos (#1520)

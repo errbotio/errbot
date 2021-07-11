@@ -1,0 +1,4 @@
+[Core]
+Name = Parent2
+Module = parent2
+DependsOn = Parent1

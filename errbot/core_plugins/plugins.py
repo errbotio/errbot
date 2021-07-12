@@ -127,15 +127,15 @@ class Plugins(BotPlugin):
             if success:
                 yield f"Update of {d} succeeded...\n\n{feedback}\n\n"
 
-                plugin = self._bot.plugin_manager.get_plugin_by_path(d)
-                if hasattr(plugin, "is_activated") and plugin.is_activated:
-                    name = plugin.name
-                    yield f"/me is reloading plugin {name}"
-                    try:
-                        self._bot.plugin_manager.reload_plugin_by_name(plugin.name)
-                        yield f"Plugin {plugin.name} reloaded."
-                    except PluginActivationException as pae:
-                        yield f"Error reactivating plugin {plugin.name}: {pae}"
+                for plugin in self._bot.plugin_manager.get_plugins_by_path(d):
+                    if hasattr(plugin, "is_activated") and plugin.is_activated:
+                        name = plugin.name
+                        yield f"/me is reloading plugin {name}"
+                        try:
+                            self._bot.plugin_manager.reload_plugin_by_name(plugin.name)
+                            yield f"Plugin {plugin.name} reloaded."
+                        except PluginActivationException as pae:
+                            yield f"Error reactivating plugin {plugin.name}: {pae}"
             else:
                 yield f"Update of {d} failed...\n\n{feedback}"
 

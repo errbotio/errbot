@@ -103,11 +103,19 @@ class TextRoom(Room):
         self.name = name
         self._bot = bot
 
+        # get the bot username
+        bot_config = self._bot.bot_config
+        default_bot_name = "@errbot"
+        if hasattr(bot_config, "BOT_IDENTITY"):
+            bot_name = bot_config.BOT_IDENTITY.get("username", default_bot_name)
+        else:
+            bot_name = default_bot_name
+
         # fill up the room with a coherent set of identities.
         self._occupants = [
             TextOccupant("somebody", self),
             TextOccupant(TextPerson(bot.bot_config.BOT_ADMINS[0]), self),
-            TextOccupant(bot.bot_identifier, self),
+            TextOccupant(bot_name, self),
         ]
 
     def join(self, username=None, password=None):
@@ -426,7 +434,6 @@ class TextBackend(ErrBot):
             self._rooms.insert(0, self._rooms.pop(self._rooms.index(text_room)))
         return text_room
 
-    @property
     def rooms(self):
         return self._rooms
 

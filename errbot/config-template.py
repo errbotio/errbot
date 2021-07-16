@@ -43,7 +43,7 @@ import logging
 # 'Telegram' - cloud-based mobile and desktop messaging app with a focus
 #              on security and speed. (https://telegram.org/)
 
-# BACKEND = 'XMPP'  # defaults to XMPP
+# BACKEND = 'Text'  # defaults to Text
 
 # STORAGE selection.
 # This configures the type of persistence you wish to use Errbot with.
@@ -154,9 +154,11 @@ SENTRY_EVENTLEVEL = BOT_LOG_LEVEL
 
 # The identity, or credentials, used to connect to a server
 BOT_IDENTITY = {
-    # XMPP (Jabber) mode
-    "username": "err@localhost",  # The JID of the user you have created for the bot
-    "password": "changeme",  # The corresponding password for this user
+    ## Text mode
+    "username": "@errbot",  # The name for the bot
+    ## XMPP (Jabber) mode
+    # "username": "err@localhost",  # The JID of the user you have created for the bot
+    # "password": "changeme",  # The corresponding password for this user
     # 'server': ('host.domain.tld',5222), # server override
     ## HipChat mode (Comment the above if using this mode)
     # 'username': '12345_123456@chat.hipchat.com',

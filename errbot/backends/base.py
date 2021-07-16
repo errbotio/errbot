@@ -418,7 +418,7 @@ class Message:
 class Card(Message):
     """
     Card is a special type of preformatted message. If it matches with a backend similar concept like on
-    Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular message formatted with
+    Slack it will be rendered natively, otherwise it will be sent as a regular message formatted with
     the card.md template.
     """
 

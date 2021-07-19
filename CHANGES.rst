@@ -9,6 +9,7 @@ fixes:
 - core: success handling for update_repos (#1520)
 - core/plugins: cascade dependency plugins (#1519)
 - core/plugins: reload all repo plugins when updating a repo (#1521)
+- plugin_manager: correct syntax error (#1524)
 
 v6.1.8 (2021-06-21)
 -------------------

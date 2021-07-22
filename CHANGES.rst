@@ -20,6 +20,7 @@ fixes:
 - chore: various minor formatting improvements (#1541)
 - docs: update spark plugin reference (#1546)
 - fix: python 2 version references in docs and init template (#1543)
+- backends: deprecate built-in Slack and SlackRTM (#1526)
 
 v6.1.8 (2021-06-21)
 -------------------

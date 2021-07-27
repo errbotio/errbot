@@ -282,8 +282,8 @@ class TextBackend(ErrBot):
             while True:
 
                 if self._inroom:
-                    frm = TextOccupant(self.user, self.rooms[0])
-                    to = self.rooms[0]
+                    frm = TextOccupant(self.user, self.rooms()[0])
+                    to = self.rooms()[0]
                 else:
                     frm = self.user
                     to = self.bot_identifier

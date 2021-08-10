@@ -112,7 +112,7 @@ Cards
 -----
 
 Errbot cards are a canned format for notifications. It is possible to use this format to map to some native format in
-backends like Slack (Attachment) or Hipchat (Cards).
+backends like Slack (Attachment).
 
 Similar to a `self.send()` you can use :func:`~errbot.botplugin.BotPlugin.send_card` to send a card.
 

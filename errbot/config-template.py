@@ -32,7 +32,6 @@ import logging
 
 # Commercial backends:
 # 'Campfire' - see https://campfirenow.com/ (follow instructions from https://github.com/errbotio/err-backend-campfire)
-# 'Hipchat'  - see https://www.hipchat.com/
 # 'Slack'    - see https://slack.com/
 # 'Gitter'   - see https://gitter.im/ (follow instructions from https://github.com/errbotio/err-backend-gitter)
 
@@ -160,16 +159,6 @@ BOT_IDENTITY = {
     # "username": "err@localhost",  # The JID of the user you have created for the bot
     # "password": "changeme",  # The corresponding password for this user
     # 'server': ('host.domain.tld',5222), # server override
-    ## HipChat mode (Comment the above if using this mode)
-    # 'username': '12345_123456@chat.hipchat.com',
-    # 'password': 'changeme',
-    ## Group admins can create/view tokens on the settings page after logging
-    ## in on HipChat's website
-    # 'token': 'ed4b74d62833267d98aa99f312ff04',
-    ## If you're using HipChat server (self-hosted HipChat) then you should set
-    ## the endpoint below. If you don't use HipChat server but use the hosted version
-    ## of HipChat then you may leave this commented out.
-    # 'endpoint': 'https://api.hipchat.com'
     ## Slack mode (comment the others above if using this mode)
     # 'token': 'xoxb-4426949411-aEM7...',
     ## you can also include the proxy for the SlackClient connection
@@ -210,9 +199,7 @@ BOT_ADMINS = ("gbin@localhost",)
 
 # The FullName, or nickname, your bot should use. What you set here will
 # be the nickname that Errbot shows in chatrooms. Note that some XMPP
-# implementations, notably HipChat, are very picky about what name you
-# use. In the case of HipChat, make sure this matches exactly with the
-# name you gave the user.
+# implementations are very picky about what name you use.
 # CHATROOM_FN = 'Errbot'
 
 ##########################################################################
@@ -358,15 +345,11 @@ REVERSE_CHATROOM_RELAY = {}
 # a NAT router, the default might not be fast enough and you will need
 # to set it to a lower value.
 #
-# It has been reported that HipChat also times out without setting this
-# to a lower value (60 seems to work well with HipChat)
-#
 # If you're having issues with your bot getting constantly disconnected,
 # try to gradually lower this value until it no longer happens.
 # XMPP_KEEPALIVE_INTERVAL = 300
 
-# Modify default settings for IPv6 usage. This key affect both
-# XMPP and HipChat backend.
+# Modify default settings for IPv6 usage. This key affects the XMPP backend.
 # XMPP_USE_IPV6 = False
 
 # XMPP supports some formatting with XEP-0071 (http://www.xmpp.org/extensions/xep-0071.html).

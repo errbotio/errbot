@@ -633,7 +633,7 @@ class BotPlugin(BotPluginBase):
         Sends a card.
 
         A Card is a special type of preformatted message. If it matches with a backend similar concept like on
-        Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular formatted message.
+        Slack it will be rendered natively, otherwise it will be sent as a regular formatted message.
 
         :param body: main text of the card in markdown.
         :param to: the card is sent to this identifier (Room, RoomOccupant, Person...).

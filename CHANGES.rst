@@ -10,6 +10,7 @@ fixes:
 - core/plugins: cascade dependency plugins (#1519)
 - core/plugins: reload all repo plugins when updating a repo (#1521)
 - plugin_manager: correct syntax error (#1524)
+- backend/text: add stub send_stream_request method (#1527)
 
 v6.1.8 (2021-06-21)
 -------------------

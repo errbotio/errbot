@@ -6,7 +6,6 @@ that makes it easy to write new backends in order to support more.
 Currently, the following networks are supported:
 
   * XMPP *(Any standards-compliant XMPP/Jabber server should work - Google Talk/Hangouts included)*
-  * Hipchat_
   * IRC
   * Slack_
   * Telegram_
@@ -65,7 +64,6 @@ Extensive plugin framework
 .. _Cisco Webex Teams: https://www.webex.com/
 .. _Discord: https://www.discordapp.com/
 .. _Gitter: http://gitter.im/
-.. _Hipchat: https://www.hipchat.com/
 .. _Matrix: https://matrix.org/
 .. _Mattermost: https://about.mattermost.com/
 .. _Skype: http://www.skype.com/en/

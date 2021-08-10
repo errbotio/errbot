@@ -36,7 +36,6 @@ The following table lists all the values for `mode` for the official backends:
 ============================================  ==========
 Backend                                       Mode value
 ============================================  ==========
-:class:`~errbot.backends.hipchat`             hipchat
 :class:`~errbot.backends.irc`                 irc
 :class:`~errbot.backends.slack`               slack
 :class:`~errbot.backends.telegram_messenger`  telegram
@@ -82,7 +81,6 @@ The following table lists these attributes for the official backends, along with
 ============================================  =========================  ================================================
 Backend                                       Library                    Attribute(s)
 ============================================  =========================  ================================================
-:class:`~errbot.backends.hipchat`             `slixmpp`_ + `hypchat`_    ``self._bot.conn`` ``self._bot.conn.hypchat``
 :class:`~errbot.backends.irc`                 `irc`_                     ``self._bot.conn`` ``self._bot.conn.connection``
 :class:`~errbot.backends.slack`               `slackclient`_             ``self._bot.sc``
 :class:`~errbot.backends.telegram_messenger`  `telegram-python-bot`_     ``self._bot.telegram``

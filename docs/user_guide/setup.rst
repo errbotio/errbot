@@ -108,7 +108,6 @@ You can find here more details about configuring Errbot for some specific chat s
 
   configuration/xmpp
   configuration/irc
-  configuration/hipchat
   configuration/slack
   configuration/telegram
 

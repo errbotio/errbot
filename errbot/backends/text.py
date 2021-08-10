@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 from time import sleep
+from typing import BinaryIO
 
 from ansi.color import fg, fx
 from markdown import Markdown
@@ -14,11 +15,13 @@ from pygments.lexers import get_lexer_by_name
 from errbot.backends.base import (
     OFFLINE,
     ONLINE,
+    Identifier,
     Message,
     Person,
     Presence,
     Room,
     RoomOccupant,
+    Stream,
 )
 from errbot.core import ErrBot
 from errbot.logs import console_hdlr
@@ -279,8 +282,8 @@ class TextBackend(ErrBot):
             while True:
 
                 if self._inroom:
-                    frm = TextOccupant(self.user, self.rooms[0])
-                    to = self.rooms[0]
+                    frm = TextOccupant(self.user, self.rooms()[0])
+                    to = self.rooms()[0]
                 else:
                     frm = self.user
                     to = self.bot_identifier
@@ -439,3 +442,32 @@ class TextBackend(ErrBot):
 
     def prefix_groupchat_reply(self, message, identifier):
         message.body = f"{identifier.person} {message.body}"
+
+    def send_stream_request(
+        self,
+        user: Identifier,
+        fsource: BinaryIO,
+        name: str = None,
+        size: int = None,
+        stream_type: str = None,
+    ) -> Stream:
+        """
+        Starts a file transfer. For Slack, the size and stream_type are unsupported
+
+        :param user: is the identifier of the person you want to send it to.
+        :param fsource: is a file object you want to send.
+        :param name: is an optional filename for it.
+        :param size: not supported in Slack backend
+        :param stream_type: not supported in Slack backend
+
+        :return Stream: object on which you can monitor the progress of it.
+        """
+        stream = Stream(user, fsource, name, size, stream_type)
+        log.debug(
+            "Requesting upload of %s to %s (size hint: %d, stream type: %s).",
+            stream.name,
+            stream.identifier,
+            size,
+            stream_type,
+        )
+        return stream

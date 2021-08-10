@@ -521,11 +521,11 @@ class ErrBot(Backend, StoreMixin):
 
         """
         private = (
-            "_magic_all_" in self.bot_config.DIVERT_TO_PRIVATE
+            "ALL_COMMANDS" in self.bot_config.DIVERT_TO_PRIVATE
             or cmd in self.bot_config.DIVERT_TO_PRIVATE
         )
         threaded = (
-            "_magic_all_" in self.bot_config.DIVERT_TO_THREAD
+            "ALL_COMMANDS" in self.bot_config.DIVERT_TO_THREAD
             or cmd in self.bot_config.DIVERT_TO_THREAD
         )
         commands = self.re_commands if match else self.commands

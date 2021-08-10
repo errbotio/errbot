@@ -3,6 +3,7 @@ v6.1.9 (unreleased)
 
 features:
 - core: set default backend to Text (#1522)
+- core: option to divert all commands to private or thread (#1528)
 
 fixes:
 

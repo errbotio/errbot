@@ -14,13 +14,13 @@ def get_acl_usr(msg):
         return msg.frm.aclattr
     return msg.frm.person  # default
 
+
 def get_acl_room(room):
     """Return the ACL attribute of the room used for a given message"""
-    if hasattr(
-        room, "aclattr"
-    ):
+    if hasattr(room, "aclattr"):
         return room.aclattr
-    return str(room) # old behaviour
+    return str(room)  # old behaviour
+
 
 def glob(text, patterns):
     """

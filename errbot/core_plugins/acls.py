@@ -14,6 +14,13 @@ def get_acl_usr(msg):
         return msg.frm.aclattr
     return msg.frm.person  # default
 
+def get_acl_room(room):
+    """Return the ACL attribute of the room used for a given message"""
+    if hasattr(
+        msg.frm, "aclattr"
+    ):
+        return room.aclattr
+    return str(room) # old behaviour
 
 def glob(text, patterns):
     """
@@ -102,7 +109,7 @@ class ACLS(BotPlugin):
                 raise Exception(
                     f"msg.frm is not a RoomOccupant. Class of frm: {msg.frm.__class__}"
                 )
-            room = str(msg.frm.room)
+            room = get_acl_room(msg.frm.room)
             if "allowmuc" in acl and acl["allowmuc"] is False:
                 return self.access_denied(
                     msg,

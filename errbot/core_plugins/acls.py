@@ -17,7 +17,7 @@ def get_acl_usr(msg):
 def get_acl_room(room):
     """Return the ACL attribute of the room used for a given message"""
     if hasattr(
-        msg.frm, "aclattr"
+        room, "aclattr"
     ):
         return room.aclattr
     return str(room) # old behaviour

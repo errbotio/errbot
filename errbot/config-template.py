@@ -292,13 +292,13 @@ BOT_ADMINS = ("gbin@localhost",)
 # A list of commands which should be responded to in private, even if
 # the command was given in a MUC. For example:
 # DIVERT_TO_PRIVATE = ('help', 'about', 'status')
-# If all commnads are desired, use the specical case "ALL_COMMANDS"
+# If all commands are desired, use the specical case "ALL_COMMANDS"
 DIVERT_TO_PRIVATE = ()
 
 # A list of commands which should be responded to in a thread if the backend supports it.
 # For example:
 # DIVERT_TO_THREAD = ('help', 'about', 'status')
-# If all commnads are desired, use the specical case "ALL_COMMANDS"
+# If all commands are desired, use the specical case "ALL_COMMANDS"
 DIVERT_TO_THREAD = ()
 
 # Chat relay

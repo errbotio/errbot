@@ -72,6 +72,8 @@ def bot_config_defaults(config: object) -> None:
         config.TEXT_COLOR_THEME = "light"
     if not hasattr(config, "BOT_ADMINS_NOTIFICATIONS"):
         config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
+    if not hasattr(config, "COMMAND_ALIASES"):
+        config.COMMAND_ALIASES = {}
 
 
 def setup_bot(

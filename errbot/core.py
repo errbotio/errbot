@@ -614,7 +614,7 @@ class ErrBot(Backend, StoreMixin):
         else:
             msg = f'Command "{cmd}" not found.'
         all_keys = list(self.commands.keys())
-        all_keys.extend(self.bot_config.CMD_ALIASES.keys())
+        all_keys.extend(self.bot_config.COMMAND_ALIASES.keys())
         ununderscore_keys = [m.replace("_", " ") for m in all_keys]
         matches = difflib.get_close_matches(cmd, ununderscore_keys)
         if full_cmd:

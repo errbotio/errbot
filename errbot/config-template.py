@@ -397,4 +397,4 @@ REVERSE_CHATROOM_RELAY = {}
 # SUPPRESS_CMD_NOT_FOUND = False
 
 # Define aliases and shortcuts for existing commands. Can match subcommands as well.
-# CMD_ALIASES = {"h": "help", "pstatus": "status plugins"}
+# COMMAND_ALIASES = {"h": "help", "pstatus": "status plugins"}

@@ -276,6 +276,16 @@ def test_buildreply_with_parent(dummy_backend):
     assert resp.parent is not None
 
 
+def test_all_command_private():
+    dummy_backend = DummyBackend(extra_config={"DIVERT_TO_PRIVATE": ("ALL_COMMANDS",)})
+    m = dummy_backend.build_message("Content")
+    m.frm = dummy_backend.build_identifier("user")
+    m.to = dummy_backend.build_identifier("somewhere")
+    resp = dummy_backend.build_reply(m, "Response", threaded=True)
+    assert "ALL_COMMANDS" in dummy_backend.bot_config.DIVERT_TO_PRIVATE
+    assert resp is not None
+
+
 def test_bot_admins_unique_string():
     dummy = DummyBackend(extra_config={"BOT_ADMINS": "err@localhost"})
     assert dummy.bot_config.BOT_ADMINS == ("err@localhost",)

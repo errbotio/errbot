@@ -12,6 +12,7 @@ import pytest
 from mock import MagicMock
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), "dummy_plugin")
+extra_config = {"COMMAND_ALIASES": {"h": "help", "pinfo": "plugin info"}}
 
 
 def test_root_help(testbot):
@@ -406,3 +407,8 @@ def test_plugin_info_command(testbot):
     assert "module: help" in output
     assert "help.py" in output
     assert "log level: NOTSET" in output
+
+
+def test_command_aliases(testbot):
+    testbot.assertInCommand("!h", "All commands")
+    testbot.assertInCommand("!pinfo Help", "name: Help")

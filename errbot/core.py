@@ -61,9 +61,10 @@ class ErrBot(Backend, StoreMixin):
         self.re_commands = (
             {}
         )  # the dynamically populated list of regex-based commands available on the bot
-        self.command_aliases = (
-            {k: v.replace(" ", "_") for k, v in bot_config.COMMAND_ALIASES.items()}
-        )  # the list of aliases for commands on the bot
+        self.command_aliases = {
+            k.replace(" ", "_"): v.replace(" ", "_")
+            for k, v in bot_config.COMMAND_ALIASES.items()
+        }  # the list of aliases for commands on the bot
         self.command_filters = []  # the dynamically populated list of filters
         self.MSG_UNKNOWN_COMMAND = (
             'Unknown command: "%(command)s". '
@@ -351,9 +352,13 @@ class ErrBot(Backend, StoreMixin):
                     if command in self.commands:
                         cmd = command
                         args = " ".join(text_split[i:])
-                    elif command in self.command_aliases:  # check if they're using a command alias
+                    elif (
+                        command in self.command_aliases
+                    ):  # check if they're using a command alias
                         parent_cmd = self.command_aliases[command]
-                        if parent_cmd in self.commands:  # make sure the command alias is configured properly
+                        if (
+                            parent_cmd in self.commands
+                        ):  # make sure the command alias is configured properly
                             cmd = parent_cmd
                             args = " ".join(text_split[1:])
                     else:

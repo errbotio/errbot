@@ -297,6 +297,13 @@ class TestBackend(ErrBot):
             log.debug("Trigger shutdown")
             self.shutdown()
 
+    def shutdown(self):
+        if self.is_open_storage():
+            self.close_storage()
+        self.plugin_manager.shutdown()
+        self.repo_manager.shutdown()
+        # super().shutdown()
+
     def connect(self):
         return
 

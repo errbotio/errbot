@@ -12,6 +12,7 @@ fixes:
 - plugin_manager: correct syntax error (#1524)
 - backend/text: add stub send_stream_request method (#1527)
 - backend/hipchat: remove HipChat backend (#1525)
+- backend/test: shutdown sequence to address test failure (#1535)
 
 v6.1.8 (2021-06-21)
 -------------------

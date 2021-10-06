@@ -297,6 +297,13 @@ class TestBackend(ErrBot):
             log.debug("Trigger shutdown")
             self.shutdown()
 
+    def shutdown(self):
+        if self.is_open_storage():
+            self.close_storage()
+        self.plugin_manager.shutdown()
+        self.repo_manager.shutdown()
+        # super().shutdown()
+
     def connect(self):
         return
 
@@ -368,11 +375,10 @@ class TestBot:
     class under the hood.
     """
 
-    bot_thread = None
-
     def __init__(
         self, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None
     ):
+        self.bot_thread = None
         self.setup(
             extra_plugin_dir=extra_plugin_dir,
             loglevel=loglevel,
@@ -426,9 +432,10 @@ class TestBot:
             raise Exception("Bot has already been started")
         self._bot = setup_bot("Test", self.logger, self.bot_config)
         self.bot_thread = Thread(
-            target=self.bot.serve_forever, name="TestBot main thread"
+            target=self.bot.serve_forever,
+            name="TestBot main thread",
+            daemon=True,
         )
-        self.bot_thread.setDaemon(True)
         self.bot_thread.start()
 
         self.bot.push_message("!echo ready")

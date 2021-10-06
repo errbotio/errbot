@@ -520,8 +520,14 @@ class ErrBot(Backend, StoreMixin):
             the markdown output, if any
 
         """
-        private = cmd in self.bot_config.DIVERT_TO_PRIVATE
-        threaded = cmd in self.bot_config.DIVERT_TO_THREAD
+        private = (
+            "ALL_COMMANDS" in self.bot_config.DIVERT_TO_PRIVATE
+            or cmd in self.bot_config.DIVERT_TO_PRIVATE
+        )
+        threaded = (
+            "ALL_COMMANDS" in self.bot_config.DIVERT_TO_THREAD
+            or cmd in self.bot_config.DIVERT_TO_THREAD
+        )
         commands = self.re_commands if match else self.commands
         try:
             with self._gbl:

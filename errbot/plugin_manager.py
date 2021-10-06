@@ -469,7 +469,7 @@ class BotPluginManager(StoreMixin):
             name: set(info.dependencies) for name, info in self.plugin_infos.items()
         }
         plugins_in_cycle = set()
-        while 1:
+        while True:
             plugins_sorter = TopologicalSorter(plugins_graph)
             try:
                 # Return plugins which are part of a circular dependency at the end,

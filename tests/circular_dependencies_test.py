@@ -6,9 +6,9 @@ extra_plugin_dir = os.path.join(
 pytest_plugins = ["errbot.backends.test"]
 
 
-# def test_if_all_loaded_circular_dependencies(testbot):
-#     """https://github.com/errbotio/errbot/issues/1397"""
-#     plug_names = testbot.bot.plugin_manager.get_all_active_plugin_names()
-#     assert "PluginA" in plug_names
-#     assert "PluginB" in plug_names
-#     assert "PluginC" in plug_names
+def test_if_all_loaded_circular_dependencies(testbot):
+    """https://github.com/errbotio/errbot/issues/1397"""
+    plug_names = testbot.bot.plugin_manager.get_all_active_plugin_names()
+    assert "PluginA" in plug_names
+    assert "PluginB" in plug_names
+    assert "PluginC" in plug_names

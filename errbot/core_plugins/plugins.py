@@ -22,7 +22,7 @@ class Plugins(BotPlugin):
         """
         args = args.strip()
         if not args:
-            yield 'Please specify a repository listed in "!repos" or ' "give me the URL to a git repository that I should clone for you."
+            yield 'Please specify a repository listed in "!repos" or "give me the URL to a git repository that I should clone for you."'
             return
         try:
             yield f"Installing {args}..."
@@ -39,7 +39,7 @@ class Plugins(BotPlugin):
                         yield f"Removing {local_path} as it did not load correctly."
                         shutil.rmtree(local_path)
             else:
-                yield f"A new plugin repository has been installed correctly from {args}. " f"Refreshing the plugins commands..."
+                yield f"A new plugin repository has been installed correctly from {args}. Refreshing the plugins commands..."
             loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
             if loading_errors:
                 yield loading_errors

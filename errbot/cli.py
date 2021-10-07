@@ -85,7 +85,7 @@ def _read_dict():
     import collections
 
     new_dict = ast.literal_eval(sys.stdin.read())
-    if not isinstance(new_dict, collections.Mapping):
+    if not isinstance(new_dict, collections.abc.Mapping):
         raise ValueError(
             f"A dictionary written in python is needed from stdin. "
             f"Type={type(new_dict)}, Value = {repr(new_dict)}."

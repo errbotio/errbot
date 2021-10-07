@@ -375,7 +375,7 @@ class SlackBackend(ErrBot):
         if data is None:
             data = {}
         response = self.sc.api_call(method, **data)
-        if not isinstance(response, collections.Mapping):
+        if not isinstance(response, collections.abc.Mapping):
             # Compatibility with SlackClient < 1.0.0
             response = json.loads(response.decode("utf-8"))
 

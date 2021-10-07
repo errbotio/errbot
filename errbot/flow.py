@@ -336,7 +336,7 @@ class FlowExecutor:
                     for next_step in flow.next_steps():
                         if next_step.command == cmd:
                             log.debug(
-                                "Requestor has a flow in flight waiting for this command !"
+                                "Requestor has a flow in flight waiting for this command!"
                             )
                             return flow, next_step
         log.debug("None matched.")

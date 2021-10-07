@@ -459,7 +459,7 @@ def update_wrapper(wrapper, argparse_args, kwargs):
 
 
 def _tag_webhook(func, uri_rule, methods, form_param, raw):
-    log.info(f"webhooks:  Flag to bind {uri_rule} to {getattr(func, '__name__', func)}")
+    log.info(f"webhooks: Flag to bind {uri_rule} to {getattr(func, '__name__', func)}")
     func._err_webhook_uri_rule = uri_rule
     func._err_webhook_methods = methods
     func._err_webhook_form_param = form_param

@@ -57,7 +57,7 @@ class Plugins(BotPlugin):
         repos = self._bot.repo_manager.get_installed_plugin_repos()
 
         if repo_name not in repos:
-            yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
+            yield f"This repo is not installed check with {self._bot.prefix}repos the list of installed ones"
             return
 
         plugin_path = os.path.join(self._bot.repo_manager.plugin_dir, repo_name)
@@ -111,9 +111,9 @@ class Plugins(BotPlugin):
     @botcmd(split_args_with=" ", admin_only=True)
     def repos_update(self, _, args):
         """update the bot and/or plugins
-        use : !repos update all
+        use: !repos update all
         to update everything
-        or : !repos update repo_name repo_name ...
+        or: !repos update repo_name repo_name ...
         to update selectively some repos
         """
         if "all" in args:
@@ -148,12 +148,12 @@ class Plugins(BotPlugin):
         !plugin config ExampleBot
         could return a template if it is not configured:
         {'LOGIN': 'example@example.com', 'PASSWORD': 'password', 'DIRECTORY': '/toto'}
-        Copy paste, adapt so can configure the plugin :
+        Copy paste, adapt so can configure the plugin:
         !plugin config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         It will then reload the plugin with this config.
         You can at any moment retrieve the current values:
         !plugin config ExampleBot
-        should return :
+        should return:
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
         plugin_name = args[0]
@@ -189,7 +189,7 @@ class Plugins(BotPlugin):
             self.log.exception("Invalid expression for the configuration of the plugin")
             return "Syntax error in the given configuration"
         if type(real_config_obj) != type(template_obj):
-            return "It looks fishy, your config type is not the same as the template !"
+            return "It looks fishy, your config type is not the same as the template!"
 
         self._bot.plugin_manager.set_plugin_configuration(plugin_name, real_config_obj)
 

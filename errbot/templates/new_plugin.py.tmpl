@@ -1,4 +1,4 @@
-from errbot import BotPlugin, botcmd, arg_botcmd, webhook
+from errbot import BotPlugin, arg_botcmd, botcmd, webhook
 
 
 class {{ class_name }}(BotPlugin):
@@ -28,9 +28,10 @@ class {{ class_name }}(BotPlugin):
 
         You should delete it if your plugin doesn't use any configuration like this
         """
-        return {'EXAMPLE_KEY_1': "Example value",
-                'EXAMPLE_KEY_2': ["Example", "Value"]
-               }
+        return {
+            "EXAMPLE_KEY_1": "Example value",
+            "EXAMPLE_KEY_2": ["Example", "Value"],
+        }
 
     def check_configuration(self, configuration):
         """
@@ -78,8 +79,8 @@ class {{ class_name }}(BotPlugin):
         """A command which simply returns 'Example'"""
         return "Example"
 
-    @arg_botcmd('name', type=str)
-    @arg_botcmd('--favorite-number', type=int, unpack_args=False)
+    @arg_botcmd("name", type=str)
+    @arg_botcmd("--favorite-number", type=int, unpack_args=False)
     def hello(self, message, args):
         """
         A command which says hello to someone.
@@ -87,7 +88,7 @@ class {{ class_name }}(BotPlugin):
         If you include --favorite-number, it will also tell you their
         favorite number.
         """
-        if args.favorite_number is None:
-            return f'Hello {args.name}.'
+        if args.favorite_number:
+            return f"Hello {args.name}, I hear your favorite number is {args.favorite_number}."
         else:
-            return f'Hello {args.name}, I hear your favorite number is {args.favorite_number}.'
+            return f"Hello {args.name}."

@@ -34,7 +34,7 @@ SIMPLE_JSON_PLUGINS_INDEX = """
 {"errbotio/err-helloworld":
     {"HelloWorld":
         {"path": "/helloWorld.plug",
-         "documentation": "let's say hello !",
+         "documentation": "let's say hello!",
          "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=3",
          "name": "HelloWorld",
          "python": "2+",

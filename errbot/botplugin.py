@@ -154,7 +154,7 @@ class BotPluginBase(StoreMixin):
         self.dependencies = []
         self._dynamic_plugins = {}
         self.log = logging.getLogger(f"errbot.plugins.{name}")
-        self.log.debug("Logger for plugin initialized...")
+        self.log.debug("Logger for plugin %s initialized...", name)
         self._bot = bot
         self.plugin_dir = bot.repo_manager.plugin_dir
         self._name = name

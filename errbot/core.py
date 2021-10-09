@@ -629,11 +629,11 @@ class ErrBot(Backend, StoreMixin):
 
                     if getattr(value, "_err_re_command"):
                         log.debug(
-                            "Adding regex command : %s -> %s.", name, value.__name__
+                            "Adding regex command: %s -> %s.", name, value.__name__
                         )
                         self.re_commands = commands
                     else:
-                        log.debug("Adding command : %s -> %s.", name, value.__name__)
+                        log.debug("Adding command: %s -> %s.", name, value.__name__)
                         self.commands = commands
 
     def inject_flows_from(self, instance_to_inject):

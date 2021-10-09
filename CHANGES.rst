@@ -14,6 +14,7 @@ fixes:
 - backend/text: add stub send_stream_request method (#1527)
 - backend/hipchat: remove HipChat backend (#1525)
 - backend/test: shutdown sequence to address test failure (#1535)
+- core: various minor logging improvements (#1536)
 
 v6.1.8 (2021-06-21)
 -------------------

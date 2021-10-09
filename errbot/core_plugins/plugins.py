@@ -16,13 +16,13 @@ class Plugins(BotPlugin):
     @botcmd(admin_only=True)
     def repos_install(self, _, args):
         """install a plugin repository from the given source or a known public repo (see !repos to find those).
-        for example from a known repo : !install err-codebot
-        for example a git url : git@github.com:gbin/plugin.git
-        or an url towards a tar.gz archive : http://www.gootz.net/plugin-latest.tar.gz
+        for example from a known repo: !install err-codebot
+        for example a git url: git@github.com:gbin/plugin.git
+        or an url towards a tar.gz archive: http://www.gootz.net/plugin-latest.tar.gz
         """
         args = args.strip()
         if not args:
-            yield 'Please specify a repository listed in "!repos" or ' "give me the URL to a git repository that I should clone for you."
+            yield 'Please specify a repository listed in "!repos" or "give me the URL to a git repository that I should clone for you."'
             return
         try:
             yield f"Installing {args}..."
@@ -39,7 +39,7 @@ class Plugins(BotPlugin):
                         yield f"Removing {local_path} as it did not load correctly."
                         shutil.rmtree(local_path)
             else:
-                yield f"A new plugin repository has been installed correctly from {args}. " f"Refreshing the plugins commands..."
+                yield f"A new plugin repository has been installed correctly from {args}. Refreshing the plugins commands..."
             loading_errors = self._bot.plugin_manager.activate_non_started_plugins()
             if loading_errors:
                 yield loading_errors
@@ -57,7 +57,7 @@ class Plugins(BotPlugin):
         repos = self._bot.repo_manager.get_installed_plugin_repos()
 
         if repo_name not in repos:
-            yield "This repo is not installed check with " + self._bot.prefix + "repos the list of installed ones"
+            yield f"This repo is not installed check with {self._bot.prefix}repos the list of installed ones"
             return
 
         plugin_path = os.path.join(self._bot.repo_manager.plugin_dir, repo_name)
@@ -111,9 +111,9 @@ class Plugins(BotPlugin):
     @botcmd(split_args_with=" ", admin_only=True)
     def repos_update(self, _, args):
         """update the bot and/or plugins
-        use : !repos update all
+        use: !repos update all
         to update everything
-        or : !repos update repo_name repo_name ...
+        or: !repos update repo_name repo_name ...
         to update selectively some repos
         """
         if "all" in args:
@@ -148,12 +148,12 @@ class Plugins(BotPlugin):
         !plugin config ExampleBot
         could return a template if it is not configured:
         {'LOGIN': 'example@example.com', 'PASSWORD': 'password', 'DIRECTORY': '/toto'}
-        Copy paste, adapt so can configure the plugin :
+        Copy paste, adapt so can configure the plugin:
         !plugin config ExampleBot {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         It will then reload the plugin with this config.
         You can at any moment retrieve the current values:
         !plugin config ExampleBot
-        should return :
+        should return:
         {'LOGIN': 'my@email.com', 'PASSWORD': 'myrealpassword', 'DIRECTORY': '/tmp'}
         """
         plugin_name = args[0]
@@ -189,7 +189,7 @@ class Plugins(BotPlugin):
             self.log.exception("Invalid expression for the configuration of the plugin")
             return "Syntax error in the given configuration"
         if type(real_config_obj) != type(template_obj):
-            return "It looks fishy, your config type is not the same as the template !"
+            return "It looks fishy, your config type is not the same as the template!"
 
         self._bot.plugin_manager.set_plugin_configuration(plugin_name, real_config_obj)
 

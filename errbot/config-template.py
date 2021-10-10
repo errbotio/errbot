@@ -12,7 +12,7 @@
 #  when you are configuring only a single value. An example of this is   #
 #  the BOT_ADMINS option. Make sure you use a valid tuple here, even if  #
 #  you are only configuring a single item, else you will get errors.     #
-#  (So don't forget the trailing ',' in these cases)                     #
+#  (So don't forget the trailing "," in these cases)                     #
 #                                                                        #
 ##########################################################################
 
@@ -28,18 +28,18 @@ import logging
 # The current choices:
 
 # Debug backends to test your plugins manually:
-# 'Text'     - on the text console
+# "Text"     - on the text console
 
 # Commercial backends:
-# 'Campfire' - see https://campfirenow.com/ (follow instructions from https://github.com/errbotio/err-backend-campfire)
-# 'Slack'    - see https://slack.com/
-# 'Gitter'   - see https://gitter.im/ (follow instructions from https://github.com/errbotio/err-backend-gitter)
+# "Campfire" - see https://campfirenow.com/ (follow instructions from https://github.com/errbotio/err-backend-campfire)
+# "Slack"    - see https://slack.com/
+# "Gitter"   - see https://gitter.im/ (follow instructions from https://github.com/errbotio/err-backend-gitter)
 
 # Open protocols:
-# 'TOX'      - see https://tox.im/ (follow instructions from https://github.com/errbotio/err-backend-tox)
-# 'IRC'      - for classic IRC or bridged services like https://gitter.im
-# 'XMPP'     - the Extensible Messaging and Presence Protocol (https://xmpp.org/)
-# 'Telegram' - cloud-based mobile and desktop messaging app with a focus
+# "TOX"      - see https://tox.im/ (follow instructions from https://github.com/errbotio/err-backend-tox)
+# "IRC"      - for classic IRC or bridged services like https://gitter.im
+# "XMPP"     - the Extensible Messaging and Presence Protocol (https://xmpp.org/)
+# "Telegram" - cloud-based mobile and desktop messaging app with a focus
 #              on security and speed. (https://telegram.org/)
 
 # BACKEND = "Text"  # defaults to Text
@@ -50,10 +50,10 @@ import logging
 # The current choices:
 
 # Debug:
-# 'Memory'        - local memory storage to test your bot in memory:
+# "Memory"        - local memory storage to test your bot in memory:
 
 # Filesystem:
-# 'Shelf'         - python shelf (default)
+# "Shelf"         - python shelf (default)
 
 # STORAGE = "Shelf"  # defaults to filestorage (python shelf).
 
@@ -88,13 +88,13 @@ BOT_EXTRA_PLUGIN_DIR = None
 
 # If you want only a subset of the core plugins that are bundled with errbot, you can specify them here.
 # CORE_PLUGINS = None # This is default, all core plugins.
-# For example CORE_PLUGINS = ('ACLs', 'Backup', 'Help') you get those names from the .plug files Name entry.
+# For example CORE_PLUGINS = ("ACLs", "Backup", "Help") you get those names from the .plug files Name entry.
 # For absolutely no plug: CORE_PLUGINS = ()
 
 # Defines an order in which the plugins are getting their callbacks. Useful if you want to have plugins do
 # pre- or post-processing on messages.
-# The 'None' tuple entry represents all the plugins that aren't to be explicitly ordered. For example, if
-# you want 'A' to run first, then everything else but 'B', then 'B', you would use ('A', None, 'B').
+# The "None" tuple entry represents all the plugins that aren't to be explicitly ordered. For example, if
+# you want "A" to run first, then everything else but "B", then "B", you would use ("A", None, "B").
 PLUGINS_CALLBACK_ORDER = (None,)
 
 # Should plugin dependencies be installed automatically? If this is true
@@ -184,8 +184,8 @@ BOT_IDENTITY = {
 # Set the admins of your bot. Only these users will have access
 # to the admin-only commands.
 #
-# Unix-style glob patterns are supported, so 'gbin@localhost'
-# would be considered an admin if setting '*@localhost'.
+# Unix-style glob patterns are supported, so "gbin@localhost"
+# would be considered an admin if setting "*@localhost".
 BOT_ADMINS = ("gbin@localhost",)
 
 # Set of admins that wish to receive administrative bot notifications.
@@ -209,7 +209,7 @@ BOT_ADMINS = ("gbin@localhost",)
 # Command prefix, the prefix that is expected in front of commands directed
 # at the bot.
 #
-# Note: When writing plugins,you should always use the default '!'.
+# Note: When writing plugins,you should always use the default "!".
 # If the prefix is changed from the default, the help strings will be
 # automatically adjusted for you.
 #
@@ -228,7 +228,7 @@ BOT_ADMINS = ("gbin@localhost",)
 
 # If you use alternative prefixes, you might want to allow users to insert
 # separators like , and ; between the prefix and the command itself. This
-# allows users to refer to your bot like this (Assuming 'Err' is in your
+# allows users to refer to your bot like this (Assuming "Err" is in your
 # BOT_ALT_PREFIXES):
 # "Err, status" or "Err: status"
 #
@@ -237,8 +237,8 @@ BOT_ADMINS = ("gbin@localhost",)
 # BOT_ALT_PREFIX_SEPARATORS = (":", ",", ";")
 
 # Continuing on this theme, you might want to permit your users to be
-# lazy and not require correct capitalization, so they can do 'Err',
-# 'err' or even 'ERR'.
+# lazy and not require correct capitalization, so they can do "Err",
+# "err" or even "ERR".
 # BOT_ALT_PREFIX_CASEINSENSITIVE = True
 
 ##########################################################################
@@ -311,13 +311,13 @@ DIVERT_TO_THREAD = ()
 # Can be used to relay one to one message from specific users to the bot
 # to MUCs. This can be useful with XMPP notifiers like for example the
 # standard Altassian Jira which don't have native support for MUC.
-# For example: CHATROOM_RELAY = {'gbin@localhost' : (_TEST_ROOM,)}
+# For example: CHATROOM_RELAY = {"gbin@localhost" : (_TEST_ROOM,)}
 CHATROOM_RELAY = {}
 
 # Reverse chat relay
 # This feature forwards whatever is said to a specific user.
 # It can be useful if you client like gtalk doesn't support MUC correctly
-# For example: REVERSE_CHATROOM_RELAY = {_TEST_ROOM : ('gbin@localhost',)}
+# For example: REVERSE_CHATROOM_RELAY = {_TEST_ROOM : ("gbin@localhost",)}
 REVERSE_CHATROOM_RELAY = {}
 
 ##########################################################################

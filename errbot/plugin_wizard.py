@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import errno
 import os
 import re
@@ -20,10 +18,10 @@ def new_plugin_wizard(directory: Optional[str] = None) -> None:
         print("This wizard will create a new plugin for you in the current directory.")
         directory = os.getcwd()
     else:
-        print(f'This wizard will create a new plugin for you in "{directory}".')
+        print(f"This wizard will create a new plugin for you in '{directory}'.")
 
     if os.path.exists(directory) and not os.path.isdir(directory):
-        print(f'Error: The path "{directory}" exists but it isn\'t a directory')
+        print(f"Error: The path '{directory}' exists but it isn't a directory")
         sys.exit(1)
 
     name = ask(
@@ -39,14 +37,14 @@ def new_plugin_wizard(directory: Optional[str] = None) -> None:
     )
     python_version = "3"
     errbot_min_version = ask(
-        f"Which minimum version of errbot will your plugin work with? "
+        f"Which minimum version of errbot will your plugin work with?\n"
         f"Leave blank to support any version or input CURRENT to select "
         f"the current version {VERSION}."
     ).strip()
     if errbot_min_version.upper() == "CURRENT":
         errbot_min_version = VERSION
     errbot_max_version = ask(
-        f"Which maximum version of errbot will your plugin work with? "
+        f"Which maximum version of errbot will your plugin work with?\n"
         f"Leave blank to support any version or input CURRENT to select "
         f"the current version {VERSION}."
     ).strip()
@@ -87,7 +85,7 @@ def new_plugin_wizard(directory: Optional[str] = None) -> None:
         ask(
             f"Warning: A plugin with this name was already found at {path}\n"
             f"If you continue, these will be overwritten.\n"
-            f'Press Ctrl+C to abort now or type in "overwrite" to confirm overwriting of these files.',
+            f"Press Ctrl+C to abort now or type in 'overwrite' to confirm overwriting of these files.",
             valid_responses=["overwrite"],
         )
 
@@ -121,7 +119,7 @@ def ask(
             if response in valid_responses:
                 break
             else:
-                print(f'Bad input: Please answer one of: {", ".join(valid_responses)}')
+                print(f"Bad input: Please answer one of: {', '.join(valid_responses)}")
         elif validation_regex is not None:
             m = re.search(validation_regex, response)
             if m is None:

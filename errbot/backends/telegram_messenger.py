@@ -1,9 +1,11 @@
 import logging
 import sys
+from typing import Any, Optional, Union
 
 from errbot.backends.base import (
     ONLINE,
     Identifier,
+    Message,
     Person,
     Room,
     RoomError,
@@ -32,7 +34,7 @@ except ImportError:
 
 
 class RoomsNotSupportedError(RoomError):
-    def __init__(self, message=None):
+    def __init__(self, message: Optional[str] = None):
         if message is None:
             message = (
                 "Room operations are not supported on Telegram. "
@@ -64,7 +66,7 @@ class TelegramIdentifier(Identifier):
         self._id = str(id)
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self._id
 
     def __unicode__(self):
@@ -86,30 +88,30 @@ class TelegramPerson(TelegramIdentifier, Person):
         self._username = username
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self._id
 
     @property
-    def first_name(self):
+    def first_name(self) -> str:
         return self._first_name
 
     @property
-    def last_name(self):
+    def last_name(self) -> str:
         return self._last_name
 
     @property
-    def fullname(self):
+    def fullname(self) -> str:
         fullname = self.first_name
         if self.last_name is not None:
             fullname += " " + self.last_name
         return fullname
 
     @property
-    def username(self):
+    def username(self) -> str:
         return self._username
 
     @property
-    def client(self):
+    def client(self) -> None:
         return None
 
     person = id
@@ -122,7 +124,7 @@ class TelegramRoom(TelegramIdentifier, Room):
         self._title = title
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self._id
 
     @property
@@ -130,35 +132,35 @@ class TelegramRoom(TelegramIdentifier, Room):
         """Return the groupchat title (only applies to groupchats)"""
         return self._title
 
-    def join(self, username: str = None, password: str = None):
+    def join(self, username: str = None, password: str = None) -> None:
         raise RoomsNotSupportedError()
 
-    def create(self):
+    def create(self) -> None:
         raise RoomsNotSupportedError()
 
-    def leave(self, reason: str = None):
+    def leave(self, reason: str = None) -> None:
         raise RoomsNotSupportedError()
 
-    def destroy(self):
-        raise RoomsNotSupportedError()
-
-    @property
-    def joined(self):
+    def destroy(self) -> None:
         raise RoomsNotSupportedError()
 
     @property
-    def exists(self):
+    def joined(self) -> None:
         raise RoomsNotSupportedError()
 
     @property
-    def topic(self):
+    def exists(self) -> None:
         raise RoomsNotSupportedError()
 
     @property
-    def occupants(self):
+    def topic(self) -> None:
         raise RoomsNotSupportedError()
 
-    def invite(self, *args):
+    @property
+    def occupants(self) -> None:
+        raise RoomsNotSupportedError()
+
+    def invite(self, *args) -> None:
         raise RoomsNotSupportedError()
 
 
@@ -167,18 +169,20 @@ class TelegramMUCOccupant(TelegramPerson, RoomOccupant):
     This class represents a person inside a MUC.
     """
 
-    def __init__(self, id, room, first_name=None, last_name=None, username=None):
+    def __init__(
+        self, id, room: TelegramRoom, first_name=None, last_name=None, username=None
+    ):
         super().__init__(
             id=id, first_name=first_name, last_name=last_name, username=username
         )
         self._room = room
 
     @property
-    def room(self):
+    def room(self) -> TelegramRoom:
         return self._room
 
     @property
-    def username(self):
+    def username(self) -> str:
         return self._username
 
 
@@ -202,13 +206,13 @@ class TelegramBackend(ErrBot):
         enable_format("text", TEXT_CHRS, borders=not compact)
         self.md_converter = text()
 
-    def set_message_size_limit(self, limit=1024, hard_limit=1024):
+    def set_message_size_limit(self, limit: int = 1024, hard_limit: int = 1024) -> None:
         """
         Telegram message size limit
         """
         super().set_message_size_limit(limit, hard_limit)
 
-    def serve_once(self):
+    def serve_once(self) -> None:
         log.info("Initializing connection")
         try:
             self.telegram = telegram.Bot(token=self.token)
@@ -257,7 +261,7 @@ class TelegramBackend(ErrBot):
             log.debug("Triggering disconnect callback")
             self.disconnect_callback()
 
-    def _handle_message(self, message):
+    def _handle_message(self, message: Message) -> None:
         """
         Handle a received message.
 
@@ -291,7 +295,7 @@ class TelegramBackend(ErrBot):
         message_instance.extras["message_id"] = message.message_id
         self.callback_message(message_instance)
 
-    def send_message(self, msg):
+    def send_message(self, msg: Message) -> None:
         super().send_message(msg)
         body = self.md_converter.convert(msg.body)
         try:
@@ -306,7 +310,7 @@ class TelegramBackend(ErrBot):
         # It looks like telegram doesn't supports online presence for privacy reason.
         pass
 
-    def build_identifier(self, txtrep):
+    def build_identifier(self, txtrep: str) -> Union[TelegramPerson, TelegramRoom]:
         """
         Convert a textual representation into a :class:`~TelegramPerson` or :class:`~TelegramRoom`.
         """
@@ -319,7 +323,13 @@ class TelegramBackend(ErrBot):
         else:
             return TelegramRoom(id=id_)
 
-    def build_reply(self, msg, text=None, private=False, threaded=False):
+    def build_reply(
+        self,
+        msg: Message,
+        text: Optional[str] = None,
+        private: bool = False,
+        threaded: bool = False,
+    ) -> Message:
         response = self.build_message(text)
         response.frm = self.bot_identifier
         if private:
@@ -329,10 +339,10 @@ class TelegramBackend(ErrBot):
         return response
 
     @property
-    def mode(self):
+    def mode(self) -> text:
         return "telegram"
 
-    def query_room(self, room):
+    def query_room(self, room: TelegramRoom) -> None:
         """
         Not supported on Telegram.
 
@@ -340,7 +350,7 @@ class TelegramBackend(ErrBot):
         """
         raise RoomsNotSupportedError()
 
-    def rooms(self):
+    def rooms(self) -> None:
         """
         Not supported on Telegram.
 
@@ -348,11 +358,13 @@ class TelegramBackend(ErrBot):
         """
         raise RoomsNotSupportedError()
 
-    def prefix_groupchat_reply(self, message, identifier):
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
         super().prefix_groupchat_reply(message, identifier)
         message.body = f"@{identifier.nick}: {message.body}"
 
-    def _telegram_special_message(self, chat_id, content, msg_type, **kwargs):
+    def _telegram_special_message(
+        self, chat_id: Any, content: Any, msg_type: str, **kwargs
+    ) -> telegram.Message:
         """Send special message."""
         if msg_type == "document":
             msg = self.telegram.sendDocument(
@@ -381,7 +393,7 @@ class TelegramBackend(ErrBot):
             )
         return msg
 
-    def _telegram_upload_stream(self, stream, **kwargs):
+    def _telegram_upload_stream(self, stream: Stream, **kwargs) -> None:
         """Perform upload defined in a stream."""
         msg = None
         try:
@@ -401,8 +413,13 @@ class TelegramBackend(ErrBot):
                 stream.success()
 
     def send_stream_request(
-        self, identifier, fsource, name="file", size=None, stream_type=None
-    ):
+        self,
+        identifier: Union[TelegramPerson, TelegramMUCOccupant],
+        fsource: Union[str, dict, BinaryIO],
+        name: Optional[str] = "file",
+        size: Optional[int] = None,
+        stream_type: Optional[str] = None,
+    ) -> Union[str, Stream]:
         """Starts a file transfer.
 
         :param identifier: TelegramPerson or TelegramMUCOccupant
@@ -440,7 +457,7 @@ class TelegramBackend(ErrBot):
             else:
                 return fsource, None
 
-        def _is_valid_url(url):
+        def _is_valid_url(url) -> bool:
             try:
                 from urlparse import urlparse
             except Exception:
@@ -479,7 +496,7 @@ class TelegramBackend(ErrBot):
         return stream
 
     @staticmethod
-    def _is_numeric(input_):
+    def _is_numeric(input_) -> bool:
         """Return true if input is a number"""
         try:
             int(input_)

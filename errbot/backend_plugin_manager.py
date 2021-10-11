@@ -1,7 +1,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Type
+from typing import Any, Iterator, List, Type, Union
 
 from errbot.plugin_info import PluginInfo
 
@@ -14,7 +14,9 @@ class PluginNotFoundException(Exception):
     pass
 
 
-def enumerate_backend_plugins(all_plugins_paths):
+def enumerate_backend_plugins(
+    all_plugins_paths: List[Union[str, Path]]
+) -> Iterator[PluginInfo]:
     plugin_places = [Path(root) for root in all_plugins_paths]
     for path in plugin_places:
         plugfiles = path.glob("**/*.plug")

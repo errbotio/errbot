@@ -3,6 +3,7 @@ import logging
 import os
 from itertools import repeat, starmap
 from threading import Thread
+from typing import Callable, Optional
 
 from .backends.base import STREAM_TRANSFER_IN_PROGRESS, STREAM_WAITING_TO_START
 
@@ -11,7 +12,9 @@ CHUNK_SIZE = 4096
 log = logging.getLogger(__name__)
 
 
-def repeatfunc(func, times=None, *args):  # from the itertools receipes
+def repeatfunc(
+    func: Callable[..., None], times: Optional[int] = None, *args
+):  # from the itertools receipes
     """Repeat calls to func with specified arguments.
 
     Example:  repeatfunc(random.random)
@@ -33,7 +36,7 @@ class Tee:
         self.incoming_stream = incoming_stream
         self.clients = clients
 
-    def start(self):
+    def start(self) -> Thread:
         """starts the transfer asynchronously"""
         t = Thread(target=self.run)
         t.start()

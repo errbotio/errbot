@@ -2,6 +2,7 @@ import importlib
 import logging
 import sys
 from os import makedirs, path
+from typing import Callable, Optional
 
 from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.core import ErrBot
@@ -20,7 +21,7 @@ CORE_STORAGE = path.join(HERE, "storage")
 PLUGIN_DEFAULT_INDEX = "https://errbot.io/repos.json"
 
 
-def bot_config_defaults(config):
+def bot_config_defaults(config: object) -> None:
     if not hasattr(config, "ACCESS_CONTROLS_DEFAULT"):
         config.ACCESS_CONTROLS_DEFAULT = {}
     if not hasattr(config, "ACCESS_CONTROLS"):
@@ -73,7 +74,12 @@ def bot_config_defaults(config):
         config.BOT_ADMINS_NOTIFICATIONS = config.BOT_ADMINS
 
 
-def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
+def setup_bot(
+    backend_name: str,
+    logger: logging.Logger,
+    config: object,
+    restore: Optional[str] = None,
+) -> ErrBot:
     # from here the environment is supposed to be set (daemon / non daemon,
     # config.py in the python path )
 
@@ -210,7 +216,7 @@ def setup_bot(backend_name: str, logger, config, restore=None) -> ErrBot:
         exit(-1)
 
 
-def restore_bot_from_backup(backup_filename, *, bot, log):
+def restore_bot_from_backup(backup_filename: str, *, bot, log: logging.Logger):
     """Restores the given bot by executing the 'backup' script.
 
     The backup file is a python script which manually execute a series of commands on the bot
@@ -225,7 +231,7 @@ def restore_bot_from_backup(backup_filename, *, bot, log):
     bot.close_storage()
 
 
-def get_storage_plugin(config):
+def get_storage_plugin(config: object) -> Callable:
     """
     Find and load the storage plugin
     :param config: the bot configuration.
@@ -245,7 +251,9 @@ def get_storage_plugin(config):
     return spm.load_plugin()
 
 
-def bootstrap(bot_class, logger, config, restore=None):
+def bootstrap(
+    bot_class, logger: logging.Logger, config: object, restore: Optional[str] = None
+) -> None:
     """
     Main starting point of Errbot.
 

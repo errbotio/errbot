@@ -26,7 +26,7 @@ class FlowNode:
     The predicate is a function that takes one parameter, the context of the conversation.
     """
 
-    def __init__(self, command: str = None, hints: bool = True):
+    def __init__(self, command: str = None, hints: bool = True) -> None:
         """
         Creates a FlowNone, takes the command to which the Node is linked to.
         :param command: the command this Node is linked to. Can only be None if this Node is a Root.
@@ -41,7 +41,7 @@ class FlowNode:
         node_or_command: Union["FlowNode", str],
         predicate: Predicate = lambda _: False,
         hints: bool = True,
-    ):
+    ) -> "FlowNode":
         """
         Construct the flow graph by connecting this node to another node or a command.
         The predicate is a function that tells the flow executor if the flow can enter the step without the user
@@ -61,7 +61,7 @@ class FlowNode:
         self.children.append((predicate, node_to_connect_to))
         return node_to_connect_to
 
-    def predicate_for_node(self, node: "FlowNode"):
+    def predicate_for_node(self, node: "FlowNode") -> Optional[Predicate]:
         """
         gets the predicate function for the specified child node.
         :param node: the child node
@@ -100,7 +100,7 @@ class FlowRoot(FlowNode):
         predicate: Predicate = lambda _: False,
         auto_trigger: bool = False,
         room_flow: bool = False,
-    ):
+    ) -> "FlowNode":
         """
         :see: FlowNode except fot auto_trigger
         :param predicate: :see: FlowNode
@@ -172,7 +172,7 @@ class Flow:
         """
         return [node for predicate, node in self._current_step.children]
 
-    def advance(self, next_step: FlowNode, enforce_predicate=True):
+    def advance(self, next_step: FlowNode, enforce_predicate: bool = True):
         """
         Move on along the flow.
         :param next_step: Which node you want to move the flow forward to.
@@ -213,7 +213,7 @@ class Flow:
         """
         return self._root
 
-    def check_identifier(self, identifier: Identifier):
+    def check_identifier(self, identifier: Identifier) -> bool:
         is_room = isinstance(self.requestor, Room)
         is_room = is_room and isinstance(identifier, RoomOccupant)
         is_room = is_room and self.requestor == identifier.room
@@ -278,7 +278,7 @@ class FlowExecutor:
         atexit.register(self._pool.close)
         self._bot = bot
 
-    def add_flow(self, flow: FlowRoot):
+    def add_flow(self, flow: FlowRoot) -> None:
         """
         Register a flow with this executor.
         """
@@ -416,13 +416,13 @@ class FlowExecutor:
                     return flow
         return None
 
-    def _enqueue_flow(self, flow):
+    def _enqueue_flow(self, flow: Flow) -> None:
         with self._lock:
             if flow not in self.in_flight:
                 self.in_flight.append(flow)
         self._pool.apply_async(self.execute, (flow,))
 
-    def execute(self, flow: Flow):
+    def execute(self, flow: Flow) -> None:
         """
         This is where the flow execution happens from one of the thread of the pool.
         """

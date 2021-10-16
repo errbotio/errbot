@@ -5,13 +5,14 @@ import os
 import re
 import sys
 from configparser import ConfigParser
+from typing import List, Optional
 
 import jinja2
 
 from errbot.version import VERSION
 
 
-def new_plugin_wizard(directory=None):
+def new_plugin_wizard(directory: Optional[str] = None) -> None:
     """
     Start the wizard to create a new plugin in the current working directory.
     """
@@ -102,7 +103,11 @@ def new_plugin_wizard(directory=None):
     )
 
 
-def ask(question, valid_responses=None, validation_regex=None):
+def ask(
+    question: str,
+    valid_responses: Optional[List[str]] = None,
+    validation_regex: Optional[str] = None,
+) -> Optional[str]:
     """
     Ask the user for some input. If valid_responses is supplied, the user
     must respond with something present in this list.
@@ -130,7 +135,7 @@ def ask(question, valid_responses=None, validation_regex=None):
     return response
 
 
-def render_plugin(values):
+def render_plugin(values) -> jinja2.Template:
     """
     Render the Jinja template for the plugin with the given values.
     """

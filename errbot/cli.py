@@ -22,6 +22,7 @@ import sys
 from os import W_OK, access, getcwd, path, sep
 from pathlib import Path
 from platform import system
+from typing import Optional, Union
 
 from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger
@@ -33,7 +34,7 @@ log = logging.getLogger(__name__)
 
 
 # noinspection PyUnusedLocal
-def debug(sig, frame):
+def debug(sig, frame) -> None:
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
     d = {"_frame": frame}  # Allow access to frame object.
@@ -58,7 +59,7 @@ if not ON_WINDOWS:
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
 
-def get_config(config_path):
+def get_config(config_path: str):
     config_fullpath = config_path
     if not path.exists(config_fullpath):
         log.error(f"I cannot find the config file {config_path}.")
@@ -81,7 +82,7 @@ def get_config(config_path):
         exit(-1)
 
 
-def _read_dict():
+def _read_dict() -> dict:
     import collections
 
     new_dict = ast.literal_eval(sys.stdin.read())
@@ -93,7 +94,7 @@ def _read_dict():
     return new_dict
 
 
-def main():
+def main() -> None:
 
     execution_dir = getcwd()
 

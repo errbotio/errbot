@@ -8,7 +8,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 from os import path
 from pathlib import Path
-from typing import Dict, Generator, List, Sequence, Tuple, Union
+from typing import Dict, Generator, List, Optional, Sequence, Tuple, Union
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -21,7 +21,7 @@ from .utils import ON_WINDOWS, git_clone, git_pull
 log = logging.getLogger(__name__)
 
 
-def human_name_for_git_url(url):
+def human_name_for_git_url(url: str) -> str:
     # try to humanize the last part of the git url as much as we can
     s = url.split(":")[-1].split("/")[-2:]
     if s[-1].endswith(".git"):
@@ -46,7 +46,7 @@ class RepoException(Exception):
     pass
 
 
-def makeEntry(repo_name: str, plugin_name: str, json_value):
+def makeEntry(repo_name: str, plugin_name: str, json_value: dict) -> RepoEntry:
     return RepoEntry(
         entry_name=repo_name,
         name=plugin_name,
@@ -58,7 +58,7 @@ def makeEntry(repo_name: str, plugin_name: str, json_value):
     )
 
 
-def tokenizeJsonEntry(json_dict):
+def tokenizeJsonEntry(json_dict: dict) -> set:
     """
     Returns all the words in a repo entry.
     """
@@ -66,7 +66,7 @@ def tokenizeJsonEntry(json_dict):
     return set(FIND_WORDS_RE.findall(search.lower()))
 
 
-def which(program):
+def which(program: str) -> Optional[str]:
     if ON_WINDOWS:
         program += ".exe"
 
@@ -86,7 +86,7 @@ def which(program):
     return None
 
 
-def check_dependencies(req_path: Path) -> Tuple[Union[str, None], Sequence[str]]:
+def check_dependencies(req_path: Path) -> Tuple[Optional[str], Sequence[str]]:
     """This methods returns a pair of (message, packages missing).
     Or None, [] if everything is OK.
     """

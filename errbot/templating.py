@@ -22,11 +22,11 @@ env = Environment(
 )
 
 
-def tenv():
+def tenv() -> Environment:
     return env
 
 
-def add_plugin_templates_path(plugin_info: PluginInfo):
+def add_plugin_templates_path(plugin_info: PluginInfo) -> None:
     global env
     tmpl_path = make_templates_path(plugin_info.location.parent)
     if tmpl_path.exists():
@@ -45,7 +45,7 @@ def add_plugin_templates_path(plugin_info: PluginInfo):
     )
 
 
-def remove_plugin_templates_path(plugin_info: PluginInfo):
+def remove_plugin_templates_path(plugin_info: PluginInfo) -> None:
     global env
     tmpl_path = str(make_templates_path(plugin_info.location.parent))
     if tmpl_path in template_path:

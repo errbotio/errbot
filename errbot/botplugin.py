@@ -4,7 +4,7 @@ import shlex
 from io import IOBase
 from threading import Timer, current_thread
 from types import ModuleType
-from typing import Callable, Mapping, Optional, Sequence, Tuple
+from typing import Any, Callable, List, Mapping, Optional, Sequence, Tuple
 
 from errbot.backends.base import (
     ONLINE,
@@ -26,7 +26,7 @@ class ValidationException(Exception):
     pass
 
 
-def recurse_check_structure(sample, to_check):
+def recurse_check_structure(sample: Any, to_check: Any) -> None:
     sample_type = type(sample)
     to_check_type = type(to_check)
 
@@ -81,12 +81,12 @@ class Command:
 
     def __init__(
         self,
-        function,
-        cmd_type=None,
+        function: Callable,
+        cmd_type: Optional[Callable] = None,
         cmd_args=None,
         cmd_kwargs=None,
-        name=None,
-        doc=None,
+        name: Optional[str] = None,
+        doc: Optional[str] = None,
     ):
         """
         Create a Command definition.
@@ -245,7 +245,7 @@ class BotPluginBase(StoreMixin):
         times: int = None,
         args: Tuple = None,
         kwargs: Mapping = None,
-    ):
+    ) -> None:
         """Starts a poller that will be called at a regular interval
 
         :param interval: interval in seconds
@@ -274,7 +274,7 @@ class BotPluginBase(StoreMixin):
 
     def stop_poller(
         self, method: Callable[..., None], args: Tuple = None, kwargs: Mapping = None
-    ):
+    ) -> None:
         if not kwargs:
             kwargs = {}
         if not args:
@@ -289,7 +289,7 @@ class BotPluginBase(StoreMixin):
         times: int = None,
         args: Tuple = None,
         kwargs: Mapping = None,
-    ):
+    ) -> None:
         if times is not None and times <= 0:
             return
 
@@ -316,7 +316,7 @@ class BotPluginBase(StoreMixin):
         times: int = None,
         args: Tuple = None,
         kwargs: Mapping = None,
-    ):
+    ) -> None:
         previous_timer = current_thread()
         if previous_timer in self.current_timers:
             log.debug("Previous timer found and removed")
@@ -334,7 +334,9 @@ class BotPluginBase(StoreMixin):
 
             self.program_next_poll(interval, method, times, args, kwargs)
 
-    def create_dynamic_plugin(self, name: str, commands: Tuple[Command], doc: str = ""):
+    def create_dynamic_plugin(
+        self, name: str, commands: Tuple[Command], doc: str = ""
+    ) -> None:
         """
         Creates a plugin dynamically and exposes its commands right away.
 
@@ -355,7 +357,7 @@ class BotPluginBase(StoreMixin):
         self._dynamic_plugins[name] = plugin
         self._bot.inject_commands_from(plugin)
 
-    def destroy_dynamic_plugin(self, name: str):
+    def destroy_dynamic_plugin(self, name: str) -> None:
         """
         Reverse operation of create_dynamic_plugin.
 
@@ -528,7 +530,7 @@ class BotPlugin(BotPluginBase):
         """
         stream.reject()  # by default, reject the file as the plugin doesn't want it.
 
-    def callback_botmessage(self, message: Message):
+    def callback_botmessage(self, message: Message) -> None:
         """
         Triggered on every message coming from the bot itself.
 
@@ -546,7 +548,7 @@ class BotPlugin(BotPluginBase):
         room: Room,
         identifier: Identifier,
         invited_by: Optional[Identifier] = None,
-    ):
+    ) -> None:
         """
         Triggered when a user has joined a MUC.
 
@@ -560,7 +562,7 @@ class BotPlugin(BotPluginBase):
 
     def callback_room_left(
         self, room: Room, identifier: Identifier, kicked_by: Optional[Identifier] = None
-    ):
+    ) -> None:
         """
         Triggered when a user has left a MUC.
 
@@ -572,7 +574,7 @@ class BotPlugin(BotPluginBase):
         """
         pass
 
-    def callback_room_topic(self, room: Room):
+    def callback_room_topic(self, room: Room) -> None:
         """
         Triggered when the topic in a MUC changes.
 
@@ -720,7 +722,7 @@ class BotPlugin(BotPluginBase):
         name: str = None,
         size: int = None,
         stream_type: str = None,
-    ):
+    ) -> Callable:
         """
         Sends asynchronously a stream/file to a user.
 
@@ -838,7 +840,7 @@ class SeparatorArgParser(ArgParserBase):
         self.separator = separator
         self.maxsplit = maxsplit
 
-    def parse_args(self, args: str):
+    def parse_args(self, args: str) -> List:
         return args.split(self.separator, self.maxsplit)
 
 

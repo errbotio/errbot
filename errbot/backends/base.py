@@ -4,7 +4,7 @@ import random
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from typing import Any, BinaryIO, List, Mapping, Sequence, Tuple
+from typing import Any, BinaryIO, List, Mapping, Optional, Sequence, Tuple
 
 log = logging.getLogger(__name__)
 
@@ -294,7 +294,7 @@ class Message:
         else:
             self.ctx = {}
 
-    def clone(self):
+    def clone(self) -> "Message":
         return Message(
             body=self._body,
             frm=self._from,
@@ -370,7 +370,7 @@ class Message:
         self._delayed = delayed
 
     @property
-    def parent(self):
+    def parent(self) -> Optional["Message"]:
         return self._parent
 
     @parent.setter
@@ -382,7 +382,7 @@ class Message:
         return self._extras
 
     @property
-    def flow(self):
+    def flow(self) -> "Flow":
         """
         Get the conversation flow for this message.
 
@@ -460,37 +460,37 @@ class Card(Message):
         self._fields = fields
 
     @property
-    def summary(self):
+    def summary(self) -> str:
         return self._summary
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self._title
 
     @property
-    def link(self):
+    def link(self) -> str:
         return self._link
 
     @property
-    def image(self):
+    def image(self) -> str:
         return self._image
 
     @property
-    def thumbnail(self):
+    def thumbnail(self) -> str:
         return self._thumbnail
 
     @property
-    def color(self):
+    def color(self) -> str:
         return self._color
 
     @property
-    def text_color(self):
+    def text_color(self) -> str:
         if self._color in ("black", "blue"):
             return "white"
         return "black"
 
     @property
-    def fields(self):
+    def fields(self) -> Tuple[Tuple[str, str]]:
         return self._fields
 
 
@@ -881,7 +881,7 @@ class Backend(ABC):
         log.info("Trigger shutdown")
         self.shutdown()
 
-    def _delay_reconnect(self):
+    def _delay_reconnect(self) -> None:
         """Delay next reconnection attempt until a suitable back-off time has passed"""
         time.sleep(self._reconnection_delay)
 

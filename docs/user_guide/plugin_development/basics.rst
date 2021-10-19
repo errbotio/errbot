@@ -127,7 +127,7 @@ Lets go ahead and create ours. Place the following in a file called
     Module = helloworld
 
     [Python]
-    Version = 2+
+    Version = 3
 
     [Documentation]
     Description = Example "Hello, world!" plugin

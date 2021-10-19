@@ -16,7 +16,7 @@ They are defined by a ``.flow`` file, similar to the plugin ones:
     Description = my documentation.
 
     [Python]
-    Version = 2+
+    Version = 3
 
 
 Now in the ``myflows.py`` file you will have pretty familiar structure with a ``BotFlow`` as type and @botflow

@@ -18,6 +18,7 @@ fixes:
 - backend/test: shutdown sequence to address test failure (#1535)
 - core: various minor logging improvements (#1536)
 - chore: various minor formatting improvements (#1541)
+- docs: update spark plugin reference (#1546)
 
 v6.1.8 (2021-06-21)
 -------------------

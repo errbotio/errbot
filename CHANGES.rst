@@ -19,6 +19,7 @@ fixes:
 - core: various minor logging improvements (#1536)
 - chore: various minor formatting improvements (#1541)
 - docs: update spark plugin reference (#1546)
+- fix: python 2 version references in docs and init template (#1543)
 
 v6.1.8 (2021-06-21)
 -------------------

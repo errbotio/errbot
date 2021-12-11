@@ -427,6 +427,12 @@ class SlackRTMBackend(ErrBot):
             self._presence_change_event_handler(payload["web_client"], payload["data"])
 
     def serve_forever(self):
+        log.warning(
+            "This backend is deprecated and will be removed in a future release."
+            " No future updates, bug fixes or enhancements will be included."
+            " We strongly advise migrating to SlackV3, which is available"
+            " at https://github.com/errbotio/err-backend-slackv3."
+        )
         self.sc = RTMClient(token=self.token, proxy=self.proxies)
 
         @RTMClient.run_on(event="open")

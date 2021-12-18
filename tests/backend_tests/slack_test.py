@@ -40,7 +40,6 @@ try:
             m.name = user
             return m
 
-
 except SystemExit:
     log.exception("Can't import backends.slack for testing")
 

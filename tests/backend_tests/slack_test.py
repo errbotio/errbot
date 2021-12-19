@@ -14,6 +14,8 @@ try:
     from errbot.backends import slack
 
     class TestSlackBackend(slack.SlackBackend):
+        __test__ = False
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.test_msgs = []

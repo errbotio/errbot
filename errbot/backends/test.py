@@ -49,6 +49,8 @@ class TestPerson(Person):
     methods exposed by this class.
     """
 
+    __test__ = False
+
     def __init__(self, person, client=None, nick=None, fullname=None, email=None):
         self._person = person
         self._client = client
@@ -107,6 +109,8 @@ class TestOccupant(TestPerson, RoomOccupant):
     DO NOT USE THIS DIRECTLY AS IT IS NOT COMPATIBLE WITH MOST BACKENDS,
     """
 
+    __test__ = False
+
     def __init__(self, person, room):
         super().__init__(person)
         self._room = room
@@ -125,6 +129,8 @@ class TestOccupant(TestPerson, RoomOccupant):
 
 
 class TestRoom(Room):
+    __test__ = False
+
     def invite(self, *args):
         pass
 

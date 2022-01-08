@@ -18,10 +18,8 @@ that the version packaged with your distribution may be a few versions behind.
 
 Example of packaged versions of Errbot:
 
-* Gentoo: https://gpo.zugaina.org/net-im/errbot
 * Arch: https://aur.archlinux.org/packages/python-err/
 * Docker: https://hub.docker.com/r/rroemhild/errbot/
-* Juju: https://jujucharms.com/u/onlineservices-charmers/errbot
 
 
 Option 2: Installing Errbot in a virtualenv (preferred)
@@ -106,10 +104,14 @@ You can find here more details about configuring Errbot for some specific chat s
 .. toctree::
   :maxdepth: 1
 
-  configuration/xmpp
+  configuration/discord
+  configuration/gitter
   configuration/irc
+  configuration/mattermost
   configuration/slack
+  configuration/slackv3
   configuration/telegram
+  configuration/xmpp
 
 
 Starting the daemon

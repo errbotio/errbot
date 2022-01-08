@@ -7,12 +7,21 @@ BLOCK_COMMAND = (None, None, None)
 
 
 def get_acl_usr(msg):
-    """Return the ACL attribute of the sender of the given message"""
-    if hasattr(
-        msg.frm, "aclattr"
-    ):  # if the identity requires a special field to be used for acl
+    """
+    Return the ACL attribute of the sender of the given message.
+    """
+    if hasattr(msg.frm, "aclattr"):
         return msg.frm.aclattr
-    return msg.frm.person  # default
+    return msg.frm.person
+
+
+def get_acl_room(msg):
+    """
+    Return the ACL attribute for a given room.
+    """
+    if hasattr(msg.frm.room, "aclattr"):
+        return msg.frm.room.aclattr
+    return str(msg.frm.room)
 
 
 def glob(text, patterns):
@@ -91,18 +100,22 @@ class ACLS(BotPlugin):
 
         if "allowusers" in acl and not glob(usr, acl["allowusers"]):
             return self.access_denied(
-                msg, "You're not allowed to access this command from this user", dry_run
+                msg,
+                "You're not allowed to access this command from this user",
+                dry_run,
             )
         if "denyusers" in acl and glob(usr, acl["denyusers"]):
             return self.access_denied(
-                msg, "You're not allowed to access this command from this user", dry_run
+                msg,
+                "You're not allowed to access this command from this user",
+                dry_run,
             )
         if msg.is_group:
             if not isinstance(msg.frm, RoomOccupant):
                 raise Exception(
                     f"msg.frm is not a RoomOccupant. Class of frm: {msg.frm.__class__}"
                 )
-            room = str(msg.frm.room)
+            room = get_acl_room(msg)
             if "allowmuc" in acl and acl["allowmuc"] is False:
                 return self.access_denied(
                     msg,

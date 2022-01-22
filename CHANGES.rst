@@ -7,6 +7,7 @@ features:
 - core: option to divert all commands to private or thread (#1528)
 - core: add type hints to core and backend functions (#1542)
 - docs: add ACL and numerous backends to official documentation (#1552)
+- core: add Python 3.10 to automated tests (#1539)
 
 fixes:
 
@@ -19,6 +20,10 @@ fixes:
 - backend/test: shutdown sequence to address test failure (#1535)
 - core: various minor logging improvements (#1536)
 - chore: various minor formatting improvements (#1541)
+- docs: update spark plugin reference (#1546)
+- fix: python 2 version references in docs and init template (#1543)
+- backends: deprecate built-in Slack and SlackRTM (#1526)
+- chore: remove python 3.6 checks and test environment (#1540)
 
 v6.1.8 (2021-06-21)
 -------------------

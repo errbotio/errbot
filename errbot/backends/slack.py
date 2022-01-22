@@ -415,6 +415,12 @@ class SlackBackend(ErrBot):
         log.debug("Converted bot_alt_prefixes: %s", self.bot_config.BOT_ALT_PREFIXES)
 
     def serve_once(self):
+        log.warning(
+            "This backend is deprecated and will be removed in a future release."
+            " No future updates, bug fixes or enhancements will be included."
+            " We strongly advise migrating to SlackV3, which is available"
+            " at https://github.com/errbotio/err-backend-slackv3."
+        )
         self.sc = SlackClient(self.token, proxies=self.proxies)
 
         log.info("Verifying authentication token")

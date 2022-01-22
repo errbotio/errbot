@@ -412,7 +412,7 @@ class IRCConnection(SingleServerIRCBot):
         # from the ChatRoom plugin joining channels from CHATROOM_PRESENCE
         # ends up blocking on connect.
         t = threading.Thread(target=self.bot.connect_callback)
-        t.setDaemon(True)
+        t.daemon = True
         t.start()
 
     def _pubmsg(self, e, notice: bool = False) -> None:

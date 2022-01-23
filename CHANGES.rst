@@ -24,6 +24,7 @@ fixes:
 - fix: python 2 version references in docs and init template (#1543)
 - backends: deprecate built-in Slack and SlackRTM (#1526)
 - chore: remove python 3.6 checks and test environment (#1540)
+- chore: add/update issue templates (#1554)
 
 v6.1.8 (2021-06-21)
 -------------------

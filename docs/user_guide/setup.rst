@@ -19,7 +19,7 @@ that the version packaged with your distribution may be a few versions behind.
 Example of packaged versions of Errbot:
 
 * Arch: https://aur.archlinux.org/packages/python-err/
-* Docker: https://hub.docker.com/r/rroemhild/errbot/
+* Docker: https://hub.docker.com/r/errbotio/errbot
 
 
 Option 2: Installing Errbot in a virtualenv (preferred)

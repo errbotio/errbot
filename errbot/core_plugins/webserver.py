@@ -1,6 +1,6 @@
+import logging
 import os
 import sys
-import logging
 from json import loads
 from random import randrange
 from threading import Thread

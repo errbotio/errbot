@@ -25,6 +25,7 @@ fixes:
 - backends: deprecate built-in Slack and SlackRTM (#1526)
 - chore: remove python 3.6 checks and test environment (#1540)
 - chore: add/update issue templates (#1554)
+- chore: pin all package dependencies (#1553)
 
 v6.1.8 (2021-06-21)
 -------------------

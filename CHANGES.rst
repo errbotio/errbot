@@ -25,7 +25,7 @@ fixes:
 - backends: deprecate built-in Slack and SlackRTM (#1526)
 - chore: remove python 3.6 checks and test environment (#1540)
 - chore: add/update issue templates (#1554)
-- chore: pin all package dependencies (#1553)
+- chore: pin all package dependencies (#1553, #1559)
 - core/webserver: use errbot loglevel for consistent logging. (#1556)
 - fix/core: prevent infinite loop when only BOT_PREFIX is passed (#1557)
 

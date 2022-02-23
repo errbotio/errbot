@@ -27,6 +27,7 @@ fixes:
 - chore: add/update issue templates (#1554)
 - chore: pin all package dependencies (#1553)
 - core/webserver: use errbot loglevel for consistent logging. (#1556)
+- fix/core: prevent infinite loop when only BOT_PREFIX is passed (#1557)
 
 v6.1.8 (2021-06-21)
 -------------------

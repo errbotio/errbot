@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from json import loads
@@ -127,6 +128,8 @@ class Webserver(BotPlugin):
                 flask_app,
                 ssl_context=ssl_context,
             )
+            wsgi_log = logging.getLogger("werkzeug")
+            wsgi_log.setLevel(self.bot_config.BOT_LOG_LEVEL)
             self.server.serve_forever()
             self.log.debug("Webserver stopped")
         except KeyboardInterrupt:

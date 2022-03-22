@@ -83,10 +83,10 @@ def get_config(config_path: str):
 
 
 def _read_dict() -> dict:
-    import collections
+    import collections.abc
 
     new_dict = ast.literal_eval(sys.stdin.read())
-    if not isinstance(new_dict, collections.Mapping):
+    if not isinstance(new_dict, collections.abc.Mapping):
         raise ValueError(
             f"A dictionary written in python is needed from stdin. "
             f"Type={type(new_dict)}, Value = {repr(new_dict)}."

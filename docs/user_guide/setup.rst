@@ -20,7 +20,7 @@ Example of packaged versions of Errbot:
 
 * Arch: https://aur.archlinux.org/packages/python-err/
 * Docker: https://hub.docker.com/r/errbotio/errbot
-
+* Gentoo: https://packages.gentoo.org/packages/net-im/err
 
 Option 2: Installing Errbot in a virtualenv (preferred)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

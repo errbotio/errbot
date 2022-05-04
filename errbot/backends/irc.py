@@ -377,7 +377,6 @@ class IRCConnection(SingleServerIRCBot):
             [(server, port, password)],
             nickname,
             username,
-            reconnection_interval=reconnect_on_disconnect,
         )
 
     def connect(self, *args, **kwargs) -> None:

@@ -29,6 +29,7 @@ fixes:
 - core/webserver: use errbot loglevel for consistent logging. (#1556)
 - fix/core: prevent infinite loop when only BOT_PREFIX is passed (#1557)
 - chore: bump actions/setup-python from 2 to 3.1.0 (#1563)
+- fix: removed deprecated argument reconnection_interval for irc v20.0 (#1568)
 
 v6.1.8 (2021-06-21)
 -------------------

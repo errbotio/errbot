@@ -32,7 +32,7 @@ fixes:
 - chore: Set permissions for GitHub actions (#1565)
 - fix: removed deprecated argument reconnection_interval for irc v20.0 (#1568)
 - docs: Add Gentoo packages (#1567)
-
+- chore: bump actions/setup-python from 3.1.0 to 3.1.2 (#1564)
 
 v6.1.8 (2021-06-21)
 -------------------

@@ -140,6 +140,13 @@ class Room(Identifier):
         )
 
     @property
+    def aclattr(self) -> str:
+        """
+        :return: returns the unique identifier that will be used for ACL matches.
+        """
+        return str(self)
+
+    @property
     def exists(self) -> bool:
         """
         Boolean indicating whether this room already exists or not.

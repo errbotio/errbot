@@ -8,6 +8,7 @@ features:
 - core: add type hints to core and backend functions (#1542)
 - docs: add ACL and numerous backends to official documentation (#1552)
 - core: add Python 3.10 to automated tests (#1539)
+- core: add room acl attribute (#1530)
 
 fixes:
 

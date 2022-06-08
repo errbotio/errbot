@@ -58,3 +58,10 @@ def test_indirect_circular_dependency(testbot):
     assert "Circular2" not in plug_names
     assert "Circular3" not in plug_names
     assert "Circular4" not in plug_names
+
+
+def test_chained_dependency(testbot):
+    plug_names = testbot.bot.plugin_manager.get_all_active_plugin_names()
+    assert "Chained1" in plug_names
+    assert "Chained2" in plug_names
+    assert "Chained3" in plug_names

@@ -244,6 +244,18 @@ class TestRoom(Room):
         return self._name == other._name
 
 
+class TestRoomAcl(TestRoom):
+    def __init__(self, name, occupants=None, topic=None, bot=None):
+        super().__init__(name, occupants, topic, bot)
+
+    @property
+    def aclattr(self):
+        return self._name
+
+    def __str__(self):
+        return "not room name"
+
+
 class TestBackend(ErrBot):
     def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         pass

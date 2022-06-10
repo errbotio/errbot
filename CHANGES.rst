@@ -9,6 +9,7 @@ features:
 - docs: add ACL and numerous backends to official documentation (#1552)
 - core: add Python 3.10 to automated tests (#1539)
 - core: add room acl attribute (#1530)
+- chore: refactor Dockerfile errbot install and python version bump (#1571)
 
 fixes:
 

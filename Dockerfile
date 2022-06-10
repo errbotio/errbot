@@ -1,10 +1,10 @@
-FROM python:3.8-slim as BUILD
+FROM python:3.9-slim as BUILD
 WORKDIR /wheel
 COPY . .
 RUN pip3 wheel --wheel-dir=/wheel \
     errbot errbot[irc] errbot[slack] errbot[XMPP] errbot[telegram]
 
-FROM python:3.8-slim
+FROM python:3.9-slim
 COPY --from=BUILD /wheel /wheel
 RUN apt update && \
     apt install -y git && \

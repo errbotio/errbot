@@ -14,8 +14,9 @@ RUN apt update && \
     rm -rf /wheel /var/lib/apt/lists/*
 
 RUN useradd -m errbot
+WORKDIR /home/errbot
 USER errbot
+RUN errbot --init
 EXPOSE 3141 3142
 VOLUME /home/errbot
-WORKDIR /home/errbot
 ENTRYPOINT [ "/usr/local/bin/errbot" ]

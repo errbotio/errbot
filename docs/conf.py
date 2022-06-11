@@ -130,6 +130,10 @@ def run_repos_builder(*_):
     subprocess.check_call("pwd; cp repos.json ../docs/html_extras/", shell=True)
     os.chdir(last_dir)
 
+# -- Changelog -----------------------------------------------------------------
+
+def run_changelog(_):
+    subprocess.check_call("gitchangelog", shell=True)
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -321,3 +325,4 @@ def setup(app):
     app.connect("autodoc-skip-member", autodoc_skip_member)
     app.connect("builder-inited", run_apidoc)
     #app.connect("html-page-context", run_repos_builder)
+    app.connect("builder-inited", run_changelog)

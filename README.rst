@@ -80,7 +80,7 @@ Developer features
 - Presetup storage for every plugin i.e. ``self['foo'] = 'bar'`` persists the value.
 - Conversation flows to track conversation states from users.
 - Webhook callbacks support
-- supports `markdown extras <https://pythonhosted.org/Markdown/extensions/extra.html>`_ formatting with tables, embedded images, links etc.
+- supports `markdown extras <https://markdown-extra.readthedocs.io/>`_ formatting with tables, embedded images, links etc.
 - configuration helper to allow your plugin to be configured by chat
 - Text development/debug consoles
 - Self-documenting: your docstrings become help automatically

@@ -2,7 +2,9 @@ v9.9.9 (unreleased)
 -------------------
 
 fixes:
+
 - docs: add unreleased section (#1576)
+- docs: update broken URL for Markdown Extra (#1572)
 
 
 v6.1.9 (2022-06-11)

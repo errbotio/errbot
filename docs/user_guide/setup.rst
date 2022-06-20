@@ -192,7 +192,7 @@ Or if you used pip without virtualenv::
 It's recommended that you review the changelog before performing an upgrade
 in case backwards-incompatible changes have been introduced in the new version.
 The changelog for the release you will be installing can always be found
-on `PyPI <https://pypi.python.org/pypi/errbot>`_.
+on `PyPI <https://pypi.org/project/errbot/>`_.
 
 Provisioning (advanced)
 -----------------------

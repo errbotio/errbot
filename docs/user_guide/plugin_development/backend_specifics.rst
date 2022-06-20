@@ -87,8 +87,8 @@ Backend                                       Library                    Attribu
 :class:`~errbot.backends.xmpp`                `slixmpp`_                 ``self._bot.conn``
 ============================================  =========================  ================================================
 
-.. _hypchat: https://pypi.python.org/pypi/hypchat/
-.. _irc: https://pypi.python.org/pypi/irc/
-.. _`telegram-python-bot`: https://pypi.python.org/pypi/python-telegram-bot
-.. _slackclient: https://pypi.python.org/pypi/slackclient/
-.. _slixmpp: https://pypi.python.org/pypi/slixmpp
+.. _hypchat: https://pypi.org/project/hypchat/
+.. _irc: https://pypi.org/project/irc/
+.. _`telegram-python-bot`: https://pypi.org/project/python-telegram-bot
+.. _slackclient: https://pypi.org/project/slackclient/
+.. _slixmpp: https://pypi.org/project/slixmpp

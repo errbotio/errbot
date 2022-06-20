@@ -32,7 +32,7 @@ Publishing to Read the Docs
 Read the Docs should rebuild the site automatically when new commits are pushed.
 When new project releases are made, it may be necessary to add the new version
 and remove older versions (to prevent clutter in the version drop-down).
-This can be done at https://readthedocs.org/dashboard/errbot/versions/.
+This can be done at https://readthedocs.org/projects/errbot/versions/.
 
 
 .. _Sphinx: http://sphinx-doc.org/

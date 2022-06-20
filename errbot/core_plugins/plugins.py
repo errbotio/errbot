@@ -18,7 +18,7 @@ class Plugins(BotPlugin):
         """install a plugin repository from the given source or a known public repo (see !repos to find those).
         for example from a known repo: !install err-codebot
         for example a git url: git@github.com:gbin/plugin.git
-        or an url towards a tar.gz archive: http://www.gootz.net/plugin-latest.tar.gz
+        or an url towards an archive: https://github.com/errbotio/err-helloworld/archive/refs/heads/master.zip
         """
         args = args.strip()
         if not args:

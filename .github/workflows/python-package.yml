@@ -59,3 +59,8 @@ jobs:
       if: ${{ matrix.python-version == '3.9' }}
       run: |
         tox -e security
+
+    - name: Docs
+      if: ${{ matrix.python-version == '3.9' }}
+      run: |
+        tox -e docs

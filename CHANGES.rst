@@ -7,6 +7,7 @@ fixes:
 - docs: update broken URL for Markdown Extra (#1572)
 - chore: bump actions/setup-python version (#1575)
 - backend/telegram: fix missing imports (#1574)
+- chore: ci improvements (#1577)
 
 
 v6.1.9 (2022-06-11)

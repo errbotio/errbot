@@ -9,3 +9,4 @@ pyfire
 python-telegram-bot
 slackclient
 hypchat
+pytest

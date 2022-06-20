@@ -391,7 +391,7 @@ class Message:
         return self._extras
 
     @property
-    def flow(self) -> "Flow":
+    def flow(self) -> "errbot.Flow":
         """
         Get the conversation flow for this message.
 

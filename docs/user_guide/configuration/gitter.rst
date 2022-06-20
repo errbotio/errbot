@@ -4,7 +4,11 @@ Gitter Backend
 This is a backend for `Gitter <http://gitter.im>`_ for errbot.
 The source code is hosted on `github <https://github.com/errbotio/err-backend-gitter>`_.
 
-`Screenshot <https://raw.githubusercontent.com/errbotio/err-backend-gitter/master/screenshot.png>`_.
+.. image:: https://raw.githubusercontent.com/errbotio/err-backend-gitter/master/screenshot.png
+   :width: 586px
+   :height: 330px
+   :scale: 75%
+   :alt: Gitter backend screenshot
 
 Requirements
 ------------
@@ -17,12 +21,14 @@ Installation
 
 Checkout the backend using git:
 
-.. codeblock:: bash
+.. code::
+
   git checkout https://github.com/errbotio/err-backend-gitter
 
-Edit errbot's configuration file (``config.py``) and set the backend and backend directory variables:
+Edit errbot's configuration file (`config.py`) and set the backend and backend directory variables:
 
-.. codeblock:: none
+.. code::
+
   BACKEND = 'Gitter'
   BOT_EXTRA_BACKEND_DIR = '/path_to/backend'
 
@@ -33,7 +39,7 @@ From there you have can either add an application or use a personal token from a
 Adding an application, workflow for auth
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1. pip install bottle requests
-2. execute the script: ./oauth.py and it will guide you
+2. execute the script: `./oauth.py`` and it will guide you
 
 Adding as a real user
 ~~~~~~~~~~~~~~~~~~~~~
@@ -41,7 +47,8 @@ Adding as a real user
 2. go visit https://developer.gitter.im/apps
 3. use directly the token like this in you config.py
 
-.. codeblock:: none
+.. code::
+
   BOT_IDENTITY = {
       'token' : '54537fa855b9a7bbbbbbbbbc568ea7c069d8c34d'
   }

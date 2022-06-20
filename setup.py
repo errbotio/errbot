@@ -117,9 +117,6 @@ if __name__ == "__main__":
             "IRC": [
                 "irc==20.0.0",
             ],
-            "slack": [
-                "slackclient==1.3.2",
-            ],
             "slack-rtm": [
                 "slackclient==2.9.3",
             ],

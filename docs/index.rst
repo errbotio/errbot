@@ -14,16 +14,13 @@ home security, socials platform (such as Slack, Discord, IRC), etc.
 Screenshots
 -----------
 
-.. raw:: html
+.. image:: _static/screenshots/thumb_slack.png
+   :target: _static/screenshots/slack.png
+   :alt: Showing output of the built-in help command in Slack
 
-    <div class="screenshots">
-        <a href="_static/screenshots/slack.png" class="fancybox" title="Showing output of the built-in help command in Slack">
-            <img src="_static/screenshots/thumb_slack.png" width="170" height="150" alt="Showing output of the built-in help command in Slack" />
-        </a>
-        <a href="_static/screenshots/telegram.png" class="fancybox" title="Errbot running on Telegram showing the !help command">
-            <img src="_static/screenshots/thumb_telegram.png" width="180" height= "150" alt="Errbot running on Telegram showing the !help command" />
-        </a>
-    </div>
+.. image:: _static/screenshots/thumb_telegram.png
+   :target: _static/screenshots/telegram.png
+   :alt: Errbot running on Telegram showing the !help command
 
 Simple to build upon
 --------------------

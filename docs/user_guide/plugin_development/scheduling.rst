@@ -13,7 +13,7 @@ For example, you could schedule a callback to be executed once every
 minute when your plugin gets activated:
 
 .. code-block:: python
-   :emphasize-lines: 10
+   :emphasize-lines: 9
 
     from errbot import BotPlugin
 
@@ -30,7 +30,7 @@ It is also possible to specify the `times` parameter, which denotes how
 many times the function should be called, for instance:
 
 .. code-block:: python
-   :emphasize-lines: 10
+   :emphasize-lines: 9
 
     from errbot import BotPlugin
 

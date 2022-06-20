@@ -46,6 +46,7 @@ class FlowNode:
         Construct the flow graph by connecting this node to another node or a command.
         The predicate is a function that tells the flow executor if the flow can enter the step without the user
         intervention (automatically).
+
         :param node_or_command: the node or a string for a command you want to connect this Node to
                                (this node or command will be the follow up of this one)
         :param predicate: function with one parameter, the context, to determine of the flow executor can continue
@@ -175,6 +176,7 @@ class Flow:
     def advance(self, next_step: FlowNode, enforce_predicate: bool = True):
         """
         Move on along the flow.
+
         :param next_step: Which node you want to move the flow forward to.
         :param enforce_predicate: Do you want to check if the predicate is verified for this step or not.
                                    Usually, if it is a manual step, the predicate is irrelevant because the user
@@ -310,7 +312,7 @@ class FlowExecutor:
 
     def check_inflight_already_running(self, user: Identifier) -> bool:
         """
-            Check if user is already running a flow.
+        Check if user is already running a flow.
         :param user: the user
         """
         with self._lock:

@@ -259,7 +259,7 @@ def botmatch(*args, **kwargs):
     """
     Decorator for regex-based message match.
 
-    :param *args: The regular expression a message should match against in order to
+    :param \*args: The regular expression a message should match against in order to
                    trigger the command.
     :param flags: The `flags` parameter which should be passed to :func:`re.compile()`. This
         allows the expression's behaviour to be modified, such as making it case-insensitive

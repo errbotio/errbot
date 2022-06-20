@@ -18,8 +18,8 @@ Account setup
 
 You will first need to create a bot account on Telegram
 for errbot to use.
-You can do this by talking to `@BotFather <https://telegram.me/botfather>`_
-(see also: `BotFather <https://core.telegram.org/bots#botfather>`_).
+You can do this by talking to `@BotFather`_
+(see also: `BotFather docs <https://core.telegram.org/bots#6-botfather>`_).
 Make sure you take note of the token you receive,
 you'll need it later.
 
@@ -62,7 +62,7 @@ which makes interacting with it in a groupchat difficult.
 
 To give the bot access to all messages in a groupchat,
 you can use the `/setprivacy` command when talking to
-`@BotFather <https://core.telegram.org/bots#botfather>`_.
+`@BotFather`_.
 
 .. note::
 
@@ -80,3 +80,5 @@ differently,
 which is designed specifically for interacting with bots.
 
 We therefor suggest setting `BOT_PREFIX = '/'` to take advantage of this.
+
+.. _`@BotFather`: https://telegram.me/botfather

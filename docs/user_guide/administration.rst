@@ -126,14 +126,15 @@ More advanced access controls can be set up using the `ACCESS_CONTROLS` and `ACC
 
 Access controls, allowing commands to be restricted to specific users/rooms.
 Available filters (you can omit a filter or set it to None to disable it):
-  `allowusers`: Allow command from these users only
-  `denyusers`: Deny command from these users
-  `allowrooms`: Allow command only in these rooms (and direct messages)
-  `denyrooms`: Deny command in these rooms
-  `allowargs`: Allow a command's argument from these users only
-  `denyargs`: Deny a command's argument from these users
-  `allowprivate`: Allow command from direct messages to the bot
-  `allowmuc`: Allow command inside rooms
+
+* `allowusers`: Allow command from these users only
+* `denyusers`: Deny command from these users
+* `allowrooms`: Allow command only in these rooms (and direct messages)
+* `denyrooms`: Deny command in these rooms
+* `allowargs`: Allow a command's argument from these users only
+* `denyargs`: Deny a command's argument from these users
+* `allowprivate`: Allow command from direct messages to the bot
+* `allowmuc`: Allow command inside rooms
 
 Rules listed in `ACCESS_CONTROLS_DEFAULT` are applied by default and merged with any commands found in `ACCESS_CONTROLS`.
 
@@ -141,29 +142,30 @@ The options allowusers, denyusers, allowrooms and denyrooms, allowargs, denyargs
 
 Command names also support unix-style globs and can optionally be restricted to a specific plugin by prefixing the command with the name of a plugin, separated by a colon. For example, `Health:status` will match the `!status` command of the `Health` plugin and `Health:*` will match all commands defined by the `Health` plugin.
 
-Please note that the first command match found will be used so if you have overlapping patterns you must used an OrderedDict instead of a regular dict: https://docs.python.org/3/library/collections.html#collections.OrderedDict
+.. note::
+    The first command match found will be used so if you have overlapping patterns you must used an OrderedDict instead of a regular dict: https://docs.python.org/3/library/collections.html#collections.OrderedDict
 
-Example:
-```
-ACCESS_CONTROLS_DEFAULT = {} # Allow everyone access by default
-ACCESS_CONTROLS = {
-    "status": {
-        "allowrooms": ("someroom@conference.localhost",)
-    },
-    "about": {
-        "denyusers": ("*@evilhost",),
-        "allowrooms": ("room1@conference.localhost", "room2@conference.localhost")
-    },
-    "uptime": {"allowusers": BOT_ADMINS},
-    "help": {"allowmuc": False},
-    "ChatRoom:*": {"allowusers": BOT_ADMINS},
-}
-```
+Example::
+
+    ACCESS_CONTROLS_DEFAULT = {} # Allow everyone access by default
+    ACCESS_CONTROLS = {
+        "status": {
+            "allowrooms": ("someroom@conference.localhost",)
+        },
+        "about": {
+            "denyusers": ("*@evilhost",),
+            "allowrooms": ("room1@conference.localhost", "room2@conference.localhost")
+        },
+        "uptime": {"allowusers": BOT_ADMINS},
+        "help": {"allowmuc": False},
+        "ChatRoom:*": {"allowusers": BOT_ADMINS},
+    }
 
 The example :download:`config.py <config-template.py>` file contains this information about the format of these options.
 
 If you don't like encoding access controls into the config file, a member of the errbot community has also created a `dynamic ACL module <https://github.com/shengis/err-profiles>`_ which can be administered through chat commands instead.
-Another community solution allows LDAP groups to be checked for membership before allowing the command to be executed.  `LDAP ACL module <https://github.com/marksull/err-ldap>` is practical for managing large groups.  This module functions by decorating bot commands directly in the plugin code, which differs from configuration based ACLs.
+
+Another community solution allows LDAP groups to be checked for membership before allowing the command to be executed.  `LDAP ACL module <https://github.com/marksull/err-ldap>`_ is practical for managing large groups.  This module functions by decorating bot commands directly in the plugin code, which differs from configuration based ACLs.
 
 .. note::
     Different backends have different formats to identify users.
@@ -171,7 +173,7 @@ Another community solution allows LDAP groups to be checked for membership befor
 
 
 Command filters
-^^^^^^^^^^^^^^^
+---------------
 
 If our built-in access controls don't fit your needs, you can always create your own easily using *command filters*.
 Command filters are functions which are called automatically by errbot whenever a user executes a command.
@@ -185,7 +187,7 @@ Any method in your plugin which is decorated by :func:`~errbot.cmdfilter` will t
 
 
 Overriding CommandNotFoundFilter
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In some cases, it may be necessary to run other filters before the `CommandNotFoundFilter`.  Since the `CommandNotFoundFilter` is part of the core plugin list loaded by errbot, it can not be directly overridden from another plugin.
 Instead, to prevent `CommandNotFoundFilter` from being called before other filters, exclude the `CommandNotFoundFilter` plugin in the `CORE_PLUGINS` setting in `config.py` and explicitly call the `CommandNotFoundFilter` function from the overriding filter.

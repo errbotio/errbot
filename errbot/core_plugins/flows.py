@@ -61,8 +61,9 @@ class Flows(BotPlugin):
     def flows_start(self, msg, args):
         """Manually start a flow within the context of the calling user.
         You can prefeed the flow data with a json payload.
+
         Example:
-             !flows start poll_setup {"title":"yeah!","options":["foo","bar","baz"]}
+            !flows start poll_setup {"title":"yeah!","options":["foo","bar","baz"]}
         """
         if not args:
             return "You need to specify a flow to manually start"

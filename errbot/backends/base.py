@@ -11,11 +11,12 @@ log = logging.getLogger(__name__)
 
 class Identifier(ABC):
     """This is just use for type hinting representing the Identifier contract,
+
     NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
     To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
-     to make an identifier from a String.
+    to make an identifier from a String.
 
-     The semantics is anything you can talk to: Person, Room, RoomOccupant etc.
+    The semantics is anything you can talk to: Person, Room, RoomOccupant etc.
     """
 
     pass
@@ -23,9 +24,10 @@ class Identifier(ABC):
 
 class Person(Identifier):
     """This is just use for type hinting representing the Identifier contract,
+
     NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
     To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
-     to make an identifier from a String.
+    to make an identifier from a String.
     """
 
     @property
@@ -221,7 +223,7 @@ class Room(Identifier):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :param \*args:
             One or more identifiers to invite into the room.
         """
         raise NotImplementedError(

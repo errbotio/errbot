@@ -23,6 +23,7 @@ RUN useradd -m errbot
 WORKDIR /home/errbot
 USER errbot
 RUN errbot --init
+RUN git clone https://github.com/errbotio/err-backend-slackv3 backend-plugins/slackv3
 EXPOSE 3141 3142
 VOLUME /home/errbot
 ENTRYPOINT [ "/usr/local/bin/errbot" ]

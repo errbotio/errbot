@@ -209,6 +209,7 @@ def main() -> None:
 
             data_dir = base_dir / "data"
             extra_plugin_dir = base_dir / "plugins"
+            extra_backend_plugin_dir = base_dir / "backend-plugins"
             example_plugin_dir = extra_plugin_dir / "err-example"
             log_path = base_dir / "errbot.log"
 
@@ -220,6 +221,7 @@ def main() -> None:
 
             data_dir.mkdir(exist_ok=True)
             extra_plugin_dir.mkdir(exist_ok=True)
+            extra_backend_plugin_dir.mkdir(exist_ok=True)
             example_plugin_dir.mkdir(exist_ok=True)
 
             with open(base_dir / "config.py", "w") as f:
@@ -227,6 +229,7 @@ def main() -> None:
                     config_template.render(
                         data_dir=str(data_dir),
                         extra_plugin_dir=str(extra_plugin_dir),
+                        extra_backend_plugin_dir=str(extra_backend_plugin_dir),
                         log_path=str(log_path),
                     )
                 )

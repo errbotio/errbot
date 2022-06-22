@@ -31,7 +31,6 @@ import logging
 # "Text"     - on the text console
 
 # Commercial backends:
-# "Campfire" - see https://campfirenow.com/ (follow instructions from https://github.com/errbotio/err-backend-campfire)
 # "Slack"    - see https://slack.com/
 # "Gitter"   - see https://gitter.im/ (follow instructions from https://github.com/errbotio/err-backend-gitter)
 

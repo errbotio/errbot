@@ -5,7 +5,6 @@ sphinx-autodoc-annotation
 -e .
 slixmpp
 irc
-pyfire
 python-telegram-bot
 slackclient
 hypchat

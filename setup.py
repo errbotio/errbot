@@ -22,7 +22,7 @@ from setuptools import find_packages, setup
 py_version = sys.version_info[:2]
 
 if py_version < (3, 7):
-    raise RuntimeError("Errbot requires Python 3.6 or later")
+    raise RuntimeError("Errbot requires Python 3.7 or later")
 
 VERSION_FILE = os.path.join("errbot", "version.py")
 

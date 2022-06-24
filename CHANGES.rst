@@ -11,6 +11,7 @@ fixes:
 - chore: add docs build to ci (#1582)
 - backend/xmpp: fix forward type references (#1578)
 - chore: remove campfire references (#1584)
+- chore/setup: fix exception when installing on python <3.7 (#1585)
 
 
 v6.1.9 (2022-06-11)

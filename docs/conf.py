@@ -79,7 +79,6 @@ release = VERSION
 exclude_patterns = [
     '_build',
     'error_pages/*',
-    'errbot.backends.campfire.rst',  # Broken on Python 3
     'errbot.backends.tox.rst',  # Also quite a pain to build at this stage
     '_gh-pages',
 ]

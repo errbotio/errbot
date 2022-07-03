@@ -881,7 +881,7 @@
                 coming.scrolling = 'scroll';
             }
 
-            // Build the neccessary markup
+            // Build the necessary markup
             coming.wrap = $(coming.tpl.wrap).addClass('fancybox-' + (isTouch ? 'mobile' : 'desktop') + ' fancybox-type-' + type + ' fancybox-tmp ' + coming.wrapCSS).appendTo(coming.parent || 'body');
 
             $.extend(coming, {

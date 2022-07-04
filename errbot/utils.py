@@ -7,7 +7,12 @@ import re
 import sys
 import time
 from functools import wraps
-from importlib import metadata
+
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from platform import system
 from typing import List, Tuple, Union
 
@@ -199,7 +204,7 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 
 def entry_point_plugins(group):
     paths = []
-    for entry_point in metadata.entry_points().get(group, []):
+    for entry_point in entry_points().get(group, []):
         paths.append(entry_point.dist._path.parent)
     return paths
 

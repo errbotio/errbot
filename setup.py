@@ -42,6 +42,9 @@ deps = [
     "deepmerge==1.0.1",
 ]
 
+if py_version < (3, 8):
+    deps.append("importlib-metadata==4.12.0")
+
 if py_version < (3, 9):
     deps.append("graphlib-backport==1.0.3")
 

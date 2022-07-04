@@ -7,11 +7,11 @@ import re
 import sys
 import time
 from functools import wraps
+from importlib import metadata
 from platform import system
 from typing import List, Tuple, Union
 
 from dulwich import porcelain
-from pkg_resources import iter_entry_points
 
 log = logging.getLogger(__name__)
 
@@ -199,8 +199,8 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 
 def entry_point_plugins(group):
     paths = []
-    for entry_point in iter_entry_points(group=group, name=None):
-        paths.append(entry_point.dist.location)
+    for entry_point in metadata.entry_points().get(group, []):
+        paths.append(entry_point.dist._path.parent)
     return paths
 
 

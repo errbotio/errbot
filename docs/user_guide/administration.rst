@@ -40,8 +40,19 @@ If you just wish to know more about a specific command you can issue::
 Installing plugins
 ------------------
 
-Errbot plugins are typically published to and installed from `GitHub <http://github.com/>`_.
-We periodically crawl GitHub for errbot plugin repositories and `publish the results <https://github.com/errbotio/errbot/wiki>`_ for people to browse.
+Errbot plugins can be installed via these methods
+
+* `!repos install` bot commnand
+* Cloning a `GitHub <http://github.com/>`_ repository
+* Extracting a tar/zip file
+
+
+Using a bot command
+^^^^^^^^^^^^^^^^^^^
+
+Plugins installed via the :code:`!repos` command are managed by errbot itself and stored inside the `BOT_DATA_DIR` you set in `config.py`.
+
+We periodically crawl GitHub for errbot plugin repositories and `publish the results <https://errbot.io/repos.json>`_ for people to browse.
 
 You can have your bot display the same list of repos by issuing::
 
@@ -72,6 +83,22 @@ This can be done with::
     !repos update all
 
 
+Cloning a repository or tar/zip install
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using a git repository or tar/zip file to install plugins is setting up your plugins to be managed manually.
+
+Plugins installed from cloning a repository need to be placed inside the `BOT_EXTRA_PLUGIN_DIR` path specified in the `config.py` file.
+
+Assuming `BOT_EXTRA_PLUGIN_DIR` is set to `/opt/plugins`::
+
+    $ git clone https://github.com/errbotio/err-helloworld /opt/plugins/err-helloworld
+    $ tar -zxvf err-helloworld.tar.gz -C /opt/plugins/
+
+.. note::
+    If a repo is cloned and the git remote information is present, updating the plugin may be possible via `!repos update`
+
+
 Dependencies
 ^^^^^^^^^^^^
 
@@ -81,15 +108,6 @@ If the plugin contains a `requirements.txt` file then Errbot will automatically 
 Additionally, if you set :code:`AUTOINSTALL_DEPS` to :code:`True` in your **config.py**, Errbot will use pip to install any missing dependencies automatically.
 If you have installed Errbot in a virtualenv, this will run the equivalent of :code:`pip install -r requirements.txt`.
 If no virtualenv is detected, the equivalent of :code:`pip install --user -r requirements.txt` is used to ensure the package(s) is/are only installed for the user running Err.
-
-
-Extra plugin directory
-^^^^^^^^^^^^^^^^^^^^^^
-
-Plugins installed via the :code:`!repos` command are managed by errbot itself and stored inside the `BOT_DATA_DIR` you set in `config.py`.
-If you want to manage your plugins manually for any reason then errbot allows you to load additional plugins from a directory you specify.
-You can do so by specifying the setting `BOT_EXTRA_PLUGIN_DIR` in your `config.py` file.
-See the :download:`config-template.py` file for more details.
 
 
 .. _disabling_plugins:

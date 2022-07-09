@@ -45,6 +45,7 @@ Errbot plugins can be installed via these methods
 * `!repos install` bot commnand
 * Cloning a `GitHub <http://github.com/>`_ repository
 * Extracting a tar/zip file
+* Using pip
 
 
 Using a bot command
@@ -97,6 +98,16 @@ Assuming `BOT_EXTRA_PLUGIN_DIR` is set to `/opt/plugins`::
 
 .. note::
     If a repo is cloned and the git remote information is present, updating the plugin may be possible via `!repos update`
+
+
+Using pip for plugins
+^^^^^^^^^^^^^^^^^^^^^
+
+Plugins published to to pypi.org can be installed using pip.::
+
+    $ pip install errbot-plugin-helloworld
+
+As part of the packaging configuration for the plugin, it should install all necessary dependencies for the plugin to work.
 
 
 Dependencies

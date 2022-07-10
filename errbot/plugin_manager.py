@@ -76,7 +76,7 @@ def install_packages(req_path: Path):
     log.info('Installing packages from "%s".', req_path)
     # use sys.executable explicitly instead of just 'pip' because depending on how the bot is deployed
     # 'pip' might not be available on PATH: for example when installing errbot on a virtualenv and
-    # starting it with systemclt pointing directly to the executable:
+    # starting it with systemctl pointing directly to the executable:
     # [Service]
     # ExecStart=/home/errbot/.env/bin/errbot
     pip_cmdline = [sys.executable, "-m", "pip"]

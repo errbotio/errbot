@@ -1,6 +1,10 @@
 v9.9.9 (unreleased)
 -------------------
 
+breaking:
+
+- backend/slack: remove slack and slack_rtm built-in backends (#1581)
+
 features:
 
 - core/plugins: detect plugins using entrypoints (#1590)

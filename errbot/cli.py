@@ -27,7 +27,7 @@ from typing import Optional, Union
 from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
-from errbot.utils import collect_roots
+from errbot.utils import collect_roots, entry_point_plugins
 from errbot.version import VERSION
 
 log = logging.getLogger(__name__)
@@ -281,6 +281,8 @@ def main() -> None:
     extra_backend = getattr(config, "BOT_EXTRA_BACKEND_DIR", [])
     if isinstance(extra_backend, str):
         extra_backend = [extra_backend]
+    ep = entry_point_plugins(group="errbot.backend_plugins")
+    extra_backend.extend(ep)
 
     if args["list"]:
         from errbot.backend_plugin_manager import enumerate_backend_plugins

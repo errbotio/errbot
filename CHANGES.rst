@@ -1,6 +1,10 @@
 v9.9.9 (unreleased)
 -------------------
 
+features:
+
+- core/plugins: detect plugins using entrypoints (#1590)
+
 fixes:
 
 - docs: add unreleased section (#1576)

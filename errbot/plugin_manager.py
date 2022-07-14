@@ -19,7 +19,7 @@ from .core_plugins.wsview import route
 from .plugin_info import PluginInfo
 from .storage import StoreMixin
 from .templating import add_plugin_templates_path, remove_plugin_templates_path
-from .utils import collect_roots, version2tuple
+from .utils import collect_roots, entry_point_plugins, version2tuple
 from .version import VERSION
 
 PluginInstanceCallback = Callable[[str, Type[BotPlugin]], BotPlugin]
@@ -334,7 +334,8 @@ class BotPluginManager(StoreMixin):
         :param path_list: the path list where to search for plugins.
         :return: the feedback for any specific path in case of error.
         """
-        repo_roots = (CORE_PLUGINS, self._extra_plugin_dir, path_list)
+        ep = entry_point_plugins(group="errbot.plugins")
+        repo_roots = (CORE_PLUGINS, self._extra_plugin_dir, path_list, ep)
 
         all_roots = collect_roots(repo_roots)
 

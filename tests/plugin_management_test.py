@@ -9,7 +9,7 @@ import errbot.repo_manager
 from errbot import plugin_manager
 from errbot.plugin_info import PluginInfo
 from errbot.plugin_manager import IncompatiblePluginException
-from errbot.utils import collect_roots, find_roots
+from errbot.utils import collect_roots, entry_point_plugins, find_roots
 
 CORE_PLUGINS = plugin_manager.CORE_PLUGINS
 
@@ -143,3 +143,8 @@ def test_errbot_version_check():
             plugin_manager.check_errbot_version(pi)
     finally:
         plugin_manager.VERSION = real_version
+
+
+def test_entry_point_plugin():
+    no_plugins_found = entry_point_plugins("errbot.no_plugins")
+    assert [] == no_plugins_found

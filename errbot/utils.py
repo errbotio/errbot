@@ -7,6 +7,12 @@ import re
 import sys
 import time
 from functools import wraps
+
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from platform import system
 from typing import List, Tuple, Union
 
@@ -194,6 +200,13 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
         elif path_or_list is not None:
             result.extend(find_roots(path_or_list, file_sig))
     return list(collections.OrderedDict.fromkeys(result))
+
+
+def entry_point_plugins(group):
+    paths = []
+    for entry_point in entry_points().get(group, []):
+        paths.append(entry_point.dist._path.parent)
+    return paths
 
 
 def global_restart() -> None:

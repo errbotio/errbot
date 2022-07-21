@@ -108,7 +108,6 @@ You can find here more details about configuring Errbot for some specific chat s
   configuration/gitter
   configuration/irc
   configuration/mattermost
-  configuration/slack
   configuration/slackv3
   configuration/telegram
   configuration/xmpp

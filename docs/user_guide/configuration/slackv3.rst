@@ -17,11 +17,9 @@ You need to install Slackv3 dependencies before using Errbot with Slack.  In the
 it is assumed slackv3 has been download to the /opt/errbot/backends directory and errbot has been
 installed in a python virtual environment (adjust the command to your errbot's installation)::
 
-.. code::
-
+    git clone https://github.com/errbotio/err-backend-slackv3.git
     source /opt/errbot/bin/activate
     /opt/errbot/bin/pip install -r /opt/errbot/backends/err-backend-slackv3/requirements.txt
-
 
 Connection Methods
 ------------------
@@ -87,7 +85,7 @@ The virtual environment is created in `/opt/errbot/virtualenv` and errbot initia
     git clone https://github.com/errbotio/err-backend-slackv3
     pip install -r /opt/errbot/backend/err-backend-slackv3/requirements.txt
 
-5. Configure the slack bot token, signing secret (Events API with Request URLs) and/or app token (Events API with Socket-mode).  Located in ``/opt/errbot/config.py``
+5. Configure the slack bot token, signing secret (Events API with Request URLs) and/or app token (Events API with Socket-mode).  Located in `/opt/errbot/config.py`
 
 .. code::
 
@@ -96,6 +94,7 @@ The virtual environment is created in `/opt/errbot/virtualenv` and errbot initia
         'signing_secret': "<hexadecimal value>",
         'app_token': "xapp-..."
     }
+
 
 Setting up Slack application
 ----------------------------

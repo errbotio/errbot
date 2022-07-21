@@ -43,15 +43,15 @@ Chat servers support
 **Built-in**
 
 - IRC support
-- `Slack support <https://slack.com/>`_
 - `Telegram support <https://www.telegram.org/>`_
 - `XMPP support <http://xmpp.org>`_
 
 **With add-ons**
 
-- `Webex <https://www.webex.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-webex-teams>`__)
-- `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/gbin/err-backend-discord>`__)
+- `Slack support <https://slack.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-slackv3>`__)
+- `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-discord>`__)
 - `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`__)
+- `Webex <https://www.webex.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-webex-teams>`__)
 - `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
 - `RocketChat <https://rocket.chat/>`_ (See `instructions <https://github.com/cardoso/errbot-rocketchat>`__)
 - `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)
@@ -130,12 +130,12 @@ It will show you a prompt `>>>` so you can talk to your bot directly! Try `!help
 Adding support for a chat system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For the built-ins, just use one of those options `slack, telegram, IRC, XMPP` with pip, you can still do it
+For the built-ins, just use one of those options `telegram, IRC, XMPP` with pip, you can still do it
 after the initial installation to add the missing support for example ::
 
-   $ pip install "errbot[slack]"
+   $ pip install "errbot[irc]"
 
-For the external ones (Skype, Gitter, Discord etc ...), please follow their respective github pages for instructions.
+For the external ones (Slack, Discord, Gitter, Skype, etc ...), please follow their respective github pages for instructions.
 
 Configuration
 ~~~~~~~~~~~~~

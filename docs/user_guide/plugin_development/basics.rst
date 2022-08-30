@@ -127,7 +127,7 @@ Lets go ahead and create ours. Place the following in a file called
     Module = helloworld
 
     [Python]
-    Version = 2+
+    Version = 3
 
     [Documentation]
     Description = Example "Hello, world!" plugin
@@ -196,6 +196,33 @@ the function `invert_string()`, the `helloworld` plugin can import it and use it
         def hello(self, msg, args):
             """Say hello to the world"""
             return invert_string("Hello, world!")
+
+Packaging
+---------
+
+A plugin can be packaged and distributed through pypi.org. The errbot plugin system uses entrypoints in setuptools to find available plugins.
+
+The two entrypoint avialable are
+
+* `errbot.plugins` - normal plugin and flows
+* `errbot.backend_plugins` - backend plugins for collaboration providers
+
+To get this setup, add this block of code to `setup.py`.
+
+.. code-block:: python
+
+    entry_points = {
+        "errbot.plugins": [
+            "helloworld = helloWorld:HelloWorld",
+        ]
+    }
+
+Optionally, you may need to include a `MANIFEST.in` to include files of the repo
+
+.. code-block:: python
+
+    include *.py *.plug
+
 
 Wrapping up
 -----------

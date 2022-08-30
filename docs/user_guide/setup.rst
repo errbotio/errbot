@@ -18,11 +18,9 @@ that the version packaged with your distribution may be a few versions behind.
 
 Example of packaged versions of Errbot:
 
-* Gentoo: https://gpo.zugaina.org/net-im/errbot
 * Arch: https://aur.archlinux.org/packages/python-err/
-* Docker: https://hub.docker.com/r/rroemhild/errbot/
-* Juju: https://jujucharms.com/u/onlineservices-charmers/errbot
-
+* Docker: https://hub.docker.com/r/errbotio/errbot
+* Gentoo: https://packages.gentoo.org/packages/net-im/err
 
 Option 2: Installing Errbot in a virtualenv (preferred)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,11 +104,13 @@ You can find here more details about configuring Errbot for some specific chat s
 .. toctree::
   :maxdepth: 1
 
-  configuration/xmpp
+  configuration/discord
+  configuration/gitter
   configuration/irc
-  configuration/hipchat
-  configuration/slack
+  configuration/mattermost
+  configuration/slackv3
   configuration/telegram
+  configuration/xmpp
 
 
 Starting the daemon
@@ -191,12 +191,12 @@ Or if you used pip without virtualenv::
 It's recommended that you review the changelog before performing an upgrade
 in case backwards-incompatible changes have been introduced in the new version.
 The changelog for the release you will be installing can always be found
-on `PyPI <https://pypi.python.org/pypi/errbot>`_.
+on `PyPI <https://pypi.org/project/errbot/>`_.
 
 Provisioning (advanced)
 -----------------------
 
-See the `provisioning documentation <provisioning.html>`_
+See the :doc:`provisioning documentation </user_guide/provisioning>`
 
 .. _virtualenv: https://virtualenv.pypa.io/en/latest/
 .. _pip: https://pip.pypa.io/en/stable/

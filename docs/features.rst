@@ -6,12 +6,10 @@ that makes it easy to write new backends in order to support more.
 Currently, the following networks are supported:
 
   * XMPP *(Any standards-compliant XMPP/Jabber server should work - Google Talk/Hangouts included)*
-  * Hipchat_
   * IRC
   * Slack_
   * Telegram_
   * `Bot Framework`_ (maintained `separately <https://github.com/vasilcovsky/errbot-backend-botframework>`__)
-  * CampFire_ (maintained `separately <https://github.com/errbotio/err-backend-campfire>`__)
   * `Cisco Webex Teams`_ (maintained `separately <https://github.com/marksull/err-backend-cisco-webex-teams>`__)
   * Discord_ (maintained `separately <https://github.com/gbin/err-backend-discord>`__)
   * Gitter_ (maintained `separately <https://github.com/errbotio/err-backend-gitter>`__)
@@ -61,11 +59,9 @@ Extensive plugin framework
 * And a templating framework to display fancy HTML messages. Automatic conversion from HTML to plaintext when the backend doesn't support HTML means you don't have to make separate text and HTML versions of your command output yourself
 
 .. _Bot Framework: https://botframework.com/
-.. _Campfire: https://campfirenow.com/
 .. _Cisco Webex Teams: https://www.webex.com/
 .. _Discord: https://www.discordapp.com/
 .. _Gitter: http://gitter.im/
-.. _Hipchat: https://www.hipchat.com/
 .. _Matrix: https://matrix.org/
 .. _Mattermost: https://about.mattermost.com/
 .. _Skype: http://www.skype.com/en/
@@ -75,8 +71,8 @@ Extensive plugin framework
 .. _VK: https://vk.com/
 .. _Zulip: https://zulipchat.com/
 .. _`logged to Sentry`: https://github.com/errbotio/errbot/wiki/Logging-with-Sentry
-.. _irc: https://pypi.python.org/pypi/irc/
+.. _irc: https://pypi.org/project/irc/
 .. _jabberbot: http://thp.io/2007/python-jabberbot/
 .. _jinja2: http://jinja.pocoo.org/
-.. _six: https://pypi.python.org/pypi/six/
+.. _six: https://pypi.org/project/six/
 .. _slixmpp: https://slixmpp.readthedocs.io/

@@ -43,17 +43,15 @@ Chat servers support
 **Built-in**
 
 - IRC support
-- `Hipchat support <http://www.hipchat.com/>`_
-- `Slack support <https://slack.com/>`_
 - `Telegram support <https://www.telegram.org/>`_
 - `XMPP support <http://xmpp.org>`_
 
 **With add-ons**
 
-- `CampFire <https://campfirenow.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-campfire>`__)
-- `Cisco Spark <https://www.ciscospark.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-spark>`__)
-- `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/gbin/err-backend-discord>`__)
+- `Slack support <https://slack.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-slackv3>`__)
+- `Discord <https://www.discordapp.com/>`_ (See `instructions <https://github.com/errbotio/err-backend-discord>`__)
 - `Gitter support <https://gitter.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-gitter>`__)
+- `Webex <https://www.webex.com/>`_ (See `instructions <https://github.com/marksull/err-backend-cisco-webex-teams>`__)
 - `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
 - `RocketChat <https://rocket.chat/>`_ (See `instructions <https://github.com/cardoso/errbot-rocketchat>`__)
 - `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)
@@ -81,14 +79,14 @@ Developer features
 - Presetup storage for every plugin i.e. ``self['foo'] = 'bar'`` persists the value.
 - Conversation flows to track conversation states from users.
 - Webhook callbacks support
-- supports `markdown extras <https://pythonhosted.org/Markdown/extensions/extra.html>`_ formatting with tables, embedded images, links etc.
+- supports `markdown extras <https://markdown-extra.readthedocs.io/>`_ formatting with tables, embedded images, links etc.
 - configuration helper to allow your plugin to be configured by chat
 - Text development/debug consoles
 - Self-documenting: your docstrings become help automatically
 - subcommands and various arg parsing options are available (re, command line type)
 - polling support: your can setup a plugin to periodically do something
 - end to end test backend
-- card rendering under Slack and Hipchat.
+- card rendering under Slack
 
 Community and support
 ---------------------
@@ -132,12 +130,12 @@ It will show you a prompt `>>>` so you can talk to your bot directly! Try `!help
 Adding support for a chat system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For the built-ins, just use one of those options `slack, hipchat, telegram, IRC, XMPP` with pip, you can still do it
+For the built-ins, just use one of those options `telegram, IRC, XMPP` with pip, you can still do it
 after the initial installation to add the missing support for example ::
 
-   $ pip install "errbot[slack]"
+   $ pip install "errbot[irc]"
 
-For the external ones (Skype, Gitter, Discord etc ...), please follow their respective github pages for instructions.
+For the external ones (Slack, Discord, Gitter, Skype, etc ...), please follow their respective github pages for instructions.
 
 Configuration
 ~~~~~~~~~~~~~

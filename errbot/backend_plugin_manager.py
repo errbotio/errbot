@@ -1,11 +1,11 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Type
+from typing import Any, Iterator, List, Type, Union
 
 from errbot.plugin_info import PluginInfo
 
-from .utils import collect_roots
+from .utils import collect_roots, entry_point_plugins
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +14,9 @@ class PluginNotFoundException(Exception):
     pass
 
 
-def enumerate_backend_plugins(all_plugins_paths):
+def enumerate_backend_plugins(
+    all_plugins_paths: List[Union[str, Path]]
+) -> Iterator[PluginInfo]:
     plugin_places = [Path(root) for root in all_plugins_paths]
     for path in plugin_places:
         plugfiles = path.glob("**/*.plug")
@@ -42,7 +44,8 @@ class BackendPluginManager:
         self._base_class = base_class
 
         self.plugin_info = None
-        all_plugins_paths = collect_roots((base_search_dir, extra_search_dirs))
+        ep = entry_point_plugins(group="errbot.backend_plugins")
+        all_plugins_paths = collect_roots((base_search_dir, extra_search_dirs, ep))
 
         for potential_plugin in enumerate_backend_plugins(all_plugins_paths):
             if potential_plugin.name == plugin_name:

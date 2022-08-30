@@ -14,7 +14,13 @@ import pytest
 from errbot import arg_botcmd, botcmd, re_botcmd, templating  # noqa
 from errbot.backend_plugin_manager import BackendPluginManager
 from errbot.backends.base import ONLINE, Identifier, Message, Room
-from errbot.backends.test import ShallowConfig, TestOccupant, TestPerson, TestRoom
+from errbot.backends.test import (
+    ShallowConfig,
+    TestOccupant,
+    TestPerson,
+    TestRoom,
+    TestRoomAcl,
+)
 from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
 from errbot.core import ErrBot
 from errbot.core_plugins.acls import ACLS
@@ -34,7 +40,7 @@ SIMPLE_JSON_PLUGINS_INDEX = """
 {"errbotio/err-helloworld":
     {"HelloWorld":
         {"path": "/helloWorld.plug",
-         "documentation": "let's say hello !",
+         "documentation": "let's say hello!",
          "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=3",
          "name": "HelloWorld",
          "python": "2+",
@@ -274,6 +280,16 @@ def test_buildreply_with_parent(dummy_backend):
     resp = dummy_backend.build_reply(m, "Response", threaded=True)
 
     assert resp.parent is not None
+
+
+def test_all_command_private():
+    dummy_backend = DummyBackend(extra_config={"DIVERT_TO_PRIVATE": ("ALL_COMMANDS",)})
+    m = dummy_backend.build_message("Content")
+    m.frm = dummy_backend.build_identifier("user")
+    m.to = dummy_backend.build_identifier("somewhere")
+    resp = dummy_backend.build_reply(m, "Response", threaded=True)
+    assert "ALL_COMMANDS" in dummy_backend.bot_config.DIVERT_TO_PRIVATE
+    assert resp is not None
 
 
 def test_bot_admins_unique_string():
@@ -804,6 +820,16 @@ def test_access_controls(dummy_backend):
             message=makemessage(
                 dummy_backend,
                 "!command",
+                from_=TestOccupant("someone", "room"),
+                to=TestRoomAcl("room", bot=dummy_backend),
+            ),
+            acl={"command": {"allowrooms": ("room",)}},
+            expected_response="Regular command",
+        ),
+        dict(
+            message=makemessage(
+                dummy_backend,
+                "!command",
                 from_=TestOccupant("someone", "room_1"),
                 to=TestRoom("room1", bot=dummy_backend),
             ),
@@ -816,6 +842,16 @@ def test_access_controls(dummy_backend):
                 "!command",
                 from_=TestOccupant("someone", "room"),
                 to=TestRoom("room", bot=dummy_backend),
+            ),
+            acl={"command": {"allowrooms": ("anotherroom@localhost",)}},
+            expected_response="You're not allowed to access this command from this room",
+        ),
+        dict(
+            message=makemessage(
+                dummy_backend,
+                "!command",
+                from_=TestOccupant("someone", "room"),
+                to=TestRoomAcl("room", bot=dummy_backend),
             ),
             acl={"command": {"allowrooms": ("anotherroom@localhost",)}},
             expected_response="You're not allowed to access this command from this room",

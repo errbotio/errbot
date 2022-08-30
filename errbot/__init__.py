@@ -5,7 +5,7 @@ import re
 import shlex
 import sys
 from functools import wraps
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from .backends.base import AWAY, DND, OFFLINE, ONLINE, Message  # noqa
 from .botplugin import (  # noqa
@@ -259,7 +259,7 @@ def botmatch(*args, **kwargs):
     """
     Decorator for regex-based message match.
 
-    :param *args: The regular expression a message should match against in order to
+    :param \*args: The regular expression a message should match against in order to
                    trigger the command.
     :param flags: The `flags` parameter which should be passed to :func:`re.compile()`. This
         allows the expression's behaviour to be modified, such as making it case-insensitive
@@ -458,8 +458,14 @@ def update_wrapper(wrapper, argparse_args, kwargs):
     ]
 
 
-def _tag_webhook(func, uri_rule, methods, form_param, raw):
-    log.info(f"webhooks:  Flag to bind {uri_rule} to {getattr(func, '__name__', func)}")
+def _tag_webhook(
+    func: Callable,
+    uri_rule: str,
+    methods: Tuple[str],
+    form_param: Optional[str],
+    raw: bool,
+) -> Callable:
+    log.info(f"webhooks: Flag to bind {uri_rule} to {getattr(func, '__name__', func)}")
     func._err_webhook_uri_rule = uri_rule
     func._err_webhook_methods = methods
     func._err_webhook_form_param = form_param
@@ -467,7 +473,7 @@ def _tag_webhook(func, uri_rule, methods, form_param, raw):
     return func
 
 
-def _uri_from_func(func):
+def _uri_from_func(func: Callable) -> str:
     return r"/" + func.__name__
 
 

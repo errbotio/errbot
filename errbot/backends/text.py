@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 from time import sleep
+from typing import BinaryIO, List, Optional, Union
 
 from ansi.color import fg, fx
 from markdown import Markdown
@@ -14,11 +15,13 @@ from pygments.lexers import get_lexer_by_name
 from errbot.backends.base import (
     OFFLINE,
     ONLINE,
+    Identifier,
     Message,
     Person,
     Presence,
     Room,
     RoomOccupant,
+    Stream,
 )
 from errbot.core import ErrBot
 from errbot.logs import console_hdlr
@@ -33,7 +36,7 @@ ANSI = hasattr(sys.stderr, "isatty") and sys.stderr.isatty()
 enable_format("borderless", ANSI_CHRS, borders=False)
 
 
-def borderless_ansi():
+def borderless_ansi() -> Markdown:
     """This makes a converter from markdown to ansi (console) format.
     It can be called like this:
     from errbot.rendering import ansi
@@ -61,27 +64,27 @@ class TextPerson(Person):
         self._email = ""
 
     @property
-    def person(self):
+    def person(self) -> Person:
         return self._person
 
     @property
-    def client(self):
+    def client(self) -> str:
         return self._client
 
     @property
-    def nick(self):
+    def nick(self) -> str:
         return self._nick
 
     @property
-    def fullname(self):
+    def fullname(self) -> str:
         return self._fullname
 
     @property
-    def email(self):
+    def email(self) -> str:
         return self._email
 
     @property
-    def aclattr(self):
+    def aclattr(self) -> str:
         return str(self)
 
     def __str__(self):
@@ -97,49 +100,59 @@ class TextPerson(Person):
 
 
 class TextRoom(Room):
-    def __init__(self, name, bot):
+    def __init__(self, name: str, bot: ErrBot):
         self._topic = ""
         self._joined = False
         self.name = name
         self._bot = bot
 
+        # get the bot username
+        bot_config = self._bot.bot_config
+        default_bot_name = "@errbot"
+        if hasattr(bot_config, "BOT_IDENTITY"):
+            bot_name = bot_config.BOT_IDENTITY.get("username", default_bot_name)
+        else:
+            bot_name = default_bot_name
+
         # fill up the room with a coherent set of identities.
         self._occupants = [
             TextOccupant("somebody", self),
             TextOccupant(TextPerson(bot.bot_config.BOT_ADMINS[0]), self),
-            TextOccupant(bot.bot_identifier, self),
+            TextOccupant(bot_name, self),
         ]
 
-    def join(self, username=None, password=None):
+    def join(
+        self, username: Optional[str] = None, password: Optional[str] = None
+    ) -> None:
         self._joined = True
 
-    def leave(self, reason=None):
+    def leave(self, reason: Optional[str] = None) -> None:
         self._joined = False
 
-    def create(self):
+    def create(self) -> None:
         self._joined = True
 
-    def destroy(self):
+    def destroy(self) -> None:
         self._joined = False
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
         return True
 
     @property
-    def joined(self):
+    def joined(self) -> bool:
         return self._joined
 
     @property
-    def topic(self):
+    def topic(self) -> str:
         return self._topic
 
     @topic.setter
-    def topic(self, topic):
+    def topic(self, topic: str) -> None:
         self._topic = topic
 
     @property
-    def occupants(self):
+    def occupants(self) -> List["TextOccupant"]:
         return self._occupants
 
     def invite(self, *args):
@@ -161,7 +174,7 @@ class TextOccupant(TextPerson, RoomOccupant):
         self._room = room
 
     @property
-    def room(self):
+    def room(self) -> TextRoom:
         return self._room
 
     def __str__(self):
@@ -250,7 +263,7 @@ class TextBackend(ErrBot):
                 cls, TextBackend._pickle_identifier, TextBackend._unpickle_identifier
             )
 
-    def serve_forever(self):
+    def serve_forever(self) -> None:
         self.readline_support()
 
         if not self._rooms:
@@ -271,8 +284,8 @@ class TextBackend(ErrBot):
             while True:
 
                 if self._inroom:
-                    frm = TextOccupant(self.user, self.rooms[0])
-                    to = self.rooms[0]
+                    frm = TextOccupant(self.user, self.rooms()[0])
+                    to = self.rooms()[0]
                 else:
                     frm = self.user
                     to = self.bot_identifier
@@ -327,7 +340,7 @@ class TextBackend(ErrBot):
             log.debug("Trigger shutdown")
             self.shutdown()
 
-    def readline_support(self):
+    def readline_support(self) -> None:
         try:
             # Load readline for better editing/history behaviour
             import readline
@@ -349,7 +362,7 @@ class TextBackend(ErrBot):
             # Readline is Unix-only
             log.debug("Python readline module is not available")
 
-    def send_message(self, msg):
+    def send_message(self, msg: Message) -> None:
         if self.demo_mode:
             print(self.md_ansi.convert(msg.body))
         else:
@@ -384,13 +397,15 @@ class TextBackend(ErrBot):
     def remove_reaction(self, msg: Message, reaction: str) -> None:
         self._react("-", msg, reaction)
 
-    def _react(self, sign, msg, reaction):
+    def _react(self, sign: str, msg: Message, reaction: str) -> None:
         self.send(msg.frm, f"reaction {sign}:{reaction}:", in_reply_to=msg)
 
     def change_presence(self, status: str = ONLINE, message: str = "") -> None:
         log.debug("*** Changed presence to [%s] %s", status, message)
 
-    def build_identifier(self, text_representation):
+    def build_identifier(
+        self, text_representation: str
+    ) -> Union[TextOccupant, TextRoom, TextPerson]:
         if text_representation.startswith("#"):
             rem = text_representation[1:]
             if "/" in text_representation:
@@ -403,7 +418,13 @@ class TextBackend(ErrBot):
             )
         return TextPerson(text_representation[1:])
 
-    def build_reply(self, msg, text=None, private=False, threaded=False):
+    def build_reply(
+        self,
+        msg: Message,
+        text: str = None,
+        private: bool = False,
+        threaded: bool = False,
+    ) -> Message:
         response = self.build_message(text)
         response.frm = self.bot_identifier
         if private:
@@ -416,7 +437,7 @@ class TextBackend(ErrBot):
     def mode(self):
         return "text"
 
-    def query_room(self, room):
+    def query_room(self, room: str) -> TextRoom:
         if not room.startswith("#"):
             raise ValueError("A Room name must start by #.")
         text_room = TextRoom(room[1:], self)
@@ -426,9 +447,37 @@ class TextBackend(ErrBot):
             self._rooms.insert(0, self._rooms.pop(self._rooms.index(text_room)))
         return text_room
 
-    @property
-    def rooms(self):
+    def rooms(self) -> List[TextRoom]:
         return self._rooms
 
-    def prefix_groupchat_reply(self, message, identifier):
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
         message.body = f"{identifier.person} {message.body}"
+
+    def send_stream_request(
+        self,
+        user: Identifier,
+        fsource: BinaryIO,
+        name: str = None,
+        size: int = None,
+        stream_type: str = None,
+    ) -> Stream:
+        """
+        Starts a file transfer. For Slack, the size and stream_type are unsupported
+
+        :param user: is the identifier of the person you want to send it to.
+        :param fsource: is a file object you want to send.
+        :param name: is an optional filename for it.
+        :param size: not supported in Slack backend
+        :param stream_type: not supported in Slack backend
+
+        :return Stream: object on which you can monitor the progress of it.
+        """
+        stream = Stream(user, fsource, name, size, stream_type)
+        log.debug(
+            "Requesting upload of %s to %s (size hint: %d, stream type: %s).",
+            stream.name,
+            stream.identifier,
+            size,
+            stream_type,
+        )
+        return stream

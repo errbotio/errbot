@@ -4,18 +4,19 @@ import random
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from typing import Any, BinaryIO, List, Mapping, Sequence, Tuple
+from typing import Any, BinaryIO, List, Mapping, Optional, Sequence, Tuple
 
 log = logging.getLogger(__name__)
 
 
 class Identifier(ABC):
     """This is just use for type hinting representing the Identifier contract,
+
     NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
     To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
-     to make an identifier from a String.
+    to make an identifier from a String.
 
-     The semantics is anything you can talk to: Person, Room, RoomOccupant etc.
+    The semantics is anything you can talk to: Person, Room, RoomOccupant etc.
     """
 
     pass
@@ -23,9 +24,10 @@ class Identifier(ABC):
 
 class Person(Identifier):
     """This is just use for type hinting representing the Identifier contract,
+
     NEVER TRY TO SUBCLASS IT OUTSIDE OF A BACKEND, it is just here to show you what you can expect from an Identifier.
     To get an instance of a real identifier, always use the properties from Message (to, from) or self.build_identifier
-     to make an identifier from a String.
+    to make an identifier from a String.
     """
 
     @property
@@ -140,6 +142,13 @@ class Room(Identifier):
         )
 
     @property
+    def aclattr(self) -> str:
+        """
+        :return: returns the unique identifier that will be used for ACL matches.
+        """
+        return str(self)
+
+    @property
     def exists(self) -> bool:
         """
         Boolean indicating whether this room already exists or not.
@@ -214,7 +223,7 @@ class Room(Identifier):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :param \*args:
             One or more identifiers to invite into the room.
         """
         raise NotImplementedError(
@@ -294,7 +303,7 @@ class Message:
         else:
             self.ctx = {}
 
-    def clone(self):
+    def clone(self) -> "Message":
         return Message(
             body=self._body,
             frm=self._from,
@@ -370,7 +379,7 @@ class Message:
         self._delayed = delayed
 
     @property
-    def parent(self):
+    def parent(self) -> Optional["Message"]:
         return self._parent
 
     @parent.setter
@@ -382,7 +391,7 @@ class Message:
         return self._extras
 
     @property
-    def flow(self):
+    def flow(self) -> "errbot.Flow":
         """
         Get the conversation flow for this message.
 
@@ -418,7 +427,7 @@ class Message:
 class Card(Message):
     """
     Card is a special type of preformatted message. If it matches with a backend similar concept like on
-    Slack or Hipchat it will be rendered natively, otherwise it will be sent as a regular message formatted with
+    Slack it will be rendered natively, otherwise it will be sent as a regular message formatted with
     the card.md template.
     """
 
@@ -460,37 +469,37 @@ class Card(Message):
         self._fields = fields
 
     @property
-    def summary(self):
+    def summary(self) -> str:
         return self._summary
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self._title
 
     @property
-    def link(self):
+    def link(self) -> str:
         return self._link
 
     @property
-    def image(self):
+    def image(self) -> str:
         return self._image
 
     @property
-    def thumbnail(self):
+    def thumbnail(self) -> str:
         return self._thumbnail
 
     @property
-    def color(self):
+    def color(self) -> str:
         return self._color
 
     @property
-    def text_color(self):
+    def text_color(self) -> str:
         if self._color in ("black", "blue"):
             return "white"
         return "black"
 
     @property
-    def fields(self):
+    def fields(self) -> Tuple[Tuple[str, str]]:
         return self._fields
 
 
@@ -881,7 +890,7 @@ class Backend(ABC):
         log.info("Trigger shutdown")
         self.shutdown()
 
-    def _delay_reconnect(self):
+    def _delay_reconnect(self) -> None:
         """Delay next reconnection attempt until a suitable back-off time has passed"""
         time.sleep(self._reconnection_delay)
 

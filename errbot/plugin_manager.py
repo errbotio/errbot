@@ -5,7 +5,8 @@ import subprocess
 import sys
 import traceback
 from copy import deepcopy
-from importlib import machinery
+from graphlib import CycleError
+from graphlib import TopologicalSorter as BaseTopologicalSorter
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type
 
@@ -18,7 +19,7 @@ from .core_plugins.wsview import route
 from .plugin_info import PluginInfo
 from .storage import StoreMixin
 from .templating import add_plugin_templates_path, remove_plugin_templates_path
-from .utils import collect_roots, version2tuple
+from .utils import collect_roots, entry_point_plugins, version2tuple
 from .version import VERSION
 
 PluginInstanceCallback = Callable[[str, Type[BotPlugin]], BotPlugin]
@@ -68,14 +69,14 @@ def install_packages(req_path: Path):
 
     def is_docker():
         if not os.path.exists("/proc/1/cgroup"):
-            return false
+            return False
         with open("/proc/1/cgroup") as d:
             return "docker" in d.read()
 
     log.info('Installing packages from "%s".', req_path)
     # use sys.executable explicitly instead of just 'pip' because depending on how the bot is deployed
     # 'pip' might not be available on PATH: for example when installing errbot on a virtualenv and
-    # starting it with systemclt pointing directly to the executable:
+    # starting it with systemctl pointing directly to the executable:
     # [Service]
     # ExecStart=/home/errbot/.env/bin/errbot
     pip_cmdline = [sys.executable, "-m", "pip"]
@@ -165,6 +166,12 @@ CONFIGS = "configs"
 BL_PLUGINS = "bl_plugins"
 
 
+class TopologicalSorter(BaseTopologicalSorter):
+    def find_cycle(self):
+        """Wraps private method as public one."""
+        return self._find_cycle()
+
+
 class BotPluginManager(StoreMixin):
     def __init__(
         self,
@@ -208,7 +215,7 @@ class BotPluginManager(StoreMixin):
     def get_plugin_obj_by_name(self, name: str) -> BotPlugin:
         return self.plugins.get(name, None)
 
-    def reload_plugin_by_name(self, name):
+    def reload_plugin_by_name(self, name: str) -> None:
         """
         Completely reload the given plugin, including reloading of the module's code
         :throws PluginActivationException: needs to be taken care of by the callers.
@@ -228,7 +235,7 @@ class BotPluginManager(StoreMixin):
 
     def _install_potential_package_dependencies(
         self, path: Path, feedback: Dict[Path, str]
-    ):
+    ) -> None:
         req_path = path / "requirements.txt"
         if req_path.exists():
             log.info("Checking package dependencies from %s.", req_path)
@@ -321,13 +328,14 @@ class BotPluginManager(StoreMixin):
             )
         return feedback
 
-    def update_plugin_places(self, path_list) -> Dict[Path, str]:
+    def update_plugin_places(self, path_list: str) -> Dict[Path, str]:
         """
         This updates where this manager is trying to find plugins and try to load newly found ones.
         :param path_list: the path list where to search for plugins.
         :return: the feedback for any specific path in case of error.
         """
-        repo_roots = (CORE_PLUGINS, self._extra_plugin_dir, path_list)
+        ep = entry_point_plugins(group="errbot.plugins")
+        repo_roots = (CORE_PLUGINS, self._extra_plugin_dir, path_list, ep)
 
         all_roots = collect_roots(repo_roots)
 
@@ -359,29 +367,34 @@ class BotPluginManager(StoreMixin):
                     all_plugins.append(plugin)
         return all_plugins
 
-    def get_all_active_plugin_names(self):
+    def get_all_active_plugin_names(self) -> List[str]:
         return [name for name, plugin in self.plugins.items() if plugin.is_activated]
 
-    def get_all_plugin_names(self):
+    def get_all_plugin_names(self) -> List[str]:
         return self.plugins.keys()
 
-    def get_plugin_by_path(self, path):
+    def get_plugin_by_path(self, path: str) -> Optional[str]:
         for name, pi in self.plugin_infos.items():
             if str(pi.location.parent) == path:
                 return self.plugins[name]
 
-    def deactivate_all_plugins(self):
+    def get_plugins_by_path(self, path: str):
+        for name, pi in self.plugin_infos.items():
+            if str(pi.location.parent) == path:
+                yield self.plugins[name]
+
+    def deactivate_all_plugins(self) -> None:
         for name in self.get_all_active_plugin_names():
             self.deactivate_plugin(name)
 
     # plugin blacklisting management
-    def get_blacklisted_plugin(self):
+    def get_blacklisted_plugin(self) -> List:
         return self.get(BL_PLUGINS, [])
 
-    def is_plugin_blacklisted(self, name):
+    def is_plugin_blacklisted(self, name: str) -> bool:
         return name in self.get_blacklisted_plugin()
 
-    def blacklist_plugin(self, name):
+    def blacklist_plugin(self, name: str) -> str:
         if self.is_plugin_blacklisted(name):
             logging.warning("Plugin %s is already blacklisted.", name)
             return f"Plugin {name} is already blacklisted."
@@ -389,7 +402,7 @@ class BotPluginManager(StoreMixin):
         log.info("Plugin %s is now blacklisted.", name)
         return f"Plugin {name} is now blacklisted."
 
-    def unblacklist_plugin(self, name):
+    def unblacklist_plugin(self, name: str) -> str:
         if not self.is_plugin_blacklisted(name):
             logging.warning("Plugin %s is not blacklisted.", name)
             return f"Plugin {name} is not blacklisted."
@@ -400,27 +413,28 @@ class BotPluginManager(StoreMixin):
         return f"Plugin {name} removed from blacklist."
 
     # configurations management
-    def get_plugin_configuration(self, name):
+    def get_plugin_configuration(self, name: str) -> Optional[Any]:
         configs = self[CONFIGS]
         if name not in configs:
             return None
         return configs[name]
 
-    def set_plugin_configuration(self, name, obj):
+    def set_plugin_configuration(self, name: str, obj: Any):
         # TODO: port to with statement
         configs = self[CONFIGS]
         configs[name] = obj
         self[CONFIGS] = configs
 
-    def activate_non_started_plugins(self):
+    def activate_non_started_plugins(self) -> None:
         """
         Activates all plugins that are not activated, respecting its dependencies.
 
-        :return: Empty string if no problem occured or a string explaining what went wrong.
+        :return: Empty string if no problem occurred or a string explaining what went wrong.
         """
         log.info("Activate bot plugins...")
         errors = ""
-        for name, plugin in self.plugins.items():
+        for name in self.get_plugins_activation_order():
+            plugin = self.plugins.get(name)
             try:
                 if self.is_plugin_blacklisted(name):
                     errors += (
@@ -446,7 +460,30 @@ class BotPluginManager(StoreMixin):
                 errors += f"Error: flow {name} failed to start: {e}.\n"
         return errors
 
-    def _activate_plugin(self, plugin: BotPlugin, plugin_info: PluginInfo):
+    def get_plugins_activation_order(self) -> List[str]:
+        """
+        Calculate plugin activation order, based on their dependencies.
+
+        :return: list of plugin names, in the best order to start them.
+        """
+        plugins_graph = {
+            name: set(info.dependencies) for name, info in self.plugin_infos.items()
+        }
+        plugins_in_cycle = set()
+        while True:
+            plugins_sorter = TopologicalSorter(plugins_graph)
+            try:
+                # Return plugins which are part of a circular dependency at the end,
+                # the rest of the code expects to have all plugins returned
+                return list(plugins_sorter.static_order()) + list(plugins_in_cycle)
+            except CycleError:
+                # Remove cycle from the graph, and
+                cycle = set(plugins_sorter.find_cycle())
+                plugins_in_cycle.update(cycle)
+                for plugin_name in cycle:
+                    plugins_graph.pop(plugin_name)
+
+    def _activate_plugin(self, plugin: BotPlugin, plugin_info: PluginInfo) -> None:
         """
         Activate a specific plugin with no check.
         """
@@ -479,7 +516,7 @@ class BotPluginManager(StoreMixin):
             self.deactivate_plugin(name)
             raise
 
-    def activate_flow(self, name: str):
+    def activate_flow(self, name: str) -> None:
         if name not in self.flows:
             raise PluginActivationException(f"Could not find the flow named {name}.")
 
@@ -488,13 +525,13 @@ class BotPluginManager(StoreMixin):
             raise PluginActivationException(f"Flow {name} is already active.")
         flow.activate()
 
-    def deactivate_flow(self, name: str):
+    def deactivate_flow(self, name: str) -> None:
         flow = self.flows[name]
         if not flow.is_activated:
             raise PluginActivationException(f"Flow {name} is already inactive.")
         flow.deactivate()
 
-    def activate_plugin(self, name: str):
+    def activate_plugin(self, name: str) -> None:
         """
         Activate a plugin with its dependencies.
         """
@@ -552,11 +589,12 @@ class BotPluginManager(StoreMixin):
                     dep_name,
                     dep_name,
                 )
-                self._activate_plugin_dependencies(dep_name, dep_track)
+                sub_depends_on = self._activate_plugin_dependencies(dep_name, dep_track)
+                dep_plugin.dependencies = sub_depends_on
                 self._activate_plugin(dep_plugin, dep_plugin_info)
         return depends_on
 
-    def deactivate_plugin(self, name: str):
+    def deactivate_plugin(self, name: str) -> None:
         plugin = self.plugins[name]
         if not plugin.is_activated:
             log.warning("Plugin already deactivated, ignore.")
@@ -565,7 +603,7 @@ class BotPluginManager(StoreMixin):
         plugin.deactivate()
         remove_plugin_templates_path(plugin_info)
 
-    def remove_plugin(self, plugin: BotPlugin):
+    def remove_plugin(self, plugin: BotPlugin) -> None:
         """
         Deactivate and remove a plugin completely.
         :param plugin: the plugin to remove
@@ -578,7 +616,7 @@ class BotPluginManager(StoreMixin):
         del self.plugins[plugin.name]
         del self.plugin_infos[plugin.name]
 
-    def remove_plugins_from_path(self, root):
+    def remove_plugins_from_path(self, root: str) -> None:
         """
         Remove all the plugins that are in the filetree pointed by root.
         """
@@ -587,7 +625,7 @@ class BotPluginManager(StoreMixin):
             if str(pi.location).startswith(root):
                 self.remove_plugin(self.plugins[name])
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         log.info("Shutdown.")
         self.close_storage()
         log.info("Bye.")

@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import logging
 import sys
 from datetime import datetime
 from functools import lru_cache
 from time import sleep
+from typing import Callable, List, Optional, Tuple
 
 from errbot.backends.base import (
     AWAY,
@@ -58,27 +61,27 @@ class XMPPIdentifier(Identifier):
         self._email = ""
 
     @property
-    def node(self):
+    def node(self) -> str:
         return self._node
 
     @property
-    def domain(self):
+    def domain(self) -> str:
         return self._domain
 
     @property
-    def resource(self):
+    def resource(self) -> str:
         return self._resource
 
     @property
-    def person(self):
+    def person(self) -> str:
         return self._node + "@" + self._domain
 
     @property
-    def nick(self):
+    def nick(self) -> str:
         return self._node
 
     @property
-    def fullname(self):
+    def fullname(self) -> None:
         return None  # Not supported by default on XMPP.
 
     @property
@@ -120,13 +123,15 @@ class XMPPPerson(XMPPIdentifier, Person):
 
 
 class XMPPRoom(XMPPIdentifier, Room):
-    def __init__(self, room_jid, bot):
+    def __init__(self, room_jid, bot: ErrBot):
         self._bot = bot
         self.xep0045 = self._bot.conn.client.plugin["xep_0045"]
         node, domain, resource = split_identifier(room_jid)
         super().__init__(node, domain, resource)
 
-    def join(self, username=None, password=None):
+    def join(
+        self, username: Optional[str] = None, password: Optional[str] = None
+    ) -> None:
         """
         Join the room.
 
@@ -145,7 +150,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         self._bot.callback_room_joined(self, self._bot.bot_identifier)
         log.info("Joined room %s.", room)
 
-    def leave(self, reason=None):
+    def leave(self, reason: Optional[str] = None) -> None:
         """
         Leave the room.
 
@@ -171,7 +176,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         except KeyError:
             log.debug("Trying to leave %s while not in this room.", room)
 
-    def create(self):
+    def create(self) -> None:
         """
         Not supported on this back-end (Slixmpp doesn't support it).
         Will join the room to ensure it exists, instead.
@@ -182,7 +187,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         )
         self.join(username=str(self))
 
-    def destroy(self):
+    def destroy(self) -> None:
         """
         Destroy the room.
 
@@ -192,7 +197,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         log.info("Destroyed room %s.", self)
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
         """
         Boolean indicating whether this room already exists or not.
 
@@ -205,7 +210,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         return self.joined
 
     @property
-    def joined(self):
+    def joined(self) -> bool:
         """
         Boolean indicating whether this room has already been joined.
 
@@ -215,7 +220,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         return str(self) in self.xep0045.get_joined_rooms()
 
     @property
-    def topic(self):
+    def topic(self) -> Optional[str]:
         """
         The room topic.
 
@@ -233,7 +238,7 @@ class XMPPRoom(XMPPIdentifier, Room):
             return None
 
     @topic.setter
-    def topic(self, topic):
+    def topic(self, topic: str) -> None:
         """
         Set the room's topic.
 
@@ -246,7 +251,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         )
 
     @property
-    def occupants(self):
+    def occupants(self) -> List[XMPPRoomOccupant]:
         """
         The room's occupants.
 
@@ -265,7 +270,7 @@ class XMPPRoom(XMPPIdentifier, Room):
             raise RoomNotJoinedError("Must be in a room in order to see occupants.")
         return occupants
 
-    def invite(self, *args):
+    def invite(self, *args) -> None:
         """
         Invite one or more people into the room.
 
@@ -277,7 +282,7 @@ class XMPPRoom(XMPPIdentifier, Room):
             self.xep0045.invite(room, jid)
             log.info("Invited %s to %s.", jid, room)
 
-    def configure(self):
+    def configure(self) -> None:
         """
         Configure the room.
 
@@ -315,7 +320,7 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
         return str(self)  # this is the full identifier.
 
     @property
-    def real_jid(self):
+    def real_jid(self) -> str:
         """
         The JID of the room occupant, they used to login.
         Will only work if the errbot is moderator in the MUC or it is not anonymous.
@@ -325,7 +330,7 @@ class XMPPRoomOccupant(XMPPPerson, RoomOccupant):
         return jid.bare
 
     @property
-    def room(self):
+    def room(self) -> XMPPRoom:
         return self._room
 
     nick = XMPPPerson.resource
@@ -378,7 +383,7 @@ class XMPPConnection:
         self.client.send_presence()
         self.client.get_roster()
 
-    def connect(self):
+    def connect(self) -> XMPPConnection:
         if not self.connected:
             if self.server is not None:
                 self.client.connect(self.server)
@@ -387,17 +392,17 @@ class XMPPConnection:
             self.connected = True
         return self
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         self.client.disconnect(wait=True)
         self.connected = False
 
-    def serve_forever(self):
+    def serve_forever(self) -> None:
         self.client.process()
 
-    def add_event_handler(self, name, cb):
+    def add_event_handler(self, name: str, cb: Callable) -> None:
         self.client.add_event_handler(name, cb)
 
-    def del_event_handler(self, name, cb):
+    def del_event_handler(self, name: str, cb: Callable) -> None:
         self.client.del_event_handler(name, cb)
 
 
@@ -409,7 +414,7 @@ XMPP_TO_ERR_STATUS = {
 }
 
 
-def split_identifier(txtrep):
+def split_identifier(txtrep: str) -> Tuple[str, str, str]:
     split_jid = txtrep.split("@", 1)
     node, domain = "@".join(split_jid[:-1]), split_jid[-1]
     if domain.find("/") != -1:
@@ -457,7 +462,7 @@ class XMPPBackend(ErrBot):
         self.md_xhtml = xhtml()
         self.md_text = text()
 
-    def create_connection(self):
+    def create_connection(self) -> XMPPConnection:
         return XMPPConnection(
             jid=self.jid,  # textual and original representation
             password=self.password,
@@ -470,16 +475,16 @@ class XMPPBackend(ErrBot):
             ssl_version=self.ssl_version,
         )
 
-    def _build_room_occupant(self, txtrep):
+    def _build_room_occupant(self, txtrep: str) -> XMPPRoomOccupant:
         node, domain, resource = split_identifier(txtrep)
         return self.roomoccupant_factory(
             node, domain, resource, self.query_room(node + "@" + domain)
         )
 
-    def _build_person(self, txtrep):
+    def _build_person(self, txtrep: str) -> XMPPPerson:
         return XMPPPerson(*split_identifier(txtrep))
 
-    def incoming_message(self, xmppmsg):
+    def incoming_message(self, xmppmsg: dict) -> None:
         """Callback for message events"""
         if xmppmsg["type"] == "error":
             log.warning("Received error message: %s", xmppmsg)
@@ -504,7 +509,7 @@ class XMPPBackend(ErrBot):
         msg.delayed = bool(delay and delay != now)
         self.callback_message(msg)
 
-    def _idd_from_event(self, event):
+    def _idd_from_event(self, event) -> Union[XMPPRoomOccupant, XMPPPerson]:
         txtrep = event["from"].full
         return (
             self._build_room_occupant(txtrep)
@@ -512,31 +517,31 @@ class XMPPBackend(ErrBot):
             else self._build_person(txtrep)
         )
 
-    def contact_online(self, event):
+    def contact_online(self, event) -> None:
         log.debug("contact_online %s.", event)
         self.callback_presence(
             Presence(identifier=self._idd_from_event(event), status=ONLINE)
         )
 
-    def contact_offline(self, event):
+    def contact_offline(self, event) -> None:
         log.debug("contact_offline %s.", event)
         self.callback_presence(
             Presence(identifier=self._idd_from_event(event), status=OFFLINE)
         )
 
-    def user_joined_chat(self, event):
+    def user_joined_chat(self, event) -> None:
         log.debug("user_join_chat %s", event)
         self.callback_presence(
             Presence(identifier=self._idd_from_event(event), status=ONLINE)
         )
 
-    def user_left_chat(self, event):
+    def user_left_chat(self, event) -> None:
         log.debug("user_left_chat %s", event)
         self.callback_presence(
             Presence(identifier=self._idd_from_event(event), status=OFFLINE)
         )
 
-    def chat_topic(self, event):
+    def chat_topic(self, event) -> None:
         log.debug("chat_topic %s.", event)
         room = event.values["mucroom"]
         topic = event.values["subject"]
@@ -546,7 +551,7 @@ class XMPPBackend(ErrBot):
         room = XMPPRoom(event.values["mucroom"], self)
         self.callback_room_topic(room)
 
-    def user_changed_status(self, event):
+    def user_changed_status(self, event) -> None:
         log.debug("user_changed_status %s.", event)
         errstatus = XMPP_TO_ERR_STATUS.get(event["type"], None)
         message = event["status"]
@@ -560,15 +565,15 @@ class XMPPBackend(ErrBot):
             )
         )
 
-    def connected(self, data):
+    def connected(self, data) -> None:
         """Callback for connection events"""
         self.connect_callback()
 
-    def disconnected(self, data):
+    def disconnected(self, data) -> None:
         """Callback for disconnection events"""
         self.disconnect_callback()
 
-    def send_message(self, msg):
+    def send_message(self, msg: Message) -> None:
         super().send_message(msg)
 
         log.debug("send_message to %s", msg.to)
@@ -589,7 +594,7 @@ class XMPPBackend(ErrBot):
         log.debug("Change bot status to %s, message %s.", status, message)
         self.conn.client.send_presence(pshow=status, pstatus=message)
 
-    def serve_forever(self):
+    def serve_forever(self) -> None:
         self.conn.connect()
 
         try:
@@ -601,13 +606,15 @@ class XMPPBackend(ErrBot):
             self.shutdown()
 
     @lru_cache(IDENTIFIERS_LRU)
-    def build_identifier(self, txtrep):
+    def build_identifier(
+        self, txtrep: str
+    ) -> Union[XMPPRoomOccupant, XMPPRoom, XMPPPerson]:
         log.debug("build identifier for %s", txtrep)
         try:
             xep0030 = self.conn.client.plugin["xep_0030"]
             info = xep0030.get_info(jid=txtrep)
             disco_info = info["disco_info"]
-            if disco_info:  # Hipchat can return an empty response here.
+            if disco_info:
                 for category, typ, _, name in disco_info["identities"]:
                     if category == "conference":
                         log.debug("This is a room ! %s", txtrep)
@@ -624,7 +631,13 @@ class XMPPBackend(ErrBot):
         log.debug("This is a person ! %s", txtrep)
         return self._build_person(txtrep)
 
-    def build_reply(self, msg, text=None, private=False, threaded=False):
+    def build_reply(
+        self,
+        msg: Message,
+        text: str = None,
+        private: bool = False,
+        threaded: bool = False,
+    ) -> Message:
         response = self.build_message(text)
         response.frm = self.bot_identifier
 
@@ -657,7 +670,7 @@ class XMPPBackend(ErrBot):
     def mode(self):
         return "xmpp"
 
-    def rooms(self):
+    def rooms(self) -> List[XMPPRoom]:
         """
         Return a list of rooms the bot is currently in.
 
@@ -667,7 +680,7 @@ class XMPPBackend(ErrBot):
         xep0045 = self.conn.client.plugin["xep_0045"]
         return [XMPPRoom(room, self) for room in xep0045.get_joined_rooms()]
 
-    def query_room(self, room):
+    def query_room(self, room) -> XMPPRoom:
         """
         Query a room for information.
 
@@ -678,7 +691,7 @@ class XMPPBackend(ErrBot):
         """
         return XMPPRoom(room, self)
 
-    def prefix_groupchat_reply(self, message, identifier):
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
         super().prefix_groupchat_reply(message, identifier)
         message.body = f"@{identifier.nick} {message.body}"
 

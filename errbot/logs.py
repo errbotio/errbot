@@ -1,6 +1,7 @@
 import inspect
 import logging
 import sys
+from typing import Optional
 
 COLORS = {
     "DEBUG": "cyan",
@@ -37,7 +38,7 @@ isatty = (
 console_hdlr = logging.StreamHandler(stream)
 
 
-def get_log_colors(theme_color=None):
+def get_log_colors(theme_color: Optional[str] = None) -> str:
     """Return a tuple containing the log format string and a log color dict"""
     if theme_color == "light":
         text_color_theme = "white"
@@ -49,7 +50,9 @@ def get_log_colors(theme_color=None):
     return f"%(name)-25.25s%(reset)s %({text_color_theme})s%(message)s%(reset)s", COLORS
 
 
-def format_logs(formatter=None, theme_color=None):
+def format_logs(
+    formatter: Optional[logging.Formatter] = None, theme_color: Optional[str] = None
+) -> None:
     """
     You may either use the formatter parameter to provide your own
     custom formatter, or the theme_color parameter to use the

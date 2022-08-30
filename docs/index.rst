@@ -8,26 +8,19 @@ The goal of the project is to make it easy for you to write your own plugins so 
 can make it do whatever you want: a deployment, retrieving some information online,
 trigger a tool via an API, troll a co-worker,...
 
-Errbot is being used in a lot of different contexts: chatops (tools for devops),
-online gaming chatrooms like EVE, video streaming chatrooms like `livecoding.tv <http://livecoding.tv>`_,
-home security, etc.
+Errbot is being used in a lot of different contexts: chatops (tools for devops), chatroom engagement,
+home security, socials platform (such as Slack, Discord, IRC), etc.
 
 Screenshots
 -----------
 
-.. raw:: html
+.. image:: _static/screenshots/thumb_slack.png
+   :target: _static/screenshots/slack.png
+   :alt: Showing output of the built-in help command in Slack
 
-    <div class="screenshots">
-        <a href="_static/screenshots/slack.png" class="fancybox" title="Showing output of the built-in help command in Slack">
-            <img src="_static/screenshots/thumb_slack.png" width="170" height="150" alt="Showing output of the built-in help command in Slack" />
-        </a>
-        <a href="_static/screenshots/quota.png" class="fancybox" title="Errbot running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts">
-            <img src="_static/screenshots/thumb_quota.png" width="268" height= "150" alt="Errbot running on HipChat, showing off a (businesss-specific) command to get and set the disk quotas for mail accounts" />
-        </a>
-        <a href="_static/screenshots/telegram.png" class="fancybox" title="Errbot running on Telegram showing the !help command">
-            <img src="_static/screenshots/thumb_telegram.png" width="180" height= "150" alt="Errbot running on Telegram showing the !help command" />
-        </a>
-    </div>
+.. image:: _static/screenshots/thumb_telegram.png
+   :target: _static/screenshots/telegram.png
+   :alt: Errbot running on Telegram showing the !help command
 
 Simple to build upon
 --------------------
@@ -134,7 +127,6 @@ License
 Errbot is free software, available under the GPL-3 license. Please refer to the
 :download:`full license text <gpl-3.0.txt>` for more details.
 
-.. _`Google plus community`: https://plus.google.com/communities/117050256560830486288
 .. _`GitHub page`: http://github.com/errbotio/errbot/
 .. _`plugin list`: https://github.com/errbotio/errbot/wiki
 .. _`open an issue`: https://github.com/errbotio/errbot/issues

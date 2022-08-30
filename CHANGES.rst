@@ -1,4 +1,68 @@
-v6.1.8 (unreleased)
+v9.9.9 (unreleased)
+-------------------
+
+breaking:
+
+- backend/slack: remove slack and slack_rtm built-in backends (#1581)
+
+features:
+
+- core/plugins: detect plugins using entrypoints (#1590)
+
+fixes:
+
+- docs: add unreleased section (#1576)
+- docs: update broken URL for Markdown Extra (#1572)
+- chore: bump actions/setup-python version (#1575)
+- backend/telegram: fix missing imports (#1574)
+- chore: ci improvements (#1577, #1583)
+- chore: add docs build to ci (#1582)
+- backend/xmpp: fix forward type references (#1578)
+- chore: remove campfire references (#1584)
+- chore/setup: fix exception when installing on python <3.7 (#1585)
+- docs: typos (#1589)
+
+
+v6.1.9 (2022-06-11)
+-------------------
+
+features:
+
+- core: set default backend to Text (#1522)
+- core: option to divert all commands to private or thread (#1528)
+- core: add type hints to core and backend functions (#1542)
+- docs: add ACL and numerous backends to official documentation (#1552)
+- core: add Python 3.10 to automated tests (#1539)
+- core: add room acl attribute (#1530)
+- chore: refactor Dockerfile errbot install and python version bump (#1571)
+
+fixes:
+
+- core: success handling for update_repos (#1520)
+- core/plugins: cascade dependency plugins (#1519)
+- core/plugins: reload all repo plugins when updating a repo (#1521)
+- plugin_manager: correct syntax error (#1524)
+- backend/text: add stub send_stream_request method (#1527)
+- backend/hipchat: remove HipChat backend (#1525)
+- backend/test: shutdown sequence to address test failure (#1535)
+- core: various minor logging improvements (#1536)
+- chore: various minor formatting improvements (#1541)
+- docs: update spark plugin reference (#1546)
+- fix: python 2 version references in docs and init template (#1543)
+- backends: deprecate built-in Slack and SlackRTM (#1526)
+- chore: remove python 3.6 checks and test environment (#1540)
+- chore: add/update issue templates (#1554)
+- chore: pin all package dependencies (#1553, #1559)
+- core/webserver: use errbot loglevel for consistent logging. (#1556)
+- fix/core: prevent infinite loop when only BOT_PREFIX is passed (#1557)
+- chore: bump actions/setup-python from 2 to 3.1.0 (#1563)
+- chore: Set permissions for GitHub actions (#1565)
+- fix: removed deprecated argument reconnection_interval for irc v20.0 (#1568)
+- docs: Add Gentoo packages (#1567)
+- chore: bump actions/setup-python from 3.1.0 to 3.1.2 (#1564)
+- fix: circular dependencies error when there are none (#1505)
+
+v6.1.8 (2021-06-21)
 -------------------
 
 features:

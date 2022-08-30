@@ -22,18 +22,19 @@ import sys
 from os import W_OK, access, getcwd, path, sep
 from pathlib import Path
 from platform import system
+from typing import Optional, Union
 
 from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger
 from errbot.plugin_wizard import new_plugin_wizard
-from errbot.utils import collect_roots
+from errbot.utils import collect_roots, entry_point_plugins
 from errbot.version import VERSION
 
 log = logging.getLogger(__name__)
 
 
 # noinspection PyUnusedLocal
-def debug(sig, frame):
+def debug(sig, frame) -> None:
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
     d = {"_frame": frame}  # Allow access to frame object.
@@ -58,7 +59,7 @@ if not ON_WINDOWS:
     signal.signal(signal.SIGUSR1, debug)  # Register handler for debugging
 
 
-def get_config(config_path):
+def get_config(config_path: str):
     config_fullpath = config_path
     if not path.exists(config_fullpath):
         log.error(f"I cannot find the config file {config_path}.")
@@ -81,7 +82,7 @@ def get_config(config_path):
         exit(-1)
 
 
-def _read_dict():
+def _read_dict() -> dict:
     import collections
 
     new_dict = ast.literal_eval(sys.stdin.read())
@@ -93,7 +94,7 @@ def _read_dict():
     return new_dict
 
 
-def main():
+def main() -> None:
 
     execution_dir = getcwd()
 
@@ -208,6 +209,7 @@ def main():
 
             data_dir = base_dir / "data"
             extra_plugin_dir = base_dir / "plugins"
+            extra_backend_plugin_dir = base_dir / "backend-plugins"
             example_plugin_dir = extra_plugin_dir / "err-example"
             log_path = base_dir / "errbot.log"
 
@@ -219,6 +221,7 @@ def main():
 
             data_dir.mkdir(exist_ok=True)
             extra_plugin_dir.mkdir(exist_ok=True)
+            extra_backend_plugin_dir.mkdir(exist_ok=True)
             example_plugin_dir.mkdir(exist_ok=True)
 
             with open(base_dir / "config.py", "w") as f:
@@ -226,6 +229,7 @@ def main():
                     config_template.render(
                         data_dir=str(data_dir),
                         extra_plugin_dir=str(extra_plugin_dir),
+                        extra_backend_plugin_dir=str(extra_backend_plugin_dir),
                         log_path=str(log_path),
                     )
                 )
@@ -280,6 +284,8 @@ def main():
     extra_backend = getattr(config, "BOT_EXTRA_BACKEND_DIR", [])
     if isinstance(extra_backend, str):
         extra_backend = [extra_backend]
+    ep = entry_point_plugins(group="errbot.backend_plugins")
+    extra_backend.extend(ep)
 
     if args["list"]:
         from errbot.backend_plugin_manager import enumerate_backend_plugins

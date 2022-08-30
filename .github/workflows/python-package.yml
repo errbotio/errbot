@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
@@ -16,12 +19,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9, "3.10"]
 
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -38,21 +41,26 @@ jobs:
         tox -e py
 
     - name: Check Distribution
-      if: ${{ matrix.python-version == '3.8' }}
+      if: ${{ matrix.python-version == '3.9' }}
       run: |
         tox -e dist-check
 
     - name: Codestyle
-      if: ${{ matrix.python-version == '3.8' }}
+      if: ${{ matrix.python-version == '3.9' }}
       run: |
         tox -e codestyle
 
     - name: Lint - sort
-      if: ${{ matrix.python-version == '3.8' }}
+      if: ${{ matrix.python-version == '3.9' }}
       run: |
         tox -e sort
 
     - name: Security
-      if: ${{ matrix.python-version == '3.8' }}
+      if: ${{ matrix.python-version == '3.9' }}
       run: |
         tox -e security
+
+    - name: Docs
+      if: ${{ matrix.python-version == '3.9' }}
+      run: |
+        tox -e docs

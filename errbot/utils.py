@@ -7,8 +7,14 @@ import re
 import sys
 import time
 from functools import wraps
+
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from platform import system
-from typing import List
+from typing import List, Tuple, Union
 
 from dulwich import porcelain
 
@@ -60,7 +66,7 @@ class deprecated:
         return wrapper
 
 
-def format_timedelta(timedelta):
+def format_timedelta(timedelta) -> str:
     total_seconds = timedelta.seconds + (86400 * timedelta.days)
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -76,7 +82,7 @@ def format_timedelta(timedelta):
 INVALID_VERSION_EXCEPTION = 'version %s in not in format "x.y.z" or "x.y.z-{beta,alpha,rc1,rc2...}" for example "1.2.2"'
 
 
-def version2tuple(version):
+def version2tuple(version: str) -> Tuple:
     vsplit = version.split("-")
 
     if len(vsplit) == 2:
@@ -110,7 +116,7 @@ REINSERT_EOLS = re.compile(r"</p>|</li>|<br/>", re.I)
 ZAP_TAGS = re.compile(r"<[^>]+>")
 
 
-def rate_limited(min_interval):
+def rate_limited(min_interval: Union[float, int]):
     """
     decorator to rate limit a function.
 
@@ -137,7 +143,7 @@ def rate_limited(min_interval):
     return decorate
 
 
-def split_string_after(str_, n):
+def split_string_after(str_: str, n: int) -> str:
     """Yield chunks of length `n` from the given string
 
     :param n: length of the chunks.
@@ -196,7 +202,14 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
     return list(collections.OrderedDict.fromkeys(result))
 
 
-def global_restart():
+def entry_point_plugins(group):
+    paths = []
+    for entry_point in entry_points().get(group, []):
+        paths.append(entry_point.dist._path.parent)
+    return paths
+
+
+def global_restart() -> None:
     """Restart the current process."""
     python = sys.executable
     os.execl(python, python, *sys.argv)

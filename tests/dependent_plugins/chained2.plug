@@ -1,0 +1,4 @@
+[Core]
+Name = Chained2
+Module = chained2
+DependsOn = Chained1

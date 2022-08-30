@@ -14,7 +14,7 @@ class CommandNotFoundFilter(BotPlugin):
         :param args: Command arguments.
         :param dry_run: True when this is a dry-run.
         :param emptycmd: False when this command has been parsed and is valid.
-        True if the command was not found.
+                         True if the command was not found.
         """
 
         if not emptycmd:

@@ -21,11 +21,12 @@ from collections.abc import Mapping
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
 from threading import RLock
+from typing import Any, Callable, List, Optional, Tuple
 
 from errbot import CommandError
 from errbot.flow import FlowExecutor, FlowRoot
 
-from .backends.base import Backend, Identifier, Message, Room
+from .backends.base import Backend, Identifier, Message, Presence, Room
 from .storage import StoreMixin
 from .streaming import Tee
 from .templating import tenv
@@ -80,10 +81,12 @@ class ErrBot(Backend, StoreMixin):
         self.set_message_size_limit()
 
     @property
-    def message_size_limit(self):
+    def message_size_limit(self) -> int:
         return self.bot_config.MESSAGE_SIZE_LIMIT
 
-    def set_message_size_limit(self, limit: int = 10000, hard_limit: int = 10000):
+    def set_message_size_limit(
+        self, limit: int = 10000, hard_limit: int = 10000
+    ) -> None:
         """
         Set backends message size limit and its maximum supported message size.  The
         MESSAGE_SIZE_LIMIT can be overridden by setting it in the configuration file.
@@ -103,17 +106,17 @@ class ErrBot(Backend, StoreMixin):
                 "  You might experience message delivery issues."
             )
 
-    def attach_repo_manager(self, repo_manager):
+    def attach_repo_manager(self, repo_manager) -> None:
         self.repo_manager = repo_manager
 
-    def attach_plugin_manager(self, plugin_manager):
+    def attach_plugin_manager(self, plugin_manager) -> None:
         self.plugin_manager = plugin_manager
 
-    def attach_storage_plugin(self, storage_plugin):
+    def attach_storage_plugin(self, storage_plugin) -> None:
         # the storage_plugin is needed by the plugins
         self.storage_plugin = storage_plugin
 
-    def initialize_backend_storage(self):
+    def initialize_backend_storage(self) -> None:
         """
         Initialize storage for the backend to use.
         """
@@ -123,14 +126,14 @@ class ErrBot(Backend, StoreMixin):
         self.open_storage(self.storage_plugin, f"{self.mode}_backend")
 
     @property
-    def all_commands(self):
+    def all_commands(self) -> dict:
         """Return both commands and re_commands together."""
         with self._gbl:
             newd = dict(**self.commands)
             newd.update(self.re_commands)
         return newd
 
-    def _dispatch_to_plugins(self, method, *args, **kwargs):
+    def _dispatch_to_plugins(self, method: Callable, *args, **kwargs) -> None:
         """
         Dispatch the given method to all active plugins.
 
@@ -149,7 +152,13 @@ class ErrBot(Backend, StoreMixin):
             except Exception:
                 log.exception("%s on %s crashed.", method, plugin_name)
 
-    def send(self, identifier, text, in_reply_to=None, groupchat_nick_reply=False):
+    def send(
+        self,
+        identifier: Identifier,
+        text: str,
+        in_reply_to: Optional[Message] = None,
+        groupchat_nick_reply: bool = False,
+    ) -> None:
         """Sends a simple message to the specified user.
 
         :param identifier:
@@ -182,12 +191,12 @@ class ErrBot(Backend, StoreMixin):
 
     def send_templated(
         self,
-        identifier,
+        identifier: Identifier,
         template_name,
         template_parameters,
-        in_reply_to=None,
-        groupchat_nick_reply=False,
-    ):
+        in_reply_to: Optional[Message] = None,
+        groupchat_nick_reply: bool = False,
+    ) -> Callable:
         """Sends a simple message to the specified user using a template.
 
         :param template_parameters: the parameters for the template.
@@ -202,14 +211,14 @@ class ErrBot(Backend, StoreMixin):
         text = self.process_template(template_name, template_parameters)
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
-    def split_and_send_message(self, msg):
+    def split_and_send_message(self, msg: Message) -> None:
         for part in split_string_after(msg.body, self.message_size_limit):
             partial_message = msg.clone()
             partial_message.body = part
             partial_message.partial = True
             self.send_message(partial_message)
 
-    def send_message(self, msg):
+    def send_message(self, msg: Message) -> None:
         """
         This needs to be overridden by the backends with a super() call.
 
@@ -223,7 +232,7 @@ class ErrBot(Backend, StoreMixin):
             except Exception:
                 log.exception("Crash in a callback_botmessage handler")
 
-    def send_card(self, card):
+    def send_card(self, card: Message) -> None:
         """
         Sends a card, this can be overriden by the backends *without* a super() call.
 
@@ -232,7 +241,9 @@ class ErrBot(Backend, StoreMixin):
         """
         self.send_templated(card.to, "card", {"card": card})
 
-    def send_simple_reply(self, msg, text, private=False, threaded=False):
+    def send_simple_reply(
+        self, msg: Message, text: str, private: bool = False, threaded: bool = False
+    ) -> None:
         """Send a simple response to a given incoming message
 
         :param private: if True will force a response in private.
@@ -245,7 +256,7 @@ class ErrBot(Backend, StoreMixin):
             self.prefix_groupchat_reply(reply, msg.frm)
         self.split_and_send_message(reply)
 
-    def process_message(self, msg):
+    def process_message(self, msg: Message) -> bool:
         """Check if the given message is a command for the bot and act on it.
         It return True for triggering the callback_messages on the .callback_messages on the plugins.
 
@@ -339,7 +350,7 @@ class ErrBot(Backend, StoreMixin):
                         args = " ".join(text_split[i:])
                     else:
                         i -= 1
-                if i == 0:
+                if i <= 0:
                     break
 
             if (
@@ -408,7 +419,9 @@ class ErrBot(Backend, StoreMixin):
                         log.exception("Exception in a command filter command.")
         return True
 
-    def _process_command_filters(self, msg, cmd, args, dry_run=False):
+    def _process_command_filters(
+        self, msg: Message, cmd, args, dry_run: bool = False
+    ) -> Tuple[Optional[Message], Optional[str], Optional[Tuple]]:
         try:
             for cmd_filter in self.command_filters:
                 msg, cmd, args = cmd_filter(msg, cmd, args, dry_run)
@@ -520,8 +533,14 @@ class ErrBot(Backend, StoreMixin):
             the markdown output, if any
 
         """
-        private = cmd in self.bot_config.DIVERT_TO_PRIVATE
-        threaded = cmd in self.bot_config.DIVERT_TO_THREAD
+        private = (
+            "ALL_COMMANDS" in self.bot_config.DIVERT_TO_PRIVATE
+            or cmd in self.bot_config.DIVERT_TO_PRIVATE
+        )
+        threaded = (
+            "ALL_COMMANDS" in self.bot_config.DIVERT_TO_THREAD
+            or cmd in self.bot_config.DIVERT_TO_THREAD
+        )
         commands = self.re_commands if match else self.commands
         try:
             with self._gbl:
@@ -579,7 +598,7 @@ class ErrBot(Backend, StoreMixin):
                 msg, self.MSG_ERROR_OCCURRED + f":\n{e}", private, threaded
             )
 
-    def unknown_command(self, _, cmd, args):
+    def unknown_command(self, _, cmd: str, args: Optional[str]) -> str:
         """Override the default unknown command behavior"""
         full_cmd = cmd + " " + args.split(" ")[0] if args else None
         if full_cmd:
@@ -623,14 +642,14 @@ class ErrBot(Backend, StoreMixin):
 
                     if getattr(value, "_err_re_command"):
                         log.debug(
-                            "Adding regex command : %s -> %s.", name, value.__name__
+                            "Adding regex command: %s -> %s.", name, value.__name__
                         )
                         self.re_commands = commands
                     else:
-                        log.debug("Adding command : %s -> %s.", name, value.__name__)
+                        log.debug("Adding command: %s -> %s.", name, value.__name__)
                         self.commands = commands
 
-    def inject_flows_from(self, instance_to_inject):
+    def inject_flows_from(self, instance_to_inject) -> None:
         classname = instance_to_inject.__class__.__name__
         for name, method in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(method, "_err_flow", False):
@@ -643,7 +662,7 @@ class ErrBot(Backend, StoreMixin):
 
                 self.flow_executor.add_flow(flow)
 
-    def inject_command_filters_from(self, instance_to_inject):
+    def inject_command_filters_from(self, instance_to_inject) -> None:
         with self._gbl:
             for name, method in inspect.getmembers(
                 instance_to_inject, inspect.ismethod
@@ -652,13 +671,13 @@ class ErrBot(Backend, StoreMixin):
                     log.debug("Adding command filter: %s", name)
                     self.command_filters.append(method)
 
-    def remove_flows_from(self, instance_to_inject):
+    def remove_flows_from(self, instance_to_inject) -> None:
         for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
             if getattr(value, "_err_flow", False):
                 log.debug("Remove flow %s", name)
                 # TODO(gbin)
 
-    def remove_commands_from(self, instance_to_inject):
+    def remove_commands_from(self, instance_to_inject) -> None:
         with self._gbl:
             for name, value in inspect.getmembers(instance_to_inject, inspect.ismethod):
                 if getattr(value, "_err_command", False):
@@ -670,7 +689,7 @@ class ErrBot(Backend, StoreMixin):
                     ):
                         del self.commands[name]
 
-    def remove_command_filters_from(self, instance_to_inject):
+    def remove_command_filters_from(self, instance_to_inject) -> None:
         with self._gbl:
             for name, method in inspect.getmembers(
                 instance_to_inject, inspect.ismethod
@@ -679,7 +698,7 @@ class ErrBot(Backend, StoreMixin):
                     log.debug("Removing command filter: %s", name)
                     self.command_filters.remove(method)
 
-    def _admins_to_notify(self):
+    def _admins_to_notify(self) -> List:
         """
         Creates a list of administrators to notify
         """
@@ -696,20 +715,25 @@ class ErrBot(Backend, StoreMixin):
             self.send(self.build_identifier(admin), warning)
         log.warning(warning)
 
-    def callback_message(self, msg):
+    def callback_message(self, msg: Message) -> None:
         """Processes for commands and dispatches the message to all the plugins."""
         if self.process_message(msg):
             # Act only in the backend tells us that this message is OK to broadcast
             self._dispatch_to_plugins("callback_message", msg)
 
-    def callback_mention(self, msg, people):
+    def callback_mention(self, msg: Message, people: List[Identifier]) -> None:
         log.debug("%s has/have been mentioned", ", ".join(str(p) for p in people))
         self._dispatch_to_plugins("callback_mention", msg, people)
 
-    def callback_presence(self, pres):
+    def callback_presence(self, pres: Presence) -> None:
         self._dispatch_to_plugins("callback_presence", pres)
 
-    def callback_room_joined(self, room: Room, identifier=None, invited_by=None):
+    def callback_room_joined(
+        self,
+        room: Room,
+        identifier: Optional[Identifier] = None,
+        invited_by: Optional[Identifier] = None,
+    ) -> None:
         """
         Triggered when a user has joined a MUC.
 
@@ -723,7 +747,12 @@ class ErrBot(Backend, StoreMixin):
             identifier = self.bot_identifier
         self._dispatch_to_plugins("callback_room_joined", room, identifier, invited_by)
 
-    def callback_room_left(self, room: Room, identifier=None, kicked_by=None):
+    def callback_room_left(
+        self,
+        room: Room,
+        identifier: Optional[Identifier] = None,
+        kicked_by: Optional[Identifier] = None,
+    ) -> None:
         """
         Triggered when a user has left a MUC.
 
@@ -737,7 +766,7 @@ class ErrBot(Backend, StoreMixin):
             identifier = self.bot_identifier
         self._dispatch_to_plugins("callback_room_left", room, identifier, kicked_by)
 
-    def callback_room_topic(self, room):
+    def callback_room_topic(self, room: Room) -> None:
         """
         Triggered when the topic in a MUC changes.
 
@@ -747,11 +776,11 @@ class ErrBot(Backend, StoreMixin):
         """
         self._dispatch_to_plugins("callback_room_topic", room)
 
-    def callback_stream(self, stream):
+    def callback_stream(self, stream) -> None:
         log.info("Initiated an incoming transfer %s.", stream)
         Tee(stream, self.plugin_manager.get_all_active_plugins()).start()
 
-    def callback_reaction(self, reaction):
+    def callback_reaction(self, reaction) -> None:
         """
         Triggered when a reaction occurs.
 
@@ -761,7 +790,7 @@ class ErrBot(Backend, StoreMixin):
         """
         self._dispatch_to_plugins("callback_reaction", reaction)
 
-    def signal_connect_to_all_plugins(self):
+    def signal_connect_to_all_plugins(self) -> None:
         for bot in self.plugin_manager.get_all_active_plugins():
             if hasattr(bot, "callback_connect"):
                 # noinspection PyBroadException
@@ -771,7 +800,7 @@ class ErrBot(Backend, StoreMixin):
                 except Exception:
                     log.exception(f"callback_connect failed for {bot}.")
 
-    def connect_callback(self):
+    def connect_callback(self) -> None:
         log.info("Activate internal commands")
         if self._plugin_errors_during_startup:
             errors = f"Some plugins failed to start during bot startup:\n\n{self._plugin_errors_during_startup}"
@@ -785,18 +814,18 @@ class ErrBot(Backend, StoreMixin):
         self.signal_connect_to_all_plugins()
         log.info("Plugin activation done.")
 
-    def disconnect_callback(self):
+    def disconnect_callback(self) -> None:
         log.info("Disconnect callback, deactivating all the plugins.")
         self.plugin_manager.deactivate_all_plugins()
 
-    def get_doc(self, command):
+    def get_doc(self, command: Callable) -> str:
         """Get command documentation"""
         if not command.__doc__:
             return "(undocumented)"
         if self.prefix == "!":
             return command.__doc__
         ununderscore_keys = (m.replace("_", " ") for m in self.all_commands.keys())
-        pat = re.compile(fr'!({"|".join(ununderscore_keys)})')
+        pat = re.compile(rf'!({"|".join(ununderscore_keys)})')
         return re.sub(pat, self.prefix + "\1", command.__doc__)
 
     @staticmethod
@@ -806,18 +835,18 @@ class ErrBot(Backend, StoreMixin):
                 return cls
         return None
 
-    def get_command_classes(self):
+    def get_command_classes(self) -> Tuple[Any]:
         return (
             self.get_plugin_class_from_method(command)
             for command in self.all_commands.values()
         )
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.close_storage()
         self.plugin_manager.shutdown()
         self.repo_manager.shutdown()
 
-    def prefix_groupchat_reply(self, message: Message, identifier: Identifier):
+    def prefix_groupchat_reply(self, message: Message, identifier: Identifier) -> None:
         if message.body.startswith("#"):
             # Markdown heading, insert an extra newline to ensure the
             # markdown rendering doesn't break.

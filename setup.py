@@ -21,26 +21,32 @@ from setuptools import find_packages, setup
 
 py_version = sys.version_info[:2]
 
-if py_version < (3, 6):
-    raise RuntimeError("Errbot requires Python 3.6 or later")
+if py_version < (3, 7):
+    raise RuntimeError("Errbot requires Python 3.7 or later")
 
 VERSION_FILE = os.path.join("errbot", "version.py")
 
 deps = [
-    "webtest",
-    "setuptools",
-    "flask",
-    "requests",
-    "jinja2",
-    "pyOpenSSL",
-    "colorlog",
-    'markdown>=3.3',
-    "ansi",
-    "Pygments>=2.0.2",
-    "pygments-markdown-lexer>=0.1.0.dev39",  # sytax coloring to debug md
-    "dulwich>=0.19.16",  # python implementation of git
-    "deepmerge>=0.1.0",
+    "webtest==3.0.0",
+    "setuptools==60.5.0",
+    "flask==2.0.2",
+    "requests==2.27.1",
+    "jinja2==3.0.3",
+    "pyOpenSSL==21.0.0",
+    "colorlog==6.6.0",
+    "markdown==3.3.6",
+    "ansi==0.2.0",
+    "Pygments==2.11.2",
+    "pygments-markdown-lexer==0.1.0.dev39",  # sytax coloring to debug md
+    "dulwich==0.20.31",  # python implementation of git
+    "deepmerge==1.0.1",
 ]
+
+if py_version < (3, 8):
+    deps.append("importlib-metadata==4.12.0")
+
+if py_version < (3, 9):
+    deps.append("graphlib-backport==1.0.3")
 
 src_root = os.curdir
 
@@ -108,24 +114,18 @@ if __name__ == "__main__":
             ],
         },
         extras_require={
-            "hipchat": ["hypchat", "slixmpp", "pyasn1", "pyasn1-modules"],
             "IRC": [
-                "irc",
-            ],
-            "slack": [
-                "slackclient>=1.0.5,<2.0",
-            ],
-            "slack-rtm": [
-                "slackclient>=2.0",
+                "irc==20.0.0",
             ],
             "telegram": [
-                "python-telegram-bot",
+                "python-telegram-bot==13.10",
             ],
-            "XMPP": ["slixmpp", "pyasn1", "pyasn1-modules"],
-            ':python_version<"3.7"': [
-                "dataclasses"
-            ],  # backward compatibility for 3.3->3.6 for dataclasses
-            ':sys_platform!="win32"': ["daemonize"],
+            "XMPP": [
+                "slixmpp==1.7.1",
+                "pyasn1==0.4.8",
+                "pyasn1-modules==0.2.8",
+            ],
+            ':sys_platform!="win32"': ["daemonize==2.5.0"],
         },
         author="errbot.io",
         author_email="info@errbot.io",
@@ -142,10 +142,10 @@ if __name__ == "__main__":
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
         ],
         src_root=src_root,
         platforms="any",

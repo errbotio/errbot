@@ -185,14 +185,11 @@ def test_generate_certificate_creates_usable_cert(webhook_testbot):
         requests.packages.urllib3.exceptions.InsecureRequestWarning
     )
 
-    assert (
-        requests.post(
-            "https://localhost:{}/webhook1".format(WEBSERVER_SSL_PORT),
-            JSONOBJECT,
-            verify=False,
-        ).text
-        == repr(json.loads(JSONOBJECT))
-    )
+    assert requests.post(
+        "https://localhost:{}/webhook1".format(WEBSERVER_SSL_PORT),
+        JSONOBJECT,
+        verify=False,
+    ).text == repr(json.loads(JSONOBJECT))
 
 
 def test_custom_headers_and_status_codes(webhook_testbot):

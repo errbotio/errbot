@@ -93,7 +93,7 @@ In manual mode, the bot will tell the user about his 2 possible options to conti
 Making a looping graph
 ----------------------
 
-You can also perfectly reexecute a part of a graph in a "loop". You can branch directly the node object
+You can also perfectly re-execute a part of a graph in a "loop". You can branch directly the node object
 instead of the command name in that case.
 
 .. code-block:: python

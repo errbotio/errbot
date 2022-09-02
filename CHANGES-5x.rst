@@ -19,7 +19,7 @@ features:
    Honig)
 -  Add support for specifying a custom log formatter (Thx Oz Linden)
 -  Add Sentry transport support (thx Dylan Page)
--  File transfert support (send_stream_request) on the Hipchat backend
+-  File transfer support (send_stream_request) on the Hipchat backend
    (thx Brad Payne)
 -  Show user where they are in a flow (thx Elijah Roberts)
 -  Help commands are sorted alphabetically (thx Fabian Chong)
@@ -35,7 +35,7 @@ fixes:
 -  Windows: Config directories as raw string (Thx defAnfaenger)
 -  Windows: Repo Manager first time update (Thx Jake Shadle)
 -  Slack: fix Slack identities to be hashable
--  Hipchat: fix HicpChat Server XMPP namespace (Thx Antti Palsola)
+-  Hipchat: fix HipChat Server XMPP namespace (Thx Antti Palsola)
 -  Hipchat: more aggressive cashing of user list to avoid API quota
    exceeds (thx Roman)
 

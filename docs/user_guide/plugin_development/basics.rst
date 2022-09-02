@@ -202,7 +202,7 @@ Packaging
 
 A plugin can be packaged and distributed through pypi.org. The errbot plugin system uses entrypoints in setuptools to find available plugins.
 
-The two entrypoint avialable are
+The two entrypoint available are
 
 * `errbot.plugins` - normal plugin and flows
 * `errbot.backend_plugins` - backend plugins for collaboration providers

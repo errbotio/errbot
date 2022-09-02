@@ -36,7 +36,7 @@ And *myplugin.plug*:
 
 This does absolutely nothing shocking, but how do you test it?
 We need to interact with the bot somehow, send it `!mycommand` and validate the reply.
-Fortunatly Errbot provides some help.
+Fortunately, Errbot provides some help.
 
 
 

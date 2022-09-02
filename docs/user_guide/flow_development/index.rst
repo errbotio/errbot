@@ -34,7 +34,7 @@ chatroom::
   [...]
 
 In this guide we will explain the underlying concepts and basics of writing flows.
-Prerequesite: you need to be familiar with the normal errbot plugin development.
+Prerequisite: you need to be familiar with the normal errbot plugin development.
 
 
 .. toctree::

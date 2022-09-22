@@ -21,6 +21,7 @@ fixes:
 - chore: remove campfire references (#1584)
 - chore/setup: fix exception when installing on python <3.7 (#1585)
 - docs: typos (#1589, #1594)
+- chore: simplify isort config using black (#1595)
 
 
 v6.1.9 (2022-06-11)

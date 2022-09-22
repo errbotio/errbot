@@ -71,7 +71,7 @@ features:
 
 fixes:
 
--  fixed imporlib/use pip as process (#835) (thx Raphael Wouters)
+-  fixed importlib/use pip as process (#835) (thx Raphael Wouters)
 -  if pip is not found, don’t crash errbot
 -  build_identifier to send message to IRC channels (thx mr Shu)
 

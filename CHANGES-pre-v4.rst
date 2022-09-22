@@ -180,7 +180,7 @@ Minor improvements
 ~~~~~~~~~~~~~~~~~~
 
 - hipchat endpoint can be used (#348)
-- XMPP server parameter can be overriden
+- XMPP server parameter can be overridden
 - deep internal reorganisation of the bot: the most visible change is that internal commands have been split into internal plugins.
 - IRC backend: we have now a reconnection logic on disconnect and on kick (see ``IRC_RECONNECT_ON_DISCONNECT`` in the config file for example)
 
@@ -269,7 +269,7 @@ features:
 - third party backends (they are plugins too)
 - completely revamped backup/restore feature.
 - hipchat endpoint can be used (#348)
-- XMPP server parameter can be overriden
+- XMPP server parameter can be overridden
 - Identifiers are now generic (not tight to XMPP anymore)
 
 fixes:
@@ -308,7 +308,7 @@ features:
 
 - New serverless tox backend (see http://tox.im for more info)
 - New Presence callbacks with status messages etc.
-- New file transfert support (upload and downloads) for selected backends
+- New file transfer support (upload and downloads) for selected backends
 - New MUC management API
 - added err-githubhook to the official repo list (thx Daniele Sluijters)
 - added err-linksBot to the official repo list (thx Arnaud Vazard)
@@ -402,7 +402,7 @@ features:
 - Added the !room create command for adhoc room creation (google talk)
 - Added sedbot to the official repos
 - Added support for plugin based webviews
-- Add err-agressive-keepalive to the official repos
+- Add err-aggressive-keepalive to the official repos
 - Allow botcmd's to yield values
 - Allow configuration of MESSAGE_SIZE_LIMIT
 
@@ -430,7 +430,7 @@ features:
 - SSL support for webhook callbacks
 - JID unicode support
 - Per user command history (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
-- HIDE_RESTRICTED_COMMANDS option added to filter out the non accessoble commands from the help  (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
+- HIDE_RESTRICTED_COMMANDS option added to filter out the non accessible commands from the help  (Thanks to Leonid S. Usov https://github.com/leonid-s-usov)
 - err-markovbot has been added to the official plugins list (Thanks to Max Wagner https://github.com/MaxWagner)
 - the version parsing now supports beta, alpha, rc etc ... statuses
 
@@ -508,7 +508,7 @@ fixes:
 
 - bot initiated messages were not correctly callbacked on jabber backend
 - !apropos was generating an unicode error thx to https://github.com/zoni for the fix
-- corrected a serie of issues related to the sharedmiddleware on flask
+- corrected a series of issues related to the sharedmiddleware on flask
 - fixed a regression on the IRC backend thx to https://github.com/nvdk for helping on those
 
 features:
@@ -597,7 +597,7 @@ fixes:
 - corrected a threading issue that was preventing err to quit
 - the python shebangs lines where not generic
 - the config path is not inserted first so we don't conflict with other installs
-- corrected a corruption of the configs on some persistance stores on shutdown
+- corrected a corruption of the configs on some persistence stores on shutdown
 
 features:
 

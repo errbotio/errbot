@@ -42,7 +42,7 @@ Installing plugins
 
 Errbot plugins can be installed via these methods
 
-* `!repos install` bot commnand
+* `!repos install` bot command
 * Cloning a `GitHub <http://github.com/>`_ repository
 * Extracting a tar/zip file
 * Using pip

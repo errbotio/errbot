@@ -9,7 +9,7 @@ How to use it
 
 Your plugin *is* the store, simply use self as a dictionary.
 
-Here is a simple example for storing and retreiving a value from the store.
+Here is a simple example for storing and retrieving a value from the store.
 
 .. code-block:: python
 

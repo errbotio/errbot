@@ -49,7 +49,7 @@ Once you have your series of Commands defined, you can package them in a plugin 
 Refreshing a plugin
 -------------------
 
-You need to detroy and recreate the plugin to refresh its commands.
+You need to destroy and recreate the plugin to refresh its commands.
 
 .. code-block:: python
 

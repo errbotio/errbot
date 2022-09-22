@@ -20,7 +20,7 @@ fixes:
 - backend/xmpp: fix forward type references (#1578)
 - chore: remove campfire references (#1584)
 - chore/setup: fix exception when installing on python <3.7 (#1585)
-- docs: typos (#1589)
+- docs: typos (#1589, #1594)
 
 
 v6.1.9 (2022-06-11)
@@ -77,7 +77,7 @@ features:
 fixes:
 
 - core/cli: failure when passing relative directory during --init (#1511)
-- backend/xmpp: include message delayed for send/recieved messages (#1270)
+- backend/xmpp: include message delayed for send/received messages (#1270)
 - backend/xmpp: "unexpected keyword argument 'wait'" when connecting (#1507)
 - docs: update broken readme link to plugin development docs (#1504)
 - close threadpool on exit (#1486)

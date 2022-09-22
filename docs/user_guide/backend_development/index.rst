@@ -13,7 +13,7 @@ Architecture
 ------------
 
 Backends are just a specialization of the bot, they are what
-is instanciated as the bot and are the entry point of the bot.
+is instantiated as the bot and are the entry point of the bot.
 
 Following this logic a backend must inherit from
 :class:`~errbot.errBot.ErrBot`.

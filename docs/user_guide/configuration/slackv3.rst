@@ -46,13 +46,13 @@ When the following oauth scopes are detected, the RTM protocol will be used.  Th
     "read"
 
 - Current token (OAuthv2) with Event API using the Event Subscriptions and Request URL.
-- Current token (Oauthv2) with Event API using the Socket-mode client.
+- Current token (OAuthv2) with Event API using the Socket-mode client.
 
 Backend Installation
 --------------------
 
 These instructions are for errbot running inside a Python virtual environment.  You will need to adapt these steps to your own errbot instance setup.
-The virtual environment is created in `/opt/errbot/virtualenv` and errbot initialised in `/opt/errbot`.  The extra backend directory is in `/opt/erbot/backend`.
+The virtual environment is created in `/opt/errbot/virtualenv` and errbot initialised in `/opt/errbot`.  The extra backend directory is in `/opt/errbot/backend`.
 
 1. Create the errbot virtual environment
 

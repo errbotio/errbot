@@ -468,7 +468,7 @@ class BotPluginManager(StoreMixin):
         :return: list of plugin names, in the best order to start them.
         """
         plugins_graph = {
-            name: set(info.dependencies) for name, info in self.plugin_infos.items()
+            name: set(info.dependencies) for name, info in self.plugins.items()
         }
         plugins_in_cycle = set()
         while True:

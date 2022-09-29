@@ -19,7 +19,7 @@ installed in a python virtual environment (adjust the command to your errbot's i
 
     git clone https://github.com/errbotio/err-backend-slackv3.git
     source /opt/errbot/bin/activate
-    /opt/errbot/bin/pip install -r /opt/errbot/backends/err-backend-slackv3/requirements.txt
+    /opt/errbot/bin/pip install .
 
 Connection Methods
 ------------------------------------------------------------------------

@@ -1,25 +1,27 @@
 # syntax=docker/dockerfile:1.4
 
 ARG BASE_IMAGE=python:3.9-slim
+ARG INSTALL_EXTRAS=irc,XMPP,telegram
+
 FROM ${BASE_IMAGE} AS build
+ARG INSTALL_EXTRAS
 WORKDIR /wheel
 COPY . .
 RUN apt update && apt install -y build-essential git
 RUN cd /tmp && \
-    git clone https://github.com/errbotio/err-backend-slackv3 slackv3
+    git clone --depth=1 https://github.com/errbotio/err-backend-slackv3 slackv3
 RUN pip3 wheel --wheel-dir=/wheel . \
-      -r /tmp/slackv3/requirements.txt wheel \
-      errbot errbot[irc] errbot[XMPP] errbot[telegram] && \
-    cp /tmp/slackv3/requirements.txt /wheel/slackv3-requirements.txt
+      -e /tmp/slackv3 wheel \
+      errbot errbot[${INSTALL_EXTRAS}]
 
 FROM ${BASE_IMAGE} AS base
-RUN --mount=type=bind,from=build,source=/wheel,target=/wheell,rw \
+ARG INSTALL_EXTRAS
+RUN --mount=type=bind,from=build,source=/wheel,target=/wheel,rw \
     apt update && \
     apt install --no-install-recommends -y git && \
     cd /wheel && \
     pip3 -vv install --no-cache-dir --no-index --find-links /wheel . \
-      -r /wheel/slackv3-requirements.txt \
-      errbot errbot[irc] errbot[XMPP] errbot[telegram] && \
+      errbot errbot[${INSTALL_EXTRAS}] && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
     useradd -m errbot
 

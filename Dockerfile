@@ -32,4 +32,5 @@ WORKDIR /home/errbot
 USER errbot
 RUN errbot --init && \
     git clone --depth=1 https://github.com/errbotio/err-backend-slackv3 backend-plugins/slackv3
+STOPSIGNAL SIGINT
 ENTRYPOINT [ "/usr/local/bin/errbot" ]

@@ -117,7 +117,7 @@ class ACLS(BotPlugin):
                     dry_run,
                 )
 
-            if "allowrooms" in acl and not glob(room, acl["allowrooms"]):
+            if "allowrooms" in acl and glob(room, acl["allowrooms"]):
                 return self.access_denied(
                     msg,
                     "You're not allowed to access this command from this room",

@@ -7,6 +7,7 @@ import re
 import sys
 import time
 from functools import wraps
+from importlib.util import find_spec
 
 try:
     from importlib.metadata import entry_points
@@ -205,7 +206,8 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 def entry_point_plugins(group):
     paths = []
     for entry_point in entry_points().get(group, []):
-        paths.append(entry_point.dist._path.parent)
+        lib_paths = find_spec(entry_point.module).submodule_search_locations
+        paths.extend(lib_paths)
     return paths
 
 

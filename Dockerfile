@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=python:3.9-slim
-ARG INSTALL_EXTRAS=irc,XMPP,telegram
+ARG INSTALL_EXTRAS=irc,XMPP,telegram,slack
 
 FROM ${BASE_IMAGE} AS build
 ARG INSTALL_EXTRAS

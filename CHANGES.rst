@@ -25,6 +25,7 @@ fixes:
 - chore: simplify isort config using black (#1595)
 - fix: detecting entrypoint module paths (#1603)
 - chore: fix Docker build to use local tree (#1608)
+- chore: bump actions/checkout version (#1610)
 
 
 v6.1.9 (2022-06-11)

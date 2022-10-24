@@ -138,6 +138,12 @@ SENTRY_EVENTLEVEL = BOT_LOG_LEVEL
 # For more info, see https://docs.sentry.io/error-reporting/configuration/?platform=python#transport-options
 # SENTRY_TRANSPORT = ("RequestsHTTPTransport", "raven.transport.requests")
 
+# Any other options that can be passed to sentry_sdk.init() at initialization time
+# Note that dsn and transport should be specified via their dedicated setting,
+# and that the 'integrations' setting cannot be set
+# e.g: SENTRY_OPTIONS = {"environment": "production"}
+SENTRY_OPTIONS = {}
+
 # Execute commands in asynchronous mode. In this mode, Errbot will spawn 10
 # separate threads to handle commands, instead of blocking on each
 # single command.

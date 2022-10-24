@@ -8,6 +8,7 @@ breaking:
 features:
 
 - core/plugins: detect plugins using entrypoints (#1590)
+- core/logging: add new SENTRY_OPTIONS config (#1597)
 
 fixes:
 

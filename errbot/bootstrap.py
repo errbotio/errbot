@@ -131,25 +131,25 @@ def setup_bot(
 
             sentry_integrations.append(FlaskIntegration())
 
-        try:
-            if hasattr(config, "SENTRY_TRANSPORT") and isinstance(
-                config.SENTRY_TRANSPORT, tuple
-            ):
+        sentry_options = getattr(config, "SENTRY_OPTIONS", {})
+        if hasattr(config, "SENTRY_TRANSPORT") and isinstance(
+            config.SENTRY_TRANSPORT, tuple
+        ):
+            try:
                 mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
                 transport = getattr(mod, config.SENTRY_TRANSPORT[0])
-
-                sentry_sdk.init(
-                    dsn=config.SENTRY_DSN,
-                    integrations=sentry_integrations,
-                    transport=transport,
+                sentry_options["transport"] = transport
+            except ImportError:
+                log.exception(
+                    f"Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}"
                 )
-            else:
-                sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=sentry_integrations)
-        except ImportError:
-            log.exception(
-                f"Unable to import selected SENTRY_TRANSPORT - {config.SENTRY_TRANSPORT}"
-            )
-            exit(-1)
+                exit(-1)
+        # merge options dict with dedicated SENTRY_DSN setting
+        sentry_kwargs = {
+            **sentry_options,
+            **{"dsn": config.SENTRY_DSN, "integrations": sentry_integrations},
+        }
+        sentry_sdk.init(**sentry_kwargs)
 
     logger.setLevel(config.BOT_LOG_LEVEL)
 

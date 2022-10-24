@@ -5,9 +5,9 @@ RUN apt update && apt install -y build-essential git
 RUN cd /tmp && \
     git clone https://github.com/errbotio/err-backend-slackv3 slackv3
 RUN pip3 wheel --wheel-dir=/wheel . \
-    -r /tmp/slackv3/requirements.txt wheel \
+    -r /tmp/slackv3/test-requirements.txt wheel \
     errbot errbot[irc] errbot[XMPP] errbot[telegram] && \
-    cp /tmp/slackv3/requirements.txt /wheel/slackv3-requirements.txt
+    cp /tmp/slackv3/test-requirements.txt /wheel/slackv3-requirements.txt
 
 FROM python:3.9-slim as base
 COPY --from=build /wheel /wheel

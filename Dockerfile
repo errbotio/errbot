@@ -7,7 +7,7 @@ WORKDIR /wheel
 COPY . .
 RUN apt update && apt install -y build-essential git
 RUN pip3 wheel --wheel-dir=/wheel \
-    wheel . .[${INSTALL_EXTRAS}] errbot-backend-slackv3
+    wheel . .[${INSTALL_EXTRAS}]
 
 FROM ${BASE_IMAGE} AS base
 ARG INSTALL_EXTRAS
@@ -16,7 +16,7 @@ RUN apt update && \
     apt install -y git && \
     cd /wheel && \
     pip3 -vv install --no-cache-dir --no-index --find-links /wheel \
-    errbot errbot[${INSTALL_EXTRAS}] errbot-backend-slackv3 && \
+    errbot errbot[${INSTALL_EXTRAS}] && \
     rm -rf /wheel /var/lib/apt/lists/*
 RUN useradd -m errbot
 

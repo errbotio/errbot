@@ -101,10 +101,11 @@ You absolutely need a `BOT_IDENTITY` entry to set the credentials Errbot will us
 
 You can find here more details about configuring Errbot for some specific chat systems:
 
+
 .. toctree::
   :maxdepth: 1
 
-  configuration/discord
+  Discord Backend (in readthedocs) <https://err-backend-discord.readthedocs.io/>
   configuration/gitter
   configuration/irc
   configuration/mattermost

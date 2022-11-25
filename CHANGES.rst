@@ -26,6 +26,7 @@ fixes:
 - fix: detecting entrypoint module paths (#1603)
 - chore: fix Docker build to use local tree (#1608)
 - chore: bump actions/checkout version (#1610)
+- docs: link to external Discord plugin documentation (#1615)
 
 
 v6.1.9 (2022-06-11)

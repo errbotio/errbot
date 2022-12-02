@@ -9,6 +9,7 @@ features:
 
 - core/plugins: detect plugins using entrypoints (#1590)
 - core/logging: add new SENTRY_OPTIONS config (#1597)
+- core/plugins: make slack, mattermost and discord backends available as install requirements (#1611)
 
 fixes:
 

@@ -114,6 +114,15 @@ if __name__ == "__main__":
             ],
         },
         extras_require={
+            "slack": [
+                "errbot-backend-slackv3==0.2.1",
+            ],
+            "discord": [
+                "err-backend-discord==3.0.1",
+            ],
+            "mattermost": [
+                "err-backend-mattermost==3.0.0",
+            ],
             "IRC": [
                 "irc==20.0.0",
             ],

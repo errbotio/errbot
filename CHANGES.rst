@@ -26,7 +26,7 @@ fixes:
 - chore: simplify isort config using black (#1595)
 - fix: detecting entrypoint module paths (#1603)
 - chore: fix Docker build to use local tree (#1608)
-- chore: bump actions/checkout version (#1610)
+- chore: bump actions/checkout version (#1610, #1625)
 - docs: link to external Discord plugin documentation (#1615)
 - chore: add ARG to Dockerfile and add proper stop signal (#1613)
 - fix: update module versions and build (#1627)

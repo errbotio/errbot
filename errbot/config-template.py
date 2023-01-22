@@ -134,12 +134,8 @@ SENTRY_DSN = ""
 SENTRY_LOGLEVEL = BOT_LOG_LEVEL
 SENTRY_EVENTLEVEL = BOT_LOG_LEVEL
 
-# Set an optional Sentry transport other than the default Threaded.
-# For more info, see https://docs.sentry.io/error-reporting/configuration/?platform=python#transport-options
-# SENTRY_TRANSPORT = ("RequestsHTTPTransport", "raven.transport.requests")
-
-# Any other options that can be passed to sentry_sdk.init() at initialization time
-# Note that dsn and transport should be specified via their dedicated setting,
+# Options that can be passed to sentry_sdk.init() at initialization time
+# Note that DSN should be specified via its dedicated config option
 # and that the 'integrations' setting cannot be set
 # e.g: SENTRY_OPTIONS = {"environment": "production"}
 SENTRY_OPTIONS = {}

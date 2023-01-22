@@ -49,7 +49,6 @@ To setup Errbot with Sentry:
 * Open up your bot's config.py
 * Set **BOT_LOG_SENTRY** to *True* and fill in **SENTRY_DSN** with the DSN value obtained previously
 * Optionally adjust **SENTRY_LOGLEVEL** to the desired level
-* Optionally adjust **SENTRY_TRANSPORT** to the desired transport
 * Optionally adjust **SENTRY_OPTIONS** to customise the rest of the initialization.
 * Restart Errbot
 

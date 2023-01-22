@@ -4,6 +4,7 @@ v9.9.9 (unreleased)
 breaking:
 
 - backend/slack: remove slack and slack_rtm built-in backends (#1581)
+- core/logging: deprecate SENTRY_TRANSPORT config (#1604)
 
 features:
 

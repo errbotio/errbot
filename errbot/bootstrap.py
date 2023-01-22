@@ -1,6 +1,7 @@
 import importlib
 import logging
 import sys
+import warnings
 from os import makedirs, path
 from typing import Callable, Optional
 
@@ -135,6 +136,10 @@ def setup_bot(
         if hasattr(config, "SENTRY_TRANSPORT") and isinstance(
             config.SENTRY_TRANSPORT, tuple
         ):
+            warnings.warn(
+                "SENTRY_TRANSPORT is deprecated. Please use SENTRY_OPTIONS instead.",
+                DeprecationWarning,
+            )
             try:
                 mod = importlib.import_module(config.SENTRY_TRANSPORT[1])
                 transport = getattr(mod, config.SENTRY_TRANSPORT[0])

@@ -107,7 +107,6 @@ def test_history(testbot):
 
 
 def test_plugin_cycle(testbot):
-
     plugins = [
         "errbotio/err-helloworld",
     ]
@@ -155,7 +154,6 @@ def test_plugin_cycle(testbot):
 
 
 def test_broken_plugin(testbot):
-
     borken_plugin_dir = path.join(
         path.dirname(path.realpath(__file__)), "borken_plugin"
     )

@@ -223,7 +223,7 @@ class Room(Identifier):
         """
         Invite one or more people into the room.
 
-        :param \*args:
+        :param *args:
             One or more identifiers to invite into the room.
         """
         raise NotImplementedError(

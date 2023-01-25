@@ -7,16 +7,10 @@ import re
 import sys
 import time
 from functools import wraps
-from importlib.util import find_spec
-
-try:
-    from importlib.metadata import entry_points
-except ImportError:
-    from importlib_metadata import entry_points
-
 from platform import system
 from typing import List, Tuple, Union
 
+import pkg_resources
 from dulwich import porcelain
 
 log = logging.getLogger(__name__)
@@ -205,10 +199,9 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 
 def entry_point_plugins(group):
     paths = []
-    for entry_point in entry_points().get(group, []):
-        spec = find_spec(entry_point.module)
-        lib_paths = spec.submodule_search_locations
-        paths.extend(lib_paths)
+    for entry_point in pkg_resources.iter_entry_points(group):
+        ep = next(pkg_resources.iter_entry_points(group, entry_point.name))
+        paths.append(f"{ep.dist.module_path}/{entry_point.module_name}")
     return paths
 
 

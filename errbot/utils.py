@@ -206,7 +206,7 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 def entry_point_plugins(group):
     paths = []
     for entry_point in entry_points().get(group, []):
-        spec = find_spec(entry_point.name)
+        spec = find_spec(entry_point.module)
         lib_paths = spec.submodule_search_locations
         paths.extend(lib_paths)
     return paths

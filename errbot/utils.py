@@ -3,7 +3,6 @@ import fnmatch
 import inspect
 import logging
 import os
-import pathlib
 import re
 import sys
 import time
@@ -207,10 +206,9 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 def entry_point_plugins(group):
     paths = []
     for entry_point in entry_points().get(group, []):
-        entry_point_path = find_spec(entry_point.module).origin
-        lib_directory = pathlib.Path(entry_point_path).parent
-        if lib_directory:
-            paths.append(str(lib_directory))
+        spec = find_spec(entry_point.name)
+        lib_paths = spec.submodule_search_locations
+        paths.extend(lib_paths)
     return paths
 
 

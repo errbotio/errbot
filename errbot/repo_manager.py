@@ -281,7 +281,9 @@ class BotRepoManager(StoreMixin):
             human_name = human_name or human_name_for_git_url(repo_url)
             try:
                 git_clone(repo_url, os.path.join(self.plugin_dir, human_name))
-            except Exception as exception:  # dulwich errors all base on exceptions.Exception
+            except (
+                Exception
+            ) as exception:  # dulwich errors all base on exceptions.Exception
                 raise RepoException(
                     f"Could not load this plugin: \n\n{repo_url}\n\n---\n\n{exception}"
                 )

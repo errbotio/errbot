@@ -592,7 +592,6 @@ class Reaction:
         reaction_name: str = None,
         reacted_to: Mapping = None,
     ):
-
         if reactor is None:
             raise ValueError("Reaction: reactor is None")
         if reaction_name is None:

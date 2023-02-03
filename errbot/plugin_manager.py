@@ -566,7 +566,6 @@ class BotPluginManager(StoreMixin):
     def _activate_plugin_dependencies(
         self, name: str, dep_track: Set[str]
     ) -> List[str]:
-
         plugin_info = self.plugin_infos[name]
         dep_track.add(name)
 

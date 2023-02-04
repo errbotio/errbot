@@ -95,7 +95,6 @@ def _read_dict() -> dict:
 
 
 def main() -> None:
-
     execution_dir = getcwd()
 
     # By default insert the execution path (useful to be able to execute Errbot from

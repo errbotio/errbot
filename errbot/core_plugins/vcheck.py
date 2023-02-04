@@ -18,7 +18,6 @@ PY_VERSION = ".".join(str(e) for e in sys.version_info[:3])
 
 
 class VersionChecker(BotPlugin):
-
     connected = False
     activated = False
 

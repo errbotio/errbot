@@ -76,7 +76,6 @@ class Plugins(BotPlugin):
         repos = {"repos": []}
 
         for repo_name in all_names:
-
             installed = False
 
             if repo_name in installed_repos:

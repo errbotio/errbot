@@ -46,7 +46,7 @@ class Help(BotPlugin):
         description = "Available commands:\n"
 
         cls_commands = {}
-        for (name, command) in self._bot.all_commands.items():
+        for name, command in self._bot.all_commands.items():
             cls = self._bot.get_plugin_class_from_method(command)
             cls = str.__module__ + "." + cls.__name__  # makes the fuul qualified name
             commands = cls_commands.get(cls, [])
@@ -60,7 +60,7 @@ class Help(BotPlugin):
         usage = ""
         for cls in sorted(cls_commands):
             commands = []
-            for (name, command) in cls_commands[cls]:
+            for name, command in cls_commands[cls]:
                 if name == "help":
                     continue
 
@@ -101,7 +101,7 @@ class Help(BotPlugin):
         description = "### All commands\n"
 
         cls_obj_commands = {}
-        for (name, command) in self._bot.all_commands.items():
+        for name, command in self._bot.all_commands.items():
             cls = self._bot.get_plugin_class_from_method(command)
             obj = command.__self__
             _, commands = cls_obj_commands.get(cls, (None, []))
@@ -158,7 +158,7 @@ class Help(BotPlugin):
                 else:
                     description += cls.__errdoc__ or "\n\n"
                 pairs = []
-                for (name, command) in cmds:
+                for name, command in cmds:
                     if self.bot_config.HIDE_RESTRICTED_COMMANDS:
                         if command._err_command_hidden:
                             continue
@@ -169,7 +169,7 @@ class Help(BotPlugin):
 
                 pairs = sorted(pairs)
 
-                for (name, command) in pairs:
+                for name, command in pairs:
                     usage += self._cmd_help_line(name, command)
 
         return "".join(filter(None, [description, usage]))

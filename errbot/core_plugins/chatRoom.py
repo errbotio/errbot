@@ -7,7 +7,6 @@ log = logging.getLogger(__name__)
 
 
 class ChatRoom(BotPlugin):
-
     connected = False
 
     def callback_connect(self):

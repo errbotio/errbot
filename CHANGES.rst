@@ -32,6 +32,7 @@ fixes:
 - chore: add ARG to Dockerfile and add proper stop signal (#1613)
 - fix: update module versions and build (#1627)
 - chore: update setuptools version (#1628)
+- refactor: detecting entry point plugins (#1630)
 
 
 v6.1.9 (2022-06-11)

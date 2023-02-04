@@ -72,7 +72,6 @@ class WebView(View):
         )
 
     def dispatch_request(self, *args, **kwargs):
-
         if self.raw:  # override and gives the request directly
             response = self.func(request, **kwargs)
         elif self.form_param:

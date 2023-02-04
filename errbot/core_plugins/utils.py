@@ -8,7 +8,6 @@ def tail(f, window=20):
 
 
 class Utils(BotPlugin):
-
     # noinspection PyUnusedLocal
     @botcmd
     def echo(self, _, args):

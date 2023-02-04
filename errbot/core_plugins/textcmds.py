@@ -11,7 +11,6 @@ class TextModeCmds(BotPlugin):
     __errdoc__ = "Added commands for testing purposes"
 
     def activate(self):
-
         # This won't activate the plugin in anything else than text mode.
         if self.mode != "text":
             return
@@ -34,7 +33,6 @@ class TextModeCmds(BotPlugin):
         self._bot._multiline = self[MULTILINE]
 
     def deactivate(self):
-
         # Save the live state.
         self[INROOM] = self._bot._inroom
         self[USER] = self._bot.user

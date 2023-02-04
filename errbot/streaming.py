@@ -87,11 +87,11 @@ class Tee:
             log.debug("dispatch %d bytes", len(chunk))
             if not chunk:
                 break
-            for (_, w) in pipes:
+            for _, w in pipes:
                 if w:
                     w.write(chunk)
         log.debug("EOF detected")
-        for (r, w) in pipes:
+        for r, w in pipes:
             if w:
                 w.close()  # close should flush too
         # we want to be sure that if we join on the main thread,

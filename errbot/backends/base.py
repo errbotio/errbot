@@ -223,7 +223,7 @@ class Room(Identifier):
         """
         Invite one or more people into the room.
 
-        :param \*args:
+        :param *args:
             One or more identifiers to invite into the room.
         """
         raise NotImplementedError(
@@ -592,7 +592,6 @@ class Reaction:
         reaction_name: str = None,
         reacted_to: Mapping = None,
     ):
-
         if reactor is None:
             raise ValueError("Reaction: reactor is None")
         if reaction_name is None:

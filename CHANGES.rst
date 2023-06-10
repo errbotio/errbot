@@ -33,6 +33,7 @@ fixes:
 - fix: update module versions and build (#1627)
 - chore: update setuptools version (#1628)
 - refactor: detecting entry point plugins (#1630)
+- chore: bump mr-smithers-excellent/docker-build-push version (#1633)
 
 
 v6.1.9 (2022-06-11)

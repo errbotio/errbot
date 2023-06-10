@@ -217,12 +217,12 @@ All together now
         testbot.push_message('!mycommand another')
         assert 'This is another awesome command' in testbot.pop_message()
 
-    def test_mycommand_helper():
+    def test_mycommand_helper(testbot):
         expected = "This is my awesome command"
         result = myplugin.MyPlugin.mycommand_helper()
         assert result == expected
 
-    def test_mycommand_another_helper():
+    def test_mycommand_another_helper(testbot):
         plugin = testbot._bot.plugin_manager.get_plugin_obj_by_name('MyPlugin')
         expected = "This is another awesome command"
         result = plugin.mycommand_another_helper()

@@ -21,8 +21,8 @@ from setuptools import find_packages, setup
 
 py_version = sys.version_info[:2]
 
-if py_version < (3, 7):
-    raise RuntimeError("Errbot requires Python 3.7 or later")
+if py_version < (3, 8):
+    raise RuntimeError("Errbot requires Python 3.8 or later")
 
 VERSION_FILE = os.path.join("errbot", "version.py")
 
@@ -148,7 +148,6 @@ if __name__ == "__main__":
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",

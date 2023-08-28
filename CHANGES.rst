@@ -5,6 +5,7 @@ breaking:
 
 - backend/slack: remove slack and slack_rtm built-in backends (#1581)
 - core/logging: deprecate SENTRY_TRANSPORT config (#1604)
+- core: removing py37 support (#1652)
 
 features:
 

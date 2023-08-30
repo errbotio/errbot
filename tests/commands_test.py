@@ -226,7 +226,7 @@ def test_webserver_webhook_test(testbot):
         "!plugin config Webserver {'HOST': 'localhost', 'PORT': 3141, 'SSL':  None}"
     )
     assert "Plugin configuration done." in testbot.pop_message()
-    testbot.assertInCommand("!webhook test /echo toto", "Status code : 200")
+    testbot.assertInCommand("!webhook test /echo toto", "Status code: 200")
 
 
 def test_activate_reload_and_deactivate(testbot):

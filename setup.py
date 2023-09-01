@@ -121,7 +121,7 @@ if __name__ == "__main__":
                 "err-backend-mattermost==3.0.0",
             ],
             "IRC": [
-                "irc==20.0.0",
+                "irc==20.3.0",
             ],
             "telegram": [
                 "python-telegram-bot==13.10",

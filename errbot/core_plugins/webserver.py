@@ -13,12 +13,6 @@ from werkzeug.serving import ThreadedWSGIServer
 from errbot import BotPlugin, botcmd, webhook
 from errbot.core_plugins import flask_app
 
-TEST_REPORT = """*** Test Report
-URL : %s
-Detected your post as : %s
-Status code : %i
-"""
-
 
 def make_ssl_certificate(key_path, cert_path):
     """
@@ -155,7 +149,7 @@ class Webserver(BotPlugin):
         self.log.debug("Your incoming request is: %s", incoming_request)
         return str(incoming_request)
 
-    @botcmd(split_args_with=" ")
+    @botcmd(split_args_with=" ", template="webserver")
     def webhook_test(self, _, args):
         """
             Test your webhooks from within err.
@@ -187,7 +181,12 @@ class Webserver(BotPlugin):
         self.log.debug("Detected your post as : %s.", contenttype)
 
         response = self.test_app.post(url, params=content, content_type=contenttype)
-        return TEST_REPORT % (url, contenttype, response.status_code)
+        return {
+            "url": url,
+            "content": content,
+            "contenttype": contenttype,
+            "response": response,
+        }
 
     @botcmd(admin_only=True)
     def generate_certificate(self, _, args):

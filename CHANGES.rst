@@ -8,6 +8,7 @@ fixes:
 - chore: bump jinja to 3.1.3 (#1684)
 - chore: bump actions/setup-python version (#1686)
 - chore: bump actions/checkout version (#1696)
+- chore: add pre-commit for isort / black (#1596)
 
 v6.2.0 (2024-01-01)
 -------------------

@@ -67,7 +67,6 @@ def read(fname, encoding="ascii"):
 
 
 if __name__ == "__main__":
-
     VERSION = read_version()
 
     args = set(sys.argv)

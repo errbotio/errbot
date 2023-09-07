@@ -38,6 +38,7 @@ fixes:
 - docs: fix example code in the testing section (#1643)
 - chore: update all core dependencies (#1651)
 - fix: use template file for webserver plugin echo output (#1654)
+- chore: add pre-commit for isort / black (#1596)
 
 
 v6.1.9 (2022-06-11)

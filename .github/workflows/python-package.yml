@@ -45,16 +45,6 @@ jobs:
       run: |
         tox -e dist-check
 
-    - name: Codestyle
-      if: ${{ matrix.python-version == '3.9' }}
-      run: |
-        tox -e codestyle
-
-    - name: Lint - sort
-      if: ${{ matrix.python-version == '3.9' }}
-      run: |
-        tox -e sort
-
     - name: Security
       if: ${{ matrix.python-version == '3.9' }}
       run: |
@@ -64,3 +54,12 @@ jobs:
       if: ${{ matrix.python-version == '3.9' }}
       run: |
         tox -e docs
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - uses: pre-commit/action@v3.0.0

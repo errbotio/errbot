@@ -17,15 +17,10 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png"
+BLACKLISTED = []
 
 user_cache = {}
-
-try:
-    with open("user_cache", "r") as f:
-        user_cache = eval(f.read())
-except FileNotFoundError:
-    # File doesn't exist, so we continue on
-    log.info("No user cache existing, will be generating it for the first time.")
+plugins = {}
 
 
 def get_auth():
@@ -71,20 +66,9 @@ def add_blacklisted(repo):
         f.write("\n")
 
 
-plugins = {}
-
-
 def save_plugins():
     with open("repos.json", "w") as f:
         json.dump(plugins, f, indent=2, separators=(",", ": "))
-
-
-BLACKLISTED = []
-try:
-    with open("blacklisted.txt", "r") as f:
-        BLACKLISTED = [line.strip() for line in f.readlines()]
-except FileNotFoundError:
-    log.info("No blacklisted.txt found, no plugins will be blacklisted.")
 
 
 def get_avatar_url(repo):
@@ -276,4 +260,17 @@ def main():
 
 
 if __name__ == "__main__":
+    try:
+        with open("user_cache", "r") as f:
+            user_cache = eval(f.read())
+    except FileNotFoundError:
+        # File doesn't exist, so we continue on
+        log.info("No user cache existing, will be generating it for the first time.")
+
+    try:
+        with open("blacklisted.txt", "r") as f:
+            BLACKLISTED = [line.strip() for line in f.readlines()]
+    except FileNotFoundError:
+        log.info("No blacklisted.txt found, no plugins will be blacklisted.")
+
     main()

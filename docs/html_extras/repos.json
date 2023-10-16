@@ -1,245 +1,422 @@
 {
-  "errbotio/err-backend-mattermost": {
-    "Mattermost": {
-      "path": "src/err-backend-mattermost/err-backend-mattermost.plug",
-      "repo": "https://github.com/errbotio/err-backend-mattermost",
-      "documentation": "Mattermost backend for Errbot.",
-      "name": "Mattermost",
-      "python": "2",
+  "errbotio/err-time": {
+    "TimeBot": {
+      "path": "timebot.plug",
+      "repo": "https://github.com/errbotio/err-time",
+      "documentation": "what time is it ?",
+      "name": "TimeBot",
+      "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": 137.12
+      "score": -99.84
+    }
+  },
+  "errbotio/err-stalkerbot": {
+    "StalkerBot": {
+      "path": "stalkerbot.plug",
+      "repo": "https://github.com/errbotio/err-stalkerbot",
+      "documentation": "Where is this guy ?",
+      "name": "StalkerBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -100.84
+    }
+  },
+  "drsm79/err-memeon": {
+    "MemeOn": {
+      "path": "meme.plug",
+      "repo": "https://github.com/drsm79/err-memeon",
+      "documentation": "let's say hello !",
+      "name": "MemeOn",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -101.84
+    }
+  },
+  "errbotio/err-tv": {
+    "TV": {
+      "path": "tv.plug",
+      "repo": "https://github.com/errbotio/err-tv",
+      "documentation": "So what's the status of this show ?",
+      "name": "TV",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -72.28
+    }
+  },
+  "Beit-Hatfutsot/jewbot": {
+    "Jewbot": {
+      "path": "plugins/jewbot/jewbot.plug",
+      "repo": "https://github.com/Beit-Hatfutsot/jewbot",
+      "documentation": "Jewbot plugin",
+      "name": "Jewbot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15228676?v=4",
+      "score": -82.44
+    }
+  },
+  "ValhallaGamePlays/odin": {
+    "troll": {
+      "path": "odin/plugins/troll/troll.plug",
+      "repo": "https://github.com/ValhallaGamePlays/odin",
+      "documentation": "Twisted copypasta and amalgamation of callback bot",
+      "name": "troll",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
+      "score": -49.76
     },
-    "TestPlugin": {
-      "path": "tests/plugins/test.plug",
-      "repo": "https://github.com/errbotio/err-backend-mattermost",
-      "documentation": "A Test plugin",
-      "name": "TestPlugin",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": 137.12
-    }
-  },
-  "errbotio/err-backend-slackv3": {
-    "SlackV3": {
-      "path": "src/slackv3/slackv3.plug",
-      "repo": "https://github.com/errbotio/err-backend-slackv3",
-      "documentation": "Backend for Slack's Real Time Messaging and Events APIs.",
-      "name": "SlackV3",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": 97.84
-    }
-  },
-  "errbotio/err-backend-discord": {
-    "Discord": {
-      "path": "src/err-backend-discord/err-backend-discord.plug",
-      "repo": "https://github.com/errbotio/err-backend-discord",
-      "documentation": "Discord backend for Errbot.",
-      "name": "Discord",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": 76.12
-    }
-  },
-  "errbotio/err-backend-gitter": {
-    "Gitter": {
-      "path": "gitter.plug",
-      "repo": "https://github.com/errbotio/err-backend-gitter",
-      "documentation": "This is a backend implementation for gitter.im.",
-      "name": "Gitter",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": 82.6
-    }
-  },
-  "vasilcovsky/errbot-backend-botframework": {
-    "BotFramework": {
-      "path": "botframework.plug",
-      "repo": "https://github.com/vasilcovsky/errbot-backend-botframework",
-      "documentation": "Backend implementation for Bot Framework (https://www.botframework.com)",
-      "name": "BotFramework",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/977901?v=4",
-      "score": 73.2
-    }
-  },
-  "marksull/err-backend-cisco-webex-teams": {
-    "CiscoWebexTeams": {
-      "path": "CiscoWebexTeams.plug",
-      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
-      "documentation": "This is a backend implementation for Cisco Webex Teams",
-      "name": "CiscoWebexTeams",
-      "python": "3.6.0",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
-      "score": 68.32
+    "Example": {
+      "path": "odin/plugins/err-example/example.plug",
+      "repo": "https://github.com/ValhallaGamePlays/odin",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Example",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
+      "score": -49.76
     },
-    "ExampleWithCards": {
-      "path": "examples/err-example-cards/examplecards.plug",
-      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
-      "documentation": "This is a simple plugin example with cards to get you started.",
-      "name": "ExampleWithCards",
+    "helloworld": {
+      "path": "odin/plugins/helloworld/helloworld.plug",
+      "repo": "https://github.com/ValhallaGamePlays/odin",
+      "documentation": "Twisted copypasta hello world script from errbot.io",
+      "name": "helloworld",
       "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
-      "score": 68.32
+      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
+      "score": -49.76
+    }
+  },
+  "danie1cohen/errbot-kodi": {
+    "Kodi": {
+      "path": "kodi.plug",
+      "repo": "https://github.com/danie1cohen/errbot-kodi",
+      "documentation": "Interact with a networked XBMC or Kodi installation via errbot.",
+      "name": "Kodi",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8837255?v=4",
+      "score": -39.0
+    }
+  },
+  "Appleman1234/arisu": {
+    "Time": {
+      "path": "Time/time.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Time plugin",
+      "name": "Time",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
     },
-    "ExampleUpload": {
-      "path": "examples/err-example-upload/exampleupload.plug",
-      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
-      "documentation": "This is a simple plugin example with upload to get you started.",
-      "name": "ExampleUpload",
+    "Seen": {
+      "path": "Seen/seen.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Seen plugin",
+      "name": "Seen",
       "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
-      "score": 68.32
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
     },
-    "ExampleSendCallback": {
-      "path": "examples/err-example-send-callback/examplesendcallback.plug",
-      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
-      "documentation": "This is a simple plugin example to show how to create a send callback handler",
-      "name": "ExampleSendCallback",
+    "Link": {
+      "path": "Link/link.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Link plugin",
+      "name": "Link",
       "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
-      "score": 68.32
-    }
-  },
-  "cloudflare/GHC-Errbot": {
-    "Google-Hangouts-Chat": {
-      "path": "hangouts-chat.plug",
-      "repo": "https://github.com/cloudflare/GHC-Errbot",
-      "documentation": "A Google-Hangouts-Chat backend for Err",
-      "name": "Google-Hangouts-Chat",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/314135?v=4",
-      "score": 73.88
-    }
-  },
-  "cweiske/errbot-exec": {
-    "exec": {
-      "path": "exec.plug",
-      "repo": "https://github.com/cweiske/errbot-exec",
-      "documentation": "Execute a command when the bot is talked to",
-      "name": "exec",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
+    },
+    "Karma": {
+      "path": "Karma/karma.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Karma plugin",
+      "name": "Karma",
       "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/59036?v=4",
-      "score": -73.44
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
+    },
+    "Stream": {
+      "path": "Stream/stream.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Stream plugin",
+      "name": "Stream",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
+    },
+    "Reports": {
+      "path": "Reports/reports.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Reports plugin displays reports of posts from lainchan",
+      "name": "Reports",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
+    },
+    "Language": {
+      "path": "Language/language.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Language plugin",
+      "name": "Language",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
+    },
+    "Converter": {
+      "path": "Converter/converter.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Converter plugin",
+      "name": "Converter",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
+    },
+    "Levenshtein": {
+      "path": "Levenshtein/levenshtein.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "Levenshtein plugin",
+      "name": "Levenshtein",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
+    },
+    "NumberSpell": {
+      "path": "NumberSpell/numberspell.plug",
+      "repo": "https://github.com/Appleman1234/arisu",
+      "documentation": "NumberSpell plugin",
+      "name": "NumberSpell",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
+      "score": -78.8
     }
   },
-  "attakei-lab/errbot-slack-bolt-backend": {
-    "SlackBolt": {
-      "path": "errbot_slack_bolt_backend/slackbolt.plug",
-      "repo": "https://github.com/attakei-lab/errbot-slack-bolt-backend",
-      "documentation": "Sladk backend by Slack Bolt",
-      "name": "SlackBolt",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/60003764?v=4",
-      "score": -11.48
+  "matanby/st0ckbot": {
+    "St0ckBot": {
+      "path": "plugins/stockbot/st0ckbot.plug",
+      "repo": "https://github.com/matanby/st0ckbot",
+      "documentation": "A Telegram bot that fetches changes in your trust funds and stocks.",
+      "name": "St0ckBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8208862?v=4",
+      "score": -23.08
     }
   },
-  "kevgliss/analys": {
-    "Symantec": {
-      "path": "analys/plugins/static/symantec/symantec.plug",
-      "repo": "https://github.com/kevgliss/analys",
-      "documentation": "\"Automatic submission to symantec\"",
-      "name": "Symantec",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/2262214?v=4",
-      "score": -89.04
-    }
-  },
-  "lagenorhynque/muse-bot": {
-    "MakiBot": {
-      "path": "src/MakiBot/maki_bot.plug",
-      "repo": "https://github.com/lagenorhynque/muse-bot",
-      "documentation": "Maki-chan chatbot plugin",
-      "name": "MakiBot",
+  "attakei/errbot-teratail-fetch": {
+    "Teratail": {
+      "path": "teratail.plug",
+      "repo": "https://github.com/attakei/errbot-teratail-fetch",
+      "documentation": "Fetch and notify teratail's newer questions",
+      "name": "Teratail",
       "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/6076694?v=4",
-      "score": -94.68
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": -103.44
     }
   },
-  "leitu/errbot-plugin": {
-    "Migrate": {
-      "path": "migrate.plug",
-      "repo": "https://github.com/leitu/errbot-plugin",
-      "documentation": "Migrate Storage from 7mode to BBCS",
-      "name": "Migrate",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/2867202?v=4",
-      "score": -113.24
-    }
-  },
-  "linuxtechie/transmission-gtalk": {
-    "Magnet": {
-      "path": "plugin/magnet.plug",
-      "repo": "https://github.com/linuxtechie/transmission-gtalk",
-      "documentation": "Add magnet to currently running transmission-daemon",
-      "name": "Magnet",
-      "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/206623?v=4",
-      "score": -92.76
-    }
-  },
-  "MattHodge/PSErrbot": {
-    "pstest": {
-      "path": "plugins/pstest/pstest.plug",
-      "repo": "https://github.com/MattHodge/PSErrbot",
-      "documentation": "PowerShell test",
-      "name": "pstest",
+  "coala/corobo": {
+    "utils": {
+      "path": "utils/utils.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Some random utilities",
+      "name": "utils",
       "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
-      "score": -33.36
-    }
-  },
-  "mayflower/errbot-alerrtmanagerr": {
-    "Alerrtmanagerr": {
-      "path": "alerrtmanagerr.plug",
-      "repo": "https://github.com/mayflower/errbot-alerrtmanagerr",
-      "documentation": "Get alerts from Prometheus Alertmanager via webhooks",
-      "name": "Alerrtmanagerr",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "SpammingAlert": {
+      "path": "plugins/spam.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "A callback to alert the user that they might be spamming.",
+      "name": "SpammingAlert",
       "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/536878?v=4",
-      "score": -7.719999999999999
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "filters": {
+      "path": "utils/filters.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Filter and manipulate incoming commands",
+      "name": "filters",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "lmgtfy": {
+      "path": "plugins/lmgtfy.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "For all those people who find it more convenient to bother you with their question rather than search it for themselves.",
+      "name": "lmgtfy",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "ghetto": {
+      "path": "plugins/ghetto.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Real talk yo",
+      "name": "ghetto",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "LabHub": {
+      "path": "plugins/labhub.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "GitHub and GitLab utilities",
+      "name": "LabHub",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "answer": {
+      "path": "plugins/answer.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Answer questions, intelligently ;)",
+      "name": "answer",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "ship_it": {
+      "path": "plugins/ship_it.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Show motivational ship it squirrel images.",
+      "name": "ship_it",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "explain": {
+      "path": "plugins/explain.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Explain various terms",
+      "name": "explain",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "coatils": {
+      "path": "plugins/coatils.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Various coala related utilities, exposing the REST API, etc.",
+      "name": "coatils",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "the_rules": {
+      "path": "plugins/the_rules.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "List the bot rules",
+      "name": "the_rules",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "nevermind": {
+      "path": "plugins/nevermind.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Doesn't mind",
+      "name": "nevermind",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "GitStats": {
+      "path": "plugins/git_stats.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "GitHub and GitLab statistics",
+      "name": "GitStats",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "pitchfork": {
+      "path": "plugins/pitchfork.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "To pitchfork users down to ...",
+      "name": "pitchfork",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "SearchDocs": {
+      "path": "plugins/searchdocs.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Search API and user docs",
+      "name": "SearchDocs",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "WolframAlpha": {
+      "path": "plugins/wolfram_alpha.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Query the Computational Knowledge Engine",
+      "name": "WolframAlpha",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "coala_lowercase_c": {
+      "path": "plugins/coala_lowercase_c.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "coala is always written with a lower case c.",
+      "name": "coala_lowercase_c",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "deprecate_bot_prefixes": {
+      "path": "plugins/deprecate_bot_prefixes.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "A callback for every message that starts with depecrated prefix, hence, leaving a deprecation notice",
+      "name": "deprecate_bot_prefixes",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
+    },
+    "Ban": {
+      "path": "plugins/ban.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Ban/Unban from all rooms at once",
+      "name": "Ban",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 284.12
     }
   },
-  "nelsonam/meryl": {
-    "Weather": {
-      "path": "plugins/weather.plug",
-      "repo": "https://github.com/nelsonam/meryl",
-      "documentation": "Displays weather for a zip code",
-      "name": "Weather",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/557945?v=4",
-      "score": -107.16
+  "prsnnami/chatops": {
+    "fun": {
+      "path": "plugins/fun.plug",
+      "repo": "https://github.com/prsnnami/chatops",
+      "documentation": "misc",
+      "name": "fun",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
+      "score": -104.04
     },
     "HelloWorld": {
       "path": "plugins/helloworld.plug",
-      "repo": "https://github.com/nelsonam/meryl",
+      "repo": "https://github.com/prsnnami/chatops",
       "documentation": "Example \"Hello, world!\" plugin",
       "name": "HelloWorld",
       "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/557945?v=4",
-      "score": -107.16
-    }
-  },
-  "phlax/errbot-pootle-build": {
-    "Pootle build": {
-      "path": "pootle-build.plug",
-      "repo": "https://github.com/phlax/errbot-pootle-build",
-      "documentation": "This is a plugin to build Pootle tarballs",
-      "name": "Pootle build",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
+      "score": -104.04
+    },
+    "commands": {
+      "path": "plugins/commands.plug",
+      "repo": "https://github.com/prsnnami/chatops",
+      "documentation": "bot commands",
+      "name": "commands",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
+      "score": -104.04
+    },
+    "Example": {
+      "path": "plugins/err-example/example.plug",
+      "repo": "https://github.com/prsnnami/chatops",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Example",
       "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/454682?v=4",
-      "score": -105.76
-    }
-  },
-  "phlax/errbot-remotes": {
-    "Remotes": {
-      "path": "remotes.plug",
-      "repo": "https://github.com/phlax/errbot-remotes",
-      "documentation": "Tag remote repositories",
-      "name": "Remotes",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/454682?v=4",
-      "score": -106.32
+      "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
+      "score": -104.04
     }
   }
 }

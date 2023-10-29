@@ -21,6 +21,17 @@
       "score": -100.84
     }
   },
+  "errbotio/err-helloworld": {
+    "HelloWorld": {
+      "path": "helloWorld.plug",
+      "repo": "https://github.com/errbotio/err-helloworld",
+      "documentation": "let's say hello !",
+      "name": "HelloWorld",
+      "python": "2+",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/15802630?v=4",
+      "score": -60.88
+    }
+  },
   "drsm79/err-memeon": {
     "MemeOn": {
       "path": "meme.plug",

@@ -39,6 +39,7 @@ fixes:
 - chore: update all core dependencies (#1651)
 - fix: use template file for webserver plugin echo output (#1654)
 - chore: update repos.json (#1660)
+- docs: add readthedocs yaml config (#1661)
 
 
 v6.1.9 (2022-06-11)

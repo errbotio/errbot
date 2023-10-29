@@ -112,9 +112,7 @@ def test_plugin_cycle(testbot):
     ]
 
     for plugin in plugins:
-        testbot.assertInCommand(
-            "!repos install {0}".format(plugin), "Installing {0}...".format(plugin)
-        ),
+        testbot.assertInCommand(f"!repos install {plugin}", f"Installing {plugin}..."),
         assert (
             "A new plugin repository has been installed correctly from errbotio/err-helloworld"
             in testbot.pop_message(timeout=60)
@@ -231,7 +229,7 @@ def test_webserver_webhook_test(testbot):
 
 def test_activate_reload_and_deactivate(testbot):
     for command in ("activate", "reload", "deactivate"):
-        testbot.push_message("!plugin {}".format(command))
+        testbot.push_message(f"!plugin {command}")
         m = testbot.pop_message()
         assert "Please tell me which of the following plugins to" in m
         assert "ChatRoom" in m
@@ -350,7 +348,7 @@ def test_callback_no_command(testbot):
     )
 
     cmd = "!this_is_not_a_real_command_at_all"
-    expected_str = "Command fell through: {}".format(cmd)
+    expected_str = f"Command fell through: {cmd}"
 
     testbot.exec_command("!plugin deactivate CommandNotFoundFilter")
     testbot.bot.plugin_manager._extra_plugin_dir = extra_plugin_dir

@@ -13,13 +13,13 @@ class RoomTest(BotPlugin):
 
     def callback_room_joined(self, room, user, invited_by):
         log.info("join")
-        self.events.put("callback_room_joined {!s}".format(room))
+        self.events.put(f"callback_room_joined {room}")
 
     def callback_room_left(self, room, user, kicked_by):
-        self.events.put("callback_room_left {!s}".format(room))
+        self.events.put(f"callback_room_left {room}")
 
     def callback_room_topic(self, room):
-        self.events.put("callback_room_topic {}".format(room.topic))
+        self.events.put(f"callback_room_topic {room.topic}")
 
     def purge(self):
         log.info("purge")

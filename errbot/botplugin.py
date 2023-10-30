@@ -134,9 +134,7 @@ class Command:
             update_wrapper(self.definition, args, kwargs)
         else:
             log.warning(
-                "Attempting to append arguments to {} isn't supported.".format(
-                    self.definition
-                )
+                f"Attempting to append arguments to {self.definition} isn't supported."
             )
 
 

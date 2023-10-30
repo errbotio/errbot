@@ -47,9 +47,7 @@ class VersionChecker(BotPlugin):
         # noinspection PyBroadException
         try:
             possible_versions = requests.get(HOME).json()
-            version = possible_versions.get(
-                "python{}".format(major_py_version), VERSION
-            )
+            version = possible_versions.get(f"python{major_py_version}", VERSION)
             self.log.debug("Latest Errbot version is: %s", version)
         except (HTTPError, URLError, ConnectionError, JSONDecodeError):
             self.log.info("Could not establish connection to retrieve latest version.")

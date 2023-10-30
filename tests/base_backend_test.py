@@ -1003,9 +1003,9 @@ def test_access_controls(dummy_backend):
         dummy_backend.bot_config.ACCESS_CONTROLS = test.get("acl", {})
         dummy_backend.bot_config.BOT_ADMINS = test.get("bot_admins", ())
         logger = logging.getLogger(__name__)
-        logger.info("** message: {}".format(test["message"].body))
-        logger.info("** bot_admins: {}".format(dummy_backend.bot_config.BOT_ADMINS))
-        logger.info("** acl: {!r}".format(dummy_backend.bot_config.ACCESS_CONTROLS))
+        logger.info(f"** message: {test['message'].body}")
+        logger.info(f"** bot_admins: {dummy_backend.bot_config.BOT_ADMINS}")
+        logger.info(f"** acl: {dummy_backend.bot_config.ACCESS_CONTROLS}")
         logger.info(
             "** acl_default: {!r}".format(
                 dummy_backend.bot_config.ACCESS_CONTROLS_DEFAULT

@@ -115,7 +115,7 @@ which contains all the details about the actual request:
         @webhook(raw=True)
         def test(self, request):
             user_agent = request.headers.get("user-agent", "Unknown")
-            return "Your user-agent is {}".format(user_agent)
+            return f"Your user-agent is {user_agent}"
 
 
 Returning custom headers and status codes

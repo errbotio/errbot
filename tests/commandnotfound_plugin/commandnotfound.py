@@ -7,4 +7,4 @@ class TestCommandNotFoundFilter(BotPlugin):
         if not emptycmd:
             return msg, cmd, args
 
-        return "Command fell through: {}".format(msg)
+        return f"Command fell through: {msg}"

@@ -36,10 +36,10 @@ jobs:
             test
           # Configure which scopes are allowed.
           # deps - dependency updates
-          # main - for release-please (scope used for releases)
+          # master - for release-please (scope used for releases)
           scopes: |
             deps
-            main
+            master
           requireScope: false
           # ensure that the subject doesn't start with an uppercase character.
           subjectPattern: ^(?![A-Z]).+$

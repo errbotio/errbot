@@ -2,27 +2,25 @@ name: build docker image
 
 on:
   push:
-    branches:
-      - master
+#    branches:
+#      - master
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   build:
-    if: github.repository_owner == 'errbotio'
     runs-on: ubuntu-latest
 
     steps:
     - name: checkout
       uses: actions/checkout@v4.1.1
 
-    - name: build and push docker image
+    - name: build and push image
       uses: mr-smithers-excellent/docker-build-push@v6
       with:
-        image: errbotio/errbot
-        tags: latest
-        registry: docker.io
-        dockerfile: Dockerfile
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        image: errbot
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}

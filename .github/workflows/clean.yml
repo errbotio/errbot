@@ -1,0 +1,18 @@
+name: clean packages
+
+on:
+  schedule:
+    - cron: '30 1 * * 1'
+
+jobs:
+  clean_packages:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/delete-package-versions@v4
+        with:
+          package-name: errbot
+          package-type: container
+          # do not delete releases
+          ignore-versions: '^\d+\.\d+\.\d+$'

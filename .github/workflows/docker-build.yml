@@ -1,9 +1,8 @@
 name: build docker image
 
 on:
-  push:
-#    branches:
-#      - master
+  - pull_request
+  - release
 
 permissions:
   contents: read

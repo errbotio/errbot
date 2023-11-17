@@ -16,7 +16,7 @@ RUN apt update && \
     apt install -y git && \
     cd /wheel && \
     pip3 -vv install --no-cache-dir --no-index --find-links /wheel \
-    errbot errbot[${INSTALL_EXTRAS}] && \
+    errbot-hl errbot-hl[${INSTALL_EXTRAS}] && \
     rm -rf /wheel /var/lib/apt/lists/*
 RUN useradd -m errbot
 

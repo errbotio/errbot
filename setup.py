@@ -83,7 +83,7 @@ if __name__ == "__main__":
     packages = find_packages(src_root, include=["errbot", "errbot.*"])
 
     setup(
-        name="errbot",
+        name="errbot-hl",
         version=VERSION,
         packages=packages,
         entry_points={

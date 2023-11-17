@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.16](https://github.com/Hapag-Lloyd/errbot/compare/6.1.15...6.1.16) (2023-11-17)
+
+
+### Bug Fixes
+
+* use standard token ([#22](https://github.com/Hapag-Lloyd/errbot/issues/22)) ([4b028f8](https://github.com/Hapag-Lloyd/errbot/commit/4b028f81cc4b35c421732a22fe61b47d799a71bd))
+
 ## [6.1.15](https://github.com/Hapag-Lloyd/errbot/compare/6.1.14...6.1.15) (2023-11-17)
 
 

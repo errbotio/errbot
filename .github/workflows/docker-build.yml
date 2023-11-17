@@ -1,8 +1,9 @@
 name: build docker image
 
 on:
-  - pull_request
-  - release
+  pull_request:
+  release:
+    types: [published]
 
 permissions:
   contents: read

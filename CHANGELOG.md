@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.13](https://github.com/Hapag-Lloyd/errbot/compare/6.1.12...6.1.13) (2023-11-17)
+
+
+### Bug Fixes
+
+* update for release only ([#16](https://github.com/Hapag-Lloyd/errbot/issues/16)) ([ac2b317](https://github.com/Hapag-Lloyd/errbot/commit/ac2b31748bb6acb06cec9ead5e7de79ecdc06413))
+
 ## [6.1.12](https://github.com/Hapag-Lloyd/errbot/compare/6.1.11...6.1.12) (2023-11-17)
 
 

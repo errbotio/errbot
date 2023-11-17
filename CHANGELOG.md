@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.12](https://github.com/Hapag-Lloyd/errbot/compare/6.1.11...6.1.12) (2023-11-17)
+
+
+### Bug Fixes
+
+* show verbose upload to PyPi ([#13](https://github.com/Hapag-Lloyd/errbot/issues/13)) ([f3386d9](https://github.com/Hapag-Lloyd/errbot/commit/f3386d987d0ef7af24aedadae524078e73f4d8ae))
+
 ## [6.1.11](https://github.com/Hapag-Lloyd/errbot/compare/6.1.10...6.1.11) (2023-11-17)
 
 

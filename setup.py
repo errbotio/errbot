@@ -60,6 +60,12 @@ def read_version():
     return variables["VERSION"]
 
 
+def read(fname, encoding="ascii"):
+    return open(
+        os.path.join(os.path.dirname(__file__), fname), "r", encoding=encoding
+    ).read()
+
+
 if __name__ == "__main__":
 
     VERSION = read_version()

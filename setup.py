@@ -60,22 +60,11 @@ def read_version():
     return variables["VERSION"]
 
 
-def read(fname, encoding="ascii"):
-    return open(
-        os.path.join(os.path.dirname(__file__), fname), "r", encoding=encoding
-    ).read()
-
-
 if __name__ == "__main__":
 
     VERSION = read_version()
 
     args = set(sys.argv)
-
-    changes = read("CHANGES.rst", "utf8")
-
-    if changes.find(VERSION) == -1:
-        raise Exception("You forgot to put a release note in CHANGES.rst ?!")
 
     if args & {"bdist", "bdist_dumb", "bdist_rpm", "bdist_wininst", "bdist_msi"}:
         raise Exception("err doesn't support binary distributions")

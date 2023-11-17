@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.20](https://github.com/Hapag-Lloyd/errbot/compare/6.1.19...6.1.20) (2023-11-17)
+
+
+### Bug Fixes
+
+* remove `changes` from `setup.py` ([#34](https://github.com/Hapag-Lloyd/errbot/issues/34)) ([20ab0cc](https://github.com/Hapag-Lloyd/errbot/commit/20ab0cca141f9ad3016f94b1fd3770effe029626))
+
 ## [6.1.19](https://github.com/Hapag-Lloyd/errbot/compare/6.1.18...6.1.19) (2023-11-17)
 
 

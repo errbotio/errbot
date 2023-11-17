@@ -29,14 +29,11 @@ jobs:
       - name: Set release version
         id: set_release_version
         env:
-          MAJOR: "1"
-          MINOR: "2"
-          PATCH: "3"
+          HEAD_COMMIT_TITLE: ${{ github.event.head_commit.message }}
         run: |
-          echo "$MAJOR $MINOR $PATCH"
-          echo The Title of your PR is ${{ github.event.pull_request.title }}
           file=$(find . -name "version.py")
-          sed -i "s/^VERSION .*$/VERSION = \"$MAJOR.$MINOR.$PATCH\"/" $file
+          version_number=${HEAD_COMMIT_TITLE##* }
+          sed -i "s/^VERSION .*$/VERSION = \"$version_number\"/" $file
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: set release version

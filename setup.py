@@ -132,7 +132,7 @@ if __name__ == "__main__":
         author_email="info@errbot.io",
         description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description_content_type="text/x-rst",
-        long_description="".join([read("README.rst"), "\n\n", changes]),
+        long_description="".join([read("README.rst")]),
         license="GPL",
         keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
         url="http://errbot.io/",

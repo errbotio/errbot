@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.15](https://github.com/Hapag-Lloyd/errbot/compare/6.1.14...6.1.15) (2023-11-17)
+
+
+### Bug Fixes
+
+* change project name to `errbot-hl` ([#20](https://github.com/Hapag-Lloyd/errbot/issues/20)) ([9e5b066](https://github.com/Hapag-Lloyd/errbot/commit/9e5b0664c2e624e09ccbe0bfb9e7c791623206d5))
+
 ## [6.1.14](https://github.com/Hapag-Lloyd/errbot/compare/6.1.13...6.1.14) (2023-11-17)
 
 

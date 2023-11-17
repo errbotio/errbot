@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.18](https://github.com/Hapag-Lloyd/errbot/compare/6.1.17...6.1.18) (2023-11-17)
+
+
+### Bug Fixes
+
+* do not check if release notes were added ([#30](https://github.com/Hapag-Lloyd/errbot/issues/30)) ([32ac9a8](https://github.com/Hapag-Lloyd/errbot/commit/32ac9a8997263ef2a60f160b5112d7ff75855905))
+
 ## [6.1.17](https://github.com/Hapag-Lloyd/errbot/compare/6.1.16...6.1.17) (2023-11-17)
 
 

@@ -26,5 +26,3 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           include-v-in-tag: false
           pull-request-header: ''
-          bootstrap-sha: cb9e671b30bac5976c51300e820e95db74a8be0f
-          last-release-sha: 0001618fb3f5986f5b4033f98edee5baa7df5b89

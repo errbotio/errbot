@@ -1,0 +1,29 @@
+---
+name: Auto update release version
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - release-please--branches--master
+  
+jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4 # ratchet:actions/checkout@v3
+      - name: Set release version
+        id: set_release_version
+        env:
+          MAJOR: "1"
+          MINOR: "2"
+          PATCH: "3"
+        run: |
+          echo "$MAJOR $MINOR $PATCH"
+          file=$(find . -name "version.py")
+          sed -i "s/^VERSION .*$/VERSION = \"MAJOR.MINOR.PATCH\"/' $file
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: set release version

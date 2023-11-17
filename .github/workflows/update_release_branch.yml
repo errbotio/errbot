@@ -22,8 +22,9 @@ jobs:
           PATCH: "3"
         run: |
           echo "$MAJOR $MINOR $PATCH"
+          echo The Title of your PR is ${{ github.event.pull_request.title }}
           file=$(find . -name "version.py")
-          sed -i "s/^VERSION .*$/VERSION = \"MAJOR.MINOR.PATCH\"/" $file
+          sed -i "s/^VERSION .*$/VERSION = \"$MAJOR.$MINOR.$PATCH\"/" $file
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: set release version

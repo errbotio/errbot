@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.19](https://github.com/Hapag-Lloyd/errbot/compare/6.1.18...6.1.19) (2023-11-17)
+
+
+### Bug Fixes
+
+* add `read()` again ([#32](https://github.com/Hapag-Lloyd/errbot/issues/32)) ([65c0a4e](https://github.com/Hapag-Lloyd/errbot/commit/65c0a4eb067db3ce6e25cb51baa5c2cb2c50bbf2))
+
 ## [6.1.18](https://github.com/Hapag-Lloyd/errbot/compare/6.1.17...6.1.18) (2023-11-17)
 
 

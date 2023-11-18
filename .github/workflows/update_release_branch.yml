@@ -22,6 +22,6 @@ jobs:
           file=$(find . -name "version.py")
           version_number=${HEAD_COMMIT_TITLE##* }
           sed -i "s/^VERSION .*$/VERSION = \"$version_number\"/" $file
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@8756aa072ef5b4a080af5dc8fef36c5d586e521d # v5
         with:
           commit_message: set release version

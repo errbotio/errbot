@@ -10,7 +10,7 @@ jobs:
     permissions:
       packages: write
     steps:
-      - uses: actions/delete-package-versions@v4
+      - uses: actions/delete-package-versions@0d39a63126868f5eefaa47169615edd3c0f61e20 # v4
         with:
           package-name: errbot
           package-type: container

@@ -1,4 +1,4 @@
 {
-  "extends": ["github>Hapag-Lloyd/Renovate-Global-Configuration"]
+  "extends": ["github>Hapag-Lloyd/Renovate-Global-Configuration"],
   "forkProcessing": "enabled"
 }

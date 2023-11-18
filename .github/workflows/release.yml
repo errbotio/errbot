@@ -1,0 +1,30 @@
+---
+name: Release
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.GET_TOKEN_APP_ID }}
+          private-key: ${{ secrets.GET_TOKEN_PRIVATE_KEY }}
+      # bootstrap-sha and release-as needs to be removed after first release
+      - name: Release
+        uses: google-github-actions/release-please-action@1ddb669c677d585663a83fc535edc428954c4aeb # ratchet:google-github-actions/release-please-action@v3
+        with:
+          release-type: python
+          token: ${{ steps.app-token.outputs.token }}
+          include-v-in-tag: false
+          pull-request-header: ''
+          bootstrap-sha: cb9e671b30bac5976c51300e820e95db74a8be0f
+          last-release-sha: 0001618fb3f5986f5b4033f98edee5baa7df5b89

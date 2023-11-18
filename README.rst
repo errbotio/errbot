@@ -21,6 +21,13 @@
 
 |
 
+Note: This is a forked version of Errbot. The main reason was, to be able to have an automated release process and release the
+changes often. The base for this fork was version 6.1.9 (commit: 7609f6c) from June 2023. The first released version here is
+7.0.0 and contains all unreleased changes up to commit 0080eff1324930207f021f55674d5240abae172d from 2023-10-30.
+
+- Docker image: `ghcr.io/hapag-lloyd/errbot-hl <https://github.com/Hapag-Lloyd/errbot/pkgs/container/errbot>`__
+- PyPi package: `errbot-hl <https://pypi.org/project/errbot-hl/>`__
+
 
 Errbot
 ======

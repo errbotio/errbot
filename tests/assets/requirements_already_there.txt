@@ -1,1 +1,1 @@
-errbot
+errbot-hl

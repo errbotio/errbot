@@ -1,0 +1,39 @@
+---
+name: Auto update release version
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - release-please--branches--master
+  
+jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4 # ratchet:actions/checkout@v3
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+      - name: Set release version
+        id: set_release_version
+        env:
+          HEAD_COMMIT_TITLE: ${{ github.event.head_commit.message }}
+        run: |
+          file=$(find . -name "version.py")
+          version_number=${HEAD_COMMIT_TITLE##* }
+          sed -i "s/^VERSION .*$/VERSION = \"$version_number\"/" $file
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: set release version

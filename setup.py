@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation; either version 3 of the License, or
@@ -72,18 +73,13 @@ if __name__ == "__main__":
 
     args = set(sys.argv)
 
-    changes = read("CHANGES.rst", "utf8")
-
-    if changes.find(VERSION) == -1:
-        raise Exception("You forgot to put a release note in CHANGES.rst ?!")
-
     if args & {"bdist", "bdist_dumb", "bdist_rpm", "bdist_wininst", "bdist_msi"}:
         raise Exception("err doesn't support binary distributions")
 
     packages = find_packages(src_root, include=["errbot", "errbot.*"])
 
     setup(
-        name="errbot",
+        name="errbot-hl",
         version=VERSION,
         packages=packages,
         entry_points={
@@ -137,7 +133,7 @@ if __name__ == "__main__":
         author_email="info@errbot.io",
         description="Errbot is a chatbot designed to be simple to extend with plugins written in Python.",
         long_description_content_type="text/x-rst",
-        long_description="".join([read("README.rst"), "\n\n", changes]),
+        long_description="".join([read("README.rst")]),
         license="GPL",
         keywords="xmpp irc slack hipchat gitter tox chatbot bot plugin chatops",
         url="http://errbot.io/",

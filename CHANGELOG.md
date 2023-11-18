@@ -1,5 +1,22 @@
 # Changelog
 
+## [7.0.0](https://github.com/Hapag-Lloyd/errbot/compare/6.1.9...7.0.0) (2023-11-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* add workflows for release automation ([#38](https://github.com/Hapag-Lloyd/errbot/issues/38))
+
+### Bug Fixes
+
+* add workflows for release automation ([#38](https://github.com/Hapag-Lloyd/errbot/issues/38)) ([93ee796](https://github.com/Hapag-Lloyd/errbot/commit/93ee796431a0297cf66d97d290c5b8dbb19fed48))
+* broken integration tests ([#1668](https://github.com/Hapag-Lloyd/errbot/issues/1668)) ([9373e9e](https://github.com/Hapag-Lloyd/errbot/commit/9373e9ebc7b0b8c2ad17c5ccb5a38f08692068ad))
+
+
+### Documentation
+
+* add readthedocs yaml config ([#1661](https://github.com/Hapag-Lloyd/errbot/issues/1661)) ([b6acb81](https://github.com/Hapag-Lloyd/errbot/commit/b6acb8150265a614c32248b758a822261b9fea57))
+
 ## [6.1.21](https://github.com/Hapag-Lloyd/errbot/compare/6.1.20...6.1.21) (2023-11-17)
 
 

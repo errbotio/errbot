@@ -9,7 +9,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), "dummy_plugin")
 

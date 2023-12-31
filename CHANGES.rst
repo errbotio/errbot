@@ -42,6 +42,7 @@ fixes:
 - docs: add readthedocs yaml config (#1661)
 - fix: broken integration tests (#1668)
 - style: replace format() with f-strings (#1667)
+- migrate from external mock package to stdlib unittest.mock (#1673)
 
 
 v6.1.9 (2022-06-11)

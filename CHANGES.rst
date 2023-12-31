@@ -17,7 +17,7 @@ fixes:
 
 - docs: add unreleased section (#1576)
 - docs: update broken URL for Markdown Extra (#1572)
-- chore: bump actions/setup-python version (#1575, #1593, #1609, #1626, #1642, #1650, #1659)
+- chore: bump actions/setup-python version (#1575, #1593, #1609, #1626, #1642, #1650, #1659, #1674)
 - backend/telegram: fix missing imports (#1574)
 - chore: ci improvements (#1577, #1583)
 - chore: add docs build to ci (#1582)

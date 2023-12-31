@@ -44,6 +44,7 @@ fixes:
 - style: replace format() with f-strings (#1667)
 - migrate from external mock package to stdlib unittest.mock (#1673)
 - fix: import of Mapping from collections.abc (#1675)
+- backend: update irc, telegram and xmpp dependencies (#1655)
 
 
 v6.1.9 (2022-06-11)

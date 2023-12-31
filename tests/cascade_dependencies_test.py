@@ -1,7 +1,7 @@
 import os
 import pathlib
 
-import mock
+from unittest import mock
 import pytest
 
 extra_plugin_dir = os.path.join(

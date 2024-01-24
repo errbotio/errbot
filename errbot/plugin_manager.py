@@ -271,9 +271,6 @@ class BotPluginManager(StoreMixin):
                     log.warning("Plugin %s already loaded.", name)
                     continue
 
-                # save the plugin_info for ref.
-                dest_info_dict[name] = plugin_info
-
                 # Skip the core plugins not listed in CORE_PLUGINS if CORE_PLUGINS is defined.
                 if (
                     self.core_plugins
@@ -301,6 +298,9 @@ class BotPluginManager(StoreMixin):
                 # instantiate the plugin object.
                 _, clazz = plugin_classes[0]
                 dest_dict[name] = self._plugin_instance_callback(name, clazz)
+
+                # save the plugin_info for ref.
+                dest_info_dict[name] = plugin_info
 
             except Exception:
                 feedback[path] = traceback.format_exc()

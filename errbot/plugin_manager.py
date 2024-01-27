@@ -1,4 +1,5 @@
 """ Logic related to plugin loading and lifecycle """
+
 import logging
 import os
 import subprocess
@@ -243,9 +244,9 @@ class BotPluginManager(StoreMixin):
                 exc_info = install_packages(req_path)
                 if exc_info is not None:
                     typ, value, trace = exc_info
-                    feedback[
-                        path
-                    ] = f'{typ}: {value}\n{"".join(traceback.format_tb(trace))}'
+                    feedback[path] = (
+                        f'{typ}: {value}\n{"".join(traceback.format_tb(trace))}'
+                    )
             else:
                 msg, _ = check_dependencies(req_path)
                 if msg and path not in feedback:  # favor the first error.
@@ -294,9 +295,9 @@ class BotPluginManager(StoreMixin):
                     continue
                 if len(plugin_classes) > 1:
                     # TODO: This is something we can support as "subplugins" or something similar.
-                    feedback[
-                        path
-                    ] = "Contains more than one plugin, only one will be loaded."
+                    feedback[path] = (
+                        "Contains more than one plugin, only one will be loaded."
+                    )
 
                 # instantiate the plugin object.
                 _, clazz = plugin_classes[0]

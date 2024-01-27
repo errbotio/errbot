@@ -252,6 +252,18 @@ class BotPluginManager(StoreMixin):
                 if msg and path not in feedback:  # favor the first error.
                     feedback[path] = msg
 
+    def _is_excluded_core_plugin(self, plugin_info: PluginInfo) -> bool:
+        """Check if a plugin should be excluded based on the CORE_PLUGINS config directive"""
+        if (
+            plugin_info
+            and self.core_plugins
+            and plugin_info.core
+            and (plugin_info.name not in self.core_plugins)
+        ):
+            return True
+        else:
+            return False
+
     def _load_plugins_generic(
         self,
         path: Path,
@@ -276,11 +288,7 @@ class BotPluginManager(StoreMixin):
                 dest_info_dict[name] = plugin_info
 
                 # Skip the core plugins not listed in CORE_PLUGINS if CORE_PLUGINS is defined.
-                if (
-                    self.core_plugins
-                    and plugin_info.core
-                    and (plugin_info.name not in self.core_plugins)
-                ):
+                if self._is_excluded_core_plugin(plugin_info):
                     log.debug(
                         "%s plugin will not be loaded because it's not listed in CORE_PLUGINS",
                         name,
@@ -426,7 +434,7 @@ class BotPluginManager(StoreMixin):
         configs[name] = obj
         self[CONFIGS] = configs
 
-    def activate_non_started_plugins(self) -> None:
+    def activate_non_started_plugins(self) -> str:
         """
         Activates all plugins that are not activated, respecting its dependencies.
 
@@ -435,7 +443,10 @@ class BotPluginManager(StoreMixin):
         log.info("Activate bot plugins...")
         errors = ""
         for name in self.get_plugins_activation_order():
+            # We need both the plugin and the corresponding PluginInfo to check if we need to skip an excluded core plugin
+            plugin_info = self.plugin_infos.get(name)
             plugin = self.plugins.get(name)
+
             try:
                 if self.is_plugin_blacklisted(name):
                     errors += (
@@ -443,6 +454,13 @@ class BotPluginManager(StoreMixin):
                         f'use "{self.plugins["Help"]._bot.prefix}plugin unblacklist {name}" to unblacklist it.\n'
                     )
                     continue
+                elif self._is_excluded_core_plugin(plugin_info):
+                    log.debug(
+                        "%s plugin will not be activated because it's excluded from CORE_PLUGINS",
+                        name,
+                    )
+                    continue
+
                 if not plugin.is_activated:
                     log.info("Activate plugin: %s.", name)
                     self.activate_plugin(name)

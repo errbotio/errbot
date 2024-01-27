@@ -521,9 +521,9 @@ def webhook(
     if isinstance(args[0], str):  # first param is uri_rule.
         return lambda func: _tag_webhook(
             func,
-            args[0]
-            if args[0] == "/"
-            else args[0].rstrip("/"),  # trailing / is also be stripped on incoming.
+            (
+                args[0] if args[0] == "/" else args[0].rstrip("/")
+            ),  # trailing / is also be stripped on incoming.
             methods=methods,
             form_param=form_param,
             raw=raw,

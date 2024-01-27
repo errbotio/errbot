@@ -255,10 +255,10 @@ class BotPluginManager(StoreMixin):
     def _is_excluded_core_plugin(self, plugin_info: PluginInfo) -> bool:
         """Check if a plugin should be excluded based on the CORE_PLUGINS config directive"""
         if (
-                plugin_info and
-                self.core_plugins
-                and plugin_info.core
-                and (plugin_info.name not in self.core_plugins)
+            plugin_info
+            and self.core_plugins
+            and plugin_info.core
+            and (plugin_info.name not in self.core_plugins)
         ):
             return True
         else:

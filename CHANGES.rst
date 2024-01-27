@@ -4,6 +4,7 @@ v9.9.9 (unreleased)
 fixes:
 
 - docs: add unreleased section (#1681)
+- fix: check only activate plugins listed in CORE_PLUGINS (#1601)
 
 v6.2.0 (2024-01-01)
 -------------------

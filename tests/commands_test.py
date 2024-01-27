@@ -7,9 +7,9 @@ from os import mkdir, path
 from queue import Empty
 from shutil import rmtree
 from tempfile import mkdtemp
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), "dummy_plugin")
 

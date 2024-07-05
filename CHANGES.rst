@@ -8,6 +8,7 @@ fixes:
 - chore: bump jinja to 3.1.3 (#1684)
 - chore: bump actions/setup-python version (#1686)
 - chore: bump actions/checkout version (#1696)
+- chore: optimize Dockerfile (#1679)
 
 v6.2.0 (2024-01-01)
 -------------------

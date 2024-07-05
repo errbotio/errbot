@@ -1,30 +1,28 @@
-ARG BASE_IMAGE=python:3.9-slim
 ARG INSTALL_EXTRAS=irc,XMPP,telegram,slack
 
-FROM ${BASE_IMAGE} AS build
+FROM python:3.9 AS build
 ARG INSTALL_EXTRAS
+
 WORKDIR /wheel
+
 COPY . .
-RUN apt update && apt install -y build-essential git
-RUN pip3 wheel --wheel-dir=/wheel \
-    wheel . .[${INSTALL_EXTRAS}]
+RUN pip wheel --wheel-dir=/wheel wheel . .[${INSTALL_EXTRAS}]
 
-FROM ${BASE_IMAGE} AS base
+FROM python:3.9-slim
 ARG INSTALL_EXTRAS
-COPY --from=build /wheel /wheel
-RUN apt update && \
-    apt install -y git && \
-    cd /wheel && \
-    pip3 -vv install --no-cache-dir --no-index --find-links /wheel \
-    errbot errbot[${INSTALL_EXTRAS}] && \
-    rm -rf /wheel /var/lib/apt/lists/*
-RUN useradd -m errbot
 
-FROM base
+RUN --mount=from=build,source=/wheel,target=/wheel \
+    pip install --no-cache-dir --no-index --find-links /wheel \
+    errbot errbot[${INSTALL_EXTRAS}]
+
+RUN useradd --create-home --shell /bin/bash errbot
+USER errbot
+WORKDIR /home/errbot
+
+RUN errbot --init
+
 EXPOSE 3141 3142
 VOLUME /home/errbot
-WORKDIR /home/errbot
-USER errbot
-RUN errbot --init
 STOPSIGNAL SIGINT
+
 ENTRYPOINT [ "/usr/local/bin/errbot" ]

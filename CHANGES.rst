@@ -9,6 +9,7 @@ fixes:
 - chore: bump actions/setup-python version (#1686)
 - chore: bump actions/checkout version (#1696)
 - chore: optimize Dockerfile (#1679)
+- docs: fix telegram install command (#1697)
 
 v6.2.0 (2024-01-01)
 -------------------

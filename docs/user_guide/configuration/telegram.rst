@@ -11,7 +11,7 @@ Extra Dependencies
 
 You need to install this dependency before using Errbot with Telegram::
 
-      pip install python-telegram-bot
+      pip install errbot[telegram]
 
 Account setup
 -------------

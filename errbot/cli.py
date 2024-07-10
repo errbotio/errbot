@@ -22,6 +22,7 @@ import sys
 from os import W_OK, access, getcwd, path, sep
 from pathlib import Path
 from platform import system
+from collections.abc import Mapping
 
 from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger
@@ -81,8 +82,7 @@ def get_config(config_path: str):
         exit(-1)
 
 
-def _read_dict() -> dict:
-    from collections.abc import Mapping
+def _read_dict() -> Mapping:
 
     new_dict = ast.literal_eval(sys.stdin.read())
     if not isinstance(new_dict, Mapping):

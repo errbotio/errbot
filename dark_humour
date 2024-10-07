@@ -1,0 +1,27 @@
+import praw
+
+# Initialize Reddit API with credentials
+reddit = praw.Reddit(
+    client_id='YOUR_CLIENT_ID',       # Replace with your Reddit API client ID
+    client_secret='YOUR_CLIENT_SECRET', # Replace with your Reddit API client secret
+    user_agent='YOUR_USER_AGENT'       # Replace with your Reddit user agent
+)
+
+# Function to search for dark jokes in specific subreddit
+def get_dark_jokes(limit=5):
+    jokes = []
+    
+    # Select subreddit where dark jokes are posted
+    subreddit = reddit.subreddit('darkjokes')
+    
+    # Search through top posts in the subreddit
+    for submission in subreddit.hot(limit=limit):
+        if not submission.stickied:  # Ignore stickied posts
+            jokes.append(submission.title + "\n" + submission.selftext)
+    
+    return jokes
+
+# Fetch top 5 dark jokes
+jokes = get_dark_jokes(limit=5)
+for i, joke in enumerate(jokes, 1):
+    print(f"Joke {i}:\n{joke}\n{'-'*80}\n")

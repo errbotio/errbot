@@ -22,7 +22,6 @@ import sys
 from os import W_OK, access, getcwd, path, sep
 from pathlib import Path
 from platform import system
-from typing import Optional, Union
 
 from errbot.bootstrap import CORE_BACKENDS
 from errbot.logs import root_logger

@@ -1,4 +1,4 @@
-""" Logic related to plugin loading and lifecycle """
+"""Logic related to plugin loading and lifecycle"""
 
 import logging
 import os

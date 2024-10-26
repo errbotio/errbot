@@ -1,5 +1,4 @@
 import logging
-import types
 from collections.abc import MutableMapping
 from contextlib import contextmanager
 
@@ -36,7 +35,7 @@ class StoreMixin(MutableMapping):
 
     def close_storage(self):
         if not self.is_open_storage():
-            raise StoreNotOpenError(f"Storage does not appear to have been opened yet")
+            raise StoreNotOpenError("Storage does not appear to have been opened yet")
         self._store.close()
         self._store = None
         log.debug("Closed storage '%s'", self.namespace)

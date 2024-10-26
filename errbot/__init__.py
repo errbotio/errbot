@@ -3,9 +3,8 @@ import inspect
 import logging
 import re
 import shlex
-import sys
 from functools import wraps
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 from .backends.base import AWAY, DND, OFFLINE, ONLINE, Message  # noqa
 from .botplugin import (  # noqa
@@ -16,7 +15,7 @@ from .botplugin import (  # noqa
     ShlexArgParser,
     ValidationException,
 )
-from .core_plugins.wsview import WebView, route
+from .core_plugins.wsview import route
 from .flow import FLOW_END, BotFlow, Flow, FlowRoot
 
 __all__ = [

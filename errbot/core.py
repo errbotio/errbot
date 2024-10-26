@@ -55,12 +55,8 @@ class ErrBot(Backend, StoreMixin):
             log.debug(
                 "created a thread pool of size %d.", bot_config.BOT_ASYNC_POOLSIZE
             )
-        self.commands = (
-            {}
-        )  # the dynamically populated list of commands available on the bot
-        self.re_commands = (
-            {}
-        )  # the dynamically populated list of regex-based commands available on the bot
+        self.commands = {}  # the dynamically populated list of commands available on the bot
+        self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
         self.command_filters = []  # the dynamically populated list of filters
         self.MSG_UNKNOWN_COMMAND = (
             'Unknown command: "%(command)s". '
@@ -287,8 +283,6 @@ class ErrBot(Backend, StoreMixin):
         log.debug("*** username = %s", username)
         log.debug("*** text = %s", text)
 
-        suppress_cmd_not_found = self.bot_config.SUPPRESS_CMD_NOT_FOUND
-
         prefixed = False  # Keeps track whether text was prefixed with a bot prefix
         only_check_re_command = (
             False  # Becomes true if text is determed to not be a regular command
@@ -324,10 +318,6 @@ class ErrBot(Backend, StoreMixin):
                 'Assuming "%s" to be a command because BOT_PREFIX_OPTIONAL_ON_CHAT is True',
                 text,
             )
-            # In order to keep noise down we surpress messages about the command
-            # not being found, because it's possible a plugin will trigger on what
-            # was said with trigger_message.
-            suppress_cmd_not_found = True
         elif not text.startswith(self.bot_config.BOT_PREFIX):
             only_check_re_command = True
         if text.startswith(self.bot_config.BOT_PREFIX):

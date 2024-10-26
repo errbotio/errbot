@@ -187,7 +187,7 @@ class Plugins(BotPlugin):
         except Exception:
             self.log.exception("Invalid expression for the configuration of the plugin")
             return "Syntax error in the given configuration"
-        if type(real_config_obj) != type(template_obj):
+        if type(real_config_obj) is not type(template_obj):
             return "It looks fishy, your config type is not the same as the template!"
 
         self._bot.plugin_manager.set_plugin_configuration(plugin_name, real_config_obj)

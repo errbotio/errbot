@@ -50,11 +50,6 @@ jobs:
       run: |
         tox -e codestyle
 
-    - name: Lint - sort
-      if: ${{ matrix.python-version == '3.12' }}
-      run: |
-        tox -e sort
-
     - name: Security
       if: ${{ matrix.python-version == '3.12' }}
       run: |

@@ -21,8 +21,8 @@ from setuptools import find_packages, setup
 
 py_version = sys.version_info[:2]
 
-if py_version < (3, 8):
-    raise RuntimeError("Errbot requires Python 3.8 or later")
+if py_version < (3, 9):
+    raise RuntimeError("Errbot requires Python 3.9 or later")
 
 VERSION_FILE = os.path.join("errbot", "version.py")
 
@@ -41,9 +41,6 @@ deps = [
     "dulwich==0.21.5",  # python implementation of git
     "deepmerge==1.1.0",
 ]
-
-if py_version < (3, 9):
-    deps.append("graphlib-backport==1.0.3")
 
 src_root = os.curdir
 

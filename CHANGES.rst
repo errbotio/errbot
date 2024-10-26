@@ -11,6 +11,7 @@ fixes:
 - chore: optimize Dockerfile (#1679)
 - docs: fix telegram install command (#1697)
 - chore: add python versions to test (#1705)
+- chore: remove python 3.8 support (#1707)
 
 v6.2.0 (2024-01-01)
 -------------------

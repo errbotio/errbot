@@ -44,7 +44,7 @@ def recurse_check_structure(sample: Any, to_check: Any) -> None:
             recurse_check_structure(sample[0], element)
         return
 
-    if sample_type == dict:
+    if sample_type == dict: # noqa: E721
         for key in sample:
             if key not in to_check:
                 raise ValidationException(f"{to_check} doesn't contain the key {key}.")

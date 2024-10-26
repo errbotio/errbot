@@ -187,7 +187,7 @@ def check_repo(repo):
             repo_entry[name] = plugin
             plugins[repo_name] = repo_entry
             log.debug("Catalog added plugin %s.", plugin["name"])
-        except:
+        except Exception:
             log.error("Invalid syntax in %s, skipping...", plug["path"])
             continue
 

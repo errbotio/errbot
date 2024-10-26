@@ -55,12 +55,8 @@ class ErrBot(Backend, StoreMixin):
             log.debug(
                 "created a thread pool of size %d.", bot_config.BOT_ASYNC_POOLSIZE
             )
-        self.commands = (
-            {}
-        )  # the dynamically populated list of commands available on the bot
-        self.re_commands = (
-            {}
-        )  # the dynamically populated list of regex-based commands available on the bot
+        self.commands = {}  # the dynamically populated list of commands available on the bot
+        self.re_commands = {}  # the dynamically populated list of regex-based commands available on the bot
         self.command_filters = []  # the dynamically populated list of filters
         self.MSG_UNKNOWN_COMMAND = (
             'Unknown command: "%(command)s". '

@@ -7,7 +7,7 @@ from time import sleep
 import pytest
 import requests
 
-from errbot.backends.test import FullStackTest, testbot
+from errbot.backends.test import testbot
 
 log = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 # coding=utf-8
 from os import path
 
-import pytest
 
 extra_plugin_dir = path.join(path.dirname(path.realpath(__file__)), "test_link")
 

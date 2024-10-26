@@ -128,7 +128,7 @@ class Command:
         self.definition = cmd_type(*((function,) + cmd_args), **cmd_kwargs)
 
     def append_args(self, args, kwargs):
-        from errbot import arg_botcmd, update_wrapper
+        from errbot import update_wrapper
 
         if hasattr(self.definition, "_err_command_parser"):
             update_wrapper(self.definition, args, kwargs)

@@ -1,4 +1,7 @@
 # coding=utf-8
+import logging
+import sys
+
 from datetime import timedelta
 
 import pytest
@@ -8,7 +11,7 @@ from errbot.backends.test import ShallowConfig
 from errbot.bootstrap import CORE_STORAGE, bot_config_defaults
 from errbot.storage import StoreMixin
 from errbot.storage.base import StoragePluginBase
-from errbot.utils import *
+from errbot.utils import version2tuple, format_timedelta, split_string_after
 
 log = logging.getLogger(__name__)
 

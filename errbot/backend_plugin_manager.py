@@ -15,7 +15,7 @@ class PluginNotFoundException(Exception):
 
 
 def enumerate_backend_plugins(
-    all_plugins_paths: List[Union[str, Path]]
+    all_plugins_paths: List[Union[str, Path]],
 ) -> Iterator[PluginInfo]:
     plugin_places = [Path(root) for root in all_plugins_paths]
     for path in plugin_places:

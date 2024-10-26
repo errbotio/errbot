@@ -4,7 +4,7 @@ import random
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from typing import Any, BinaryIO, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, BinaryIO, List, Mapping, Optional, Sequence, Tuple, Type
 
 log = logging.getLogger(__name__)
 
@@ -391,7 +391,7 @@ class Message:
         return self._extras
 
     @property
-    def flow(self) -> "errbot.Flow":
+    def flow(self) -> Type["errbot.Flow"]: # noqa: F821
         """
         Get the conversation flow for this message.
 

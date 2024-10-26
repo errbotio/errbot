@@ -12,7 +12,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import subprocess, sys, os
+import subprocess
+import sys
+import os
 sys.path.append(os.path.abspath('_themes'))
 sys.path.append(os.path.abspath('_themes/err'))
 sys.path.append(os.path.abspath('../'))

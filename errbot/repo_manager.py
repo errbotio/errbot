@@ -8,7 +8,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 from os import path
 from pathlib import Path
-from typing import Dict, Generator, List, Optional, Sequence, Tuple, Union
+from typing import Dict, Generator, List, Optional, Sequence, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen

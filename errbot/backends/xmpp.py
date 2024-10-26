@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from functools import lru_cache
 from time import sleep
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 from errbot.backends.base import (
     AWAY,
@@ -28,7 +28,6 @@ log = logging.getLogger(__name__)
 try:
     from slixmpp import JID, ClientXMPP
     from slixmpp.exceptions import IqError
-    from slixmpp.xmlstream import cert, resolver
 
 except ImportError:
     log.exception("Could not start the XMPP backend")

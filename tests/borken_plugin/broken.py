@@ -1,7 +1,6 @@
-import borken  # fails on purpose
-
 from errbot import BotPlugin, botcmd
 
+import borken  # fails on purpose # noqa: F401
 
 class Broken(BotPlugin):
     @botcmd

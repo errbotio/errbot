@@ -13,6 +13,7 @@ fixes:
 - chore: add python versions to test (#1705)
 - chore: remove python 3.8 support (#1707)
 - chore: use ruff for formatting (#1706)
+- chore: bump setuptools to 75.7.0 (#1709)
 
 v6.2.0 (2024-01-01)
 -------------------

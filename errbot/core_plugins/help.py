@@ -92,9 +92,6 @@ class Help(BotPlugin):
         """Returns a help string listing available options.
         Automatically assigned to the "help" command."""
 
-        def get_name(named):
-            return named.__name__.lower()
-
         # Normalize args to lowercase for ease of use
         args = args.lower() if args else ""
         usage = ""

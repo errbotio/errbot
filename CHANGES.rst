@@ -15,6 +15,7 @@ fixes:
 - chore: use ruff for formatting (#1706)
 - chore: bump setuptools to 75.7.0 (#1709)
 - chore: bump pyOpenSSL to 24.3.0 (#1710)
+- chore: bump jinja2 to 3.1.5 and requests to 2.32.0 (#1714)
 
 v6.2.0 (2024-01-01)
 -------------------

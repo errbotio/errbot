@@ -18,6 +18,7 @@ fixes:
 - chore: bump jinja2 to 3.1.5 and requests to 2.32.0 (#1714)
 - Fix: situationally broken apropos command (#1711)
 - chore: bump requests to 2.32.3 (#1715)
+- chore: bump requests to 2.32.3 (#1723)
 
 
 v6.2.0 (2024-01-01)

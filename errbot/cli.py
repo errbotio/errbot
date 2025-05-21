@@ -19,6 +19,7 @@ import ast
 import logging
 import os
 import sys
+from collections.abc import Mapping
 from os import W_OK, access, getcwd, path, sep
 from pathlib import Path
 from platform import system
@@ -64,7 +65,7 @@ def get_config(config_path: str):
         log.error(f"I cannot find the config file {config_path}.")
         log.error("You can change this path with the -c parameter see --help")
         log.info(
-            f'You can use the template {os.path.realpath(os.path.join(__file__, os.pardir, "config-template.py"))}'
+            f"You can use the template {os.path.realpath(os.path.join(__file__, os.pardir, 'config-template.py'))}"
             f" as a base and copy it to {config_path}."
         )
         log.info("You can then customize it.")
@@ -81,9 +82,7 @@ def get_config(config_path: str):
         exit(-1)
 
 
-def _read_dict() -> dict:
-    from collections.abc import Mapping
-
+def _read_dict() -> Mapping:
     new_dict = ast.literal_eval(sys.stdin.read())
     if not isinstance(new_dict, Mapping):
         raise ValueError(

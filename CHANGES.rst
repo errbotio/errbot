@@ -22,6 +22,7 @@ fixes:
 - chore: bump jinja2 to 3.1.6 (#1723)
 - chore: update errbot-backend-slackv3 version to 0.3.1 (#1725)
 - fix: Close and join thread pools between tests (#1724)
+- fix: type hints (#1698)
 
 
 v6.2.0 (2024-01-01)

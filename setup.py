@@ -31,7 +31,7 @@ deps = [
     "setuptools==75.7.0",
     "flask==2.3.3",
     "requests==2.32.3",
-    "jinja2==3.1.5",
+    "jinja2==3.1.6",
     "pyOpenSSL==24.3.0",
     "colorlog==6.7.0",
     "markdown==3.4.4",
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         },
         extras_require={
             "slack": [
-                "errbot-backend-slackv3==0.2.1",
+                "errbot-backend-slackv3==0.3.1",
             ],
             "discord": [
                 "err-backend-discord==3.0.1",

@@ -23,6 +23,7 @@ fixes:
 - chore: update errbot-backend-slackv3 version to 0.3.1 (#1725)
 - fix: Close and join thread pools between tests (#1724)
 - fix: type hints (#1698)
+- refactor: use importlib to find plugins in entry_points (#1669)
 
 
 v6.2.0 (2024-01-01)

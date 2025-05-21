@@ -257,8 +257,14 @@ class DummyBackend(ErrBot):
 
 
 @pytest.fixture
-def dummy_backend():
-    return DummyBackend()
+def dummy_backend(request):
+    def on_finish():
+        backend.flow_executor._pool.close()
+        backend.flow_executor._pool.join()
+
+    backend = DummyBackend()
+    request.addfinalizer(on_finish)
+    return backend
 
 
 def test_buildreply(dummy_backend):

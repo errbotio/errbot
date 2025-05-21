@@ -521,6 +521,10 @@ class TestBot:
         log.info("Main bot thread quits")
         self.bot.zap_queues()
         self.bot.reset_rooms()
+        self.bot.thread_pool.close()
+        self.bot.thread_pool.join()
+        self.bot.flow_executor._pool.close()
+        self.bot.flow_executor._pool.join()
         self.bot_thread = None
 
     def pop_message(self, timeout: int = 5, block: bool = True):

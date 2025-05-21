@@ -57,6 +57,16 @@ def test_echo(testbot):
     assert "foo" in testbot.exec_command("!echo foo")
 
 
+def test_echo_newline_args(testbot):
+    # https://github.com/errbotio/errbot/issues/1307
+    assert testbot.exec_command("!echo\nfoo\nbar").startswith("foo")
+
+
+def test_echo_newline_preserved(testbot):
+    # https://github.com/errbotio/errbot/issues/1716
+    assert "\n" in testbot.exec_command("!echo foo\nbar")
+
+
 def test_status_gc(testbot):
     assert "GC 0->" in testbot.exec_command("!status gc")
 

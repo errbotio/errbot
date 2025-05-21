@@ -325,21 +325,25 @@ class ErrBot(Backend, StoreMixin):
             prefixed = True
 
         text = text.strip()
-        text_split = text.split()
         cmd = None
         command = None
         args = ""
         if not only_check_re_command:
-            i = len(text_split)
+            first = True
+            i = len(text.split())
             while cmd is None:
+                # maxsplit so we can preserve linebreaks and other whitespace in args
+                text_split = text.split(maxsplit=i)
                 command = "_".join(text_split[:i])
 
                 with self._gbl:
                     if command in self.commands:
                         cmd = command
-                        args = " ".join(text_split[i:])
+                        if not first:
+                            args = text_split[-1]
                     else:
                         i -= 1
+                        first = False
                 if i <= 0:
                     break
 

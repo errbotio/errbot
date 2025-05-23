@@ -75,7 +75,7 @@ def test_config_cycle(testbot):
     testbot.push_message("!plugin config Webserver")
     m = testbot.pop_message()
     assert (
-        "Default configuration for this plugin (you can copy and paste this directly as a command)"
+        "Default configuration for this plugin (you can copy and paste this directly as a single line command)"
         in m
     )
     assert "Current configuration" not in m

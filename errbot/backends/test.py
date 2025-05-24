@@ -603,6 +603,12 @@ class FullStackTest(unittest.TestCase, TestBot):
                 self.push_message('!about')
                 self.assertIn('Err version', self.pop_message())
     """
+    def __init__(
+        self, methodName, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None
+    ):
+        self.bot_thread = None
+        super().__init__(methodName)
+
 
     def setUp(
         self,

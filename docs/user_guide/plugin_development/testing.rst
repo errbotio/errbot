@@ -251,37 +251,6 @@ You can now have a look at coverage statistics through :command:`coverage report
 
 It's also possible to generate an HTML report with :command:`coverage html` and opening the resulting `htmlcov/index.html`.
 
-Travis and Coveralls
---------------------
-
-Last but not least, you can run your tests on Travis-CI_ so when you update code or others submit pull requests the tests will automatically run confirming everything still works.
-
-In order to do that you'll need a `.travis.yml` similar to this:
-
-.. code-block:: yaml
-
-    language: python
-    python:
-      - 3.6
-      - 3.7
-    install:
-      - pip install -q errbot pytest pytest-pep8 --use-wheel
-      - pip install -q coverage coveralls --use-wheel
-    script:
-      - coverage run --source myplugin -m py.test --pep8
-    after_success:
-      - coveralls
-    notifications:
-      email: false
-
-Most of it is self-explanatory, except for perhaps the `after_success`. The author of this plugin uses Coveralls.io_ to keep track of code coverage so after a successful build we call out to coveralls and upload the statistics. It's for this reason that we `pip install [..] coveralls [..]` in the `.travis.yml`.
-
-The `-q` flag causes pip to be a lot more quiet and `--use-wheel` will cause pip to use wheels_ if available, speeding up your builds if you happen to depend on something that builds a C-extension.
-
-Both Travis-CI and Coveralls easily integrate with Github hosted code.
 
 .. _py.test: http://pytest.org
 .. _conftest.py: http://doc.pytest.org/en/latest/writing_plugins.html#conftest-py-local-per-directory-plugins
-.. _Coveralls.io: https://coveralls.io
-.. _Travis-CI: https://travis-ci.org
-.. _wheels: http://www.python.org/dev/peps/pep-0427/

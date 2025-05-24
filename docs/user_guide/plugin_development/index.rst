@@ -25,6 +25,7 @@ with sets of recipes on a range of topics describing how to handle more advanced
   dynaplugs
   scheduling
   webhooks
+  testing_plugins_fullstack
   testing
   logging
   exceptions

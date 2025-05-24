@@ -604,12 +604,16 @@ class FullStackTest(unittest.TestCase, TestBot):
                 self.push_message('!about')
                 self.assertIn('Err version', self.pop_message())
     """
+
     def __init__(
-        self, methodName, extra_plugin_dir=None, loglevel=logging.DEBUG, extra_config=None
+        self,
+        methodName,
+        extra_plugin_dir=None,
+        loglevel=logging.DEBUG,
+        extra_config=None,
     ):
         self.bot_thread = None
         super().__init__(methodName)
-
 
     def setUp(
         self,
@@ -625,7 +629,7 @@ class FullStackTest(unittest.TestCase, TestBot):
         :param extra_config: Piece of extra bot config in a dict.
         """
         if extra_plugin_dir is None:
-            extra_plugin_dir = str(pathlib.Path('.').resolve().parent.parent.absolute())
+            extra_plugin_dir = str(pathlib.Path(".").resolve().parent.parent.absolute())
 
         self.setup(
             extra_plugin_dir=extra_plugin_dir,

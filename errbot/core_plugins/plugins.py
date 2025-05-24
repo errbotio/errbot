@@ -167,7 +167,7 @@ class Plugins(BotPlugin):
 
         if len(args) == 1:
             response = (
-                f"Default configuration for this plugin (you can copy and paste this directly as a command):"
+                f"Default configuration for this plugin (you can copy and paste this directly as a single line command):"
                 f"\n\n```\n{self._bot.prefix}plugin config {plugin_name} {pformat(template_obj)}\n```"
             )
 

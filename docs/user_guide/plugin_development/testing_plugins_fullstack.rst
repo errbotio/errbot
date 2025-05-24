@@ -1,5 +1,5 @@
-Testing Plugins with FullStackTest
-================================
+Testing your plugins with unittest
+==================================
 
 This guide explains how to test your Errbot plugins using the built-in testing framework. Errbot provides a powerful testing backend called ``FullStackTest`` that allows you to write unit tests for your plugins in a familiar unittest style.
 

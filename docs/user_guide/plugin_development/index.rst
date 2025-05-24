@@ -25,8 +25,8 @@ with sets of recipes on a range of topics describing how to handle more advanced
   dynaplugs
   scheduling
   webhooks
-  testing_plugins_fullstack
   testing
+  testing_plugins_fullstack
   logging
   exceptions
   plugin_compatibility_settings

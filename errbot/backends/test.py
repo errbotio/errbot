@@ -1,9 +1,10 @@
 import importlib
 import logging
+import pathlib
 import sys
 import textwrap
 import unittest
-from os.path import abspath, sep
+from os.path import sep
 from queue import Empty, Queue
 from tempfile import mkdtemp
 from threading import Thread
@@ -604,25 +605,31 @@ class FullStackTest(unittest.TestCase, TestBot):
                 self.assertIn('Err version', self.pop_message())
     """
 
+    def __init__(
+        self,
+        methodName,
+        extra_plugin_dir=None,
+        loglevel=logging.DEBUG,
+        extra_config=None,
+    ):
+        self.bot_thread = None
+        super().__init__(methodName)
+
     def setUp(
         self,
         extra_plugin_dir=None,
-        extra_test_file=None,
         loglevel=logging.DEBUG,
         extra_config=None,
     ) -> None:
         """
         :param extra_plugin_dir: Path to a directory from which additional
             plugins should be loaded.
-        :param extra_test_file: [Deprecated but kept for backward-compatibility,
-            use extra_plugin_dir instead]
-            Path to an additional plugin which should be loaded.
         :param loglevel: Logging verbosity. Expects one of the constants
             defined by the logging module.
         :param extra_config: Piece of extra bot config in a dict.
         """
-        if extra_plugin_dir is None and extra_test_file is not None:
-            extra_plugin_dir = sep.join(abspath(extra_test_file).split(sep)[:-2])
+        if extra_plugin_dir is None:
+            extra_plugin_dir = str(pathlib.Path(".").resolve().parent.parent.absolute())
 
         self.setup(
             extra_plugin_dir=extra_plugin_dir,

@@ -25,6 +25,7 @@ fixes:
 - fix: type hints (#1698)
 - fix: update plugin config message (#1727)
 - docs: add example on how to use threaded replies (#1728)
+- fix: add extra_plugin_dir support to FullStackTest (#1726)
 
 
 v6.2.0 (2024-01-01)

@@ -15,6 +15,7 @@ with sets of recipes on a range of topics describing how to handle more advanced
   basics
   botcommands
   messaging
+  threaded_replies
   presence
   mentions
   persistence

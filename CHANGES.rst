@@ -24,6 +24,7 @@ fixes:
 - fix: Close and join thread pools between tests (#1724)
 - fix: type hints (#1698)
 - fix: update plugin config message (#1727)
+- docs: add example on how to use threaded replies (#1728)
 
 
 v6.2.0 (2024-01-01)

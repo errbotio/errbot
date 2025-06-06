@@ -40,6 +40,8 @@ deps = [
     "pygments-markdown-lexer==0.1.0.dev39",  # sytax coloring to debug md
     "dulwich==0.21.5",  # python implementation of git
     "deepmerge==1.1.0",
+    "legacy-cgi==2.6.3; python_version >= '3.12'",  # stopgap fix for webtest after cgi dropped from stdlib
+
 ]
 
 src_root = os.curdir

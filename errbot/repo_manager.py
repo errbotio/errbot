@@ -274,7 +274,7 @@ class BotRepoManager(StoreMixin):
         if repo_url.endswith("tar.gz"):
             fo = urlopen(repo_url)  # nosec
             tar = tarfile.open(fileobj=fo, mode="r:gz")
-            tar.extractall(path=self.plugin_dir)
+            tar.extractall(path=self.plugin_dir, filter="data")
             s = repo_url.split(":")[-1].split("/")[-1]
             human_name = s[: -len(".tar.gz")]
         else:

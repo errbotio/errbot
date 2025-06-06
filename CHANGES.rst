@@ -27,6 +27,7 @@ fixes:
 - docs: add example on how to use threaded replies (#1728)
 - fix: add extra_plugin_dir support to FullStackTest (#1726)
 - fix: add missing py 3.13 in tox (#1731)
+- fix: add filter to tar extract (#1730)
 
 
 v6.2.0 (2024-01-01)

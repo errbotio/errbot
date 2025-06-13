@@ -118,6 +118,13 @@ def test_entry_point_plugins_valid_groups():
     results = entry_point_plugins("console_scripts")
     match = False
     for result in results:
-        if result.endswith("errbot/errbot.cli"):
+        if "errbot" in result:
             match = True
     assert match
+
+
+def test_entry_point_paths_empty():
+    groups = ["errbot.plugins", "errbot.backend_plugins"]
+    for entry_point_group in groups:
+        plugins = entry_point_plugins(entry_point_group)
+        assert plugins == []

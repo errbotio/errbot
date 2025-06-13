@@ -4,7 +4,6 @@ import importlib.metadata
 import inspect
 import logging
 import os
-import pathlib
 import re
 import sys
 import time
@@ -199,7 +198,7 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 
 
 def entry_point_plugins(group):
-    paths = []
+    paths = set()
 
     eps = importlib.metadata.entry_points()
     try:
@@ -209,8 +208,6 @@ def entry_point_plugins(group):
         entry_points = eps.get(group, ())
 
     for entry_point in entry_points:
-        module_name = entry_point.module
-        file_name = module_name.replace(".", "/") + ".py"
         try:
             files = entry_point.dist.files
         except AttributeError:
@@ -220,12 +217,11 @@ def entry_point_plugins(group):
             except importlib.metadata.PackageNotFoundError:
                 # entrypoint is not a distribution, so let's skip looking for files
                 continue
-
-        for f in files:
-            if file_name == str(f):
-                parent = str(pathlib.Path(f).resolve().parent)
-                paths.append(f"{parent}/{module_name}")
-    return paths
+        for file in files:
+            if "__pycache__" not in file.parts:
+                parent = file.locate().absolute().resolve().parent
+                paths.add(str(parent))
+    return list(paths)
 
 
 def global_restart() -> None:

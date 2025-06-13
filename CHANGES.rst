@@ -28,7 +28,7 @@ fixes:
 - fix: add extra_plugin_dir support to FullStackTest (#1726)
 - fix: add missing py 3.13 in tox (#1731)
 - fix: add filter to tar extract (#1730)
-- refactor: use importlib to find plugins in entry_points (#1669)
+- refactor: use importlib to find plugins in entry_points (#1669, #1733)
 
 
 v6.2.0 (2024-01-01)

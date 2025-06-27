@@ -29,6 +29,7 @@ fixes:
 - fix: add missing py 3.13 in tox (#1731)
 - fix: add filter to tar extract (#1730)
 - refactor: use importlib to find plugins in entry_points (#1669, #1733)
+- chore: bump setuptools to >=78.1.1 (#1734)
 
 
 v6.2.0 (2024-01-01)

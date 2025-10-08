@@ -67,7 +67,7 @@ Extensive plugin framework
 .. _Skype: http://www.skype.com/en/
 .. _Slack: http://slack.com/
 .. _Telegram: https://telegram.org/
-.. _Tox: https://tox.im/
+.. _Tox: https://tox.chat/
 .. _VK: https://vk.com/
 .. _Zulip: https://zulipchat.com/
 .. _`logged to Sentry`: https://github.com/errbotio/errbot/wiki/Logging-with-Sentry

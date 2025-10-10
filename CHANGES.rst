@@ -7,7 +7,7 @@ fixes:
 - fix: check only activate plugins listed in CORE_PLUGINS (#1601)
 - chore: bump jinja to 3.1.3 (#1684)
 - chore: bump actions/setup-python version (#1686, #1700, #1708)
-- chore: bump actions/checkout version (#1696, #1704)
+- chore: bump actions/checkout version (#1696, #1704, #1737)
 - chore: optimize Dockerfile (#1679)
 - docs: fix telegram install command (#1697)
 - chore: add python versions to test (#1705)

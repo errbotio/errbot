@@ -30,6 +30,7 @@ fixes:
 - fix: add filter to tar extract (#1730)
 - refactor: use importlib to find plugins in entry_points (#1669, #1733)
 - chore: bump setuptools to >=78.1.1 (#1734)
+- docs: update tox chat server URLs (#1739)
 
 
 v6.2.0 (2024-01-01)

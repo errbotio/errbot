@@ -55,7 +55,7 @@ Chat servers support
 - `Mattermost <https://about.mattermost.com/>`_ (See `instructions <https://github.com/Vaelor/errbot-mattermost-backend>`__)
 - `RocketChat <https://rocket.chat/>`_ (See `instructions <https://github.com/cardoso/errbot-rocketchat>`__)
 - `Skype <https://www.skype.com/>`_ (See `instructions <https://github.com/errbotio/errbot-backend-skype>`__)
-- `TOX <https://tox.im/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`__)
+- `TOX <https://tox.chat/>`_ (See `instructions <https://github.com/errbotio/err-backend-tox>`__)
 - `VK <https://vk.com/>`_ (See `instructions <https://github.com/Ax3Effect/errbot-vk>`__)
 - `Zulip <https://zulipchat.com/>`_ (See `instructions <https://github.com/zulip/errbot-backend-zulip>`__)
 

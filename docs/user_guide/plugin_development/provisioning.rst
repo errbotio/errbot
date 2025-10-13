@@ -33,13 +33,13 @@ It will give you on stdout a python dictionary of the core namespace like::
 
     {'configs': {'Webserver': {'PORT': 8888}}}
 
-To read the values from a plugin storage, for example here from alimac/err-factoid you can do::
+To read the values from a plugin storage, for example here from the ChatRoom plugin you can do::
 
-    errbot --storage-get Factoid
+    errbot --storage-get ChatRoom
 
 It will give you on stdout a similar output::
 
-    {'FACTOID': {'fire': 'burns', 'water': 'wet'}}
+    {'rooms': ['#general', '#support']}
 
 
 Writing values
@@ -54,11 +54,8 @@ Checking back::
     errbot --storage-get core
     {'configs': {'Webserver': {'PORT': 9999}}}
 
-Changing facts in Factoid (note the merge is only on the first level so we change all FACTOID here)::
+Changing plugin storage values (note the merge is only on the first level)::
 
-    echo "{'FACTOID': {'errbot': 'awesome'}}" | errbot --storage-merge Factoid
-
-    >>> !errbot?
-    errbot is awesome
+    echo "{'rooms': ['#general', '#support', '#dev']}" | errbot --storage-merge ChatRoom
 
 You can use --storage-set in the same fashion but it will erase first the namespace before writing your values.

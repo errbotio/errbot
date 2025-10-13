@@ -429,5 +429,254 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
       "score": -104.04
     }
+  },
+  "errbotio/err-backend-mattermost": {
+    "Mattermost": {
+      "path": "src/err-backend-mattermost/err-backend-mattermost.plug",
+      "repo": "https://github.com/errbotio/err-backend-mattermost",
+      "documentation": "Mattermost backend for Errbot.",
+      "name": "Mattermost",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 139.28
+    },
+    "TestPlugin": {
+      "path": "tests/plugins/test.plug",
+      "repo": "https://github.com/errbotio/err-backend-mattermost",
+      "documentation": "A Test plugin",
+      "name": "TestPlugin",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 139.28
+    }
+  },
+  "errbotio/err-backend-slackv3": {
+    "SlackV3": {
+      "path": "src/slackv3/slackv3.plug",
+      "repo": "https://github.com/errbotio/err-backend-slackv3",
+      "documentation": "Backend for Slack's Real Time Messaging and Events APIs.",
+      "name": "SlackV3",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 111.68
+    }
+  },
+  "marksull/err-backend-cisco-webex-teams": {
+    "CiscoWebexTeams": {
+      "path": "CiscoWebexTeams.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a backend implementation for Cisco Webex Teams",
+      "name": "CiscoWebexTeams",
+      "python": "3.6.0",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleFlow": {
+      "path": "plugins/err-example-flow/exampleflow.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is example of how to use Errbot flow control",
+      "name": "ExampleFlow",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleLarge": {
+      "path": "plugins/err-example-large/examplelarge.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example that demonstrates how to work with large blocks of text",
+      "name": "ExampleLarge",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleWithCards": {
+      "path": "plugins/err-example-cards/examplecards.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example with cards to get you started.",
+      "name": "ExampleWithCards",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleUpload": {
+      "path": "plugins/err-example-upload/exampleupload.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example with upload to get you started.",
+      "name": "ExampleUpload",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleSimple": {
+      "path": "plugins/err-example-simple/examplesimple.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example",
+      "name": "ExampleSimple",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleRemember": {
+      "path": "plugins/err-example-remember/exampleremember.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a plugin example on how to remember data between calls.",
+      "name": "ExampleRemember",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleNotFound": {
+      "path": "plugins/err-example-not-found/examplenotfound.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a plugin that adds a custom not found error message to the bot.",
+      "name": "ExampleNotFound",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleTemplate": {
+      "path": "plugins/err-example-templates/exampletemplate.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a plugin that leverages Errbot templates",
+      "name": "ExampleTemplate",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    },
+    "ExampleSendCallback": {
+      "path": "plugins/err-example-send-callback/examplesendcallback.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example to show how to create a send callback handler",
+      "name": "ExampleSendCallback",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 80.76
+    }
+  },
+  "vasilcovsky/errbot-backend-botframework": {
+    "BotFramework": {
+      "path": "botframework.plug",
+      "repo": "https://github.com/vasilcovsky/errbot-backend-botframework",
+      "documentation": "Backend implementation for Bot Framework (https://www.botframework.com)",
+      "name": "BotFramework",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/977901?v=4",
+      "score": 44.120000000000005
+    }
+  },
+  "cloudflare/GHC-Errbot": {
+    "Google-Hangouts-Chat": {
+      "path": "hangouts-chat.plug",
+      "repo": "https://github.com/cloudflare/GHC-Errbot",
+      "documentation": "A Google-Hangouts-Chat backend for Err",
+      "name": "Google-Hangouts-Chat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/314135?v=4",
+      "score": 73.96
+    }
+  },
+  "attakei/errcron": {
+    "Errcron": {
+      "path": "samples/errcron_demo.plug",
+      "repo": "https://github.com/attakei/errcron",
+      "documentation": "Crontab implementation for Errbot(It is a demo plugin)",
+      "name": "Errcron",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": 56.68
+    }
+  },
+  "ESSS/err-jenkins": {
+    "Jenkins": {
+      "path": "esss_jenkins.plug",
+      "repo": "https://github.com/ESSS/err-jenkins",
+      "documentation": "ESSS Jenkins workflow helper",
+      "name": "Jenkins",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1074769?v=4",
+      "score": 10.439999999999998
+    }
+  },
+  "attakei/err-storage-yaml": {
+    "YAML": {
+      "path": "yaml.plug",
+      "repo": "https://github.com/attakei/err-storage-yaml",
+      "documentation": "YAML save/load storage for Errbot",
+      "name": "YAML",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": -26.880000000000003
+    }
+  },
+  "Team488/meeting-bot": {
+    "XMeeting": {
+      "path": "are_we_meeting.plug",
+      "repo": "https://github.com/Team488/meeting-bot",
+      "documentation": "A meeting helper bot",
+      "name": "XMeeting",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3441816?v=4",
+      "score": -117.76
+    }
+  },
+  "TheArchives/Inter": {
+    "Chat": {
+      "path": "plugins/chat.plug",
+      "repo": "https://github.com/TheArchives/Inter",
+      "documentation": "A plugin for relaying chat between servers",
+      "name": "Chat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1098410?v=4",
+      "score": -148.96
+    },
+    "Authentication": {
+      "path": "plugins/auth.plug",
+      "repo": "https://github.com/TheArchives/Inter",
+      "documentation": "A plugin for simple API-key based authentication",
+      "name": "Authentication",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1098410?v=4",
+      "score": -148.96
+    },
+    "Players": {
+      "path": "plugins/players.plug",
+      "repo": "https://github.com/TheArchives/Inter",
+      "documentation": "A plugin that tracks online players on all connected servers.",
+      "name": "Players",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1098410?v=4",
+      "score": -148.96
+    }
+  },
+  "theho/thehobot": {
+    "example": {
+      "path": "example/example.plug",
+      "repo": "https://github.com/theho/thehobot",
+      "documentation": "Just an example",
+      "name": "example",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1423278?v=4",
+      "score": -136.64
+    }
+  },
+  "shuiiiiiimu/hatter": {
+    "Hello": {
+      "path": "plugins/hello/hello.plug",
+      "repo": "https://github.com/shuiiiiiimu/hatter",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Hello",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6757399?v=4",
+      "score": -130.92
+    },
+    "Example": {
+      "path": "plugins/err-example/example.plug",
+      "repo": "https://github.com/shuiiiiiimu/hatter",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Example",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6757399?v=4",
+      "score": -130.92
+    }
   }
 }

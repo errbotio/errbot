@@ -1,0 +1,2 @@
+fixes:
+- Check only activate plugins listed in CORE_PLUGINS (#1601)

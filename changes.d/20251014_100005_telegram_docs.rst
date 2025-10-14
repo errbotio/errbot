@@ -1,0 +1,2 @@
+docs:
+- Fix telegram install command (#1697)

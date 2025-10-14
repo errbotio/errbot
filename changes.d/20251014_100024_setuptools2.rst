@@ -1,0 +1,2 @@
+miscellaneous:
+- Bump setuptools to >=78.1.1 (#1734)

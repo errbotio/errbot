@@ -225,3 +225,35 @@ Contribution to Errbot itself
 -----------------------------
 
 Feel free to fork and propose changes on `github <https://www.github.com/errbotio/errbot>`_
+
+Contributing changes
+~~~~~~~~~~~~~~~~~~~~
+
+When contributing code changes, please include a changelog fragment describing your change.
+We use `scriv <https://github.com/nedbat/scriv>`_ to manage our changelog.
+
+To add a changelog fragment:
+
+1. Install scriv (if not already installed): ``pip install scriv``
+2. Create a new changelog fragment with a brief descriptive name: ``scriv create --add``
+3. When prompted, enter a short slug (e.g., "fix_memory_leak" or "add_threading")
+4. Edit the generated file in ``changes.d/`` to describe your change
+5. Uncomment and fill in the appropriate category (features, fixes, docs, deprecations, miscellaneous)
+6. Commit the fragment file with your changes
+
+**Note:** The fragment filename uses a timestamp + your description (e.g., ``20251014_163045_fix_memory_leak.rst``).
+You don't need to know the PR number when creating the fragment - just describe your change and the
+maintainers will add the PR reference when merging.
+
+**Example fragment:**
+
+.. code:: rst
+
+    features:
+    - Add support for threaded replies in Discord backend
+
+    fixes:
+    - Fix memory leak in plugin storage mechanism
+
+Only include the categories that apply to your change. The fragment will be automatically
+included in the next release notes when maintainers run ``scriv collect``.

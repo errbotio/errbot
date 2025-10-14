@@ -1,0 +1,2 @@
+features:
+- Use importlib to find plugins in entry_points (#1669, #1733)

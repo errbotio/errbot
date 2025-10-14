@@ -1,0 +1,2 @@
+miscellaneous:
+- Bump requests to 2.32.3 (#1715)

@@ -1,0 +1,2 @@
+fixes:
+- Update plugin config message (#1727)

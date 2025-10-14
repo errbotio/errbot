@@ -1,0 +1,2 @@
+fixes:
+- Fix type hints (#1698)

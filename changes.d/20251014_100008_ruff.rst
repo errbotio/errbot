@@ -1,0 +1,2 @@
+miscellaneous:
+- Use ruff for formatting (#1706)

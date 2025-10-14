@@ -1,0 +1,2 @@
+fixes:
+- Add extra_plugin_dir support to FullStackTest (#1726)

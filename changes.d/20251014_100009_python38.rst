@@ -1,0 +1,2 @@
+deprecations:
+- Remove python 3.8 support (#1707)

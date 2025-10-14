@@ -1,0 +1,2 @@
+miscellaneous:
+- Update errbot-backend-slackv3 version to 0.3.1 (#1725)

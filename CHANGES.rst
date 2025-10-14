@@ -1,37 +1,55 @@
-v9.9.9 (unreleased)
--------------------
+Changelog
+=========
+
+.. scriv-insert-here
+
+.. _changelog-9.9.9:
+
+9.9.9 (2025-10-13)
+------------------
+
+features:
+
+- Use importlib to find plugins in entry_points (#1669, #1733)
 
 fixes:
 
-- docs: add unreleased section (#1681)
-- fix: check only activate plugins listed in CORE_PLUGINS (#1601)
-- chore: bump jinja to 3.1.3 (#1684)
-- chore: bump actions/setup-python version (#1686, #1700, #1708, #1738)
-- chore: bump actions/checkout version (#1696, #1704, #1737)
-- chore: optimize Dockerfile (#1679)
-- docs: fix telegram install command (#1697)
-- chore: add python versions to test (#1705)
-- chore: remove python 3.8 support (#1707)
-- chore: use ruff for formatting (#1706)
-- chore: bump setuptools to 75.7.0 (#1709)
-- chore: bump pyOpenSSL to 24.3.0 (#1710)
-- chore: bump jinja2 to 3.1.5 and requests to 2.32.0 (#1714)
-- Fix: situationally broken apropos command (#1711)
-- chore: bump requests to 2.32.3 (#1715)
-- Fix: Newlines replaced with spaces in botcmd args (#1716)
-- chore: bump jinja2 to 3.1.6 (#1723)
-- chore: update errbot-backend-slackv3 version to 0.3.1 (#1725)
-- fix: Close and join thread pools between tests (#1724)
-- fix: type hints (#1698)
-- fix: update plugin config message (#1727)
-- docs: add example on how to use threaded replies (#1728)
-- fix: add extra_plugin_dir support to FullStackTest (#1726)
-- fix: add missing py 3.13 in tox (#1731)
-- fix: add filter to tar extract (#1730)
-- refactor: use importlib to find plugins in entry_points (#1669, #1733)
-- chore: bump setuptools to >=78.1.1 (#1734)
-- docs: update tox chat server URLs (#1739)
+- Check only activate plugins listed in CORE_PLUGINS (#1601)
+- Fix type hints (#1698)
+- Fix situationally broken apropos command (#1711)
+- Fix newlines replaced with spaces in botcmd args (#1716)
+- Close and join thread pools between tests (#1724)
+- Add extra_plugin_dir support to FullStackTest (#1726)
+- Update plugin config message (#1727)
+- Add filter to tar extract (#1730)
+- Add missing py 3.13 in tox (#1731)
 
+docs:
+
+- Add unreleased section (#1681)
+- Fix telegram install command (#1697)
+- Add example on how to use threaded replies (#1728)
+- Update tox chat server URLs (#1739)
+
+deprecations:
+
+- Remove python 3.8 support (#1707)
+
+miscellaneous:
+
+- Optimize Dockerfile (#1679)
+- Bump jinja to 3.1.3 (#1684)
+- Add python versions to test (#1705)
+- Use ruff for formatting (#1706)
+- Bump setuptools to 75.7.0 (#1709)
+- Bump pyOpenSSL to 24.3.0 (#1710)
+- Bump jinja2 to 3.1.5 and requests to 2.32.0 (#1714)
+- Bump requests to 2.32.3 (#1715)
+- Bump jinja2 to 3.1.6 (#1723)
+- Update errbot-backend-slackv3 version to 0.3.1 (#1725)
+- Bump setuptools to >=78.1.1 (#1734)
+- Bump actions/checkout version (#1696, #1704, #1737)
+- Bump actions/setup-python version (#1686, #1700, #1708, #1738)
 
 v6.2.0 (2024-01-01)
 -------------------

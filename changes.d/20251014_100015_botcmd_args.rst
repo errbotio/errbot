@@ -1,0 +1,2 @@
+fixes:
+- Fix newlines replaced with spaces in botcmd args (#1716)

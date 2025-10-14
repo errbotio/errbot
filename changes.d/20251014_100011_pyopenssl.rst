@@ -1,0 +1,2 @@
+miscellaneous:
+- Bump pyOpenSSL to 24.3.0 (#1710)

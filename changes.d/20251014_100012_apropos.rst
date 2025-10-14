@@ -1,0 +1,2 @@
+fixes:
+- Fix situationally broken apropos command (#1711)

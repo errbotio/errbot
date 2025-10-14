@@ -1,0 +1,2 @@
+miscellaneous:
+- Bump jinja2 to 3.1.5 and requests to 2.32.0 (#1714)

@@ -1,0 +1,2 @@
+fixes:
+- Close and join thread pools between tests (#1724)

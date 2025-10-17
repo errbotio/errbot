@@ -1,6 +1,6 @@
 ARG INSTALL_EXTRAS=irc,XMPP,telegram,slack
 
-FROM python:3.9 AS build
+FROM python:3.12 AS build
 ARG INSTALL_EXTRAS
 
 WORKDIR /wheel
@@ -8,7 +8,7 @@ WORKDIR /wheel
 COPY . .
 RUN pip wheel --wheel-dir=/wheel wheel . .[${INSTALL_EXTRAS}]
 
-FROM python:3.9-slim
+FROM python:3.12-slim
 ARG INSTALL_EXTRAS
 
 RUN --mount=from=build,source=/wheel,target=/wheel \

@@ -32,6 +32,7 @@ fixes:
 - chore: bump setuptools to >=78.1.1 (#1734)
 - docs: update tox chat server URLs (#1739)
 - chore: update Dockerfile python version (#1744)
+- chore: update errbot-backend-slackv3 version to 0.3.2 (#1743)
 
 
 v6.2.0 (2024-01-01)

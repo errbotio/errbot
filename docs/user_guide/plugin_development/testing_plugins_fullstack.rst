@@ -4,7 +4,7 @@ Testing your plugins with unittest
 This guide explains how to test your Errbot plugins using the built-in testing framework. Errbot provides a powerful testing backend called ``FullStackTest`` that allows you to write unit tests for your plugins in a familiar unittest style.
 
 Basic Test Setup
---------------
+----------------
 
 To test your plugin, create a test file (e.g., `test_myplugin.py`) in your plugin's directory. Here's a basic example:
 
@@ -29,7 +29,7 @@ To test your plugin, create a test file (e.g., `test_myplugin.py`) in your plugi
             self.assertIn('Hello!', self.pop_message())
 
 Running Tests
-------------
+-------------
 
 You can run your tests using Python's unittest framework:
 
@@ -38,7 +38,7 @@ You can run your tests using Python's unittest framework:
     python -m unittest test_myplugin.py
 
 Test Methods
------------
+------------
 
 FullStackTest provides several methods to help test your plugin's behavior:
 
@@ -59,7 +59,7 @@ FullStackTest provides several methods to help test your plugin's behavior:
    - Test plugin dependencies
 
 Example Test Cases
-----------------
+------------------
 
 Here are some example test cases showing different testing scenarios:
 
@@ -105,7 +105,7 @@ Here are some example test cases showing different testing scenarios:
            self.assertIn('Mock response', self.pop_message())
 
 Best Practices
--------------
+--------------
 
 1. **Test Isolation**: Each test should be independent and not rely on the state from other tests.
 
@@ -118,7 +118,7 @@ Best Practices
 5. **Documentation**: Document your test cases to explain what they're testing and why.
 
 Complete Example
---------------
+----------------
 
 Here's a complete example of a test suite for a plugin:
 

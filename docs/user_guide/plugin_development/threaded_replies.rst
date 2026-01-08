@@ -1,10 +1,10 @@
 Threaded Replies
-===============
+================
 
 Errbot supports threaded replies, which allows bot responses to be organized in conversation threads when the backend supports this feature. This is particularly useful for maintaining context in group chats and keeping related messages together.
 
 Enabling Threaded Replies
-------------------------
+-------------------------
 
 There are two ways to enable threaded replies in Errbot:
 
@@ -12,7 +12,7 @@ There are two ways to enable threaded replies in Errbot:
 2. Globally for specific commands using the `DIVERT_TO_THREAD` configuration
 
 Per-command Threaded Replies
----------------------------
+----------------------------
 
 You can send a threaded reply to any message using the `in_reply_to` parameter in `send`:
 
@@ -27,7 +27,7 @@ You can send a threaded reply to any message using the `in_reply_to` parameter i
             self.send(msg.frm, "This is a threaded response", in_reply_to=msg)
 
 Global Thread Configuration
--------------------------
+---------------------------
 
 You can configure Errbot to automatically send responses in threads for specific commands by adding them to the `DIVERT_TO_THREAD` configuration in your config.py:
 
@@ -40,7 +40,7 @@ You can configure Errbot to automatically send responses in threads for specific
     DIVERT_TO_THREAD = ("ALL_COMMANDS",)
 
 Backend Support
---------------
+---------------
 
 Threaded replies are supported by the following backends:
 
@@ -52,7 +52,7 @@ Threaded replies are supported by the following backends:
 Note that not all backends support threaded replies. If a backend doesn't support threading, the message will be sent as a regular message.
 
 Best Practices
--------------
+--------------
 
 1. Use threaded replies for:
    - Long conversations that need to maintain context
@@ -66,7 +66,7 @@ Best Practices
    - Debug information
 
 Example Plugin
--------------
+--------------
 
 Here's a complete example of a plugin that demonstrates threaded replies:
 
@@ -96,7 +96,7 @@ Here's a complete example of a plugin that demonstrates threaded replies:
             self.send(msg.frm, help_text, in_reply_to=msg)
 
 Configuration
-------------
+-------------
 
 To enable threaded replies globally for specific commands, add them to your config.py:
 
@@ -114,7 +114,7 @@ To enable threaded replies globally for specific commands, add them to your conf
     DIVERT_TO_THREAD = ("ALL_COMMANDS",)
 
 Limitations
-----------
+-----------
 
 1. Not all backends support threaded replies
 2. Threaded replies may not be visible in all chat clients

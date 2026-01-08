@@ -1,6 +1,4 @@
-sphinx>=1.2
-
-sphinx-autodoc-annotation
+sphinx>=8.2.3
 
 -e .
 hypchat

@@ -14,12 +14,14 @@ with sets of recipes on a range of topics describing how to handle more advanced
   development_environment
   basics
   botcommands
+  command_parameters
   messaging
   threaded_replies
   presence
   mentions
   persistence
   configuration
+  provisioning
   streams
   dependencies
   dynaplugs

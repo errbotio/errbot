@@ -33,6 +33,7 @@ fixes:
 - docs: update tox chat server URLs (#1739)
 - chore: update Dockerfile python version (#1744)
 - chore: update errbot-backend-slackv3 version to 0.3.2 (#1743)
+- fix: allow webtest to work on python 3.13 (#1729)
 
 
 v6.2.0 (2024-01-01)

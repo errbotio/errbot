@@ -35,6 +35,7 @@ fixes:
 - chore: update errbot-backend-slackv3 version to 0.3.2 (#1743)
 - fix: allow webtest to work on python 3.13 (#1729)
 - fix: add command in logged when blocked by cmdfilter (#1631)
+- chore: add codeql analysis (#1600)
 
 
 v6.2.0 (2024-01-01)

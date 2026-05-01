@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "errbot"
+dynamic = ["version", "readme"]
+description = "Errbot is a chatbot designed to be simple to extend with plugins written in Python."
+authors = [{name = "errbot.io", email = "info@errbot.io"}]
+license = "GPL-3.0-or-later"
+license-files = ["COPYING"]
+requires-python = ">=3.9"
+keywords = ["xmpp", "irc", "slack", "hipchat", "gitter", "tox", "chatbot", "bot", "plugin", "chatops"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Communications :: Chat",
+    "Topic :: Communications :: Chat :: Internet Relay Chat",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "webtest==3.0.0",
+    "setuptools>=78.1.1",
+    "flask==2.3.3",
+    "requests==2.32.3",
+    "jinja2==3.1.6",
+    "pyOpenSSL==24.3.0",
+    "colorlog==6.7.0",
+    "markdown==3.4.4",
+    "ansi==0.3.6",
+    "Pygments==2.16.1",
+    "pygments-markdown-lexer==0.1.0.dev39",
+    "dulwich==0.21.5",
+    "deepmerge==1.1.0",
+    'legacy-cgi==2.6.3; python_version >= "3.13"',
+    'daemonize==2.5.0; sys_platform != "win32"',
+]
+
+[project.optional-dependencies]
+slack = ["errbot-backend-slackv3==0.3.2"]
+discord = ["err-backend-discord==3.0.1"]
+mattermost = ["err-backend-mattermost==3.0.0"]
+IRC = ["irc==20.3.0"]
+telegram = ["python-telegram-bot==13.15"]
+XMPP = [
+    "slixmpp==1.8.4",
+    "pyasn1==0.6.3",
+    "pyasn1-modules==0.3.0",
+]
+test = ["pytest", "webtest", "requests"]
+
+[project.urls]
+Homepage = "http://errbot.io/"
+
+[project.scripts]
+errbot = "errbot.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "errbot.version.VERSION"}
+readme = {file = ["README.rst", "CHANGES.rst"], content-type = "text/x-rst"}
+
+[tool.setuptools.packages.find]
+include = ["errbot", "errbot.*"]
+
+[tool.setuptools.package-data]
+errbot = [
+    "backends/*.plug",
+    "backends/*.html",
+    "backends/styles/*.css",
+    "backends/images/*.svg",
+    "core_plugins/*.plug",
+    "core_plugins/*.md",
+    "core_plugins/templates/*.md",
+    "storage/*.plug",
+    "templates/initdir/example.py",
+    "templates/initdir/example.plug",
+    "templates/initdir/config.py.tmpl",
+    "templates/*.md",
+    "templates/new_plugin.py.tmpl",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/borken_plugin/broken.py" = ["F401"]

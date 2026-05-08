@@ -73,7 +73,13 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: false
+          load: true
           tags: errbot-test:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Smoke test image
+        run: |
+          docker run --rm errbot-test:latest --version
+          docker run --rm errbot-test:latest --help
+

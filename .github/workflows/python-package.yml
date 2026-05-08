@@ -59,3 +59,11 @@ jobs:
       if: ${{ matrix.python-version == '3.12' }}
       run: |
         tox -e docs
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6.0.2
+    - name: Build Docker image
+      run: |
+        docker build . --file Dockerfile --tag errbot-test:latest

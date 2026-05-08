@@ -37,6 +37,7 @@ fixes:
 - fix: add command in logged when blocked by cmdfilter (#1631)
 - chore: bump pyasn1 version (#1752)
 - chore: remove python 3.9 support (#1755)
+- chore: bump all dependencies (#1754)
 
 
 v6.2.0 (2024-01-01)

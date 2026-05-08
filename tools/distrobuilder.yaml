@@ -7,6 +7,7 @@ image:
 files:
   - path: /tmp/errbot-build
     source: /tmp/errbot-build
+    generator: dump
 
 source:
   downloader: debootstrap

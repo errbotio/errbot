@@ -4,7 +4,7 @@ Setup
 Prerequisites
 -------------
 
-Errbot runs under Python 3.6+ on Linux, Windows and Mac.
+Errbot runs under Python 3.10+ on Linux, Windows and Mac.
 
 Installation
 ------------

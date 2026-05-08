@@ -200,27 +200,13 @@ def collect_roots(base_paths: List, file_sig: str = "*.plug") -> List:
 def entry_point_plugins(group):
     paths = set()
 
-    eps = importlib.metadata.entry_points()
-    try:
-        entry_points = eps.select(group=group)
-    except AttributeError:
-        # workaround to support python 3.9 and older
-        entry_points = eps.get(group, ())
-
-    for entry_point in entry_points:
-        try:
-            files = entry_point.dist.files
-        except AttributeError:
-            # workaround to support python 3.9 and older
-            try:
-                files = importlib.metadata.distribution(entry_point.name).files
-            except importlib.metadata.PackageNotFoundError:
-                # entrypoint is not a distribution, so let's skip looking for files
-                continue
-        for file in files:
-            if "__pycache__" not in file.parts:
-                parent = file.locate().absolute().resolve().parent
-                paths.add(str(parent))
+    for entry_point in importlib.metadata.entry_points(group=group):
+        files = entry_point.dist.files
+        if files:
+            for file in files:
+                if "__pycache__" not in file.parts:
+                    parent = file.locate().absolute().resolve().parent
+                    paths.add(str(parent))
     return list(paths)
 
 

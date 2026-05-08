@@ -106,7 +106,7 @@ Installation
 Prerequisites
 ~~~~~~~~~~~~~
 
-Errbot runs under Python 3.6+ on Linux, Windows and Mac. For some chatting systems you'll need a key or a login for your bot to access it.
+Errbot runs under Python 3.10+ on Linux, Windows and Mac. For some chatting systems you'll need a key or a login for your bot to access it.
 
 Quickstart
 ~~~~~~~~~~

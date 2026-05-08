@@ -34,11 +34,11 @@ deps = [
     "jinja2==3.1.6",
     "pyOpenSSL==26.1.0",
     "colorlog==6.10.1",
-    "markdown==3.9",  # 3.10+ drops Python 3.9
+    "markdown==3.10.2",
     "ansi==0.3.7",
     "Pygments==2.20.0",
     "pygments-markdown-lexer==0.1.0.dev39",  # syntax coloring to debug md
-    "dulwich==0.24.10",  # python implementation of git; 1.0+ drops Python 3.9
+    "dulwich==1.2.1",  # python implementation of git
     "deepmerge==2.0",
     "legacy-cgi==2.6.4; python_version >= '3.13'",  # stopgap fix for webtest after cgi dropped from stdlib in 3.13
 ]
@@ -127,7 +127,7 @@ if __name__ == "__main__":
                 "python-telegram-bot==13.15",
             ],
             "XMPP": [
-                "slixmpp==1.12.0",  # 1.13+ drops Python 3.9
+                "slixmpp==1.15.0",
                 "pyasn1==0.6.3",
                 "pyasn1-modules==0.4.2",
             ],

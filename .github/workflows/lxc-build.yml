@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y debootstrap
+          sudo apt-get install -y debootstrap debian-archive-keyring
           sudo snap install distrobuilder --classic
 
       - name: Set up Python

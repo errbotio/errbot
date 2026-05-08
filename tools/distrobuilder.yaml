@@ -2,7 +2,7 @@ image:
   distribution: debian
   release: bookworm
   description: Errbot Chatbot
-  architecture: x86_64
+  architecture: amd64
 
 files:
   - path: /tmp/errbot-build

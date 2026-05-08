@@ -63,7 +63,17 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6.0.2
-    - name: Build Docker image
-      run: |
-        docker build . --file Dockerfile --tag errbot-test:latest
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (Validation)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: errbot-test:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

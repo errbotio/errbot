@@ -1,0 +1,49 @@
+name: build lxc image
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build-lxc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y debootstrap debian-archive-keyring
+          sudo snap install distrobuilder --classic
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Build Errbot Wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+          mkdir -p /tmp/errbot-build
+          cp dist/*.whl /tmp/errbot-build/
+
+      - name: Build LXC Image
+        run: |
+          mkdir -p out
+          sudo distrobuilder build-lxc tools/distrobuilder.yaml out/
+
+      - name: Upload LXC Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: errbot-lxc-image
+          path: out/*
+          retention-days: 7

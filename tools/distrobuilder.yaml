@@ -1,0 +1,69 @@
+image:
+  distribution: debian
+  release: bookworm
+  description: Errbot Chatbot
+  architecture: x86_64
+
+source:
+  downloader: debootstrap
+  url: http://deb.debian.org/debian
+  keys: []
+
+packages:
+  manager: apt
+  update: true
+  cleanup: true
+  sets:
+    - packages:
+      - python3
+      - python3-pip
+      - python3-venv
+      - git
+      - build-essential
+      - libssl-dev
+      - libffi-dev
+      - systemd
+      - systemd-sysv
+      action: install
+
+actions:
+  - trigger: post-packages
+    action: |-
+      #!/bin/sh
+      set -e
+      useradd --create-home --shell /bin/bash errbot
+      
+      su - errbot -c "python3 -m venv /home/errbot/.venv"
+      
+      # If a wheel was injected into /tmp/errbot-build, install from it.
+      if ls /tmp/errbot-build/errbot-*.whl 1> /dev/null 2>&1; then
+          echo "Installing local Errbot build..."
+          # Install the wheel with extras
+          su - errbot -c "/home/errbot/.venv/bin/pip install --no-cache-dir /tmp/errbot-build/errbot-*.whl[irc,XMPP,telegram,slack]"
+      else
+          echo "Installing Errbot from PyPI..."
+          su - errbot -c "/home/errbot/.venv/bin/pip install --no-cache-dir errbot[irc,XMPP,telegram,slack]"
+      fi
+      
+      su - errbot -c "/home/errbot/.venv/bin/errbot --init"
+
+  - trigger: post-packages
+    action: |-
+      #!/bin/sh
+      set -e
+      cat <<EOF > /etc/systemd/system/errbot.service
+      [Unit]
+      Description=Errbot Chatbot
+      After=network.target
+
+      [Service]
+      User=errbot
+      Group=errbot
+      WorkingDirectory=/home/errbot
+      ExecStart=/home/errbot/.venv/bin/errbot
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+      systemctl enable errbot.service

@@ -39,14 +39,11 @@ jobs:
       - name: Build LXC Image
         run: |
           mkdir -p out
-          sudo distrobuilder build-lxc tools/distrobuilder.yaml out/ \
-            --bind=/tmp/errbot-build:/tmp/errbot-build
+          sudo distrobuilder build-lxc tools/distrobuilder.yaml out/
 
       - name: Upload LXC Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: errbot-lxc-image
-          path: |
-            out/lxd.tar.xz
-            out/rootfs.squashfs
+          path: out/*
           retention-days: 7

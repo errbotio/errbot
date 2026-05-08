@@ -4,6 +4,10 @@ image:
   description: Errbot Chatbot
   architecture: x86_64
 
+files:
+  - path: /tmp/errbot-build
+    source: /tmp/errbot-build
+
 source:
   downloader: debootstrap
   url: http://deb.debian.org/debian

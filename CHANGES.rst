@@ -40,6 +40,7 @@ fixes:
 - chore: bump all dependencies (#1754)
 - feat: Add LXC image build (#1756)
 - chore: bump docker/setup-buildx-action version (#1758)
+- chore: bump docker/build-push-action version (#1759)
 
 
 v6.2.0 (2024-01-01)

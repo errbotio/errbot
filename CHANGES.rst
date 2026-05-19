@@ -42,6 +42,7 @@ fixes:
 - chore: bump docker/setup-buildx-action version (#1758)
 - chore: bump docker/build-push-action version (#1759)
 - chore: bump docker/login-action version (#1760)
+- chore: bump docker/setup-qemu-action version (#1761)
 
 
 v6.2.0 (2024-01-01)

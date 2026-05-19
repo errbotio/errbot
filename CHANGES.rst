@@ -38,6 +38,7 @@ fixes:
 - chore: bump pyasn1 version (#1752)
 - chore: remove python 3.9 support (#1755)
 - chore: bump all dependencies (#1754)
+- feat: Add LXC image build (#1756)
 
 
 v6.2.0 (2024-01-01)

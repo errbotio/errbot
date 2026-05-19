@@ -43,6 +43,7 @@ fixes:
 - chore: bump docker/build-push-action version (#1759)
 - chore: bump docker/login-action version (#1760)
 - chore: bump docker/setup-qemu-action version (#1761)
+- docs: add command parameter section and minor doc edits (#1740)
 
 
 v6.2.0 (2024-01-01)

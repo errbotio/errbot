@@ -130,3 +130,12 @@ def test_room_flow(testbot):
     flow_message = testbot.pop_message()
     assert "You are in the flow w3, you can continue with" in flow_message
     assert "!b" in flow_message
+
+def test_flows_status(testbot):
+    assert "started" in testbot.exec_command("!flows start w1")
+    assert "You are in the flow" in testbot.pop_message()
+    status = testbot.exec_command("!flows status")
+    assert ">>>" in status
+    assert "gbin@localhost is using flow *w1*" in status
+    assert "Next Step(s):" in status
+    assert "*a*" in status

@@ -8,7 +8,7 @@ import signal
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Optional, Set
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -32,7 +32,7 @@ class CatalogGenerator:
         self.tools_dir = tools_dir
         self.repos_json_path = tools_dir / "repos.json"
         self.processed_path = tools_dir / "processed_repos.json"
-        self.blacklisted_path = tools_dir / "blacklisted.txt"
+        self.blocklist_path = tools_dir / "blocklist.txt"
         self.extras_path = tools_dir / "extras.txt"
         self.token_path = tools_dir / "token"
 
@@ -43,13 +43,13 @@ class CatalogGenerator:
         # State management
         self.plugins = self._load_json(self.repos_json_path, {})
         self.processed_repos = set(self._load_json(self.processed_path, []))
-        self.blacklisted = self._load_blacklisted()
+        self.blocklist = self._load_blocklist()
 
         # Cache for repo metadata to avoid redundant requests
         self.repo_metadata_cache = {}
 
         log.info(f"Loaded {len(self.plugins)} repositories from {self.repos_json_path}")
-        log.info(f"Loaded {len(self.blacklisted)} blacklisted repositories")
+        log.info(f"Loaded {len(self.blocklist)} blocklist repositories")
 
         self.interrupted = False
         signal.signal(signal.SIGINT, self._handle_interrupt)
@@ -95,10 +95,10 @@ class CatalogGenerator:
                 log.error(f"Failed to load {path}: {e}")
         return default
 
-    def _load_blacklisted(self) -> Set[str]:
-        """Load blacklisted repositories from file."""
-        if self.blacklisted_path.exists():
-            with open(self.blacklisted_path, "r") as f:
+    def _load_blocklist(self) -> Set[str]:
+        """Load blocklist repositories from file."""
+        if self.blocklist_path.exists():
+            with open(self.blocklist_path, "r") as f:
                 return {line.strip() for line in f if line.strip()}
         return set()
 
@@ -115,15 +115,15 @@ class CatalogGenerator:
         except Exception as e:
             log.error(f"Failed to save state: {e}")
 
-    def add_blacklisted(self, repo_name: str):
-        """Add a repository to the blacklist and persist it."""
-        if repo_name not in self.blacklisted:
-            self.blacklisted.add(repo_name)
+    def add_to_blocklist(self, repo_name: str):
+        """Add a repository to the blocklist and persist it."""
+        if repo_name not in self.blocklist:
+            self.blocklist.add(repo_name)
             try:
-                with open(self.blacklisted_path, "a") as f:
+                with open(self.blocklist_path, "a") as f:
                     f.write(repo_name + "\n")
             except Exception as e:
-                log.error(f"Failed to update blacklist file: {e}")
+                log.error(f"Failed to update blocklist file: {e}")
 
     def rate_limit(self, resp: requests.Response):
         """Wait if GitHub API rate limit is reached."""
@@ -189,7 +189,7 @@ class CatalogGenerator:
         """Process a single .plug file found in search."""
         repo_name = item["repository"]["full_name"]
 
-        if repo_name in self.blacklisted:
+        if repo_name in self.blocklist:
             return
 
         log.info(f"{progress_info} Processing {item['path']} in {repo_name}")

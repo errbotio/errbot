@@ -5,7 +5,7 @@ from jinja2 import Template
 
 template = Template(open("plugins.md").read())
 
-blacklisted = [repo.strip() for repo in open("blacklisted.txt", "r").readlines()]
+blocklist = [repo.strip() for repo in open("blocklist.txt", "r").readlines()]
 
 PREFIX_LEN = len("https://github.com/")
 
@@ -13,13 +13,13 @@ with open("repos.json", "r") as p:
     repos = json.load(p)
 
     # Removes the weird forks of errbot itself and
-    # blacklisted repos
+    # blocklist repos
     filtered_plugins = []
     for repo, plugins in repos.items():
         for name, plugin in plugins.items():
             if plugin["path"].startswith("errbot/builtins"):
                 continue
-            if plugin["repo"][PREFIX_LEN:] in blacklisted:
+            if plugin["repo"][PREFIX_LEN:] in blocklist:
                 continue
             filtered_plugins.append(plugin)
 

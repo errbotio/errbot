@@ -273,7 +273,7 @@ class XMPPRoom(XMPPIdentifier, Room):
         """
         Invite one or more people into the room.
 
-        :*args:
+        :param args:
             One or more JID's to invite into the room.
         """
         room = str(self)

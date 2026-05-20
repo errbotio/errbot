@@ -197,7 +197,7 @@ on `PyPI <https://pypi.org/project/errbot/>`_.
 Provisioning (advanced)
 -----------------------
 
-See the :doc:`provisioning documentation </user_guide/provisioning>`
+See the :doc:`provisioning documentation </user_guide/plugin_development/provisioning>`
 
 .. _virtualenv: https://virtualenv.pypa.io/en/latest/
 .. _pip: https://pip.pypa.io/en/stable/

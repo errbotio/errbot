@@ -315,7 +315,7 @@ class IRCRoom(Room):
         """
         Invite one or more people into the room.
 
-        :param \*args:
+        :param args:
             One or more nicks to invite into the room.
         """
         for nick in args:

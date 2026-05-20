@@ -38,7 +38,6 @@ from errbot.version import VERSION
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx_autodoc_annotation',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -121,7 +120,7 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 
 
 def run_apidoc(_):
-    subprocess.check_call("sphinx-apidoc --separate -f -o . ../errbot", shell=True)
+    subprocess.check_call("sphinx-apidoc -T --separate -f -o . ../errbot ../errbot/config-template.py", shell=True)
 
 
 def run_repos_builder(*_):

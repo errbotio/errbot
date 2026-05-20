@@ -5,7 +5,7 @@ These are support tools for the project
 `./plugin-gen.py`
 
 - Generates `repos.json`, which has a list of available plugins
-- It will also update a `blacklisted.txt` file of false positive on the initial research to optimize subsequent ones.
+- It will also update a `blocklist.txt` file of false positive on the initial research to optimize subsequent ones.
 - Takes a while with the API rate limit.
 
 `./gen_home.py`

@@ -87,7 +87,7 @@ fixes:
 - docs: fix example code in the testing section (#1643)
 - chore: update all core dependencies (#1651)
 - fix: use template file for webserver plugin echo output (#1654)
-- chore: update repos.json (#1660)
+- chore: update repos.json (#1660, #1741)
 - docs: add readthedocs yaml config (#1661)
 - fix: broken integration tests (#1668)
 - style: replace format() with f-strings (#1667)

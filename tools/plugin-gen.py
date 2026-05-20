@@ -4,177 +4,229 @@ import json
 import logging
 import os
 import pathlib
+import signal
 import sys
 import time
 from datetime import datetime
+from typing import Any, Dict, Optional, Set
 
 import requests
 from requests.auth import HTTPBasicAuth
 
-logging.basicConfig()
-
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/5/5f/Err-logo.png"
-BLACKLISTED = []
-
-user_cache = {}
-plugins = {}
 
 
-def get_auth():
-    """Get auth creds from Github Token
-
-    token is generated from the personal tokens in github
+class CatalogGenerator:
     """
-    token_file = pathlib.Path("token")
-    token_env = os.getenv("ERRBOT_REPOS_TOKEN")
+    Generates a plugin catalog by searching GitHub for Errbot plugins.
+    Uses Global Code Search and batched processing where supported.
+    """
 
-    if token_file.is_file():
-        try:
-            token_info = open("token", "r").read()
-        except ValueError:
+    def __init__(self, tools_dir: pathlib.Path):
+        self.tools_dir = tools_dir
+        self.repos_json_path = tools_dir / "repos.json"
+        self.processed_path = tools_dir / "processed_repos.json"
+        self.blocklist_path = tools_dir / "blocklist.txt"
+        self.extras_path = tools_dir / "extras.txt"
+        self.token_path = tools_dir / "token"
+
+        self.auth = self._get_auth()
+        self.session = requests.Session()
+        self.session.auth = self.auth
+
+        # State management
+        self.plugins = self._load_json(self.repos_json_path, {})
+        self.processed_repos = set(self._load_json(self.processed_path, []))
+        self.blocklist = self._load_blocklist()
+
+        # Cache for repo metadata to avoid redundant requests
+        self.repo_metadata_cache = {}
+
+        log.info(f"Loaded {len(self.plugins)} repositories from {self.repos_json_path}")
+        log.info(f"Loaded {len(self.blocklist)} blocklist repositories")
+
+        self.interrupted = False
+        signal.signal(signal.SIGINT, self._handle_interrupt)
+        signal.signal(signal.SIGTERM, self._handle_interrupt)
+
+    def _handle_interrupt(self, signum, frame):
+        log.warning("Interrupt received, saving state and exiting...")
+        self.interrupted = True
+
+    def _get_auth(self) -> HTTPBasicAuth:
+        """Retrieve GitHub authentication credentials."""
+        token_env = os.getenv("ERRBOT_REPOS_TOKEN")
+        token_info = None
+
+        if self.token_path.is_file():
+            try:
+                token_info = self.token_path.read_text().strip()
+            except Exception as e:
+                log.fatal(f"Token file cannot be read: {e}")
+                sys.exit(-1)
+        elif token_env:
+            token_info = token_env
+        else:
             log.fatal(
-                "Token file cannot be properly read, should be of the form username:token"
+                "No 'token' file or environment variable 'ERRBOT_REPOS_TOKEN' found."
             )
             sys.exit(-1)
-    elif token_env:
-        token_info = token_env
-    else:
-        msg = "No 'token' file or environment variable 'ERROBOT_REPOS_TOKEN' found."
-        log.fatal(msg)
-        sys.exit(-1)
 
-    try:
-        user, token = token_info.strip().split(":")
-    except ValueError:
-        msg = "Token file cannot be properly read, should be of the form username:token"
-        log.fatal(msg)
-        sys.exit(-1)
+        try:
+            user, token = token_info.split(":", 1)
+            return HTTPBasicAuth(user, token)
+        except ValueError:
+            log.fatal("Token should be of the form username:token")
+            sys.exit(-1)
 
-    auth = HTTPBasicAuth(user, token)
-    return auth
+    def _load_json(self, path: pathlib.Path, default: Any) -> Any:
+        """Load data from a JSON file."""
+        if path.exists():
+            try:
+                with open(path, "r") as f:
+                    return json.load(f)
+            except Exception as e:
+                log.error(f"Failed to load {path}: {e}")
+        return default
 
+    def _load_blocklist(self) -> Set[str]:
+        """Load blocklist repositories from file."""
+        if self.blocklist_path.exists():
+            with open(self.blocklist_path, "r") as f:
+                return {line.strip() for line in f if line.strip()}
+        return set()
 
-AUTH = get_auth()
+    def _save_state(self):
+        """Persist the current state to disk."""
+        log.info("Saving state...")
+        try:
+            # Sort plugins by repo name for consistency in file
+            sorted_plugins = dict(sorted(self.plugins.items()))
+            with open(self.repos_json_path, "w") as f:
+                json.dump(sorted_plugins, f, indent=2, separators=(",", ": "))
+            with open(self.processed_path, "w") as f:
+                json.dump(sorted(list(self.processed_repos)), f, indent=2)
+        except Exception as e:
+            log.error(f"Failed to save state: {e}")
 
+    def add_to_blocklist(self, repo_name: str):
+        """Add a repository to the blocklist and persist it."""
+        if repo_name not in self.blocklist:
+            self.blocklist.add(repo_name)
+            try:
+                with open(self.blocklist_path, "a") as f:
+                    f.write(repo_name + "\n")
+            except Exception as e:
+                log.error(f"Failed to update blocklist file: {e}")
 
-def add_blacklisted(repo):
-    with open("blacklisted.txt", "a") as f:
-        f.write(repo)
-        f.write("\n")
+    def rate_limit(self, resp: requests.Response):
+        """Wait if GitHub API rate limit is reached."""
+        if resp.status_code == 403 and "rate limit exceeded" in resp.text.lower():
+            log.warning("Rate limit hit. Waiting 60s...")
+            time.sleep(60)
+            return
 
+        if "X-RateLimit-Remaining" not in resp.headers:
+            return
 
-def save_plugins():
-    with open("repos.json", "w") as f:
-        json.dump(plugins, f, indent=2, separators=(",", ": "))
+        remain = int(resp.headers["X-RateLimit-Remaining"])
+        limit = int(resp.headers["X-RateLimit-Limit"])
 
+        if remain > 1:
+            return
 
-def get_avatar_url(repo):
-    username = repo.split("/")[0]
-    if username in user_cache:
-        user = user_cache[username]
-    else:
-        user_res = requests.get("https://api.github.com/users/" + username, auth=AUTH)
-        user = user_res.json()
-        if "avatar_url" in user:  # don't pollute the presistent cache
-            user_cache[username] = user
-            with open("user_cache", "w") as f:
-                f.write(repr(user_cache))
-        rate_limit(user_res)
-    return user["avatar_url"] if "avatar_url" in user else DEFAULT_AVATAR
+        reset = int(resp.headers["X-RateLimit-Reset"])
+        ts = datetime.fromtimestamp(reset)
+        delay = (ts - datetime.now()).total_seconds()
 
+        log.warning(f"Hit rate limit ({remain}/{limit}). Waiting {delay:.1f} seconds...")
+        if delay < 0:
+            delay = 2
+        time.sleep(delay)
 
-def rate_limit(resp):
-    """
-    Wait enough to be in the budget for this request.
-    :param resp: the http response from github
-    :return:
-    """
-    if "X-RateLimit-Remaining" not in resp.headers:
-        log.info("No rate limit detected. Hum along...")
-        return
-    remain = int(resp.headers["X-RateLimit-Remaining"])
-    limit = int(resp.headers["X-RateLimit-Limit"])
-    log.info("Rate limiter: %s allowed out of %d", remain, limit)
-    if remain > 1:  # margin by one request
-        return
-    reset = int(resp.headers["X-RateLimit-Reset"])
-    ts = datetime.fromtimestamp(reset)
-    delay = (ts - datetime.now()).total_seconds()
-    log.info("Hit rate limit. Have to wait for %d seconds", delay)
-    if delay < 0:  # time drift
-        delay = 2
-    time.sleep(delay)
+    def get_repo_metadata(self, repo_name: str) -> Optional[Dict[str, Any]]:
+        """Fetch repository metadata using Core API."""
+        if repo_name in self.repo_metadata_cache:
+            return self.repo_metadata_cache[repo_name]
 
+        log.debug(f"Fetching metadata for {repo_name}...")
+        resp = self.session.get(f"https://api.github.com/repos/{repo_name}")
+        self.rate_limit(resp)
 
-def parse_date(gh_date: str) -> datetime:
-    return datetime.strptime(gh_date, "%Y-%m-%dT%H:%M:%SZ")
+        if resp.status_code == 200:
+            metadata = resp.json()
+            self.repo_metadata_cache[repo_name] = metadata
+            return metadata
+        elif resp.status_code == 404:
+            log.error(f"Repo {repo_name} not found")
+            return None
+        else:
+            log.error(f"Error fetching metadata for {repo_name}: {resp.status_code}")
+            return None
 
+    def _calculate_score(self, repo: Dict[str, Any]) -> float:
+        """Calculate a popularity/activity score for a repository."""
+        updated_at_str = repo.get("updated_at", "2000-01-01T00:00:00Z")
+        updated_at = datetime.strptime(updated_at_str, "%Y-%m-%dT%H:%M:%SZ")
+        days_old = (datetime.now() - updated_at).days
 
-def check_repo(repo):
-    repo_name = repo.get("full_name", None)
-    if repo_name is None:
-        log.error("No name in %s", repo)
-    log.debug("Checking %s...", repo_name)
-    code_resp = requests.get(
-        "https://api.github.com/search/code?q=extension:plug+repo:%s" % repo_name,
-        auth=AUTH,
-    )
-    if code_resp.status_code != 200:
-        log.error(
-            "Error getting https://api.github.com/search/code?q=extension:plug+repo:%s",
-            repo_name,
+        # Formula: Stars + (Watchers * 2) + Forks - (Days Old / 30)
+        score = (
+            repo.get("stargazers_count", 0)
+            + repo.get("watchers_count", 0) * 2
+            + repo.get("forks_count", 0)
+            - (days_old / 30.0)
         )
-        log.error("code %d", code_resp.status_code)
-        log.error("content %s", code_resp.text)
+        return float(f"{score:.2f}")
 
-        return
-    plug_items = code_resp.json()["items"]
-    if not plug_items:
-        log.debug("No plugin found in %s, blacklisting it.", repo_name)
-        add_blacklisted(repo_name)
-        return
-    owner = repo["owner"]
-    avatar_url = owner["avatar_url"] if "avatar_url" in owner else DEFAULT_AVATAR
+    def process_plug_file(self, item: Dict[str, Any], progress_info: str = ""):
+        """Process a single .plug file found in search."""
+        repo_name = item["repository"]["full_name"]
 
-    days_old = (datetime.now() - parse_date(repo["updated_at"])).days
-    score = (
-        repo["stargazers_count"]
-        + repo["watchers_count"] * 2
-        + repo["forks_count"]
-        - days_old / 25
-    )
+        if repo_name in self.blocklist:
+            return
 
-    for plug in plug_items:
-        plugfile_resp = requests.get(
-            "https://raw.githubusercontent.com/%s/master/%s" % (repo_name, plug["path"])
-        )
-        log.debug("Found a plugin:")
-        log.debug("Repo:  %s", repo_name)
-        log.debug("File:  %s", plug["path"])
+        log.info(f"{progress_info} Processing {item['path']} in {repo_name}")
+
+        default_branch = item["repository"].get("default_branch")
+        if not default_branch:
+            # If not in search item, we need to fetch it once per repo
+            repo_meta = self.get_repo_metadata(repo_name)
+            default_branch = repo_meta.get("default_branch", "master") if repo_meta else "master"
+
+        raw_url = f"https://raw.githubusercontent.com/{repo_name}/{default_branch}/{item['path']}"
+        plugfile_resp = self.session.get(raw_url)
+
+        if plugfile_resp.status_code != 200:
+            log.error(f"Failed to fetch {raw_url}")
+            return
+
         parser = configparser.ConfigParser()
         try:
             parser.read_string(plugfile_resp.text)
+            if "Core" not in parser or "Name" not in parser["Core"]:
+                return
 
             name = parser["Core"]["Name"]
-            log.debug("Name: %s", name)
+            doc = parser.get("Documentation", "Description", fallback="")
+            python = parser.get("Python", "Version", fallback="2")
 
-            if "Documentation" in parser and "Description" in parser["Documentation"]:
-                doc = parser["Documentation"]["Description"]
-                log.debug("Documentation: %s", doc)
-            else:
-                doc = ""
+            # Get repo metadata for scoring
+            repo = self.get_repo_metadata(repo_name)
+            if not repo:
+                return
 
-            if "Python" in parser:
-                python = parser["Python"]["Version"]
-                log.debug("Python Version: %s", python)
-            else:
-                python = "2"
+            avatar_url = repo.get("owner", {}).get("avatar_url", DEFAULT_AVATAR)
+            score = self._calculate_score(repo)
 
             plugin = {
-                "path": plug["path"],
+                "path": item["path"],
                 "repo": repo["html_url"],
                 "documentation": doc,
                 "name": name,
@@ -183,94 +235,129 @@ def check_repo(repo):
                 "score": score,
             }
 
-            repo_entry = plugins.get(repo_name, {})
+            repo_entry = self.plugins.get(repo_name, {})
             repo_entry[name] = plugin
-            plugins[repo_name] = repo_entry
-            log.debug("Catalog added plugin %s.", plugin["name"])
-        except Exception:
-            log.error("Invalid syntax in %s, skipping...", plug["path"])
-            continue
+            self.plugins[repo_name] = repo_entry
+            log.debug(f"Cataloged plugin '{name}' from {repo_name}")
 
-        rate_limit(plugfile_resp)
+            # Mark repo as processed so Phase 2 skips it
+            self.processed_repos.add(repo_name)
 
-    save_plugins()
-    rate_limit(code_resp)
+        except Exception as e:
+            log.error(f"Invalid plug file {item['path']} in {repo_name}: {e}")
 
+    def global_search(self):
+        """Find all .plug files globally that mention 'err' or 'errbot'."""
+        search_url = "https://api.github.com/search/code"
+        # Let requests handle the encoding of spaces and special chars
+        params = {"q": "extension:plug err OR errbot"}
+        
+        processed_count = 0
+        total_count = -1
 
-def find_plugins(query):
-    url = (
-        "https://api.github.com/search/repositories?q=%s+in:name+language:python&sort=stars&order=desc"
-        % query
-    )
-    while True:
-        repo_resp = requests.get(url, auth=AUTH)
-        repo_json = repo_resp.json()
-        if repo_json.get("message", None) == "Bad credentials":
-            log.error("Invalid credentials, check your token file, see README.")
-            sys.exit(-1)
-        log.debug(
-            "Repo reqs before ratelimit %s/%s",
-            repo_resp.headers["X-RateLimit-Remaining"],
-            repo_resp.headers["X-RateLimit-Limit"],
-        )
-        if "message" in repo_json and repo_json["message"].startswith(
-            "API rate limit exceeded for"
-        ):
-            log.error("API rate limit hit anyway ... wait for 30s")
-            time.sleep(30)
-            continue
-        items = repo_json["items"]
+        while search_url and not self.interrupted:
+            resp = self.session.get(search_url, params=params)
+            self.rate_limit(resp)
 
-        for repo in items:
-            if repo["full_name"] in BLACKLISTED:
-                log.debug("Skipping %s.", repo)
-                continue
-            check_repo(repo)
-        if "next" not in repo_resp.links:
-            break
-        url = repo_resp.links["next"]["url"]
-        log.debug("Next url: %s", url)
-        rate_limit(repo_resp)
+            if resp.status_code != 200:
+                log.error(f"Phase 1 Search failed: {resp.status_code}")
+                log.error(f"Response: {resp.text}")
+                break
 
+            data = resp.json()
+            if total_count == -1:
+                total_count = data.get("total_count", 0)
+                log.info(f"Phase 1: Global search found {total_count} potential plugins.")
 
-def main():
-    find_plugins("err")
-    # Those are found by global search only available on github UI:
-    # https://github.com/search?l=&q=Documentation+extension%3Aplug&ref=advsearch&type=Code&utf8=%E2%9C%93
-    url = "https://api.github.com/repos/%s"
-    with open("extras.txt", "r") as extras:
-        for repo_name in extras:
-            repo_name = repo_name.strip()
-            repo_resp = requests.get(url % repo_name, auth=AUTH)
-            repo = repo_resp.json()
-            if repo.get("message", None) == "Bad credentials":
-                log.error("Invalid credentials, check your token file, see README.")
-                sys.exit(-1)
-            if "message" in repo and repo["message"].startswith(
-                "API rate limit exceeded for"
-            ):
-                log.error("API rate limit hit anyway ... wait for 30s")
-                time.sleep(30)
-                continue
-            if "message" in repo and repo["message"].startswith("Not Found"):
-                log.error("%s not found.", repo_name)
+            items = data.get("items", [])
+            for item in items:
+                if self.interrupted:
+                    break
+                processed_count += 1
+                progress = f"[Phase 1/2] [File {processed_count}/{total_count}]"
+                self.process_plug_file(item, progress)
+
+            if self.interrupted:
+                break
+
+            # Save state after each page
+            self._save_state()
+
+            search_url = resp.links.get("next", {}).get("url")
+            # Clear params for next pages as they are already in the 'next' URL
+            params = None
+            if search_url:
+                time.sleep(2)
+
+    def process_extras(self):
+        """Ensure specific repositories from extras.txt are included."""
+        if not self.extras_path.exists():
+            return
+
+        with open(self.extras_path, "r") as f:
+            all_extras = [line.strip() for line in f if line.strip()]
+
+        pending_extras = [r for r in all_extras if r not in self.processed_repos]
+        total_extras = len(all_extras)
+        log.info(f"Phase 2: Processing {len(pending_extras)} pending repositories from extras.txt.")
+
+        processed_so_far = total_extras - len(pending_extras)
+
+        for repo_name in pending_extras:
+            if self.interrupted:
+                break
+
+            processed_so_far += 1
+            progress = f"[Phase 2/2] [Repo {processed_so_far}/{total_extras}]"
+            
+            log.info(f"{progress} Searching for plugins in {repo_name}...")
+            
+            search_url = "https://api.github.com/search/code"
+            params = {"q": f"extension:plug repo:{repo_name}"}
+            resp = self.session.get(search_url, params=params)
+            self.rate_limit(resp)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                items = data.get("items", [])
+                for item in items:
+                    self.process_plug_file(item, progress)
+                
+                self.processed_repos.add(repo_name)
+                # Save state frequently to ensure progress isn't lost
+                if processed_so_far % 5 == 0:
+                    self._save_state()
+            elif resp.status_code == 422:
+                # Often means repo is empty or issues searching it
+                log.warning(f"{progress} Repo {repo_name} search returned 422, skipping.")
+                log.debug(f"Response: {resp.text}")
+                self.processed_repos.add(repo_name)
             else:
-                check_repo(repo)
-            rate_limit(repo_resp)
+                log.error(f"{progress} Search failed for {repo_name}: {resp.status_code}")
+                log.debug(f"Response: {resp.text}")
+            
+            # Mandatory 2s sleep to avoid hitting the 30 searches/minute limit
+            time.sleep(2)
+
+    def run(self):
+        """Start the generation process."""
+        log.info("Starting optimized plugin catalog generation...")
+
+        # 1. Global search for .plug files
+        self.global_search()
+
+        # 2. Process extras
+        if not self.interrupted:
+            self.process_extras()
+
+        self._save_state()
+        if self.interrupted:
+            log.info("Interrupted. State saved.")
+        else:
+            log.info("Finished successfully!")
 
 
 if __name__ == "__main__":
-    try:
-        with open("user_cache", "r") as f:
-            user_cache = eval(f.read())
-    except FileNotFoundError:
-        # File doesn't exist, so we continue on
-        log.info("No user cache existing, will be generating it for the first time.")
-
-    try:
-        with open("blacklisted.txt", "r") as f:
-            BLACKLISTED = [line.strip() for line in f.readlines()]
-    except FileNotFoundError:
-        log.info("No blacklisted.txt found, no plugins will be blacklisted.")
-
-    main()
+    tools_dir = pathlib.Path(__file__).parent.resolve()
+    generator = CatalogGenerator(tools_dir)
+    generator.run()

@@ -1,108 +1,13 @@
 {
-  "errbotio/err-time": {
-    "TimeBot": {
-      "path": "timebot.plug",
-      "repo": "https://github.com/errbotio/err-time",
-      "documentation": "what time is it ?",
-      "name": "TimeBot",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": -99.84
-    }
-  },
-  "errbotio/err-stalkerbot": {
-    "StalkerBot": {
-      "path": "stalkerbot.plug",
-      "repo": "https://github.com/errbotio/err-stalkerbot",
-      "documentation": "Where is this guy ?",
-      "name": "StalkerBot",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": -100.84
-    }
-  },
-  "errbotio/err-helloworld": {
-    "HelloWorld": {
-      "path": "helloWorld.plug",
-      "repo": "https://github.com/errbotio/err-helloworld",
-      "documentation": "let's say hello !",
-      "name": "HelloWorld",
-      "python": "2+",
-      "avatar_url": "https://avatars0.githubusercontent.com/u/15802630?v=4",
-      "score": -60.88
-    }
-  },
-  "drsm79/err-memeon": {
-    "MemeOn": {
-      "path": "meme.plug",
-      "repo": "https://github.com/drsm79/err-memeon",
-      "documentation": "let's say hello !",
-      "name": "MemeOn",
+  "AoiKuiyuyou/AoikRocketChatErrbot": {
+    "AoikRocketChatErrbot": {
+      "path": "src/aoikrocketchaterrbot/backends/aoikrocketchaterrbot.plug",
+      "repo": "https://github.com/AoiKuiyuyou/AoikRocketChatErrbot",
+      "documentation": "Errbot backend for Rocket.Chat.",
+      "name": "AoikRocketChatErrbot",
       "python": "2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
-      "score": -101.84
-    }
-  },
-  "errbotio/err-tv": {
-    "TV": {
-      "path": "tv.plug",
-      "repo": "https://github.com/errbotio/err-tv",
-      "documentation": "So what's the status of this show ?",
-      "name": "TV",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
-      "score": -72.28
-    }
-  },
-  "Beit-Hatfutsot/jewbot": {
-    "Jewbot": {
-      "path": "plugins/jewbot/jewbot.plug",
-      "repo": "https://github.com/Beit-Hatfutsot/jewbot",
-      "documentation": "Jewbot plugin",
-      "name": "Jewbot",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/15228676?v=4",
-      "score": -82.44
-    }
-  },
-  "ValhallaGamePlays/odin": {
-    "troll": {
-      "path": "odin/plugins/troll/troll.plug",
-      "repo": "https://github.com/ValhallaGamePlays/odin",
-      "documentation": "Twisted copypasta and amalgamation of callback bot",
-      "name": "troll",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
-      "score": -49.76
-    },
-    "Example": {
-      "path": "odin/plugins/err-example/example.plug",
-      "repo": "https://github.com/ValhallaGamePlays/odin",
-      "documentation": "This is a simple plugin example to get you started.",
-      "name": "Example",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
-      "score": -49.76
-    },
-    "helloworld": {
-      "path": "odin/plugins/helloworld/helloworld.plug",
-      "repo": "https://github.com/ValhallaGamePlays/odin",
-      "documentation": "Twisted copypasta hello world script from errbot.io",
-      "name": "helloworld",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
-      "score": -49.76
-    }
-  },
-  "danie1cohen/errbot-kodi": {
-    "Kodi": {
-      "path": "kodi.plug",
-      "repo": "https://github.com/danie1cohen/errbot-kodi",
-      "documentation": "Interact with a networked XBMC or Kodi installation via errbot.",
-      "name": "Kodi",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/8837255?v=4",
-      "score": -39.0
+      "avatar_url": "https://avatars.githubusercontent.com/u/9025382?v=4",
+      "score": 0.33
     }
   },
   "Appleman1234/arisu": {
@@ -113,7 +18,7 @@
       "name": "Time",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Seen": {
       "path": "Seen/seen.plug",
@@ -122,7 +27,7 @@
       "name": "Seen",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Link": {
       "path": "Link/link.plug",
@@ -131,7 +36,7 @@
       "name": "Link",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Karma": {
       "path": "Karma/karma.plug",
@@ -140,7 +45,7 @@
       "name": "Karma",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Stream": {
       "path": "Stream/stream.plug",
@@ -149,7 +54,7 @@
       "name": "Stream",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Reports": {
       "path": "Reports/reports.plug",
@@ -158,7 +63,7 @@
       "name": "Reports",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Language": {
       "path": "Language/language.plug",
@@ -167,7 +72,7 @@
       "name": "Language",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Converter": {
       "path": "Converter/converter.plug",
@@ -176,7 +81,7 @@
       "name": "Converter",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "Levenshtein": {
       "path": "Levenshtein/levenshtein.plug",
@@ -185,7 +90,7 @@
       "name": "Levenshtein",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     },
     "NumberSpell": {
       "path": "NumberSpell/numberspell.plug",
@@ -194,18 +99,688 @@
       "name": "NumberSpell",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/13495053?v=4",
-      "score": -78.8
+      "score": -95.07
     }
   },
-  "matanby/st0ckbot": {
-    "St0ckBot": {
-      "path": "plugins/stockbot/st0ckbot.plug",
-      "repo": "https://github.com/matanby/st0ckbot",
-      "documentation": "A Telegram bot that fetches changes in your trust funds and stocks.",
-      "name": "St0ckBot",
+  "Ax3Effect/errbot-vk": {
+    "VK": {
+      "path": "vkbackend.plug",
+      "repo": "https://github.com/Ax3Effect/errbot-vk",
+      "documentation": "This is the VK backend for Err. (vk.com)",
+      "name": "VK",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8061802?v=4",
+      "score": -8.92
+    }
+  },
+  "Beit-Hatfutsot/jewbot": {
+    "Jewbot": {
+      "path": "plugins/jewbot/jewbot.plug",
+      "repo": "https://github.com/Beit-Hatfutsot/jewbot",
+      "documentation": "Jewbot plugin",
+      "name": "Jewbot",
       "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/8208862?v=4",
-      "score": -23.08
+      "avatar_url": "https://avatars.githubusercontent.com/u/15228676?v=4",
+      "score": -100.1
+    }
+  },
+  "ByteInternet/errbot-senderscore": {
+    "Senderscore": {
+      "path": "senderscore.plug",
+      "repo": "https://github.com/ByteInternet/errbot-senderscore",
+      "documentation": "Get the sendreputation of a given ip",
+      "name": "Senderscore",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1357758?v=4",
+      "score": -41.07
+    }
+  },
+  "Cloudxtreme/lctv": {
+    "Utils": {
+      "path": "errbot/core_plugins/utils.plug",
+      "repo": "https://github.com/Cloudxtreme/lctv",
+      "documentation": "Core Errbot utils commands.",
+      "name": "Utils",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1732196?v=4",
+      "score": -123.93
+    }
+  },
+  "Djiit/err-whyd": {
+    "WhydBot": {
+      "path": "whydbot.plug",
+      "repo": "https://github.com/Djiit/err-whyd",
+      "documentation": "Basic Err integration with whyd.com",
+      "name": "WhydBot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1169844?v=4",
+      "score": -119.27
+    }
+  },
+  "ESSS/err-jenkins": {
+    "Jenkins": {
+      "path": "esss_jenkins.plug",
+      "repo": "https://github.com/ESSS/err-jenkins",
+      "documentation": "ESSS Jenkins workflow helper",
+      "name": "Jenkins",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1074769?v=4",
+      "score": 10.44
+    }
+  },
+  "ESSS/err-stash": {
+    "Stash": {
+      "path": "err_stash.plug",
+      "repo": "https://github.com/ESSS/err-stash",
+      "documentation": "ESSS Stash workflow helper",
+      "name": "Stash",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1074769?v=4",
+      "score": -42.16
+    }
+  },
+  "FreakyBytes/err-grafana-alert": {
+    "GrafanaAlert": {
+      "path": "err-grafana-alert.plug",
+      "repo": "https://github.com/FreakyBytes/err-grafana-alert",
+      "documentation": "Accepts Grafana webhook calls and posts alert messages in the chat",
+      "name": "GrafanaAlert",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2365637?v=4",
+      "score": -110.03
+    }
+  },
+  "Grizzlyt/errbot-jira": {
+    "Jira": {
+      "path": "jira.plug",
+      "repo": "https://github.com/Grizzlyt/errbot-jira",
+      "documentation": "errbot plugin for working with Atlassian JIRA and parsin boards",
+      "name": "Jira",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13793219?v=4",
+      "score": -93.67
+    }
+  },
+  "Infomaniak/err-backend-kchat": {
+    "kChat": {
+      "path": "src/err-backend-kchat/err-backend-kchat.plug",
+      "repo": "https://github.com/Infomaniak/err-backend-kchat",
+      "documentation": "kChat backend for Errbot.",
+      "name": "kChat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5754857?v=4",
+      "score": -16.57
+    }
+  },
+  "J4LP/pingbot": {
+    "PingPlugin": {
+      "path": "pingplugin.plug",
+      "repo": "https://github.com/J4LP/pingbot",
+      "documentation": "An Err plugin for multicast",
+      "name": "PingPlugin",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -128.23
+    }
+  },
+  "J4LP/rooster": {
+    "Who": {
+      "path": "plugins/who.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "gets player info from evewho",
+      "name": "Who",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "Ping": {
+      "path": "plugins/ping.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "Err Bot plugin to ping groups of people",
+      "name": "Ping",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "Trello": {
+      "path": "plugins/trello.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "Get active cards from list",
+      "name": "Trello",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "Smiles": {
+      "path": "plugins/smiles.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "herpaderpa",
+      "name": "Smiles",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "TimeBot": {
+      "path": "plugins/timebot.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "what time is it ?",
+      "name": "TimeBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "EveKills": {
+      "path": "plugins/evekills.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "A plugin for shaming people who die",
+      "name": "EveKills",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "Zkillwatch": {
+      "path": "plugins/zkillwatch.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "throwup stats on a zkill link mentioned in chat",
+      "name": "Zkillwatch",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "EveCentral": {
+      "path": "plugins/evecentral.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "Get prices in Jita via EveCentral",
+      "name": "EveCentral",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "VersionChecker": {
+      "path": "errbot/builtins/vcheck.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "This is calling home to check if err has a new version available",
+      "name": "VersionChecker",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "notificationbot": {
+      "path": "plugins/NotificationBot.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "Spam Useful Alliance Notifications to various jabber rooms",
+      "name": "notificationbot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "ChatRoom": {
+      "path": "errbot/builtins/chatRoom.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "This is a basic implementation of a chatroom",
+      "name": "ChatRoom",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "Webserver": {
+      "path": "errbot/builtins/webserver.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "This is a plugin for enabling webhooks and web interface to err",
+      "name": "Webserver",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    },
+    "fw": {
+      "path": "plugins/fwbot.plug",
+      "repo": "https://github.com/J4LP/rooster",
+      "documentation": "FW info",
+      "name": "fw",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4965488?v=4",
+      "score": -91.77
+    }
+  },
+  "MattHodge/PSErrbot": {
+    "pstest": {
+      "path": "plugins/pstest/pstest.plug",
+      "repo": "https://github.com/MattHodge/PSErrbot",
+      "documentation": "PowerShell test",
+      "name": "pstest",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
+      "score": -57.87
+    }
+  },
+  "MattHodge/WindowsErrbot": {
+    "demo": {
+      "path": "plugins/demo/demo.plug",
+      "repo": "https://github.com/MattHodge/WindowsErrbot",
+      "documentation": "Demo functions",
+      "name": "demo",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
+      "score": 19.77
+    },
+    "hello": {
+      "path": "plugins/hello/hello.plug",
+      "repo": "https://github.com/MattHodge/WindowsErrbot",
+      "documentation": "Says hello",
+      "name": "hello",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
+      "score": 19.77
+    },
+    "secrets": {
+      "path": "plugins/secrets/secrets.plug",
+      "repo": "https://github.com/MattHodge/WindowsErrbot",
+      "documentation": "Demo for hiding secrets",
+      "name": "secrets",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
+      "score": 19.77
+    },
+    "psremote": {
+      "path": "plugins/psremote/psremote.plug",
+      "repo": "https://github.com/MattHodge/WindowsErrbot",
+      "documentation": "Some examples with PowerShell",
+      "name": "psremote",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
+      "score": 19.77
+    },
+    "psexample": {
+      "path": "plugins/psexample/psexample.plug",
+      "repo": "https://github.com/MattHodge/WindowsErrbot",
+      "documentation": "Some examples with PowerShell",
+      "name": "psexample",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
+      "score": 19.77
+    }
+  },
+  "MattHodge/err-datadog": {
+    "ddog": {
+      "path": "ddog.plug",
+      "repo": "https://github.com/MattHodge/err-datadog",
+      "documentation": "DataDog Errbot Script",
+      "name": "ddog",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1966555?v=4",
+      "score": -113.63
+    }
+  },
+  "MaxwellBo/SlackVCS": {
+    "SlackVCS": {
+      "path": "slackvcs.plug",
+      "repo": "https://github.com/MaxwellBo/SlackVCS",
+      "documentation": "Version control for files uploaded to Slack",
+      "name": "SlackVCS",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5368490?v=4",
+      "score": -120.33
+    }
+  },
+  "SADevs/sadevbot-plugins": {
+    "LocalWebserver": {
+      "path": "LocalWebserver/local-webserver.plug",
+      "repo": "https://github.com/SADevs/sadevbot-plugins",
+      "documentation": "This is a plugin for enabling webhooks and web interface to Errbot ONLY on local host",
+      "name": "LocalWebserver",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30872926?v=4",
+      "score": -43.07
+    }
+  },
+  "Team488/meeting-bot": {
+    "XMeeting": {
+      "path": "are_we_meeting.plug",
+      "repo": "https://github.com/Team488/meeting-bot",
+      "documentation": "A meeting helper bot",
+      "name": "XMeeting",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3441816?v=4",
+      "score": -104.97
+    }
+  },
+  "TheArchives/Inter": {
+    "Chat": {
+      "path": "plugins/chat.plug",
+      "repo": "https://github.com/TheArchives/Inter",
+      "documentation": "A plugin for relaying chat between servers",
+      "name": "Chat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1098410?v=4",
+      "score": -148.96
+    },
+    "Authentication": {
+      "path": "plugins/auth.plug",
+      "repo": "https://github.com/TheArchives/Inter",
+      "documentation": "A plugin for simple API-key based authentication",
+      "name": "Authentication",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1098410?v=4",
+      "score": -148.96
+    },
+    "Players": {
+      "path": "plugins/players.plug",
+      "repo": "https://github.com/TheArchives/Inter",
+      "documentation": "A plugin that tracks online players on all connected servers.",
+      "name": "Players",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1098410?v=4",
+      "score": -148.96
+    }
+  },
+  "ValhallaGamePlays/odin": {
+    "helloworld": {
+      "path": "odin/plugins/helloworld/helloworld.plug",
+      "repo": "https://github.com/ValhallaGamePlays/odin",
+      "documentation": "Twisted copypasta hello world script from errbot.io",
+      "name": "helloworld",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
+      "score": -72.53
+    },
+    "troll": {
+      "path": "odin/plugins/troll/troll.plug",
+      "repo": "https://github.com/ValhallaGamePlays/odin",
+      "documentation": "Twisted copypasta and amalgamation of callback bot",
+      "name": "troll",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
+      "score": -87.64
+    },
+    "Example": {
+      "path": "odin/plugins/err-example/example.plug",
+      "repo": "https://github.com/ValhallaGamePlays/odin",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Example",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24510511?v=4",
+      "score": -87.64
+    }
+  },
+  "Voronenko/errbot-grafana": {
+    "SaGrafana": {
+      "path": "sagrafana.plug",
+      "repo": "https://github.com/Voronenko/errbot-grafana",
+      "documentation": "Helper module for grafana ( install with https://github.com/Voronenko/errbot-grafana )",
+      "name": "SaGrafana",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/701233?v=4",
+      "score": -64.53
+    }
+  },
+  "ajoelp/err-fastlane": {
+    "fastlane": {
+      "path": "err-fastlane-deploy.plug",
+      "repo": "https://github.com/ajoelp/err-fastlane",
+      "documentation": "Deploy fastlane builds through errbot",
+      "name": "fastlane",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6320967?v=4",
+      "score": -91.63
+    }
+  },
+  "alimac/err-factoid": {
+    "Factoid": {
+      "path": "factoid.plug",
+      "repo": "https://github.com/alimac/err-factoid",
+      "documentation": "A plugin for Errbot that allows chat users to create factoids.",
+      "name": "Factoid",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1930627?v=4",
+      "score": 33.6
+    }
+  },
+  "alimac/err-hello": {
+    "HelloBot": {
+      "path": "hello.plug",
+      "repo": "https://github.com/alimac/err-hello",
+      "documentation": "Plugin for Errbot that responds to hello\u2019s.",
+      "name": "HelloBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1930627?v=4",
+      "score": -100.4
+    }
+  },
+  "alimac/err-recme": {
+    "Recme": {
+      "path": "recme.plug",
+      "repo": "https://github.com/alimac/err-recme",
+      "documentation": "A plugin for Errbot that allows chat users to add recommendations.",
+      "name": "Recme",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1930627?v=4",
+      "score": -101.53
+    }
+  },
+  "andrewthetechie/err-anonymous-report": {
+    "AnonymousReports": {
+      "path": "report.plug",
+      "repo": "https://github.com/andrewthetechie/err-anonymous-report",
+      "documentation": "Allow anonymous reporting of messages to admins via the bot",
+      "name": "AnonymousReports",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": -39.27
+    }
+  },
+  "andrewthetechie/err-aprs-backend": {
+    "APRSHelp": {
+      "path": "aprs_backend/APRSHelp.plug",
+      "repo": "https://github.com/andrewthetechie/err-aprs-backend",
+      "documentation": "APRS Friendly Help Plugin",
+      "name": "APRSHelp",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": 4.07
+    },
+    "APRSWebserver": {
+      "path": "aprs_backend/APRSWebserver.plug",
+      "repo": "https://github.com/andrewthetechie/err-aprs-backend",
+      "documentation": "APRS Friendly Web Plugin",
+      "name": "APRSWebserver",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": 4.07
+    },
+    "APRSHealth": {
+      "path": "aprs_backend/APRSHealth.plug",
+      "repo": "https://github.com/andrewthetechie/err-aprs-backend",
+      "documentation": "APRS Friendly Health Plugin",
+      "name": "APRSHealth",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": 4.07
+    },
+    "APRS": {
+      "path": "aprs_backend/aprs.plug",
+      "repo": "https://github.com/andrewthetechie/err-aprs-backend",
+      "documentation": "Backend for APRS",
+      "name": "APRS",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": 4.07
+    }
+  },
+  "andrewthetechie/err-discord-bridge": {
+    "DiscordBridge": {
+      "path": "discord_bridge/discord_bridge.plug",
+      "repo": "https://github.com/andrewthetechie/err-discord-bridge",
+      "documentation": "This is a plugin that manages a TopicADay Channel!",
+      "name": "DiscordBridge",
+      "python": "3.11.0",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": -19.23
+    }
+  },
+  "andrewthetechie/err-topic-a-day": {
+    "TopicADay": {
+      "path": "topic-a-day.plug",
+      "repo": "https://github.com/andrewthetechie/err-topic-a-day",
+      "documentation": "This is a plugin that manages a TopicADay Channel!",
+      "name": "TopicADay",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": -26.27
+    }
+  },
+  "andrewthetechie/errbot-chatopsanything": {
+    "ChatOpsAnything": {
+      "path": "chatops-anything.plug",
+      "repo": "https://github.com/andrewthetechie/errbot-chatopsanything",
+      "documentation": "This is a plugin that chatops enables a directory of exectables",
+      "name": "ChatOpsAnything",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1377314?v=4",
+      "score": -27.27
+    }
+  },
+  "antman25/chatbot": {
+    "Mattermost": {
+      "path": "backends/mattermost.plug",
+      "repo": "https://github.com/antman25/chatbot",
+      "documentation": "A Mattermost backend for errbot.",
+      "name": "Mattermost",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10299377?v=4",
+      "score": -77.17
+    },
+    "Shelf": {
+      "path": "storage/shelf.plug",
+      "repo": "https://github.com/antman25/chatbot",
+      "documentation": "This is the storage plugin for the traditional shelf store for errbot.",
+      "name": "Shelf",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10299377?v=4",
+      "score": -77.17
+    },
+    "Webserver": {
+      "path": "core_plugins/webserver.plug",
+      "repo": "https://github.com/antman25/chatbot",
+      "documentation": "This is a plugin for enabling webhooks and web interface to Errbot.",
+      "name": "Webserver",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10299377?v=4",
+      "score": -77.17
+    },
+    "Flows": {
+      "path": "core_plugins/flows.plug",
+      "repo": "https://github.com/antman25/chatbot",
+      "documentation": "Core Errbot commands to query and manage conversation flows.",
+      "name": "Flows",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10299377?v=4",
+      "score": -77.17
+    },
+    "VersionChecker": {
+      "path": "core_plugins/vcheck.plug",
+      "repo": "https://github.com/antman25/chatbot",
+      "documentation": "This is calling home to check if Errbot has a new version available",
+      "name": "VersionChecker",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10299377?v=4",
+      "score": -77.17
+    },
+    "Utils": {
+      "path": "core_plugins/utils.plug",
+      "repo": "https://github.com/antman25/chatbot",
+      "documentation": "Core Errbot utils commands.",
+      "name": "Utils",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10299377?v=4",
+      "score": -77.17
+    }
+  },
+  "aram208/ai_ramblings": {
+    "HipChap": {
+      "path": "errbot-root/plugins/hipchap/hipchap.plug",
+      "repo": "https://github.com/aram208/ai_ramblings",
+      "documentation": "Custom ChatBot plugin for HipChat",
+      "name": "HipChap",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1530372?v=4",
+      "score": -87.4
+    }
+  },
+  "arouene/err-profiles": {
+    "Profiles": {
+      "path": "profiles.plug",
+      "repo": "https://github.com/arouene/err-profiles",
+      "documentation": "ACLs with user and group management",
+      "name": "Profiles",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20049990?v=4",
+      "score": -8.0
+    }
+  },
+  "attakei-lab/errbot-slack-bolt-backend": {
+    "SlackBolt": {
+      "path": "errbot_slack_bolt_backend/slackbolt.plug",
+      "repo": "https://github.com/attakei-lab/errbot-slack-bolt-backend",
+      "documentation": "Sladk backend by Slack Bolt",
+      "name": "SlackBolt",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60003764?v=4",
+      "score": -14.6
+    }
+  },
+  "attakei/err-storage-yaml": {
+    "YAML": {
+      "path": "yaml.plug",
+      "repo": "https://github.com/attakei/err-storage-yaml",
+      "documentation": "YAML save/load storage for Errbot",
+      "name": "YAML",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": -28.23
+    }
+  },
+  "attakei/errbot-cloudfront-plugin": {
+    "cloudfront": {
+      "path": "cloudfront.plug",
+      "repo": "https://github.com/attakei/errbot-cloudfront-plugin",
+      "documentation": "Control CloudFront",
+      "name": "cloudfront",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": -82.53
+    }
+  },
+  "attakei/errbot-misc-plugins": {
+    "iijmio": {
+      "path": "iijmio/iijmio.plug",
+      "repo": "https://github.com/attakei/errbot-misc-plugins",
+      "documentation": "IIJmio monitor",
+      "name": "iijmio",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": -108.3
+    }
+  },
+  "attakei/errbot-pomodoro-timer": {
+    "Pomodoro": {
+      "path": "pomodoro.plug",
+      "repo": "https://github.com/attakei/errbot-pomodoro-timer",
+      "documentation": "Simple pomodoro technique timer kit",
+      "name": "Pomodoro",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": -45.77
+    }
+  },
+  "attakei/errbot-route53-plugin": {
+    "route53": {
+      "path": "route53.plug",
+      "repo": "https://github.com/attakei/errbot-route53-plugin",
+      "documentation": "Control Route 53",
+      "name": "route53",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": -82.53
     }
   },
   "attakei/errbot-teratail-fetch": {
@@ -216,100 +791,87 @@
       "name": "Teratail",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
-      "score": -103.44
+      "score": -117.77
+    }
+  },
+  "attakei/errcron": {
+    "Errcron": {
+      "path": "samples/errcron_demo.plug",
+      "repo": "https://github.com/attakei/errcron",
+      "documentation": "Crontab implementation for Errbot(It is a demo plugin)",
+      "name": "Errcron",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668834?v=4",
+      "score": 51.07
+    }
+  },
+  "benvd/err-jenkins": {
+    "JenkinsBot": {
+      "path": "jenkinsbot.plug",
+      "repo": "https://github.com/benvd/err-jenkins",
+      "documentation": "Integrate with Jenkins CI",
+      "name": "JenkinsBot",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/332862?v=4",
+      "score": -52.44
+    }
+  },
+  "bergbrains/dns-status-errbot-plugin": {
+    "DNSStatusPlugin": {
+      "path": "dns_status/dns_status.plug",
+      "repo": "https://github.com/bergbrains/dns-status-errbot-plugin",
+      "documentation": "Check DNS server responsiveness and resolution time",
+      "name": "DNSStatusPlugin",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/443102?v=4",
+      "score": -6.27
+    }
+  },
+  "br0ziliy/err-ansible": {
+    "Ansible": {
+      "path": "ansible.plug",
+      "repo": "https://github.com/br0ziliy/err-ansible",
+      "documentation": "An Err plugin to run Ansible commands",
+      "name": "Ansible",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1941223?v=4",
+      "score": 0.17
+    }
+  },
+  "brandverity/tcs_bot": {
+    "FoodBot": {
+      "path": "tcs.plug",
+      "repo": "https://github.com/brandverity/tcs_bot",
+      "documentation": "Foodbot bot",
+      "name": "FoodBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15149312?v=4",
+      "score": -116.03
+    }
+  },
+  "cardoso/errbot-rocketchat": {
+    "RocketChat": {
+      "path": "src/rocketchat/backends/rocketchat.plug",
+      "repo": "https://github.com/cardoso/errbot-rocketchat",
+      "documentation": "Rocket.Chat backend for Errbot.",
+      "name": "RocketChat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5606812?v=4",
+      "score": 38.87
+    }
+  },
+  "cloudflare/GHC-Errbot": {
+    "Google-Hangouts-Chat": {
+      "path": "hangouts-chat.plug",
+      "repo": "https://github.com/cloudflare/GHC-Errbot",
+      "documentation": "A Google-Hangouts-Chat backend for Err",
+      "name": "Google-Hangouts-Chat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/314135?v=4",
+      "score": 73.2
     }
   },
   "coala/corobo": {
-    "utils": {
-      "path": "utils/utils.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "Some random utilities",
-      "name": "utils",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "SpammingAlert": {
-      "path": "plugins/spam.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "A callback to alert the user that they might be spamming.",
-      "name": "SpammingAlert",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "filters": {
-      "path": "utils/filters.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "Filter and manipulate incoming commands",
-      "name": "filters",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "lmgtfy": {
-      "path": "plugins/lmgtfy.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "For all those people who find it more convenient to bother you with their question rather than search it for themselves.",
-      "name": "lmgtfy",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "ghetto": {
-      "path": "plugins/ghetto.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "Real talk yo",
-      "name": "ghetto",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "LabHub": {
-      "path": "plugins/labhub.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "GitHub and GitLab utilities",
-      "name": "LabHub",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "answer": {
-      "path": "plugins/answer.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "Answer questions, intelligently ;)",
-      "name": "answer",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "ship_it": {
-      "path": "plugins/ship_it.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "Show motivational ship it squirrel images.",
-      "name": "ship_it",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "explain": {
-      "path": "plugins/explain.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "Explain various terms",
-      "name": "explain",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "coatils": {
-      "path": "plugins/coatils.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "Various coala related utilities, exposing the REST API, etc.",
-      "name": "coatils",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
     "the_rules": {
       "path": "plugins/the_rules.plug",
       "repo": "https://github.com/coala/corobo",
@@ -317,7 +879,7 @@
       "name": "the_rules",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 285.1
     },
     "nevermind": {
       "path": "plugins/nevermind.plug",
@@ -326,25 +888,16 @@
       "name": "nevermind",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 285.1
     },
-    "GitStats": {
-      "path": "plugins/git_stats.plug",
+    "lmgtfy": {
+      "path": "plugins/lmgtfy.plug",
       "repo": "https://github.com/coala/corobo",
-      "documentation": "GitHub and GitLab statistics",
-      "name": "GitStats",
+      "documentation": "For all those people who find it more convenient to bother you with their question rather than search it for themselves.",
+      "name": "lmgtfy",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
-    },
-    "pitchfork": {
-      "path": "plugins/pitchfork.plug",
-      "repo": "https://github.com/coala/corobo",
-      "documentation": "To pitchfork users down to ...",
-      "name": "pitchfork",
-      "python": "3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 285.1
     },
     "SearchDocs": {
       "path": "plugins/searchdocs.plug",
@@ -353,7 +906,25 @@
       "name": "SearchDocs",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 285.1
+    },
+    "GitStats": {
+      "path": "plugins/git_stats.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "GitHub and GitLab statistics",
+      "name": "GitStats",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 285.1
+    },
+    "ship_it": {
+      "path": "plugins/ship_it.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Show motivational ship it squirrel images.",
+      "name": "ship_it",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 285.1
     },
     "WolframAlpha": {
       "path": "plugins/wolfram_alpha.plug",
@@ -362,7 +933,88 @@
       "name": "WolframAlpha",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 285.1
+    },
+    "answer": {
+      "path": "plugins/answer.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Answer questions, intelligently ;)",
+      "name": "answer",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 285.1
+    },
+    "pitchfork": {
+      "path": "plugins/pitchfork.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "To pitchfork users down to ...",
+      "name": "pitchfork",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 285.1
+    },
+    "explain": {
+      "path": "plugins/explain.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Explain various terms",
+      "name": "explain",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 285.1
+    },
+    "LabHub": {
+      "path": "plugins/labhub.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "GitHub and GitLab utilities",
+      "name": "LabHub",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 285.1
+    },
+    "ghetto": {
+      "path": "plugins/ghetto.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Real talk yo",
+      "name": "ghetto",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 285.1
+    },
+    "utils": {
+      "path": "utils/utils.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Some random utilities",
+      "name": "utils",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 283.32
+    },
+    "SpammingAlert": {
+      "path": "plugins/spam.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "A callback to alert the user that they might be spamming.",
+      "name": "SpammingAlert",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 283.32
+    },
+    "filters": {
+      "path": "utils/filters.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Filter and manipulate incoming commands",
+      "name": "filters",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 283.32
+    },
+    "coatils": {
+      "path": "plugins/coatils.plug",
+      "repo": "https://github.com/coala/corobo",
+      "documentation": "Various coala related utilities, exposing the REST API, etc.",
+      "name": "coatils",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
+      "score": 283.32
     },
     "coala_lowercase_c": {
       "path": "plugins/coala_lowercase_c.plug",
@@ -371,7 +1023,7 @@
       "name": "coala_lowercase_c",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 283.32
     },
     "deprecate_bot_prefixes": {
       "path": "plugins/deprecate_bot_prefixes.plug",
@@ -380,7 +1032,7 @@
       "name": "deprecate_bot_prefixes",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 283.32
     },
     "Ban": {
       "path": "plugins/ban.plug",
@@ -389,7 +1041,1522 @@
       "name": "Ban",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/10620750?v=4",
-      "score": 284.12
+      "score": 283.32
+    }
+  },
+  "codebam/python-sparklebot": {
+    "Shelf": {
+      "path": "errbot/storage/shelf.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the storage plugin for the traditional shelf store for errbot.",
+      "name": "Shelf",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -75.83
+    },
+    "Webserver": {
+      "path": "errbot/core_plugins/webserver.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is a plugin for enabling webhooks and web interface to Errbot.",
+      "name": "Webserver",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -75.83
+    },
+    "Flows": {
+      "path": "errbot/core_plugins/flows.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "Core Errbot commands to query and manage conversation flows.",
+      "name": "Flows",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -75.83
+    },
+    "VersionChecker": {
+      "path": "errbot/core_plugins/vcheck.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is calling home to check if Errbot has a new version available",
+      "name": "VersionChecker",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -75.83
+    },
+    "Utils": {
+      "path": "errbot/core_plugins/utils.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "Core Errbot utils commands.",
+      "name": "Utils",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -75.83
+    },
+    "Mention": {
+      "path": "tests/mention_plugin/mention.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "An Errbot mention test plugin.",
+      "name": "Mention",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -75.83
+    },
+    "IRC": {
+      "path": "errbot/backends/irc.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the IRC backend for Err.",
+      "name": "IRC",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "XMPP": {
+      "path": "errbot/backends/xmpp.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the XMPP backend for Err.",
+      "name": "XMPP",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Null": {
+      "path": "errbot/backends/null.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the Null backend for Err.",
+      "name": "Null",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Text": {
+      "path": "errbot/backends/text.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the text backend for Err.",
+      "name": "Text",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Slack": {
+      "path": "errbot/backends/slack.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the slack backend for Err.",
+      "name": "Slack",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Memory": {
+      "path": "errbot/storage/memory.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the storage plugin for an in-memory store (non-persistent).",
+      "name": "Memory",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Hipchat": {
+      "path": "errbot/backends/hipchat.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the hipchat backend for Err.",
+      "name": "Hipchat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Graphic": {
+      "path": "errbot/backends/graphic.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the graphic backend for Err.",
+      "name": "Graphic",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Help": {
+      "path": "errbot/core_plugins/help.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "Core plugin of help related functions.",
+      "name": "Help",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Example": {
+      "path": "errbot/templates/initdir/example.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Example",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "ChatRoom": {
+      "path": "errbot/core_plugins/chatRoom.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is a basic implementation of a chatroom",
+      "name": "ChatRoom",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Backup": {
+      "path": "errbot/core_plugins/backup.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This core plugin manage import and export of data from Err.",
+      "name": "Backup",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Test": {
+      "path": "errbot/backends/test.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the test backend for Err.",
+      "name": "Test",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Test hooks for webhooks testing": {
+      "path": "tests/webhooks_plugin/webtest.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Test hooks for webhooks testing",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Circular4": {
+      "path": "tests/dependent_plugins/circular4.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Circular4",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "FlowTest": {
+      "path": "tests/flow_plugin/flowtest.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "FlowTest",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Parent1": {
+      "path": "tests/dependent_plugins/parent1.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Parent1",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Circular1": {
+      "path": "tests/dependent_plugins/circular1.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Circular1",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Circular3": {
+      "path": "tests/dependent_plugins/circular3.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Circular3",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Broken": {
+      "path": "tests/borken_plugin/broken.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is totally broken, don't use it.",
+      "name": "Broken",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Plugins": {
+      "path": "errbot/core_plugins/plugins.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "Commands to manage the plugins of the bot by chatting.",
+      "name": "Plugins",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Telegram": {
+      "path": "errbot/backends/telegram_messenger.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "This is the Telegram backend for Err.",
+      "name": "Telegram",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Dyna": {
+      "path": "tests/dyna_plugin/dyna.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Dyna",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Single": {
+      "path": "tests/dependent_plugins/single.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Single",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    },
+    "Circular2": {
+      "path": "tests/dependent_plugins/circular2.plug",
+      "repo": "https://github.com/codebam/python-sparklebot",
+      "documentation": "",
+      "name": "Circular2",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6035884?v=4",
+      "score": -93.0
+    }
+  },
+  "come-maiz/snappy-m-o": {
+    "AutopkgtestGithub": {
+      "path": "plugins/autopkgtest_github/autopkgtest_github.plug",
+      "repo": "https://github.com/come-maiz/snappy-m-o",
+      "documentation": "Trigger the autopkgtests for GitHub pull requests",
+      "name": "AutopkgtestGithub",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/617831?v=4",
+      "score": -110.03
+    },
+    "SnapcraftGithub": {
+      "path": "plugins/snapcraft_github/snapcraft_github.plug",
+      "repo": "https://github.com/come-maiz/snappy-m-o",
+      "documentation": "Handle GitHub webhooks from the snapcraft repository",
+      "name": "SnapcraftGithub",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/617831?v=4",
+      "score": -110.03
+    },
+    "SnapcraftTravis": {
+      "path": "plugins/snapcraft_travis/snapcraft_travis.plug",
+      "repo": "https://github.com/come-maiz/snappy-m-o",
+      "documentation": "Handle Travis requests with the Travis API",
+      "name": "SnapcraftTravis",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/617831?v=4",
+      "score": -110.03
+    }
+  },
+  "coolshiva123/wrcbot": {
+    "tryme": {
+      "path": "Docker Expts/docker_exps3/src/plugins/tryme.plug",
+      "repo": "https://github.com/coolshiva123/wrcbot",
+      "documentation": "tryme Errbot utils commands.",
+      "name": "tryme",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12410857?v=4",
+      "score": -9.97
+    },
+    "aha": {
+      "path": "Docker Expts/docker_exps3/src/plugins/aha.plug",
+      "repo": "https://github.com/coolshiva123/wrcbot",
+      "documentation": "aha Errbot utils commands.",
+      "name": "aha",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12410857?v=4",
+      "score": -9.97
+    },
+    "alive": {
+      "path": "Docker Expts/docker_exps3/src/plugins/alive.plug",
+      "repo": "https://github.com/coolshiva123/wrcbot",
+      "documentation": "tryme Errbot utils commands.",
+      "name": "alive",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12410857?v=4",
+      "score": -9.97
+    },
+    "helloworld": {
+      "path": "Docker Expts/docker_exps/src/plugins/helloworld.plug",
+      "repo": "https://github.com/coolshiva123/wrcbot",
+      "documentation": "Helloworld Errbot utils commands.",
+      "name": "helloworld",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12410857?v=4",
+      "score": -9.97
+    },
+    "mypriorlife": {
+      "path": "Docker Expts/docker_exps2/src/plugins/mypriorlife.plug",
+      "repo": "https://github.com/coolshiva123/wrcbot",
+      "documentation": "tryme Errbot utils commands.",
+      "name": "mypriorlife",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12410857?v=4",
+      "score": -9.97
+    }
+  },
+  "cweiske/errbot-exec": {
+    "exec": {
+      "path": "exec.plug",
+      "repo": "https://github.com/cweiske/errbot-exec",
+      "documentation": "Execute a command when the bot is talked to",
+      "name": "exec",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59036?v=4",
+      "score": -92.47
+    }
+  },
+  "cyberhiker/err-sonos": {
+    "Sonos": {
+      "path": "sonos.plug",
+      "repo": "https://github.com/cyberhiker/err-sonos",
+      "documentation": "Control Sonos speakers via ErrBot.",
+      "name": "Sonos",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/903511?v=4",
+      "score": -46.67
+    }
+  },
+  "debojitkakoti/atraey": {
+    "Metricsbot": {
+      "path": "bot/err-metrics/metricsbot.plug",
+      "repo": "https://github.com/debojitkakoti/atraey",
+      "documentation": "This is a errbot metrics plugin.",
+      "name": "Metricsbot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6252201?v=4",
+      "score": -105.67
+    },
+    "Example": {
+      "path": "bot/plugins/err-example/example.plug",
+      "repo": "https://github.com/debojitkakoti/atraey",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Example",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6252201?v=4",
+      "score": -128.4
+    },
+    "Jenkinsbot": {
+      "path": "bot/plugins/err-jenkinsbot/jenkinsbot.plug",
+      "repo": "https://github.com/debojitkakoti/atraey",
+      "documentation": "This is a Atraey Bot jenkins plugin.",
+      "name": "Jenkinsbot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6252201?v=4",
+      "score": -128.4
+    }
+  },
+  "dmsimard/teamchat": {
+    "teamchat": {
+      "path": "teamchat/errbot/plugins/teamchat.plug",
+      "repo": "https://github.com/dmsimard/teamchat",
+      "documentation": "teamchat",
+      "name": "teamchat",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1291204?v=4",
+      "score": -3.2
+    }
+  },
+  "drsm79/botify": {
+    "Botify": {
+      "path": "botify.plug",
+      "repo": "https://github.com/drsm79/botify",
+      "documentation": "let's listen to musics!",
+      "name": "Botify",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -61.4
+    }
+  },
+  "drsm79/mybot": {
+    "Bus": {
+      "path": "plugins/bus.plug",
+      "repo": "https://github.com/drsm79/mybot",
+      "documentation": "let's say hello !",
+      "name": "Bus",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -64.4
+    },
+    "Duck": {
+      "path": "plugins/duck.plug",
+      "repo": "https://github.com/drsm79/mybot",
+      "documentation": "Rubber duck debugging at it's best",
+      "name": "Duck",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -64.4
+    },
+    "Http": {
+      "path": "plugins/http.plug",
+      "repo": "https://github.com/drsm79/mybot",
+      "documentation": "Look up http return codes",
+      "name": "Http",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -64.4
+    },
+    "Doge": {
+      "path": "plugins/doge.plug",
+      "repo": "https://github.com/drsm79/mybot",
+      "documentation": "Make a doge",
+      "name": "Doge",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -64.4
+    },
+    "Mike": {
+      "path": "plugins/mike.plug",
+      "repo": "https://github.com/drsm79/mybot",
+      "documentation": "Mike Wallace is the best person ever [ping!]",
+      "name": "Mike",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -64.4
+    },
+    "FreshPots": {
+      "path": "plugins/pots.plug",
+      "repo": "https://github.com/drsm79/mybot",
+      "documentation": "let's say hello !",
+      "name": "FreshPots",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104090?v=4",
+      "score": -64.4
+    }
+  },
+  "ericfode/err-pubsub": {
+    "Pubsub": {
+      "path": "pubsub.plug",
+      "repo": "https://github.com/ericfode/err-pubsub",
+      "documentation": "This plugin allows errbot to subscribe to google pubsub.",
+      "name": "Pubsub",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50846?v=4",
+      "score": -33.03
+    }
+  },
+  "errbotio/err-backend-discord": {
+    "Discord": {
+      "path": "src/err-backend-discord/err-backend-discord.plug",
+      "repo": "https://github.com/errbotio/err-backend-discord",
+      "documentation": "Discord backend for Errbot.",
+      "name": "Discord",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 83.73
+    }
+  },
+  "errbotio/err-backend-gitter": {
+    "Gitter": {
+      "path": "gitter.plug",
+      "repo": "https://github.com/errbotio/err-backend-gitter",
+      "documentation": "This is a backend implementation for gitter.im.",
+      "name": "Gitter",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 44.72
+    }
+  },
+  "errbotio/err-backend-mattermost": {
+    "Mattermost": {
+      "path": "src/err-backend-mattermost/err-backend-mattermost.plug",
+      "repo": "https://github.com/errbotio/err-backend-mattermost",
+      "documentation": "Mattermost backend for Errbot.",
+      "name": "Mattermost",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 132.57
+    },
+    "TestPlugin": {
+      "path": "tests/plugins/test.plug",
+      "repo": "https://github.com/errbotio/err-backend-mattermost",
+      "documentation": "A Test plugin",
+      "name": "TestPlugin",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 129.48
+    }
+  },
+  "errbotio/err-backend-slackv3": {
+    "SlackV3": {
+      "path": "src/slackv3/slackv3.plug",
+      "repo": "https://github.com/errbotio/err-backend-slackv3",
+      "documentation": "Backend for Slack's Real Time Messaging and Events APIs.",
+      "name": "SlackV3",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 115.16
+    }
+  },
+  "errbotio/err-backend-tester": {
+    "Err plugin to test fondamentals of a backend.": {
+      "path": "betester.plug",
+      "repo": "https://github.com/errbotio/err-backend-tester",
+      "documentation": "series of command to test if a backend is consistent.",
+      "name": "Err plugin to test fondamentals of a backend.",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -110.57
+    }
+  },
+  "errbotio/err-code": {
+    "Code": {
+      "path": "code.plug",
+      "repo": "https://github.com/errbotio/err-code",
+      "documentation": "Allow to \"execute code\" in the bot",
+      "name": "Code",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -75.36
+    }
+  },
+  "errbotio/err-devops-borat": {
+    "DevOpsBorat": {
+      "path": "devops_borat.plug",
+      "repo": "https://github.com/errbotio/err-devops-borat",
+      "documentation": "displays a random @DEVOPS_BORAT quote",
+      "name": "DevOpsBorat",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -81.36
+    }
+  },
+  "errbotio/err-gitbot": {
+    "GitBot": {
+      "path": "gitbot.plug",
+      "repo": "https://github.com/errbotio/err-gitbot",
+      "documentation": "Some tools to follow your git repositories",
+      "name": "GitBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -13.44
+    }
+  },
+  "errbotio/err-guess-a-number": {
+    "guess": {
+      "path": "guess.plug",
+      "repo": "https://github.com/errbotio/err-guess-a-number",
+      "documentation": "Example of errbot flows",
+      "name": "guess",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -42.63
+    }
+  },
+  "errbotio/err-nettools": {
+    "Nettools": {
+      "path": "nettools.plug",
+      "repo": "https://github.com/errbotio/err-nettools",
+      "documentation": "various network query tools",
+      "name": "Nettools",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -38.03
+    }
+  },
+  "errbotio/err-otp": {
+    "OTP": {
+      "path": "otp.plug",
+      "repo": "https://github.com/errbotio/err-otp",
+      "documentation": "This adds OTP feature to errbot.",
+      "name": "OTP",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -31.33
+    }
+  },
+  "errbotio/err-poll": {
+    "Poll": {
+      "path": "poll.plug",
+      "repo": "https://github.com/errbotio/err-poll",
+      "documentation": "let's decide what to do",
+      "name": "Poll",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -9.44
+    }
+  },
+  "errbotio/err-storage-redis": {
+    "Redis": {
+      "path": "redisstorage.plug",
+      "repo": "https://github.com/errbotio/err-storage-redis",
+      "documentation": "This is the storage plugin for Redis.",
+      "name": "Redis",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 26.4
+    }
+  },
+  "errbotio/err-storage-sql": {
+    "SQL": {
+      "path": "sql.plug",
+      "repo": "https://github.com/errbotio/err-storage-sql",
+      "documentation": "This is the errbot storage plugin for SQL. It is compatible with Firebird, Microsoft SQL Server, MySQL, Oracle, PostgreSQL, SQLite, Sybase, IBM DB2, Amazon Redshift, exasol, Sybase SQL Anywhere, MonetDB.",
+      "name": "SQL",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": 47.63
+    }
+  },
+  "errbotio/err-timemachine": {
+    "TimeMachine": {
+      "path": "timemachine.plug",
+      "repo": "https://github.com/errbotio/err-timemachine",
+      "documentation": "let's go back in time !",
+      "name": "TimeMachine",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15802630?v=4",
+      "score": -70.7
+    }
+  },
+  "errbotters/err-rssreader": {
+    "RSSReader": {
+      "path": "rssreader.plug",
+      "repo": "https://github.com/errbotters/err-rssreader",
+      "documentation": "Get newest content from your favorite RSS feeds via your Errbot.",
+      "name": "RSSReader",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19437736?v=4",
+      "score": -114.17
+    }
+  },
+  "fernand0/err-forward": {
+    "ErrForward": {
+      "path": "errForward.plug",
+      "repo": "https://github.com/fernand0/err-forward",
+      "documentation": "An Err plugin for forwarding instructions",
+      "name": "ErrForward",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2467?v=4",
+      "score": 15.03
+    }
+  },
+  "fernand0/err-notes": {
+    "NoteTaker": {
+      "path": "note_taker.plug",
+      "repo": "https://github.com/fernand0/err-notes",
+      "documentation": "A plugin to manage your notes via Errbot.",
+      "name": "NoteTaker",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2467?v=4",
+      "score": -0.37
+    }
+  },
+  "fictive-kin/err-githubapi": {
+    "GitHubApi": {
+      "path": "githubapi.plug",
+      "repo": "https://github.com/fictive-kin/err-githubapi",
+      "documentation": "Retrieves useful information from GitHub based on conversations",
+      "name": "GitHubApi",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/122928626?v=4",
+      "score": -25.63
+    }
+  },
+  "fmnisme/err-stackstorm": {
+    "St2": {
+      "path": "st2.plug",
+      "repo": "https://github.com/fmnisme/err-stackstorm",
+      "documentation": "StackStorm chatops plugin for Errbot.",
+      "name": "St2",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5197501?v=4",
+      "score": 42.3
+    }
+  },
+  "fneu/meeterr": {
+    "meeterr": {
+      "path": "meeterr.plug",
+      "repo": "https://github.com/fneu/meeterr",
+      "documentation": "organize a meeting with errbot",
+      "name": "meeterr",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7591685?v=4",
+      "score": -103.3
+    }
+  },
+  "foxxyz/bookiebot": {
+    "BookieBot": {
+      "path": "bookiebot.plug",
+      "repo": "https://github.com/foxxyz/bookiebot",
+      "documentation": "Football Betting Bot",
+      "name": "BookieBot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2602605?v=4",
+      "score": -101.97
+    }
+  },
+  "frozenfoxx/err-cracksh": {
+    "CrackSh": {
+      "path": "cracksh.plug",
+      "repo": "https://github.com/frozenfoxx/err-cracksh",
+      "documentation": "An Errbot plugin for the https://crack.sh API.",
+      "name": "CrackSh",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/495325?v=4",
+      "score": -97.63
+    }
+  },
+  "gbin/err-xkcdcharts": {
+    "XKCDCharts": {
+      "path": "xkcdcharts.plug",
+      "repo": "https://github.com/gbin/err-xkcdcharts",
+      "documentation": "Draw XKCD looking charts in your chatroom.",
+      "name": "XKCDCharts",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/975564?v=4",
+      "score": -71.67
+    }
+  },
+  "ghoti/Rooster": {
+    "Who": {
+      "path": "plugins/who.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "gets player info from evewho",
+      "name": "Who",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "Ping": {
+      "path": "plugins/ping.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "Err Bot plugin to ping groups of people",
+      "name": "Ping",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "Trello": {
+      "path": "plugins/trello.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "Get active cards from list",
+      "name": "Trello",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "Smiles": {
+      "path": "plugins/smiles.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "herpaderpa",
+      "name": "Smiles",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "TimeBot": {
+      "path": "plugins/timebot.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "what time is it ?",
+      "name": "TimeBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "EveKills": {
+      "path": "plugins/evekills.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "A plugin for shaming people who die",
+      "name": "EveKills",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "Zkillwatch": {
+      "path": "plugins/zkillwatch.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "throwup stats on a zkill link mentioned in chat",
+      "name": "Zkillwatch",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "EveCentral": {
+      "path": "plugins/evecentral.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "Get prices in Jita via EveCentral",
+      "name": "EveCentral",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "VersionChecker": {
+      "path": "errbot/builtins/vcheck.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "This is calling home to check if err has a new version available",
+      "name": "VersionChecker",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "notificationbot": {
+      "path": "plugins/NotificationBot.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "Spam Useful Alliance Notifications to various jabber rooms",
+      "name": "notificationbot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "ChatRoom": {
+      "path": "errbot/builtins/chatRoom.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "This is a basic implementation of a chatroom",
+      "name": "ChatRoom",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "Webserver": {
+      "path": "errbot/builtins/webserver.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "This is a plugin for enabling webhooks and web interface to err",
+      "name": "Webserver",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    },
+    "fw": {
+      "path": "plugins/fwbot.plug",
+      "repo": "https://github.com/ghoti/Rooster",
+      "documentation": "FW info",
+      "name": "fw",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34587?v=4",
+      "score": -113.57
+    }
+  },
+  "hanks/Mathbot_for_hipchat": {
+    "MathBot": {
+      "path": "mathbot.plug",
+      "repo": "https://github.com/hanks/Mathbot_for_hipchat",
+      "documentation": "Simple four operation rubes bot!",
+      "name": "MathBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/759107?v=4",
+      "score": -144.3
+    }
+  },
+  "harlowja/gerritbot2": {
+    "gerritbot": {
+      "path": "plugins/gerritbot/gerritbot.plug",
+      "repo": "https://github.com/harlowja/gerritbot2",
+      "documentation": "This plugin echos and formats and filters gerrit events.",
+      "name": "gerritbot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/970458?v=4",
+      "score": -116.13
+    }
+  },
+  "hosom/err-teamcymru": {
+    "TeamCymru": {
+      "path": "teamcymru.plug",
+      "repo": "https://github.com/hosom/err-teamcymru",
+      "documentation": "This adds team cymru dns apis to errbot.",
+      "name": "TeamCymru",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -121.8
+    }
+  },
+  "hosom/jarvis": {
+    "CbResponse": {
+      "path": "plugins/cb-response/cbresponse.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Carbon Black Response Interraction",
+      "name": "CbResponse",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    },
+    "VirusTotal": {
+      "path": "plugins/virustotal/virustotal.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Interract with VirusTotal",
+      "name": "VirusTotal",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    },
+    "Minemeld": {
+      "path": "plugins/minemeld/minemeld.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Interract with Minemeld to manage lists.",
+      "name": "Minemeld",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    },
+    "OTP": {
+      "path": "plugins/otp/otp.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Add OTP command filter to errbot.",
+      "name": "OTP",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    },
+    "nslookup": {
+      "path": "plugins/nslookup/nslookup.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Perform local dns lookups.",
+      "name": "nslookup",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    },
+    "Shodan": {
+      "path": "plugins/shodan/shodan.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Interract with Shodan.io",
+      "name": "Shodan",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    },
+    "TeamCymru": {
+      "path": "plugins/teamcymru/teamcymru.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Interract with TeamCymru APIs",
+      "name": "TeamCymru",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    },
+    "LocalNets": {
+      "path": "plugins/localnets/localnets.plug",
+      "repo": "https://github.com/hosom/jarvis",
+      "documentation": "Provide a central configuration point for localnets.",
+      "name": "LocalNets",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5017324?v=4",
+      "score": -95.8
+    }
+  },
+  "hreeder/r2bot-eve-plugins": {
+    "Fun": {
+      "path": "Fun.plug",
+      "repo": "https://github.com/hreeder/r2bot-eve-plugins",
+      "documentation": "Fun Features for the bot",
+      "name": "Fun",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/601246?v=4",
+      "score": -117.53
+    },
+    "Time": {
+      "path": "Time.plug",
+      "repo": "https://github.com/hreeder/r2bot-eve-plugins",
+      "documentation": "A set of time tools for eve players!",
+      "name": "Time",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/601246?v=4",
+      "score": -117.53
+    },
+    "Reddit": {
+      "path": "Reddit.plug",
+      "repo": "https://github.com/hreeder/r2bot-eve-plugins",
+      "documentation": "Reddit Commands",
+      "name": "Reddit",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/601246?v=4",
+      "score": -117.53
+    },
+    "LastFm": {
+      "path": "LastFm.plug",
+      "repo": "https://github.com/hreeder/r2bot-eve-plugins",
+      "documentation": "LastFm Features for the bot",
+      "name": "LastFm",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/601246?v=4",
+      "score": -117.53
+    },
+    "MarketTools": {
+      "path": "MarketTools.plug",
+      "repo": "https://github.com/hreeder/r2bot-eve-plugins",
+      "documentation": "Eve Market related tools and commands",
+      "name": "MarketTools",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/601246?v=4",
+      "score": -117.53
+    }
+  },
+  "ibelle/garakbot": {
+    "GarakBot": {
+      "path": "plugins/garak.plug",
+      "repo": "https://github.com/ibelle/garakbot",
+      "documentation": "Garak Obsidian Order Bot",
+      "name": "GarakBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1002411?v=4",
+      "score": -134.63
+    }
+  },
+  "is2ei/err-backend-typetalk": {
+    "typetalk": {
+      "path": "typetalk.plug",
+      "repo": "https://github.com/is2ei/err-backend-typetalk",
+      "documentation": "This is Typetalk backend for Errbot.",
+      "name": "typetalk",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3948353?v=4",
+      "score": -84.03
+    }
+  },
+  "jvasallo/err-plugins": {
+    "AWS": {
+      "path": "err-aws/aws.plug",
+      "repo": "https://github.com/jvasallo/err-plugins",
+      "documentation": "AWS plugin to manage virtual machines in Amazon AWS",
+      "name": "AWS",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1730603?v=4",
+      "score": -65.44
+    },
+    "Jira": {
+      "path": "err-jira/jira.plug",
+      "repo": "https://github.com/jvasallo/err-plugins",
+      "documentation": "Jira plugin",
+      "name": "Jira",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1730603?v=4",
+      "score": -65.44
+    },
+    "Salt": {
+      "path": "err-salt/salt.plug",
+      "repo": "https://github.com/jvasallo/err-plugins",
+      "documentation": "Salt plugin to execute remote commands",
+      "name": "Salt",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1730603?v=4",
+      "score": -65.44
+    },
+    "Ping": {
+      "path": "err-ping/ping.plug",
+      "repo": "https://github.com/jvasallo/err-plugins",
+      "documentation": "This plugin to is to determine if bot is alive",
+      "name": "Ping",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1730603?v=4",
+      "score": -65.44
+    },
+    "Zendesk": {
+      "path": "err-zendesk/zendesk.plug",
+      "repo": "https://github.com/jvasallo/err-plugins",
+      "documentation": "Zendesk plugin",
+      "name": "Zendesk",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1730603?v=4",
+      "score": -65.44
+    },
+    "VMware": {
+      "path": "err-vmware/vmware.plug",
+      "repo": "https://github.com/jvasallo/err-plugins",
+      "documentation": "VMware plugin to manage virtual machines and esx hosts in vsphere 5.x",
+      "name": "VMware",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1730603?v=4",
+      "score": -65.44
+    }
+  },
+  "kaytwo/lockbot": {
+    "Lockbot": {
+      "path": "lockbot.plug",
+      "repo": "https://github.com/kaytwo/lockbot",
+      "documentation": "Keep track of who is editing what",
+      "name": "Lockbot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/587187?v=4",
+      "score": -128.47
+    }
+  },
+  "kdknowlton/err-reminders": {
+    "ReminderPlugin": {
+      "path": "reminders.plug",
+      "repo": "https://github.com/kdknowlton/err-reminders",
+      "documentation": "This module allows you to tell the bot in chat to give you a reminder at some specified time.",
+      "name": "ReminderPlugin",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5031256?v=4",
+      "score": 0.88
+    }
+  },
+  "kevgliss/analys": {
+    "Symantec": {
+      "path": "analys/plugins/static/symantec/symantec.plug",
+      "repo": "https://github.com/kevgliss/analys",
+      "documentation": "\"Automatic submission to symantec\"",
+      "name": "Symantec",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2262214?v=4",
+      "score": -105.1
+    }
+  },
+  "kyrofa/snappy-m-o": {
+    "AutopkgtestGithub": {
+      "path": "plugins/autopkgtest_github/autopkgtest_github.plug",
+      "repo": "https://github.com/kyrofa/snappy-m-o",
+      "documentation": "Trigger the autopkgtests for GitHub pull requests",
+      "name": "AutopkgtestGithub",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/946674?v=4",
+      "score": -100.07
+    },
+    "SnapcraftGithub": {
+      "path": "plugins/snapcraft_github/snapcraft_github.plug",
+      "repo": "https://github.com/kyrofa/snappy-m-o",
+      "documentation": "Handle GitHub webhooks from the snapcraft repository",
+      "name": "SnapcraftGithub",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/946674?v=4",
+      "score": -100.07
+    },
+    "SnapcraftTravis": {
+      "path": "plugins/snapcraft_travis/snapcraft_travis.plug",
+      "repo": "https://github.com/kyrofa/snappy-m-o",
+      "documentation": "Handle Travis requests with the Travis API",
+      "name": "SnapcraftTravis",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/946674?v=4",
+      "score": -100.07
+    }
+  },
+  "lagenorhynque/muse-bot": {
+    "MakiBot": {
+      "path": "src/MakiBot/maki_bot.plug",
+      "repo": "https://github.com/lagenorhynque/muse-bot",
+      "documentation": "Maki-chan chatbot plugin",
+      "name": "MakiBot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6076694?v=4",
+      "score": -110.47
+    }
+  },
+  "lazam/FunBot": {
+    "FunBot": {
+      "path": "funbot.plug",
+      "repo": "https://github.com/lazam/FunBot",
+      "documentation": "Bot for fun!",
+      "name": "FunBot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7956429?v=4",
+      "score": -107.03
+    }
+  },
+  "leitu/errbot-plugin": {
+    "Migrate": {
+      "path": "migrate.plug",
+      "repo": "https://github.com/leitu/errbot-plugin",
+      "documentation": "Migrate Storage from 7mode to BBCS",
+      "name": "Migrate",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2867202?v=4",
+      "score": -125.93
+    }
+  },
+  "lekum/ansiblebot": {
+    "Ansible": {
+      "path": "src/plugins/ansible-bot.plug",
+      "repo": "https://github.com/lekum/ansiblebot",
+      "documentation": "\"Plugin for remotely execute Ansible one-liner commands\"",
+      "name": "Ansible",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2630720?v=4",
+      "score": -72.33
+    }
+  },
+  "linuxtechie/transmission-gtalk": {
+    "Magnet": {
+      "path": "plugin/magnet.plug",
+      "repo": "https://github.com/linuxtechie/transmission-gtalk",
+      "documentation": "Add magnet to currently running transmission-daemon",
+      "name": "Magnet",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/206623?v=4",
+      "score": -107.7
+    }
+  },
+  "marksull/err-backend-cisco-spark": {
+    "CiscoSpark": {
+      "path": "CiscoSpark.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-spark",
+      "documentation": "This is a backend implementation for Cisco Spark",
+      "name": "CiscoSpark",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": -26.76
+    }
+  },
+  "marksull/err-backend-cisco-webex-teams": {
+    "CiscoWebexTeams": {
+      "path": "CiscoWebexTeams.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a backend implementation for Cisco Webex Teams",
+      "name": "CiscoWebexTeams",
+      "python": "3.6.0",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    },
+    "ExampleFlow": {
+      "path": "plugins/err-example-flow/exampleflow.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is example of how to use Errbot flow control",
+      "name": "ExampleFlow",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 77.0
+    },
+    "ExampleLarge": {
+      "path": "plugins/err-example-large/examplelarge.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example that demonstrates how to work with large blocks of text",
+      "name": "ExampleLarge",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    },
+    "ExampleWithCards": {
+      "path": "plugins/err-example-cards/examplecards.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example with cards to get you started.",
+      "name": "ExampleWithCards",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    },
+    "ExampleUpload": {
+      "path": "plugins/err-example-upload/exampleupload.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example with upload to get you started.",
+      "name": "ExampleUpload",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    },
+    "ExampleSimple": {
+      "path": "plugins/err-example-simple/examplesimple.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example",
+      "name": "ExampleSimple",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    },
+    "ExampleRemember": {
+      "path": "plugins/err-example-remember/exampleremember.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a plugin example on how to remember data between calls.",
+      "name": "ExampleRemember",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    },
+    "ExampleNotFound": {
+      "path": "plugins/err-example-not-found/examplenotfound.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a plugin that adds a custom not found error message to the bot.",
+      "name": "ExampleNotFound",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    },
+    "ExampleTemplate": {
+      "path": "plugins/err-example-templates/exampletemplate.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a plugin that leverages Errbot templates",
+      "name": "ExampleTemplate",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 77.0
+    },
+    "ExampleSendCallback": {
+      "path": "plugins/err-example-send-callback/examplesendcallback.plug",
+      "repo": "https://github.com/marksull/err-backend-cisco-webex-teams",
+      "documentation": "This is a simple plugin example to show how to create a send callback handler",
+      "name": "ExampleSendCallback",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1705633?v=4",
+      "score": 76.8
+    }
+  },
+  "matanby/st0ckbot": {
+    "St0ckBot": {
+      "path": "plugins/stockbot/st0ckbot.plug",
+      "repo": "https://github.com/matanby/st0ckbot",
+      "documentation": "A Telegram bot that fetches changes in your trust funds and stocks.",
+      "name": "St0ckBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8208862?v=4",
+      "score": -21.77
+    }
+  },
+  "mathiashls/k8splugin": {
+    "K8sPlugin": {
+      "path": "k8splugin.plug",
+      "repo": "https://github.com/mathiashls/k8splugin",
+      "documentation": "Kubernetes utilities through an Errbot plugin!",
+      "name": "K8sPlugin",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10950358?v=4",
+      "score": -70.53
+    }
+  },
+  "mayflower/err-misc": {
+    "misc": {
+      "path": "misc.plug",
+      "repo": "https://github.com/mayflower/err-misc",
+      "documentation": "Misc small commands",
+      "name": "misc",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/536878?v=4",
+      "score": -94.5
+    }
+  },
+  "mayflower/errbot-alerrtmanagerr": {
+    "Alerrtmanagerr": {
+      "path": "alerrtmanagerr.plug",
+      "repo": "https://github.com/mayflower/errbot-alerrtmanagerr",
+      "documentation": "Get alerts from Prometheus Alertmanager via webhooks",
+      "name": "Alerrtmanagerr",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/536878?v=4",
+      "score": -36.0
+    }
+  },
+  "mayflower/errbot-xmppbridge": {
+    "xmppbridge": {
+      "path": "xmppbridge.plug",
+      "repo": "https://github.com/mayflower/errbot-xmppbridge",
+      "documentation": "Bridge channels to XMPP MUCs",
+      "name": "xmppbridge",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/536878?v=4",
+      "score": -117.87
+    }
+  },
+  "mayflower/jon-knows-rasa": {
+    "Jon": {
+      "path": "plugin/jon.plug",
+      "repo": "https://github.com/mayflower/jon-knows-rasa",
+      "documentation": "Errbot <3 Skills",
+      "name": "Jon",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/536878?v=4",
+      "score": -96.73
+    }
+  },
+  "nelsonam/meryl": {
+    "Weather": {
+      "path": "plugins/weather.plug",
+      "repo": "https://github.com/nelsonam/meryl",
+      "documentation": "Displays weather for a zip code",
+      "name": "Weather",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/557945?v=4",
+      "score": -119.7
+    },
+    "HelloWorld": {
+      "path": "plugins/helloworld.plug",
+      "repo": "https://github.com/nelsonam/meryl",
+      "documentation": "Example \"Hello, world!\" plugin",
+      "name": "HelloWorld",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/557945?v=4",
+      "score": -119.7
+    }
+  },
+  "netquity/err-fabric": {
+    "fabric": {
+      "path": "fabric.plug",
+      "repo": "https://github.com/netquity/err-fabric",
+      "documentation": "Execute commands in Fabric's fabfile",
+      "name": "fabric",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1807942?v=4",
+      "score": -56.47
+    }
+  },
+  "netquity/err-github-jira-release": {
+    "release": {
+      "path": "release.plug",
+      "repo": "https://github.com/netquity/err-github-jira-release",
+      "documentation": "Automate releases between Jira and GitHub",
+      "name": "release",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1807942?v=4",
+      "score": -65.43
+    }
+  },
+  "netquity/err-github-merger": {
+    "merge": {
+      "path": "merge.plug",
+      "repo": "https://github.com/netquity/err-github-merger",
+      "documentation": "Merge GitHub PRs your way",
+      "name": "merge",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1807942?v=4",
+      "score": -54.47
+    }
+  },
+  "nzlosh/err-stackstorm": {
+    "St2": {
+      "path": "src/err-stackstorm/st2.plug",
+      "repo": "https://github.com/nzlosh/err-stackstorm",
+      "documentation": "StackStorm chatops plugin for Errbot.",
+      "name": "St2",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2700069?v=4",
+      "score": 52.27
+    }
+  },
+  "openstack/oslo.tools": {
+    "oslobot": {
+      "path": "oslobot/plugins/oslobot/oslobot.plug",
+      "repo": "https://github.com/openstack/oslo.tools",
+      "documentation": "This plugin is the goto bot for oslo admin-assistant activities.",
+      "name": "oslobot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/324574?v=4",
+      "score": 27.17
+    }
+  },
+  "pcn/err-replyguy": {
+    "replyguy": {
+      "path": "replyguy.plug",
+      "repo": "https://github.com/pcn/err-replyguy",
+      "documentation": "Stores strings and returns them when asked",
+      "name": "replyguy",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1056756?v=4",
+      "score": -58.23
+    }
+  },
+  "phlax/errbot-pootle-build": {
+    "Pootle build": {
+      "path": "pootle-build.plug",
+      "repo": "https://github.com/phlax/errbot-pootle-build",
+      "documentation": "This is a plugin to build Pootle tarballs",
+      "name": "Pootle build",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/454682?v=4",
+      "score": -119.53
+    }
+  },
+  "phlax/errbot-remotes": {
+    "Remotes": {
+      "path": "remotes.plug",
+      "repo": "https://github.com/phlax/errbot-remotes",
+      "documentation": "Tag remote repositories",
+      "name": "Remotes",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/454682?v=4",
+      "score": -120.17
     }
   },
   "prsnnami/chatops": {
@@ -400,16 +2567,7 @@
       "name": "fun",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
-      "score": -104.04
-    },
-    "HelloWorld": {
-      "path": "plugins/helloworld.plug",
-      "repo": "https://github.com/prsnnami/chatops",
-      "documentation": "Example \"Hello, world!\" plugin",
-      "name": "HelloWorld",
-      "python": "2+",
-      "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
-      "score": -104.04
+      "score": -118.27
     },
     "commands": {
       "path": "plugins/commands.plug",
@@ -418,7 +2576,16 @@
       "name": "commands",
       "python": "3",
       "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
-      "score": -104.04
+      "score": -118.27
+    },
+    "HelloWorld": {
+      "path": "plugins/helloworld.plug",
+      "repo": "https://github.com/prsnnami/chatops",
+      "documentation": "Example \"Hello, world!\" plugin",
+      "name": "HelloWorld",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
+      "score": -141.92
     },
     "Example": {
       "path": "plugins/err-example/example.plug",
@@ -427,7 +2594,376 @@
       "name": "Example",
       "python": "2+",
       "avatar_url": "https://avatars.githubusercontent.com/u/11041007?v=4",
-      "score": -104.04
+      "score": -141.92
+    }
+  },
+  "rawouter/err-jira": {
+    "Jira": {
+      "path": "errjira.plug",
+      "repo": "https://github.com/rawouter/err-jira",
+      "documentation": "Errbot plugin for JIRA (search, assign, create and transition issues)",
+      "name": "Jira",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2701349?v=4",
+      "score": -50.63
+    }
+  },
+  "rdo-infra/rdobot": {
+    "Errbot-Sensu": {
+      "path": "rdobot/plugins/sensu/sensu.plug",
+      "repo": "https://github.com/rdo-infra/rdobot",
+      "documentation": "An errbot sensu monitoring plugin to do operations",
+      "name": "Errbot-Sensu",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17726819?v=4",
+      "score": -103.23
+    },
+    "Errbot-Rdo": {
+      "path": "rdobot/plugins/rdo/rdo.plug",
+      "repo": "https://github.com/rdo-infra/rdobot",
+      "documentation": "An errbot RDO plugin to do RDO things",
+      "name": "Errbot-Rdo",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17726819?v=4",
+      "score": -103.23
+    }
+  },
+  "realraum/r3bot-errbot-plugins": {
+    "r3food": {
+      "path": "r3food/r3food.plug",
+      "repo": "https://github.com/realraum/r3bot-errbot-plugins",
+      "documentation": "realraum collaborative food ordering system",
+      "name": "r3food",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11165909?v=4",
+      "score": -110.13
+    },
+    "r3demo": {
+      "path": "r3demo/r3demo.plug",
+      "repo": "https://github.com/realraum/r3bot-errbot-plugins",
+      "documentation": "plugin to demo errbot stuff",
+      "name": "r3demo",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11165909?v=4",
+      "score": -110.13
+    }
+  },
+  "redhat-infosec/err-snow": {
+    "ServiceNow": {
+      "path": "servicenow.plug",
+      "repo": "https://github.com/redhat-infosec/err-snow",
+      "documentation": "ServiceNow Integration",
+      "name": "ServiceNow",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15036903?v=4",
+      "score": -90.13
+    }
+  },
+  "reikoNeko/icinga2bot": {
+    "icinga2bot": {
+      "path": "icinga2bot.plug",
+      "repo": "https://github.com/reikoNeko/icinga2bot",
+      "documentation": "Use errbot to talk to an Icinga2 monitoring server.",
+      "name": "icinga2bot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7728615?v=4",
+      "score": 23.6
+    }
+  },
+  "ringcentral/ringcentral-glip-errbot": {
+    "Glip": {
+      "path": "src/glipbackend.plug",
+      "repo": "https://github.com/ringcentral/ringcentral-glip-errbot",
+      "documentation": "Glip backend for ErrBot",
+      "name": "Glip",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6549285?v=4",
+      "score": 15.83
+    }
+  },
+  "samof76/covid19helpbot": {
+    "Covid19HelpBot": {
+      "path": "covid19helpbot.plug",
+      "repo": "https://github.com/samof76/covid19helpbot",
+      "documentation": "This bot will help you find things you require during this pandemic.",
+      "name": "Covid19HelpBot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/98111?v=4",
+      "score": -36.07
+    }
+  },
+  "scoates/err-sentryrelay": {
+    "SentryRelay": {
+      "path": "sentryrelay.plug",
+      "repo": "https://github.com/scoates/err-sentryrelay",
+      "documentation": "relays Sentry webhook messages",
+      "name": "SentryRelay",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71983?v=4",
+      "score": -71.2
+    }
+  },
+  "scoates/err-webrelay": {
+    "WebRelay": {
+      "path": "webrelay.plug",
+      "repo": "https://github.com/scoates/err-webrelay",
+      "documentation": "relays generic web POST messages",
+      "name": "WebRelay",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71983?v=4",
+      "score": -71.17
+    }
+  },
+  "shuiiiiiimu/hatter": {
+    "Hello": {
+      "path": "plugins/hello/hello.plug",
+      "repo": "https://github.com/shuiiiiiimu/hatter",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Hello",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6757399?v=4",
+      "score": -130.92
+    },
+    "Example": {
+      "path": "plugins/err-example/example.plug",
+      "repo": "https://github.com/shuiiiiiimu/hatter",
+      "documentation": "This is a simple plugin example to get you started.",
+      "name": "Example",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6757399?v=4",
+      "score": -130.92
+    }
+  },
+  "sijis/err-jira": {
+    "Jira": {
+      "path": "jira.plug",
+      "repo": "https://github.com/sijis/err-jira",
+      "documentation": "Jira plugin",
+      "name": "Jira",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/618177?v=4",
+      "score": -24.88
+    }
+  },
+  "sijis/err-salt": {
+    "Salt": {
+      "path": "salt.plug",
+      "repo": "https://github.com/sijis/err-salt",
+      "documentation": "Salt plugin to execute remote commands",
+      "name": "Salt",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/618177?v=4",
+      "score": -67.44
+    }
+  },
+  "spkane/classbot": {
+    "Students": {
+      "path": "plugins/students/students.plug",
+      "repo": "https://github.com/spkane/classbot",
+      "documentation": "Plugin for Errbot that manages students",
+      "name": "Students",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/129629?v=4",
+      "score": -99.3
+    }
+  },
+  "spyn/dungarmatrix": {
+    "BeerBot": {
+      "path": "plugins.old/beerbot.plug",
+      "repo": "https://github.com/spyn/dungarmatrix",
+      "documentation": "Find me this beer !",
+      "name": "BeerBot",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/703285?v=4",
+      "score": -102.5
+    },
+    "Skeleton": {
+      "path": "plugins.old/skeleton.plug",
+      "repo": "https://github.com/spyn/dungarmatrix",
+      "documentation": "An Err plugin skeleton",
+      "name": "Skeleton",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/703285?v=4",
+      "score": -102.5
+    },
+    "Jabberzac Magic": {
+      "path": "plugins/jzacMagic.plug",
+      "repo": "https://github.com/spyn/dungarmatrix",
+      "documentation": "Imported from Dungarmatic trademark",
+      "name": "Jabberzac Magic",
+      "python": "3+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/703285?v=4",
+      "score": -102.5
+    },
+    "Jabberzac Markov": {
+      "path": "plugins/jzacMarkov.plug",
+      "repo": "https://github.com/spyn/dungarmatrix",
+      "documentation": "Imported from Dungarmatic trademark",
+      "name": "Jabberzac Markov",
+      "python": "3+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/703285?v=4",
+      "score": -102.5
+    },
+    "OctopusDeploy": {
+      "path": "plugins.old/octopusDeploy.plug",
+      "repo": "https://github.com/spyn/dungarmatrix",
+      "documentation": "Octopus Deploy plugin",
+      "name": "OctopusDeploy",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/703285?v=4",
+      "score": -102.5
+    }
+  },
+  "swarmstack/errbot-docker": {
+    "AlerrtmanagerrWebex": {
+      "path": "local_plugins/alerrtmanagerr-webex/alerrtmanagerr.plug",
+      "repo": "https://github.com/swarmstack/errbot-docker",
+      "documentation": "Get alerts from Prometheus Alertmanager via webhooks",
+      "name": "AlerrtmanagerrWebex",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42419176?v=4",
+      "score": -14.44
+    },
+    "CiscoWebexTeams": {
+      "path": "local_backends/err-backend-cisco-webex-teams/CiscoWebexTeams.plug",
+      "repo": "https://github.com/swarmstack/errbot-docker",
+      "documentation": "This is a backend implementation for Cisco Webex Teams",
+      "name": "CiscoWebexTeams",
+      "python": "3.9.1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42419176?v=4",
+      "score": -14.44
+    }
+  },
+  "swhitt/concord_track": {
+    "concord_track": {
+      "path": "concord_track.plug",
+      "repo": "https://github.com/swhitt/concord_track",
+      "documentation": "keep track of concord spawns in eve online, an internet spaceships game",
+      "name": "concord_track",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/239?v=4",
+      "score": -109.17
+    }
+  },
+  "theho/thehobot": {
+    "example": {
+      "path": "example/example.plug",
+      "repo": "https://github.com/theho/thehobot",
+      "documentation": "Just an example",
+      "name": "example",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1423278?v=4",
+      "score": -121.2
+    }
+  },
+  "ubc/ltbot-encrypt": {
+    "Encrypt": {
+      "path": "encrypt.plug",
+      "repo": "https://github.com/ubc/ltbot-encrypt",
+      "documentation": "A simple plugin to encrypt strings",
+      "name": "Encrypt",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1396118?v=4",
+      "score": -59.17
+    }
+  },
+  "ubc/ltbot-hub2lab": {
+    "Hub2Lab": {
+      "path": "hub2lab.plug",
+      "repo": "https://github.com/ubc/ltbot-hub2lab",
+      "documentation": "A Github to GitLab repo sync plugin",
+      "name": "Hub2Lab",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1396118?v=4",
+      "score": -57.3
+    }
+  },
+  "vasilcovsky/errbot-backend-botframework": {
+    "BotFramework": {
+      "path": "botframework.plug",
+      "repo": "https://github.com/vasilcovsky/errbot-backend-botframework",
+      "documentation": "Backend implementation for Bot Framework (https://www.botframework.com)",
+      "name": "BotFramework",
+      "python": "2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/977901?v=4",
+      "score": 72.0
+    }
+  },
+  "vectranetworks/CogBot": {
+    "cogbot": {
+      "path": "src/plugins/cogbot/cogbot.plug",
+      "repo": "https://github.com/vectranetworks/CogBot",
+      "documentation": "Cogbot integrates Cognito Detect and Slack",
+      "name": "cogbot",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25186284?v=4",
+      "score": -22.77
+    }
+  },
+  "ylogx/errbot-deploy-ansible": {
+    "deploy": {
+      "path": "deploy.plug",
+      "repo": "https://github.com/ylogx/errbot-deploy-ansible",
+      "documentation": "Bot Plugin to deploy web apps using ansible",
+      "name": "deploy",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3508878?v=4",
+      "score": -101.9
+    }
+  },
+  "ylogx/errbot-supervisor": {
+    "supervisor": {
+      "path": "supervisor.plug",
+      "repo": "https://github.com/ylogx/errbot-supervisor",
+      "documentation": "Bot Plugin to control supervisord",
+      "name": "supervisor",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3508878?v=4",
+      "score": -109.33
+    }
+  },
+  "yuyuranium/lean-coffee": {
+    "Lean Coffee": {
+      "path": "lean_coffee.plug",
+      "repo": "https://github.com/yuyuranium/lean-coffee",
+      "documentation": "Run Lean Coffee with Errbot",
+      "name": "Lean Coffee",
+      "python": "3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/79467307?v=4",
+      "score": -17.53
+    }
+  },
+  "zoni/err-dnsutils": {
+    "DnsUtils": {
+      "path": "dnsutils.plug",
+      "repo": "https://github.com/zoni/err-dnsutils",
+      "documentation": "Dns utilities: host, dig, nslookup",
+      "name": "DnsUtils",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/145285?v=4",
+      "score": -11.52
+    }
+  },
+  "zoni/err-locker": {
+    "Locker": {
+      "path": "locker.plug",
+      "repo": "https://github.com/zoni/err-locker",
+      "documentation": "Lock things to let people know you're using them.",
+      "name": "Locker",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/145285?v=4",
+      "score": -22.8
+    }
+  },
+  "zoni/errbot-kayako": {
+    "Kayako": {
+      "path": "kayako.plug",
+      "repo": "https://github.com/zoni/errbot-kayako",
+      "documentation": "A plugin to interface with Kayako helpdesk",
+      "name": "Kayako",
+      "python": "2+",
+      "avatar_url": "https://avatars.githubusercontent.com/u/145285?v=4",
+      "score": -123.9
     }
   }
 }

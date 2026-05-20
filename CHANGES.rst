@@ -44,6 +44,7 @@ fixes:
 - chore: bump docker/login-action version (#1760)
 - chore: bump docker/setup-qemu-action version (#1761)
 - docs: add command parameter section and minor doc edits (#1740)
+- chore: bump actions/upload-artifact version (#1762)
 
 
 v6.2.0 (2024-01-01)

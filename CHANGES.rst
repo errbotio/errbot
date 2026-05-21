@@ -45,6 +45,7 @@ fixes:
 - chore: bump docker/setup-qemu-action version (#1761)
 - docs: add command parameter section and minor doc edits (#1740)
 - chore: bump actions/upload-artifact version (#1762)
+- docs: add positional argument with default example (#1763)
 
 
 v6.2.0 (2024-01-01)

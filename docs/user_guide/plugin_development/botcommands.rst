@@ -70,6 +70,7 @@ a command's arguments in `argparse format`_. The decorator can be used multiple 
 .. note::
     * An argument's `dest` parameter is used as its kwargs key when your command is called.
     * `favorite_number` would be `None` if we removed `default=42` from the :func:`~errbot.decorators.arg_botcmd` call.
+    * For **positional** arguments (those without a ``--`` prefix) to be optional and use a ``default`` value, you must also specify ``nargs='?'``. For example: ``@arg_botcmd('favorite_food', default='pizza', nargs='?')``.
 
 
 

@@ -192,6 +192,7 @@ class ErrBot(Backend, StoreMixin):
         template_parameters,
         in_reply_to: Optional[Message] = None,
         groupchat_nick_reply: bool = False,
+        plugin_name: str = None,
     ) -> Callable:
         """Sends a simple message to the specified user using a template.
 
@@ -203,8 +204,12 @@ class ErrBot(Backend, StoreMixin):
             the original message the bot is answering from
         :param groupchat_nick_reply:
             authorized the prefixing with the nick form the user
+        :param plugin_name:
+            the name of the plugin that is calling this method, to use it as a template namespace.
         """
-        text = self.process_template(template_name, template_parameters)
+        text = self.process_template(
+            template_name, template_parameters, plugin_name=plugin_name
+        )
         return self.send(identifier, text, in_reply_to, groupchat_nick_reply)
 
     def split_and_send_message(self, msg: Message) -> None:
@@ -504,14 +509,32 @@ class ErrBot(Backend, StoreMixin):
             )
 
     @staticmethod
-    def process_template(template_name, template_parameters):
+    def process_template(template_name, template_parameters, plugin_name: str = None):
+        """
+        Processes a template with the given parameters.
+
+        :param template_name: the name of the template to use.
+        :param template_parameters: the parameters to pass to the template.
+        :param plugin_name: the name of the plugin to use as a template namespace.
+        """
         # integrated templating
         # The template needs to be set and the answer from the user command needs to be a mapping
         # If not just convert the answer to string.
         if template_name and isinstance(template_parameters, Mapping):
-            return (
-                tenv().get_template(template_name + ".md").render(**template_parameters)
-            )
+            t_name = template_name + ".md"
+            if plugin_name:
+                try:
+                    return (
+                        tenv()
+                        .get_template(f"{plugin_name}/{t_name}")
+                        .render(**template_parameters)
+                    )
+                except Exception:
+                    log.debug(
+                        f"Template {t_name} not found in plugin {plugin_name} namespace, falling back to global search."
+                    )
+
+            return tenv().get_template(t_name).render(**template_parameters)
 
         # Reply should be all text at this point (See https://github.com/errbotio/errbot/issues/96)
         return str(template_parameters)
@@ -554,13 +577,16 @@ class ErrBot(Backend, StoreMixin):
                 )
                 return
 
+            plugin_name = getattr(getattr(method, "__self__", None), "name", None)
             if inspect.isgeneratorfunction(method):
                 replies = method(msg, match) if match else method(msg, args)
                 for reply in replies:
                     if reply:
                         self.send_simple_reply(
                             msg,
-                            self.process_template(template_name, reply),
+                            self.process_template(
+                                template_name, reply, plugin_name=plugin_name
+                            ),
                             private,
                             threaded,
                         )
@@ -569,7 +595,9 @@ class ErrBot(Backend, StoreMixin):
                 if reply:
                     self.send_simple_reply(
                         msg,
-                        self.process_template(template_name, reply),
+                        self.process_template(
+                            template_name, reply, plugin_name=plugin_name
+                        ),
                         private,
                         threaded,
                     )
@@ -580,7 +608,9 @@ class ErrBot(Backend, StoreMixin):
         except CommandError as command_error:
             reason = command_error.reason
             if command_error.template:
-                reason = self.process_template(command_error.template, reason)
+                reason = self.process_template(
+                    command_error.template, reason, plugin_name=plugin_name
+                )
             self.send_simple_reply(msg, reason, private, threaded)
 
         except Exception as e:

@@ -91,9 +91,32 @@ template (`{{name}}` in the above template example):
             """Say hello to someone"""
             return {'name': args}
 
-It's also possible to use templates when using `self.send()`, but in
-this case you will have to do the template rendering step yourself,
-like so:
+.. note::
+    Templates are namespaced by plugin name to avoid collisions between plugins.
+    The namespace is the name of your plugin as defined in the `[Core]` section of
+    your `.plug` file. If you have multiple plugins with the same template name
+    (e.g. `issue.md`), Errbot will prioritize the one belonging to the plugin
+    currently executing the command.
+
+It's also possible to use templates when using `self.send_templated()`, which
+is the preferred way to send templated messages from pollers or webhooks. It
+simplifies your code by handling both the template rendering and the plugin
+namespacing automatically in a single call:
+
+.. code-block:: python
+
+    from errbot import BotPlugin, botcmd
+
+    class Hello(BotPlugin):
+        @botcmd
+        def hello(self, msg, args):
+            """Say hello to someone"""
+            self.send_templated(msg.frm, 'hello', {'name': args})
+
+If you really need to do the template rendering step yourself, you can use
+:func:`~errbot.templating.tenv`, but be aware that you might need to prefix
+the template name with your plugin name to avoid collisions if you are not
+using `self.send_templated()`:
 
 .. code-block:: python
 
@@ -104,7 +127,8 @@ like so:
         @botcmd(template="hello")
         def hello(self, msg, args):
             """Say hello to someone"""
-            response = tenv().get_template('hello.md').render(name=args)
+            # Explicitly using the plugin namespace to avoid collisions
+            response = tenv().get_template('Hello/hello.md').render(name=args)
             self.send(msg.frm, response)
 
 

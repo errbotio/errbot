@@ -1,0 +1,6 @@
+[Core]
+Name = CollisionB
+Module = collision_b
+
+[Python]
+Version = 3

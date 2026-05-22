@@ -46,6 +46,7 @@ fixes:
 - docs: add command parameter section and minor doc edits (#1740)
 - chore: bump actions/upload-artifact version (#1762)
 - docs: add positional argument with default example (#1763)
+- feat: unique template names (#1764)
 
 
 v6.2.0 (2024-01-01)

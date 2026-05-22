@@ -25,3 +25,20 @@ def test_templates_5(testbot):
     assert "the following arguments are required: my_var" in testbot.exec_command(
         "!test template4"
     )
+
+
+def test_template_collision(testbot):
+    # Test CollisionA (namespaced)
+    testbot.push_message("!test_a")
+    response = testbot.pop_message()
+    assert "Template from PluginA" in response
+
+    # Test CollisionB (namespaced)
+    testbot.push_message("!test_b")
+    response = testbot.pop_message()
+    assert "Template from PluginB (B)" in response
+
+    # Test manual send_templated (respects namespace)
+    testbot.push_message("!test_manual")
+    response = testbot.pop_message()
+    assert "Template from PluginA" in response

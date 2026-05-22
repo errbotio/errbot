@@ -701,6 +701,7 @@ class BotPlugin(BotPluginBase):
             template_parameters=template_parameters,
             in_reply_to=in_reply_to,
             groupchat_nick_reply=groupchat_nick_reply,
+            plugin_name=self.name,
         )
 
     def build_identifier(self, txtrep: str) -> Identifier:

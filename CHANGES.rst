@@ -1,6 +1,7 @@
 v9.9.9 (unreleased)
 -------------------
 - chore: add releases script (#1767)
+- refactor: remove webtest dependency (#1769)
 
 
 v6.2.1 (2026-06-06)

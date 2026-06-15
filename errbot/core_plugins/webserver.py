@@ -73,14 +73,14 @@ class Webserver(BotPlugin):
 
     def check_configuration(self, configuration):
         # it is a pain, just assume a default config if SSL is absent or set to None
+        ssl_template = self.get_configuration_template()["SSL"]
         if configuration.get("SSL", None) is None:
-            configuration["SSL"] = {
-                "enabled": False,
-                "host": "0.0.0.0",
-                "port": 3142,
-                "certificate": "",
-                "key": "",
-            }
+            configuration["SSL"] = ssl_template
+        else:
+            # fill in missing keys from template if they are absent
+            for k, v in ssl_template.items():
+                if k not in configuration["SSL"]:
+                    configuration["SSL"][k] = v
         super().check_configuration(configuration)
 
     def activate(self):

@@ -19,13 +19,15 @@ log destination: {{ plugin.log.name }}
 
 log level: {{ logging.getLevelName(plugin.log.level) }}
 
-{% if plugin.keys %}
+{% if plugin.is_activated %}
+{% if plugin.keys() %}
 **storage content**
 
 Key                  | Value
 -------------------- | -----------------------
 {% for key, value in plugin.items() %}{{ key.ljust(20) }} | `{{ value }}`
 {% endfor %}
+{% endif %}
 {% endif %}
 
 {% if plugin.config  %}

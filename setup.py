@@ -27,7 +27,6 @@ if py_version < (3, 10):
 VERSION_FILE = os.path.join("errbot", "version.py")
 
 deps = [
-    "webtest==3.0.7",
     "setuptools>=78.1.1",
     "flask==3.1.3",
     "requests==2.32.5",
@@ -40,7 +39,6 @@ deps = [
     "pygments-markdown-lexer==0.1.0.dev39",  # syntax coloring to debug md
     "dulwich==1.2.1",  # python implementation of git
     "deepmerge==2.0",
-    "legacy-cgi==2.6.4; python_version >= '3.13'",  # stopgap fix for webtest after cgi dropped from stdlib in 3.13
 ]
 
 src_root = os.curdir
@@ -90,7 +88,7 @@ if __name__ == "__main__":
             ]
         },
         install_requires=deps,
-        tests_require=["nose", "webtest", "requests"],
+        tests_require=["nose", "requests"],
         package_data={
             "errbot": [
                 "backends/*.plug",

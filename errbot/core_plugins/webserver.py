@@ -7,7 +7,6 @@ from threading import Thread
 from urllib.request import unquote
 
 from OpenSSL import crypto
-from webtest import TestApp
 from werkzeug.serving import ThreadedWSGIServer
 
 from errbot import BotPlugin, botcmd, webhook
@@ -57,7 +56,6 @@ class Webserver(BotPlugin):
         self.server = None
         self.server_thread = None
         self.ssl_context = None
-        self.test_app = TestApp(flask_app)
         super().__init__(*args, **kwargs)
 
     def get_configuration_template(self):
@@ -180,7 +178,9 @@ class Webserver(BotPlugin):
 
         self.log.debug("Detected your post as : %s.", contenttype)
 
-        response = self.test_app.post(url, params=content, content_type=contenttype)
+        with flask_app.test_client() as client:
+            response = client.post(url, data=content, content_type=contenttype)
+
         return {
             "url": url,
             "content": content,

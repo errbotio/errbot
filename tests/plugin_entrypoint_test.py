@@ -119,6 +119,33 @@ class TestEntryPointDiscovery(unittest.TestCase):
 
     @patch("importlib.metadata.entry_points")
     @patch("importlib.util.find_spec")
+    @patch("errbot.utils.log")
+    def test_entry_point_discovery_logs_failure(
+        self, mock_log, mock_find_spec, mock_entry_points
+    ):
+        """
+        Test that failure to find spec is logged.
+        """
+        mock_ep = MagicMock()
+        mock_ep.name = "fallback"
+        mock_ep.module = "nonexistent"
+        mock_ep.dist = MagicMock()
+        mock_ep.dist.files = []
+
+        # Method 1 fails
+        mock_find_spec.side_effect = Exception("Import error")
+
+        mock_entry_points.return_value = [mock_ep]
+
+        entry_point_plugins("errbot.backend_plugins")
+
+        mock_log.debug.assert_called_with(
+            "Spec-based discovery failed for entry point fallback (module nonexistent)",
+            exc_info=True,
+        )
+
+    @patch("importlib.metadata.entry_points")
+    @patch("importlib.util.find_spec")
     def test_entry_point_discovery_deduplication(
         self, mock_find_spec, mock_entry_points
     ):

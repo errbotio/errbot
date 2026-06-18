@@ -210,7 +210,7 @@ def entry_point_plugins(group):
                 paths.add(str(pathlib.Path(spec.origin).resolve().parent))
                 continue
         except Exception:
-            pass
+            log.debug(f"Spec-based discovery failed for entry point {ep.name} (module {ep.module})", exc_info=True)
 
         # 2. Files-based discovery (Fallback for regular installs)
         for f in (ep.dist and ep.dist.files) or ():

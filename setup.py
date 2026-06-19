@@ -63,7 +63,6 @@ def read(fname, encoding="ascii"):
 
 
 if __name__ == "__main__":
-
     VERSION = read_version()
 
     args = set(sys.argv)
@@ -124,7 +123,12 @@ if __name__ == "__main__":
                 # held at 13.15: v20+ is fully async; backend would need a rewrite
                 "python-telegram-bot==13.15",
             ],
-            "XMPP": [
+            "XMPP:python_version < '3.11'": [
+                "slixmpp==1.12.0",
+                "pyasn1==0.6.3",
+                "pyasn1-modules==0.4.2",
+            ],
+            "XMPP:python_version >= '3.11'": [
                 "slixmpp==1.15.0",
                 "pyasn1==0.6.3",
                 "pyasn1-modules==0.4.2",

@@ -4,6 +4,7 @@ v9.9.9 (unreleased)
 - refactor: remove webtest dependency (#1769)
 - feat: support editable installed entrypoint plugins (#1766)
 - fix: XMPP backend referencing invalid method (#1768)
+- fix: XMPP support on python 3.10 (#1771)
 
 
 v6.2.1 (2026-06-06)

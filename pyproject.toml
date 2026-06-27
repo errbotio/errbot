@@ -48,9 +48,10 @@ mattermost = ["err-backend-mattermost==3.0.0"]
 IRC = ["irc==20.3.0"]
 telegram = ["python-telegram-bot==13.15"]
 XMPP = [
-    "slixmpp==1.8.4",
+    "slixmpp==1.12.0; python_version < '3.11'",
+    "slixmpp==1.15.0; python_version >= '3.11'",
     "pyasn1==0.6.3",
-    "pyasn1-modules==0.3.0",
+    "pyasn1-modules==0.4.2",
 ]
 test = ["pytest", "webtest", "requests"]
 

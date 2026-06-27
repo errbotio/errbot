@@ -9,7 +9,7 @@ description = "Errbot is a chatbot designed to be simple to extend with plugins 
 authors = [{name = "errbot.io", email = "info@errbot.io"}]
 license = "GPL-3.0-or-later"
 license-files = ["COPYING"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["xmpp", "irc", "slack", "hipchat", "gitter", "tox", "chatbot", "bot", "plugin", "chatops"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -17,27 +17,24 @@ classifiers = [
     "Topic :: Communications :: Chat :: Internet Relay Chat",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "webtest==3.0.0",
     "setuptools>=78.1.1",
-    "flask==2.3.3",
-    "requests==2.32.3",
+    "flask==3.1.3",
+    "requests==2.32.5",
     "jinja2==3.1.6",
-    "pyOpenSSL==24.3.0",
-    "colorlog==6.7.0",
-    "markdown==3.4.4",
-    "ansi==0.3.6",
-    "Pygments==2.16.1",
+    "pyOpenSSL==26.1.0",
+    "colorlog==6.10.1",
+    "markdown==3.10.2",
+    "ansi==0.3.7",
+    "Pygments==2.20.0",
     "pygments-markdown-lexer==0.1.0.dev39",
-    "dulwich==0.21.5",
-    "deepmerge==1.1.0",
-    'legacy-cgi==2.6.3; python_version >= "3.13"',
+    "dulwich==1.2.1",
+    "deepmerge==2.0",
     'daemonize==2.5.0; sys_platform != "win32"',
 ]
 
@@ -45,7 +42,7 @@ dependencies = [
 slack = ["errbot-backend-slackv3==0.3.2"]
 discord = ["err-backend-discord==3.0.1"]
 mattermost = ["err-backend-mattermost==3.0.0"]
-IRC = ["irc==20.3.0"]
+IRC = ["irc==20.5.0"]
 telegram = ["python-telegram-bot==13.15"]
 XMPP = [
     "slixmpp==1.12.0; python_version < '3.11'",
@@ -53,7 +50,7 @@ XMPP = [
     "pyasn1==0.6.3",
     "pyasn1-modules==0.4.2",
 ]
-test = ["pytest", "webtest", "requests"]
+test = ["pytest", "requests"]
 
 [project.urls]
 Homepage = "http://errbot.io/"

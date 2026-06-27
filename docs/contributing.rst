@@ -42,9 +42,9 @@ to refresh the pinned versions). From the root of the repository::
     pip install uv
 
     # Recompile the lockfile from pyproject.toml, pinned to the project's
-    # minimum supported Python version so the resolution covers 3.9+.
+    # minimum supported Python version so the resolution covers 3.10+.
     uv pip compile pyproject.toml -o pylock.toml \
-        --format pylock.toml --python-version 3.9
+        --format pylock.toml --python-version 3.10
 
 Commit the resulting ``pylock.toml`` alongside your ``pyproject.toml`` change in
 the same pull request so the two stay in sync.

@@ -6,6 +6,7 @@ v9.9.9 (unreleased)
 - fix: XMPP backend referencing invalid method (#1768)
 - fix: XMPP support on python 3.10 (#1771)
 - chore: bump actions/checkout version (#1772)
+- chore: bump actions/setup-python version (#1773)
 
 
 v6.2.1 (2026-06-06)

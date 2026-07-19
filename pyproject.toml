@@ -33,7 +33,7 @@ dependencies = [
     "ansi==0.3.7",
     "Pygments==2.20.0",
     "pygments-markdown-lexer==0.1.0.dev39",
-    "dulwich==1.2.1",
+    "dulwich==1.2.10",
     "deepmerge==2.0",
     'daemonize==2.5.0; sys_platform != "win32"',
 ]

@@ -275,7 +275,11 @@ class BotPluginManager(StoreMixin):
         feedback: Dict[Path, str],
     ):
         self._install_potential_package_dependencies(path, feedback)
-        plugfiles = path.glob("**/*." + extension)
+        
+        plugfiles = []
+        for ext in ("plug", "plugin"):
+            plugfiles.extend(path.glob(f"**/*.{ext}"))
+
         for plugfile in plugfiles:
             try:
                 plugin_info = PluginInfo.load(plugfile)

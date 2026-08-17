@@ -6,7 +6,7 @@ v9.9.9 (unreleased)
 - fix: XMPP backend referencing invalid method (#1768)
 - fix: XMPP support on python 3.10 (#1771)
 - chore: bump actions/checkout version (#1772)
-- chore: bump actions/setup-python version (#1773)
+- chore: bump actions/setup-python version (#1773, #1775)
 - refactor: switch to pyproject.toml (#1753)
 - chore: bump dependencies (#1774)
 

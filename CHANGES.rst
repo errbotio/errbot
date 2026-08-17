@@ -8,7 +8,7 @@ v9.9.9 (unreleased)
 - chore: bump actions/checkout version (#1772, #1776)
 - chore: bump actions/setup-python version (#1773, #1775)
 - refactor: switch to pyproject.toml (#1753)
-- chore: bump dependencies (#1774)
+- chore: bump dependencies (#1774, #1777)
 
 
 v6.2.1 (2026-06-06)

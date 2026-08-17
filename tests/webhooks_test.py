@@ -210,3 +210,71 @@ def test_lambda_webhook(webhook_testbot):
         requests.post("http://localhost:{}/lambda".format(WEBSERVER_PORT)).status_code
         == 200
     )
+
+
+def test_route_webhook_after_first_request(webhook_testbot):
+    from errbot import BotPlugin, webhook
+    from errbot.core_plugins.wsview import route
+
+    assert (
+        requests.post(
+            f"http://localhost:{WEBSERVER_PORT}/echo",
+            JSONOBJECT,
+        ).status_code
+        == 200
+    )
+
+    class DynamicPlugin(BotPlugin):
+        @webhook("/dynamic/late_webhook")
+        def late_webhook(self, payload):
+            return "late webhook ok"
+
+        @webhook("/dynamic/late_webhook2")
+        def late_webhook2(self, payload):
+            return "late webhook2 ok"
+
+    plugin = DynamicPlugin(webhook_testbot.bot)
+    route(plugin)
+
+    resp = requests.post(f"http://localhost:{WEBSERVER_PORT}/dynamic/late_webhook")
+    assert resp.status_code == 200
+    assert resp.text == "late webhook ok"
+
+    resp2 = requests.post(f"http://localhost:{WEBSERVER_PORT}/dynamic/late_webhook2")
+    assert resp2.status_code == 200
+    assert resp2.text == "late webhook2 ok"
+
+
+def test_route_webhook_reload_updates_all_methods(webhook_testbot):
+    from errbot import BotPlugin, webhook
+    from errbot.core_plugins.wsview import route
+
+    class MultiWebhookPlugin(BotPlugin):
+        @webhook("/reload/w1")
+        def w1(self, payload):
+            return "v1_w1"
+
+        @webhook("/reload/w2")
+        def w2(self, payload):
+            return "v1_w2"
+
+    plugin_v1 = MultiWebhookPlugin(webhook_testbot.bot)
+    route(plugin_v1)
+
+    assert requests.post(f"http://localhost:{WEBSERVER_PORT}/reload/w1").text == "v1_w1"
+    assert requests.post(f"http://localhost:{WEBSERVER_PORT}/reload/w2").text == "v1_w2"
+
+    class MultiWebhookPluginV2(BotPlugin):
+        @webhook("/reload/w1")
+        def w1(self, payload):
+            return "v2_w1"
+
+        @webhook("/reload/w2")
+        def w2(self, payload):
+            return "v2_w2"
+
+    plugin_v2 = MultiWebhookPluginV2(webhook_testbot.bot)
+    route(plugin_v2)
+
+    assert requests.post(f"http://localhost:{WEBSERVER_PORT}/reload/w1").text == "v2_w1"
+    assert requests.post(f"http://localhost:{WEBSERVER_PORT}/reload/w2").text == "v2_w2"

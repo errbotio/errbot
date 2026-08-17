@@ -46,16 +46,19 @@ def route(obj):
                 func.__name__ + "_" + "_".join(verbs), func, form_param, raw
             )
 
-            # Change existing rule.
+            # Update existing rule if present; otherwise register a new rule
             for rule in flask_app.url_map._rules:
                 if rule.rule == uri_rule:
                     flask_app.view_functions[rule.endpoint] = callable_view
-                    return
-
-            # Add a new rule
-            flask_app.add_url_rule(
-                uri_rule, view_func=callable_view, methods=verbs, strict_slashes=False
-            )
+                    break
+            else:
+                flask_app._got_first_request = False
+                flask_app.add_url_rule(
+                    uri_rule,
+                    view_func=callable_view,
+                    methods=verbs,
+                    strict_slashes=False,
+                )
 
 
 class WebView(View):

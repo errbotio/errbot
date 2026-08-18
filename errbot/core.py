@@ -243,16 +243,27 @@ class ErrBot(Backend, StoreMixin):
         self.send_templated(card.to, "card", {"card": card})
 
     def send_simple_reply(
-        self, msg: Message, text: str, private: bool = False, threaded: bool = False
+        self,
+        msg: Message,
+        text: str,
+        private: bool = False,
+        threaded: bool = False,
+        parent: Optional[Message] = None,
     ) -> None:
         """Send a simple response to a given incoming message
 
         :param private: if True will force a response in private.
         :param threaded: if True and if the backend supports it, sends the response in a threaded message.
+        :param parent: if set and if the backend supports it, threads the response under this
+            specific message.
         :param text: the markdown text of the message.
         :param msg: the message you are replying to.
         """
-        reply = self.build_reply(msg, text, private=private, threaded=threaded)
+        reply = self.build_reply(
+            msg, text, private=private, threaded=threaded or parent is not None
+        )
+        if parent is not None:
+            reply.parent = parent
         if isinstance(reply.to, Room) and self.bot_config.GROUPCHAT_NICK_PREFIXED:
             self.prefix_groupchat_reply(reply, msg.frm)
         self.split_and_send_message(reply)
@@ -582,6 +593,9 @@ class ErrBot(Backend, StoreMixin):
                 replies = method(msg, match) if match else method(msg, args)
                 for reply in replies:
                     if reply:
+                        # If the command build a `Message` rather than a string,
+                        # use the parent value if it was passed.
+                        parent = reply.parent if isinstance(reply, Message) else None
                         self.send_simple_reply(
                             msg,
                             self.process_template(
@@ -589,10 +603,12 @@ class ErrBot(Backend, StoreMixin):
                             ),
                             private,
                             threaded,
+                            parent=parent,
                         )
             else:
                 reply = method(msg, match) if match else method(msg, args)
                 if reply:
+                    parent = reply.parent if isinstance(reply, Message) else None
                     self.send_simple_reply(
                         msg,
                         self.process_template(
@@ -600,6 +616,7 @@ class ErrBot(Backend, StoreMixin):
                         ),
                         private,
                         threaded,
+                        parent=parent,
                     )
 
             # The command is a success, check if this has not made a flow progressed

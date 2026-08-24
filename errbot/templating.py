@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PrefixLoader
+from markupsafe import Markup
 
 from errbot.plugin_info import PluginInfo
 
@@ -10,6 +11,39 @@ log = logging.getLogger(__name__)
 
 def make_templates_path(root: Path) -> Path:
     return root / "templates"
+
+
+def _md_table_cell(value) -> str:
+    text = str(value)
+    # Newlines and pipes would break a Markdown table, so neutralize them.
+    text = text.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
+    return text.replace("|", "\\|")
+
+
+def md_table(rows, headers=None) -> Markup:
+    """Render an iterable of rows as a GitHub flavored Markdown table.
+
+    ``rows`` is an iterable of iterables, one per table row. ``headers`` is an
+    optional list used for the header row. Cells are turned into strings and any
+    pipe or newline characters in them are escaped so the table stays valid.
+
+    The result is a :class:`~markupsafe.Markup` string so it can be dropped
+    straight into a Markdown template with ``{{ md_table(rows, headers=[...]) }}``.
+    """
+    rows = [list(row) for row in rows]
+    header_cells = list(headers) if headers is not None else []
+    ncols = max([len(header_cells)] + [len(row) for row in rows])
+    if ncols == 0:
+        return Markup("")
+
+    def line(cells):
+        cells = [_md_table_cell(c) for c in cells]
+        cells += [""] * (ncols - len(cells))
+        return "| " + " | ".join(cells) + " |"
+
+    lines = [line(header_cells), "| " + " | ".join(["---"] * ncols) + " |"]
+    lines += [line(row) for row in rows]
+    return Markup("\n".join(lines))
 
 
 system_templates_path = str(make_templates_path(Path(__file__).parent))
@@ -30,6 +64,7 @@ def _recreate_env():
         keep_trailing_newline=False,
         autoescape=True,
     )
+    env.globals["md_table"] = md_table
 
 
 _recreate_env()

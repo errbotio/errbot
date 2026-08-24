@@ -131,6 +131,15 @@ using `self.send_templated()`:
             response = tenv().get_template('Hello/hello.md').render(name=args)
             self.send(msg.frm, response)
 
+Building tables by hand in a Jinja2 template is fiddly, so a ``md_table``
+helper is available in every template. Give it the rows (an iterable of
+iterables) and, optionally, a list of headers, and it returns a Markdown table.
+Pipe and newline characters in the cells are escaped for you so the table stays
+valid:
+
+.. code-block:: jinja
+
+    {{ md_table(rows, headers=['Name', 'Score']) }}
 
 Cards
 -----

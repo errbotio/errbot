@@ -552,7 +552,7 @@ class IRCConnection(SingleServerIRCBot):
         if self.bot.bot_identifier.nick == leaving_nick:
             with self._rooms_lock:
                 self.bot.callback_room_left(self._rooms[leaving_room])
-            log.info("Left room {}.", leaving_room)
+            log.info("Left room %s.", leaving_room)
 
     def on_endofnames(
         self, connection: irc.client.ServerConnection, event: irc.client.Event
